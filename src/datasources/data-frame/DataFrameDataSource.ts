@@ -73,29 +73,20 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.getDecimatedTableData(query, columns, timeRange, intervals);
   }
 
-  public queryTables$(
-    query: string,
-    take?: number,
-    projection?: DataTableProjections[],
-    substitutions?: string[]
-  ): Observable<TableProperties[]> {
-    return this.datasource.queryTables$(query, take, projection, substitutions);
-  }
-
-  public queryTablesWithCombinedFilters$(
-    filters: CombinedFilters,
-    take?: number,
-    projections?: DataTableProjections[]
-  ): Observable<TableProperties[]> {
-    return this.datasource.queryTablesWithCombinedFilters$(filters, take, projections);
-  }
-
   public queryTables(
     query: string,
     take?: number,
     projection?: DataTableProjections[]
   ): Promise<TableProperties[]> {
     return this.datasource.queryTables(query, take, projection);
+  }
+    
+  public queryTables$(
+    filters: CombinedFilters,
+    take?: number,
+    projections?: DataTableProjections[]
+  ): Observable<TableProperties[]> {
+    return this.datasource.queryTables$(filters, take, projections);
   }
 
   public processQuery(query: DataFrameDataQuery): ValidDataFrameQuery {

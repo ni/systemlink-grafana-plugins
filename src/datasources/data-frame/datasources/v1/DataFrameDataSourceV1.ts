@@ -17,6 +17,7 @@ import {
   DataTableProjections,
   DataFrameVariableQuery,
   ValidDataFrameVariableQuery,
+  CombinedFilters,
 } from '../../types';
 import { propertiesCacheTTL } from '../../constants';
 import _ from 'lodash';
@@ -99,10 +100,9 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
   }
 
   queryTables$(
-    query: string,
+    filters: CombinedFilters,
     take = 5,
-    projection?: DataTableProjections[],
-    substitutions?: string[]
+    projection?: DataTableProjections[]
   ): Observable<TableProperties[]> {
     return of([]);
   }

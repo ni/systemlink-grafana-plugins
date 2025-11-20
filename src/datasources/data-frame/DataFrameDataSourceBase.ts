@@ -22,7 +22,7 @@ import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { extractErrorInfo } from 'core/errors';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { PART_NUMBER_FIELD } from './constants';
 
 export abstract class DataFrameDataSourceBase<
@@ -59,27 +59,19 @@ export abstract class DataFrameDataSourceBase<
         timeRange: TimeRange,
         intervals?: number
     ): Promise<TableDataRows>;
-
-    public abstract queryTables$(
-        query: string,
-        take?: number,
-        projection?: DataTableProjections[],
-        substitutions?: string[]
-    ): Observable<TableProperties[]>;
-
+    
     public abstract queryTables(
         query: string,
         take?: number,
         projection?: DataTableProjections[]
     ): Promise<TableProperties[]>;
 
-    public queryTablesWithCombinedFilters$(
+    public abstract queryTables$(
         filters: CombinedFilters,
         take?: number,
         projections?: DataTableProjections[]
-    ): Observable<TableProperties[]> {
-        return of([]);
-    }
+    ): Observable<TableProperties[]>;
+
 
     public async testDatasource(): Promise<TestDataSourceResponse> {
         await this.get(`${this.baseUrl}/tables`, { params: { take: 1 } });

@@ -104,9 +104,9 @@ export enum DataTableProjections {
 }
 
 export interface CombinedFilters {
-  resultsFilter: string;
-  dataTableFilter: string;
-  columnsFilter: string;
+  resultsFilter?: string;
+  dataTableFilter?: string;
+  columnsFilter?: string;
 }
 
 export enum DataTableProjectionType {

@@ -75,8 +75,8 @@ describe('DataFrameDataSource', () => {
         await expect(ds.getDecimatedTableData({} as any, [], {} as TimeRange, 10)).resolves.toBe('v1-decimated');
         expect(v1Mock.getDecimatedTableData).toHaveBeenCalled();
 
-        await expect(lastValueFrom(ds.queryTables$('query'))).resolves.toEqual(['v1-tables']);
-        expect(v1Mock.queryTables$).toHaveBeenCalledWith('query', undefined, undefined, undefined);
+        await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: 'query' }))).resolves.toEqual(['v1-tables']);
+        expect(v1Mock.queryTables$).toHaveBeenCalledWith({ dataTableFilter: 'query' }, undefined, undefined);
 
         await expect(ds.queryTables('query')).resolves.toEqual(['v1-tables']);
         expect(v1Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined);
@@ -110,8 +110,8 @@ describe('DataFrameDataSource', () => {
         await expect(ds.getDecimatedTableData({} as any, [], {} as TimeRange, 10)).resolves.toBe('v2-decimated');
         expect(v2Mock.getDecimatedTableData).toHaveBeenCalled();
 
-        await expect(lastValueFrom(ds.queryTables$('query'))).resolves.toEqual(['v2-tables']);
-        expect(v2Mock.queryTables$).toHaveBeenCalledWith('query', undefined, undefined, undefined);
+        await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: 'query' }))).resolves.toEqual(['v2-tables']);
+        expect(v2Mock.queryTables$).toHaveBeenCalledWith({ dataTableFilter: 'query' }, undefined, undefined);
 
         await expect(ds.queryTables('query')).resolves.toEqual(['v2-tables']);
         expect(v2Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined);
@@ -123,13 +123,12 @@ describe('DataFrameDataSource', () => {
         expect(v2Mock.processVariableQuery).toHaveBeenCalled();
     });
 
-    it('should pass substitutions parameter to queryTables$ in V2', async () => {
+    it('should pass parameters to queryTables$ in V2', async () => {
         const ds = new DataFrameDataSource(mockInstanceSettings(true));
-        const substitutions = ['$workspace', '$status'];
 
-        await lastValueFrom(ds.queryTables$('query', 10, undefined, substitutions));
+        await lastValueFrom(ds.queryTables$({ dataTableFilter: 'query' }, 10, undefined));
 
-        expect(v2Mock.queryTables$).toHaveBeenCalledWith('query', 10, undefined, substitutions);
+        expect(v2Mock.queryTables$).toHaveBeenCalledWith({ dataTableFilter: 'query' }, 10, undefined);
     });
 
     it('should set defaultQuery to defaultQueryV1 when datasource is DataFrameDataSourceV1 with refId "A"', () => {
@@ -173,9 +172,9 @@ describe('DataFrameDataSource', () => {
    describe('queryTablesWithCombineFilters', () => {
        it('should call queryTablesWithCombineFilters on DataFrameDataSourceV1 when feature toggle is false', async () => {
            const ds = new DataFrameDataSource(mockInstanceSettings(false));
-           v1Mock.queryTablesWithCombinedFilters$ = jest.fn().mockReturnValue(of(['v1-combined-tables']));
+           v1Mock.queryTables$ = jest.fn().mockReturnValue(of(['v1-combined-tables']));
 
-           const result = await lastValueFrom(ds.queryTablesWithCombinedFilters$(
+           const result = await lastValueFrom(ds.queryTables$(
                {
                    dataTableFilter: 'name = "test"',
                    resultsFilter: 'status = "passed"',
@@ -185,7 +184,7 @@ describe('DataFrameDataSource', () => {
                ['name' as any]
            ));
            
-           expect(v1Mock.queryTablesWithCombinedFilters$).toHaveBeenCalledWith(
+           expect(v1Mock.queryTables$).toHaveBeenCalledWith(
                {
                    dataTableFilter: 'name = "test"',
                    resultsFilter: 'status = "passed"',
@@ -199,9 +198,9 @@ describe('DataFrameDataSource', () => {
 
        it('should call queryTablesWithCombineFilters on DataFrameDataSourceV2 when feature toggle is true', async () => {
            const ds = new DataFrameDataSource(mockInstanceSettings(true));
-           v2Mock.queryTablesWithCombinedFilters$ = jest.fn().mockReturnValue(of(['v2-combined-tables']));
+           v2Mock.queryTables$ = jest.fn().mockReturnValue(of(['v2-combined-tables']));
 
-           const result = await lastValueFrom(ds.queryTablesWithCombinedFilters$(
+           const result = await lastValueFrom(ds.queryTables$(
                {
                    dataTableFilter: 'name = "test"',
                    resultsFilter: 'status = "passed"',
@@ -211,7 +210,7 @@ describe('DataFrameDataSource', () => {
                ['name' as any]
            ));
            
-           expect(v2Mock.queryTablesWithCombinedFilters$).toHaveBeenCalledWith(
+           expect(v2Mock.queryTables$).toHaveBeenCalledWith(
                {
                    dataTableFilter: 'name = "test"',
                    resultsFilter: 'status = "passed"',

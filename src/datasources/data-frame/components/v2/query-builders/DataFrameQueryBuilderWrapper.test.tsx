@@ -89,7 +89,7 @@ const renderComponent = (
                 { label: 'Var2', value: 'Value2' },
             ]
         ),
-        queryTablesWithCombinedFilters$: jest.fn().mockReturnValue(
+        queryTables$: jest.fn().mockReturnValue(
             of([
                 { id: 'table1', name: 'Table 1', columns: [{ name: 'ColumnA' }, { name: 'ColumnB' }] },
                 { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, { name: 'ColumnE' }] },

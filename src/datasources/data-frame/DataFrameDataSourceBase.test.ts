@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TimeRange } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { DataFrameDataSourceBase } from './DataFrameDataSourceBase';
-import { DataFrameQuery, DataFrameDataSourceOptions, TableProperties, TableDataRows, Column, DataFrameVariableQuery, ValidDataFrameVariableQuery, DataFrameDataQuery } from './types';
+import { DataFrameQuery, DataFrameDataSourceOptions, TableProperties, TableDataRows, Column, DataFrameVariableQuery, ValidDataFrameVariableQuery, DataFrameDataQuery, CombinedFilters } from './types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { Workspace } from 'core/types';
 import { lastValueFrom, Observable, of } from 'rxjs';
@@ -76,7 +76,7 @@ describe('DataFrameDataSourceBase', () => {
             return Promise.resolve([] as unknown as TableDataRows);
         }
 
-        public queryTables$(_query: string): Observable<TableProperties[]> {
+        public queryTables$(filters: CombinedFilters): Observable<TableProperties[]> {
             return of([]);
         }
 
@@ -121,7 +121,7 @@ describe('DataFrameDataSourceBase', () => {
         expect(ds.processVariableQuery({} as DataFrameVariableQuery)).toEqual({});
         await expect(ds.getTableProperties()).resolves.toEqual({});
         await expect(ds.getDecimatedTableData({} as DataFrameDataQuery, [], {} as TimeRange)).resolves.toEqual([]);
-        await expect(lastValueFrom(ds.queryTables$(''))).resolves.toEqual([]);
+        await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: '' }))).resolves.toEqual([]);
         await expect(ds.queryTables('')).resolves.toEqual([]);
     });
 
@@ -147,7 +147,7 @@ describe('DataFrameDataSourceBase', () => {
         it('should accept take and projections parameters and return empty array by default', async () => {
             const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
             
-            const result = await lastValueFrom(ds.queryTablesWithCombinedFilters$({
+            const result = await lastValueFrom(ds.queryTables$({
                 dataTableFilter: 'name = "test"',
                 resultsFilter: 'status = "passed"',
                 columnsFilter: 'name = "column1"'
