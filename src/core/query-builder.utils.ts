@@ -16,6 +16,8 @@ export type ExpressionTransformFunction = (value: string, operation: string, opt
  */
 export const computedFieldsupportedOperations = ['=', '!=', '>', '>=', '<', '<='];
 
+const startEndOperations = ['StartsWith', 'EndsWith'];
+
 /**
  * The function will replace the computed fields with their transformation
  * Example: object = "value" => object1.prop1 = "value" || object1.prop2 = "value"
@@ -33,6 +35,8 @@ export function transformComputedFieldsQuery(
     query = transformBasedOnComputedFieldSupportedOperations(query, field, transformation, options);
     query = transformBasedOnBlankOperations(query, field, transformation, options);
     query = transformBasedOnContainsOperations(query, field, transformation, options);
+    query = transformListContainsOperations(query, field, transformation, options);
+    query = transformBasedOnStartAndEndOperations(query, field, transformation, options);
   }
 
   return query;
@@ -69,6 +73,69 @@ function transformBasedOnContainsOperations(query: string, field: string, transf
           : QueryBuilderOperations.CONTAINS.name;
       return transformation(extractedValue, operation, options?.get(field));
     });
+}
+
+/** 
+ * Transforms fields using StartsWith and EndsWith operations by applying computed field transformations.
+ * This handles conversion of string operations on computed fields to their underlying property expressions.
+ * 
+ * For example:
+ * Input: Object1.StartsWith("value1")
+ * Output: obj.prop1.StartsWith(value1)
+ * 
+ * Input: Object2.EndsWith("value2")
+ * Output: obj.prop2.EndsWith(value2)
+ * 
+ * @param query Query string containing one or more StartsWith/EndsWith operations to be transformed.
+ * @param field Name of the field on which the StartsWith/EndsWith operation is performed.
+ * @param transformation Callback function that transforms the value based on the operation.
+ * @param options Optional configuration for the transformation.
+ * @returns Transformed query string with StartsWith/EndsWith operations processed.
+ */
+function transformListContainsOperations(
+  query: string,
+  field: string,
+  transformation: ExpressionTransformFunction,
+  options?: Map<string, Map<string, unknown>>
+) {
+  const listOperationRegex = new RegExp(String.raw`\b${field}\.Any\s*\((.*)\)`, 'g');
+
+  return query.replace(listOperationRegex, (_match, innerPredicate: string) => {
+    const containsRegex = /(?:!(it\.Contains\("([^"]*)"\))|(it\.Contains\("([^"]*)"\)))/g;
+    
+    const transformedPredicate = innerPredicate.replace(containsRegex, (_match, _negatedMatch, negatedValue, _positiveMatch, positiveValue) => {
+        const extractedValue = negatedValue || positiveValue;
+        return transformation(extractedValue, QueryBuilderOperations.LIST_CONTAINS.name, options?.get(field));
+    });
+
+    const isNegated = /^!/.test(innerPredicate.trim());
+    return isNegated ? `!${field}.Any(${transformedPredicate})` : `${field}.Any(${transformedPredicate})`;
+  });
+}
+
+/** 
+ * The function will replace fields with StartsWith and EndsWith operations with their transformation.
+ * 
+ * @param query Query string containing one or more instances of the starts with/ ends with operation to be transformed.
+ * @param field Name of the field on which the starts with/ ends with operation is performed.
+ * @param transformation callback function that transforms the value based on the operation.
+ * @param options The options to be used in the transformation
+ * @returns Transformed query string with starts with/ ends with operation processed.
+ */
+function transformBasedOnStartAndEndOperations(
+  query: string,
+  field: string,
+  transformation: ExpressionTransformFunction,
+  options?: Map<string, Map<string, unknown>>
+) {
+  const regex = new RegExp(String.raw`\b${field}\.(${startEndOperations.join('|')})\s*\("([^"]*)"\)`, 'g');
+
+  return query.replace(regex, (_match, operation, value) => {
+    const operationName = operation === 'StartsWith'
+      ? QueryBuilderOperations.STARTS_WITH.name
+      : QueryBuilderOperations.ENDS_WITH.name;
+    return transformation(value, operationName, options?.get(field));
+  });
 }
 
 /**
@@ -176,6 +243,27 @@ export function timeFieldsQuery(field: string): ExpressionTransformFunction {
 }
 
 /**
+ * Returns a function that builds a query expression for list fields.
+ * When the operation is listcontains, it transforms it to a Contains operation on the inner field named 'it'.
+ * 
+ * for example:
+ * Input: field = "keywords", value = "{key1,key2}", operation = "listcontains"
+ * Output: (it.Contains("key1") || it.Contains("key2"))
+ * 
+ * @param field - The name of the list field to be queried.
+ * @returns Callback function that builds a query expression for list fields.
+ */
+export function listFieldsQuery(field: string): ExpressionTransformFunction {
+  return (value: string, operation: string, options?: Map<string, unknown>) => {
+    const [updatedFieldName, updatedOperation] = operation === QueryBuilderOperations.LIST_CONTAINS.name
+      ? ['it', QueryBuilderOperations.CONTAINS.name]
+      : [field, operation];
+    
+    return multipleValuesQuery(updatedFieldName)(value, updatedOperation);
+  };
+}
+
+/**
  * Transforms a field query to support both single and multi-value inputs.
  * Returns a function that builds the correct query expression for the given field, value(s), and operation.
  *
@@ -218,7 +306,13 @@ export function multipleValuesQuery(field: string): ExpressionTransformFunction 
  * @returns The logical operator as a string.
  */
 export function getConcatOperatorForMultiExpression(operation: string): string {
-  return operation === QueryBuilderOperations.EQUALS.name || operation === QueryBuilderOperations.CONTAINS.name || operation === QueryBuilderOperations.IS_NOT_BLANK.name
+  return (
+    operation === QueryBuilderOperations.EQUALS.name
+    || operation === QueryBuilderOperations.CONTAINS.name
+    || operation === QueryBuilderOperations.IS_NOT_BLANK.name
+    || operation === QueryBuilderOperations.STARTS_WITH.name
+    || operation === QueryBuilderOperations.ENDS_WITH.name
+  )
     ? '||'
     : '&&';
 }

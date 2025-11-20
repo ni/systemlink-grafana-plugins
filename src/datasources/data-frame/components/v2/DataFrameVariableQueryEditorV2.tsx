@@ -24,6 +24,20 @@ export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChang
         }
     };
 
+    const onResultsFilterChange = (event?: Event | React.FormEvent<Element>) => {
+        if (event) {
+            const resultsFilter = (event as CustomEvent).detail.linq;
+            onChange({ ...migratedQuery, resultsFilter });
+        }
+    }
+
+    const onColumnsFilterChange = (event?: Event | React.FormEvent<Element>) => {
+        if (event) {
+            const columnsFilter = (event as CustomEvent).detail.linq;
+            onChange({ ...migratedQuery, columnsFilter });
+        }
+    }
+
     return (
         <>
             <InlineField
@@ -40,8 +54,12 @@ export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChang
             </InlineField>
             <DataFrameQueryBuilderWrapper
                 datasource={datasource}
+                resultsFilter={migratedQuery.resultsFilter}
                 dataTableFilter={migratedQuery.dataTableFilter}
+                columnsFilter={migratedQuery.columnsFilter}
+                onResultsFilterChange={onResultsFilterChange}
                 onDataTableFilterChange={onDataTableFilterChange}
+                onColumnsFilterChange={onColumnsFilterChange}
             />
             <FloatingError
                 message={datasource.errorTitle}
