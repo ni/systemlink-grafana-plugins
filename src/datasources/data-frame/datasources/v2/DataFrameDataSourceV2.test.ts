@@ -573,6 +573,33 @@ describe('DataFrameDataSourceV2', () => {
                         fields: expectedFields
                     });
                 });
+
+                it('should return 1 million values when the query returns more than 1 million columns', async () => {
+                    const queryWithColumnProperties = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableProperties: [DataTableProperties.Name],
+                        columnProperties: [DataTableProperties.ColumnName],
+                        take: 1000,
+                        refId: 'A',
+                    };
+                    const mockTables = Array.from({ length: 1000 }, (_, i) => ({
+                        id: `table-${i}`,
+                        name: `Table ${i}`,
+                        columns: Array.from({ length: 2000 }, (_, j) => ({
+                            name: `Column ${j}`,
+                            dataType: 'string'
+                        }))
+                    }));
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                    const result = await lastValueFrom(
+                        ds.runQuery(queryWithColumnProperties, options)
+                    );
+
+                    for (const field of result.fields) {
+                        expect(field.values?.length).toEqual(1000000);
+                    }
+                });
             });
         });
     });
