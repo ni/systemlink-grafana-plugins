@@ -45,6 +45,7 @@ describe('DataFrameDataSource', () => {
             queryTables: jest.fn().mockResolvedValue(['v1-tables']),
             processQuery: jest.fn().mockReturnValue('v1-processed'),
             processVariableQuery: jest.fn().mockReturnValue('v1-processed'),
+            transformQuery: jest.fn((query: string) => query),
         } as any;
 
         v2Mock = {
@@ -175,7 +176,14 @@ describe('DataFrameDataSource', () => {
         const createTemplateSrv = (variables: Array<{ name: string; current: { value: any } }>): TemplateSrv => {
             return {
                 getVariables: () => variables,
-                replace: (input: string) => input,
+                replace: (input: string) => {
+                    const match = input.match(/^\$(.+)$/);
+                    if (match) {
+                        const variable = variables.find(variable => variable.name === match[1]);
+                        return variable ? variable.current.value : input;
+                    }
+                    return input;
+                },
             } as unknown as TemplateSrv;
         };
 
@@ -308,9 +316,11 @@ describe('DataFrameDataSource', () => {
             expect(result).toBe('v2-filter');
         });
 
-        it('throws when feature toggle false (v1 lacks transformQuery)', () => {
+        it('delegates to v1 base transformQuery when feature toggle false', () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
-            expect(() => ds.transformQuery('filter')).toThrow();
+            const result = ds.transformQuery('filter');
+            expect(v1Mock.transformQuery).toHaveBeenCalledWith('filter');
+            expect(result).toBe('filter');
         });
     });
 });

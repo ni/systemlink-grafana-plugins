@@ -38,7 +38,7 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     const dashboardVariables = Object.fromEntries(
       this.templateSrv.getVariables().map(variable => [
       variable.name,
-      (variable as any).current?.value ?? ''
+      this.templateSrv.replace(`\$${variable.name}`)
       ])
     );
 
