@@ -1,4 +1,3 @@
-
 ### SystemLink Alarms data source
 
 The _SystemLink Alarms_ data source allows you to display alarm properties in dashboards and derive insights from alarm data.
