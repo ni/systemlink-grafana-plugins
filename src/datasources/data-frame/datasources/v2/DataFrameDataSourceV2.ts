@@ -2,7 +2,7 @@ import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, 
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1 } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -416,7 +416,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private flattenTablesWithColumns(tables: TableProperties[]): FlattenedTableProperties[] {
-        return tables.flatMap(table => {
+        if (tables.length === 0 || !tables[0].columns) {
+            return tables;
+        }
+
+        const flattenedData = tables.flatMap(table => {
             const baseData = {
                 id: table.id,
                 name: table.name,
@@ -431,7 +435,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 properties: table.properties,
             };
 
-            return table.columns?.length > 0
+            return table.columns.length > 0
                 ? table.columns.map(column => ({
                     ...baseData,
                     columnName: column.name,
@@ -441,6 +445,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 }))
                 : [baseData];
         });
+
+        return flattenedData.slice(0, TOTAL_ROWS_LIMIT);
     }
 
     private getFieldValues(
