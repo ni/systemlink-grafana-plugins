@@ -143,6 +143,7 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                         <ColumnsQueryBuilder
                             filter={columnsFilter}
                             onChange={onColumnsFilterChange}
+                            disabled={!resultsFilter || resultsFilter.trim() === ''}
                         />
                     </div>
                 </>

@@ -242,6 +242,40 @@ describe('DataFrameQueryBuilderWrapper', () => {
                 expect(screen.queryByTestId('mock-columns-query-builder')).not.toBeInTheDocument();
             });
         });
+
+        
+        it('should pass disabled=true to ColumnsQueryBuilder when resultsFilter is empty', async () => {
+            renderComponent('', '', 'column filter');
+
+            expect(ColumnsQueryBuilder).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    disabled: true,
+                }),
+                {}
+            );
+        });
+
+        it('should pass disabled=true to ColumnsQueryBuilder when resultsFilter is only whitespace', async () => {
+            renderComponent('   ', '', 'column filter');
+
+            expect(ColumnsQueryBuilder).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    disabled: true,
+                }),
+                {}
+            );
+        });
+
+        it('should pass disabled=false to ColumnsQueryBuilder when resultsFilter has content', async () => {
+            renderComponent('status = "passed"', '', 'column filter');
+
+            expect(ColumnsQueryBuilder).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    disabled: false,
+                }),
+                {}
+            );
+        });
     });
 
     describe('ResultsQueryBuilder', () => {
