@@ -6,10 +6,12 @@ import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
 import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
 import { Observable } from "rxjs";
 import { DataQuery } from "@grafana/schema";
+import _ from "lodash";
 
 export class DataFrameDataSource extends DataFrameDataSourceBase {
   private queryByTablePropertiesFeatureEnabled = false;
   private datasource: DataFrameDataSourceBase;
+  public variablesCache: Record<string, string> = {};
 
   constructor(
     public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
@@ -40,6 +42,18 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     query: DataFrameDataQuery,
     options: DataQueryRequest<DataFrameDataQuery>
   ): Promise<DataFrameDTO> | Observable<DataFrameDTO> {
+    const dashboardVariables = Object.fromEntries(
+      this.templateSrv.getVariables()
+        .map(variable => [
+          variable.name,
+          this.templateSrv.replace(`\$${variable.name}`)
+      ])
+    );
+
+    if (!_.isEqual(this.variablesCache, dashboardVariables)) {
+      this.variablesCache = dashboardVariables;
+    }
+
     return this.datasource.runQuery(query, options);
   }
 
@@ -97,5 +111,9 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
 
   public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
     return this.datasource.getColumnOptionsWithVariables(filter);
+  }
+
+  public transformQuery(query: string) {
+    return this.datasource.transformQuery(query);
   }
 }

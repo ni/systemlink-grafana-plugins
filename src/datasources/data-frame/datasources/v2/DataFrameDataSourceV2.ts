@@ -199,12 +199,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
-        const variableReplacedFilter = this.transformQuery(
-            filter,
-            this.scopedVars
-        );
         const columnOptionsWithoutVariables = await this.getColumnOptions(
-            variableReplacedFilter
+            filter
         );
         const columnOptionsWithVariables = [
             ...this.getVariableOptions(),
@@ -258,6 +254,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 ? `${matchingColumn.name}-${this.transformColumnType(matchingColumn.dataType)}`
                 : selectedColumn;
         });
+    }
+
+    public transformQuery(query: string, scopedVars: ScopedVars = this.scopedVars) {
+        return transformComputedFieldsQuery(
+            this.templateSrv.replace(query, scopedVars),
+            this.dataTableComputedDataFields,
+        );
     }
 
     private areAllObjectsWithNameProperty(object: any[]): object is Array<{ name: string; }> {
@@ -456,13 +459,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
             return value;
         });
-    }
-
-    private transformQuery(query: string, scopedVars: ScopedVars) {
-        return transformComputedFieldsQuery(
-            this.templateSrv.replace(query, scopedVars),
-            this.dataTableComputedDataFields,
-        );
     }
 
     private getFieldsForPropertiesQuery$(processedQuery: ValidDataFrameQueryV2): Observable<DataFrameDTO> {
