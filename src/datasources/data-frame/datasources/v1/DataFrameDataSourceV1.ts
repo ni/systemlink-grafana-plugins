@@ -91,7 +91,7 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase {
     }
 
     return await this.post<TableDataRows>(
-      `${this.baseUrl}/tables/${(query as DataFrameQueryV1).tableId}/query-decimated-data`,
+      `${this.baseUrl}/tables/${query.tableId}/query-decimated-data`,
       {
         columns: query.columns,
         filters,
@@ -119,7 +119,7 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase {
   }
 
   processQuery(query: DataFrameQueryV1): ValidDataFrameQueryV1 {
-    const migratedQuery = { ...defaultQueryV1, ...query } as ValidDataFrameQueryV1;
+    const migratedQuery = { ...defaultQueryV1, ...query };
 
     // Handle existing dashboards with 'MetaData' type
     if ((migratedQuery.type as any) === LEGACY_METADATA_TYPE) {

@@ -1038,6 +1038,20 @@ describe('DataFrameDataSourceV2', () => {
                     expect(result.columns).toEqual([]);
                 });
 
+                it('should not call get$ and should return an empty array when columns are objects without name property', () => {
+                    const v1Query = {
+                        type: DataFrameQueryType.Data,
+                        tableId: 'table-789',
+                        columns: [{ dataType: 'string' }, { dataType: 'string' }] as any,
+                        refId: 'E'
+                    } as DataFrameQueryV1;
+
+                    const result = ds.processQuery(v1Query);
+
+                    expect(getSpy$).not.toHaveBeenCalled();
+                    expect(result.columns).toEqual([]);
+                });
+
                 it('should return an observable with original columns when columns are not found in table metadata', async () => {
                     getSpy$.mockReturnValue(of({
                         columns: [
