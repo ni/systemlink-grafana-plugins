@@ -124,7 +124,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
-        if ('tableId' in query) {
+        if (_.isPlainObject(query) && 'tableId' in query) {
             // Convert V1 to V2
             const {
                 tableId,
