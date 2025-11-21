@@ -1,3 +1,9 @@
+## [4.78.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.78.0...v4.78.1) (2025-11-21)
+
+### Bug Fixes
+
+* **dataframe:** Query reset when filter is applied ([#546](https://github.com/ni/systemlink-grafana-plugins/issues/546)) ([f7199e8](https://github.com/ni/systemlink-grafana-plugins/commit/f7199e83630612d5b8b35a85c6dd30491bd9f1ed))
+
 ## [4.78.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.77.0...v4.78.0) (2025-11-21)
 
 ### Features
