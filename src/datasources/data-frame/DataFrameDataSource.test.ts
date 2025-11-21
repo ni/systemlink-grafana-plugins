@@ -61,7 +61,7 @@ describe('DataFrameDataSource', () => {
             queryTables: jest.fn().mockResolvedValue(['v2-tables']),
             processQuery: jest.fn().mockReturnValue('v2-processed'),
             prepareQuery: jest.fn().mockReturnValue('v2-prepared'),
-            processVariableQuery: jest.fn().mockReturnValue('v2-processed')
+            processVariableQuery: jest.fn().mockReturnValue('v2-processed'),
             transformQuery: jest.fn((query: string) => `v2-${query}`),
         } as any;
 
