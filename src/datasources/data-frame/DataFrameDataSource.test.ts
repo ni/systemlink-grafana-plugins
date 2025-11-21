@@ -214,33 +214,33 @@ describe('DataFrameDataSource', () => {
             expect(ds.variablesCache).toBe(firstRef);
         });
 
-        it('replaces variablesCache when variable value changes', async () => {
+        it('should replace variablesCache when variable value changes', async () => {
             const templateSrv = createTemplateSrv([{ name: 'varA', value: '1' }]);
             const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
             await ds.runQuery(query, options);
             const firstRef = ds.variablesCache;
+            
             (ds as any).templateSrv = createTemplateSrv([{ name: 'varA', value: '2' }]);
-
             await ds.runQuery(query, options);
 
             expect(ds.variablesCache).not.toBe(firstRef);
             expect(ds.variablesCache).toEqual({ varA: '2' });
         });
 
-        it('replaces variablesCache when variable name changes', async () => {
+        it('should replace variablesCache when variable name changes', async () => {
             const templateSrv = createTemplateSrv([{ name: 'varA', value: '1' }]);
             const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
             await ds.runQuery(query, options);
             const firstRef = ds.variablesCache;
+            
             (ds as any).templateSrv = createTemplateSrv([{ name: 'varB', value: '1' }]);
-
             await ds.runQuery(query, options);
 
             expect(ds.variablesCache).not.toBe(firstRef);
             expect(ds.variablesCache).toEqual({ varB: '1' });
         });
 
-        it('does not replace variablesCache when only variable order changes', async () => {
+        it('should not replace variablesCache when only variable order changes', async () => {
             const templateSrv = createTemplateSrv([
                 { name: 'varA', value: '1' },
                 { name: 'varB', value: '2' }
@@ -254,26 +254,26 @@ describe('DataFrameDataSource', () => {
             await ds.runQuery(query, options);
 
             const firstRef = ds.variablesCache;
+            
             (ds as any).templateSrv = createTemplateSrv([
                 { name: 'varB', value: '2' },
                 { name: 'varA', value: '1' },
             ]);
-
             await ds.runQuery(query, options);
 
             expect(ds.variablesCache).toBe(firstRef);
         });
 
-        it('replaces variablesCache when variable added', async () => {
+        it('should replace variablesCache when variable added', async () => {
             const templateSrv = createTemplateSrv([{ name: 'varA', value: '1' }]);
             const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
             await ds.runQuery(query, options);
             const firstRef = ds.variablesCache;
+            
             (ds as any).templateSrv = createTemplateSrv([
                 { name: 'varA', value: '1' },
                 { name: 'varB', value: '2' },
             ]);
-
             await ds.runQuery(query, options);
 
             expect(ds.variablesCache).not.toBe(firstRef);
@@ -283,7 +283,7 @@ describe('DataFrameDataSource', () => {
             });
         });
 
-        it('replaces variablesCache when variable removed', async () => {
+        it('should replace variablesCache when variable removed', async () => {
             const templateSrv = createTemplateSrv([
                 { name: 'varA', value: '1' },
                 { name: 'varB', value: '2' }
@@ -295,10 +295,10 @@ describe('DataFrameDataSource', () => {
             );
             await ds.runQuery(query, options);
             const firstRef = ds.variablesCache;
+            
             (ds as any).templateSrv = createTemplateSrv([
                 { name: 'varA', value: '1' },
             ]);
-
             await ds.runQuery(query, options);
 
             expect(ds.variablesCache).not.toBe(firstRef);
@@ -307,7 +307,7 @@ describe('DataFrameDataSource', () => {
     });
 
     describe('transformQuery', () => {
-        it('delegates to v2 transformQuery when feature toggle true', () => {
+        it('should delegate to v2 transformQuery when feature toggle is true', () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
             v2Mock.transformQuery.mockClear();
             
@@ -317,7 +317,7 @@ describe('DataFrameDataSource', () => {
             expect(result).toBe('v2-filter');
         });
 
-        it('delegates to v1 base transformQuery when feature toggle false', () => {
+        it('should delegate to v1 base transformQuery when feature toggle is false', () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
             v1Mock.transformQuery.mockClear();
             

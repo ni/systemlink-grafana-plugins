@@ -42,22 +42,23 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const lastFilterRef = useRef<string>('');
 
     const fetchAndSetColumnOptions = useCallback(
-      async (filter: string) => {
-        if (!filter) {
-            return;
-        }
+        async (filter: string) => {
+            if (!filter) {
+                return;
+            }
 
-        try {
+            try {
             const columnOptions = await datasource.getColumnOptionsWithVariables(filter);
             const limitedColumnOptions = columnOptions.slice(0, COLUMN_OPTIONS_LIMIT);
             setIsColumnLimitExceeded(columnOptions.length > COLUMN_OPTIONS_LIMIT);
             setColumnOptions(limitedColumnOptions);
-        } catch (error) {
+            } catch (error) {
             setColumnOptions([]);
-        }
-        
-      },
-      [datasource]
+            }
+        },
+        [
+            datasource
+        ]
     );
 
     useEffect(

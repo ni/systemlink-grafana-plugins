@@ -1560,6 +1560,7 @@ describe('DataFrameDataSourceV2', () => {
 
             const result = ds.transformQuery(input);
 
+            //Check if result matches ISO date format
             expect(result).toMatch(/^createdAt >= "\d{4}-\d{2}-\d{2}T.+Z"$/);
             expect(result).not.toContain('${__now:date}');
         });
