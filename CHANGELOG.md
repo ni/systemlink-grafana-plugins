@@ -1,3 +1,13 @@
+## [4.78.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.77.0...v4.78.0) (2025-11-21)
+
+### Features
+
+* **dataframes:** Limit the number of rows when the query type is properties ([#545](https://github.com/ni/systemlink-grafana-plugins/issues/545)) ([8ce5cc8](https://github.com/ni/systemlink-grafana-plugins/commit/8ce5cc8b84214571da58f480bad2f9712aa95572))
+
+### Bug Fixes
+
+* **dataframe:** Populate columns when values of the variable change in the filter ([#540](https://github.com/ni/systemlink-grafana-plugins/issues/540)) ([8f4ab51](https://github.com/ni/systemlink-grafana-plugins/commit/8f4ab51ebbb2e98ca1f6adeefcdb5869b54eec9a))
+
 ## [4.77.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.76.0...v4.77.0) (2025-11-21)
 
 ### Features
