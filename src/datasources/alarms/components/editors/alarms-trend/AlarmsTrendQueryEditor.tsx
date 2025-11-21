@@ -6,7 +6,7 @@ import { ERROR_SEVERITY_WARNING, LABEL_WIDTH, labels, SECONDARY_LABEL_WIDTH, too
 import { AlarmsTrendQueryHandler } from 'datasources/alarms/query-type-handlers/alarms-trend/AlarmsTrendQueryHandler';
 import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
-import { InlineSwitch, Stack } from '@grafana/ui';
+import { InlineSwitch, Space, Stack } from '@grafana/ui';
 
 type Props = {
   query: AlarmsTrendQuery;
@@ -43,6 +43,7 @@ export function AlarmsTrendQueryEditor({ query, handleQueryChange, datasource }:
 
   return (
     <>
+      <Space v={1} />
       <Stack>
         <InlineField
           label={labels.queryBy}

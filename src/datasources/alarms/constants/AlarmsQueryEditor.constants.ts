@@ -25,6 +25,7 @@ export const ALARMS_TIME_FIELDS = [
 
 export const labels = {
   queryType: 'Query Type',
+  outputType: 'Output',
   queryBy: 'Query By',
   properties: 'Properties',
   descending: 'Descending',
@@ -35,6 +36,7 @@ export const labels = {
 
 export const tooltips = {
   queryType: 'This field specifies the query type to display alarms data, count or trend.',
+  outputType: 'This field specifies the output type to fetch alarms properties or total count.',
   queryBy: 'This optional field specifies the query filters.',
   properties: 'This field specifies the properties to use in the query.',
   descending: 'This toggle returns the alarms query in descending order.',

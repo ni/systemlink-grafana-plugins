@@ -1,11 +1,17 @@
 import { AlarmsQuery, TransitionInclusionOption } from './types';
 
 export interface ListAlarmsQuery extends AlarmsQuery {
+  outputType?: OutputType;
   filter?: string;
   properties?: AlarmsProperties[];
   descending?: boolean;
   take?: number;
   transitionInclusionOption?: TransitionInclusionOption;
+}
+
+export enum OutputType {
+  Properties = 'Properties',
+  TotalCount = 'Total Count',
 }
 
 export enum AlarmsSpecificProperties {

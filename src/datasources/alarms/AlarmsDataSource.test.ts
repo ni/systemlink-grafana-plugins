@@ -21,6 +21,7 @@ describe('AlarmsDataSource', () => {
 
   it('should initialize with ListAlarms as the default query', () => {
     expect(datastore.defaultQuery).toEqual({
+      outputType: 'Properties',
       filter: '',
       properties: ['displayName', 'currentSeverityLevel', 'occurredAt', 'source', 'state', 'workspace'],
       take: 1000,
