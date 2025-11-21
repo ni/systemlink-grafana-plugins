@@ -137,10 +137,19 @@ describe('DataFrameDataSourceBase', () => {
 
     it('should return empty array for getColumnOptionsWithVariables', async () => {
         const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
-        
-        const options = await ds.getColumnOptionsWithVariables('filter');   
-        
+
+        const options = await ds.getColumnOptionsWithVariables('filter');
+
         expect(options).toEqual([]);
+    });
+
+    it('should return query as it is for processVariableQuery', async () => {
+        const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+        const query = { key: 'dataframe-variable-query' } as any;
+
+        const result = ds.processVariableQuery(query);
+
+        expect(result).toBe(query);
     });
 
     describe('loadWorkspaces', () => {

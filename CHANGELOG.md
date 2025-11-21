@@ -1,3 +1,20 @@
+## [4.77.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.76.0...v4.77.0) (2025-11-21)
+
+### Features
+
+* **dataframe:** Migrate columns in v1 to v2 ([#541](https://github.com/ni/systemlink-grafana-plugins/issues/541)) ([a1db28e](https://github.com/ni/systemlink-grafana-plugins/commit/a1db28eef828b5ef170226677956206fa86b8703))
+
+## [4.76.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.75.1...v4.76.0) (2025-11-20)
+
+### Features
+
+* **dataframe:** Handle v1 query to v2 query migration ([#536](https://github.com/ni/systemlink-grafana-plugins/issues/536)) ([577ade9](https://github.com/ni/systemlink-grafana-plugins/commit/577ade9b9dd70ae1e18e7902d5cfd74d60482d69))
+* **dataframe:** Move properties select below query builders ([#538](https://github.com/ni/systemlink-grafana-plugins/issues/538)) ([38d4e25](https://github.com/ni/systemlink-grafana-plugins/commit/38d4e255bf95a433ec5870be70cd9340c5ea30f5))
+
+### Bug Fixes
+
+* **dataframe:** Remove variable options from list columns variable query ([#537](https://github.com/ni/systemlink-grafana-plugins/issues/537)) ([8b9b31e](https://github.com/ni/systemlink-grafana-plugins/commit/8b9b31e619ec2c73421b9c034d8f4a244c828981))
+
 ## [4.75.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.75.0...v4.75.1) (2025-11-19)
 
 ### Bug Fixes
