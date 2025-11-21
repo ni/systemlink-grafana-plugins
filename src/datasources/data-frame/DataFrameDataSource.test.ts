@@ -250,9 +250,7 @@ describe('DataFrameDataSource', () => {
                 backendSrv,
                 templateSrv
             );
-
             await ds.runQuery(query, options);
-
             const firstRef = ds.variablesCache;
             
             (ds as any).templateSrv = createTemplateSrv([

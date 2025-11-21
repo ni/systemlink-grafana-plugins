@@ -307,8 +307,10 @@ describe("DataFrameQueryEditorV2", () => {
                       type: DataFrameQueryType.Data,
                       dataTableFilter: 'InitialFilter',
                     });
+                    const getColumnOptionsSpy = jest.spyOn(datasource, 'getColumnOptionsWithVariables');
 
-                    await waitFor(() => expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1));
+                    await waitFor(() => expect(getColumnOptionsSpy).toHaveBeenCalledTimes(1));
+                    getColumnOptionsSpy.mockClear();
                     renderResult.rerender(
                       <DataFrameQueryEditorV2
                         datasource={datasource}
@@ -318,7 +320,7 @@ describe("DataFrameQueryEditorV2", () => {
                       />
                     );
                     
-                    await waitFor(() => expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1));
+                    await waitFor(() => expect(datasource.getColumnOptionsWithVariables).not.toHaveBeenCalled());
                   });
 
                   it('should call transformQuery before deciding to load column options', async () => {
@@ -342,7 +344,6 @@ describe("DataFrameQueryEditorV2", () => {
                     );
                     
                     await waitFor(() => expect(datasource.transformQuery).toHaveBeenCalledWith('FilterX'));
-                    
                     expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('FilterX');
                   });
                 });
@@ -353,7 +354,7 @@ describe("DataFrameQueryEditorV2", () => {
                         await clickColumnOptions();
 
                         const optionTexts = getColumnOptionTexts();
-                    
+                        
                         expect(optionTexts.length).toBeLessThanOrEqual(COLUMN_OPTIONS_LIMIT);
                         await waitFor(() => {
                             expect(screen.queryByRole('alert')).not.toBeInTheDocument();
@@ -417,7 +418,7 @@ describe("DataFrameQueryEditorV2", () => {
                         jest.clearAllMocks();
                     });
 
-                    it('should load column options when switching to Data query type with existing non-empty filter', async () => {
+                    it('should fetch column options when switching to Data query type with existing non-empty filter', async () => {
                         const user = userEvent.setup();
                         const { datasource } = renderComponent({
                             type: DataFrameQueryType.Properties,
@@ -451,7 +452,7 @@ describe("DataFrameQueryEditorV2", () => {
                         });
                     });
 
-                    it('should not load column options when switching to Data query type with existing empty filter', async () => {
+                    it('should not fetch column options when switching to Data query type with existing empty filter', async () => {
                         const user = userEvent.setup();
                         const { datasource } = renderComponent({
                             type: DataFrameQueryType.Properties,
@@ -472,7 +473,7 @@ describe("DataFrameQueryEditorV2", () => {
                         expect(datasource.getColumnOptionsWithVariables).not.toHaveBeenCalled();
                     });
 
-                    it('should not load column options when filter changes while in Properties query type', async () => {
+                    it('should not fetch column options when filter changes while in Properties query type', async () => {
                         const { datasource } = renderComponent({
                             type: DataFrameQueryType.Properties,
                             dataTableFilter: 'InitialFilter',
@@ -533,7 +534,7 @@ describe("DataFrameQueryEditorV2", () => {
                         expect(datasource.getColumnOptionsWithVariables).not.toHaveBeenCalled();
                     });
 
-                    it('should load column options when filter changes while in Data query type', async () => {
+                    it('should fetch column options when filter changes while in Data query type', async () => {
                         const user = userEvent.setup();
                         const { datasource } = renderComponent({ type: DataFrameQueryType.Data, dataTableFilter: 'InitialFilter' });
                         const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
