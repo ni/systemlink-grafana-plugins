@@ -15,9 +15,6 @@ import {
   DataFrameQueryType,
   DataFrameDataSourceOptions,
   DataTableProjections,
-  DataFrameVariableQuery,
-  ValidDataFrameVariableQuery,
-  DataFrameDataQuery,
 } from '../../types';
 import { propertiesCacheTTL } from '../../constants';
 import _ from 'lodash';
@@ -26,7 +23,7 @@ import { replaceVariables } from 'core/utils';
 import { LEGACY_METADATA_TYPE } from 'core/types';
 import { Observable, of } from 'rxjs';
 
-export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQueryV1> {
+export class DataFrameDataSourceV1 extends DataFrameDataSourceBase {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
   defaultQuery = defaultQueryV1;
 
@@ -38,7 +35,7 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     super(instanceSettings, backendSrv, templateSrv);
   }
 
-  async runQuery(query: DataFrameDataQuery, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
+  async runQuery(query: DataFrameQueryV1, { range, scopedVars, maxDataPoints }: DataQueryRequest): Promise<DataFrameDTO> {
     const processedQuery = this.processQuery(query);
     processedQuery.tableId = this.templateSrv.replace(processedQuery.tableId, scopedVars);
     processedQuery.columns = replaceVariables(processedQuery.columns, this.templateSrv);
@@ -78,7 +75,7 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
   }
 
   async getDecimatedTableData(
-    query: DataFrameDataQuery,
+    query: DataFrameQueryV1,
     columns: Column[],
     timeRange: TimeRange,
     intervals = 1000
@@ -121,7 +118,7 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     return (await this.post<TablePropertiesList>(`${this.baseUrl}/query-tables`, { filter, take, projection })).tables;
   }
 
-  processQuery(query: DataFrameDataQuery): ValidDataFrameQueryV1 {
+  processQuery(query: DataFrameQueryV1): ValidDataFrameQueryV1 {
     const migratedQuery = { ...defaultQueryV1, ...query } as ValidDataFrameQueryV1;
 
     // Handle existing dashboards with 'MetaData' type
@@ -138,13 +135,9 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     return deepEqual(migratedQuery, query) ? (query as ValidDataFrameQueryV1) : migratedQuery;
   }
 
-  async metricFindQuery(tableQuery: DataFrameVariableQuery): Promise<MetricFindValue[]> {
+  async metricFindQuery(tableQuery: DataFrameQueryV1): Promise<MetricFindValue[]> {
     const tableProperties = await this.getTableProperties((tableQuery as DataFrameQueryV1).tableId);
     return tableProperties.columns.map(col => ({ text: col.name, value: col.name }));
-  }
-
-  public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
-    return query as ValidDataFrameVariableQuery;
   }
 
   private getColumnTypes(columnNames: string[], tableProperties: Column[]): Column[] {

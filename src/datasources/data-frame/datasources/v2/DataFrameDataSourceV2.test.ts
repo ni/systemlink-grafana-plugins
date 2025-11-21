@@ -873,7 +873,7 @@ describe('DataFrameDataSourceV2', () => {
                 const query = {
                     type: DataFrameQueryType.Data,
                     tableId: 'table-123',
-                    columns: [{dataType: 'string'}, { dataType: 'string' }] as any,
+                    columns: [{ dataType: 'string' }, { dataType: 'string' }] as any,
                     refId: 'A'
                 } as DataFrameDataQuery;
 
@@ -1117,6 +1117,19 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual(v2Query);
             });
+        });
+    });
+
+    describe('prepareQuery', () => {
+        it('should return the query as is', () => {
+            const query = {
+                type: DataFrameQueryType.Data,
+                refId: 'A'
+            } as ValidDataFrameQueryV2;
+
+            const result = ds.prepareQuery(query);
+
+            expect(result).toBe(query);
         });
     });
 

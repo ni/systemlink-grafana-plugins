@@ -1,7 +1,7 @@
 import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQuery, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1 } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DataFrameQuery } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -10,7 +10,7 @@ import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/componen
 import _ from "lodash";
 import { catchError, combineLatestWith, from, lastValueFrom, map, Observable, of } from "rxjs";
 
-export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
+export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
     private scopedVars: ScopedVars = {};
 
@@ -81,7 +81,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         }));
     }
 
-    shouldRunQuery(query: ValidDataFrameQuery): boolean {
+    shouldRunQuery(query: DataFrameDataQuery): boolean {
         return !query.hide;
     }
 
@@ -117,6 +117,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             ...defaultQueryV2,
             ...query
         };
+    }
+
+    public prepareQuery(query: DataFrameQuery): DataFrameQuery {
+        return query;
     }
 
     public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
