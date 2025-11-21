@@ -1538,6 +1538,35 @@ describe('DataFrameDataSourceV2', () => {
     });
 
     describe('transformQuery', () => {
+        it('should transform with the new scopedVariables when passed in as parameter', () => {
+            const input = 'name = "${Table}" AND id != "abc"';
+            const scopedVars = {
+                Table: { text: 'Table2', value: 'Table2' }
+            };
+            
+            ds.transformQuery(input, scopedVars);    
+            expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
+        })
+
+        it('should transform with saved scopedVariables when not passed in as parameter', async () => {
+            const scopedVars = {
+                name: { value: 'Test Table' }
+            }
+            const query = {
+                type: DataFrameQueryType.Data,
+                dataTableFilter: '',
+            } as DataFrameQueryV2;
+            const options = {
+                scopedVars: scopedVars
+            } as unknown as DataQueryRequest<DataFrameQueryV2>;
+            await lastValueFrom(ds.runQuery(query, options));
+            const input = 'name = "${Table}" AND id != "abc"';
+            
+            ds.transformQuery(input);   
+ 
+            expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
+        });
+
         it('should replace single-value variables', () => {
             const input = 'name = "${Table}" AND id != "abc"';
             templateSrv.replace.mockReturnValue('name = "Table1" AND id != "abc"');

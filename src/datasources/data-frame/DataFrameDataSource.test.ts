@@ -45,7 +45,7 @@ describe('DataFrameDataSource', () => {
             queryTables: jest.fn().mockResolvedValue(['v1-tables']),
             processQuery: jest.fn().mockReturnValue('v1-processed'),
             processVariableQuery: jest.fn().mockReturnValue('v1-processed'),
-            transformQuery: jest.fn((query: string) => query),
+            transformQuery: jest.fn((query: string) => `v1-${query}`),
         } as any;
 
         v2Mock = {
@@ -322,7 +322,7 @@ describe('DataFrameDataSource', () => {
             const result = ds.transformQuery('filter');
             
             expect(v1Mock.transformQuery).toHaveBeenCalledWith('filter');
-            expect(result).toBe('filter');
+            expect(result).toBe('v1-filter');
         });
     });
 });
