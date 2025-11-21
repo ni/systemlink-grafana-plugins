@@ -36,6 +36,7 @@ describe('DataFrameDataSource', () => {
         } as unknown as TemplateSrv;
 
         v1Mock = {
+            defaultQuery: { value: 'v1-default' } as any,
             runQuery: jest.fn().mockResolvedValue('v1-runQuery'),
             shouldRunQuery: jest.fn().mockReturnValue(true),
             metricFindQuery: jest.fn().mockResolvedValue(['v1-metric']),
@@ -44,11 +45,13 @@ describe('DataFrameDataSource', () => {
             queryTables$: jest.fn().mockReturnValue(of(['v1-tables'])),
             queryTables: jest.fn().mockResolvedValue(['v1-tables']),
             processQuery: jest.fn().mockReturnValue('v1-processed'),
+            prepareQuery: jest.fn().mockReturnValue('v1-prepared'),
             processVariableQuery: jest.fn().mockReturnValue('v1-processed'),
             transformQuery: jest.fn((query: string) => `v1-${query}`),
         } as any;
 
         v2Mock = {
+            defaultQuery: { value: 'v2-default' } as any,
             runQuery: jest.fn().mockReturnValue(of('v2-runQuery')),
             shouldRunQuery: jest.fn().mockReturnValue(false),
             metricFindQuery: jest.fn().mockResolvedValue(['v2-metric']),
@@ -57,7 +60,8 @@ describe('DataFrameDataSource', () => {
             queryTables$: jest.fn().mockReturnValue(of(['v2-tables'])),
             queryTables: jest.fn().mockResolvedValue(['v2-tables']),
             processQuery: jest.fn().mockReturnValue('v2-processed'),
-            processVariableQuery: jest.fn().mockReturnValue('v2-processed'),
+            prepareQuery: jest.fn().mockReturnValue('v2-prepared'),
+            processVariableQuery: jest.fn().mockReturnValue('v2-processed')
             transformQuery: jest.fn((query: string) => `v2-${query}`),
         } as any;
 
@@ -96,6 +100,11 @@ describe('DataFrameDataSource', () => {
 
         expect(ds.processVariableQuery({} as any)).toBe('v1-processed');
         expect(v1Mock.processVariableQuery).toHaveBeenCalled();
+
+        expect(ds.prepareQuery({} as any)).toBe('v1-prepared');
+        expect(v1Mock.prepareQuery).toHaveBeenCalled();
+
+        expect(ds.defaultQuery).toEqual({ ...v1Mock.defaultQuery });
     });
 
     it('should use DataFrameDataSourceV2 if feature toggle is true', async () => {
@@ -131,44 +140,33 @@ describe('DataFrameDataSource', () => {
 
         expect(ds.processVariableQuery({} as any)).toBe('v2-processed');
         expect(v2Mock.processVariableQuery).toHaveBeenCalled();
+
+        expect(ds.prepareQuery({} as any)).toBe('v2-prepared');
+        expect(v2Mock.prepareQuery).toHaveBeenCalled();
+
+        expect(ds.defaultQuery).toEqual({ ...v2Mock.defaultQuery });
     });
 
-    it('should set defaultQuery to defaultQueryV1 when datasource is DataFrameDataSourceV1 with refId "A"', () => {
-        const dsV1 = new DataFrameDataSource(mockInstanceSettings(false));
-        expect(dsV1.defaultQuery).toBeDefined();
-        expect(dsV1.defaultQuery.refId).toBe('A');
-        const expectedV1Default = v1Mock.defaultQuery ? { ...v1Mock.defaultQuery, refId: 'A' } : { refId: 'A' };
-        expect(dsV1.defaultQuery).toEqual(expectedV1Default);
-    });
+    describe('getColumnOptionsWithVariables', () => {
+        it('should call getColumnOptionsWithVariables on DataFrameDataSourceV1 when feature toggle is false', async () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(false));
+            v1Mock.getColumnOptionsWithVariables = jest.fn().mockResolvedValue(['v1-column-options']);
 
-    it('should set defaultQuery to defaultQueryV2 when datasource is DataFrameDataSourceV2 with refId "A"', () => {
-        const dsV2 = new DataFrameDataSource(mockInstanceSettings(true));
-        expect(dsV2.defaultQuery).toBeDefined();
-        expect(dsV2.defaultQuery.refId).toBe('A');
-        const expectedV2Default = v2Mock.defaultQuery ? { ...v2Mock.defaultQuery, refId: 'A' } : { refId: 'A' };
-        expect(dsV2.defaultQuery).toEqual(expectedV2Default);
-    });
+            const result = await ds.getColumnOptionsWithVariables('filter');
 
-   describe('getColumnOptionsWithVariables', () => {
-       it('should call getColumnOptionsWithVariables on DataFrameDataSourceV1 when feature toggle is false', async () => {
-           const ds = new DataFrameDataSource(mockInstanceSettings(false));
-           v1Mock.getColumnOptionsWithVariables = jest.fn().mockResolvedValue(['v1-column-options']);
+            expect(v1Mock.getColumnOptionsWithVariables).toHaveBeenCalledWith('filter');
+            expect(result).toEqual(['v1-column-options']);
+        });
 
-           const result = await ds.getColumnOptionsWithVariables('filter');
-           
-           expect(v1Mock.getColumnOptionsWithVariables).toHaveBeenCalledWith('filter');
-           expect(result).toEqual(['v1-column-options']);
-       });
+        it('should call getColumnOptionsWithVariables on DataFrameDataSourceV2 when feature toggle is true', async () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(true));
+            v2Mock.getColumnOptionsWithVariables = jest.fn().mockResolvedValue(['v2-column-options']);
 
-       it('should call getColumnOptionsWithVariables on DataFrameDataSourceV2 when feature toggle is true', async () => {
-           const ds = new DataFrameDataSource(mockInstanceSettings(true));
-           v2Mock.getColumnOptionsWithVariables = jest.fn().mockResolvedValue(['v2-column-options']);
+            const result = await ds.getColumnOptionsWithVariables('filter');
 
-           const result = await ds.getColumnOptionsWithVariables('filter');
-           
-           expect(v2Mock.getColumnOptionsWithVariables).toHaveBeenCalledWith('filter');
-           expect(result).toEqual(['v2-column-options']);
-       });
+            expect(v2Mock.getColumnOptionsWithVariables).toHaveBeenCalledWith('filter');
+            expect(result).toEqual(['v2-column-options']);
+        });
    });
 
     describe('dashboard variables caching', () => {
@@ -324,5 +322,5 @@ describe('DataFrameDataSource', () => {
             expect(v1Mock.transformQuery).toHaveBeenCalledWith('filter');
             expect(result).toBe('v1-filter');
         });
-    });
+     });
 });

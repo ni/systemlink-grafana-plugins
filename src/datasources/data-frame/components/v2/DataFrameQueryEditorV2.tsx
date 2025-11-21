@@ -15,6 +15,7 @@ import {
     placeholders,
     tooltips,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
+import { isObservable, lastValueFrom } from 'rxjs';
 export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRunQuery, datasource }: Props) => {
     const migratedQuery = datasource.processQuery(query as DataFrameDataQuery) as ValidDataFrameQueryV2;
 
@@ -25,6 +26,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnLimitExceeded, setIsColumnLimitExceeded] = useState<boolean>(false);
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
+    const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -106,6 +108,19 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
         setIsPropertiesNotSelected(isDataTablePropertiesEmpty && isColumnPropertiesEmpty);
     }, [migratedQuery.dataTableProperties, migratedQuery.columnProperties]);
+
+    useEffect(() => {
+        if (isObservable(migratedQuery.columns)) {
+            lastValueFrom(migratedQuery.columns)
+                .then(columns => {
+                    setSelectedColumns(columns);
+                    handleQueryChange({ ...migratedQuery, columns });
+                });
+        } else {
+            setSelectedColumns(migratedQuery.columns);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [migratedQuery.columns]);
 
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...migratedQuery, type: queryType });
@@ -275,7 +290,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                                 width='auto'
                                 minWidth={40}
                                 maxWidth={40}
-                                value={migratedQuery.columns}
+                                value={selectedColumns}
                                 onChange={onColumnsChange}
                                 options={columnOptions}
                                 createCustomValue={false}

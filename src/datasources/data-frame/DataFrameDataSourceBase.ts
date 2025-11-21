@@ -48,7 +48,9 @@ export abstract class DataFrameDataSourceBase<
 
     public abstract processQuery(query: DataFrameDataQuery): ValidDataFrameQuery;
 
-    public abstract processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery;
+    public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
+        return query as ValidDataFrameVariableQuery;
+    }
 
     public abstract getTableProperties(id?: string): Promise<TableProperties>;
 
