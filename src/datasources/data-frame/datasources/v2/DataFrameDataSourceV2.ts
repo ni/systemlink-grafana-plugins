@@ -1,7 +1,7 @@
 import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQuery, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1 } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1 } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -10,7 +10,7 @@ import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/componen
 import _ from "lodash";
 import { catchError, combineLatestWith, from, lastValueFrom, map, Observable, of } from "rxjs";
 
-export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
+export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
     private scopedVars: ScopedVars = {};
 
@@ -23,7 +23,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     runQuery(
-        query: DataFrameQueryV2,
+        query: DataFrameDataQuery,
         options: DataQueryRequest<DataFrameQueryV2>
     ): Observable<DataFrameDTO> {
         this.scopedVars = options.scopedVars;
@@ -81,10 +81,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         }));
     }
 
-    shouldRunQuery(query: ValidDataFrameQuery): boolean {
-        const processedQuery = this.processQuery(query);
-
-        return !processedQuery.hide;
+    shouldRunQuery(query: DataFrameDataQuery): boolean {
+        return !query.hide;
     }
 
     processQuery(query: DataFrameDataQuery): ValidDataFrameQueryV2 {
@@ -104,11 +102,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             const dataTableProperties = query.type === DataFrameQueryType.Properties
                 ? [DataTableProperties.Properties]
                 : defaultQueryV2.dataTableProperties;
+            const columns = this.getMigratedColumns(tableId, query.columns);
+
             return {
                 ...defaultQueryV2,
                 ...v1QueryWithoutTableId,
                 dataTableFilter: tableId ? `id = "${tableId}"` : '',
-                dataTableProperties
+                dataTableProperties,
+                columns
             };
         }
 
@@ -116,6 +117,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
             ...defaultQueryV2,
             ...query
         };
+    }
+
+    public prepareQuery(query: DataFrameDataQuery): DataFrameDataQuery {
+        return query;
     }
 
     public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
@@ -152,7 +157,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     async getDecimatedTableData(
-        _query: DataFrameQueryV2,
+        _query: DataFrameDataQuery,
         _columns: Column[],
         _timeRange: TimeRange,
         _intervals?: number | undefined
@@ -227,11 +232,43 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         return this.createColumnOptions(columnTypeMap);
     }
 
+    private getMigratedColumns(
+        tableId: string | undefined,
+        currentColumns: any[] | undefined
+    ): Observable<string[]> | string[] {
+        if (!tableId || !currentColumns?.length || !this.areAllEntriesString(currentColumns)) {
+            return [];
+        }
+
+        return this.getTable(tableId).pipe(
+            map(table => this.migrateColumnsFromV1ToV2(currentColumns, table))
+        );
+    }
+
+    private getTable(id: string): Observable<TableProperties> {
+        return this.get$<TableProperties>(`${this.baseUrl}/tables/${id}`);
+    }
+
+    private migrateColumnsFromV1ToV2(columns: string[], table: TableProperties): string[] {
+        return columns.map(selectedColumn => {
+            const matchingColumn = table.columns.find(
+                tableColumn => tableColumn.name === selectedColumn
+            );
+            return matchingColumn
+                ? `${matchingColumn.name}-${this.transformColumnType(matchingColumn.dataType)}`
+                : selectedColumn;
+        });
+    }
+
     private areAllObjectsWithNameProperty(object: any[]): object is Array<{ name: string; }> {
         return _.every(
             object,
             entry => _.isPlainObject(entry) && 'name' in (entry as {})
         );
+    }
+
+    private areAllEntriesString(array: any[]): array is string[] {
+        return _.every(array, entry => typeof entry === 'string');
     }
 
     private getErrorMessage(error: Error): string {
