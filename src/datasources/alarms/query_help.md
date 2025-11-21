@@ -5,7 +5,7 @@ The _SystemLink Alarms_ data source allows you to display alarm properties and a
 ### Key Features
 
 - **Display Alarm Properties**: Display various properties of your alarms directly in your dashboards. These properties include **Alarm ID**, **Display Name**, **Active**, **Current Severity Level**, **Acknowledged**, and **Occurred At**.
-- **Display Alarms Count**: Display the total count of alarms based on the filters.
+- **Display Alarm Count**: Display the total count of alarms based on the filters.
 - **Alarm Trend Analysis**: Visualize alarm trends over time to monitor alarm occurrence grouped by severity.
 - **Custom Queries**: Create custom queries that filter and sort alarm properties using specific query conditions. These queries allow you to retrieve the most relevant alarm information.
 
