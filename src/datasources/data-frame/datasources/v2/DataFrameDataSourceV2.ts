@@ -236,7 +236,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tableId: string | undefined,
         currentColumns: any[] | undefined
     ): Observable<string[]> | string[] {
-        if (!tableId || !currentColumns?.length || typeof currentColumns[0] !== 'string') {
+        if (!tableId || !currentColumns?.length || !this.areAllEntriesString(currentColumns)) {
             return [];
         }
 
@@ -265,6 +265,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             object,
             entry => _.isPlainObject(entry) && 'name' in (entry as {})
         );
+    }
+
+    private areAllEntriesString(array: any[]): array is string[] {
+        return _.every(array, entry => typeof entry === 'string');
     }
 
     private getErrorMessage(error: Error): string {
