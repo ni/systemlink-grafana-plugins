@@ -6,7 +6,7 @@ import { AlarmsCountQueryEditor } from './editors/alarms-count/AlarmsCountQueryE
 import { AlarmsCountQuery } from '../types/AlarmsCount.types';
 import { InlineField } from 'core/components/InlineField';
 import { CONTROL_WIDTH, LABEL_WIDTH, labels, tooltips } from '../constants/AlarmsQueryEditor.constants';
-import { Combobox } from '@grafana/ui';
+import { Combobox, Space, Stack } from '@grafana/ui';
 import { DEFAULT_QUERY_TYPE, defaultAlarmsCountQuery, defaultAlarmsTrendQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
 import { ListAlarmsQuery } from '../types/ListAlarms.types';
 import { ListAlarmsQueryEditor } from './editors/list-alarms/ListAlarmsQueryEditor';
@@ -82,7 +82,7 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
   }, []);
 
   return (
-    <>
+    <Stack direction='column' gap={0}>
       <InlineField
         label={labels.queryType}
         labelWidth={LABEL_WIDTH}
@@ -112,12 +112,15 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
         />
       )}
       {query.queryType === QueryType.AlarmsTrend && (
-        <AlarmsTrendQueryEditor
-          query={query as AlarmsTrendQuery}
-          handleQueryChange={handleQueryChange}
-          datasource={datasource.alarmsTrendQueryHandler}
-        />
+        <>
+          <Space v={1} />
+          <AlarmsTrendQueryEditor
+            query={query as AlarmsTrendQuery}
+            handleQueryChange={handleQueryChange}
+            datasource={datasource.alarmsTrendQueryHandler}
+          />
+        </>
       )}
-    </>
+    </Stack>
   );
 }

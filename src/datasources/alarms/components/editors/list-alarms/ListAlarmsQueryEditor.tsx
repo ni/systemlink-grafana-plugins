@@ -114,8 +114,8 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     });
   };
 
-  const onOutputTypeChange = (value: OutputType) => {
-    handleQueryChange({ ...query, outputType: value });
+  const onOutputTypeChange = (outputType: OutputType) => {
+    handleQueryChange({ ...query, outputType });
   };
 
   const propertiesOptions = useMemo(() => {
