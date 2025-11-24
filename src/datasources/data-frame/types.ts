@@ -333,6 +333,20 @@ export interface Option {
   value: string;
 }
 
+export interface DecimationOptions {
+  method?: string;
+  xColumn?: string;
+  yColumns?: string[];
+  intervals?: number;
+}
+
+export interface DecimatedDataRequest {
+  tableId: string;
+  columns: string[];
+  filters: ColumnFilter[];
+  decimationOptions: DecimationOptions;
+}
+
 export function isSystemLinkError(error: any): error is SystemLinkError {
   return Boolean(error?.error?.code) && Boolean(error?.error?.name);
 }
