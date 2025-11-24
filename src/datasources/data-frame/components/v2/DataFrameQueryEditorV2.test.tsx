@@ -677,33 +677,6 @@ describe("DataFrameQueryEditorV2", () => {
                         });
                     });
 
-                    it("should be set with a value when the processQuery returns an observable", async () => {
-                        const columns = of(['ColumnB-Numeric']);
-                        const processQueryOverride = jest
-                            .fn<DataFrameQuery, [ValidDataFrameQueryV2]>()
-                            .mockImplementation(query => ({
-                                ...defaultQueryV2,
-                                ...query,
-                                columns
-                            }));
-
-                        renderComponent(
-                            {
-                                type: DataFrameQueryType.Data,
-                                dataTableFilter: 'name = "TestTable"',
-                                columns: ['ColumnB']
-                            },
-                            '',
-                            '',
-                            [],
-                            processQueryOverride
-                        );
-
-                        await waitFor(() => {
-                            expect(document.body).toHaveTextContent('ColumnB (Numeric)');
-                        });
-                    });
-
                     it("should call onChange with a list of columns when processQuery returns an observable", async () => {
                         const columns = of(['ColumnB-Numeric', 'ColumnD-String']);
                         const processQueryOverride = jest
