@@ -604,6 +604,114 @@ describe('query', () => {
         })
       );
     });
+  
+    test('should handle transformation for single-variable in startswith operation', async () => {
+      const query = buildQuery(
+        {
+          refId: 'A',
+          properties: [PropertiesOptions.PART_NUMBER] as Properties[],
+          queryBy: 'PartNumber.StartsWith("${query}")',
+          descending: false
+        },
+      );
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValueOnce('PartNumber.StartsWith("123")');
+
+      await firstValueFrom(datastore.query(query));
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "PartNumber.StartsWith(\"123\")",
+            orderBy: undefined,
+            projection: ["partNumber"],
+            returnCount: false,
+            take: 1000
+          }
+        })
+      );
+    });
+
+    test('should handle transformation for multi-variable in startswith operation', async () => {
+      const query = buildQuery(
+        {
+          refId: 'A',
+          properties: [PropertiesOptions.PART_NUMBER] as Properties[],
+          queryBy: 'PartNumber.StartsWith("${query}")',
+          descending: false
+        },
+      );
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValueOnce('PartNumber.StartsWith("{partNumber1,partNumber2}")');
+
+      await firstValueFrom(datastore.query(query));
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "(PartNumber.StartsWith(\"partNumber1\") || PartNumber.StartsWith(\"partNumber2\"))",
+            orderBy: undefined,
+            projection: ["partNumber"],
+            returnCount: false,
+            take: 1000
+          }
+        })
+      );
+    });
+
+    test('should handle transformation for single-variable in endswith operation', async () => {
+      const query = buildQuery(
+        {
+          refId: 'A',
+          properties: [PropertiesOptions.PART_NUMBER] as Properties[],
+          queryBy: 'PartNumber.EndsWith("${query}")',
+          descending: false
+        },
+      );
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValueOnce('PartNumber.EndsWith("123")');
+
+      await firstValueFrom(datastore.query(query));
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "PartNumber.EndsWith(\"123\")",
+            orderBy: undefined,
+            projection: ["partNumber"],
+            returnCount: false,
+            take: 1000
+          }
+        })
+      );
+    });
+
+    test('should handle transformation for multi-variable in endswith operation', async () => {
+      const query = buildQuery(
+        {
+          refId: 'A',
+          properties: [PropertiesOptions.PART_NUMBER] as Properties[],
+          queryBy: 'PartNumber.EndsWith("${query}")',
+          descending: false
+        },
+      );
+      jest.spyOn(datastore.templateSrv, 'replace').mockReturnValueOnce('PartNumber.EndsWith("{partNumber1,partNumber2}")');
+
+      await firstValueFrom(datastore.query(query));
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            descending: false,
+            filter: "(PartNumber.EndsWith(\"partNumber1\") || PartNumber.EndsWith(\"partNumber2\"))",
+            orderBy: undefined,
+            projection: ["partNumber"],
+            returnCount: false,
+            take: 1000
+          }
+        })
+      );
+    });
   });
 
   describe('metricFindQuery', () => {

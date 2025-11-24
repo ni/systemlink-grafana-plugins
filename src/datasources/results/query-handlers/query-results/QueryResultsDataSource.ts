@@ -3,8 +3,7 @@ import { ResultsDataSourceBase } from "datasources/results/ResultsDataSourceBase
 import { DataQueryRequest, DataFrameDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, AppEvents, DataSourceInstanceSettings } from "@grafana/data";
 import { OutputType } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
-import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
-import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
+import { transformComputedFieldsQuery } from "core/query-builder.utils";
 import { TAKE_LIMIT } from "datasources/results/constants/QuerySteps.constants";
 import { extractErrorInfo } from "core/errors";
 import { getWorkspaceName } from "core/utils";
@@ -124,10 +123,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       }
 
       const fields = selectedFields.map((field) => {
-        const isTimeField =
-          field === ResultsPropertiesOptions.UPDATED_AT ||
-          field === ResultsPropertiesOptions.STARTED_AT;
-        const fieldType = isTimeField ? FieldType.time : FieldType.string;
+        const fieldType = this.getFieldTypeForProperty(field);
         const values = results.map(
           (result) => result[field as keyof ResultsResponseProperties]
         );
@@ -161,7 +157,9 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
           default:
             return {
               name: resultsProjectionLabelLookup[field].label,
-              values: values.map(value => value?.toString()),
+              values: fieldType === FieldType.number
+                ? values.map(value => Number(value))
+                : values.map(value => value?.toString()),
               type: fieldType
             };
         }
@@ -179,19 +177,6 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
       fields: [{ name: query.refId, values: [responseData.totalCount] }],
     };
   }
-
-  /**
-   * A map linking each field name to its corresponding query transformation function.
-   * It dynamically processes and formats query expressions based on the field type.
-   */
-  readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
-    Object.values(ResultsQueryBuilderFieldNames).map(field => [
-      field,
-      field === (ResultsQueryBuilderFieldNames.UPDATED_AT) || field === (ResultsQueryBuilderFieldNames.STARTED_AT)
-        ? timeFieldsQuery(field)
-        : multipleValuesQuery(field),
-    ])
-  );
 
   async metricFindQuery(query: ResultsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     if (query.properties !== undefined && this.isTakeValid(query.resultsTake!)) {
@@ -236,6 +221,17 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
   shouldRunQuery(query: QueryResults): boolean {
     return !query.hide;
   }
+
+  private getFieldTypeForProperty(field: ResultsProperties): FieldType {
+    if (
+      field === ResultsPropertiesOptions.UPDATED_AT ||
+      field === ResultsPropertiesOptions.STARTED_AT
+    ) {
+      return FieldType.time;
+    }
+    if (field === ResultsPropertiesOptions.TOTAL_TIME_IN_SECONDS) {
+      return FieldType.number;
+    }
+    return FieldType.string;
+  }
 }
-
-

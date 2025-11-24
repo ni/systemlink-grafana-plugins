@@ -1,16 +1,18 @@
-import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TimeRange } from "@grafana/data";
+import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQuery, ValidDataFrameQueryV2, ValidDataFrameVariableQuery } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT } from "datasources/data-frame/constants";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1 } from "../../types";
+import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
-import { Workspace } from "core/types";
+import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
+import _ from "lodash";
 import { catchError, combineLatestWith, from, lastValueFrom, map, Observable, of } from "rxjs";
 
-export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQueryV2> {
+export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
+    private scopedVars: ScopedVars = {};
 
     public constructor(
         public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
@@ -21,15 +23,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     runQuery(
-        query: DataFrameQueryV2,
+        query: DataFrameDataQuery,
         options: DataQueryRequest<DataFrameQueryV2>
     ): Observable<DataFrameDTO> {
+        this.scopedVars = options.scopedVars;
         const processedQuery = this.processQuery(query);
 
         if (processedQuery.dataTableFilter) {
-            processedQuery.dataTableFilter = transformComputedFieldsQuery(
-                this.templateSrv.replace(processedQuery.dataTableFilter, options.scopedVars),
-                this.dataTableComputedDataFields,
+            processedQuery.dataTableFilter = this.transformQuery(
+                processedQuery.dataTableFilter,
+                options.scopedVars
             );
         }
 
@@ -51,9 +54,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         const processedQuery = this.processVariableQuery(query);
 
         if (processedQuery.dataTableFilter) {
-            processedQuery.dataTableFilter = transformComputedFieldsQuery(
-                this.templateSrv.replace(processedQuery.dataTableFilter, options.scopedVars),
-                this.dataTableComputedDataFields,
+            processedQuery.dataTableFilter = this.transformQuery(
+                processedQuery.dataTableFilter,
+                options?.scopedVars! || ''
             );
         }
 
@@ -78,22 +81,71 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         }));
     }
 
-    shouldRunQuery(query: ValidDataFrameQuery): boolean {
-        const processedQuery = this.processQuery(query);
-
-        return !processedQuery.hide && processedQuery.type === DataFrameQueryType.Properties;
+    shouldRunQuery(query: DataFrameDataQuery): boolean {
+        return !query.hide;
     }
 
     processQuery(query: DataFrameDataQuery): ValidDataFrameQueryV2 {
-        // TODO: #3259801 - Implement Migration of DataFrameQueryV1 to ValidDataFrameQueryV2.
+        // Handle existing dashboards with 'MetaData' type
+        if ((query.type as any) === LEGACY_METADATA_TYPE) {
+            query.type = DataFrameQueryType.Properties;
+        }
+
+        // Migration for 1.6.0: DataFrameQuery.columns changed to string[]
+        if (Array.isArray(query.columns) && this.areAllObjectsWithNameProperty(query.columns)) {
+            query.columns = (query.columns as Array<{ name: string; }>).map(column => column.name);
+        }
+
+        if ('tableId' in query) {
+            // Convert V1 to V2
+            const { tableId, ...v1QueryWithoutTableId } = query as DataFrameQueryV1;
+            const dataTableProperties = query.type === DataFrameQueryType.Properties
+                ? [DataTableProperties.Properties]
+                : defaultQueryV2.dataTableProperties;
+            const columns = this.getMigratedColumns(tableId, query.columns);
+
+            return {
+                ...defaultQueryV2,
+                ...v1QueryWithoutTableId,
+                dataTableFilter: tableId ? `id = "${tableId}"` : '',
+                dataTableProperties,
+                columns
+            };
+        }
+
         return {
             ...defaultQueryV2,
             ...query
-        } as ValidDataFrameQueryV2;
+        };
+    }
+
+    public prepareQuery(query: DataFrameDataQuery): DataFrameDataQuery {
+        return query;
     }
 
     public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
-        // TODO: #3259801 - Implement Migration of DataFrameQueryV1 to ValidDataFrameVariableQuery.
+        if (_.isPlainObject(query) && 'tableId' in query) {
+            // Convert V1 to V2
+            const {
+                tableId,
+                type,
+                columns,
+                decimationMethod,
+                filterNulls,
+                applyTimeFilters,
+                queryType,
+                ...baseQueryProps
+            } = query as DataFrameQueryV1;
+            const dataTableFilter = tableId ? `id = "${tableId}"` : '';
+
+            return {
+                ...defaultVariableQueryV2,
+                ...baseQueryProps,
+                queryType: DataFrameVariableQueryType.ListColumns,
+                dataTableFilter,
+            };
+        }
+
         return {
             ...defaultVariableQueryV2,
             ...query
@@ -105,7 +157,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     async getDecimatedTableData(
-        _query: DataFrameQueryV2,
+        _query: DataFrameDataQuery,
         _columns: Column[],
         _timeRange: TimeRange,
         _intervals?: number | undefined
@@ -146,7 +198,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         return Promise.resolve([]);
     }
 
-    public async getColumnOptions(filter: string): Promise<Option[]> {
+    public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
+        const columnOptionsWithoutVariables = await this.getColumnOptions(
+            filter
+        );
+        const columnOptionsWithVariables = [
+            ...this.getVariableOptions(),
+            ...columnOptionsWithoutVariables
+        ];
+        return columnOptionsWithVariables;
+    }
+
+    private async getColumnOptions(filter: string): Promise<Option[]> {
         const tables = await lastValueFrom(this.queryTables$(filter, TAKE_LIMIT, [
             DataTableProjections.ColumnName,
             DataTableProjections.ColumnDataType,
@@ -163,6 +226,52 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         const columnTypeMap = this.createColumnNameDataTypesMap(tables);
 
         return this.createColumnOptions(columnTypeMap);
+    }
+
+    private getMigratedColumns(
+        tableId: string | undefined,
+        currentColumns: any[] | undefined
+    ): Observable<string[]> | string[] {
+        if (!tableId || !currentColumns?.length || !this.areAllEntriesString(currentColumns)) {
+            return [];
+        }
+
+        return this.getTable(tableId).pipe(
+            map(table => this.migrateColumnsFromV1ToV2(currentColumns, table))
+        );
+    }
+
+    private getTable(id: string): Observable<TableProperties> {
+        return this.get$<TableProperties>(`${this.baseUrl}/tables/${id}`);
+    }
+
+    private migrateColumnsFromV1ToV2(columns: string[], table: TableProperties): string[] {
+        return columns.map(selectedColumn => {
+            const matchingColumn = table.columns.find(
+                tableColumn => tableColumn.name === selectedColumn
+            );
+            return matchingColumn
+                ? `${matchingColumn.name}-${this.transformColumnType(matchingColumn.dataType)}`
+                : selectedColumn;
+        });
+    }
+
+    public transformQuery(query: string, scopedVars: ScopedVars = this.scopedVars) {
+        return transformComputedFieldsQuery(
+            this.templateSrv.replace(query, scopedVars),
+            this.dataTableComputedDataFields,
+        );
+    }
+
+    private areAllObjectsWithNameProperty(object: any[]): object is Array<{ name: string; }> {
+        return _.every(
+            object,
+            entry => _.isPlainObject(entry) && 'name' in (entry as {})
+        );
+    }
+
+    private areAllEntriesString(array: any[]): array is string[] {
+        return _.every(array, entry => typeof entry === 'string');
     }
 
     private getErrorMessage(error: Error): string {
@@ -216,6 +325,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 });
             }
         });
+
         return options;
     };
 
@@ -306,7 +416,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
     }
 
     private flattenTablesWithColumns(tables: TableProperties[]): FlattenedTableProperties[] {
-        return tables.flatMap(table => {
+        if (tables.length === 0 || !tables[0].columns) {
+            return tables;
+        }
+
+        const flattenedData = tables.flatMap(table => {
             const baseData = {
                 id: table.id,
                 name: table.name,
@@ -321,7 +435,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 properties: table.properties,
             };
 
-            return table.columns?.length > 0
+            return table.columns.length > 0
                 ? table.columns.map(column => ({
                     ...baseData,
                     columnName: column.name,
@@ -331,6 +445,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 }))
                 : [baseData];
         });
+
+        return flattenedData.slice(0, TOTAL_ROWS_LIMIT);
     }
 
     private getFieldValues(

@@ -1,3 +1,85 @@
+## [4.78.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.78.0...v4.78.1) (2025-11-21)
+
+### Bug Fixes
+
+* **dataframe:** Query reset when filter is applied ([#546](https://github.com/ni/systemlink-grafana-plugins/issues/546)) ([f7199e8](https://github.com/ni/systemlink-grafana-plugins/commit/f7199e83630612d5b8b35a85c6dd30491bd9f1ed))
+
+## [4.78.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.77.0...v4.78.0) (2025-11-21)
+
+### Features
+
+* **dataframes:** Limit the number of rows when the query type is properties ([#545](https://github.com/ni/systemlink-grafana-plugins/issues/545)) ([8ce5cc8](https://github.com/ni/systemlink-grafana-plugins/commit/8ce5cc8b84214571da58f480bad2f9712aa95572))
+
+### Bug Fixes
+
+* **dataframe:** Populate columns when values of the variable change in the filter ([#540](https://github.com/ni/systemlink-grafana-plugins/issues/540)) ([8f4ab51](https://github.com/ni/systemlink-grafana-plugins/commit/8f4ab51ebbb2e98ca1f6adeefcdb5869b54eec9a))
+
+## [4.77.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.76.0...v4.77.0) (2025-11-21)
+
+### Features
+
+* **dataframe:** Migrate columns in v1 to v2 ([#541](https://github.com/ni/systemlink-grafana-plugins/issues/541)) ([a1db28e](https://github.com/ni/systemlink-grafana-plugins/commit/a1db28eef828b5ef170226677956206fa86b8703))
+
+## [4.76.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.75.1...v4.76.0) (2025-11-20)
+
+### Features
+
+* **dataframe:** Handle v1 query to v2 query migration ([#536](https://github.com/ni/systemlink-grafana-plugins/issues/536)) ([577ade9](https://github.com/ni/systemlink-grafana-plugins/commit/577ade9b9dd70ae1e18e7902d5cfd74d60482d69))
+* **dataframe:** Move properties select below query builders ([#538](https://github.com/ni/systemlink-grafana-plugins/issues/538)) ([38d4e25](https://github.com/ni/systemlink-grafana-plugins/commit/38d4e255bf95a433ec5870be70cd9340c5ea30f5))
+
+### Bug Fixes
+
+* **dataframe:** Remove variable options from list columns variable query ([#537](https://github.com/ni/systemlink-grafana-plugins/issues/537)) ([8b9b31e](https://github.com/ni/systemlink-grafana-plugins/commit/8b9b31e619ec2c73421b9c034d8f4a244c828981))
+
+## [4.75.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.75.0...v4.75.1) (2025-11-19)
+
+### Bug Fixes
+
+* **query-builder:** Support multi-value variable for starts with, ends with and list operations ([#509](https://github.com/ni/systemlink-grafana-plugins/issues/509)) ([a45da94](https://github.com/ni/systemlink-grafana-plugins/commit/a45da942d17656c187e2f56f91dccc4a6a28d7c9))
+
+## [4.75.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.74.2...v4.75.0) (2025-11-19)
+
+### Features
+
+* **dataframes:** Pass results filter and onchange callback to the query builder ([#534](https://github.com/ni/systemlink-grafana-plugins/issues/534)) ([50e90d0](https://github.com/ni/systemlink-grafana-plugins/commit/50e90d0fc65b42855ed98a4675e51011178a5547))
+
+## [4.74.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.74.1...v4.74.2) (2025-11-19)
+
+### Bug Fixes
+
+* **dataframe:** Fix column population when query type changes ([#523](https://github.com/ni/systemlink-grafana-plugins/issues/523)) ([e10f754](https://github.com/ni/systemlink-grafana-plugins/commit/e10f754c46c95010ed2dba303ed453054d2ec980))
+
+## [4.74.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.74.0...v4.74.1) (2025-11-19)
+
+### Bug Fixes
+
+* **results:** Convert string-based numeric values to numbers for proper plotting ([#539](https://github.com/ni/systemlink-grafana-plugins/issues/539)) ([9025938](https://github.com/ni/systemlink-grafana-plugins/commit/9025938329edf98d819b1628289efa146b44bf5b))
+
+## [4.74.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.73.0...v4.74.0) (2025-11-18)
+
+### Features
+
+* **asset:** Update filter by scan code to work with multi-select ([#535](https://github.com/ni/systemlink-grafana-plugins/issues/535)) ([892d8b0](https://github.com/ni/systemlink-grafana-plugins/commit/892d8b08a07c465a57c978bacfd83f25a575c642))
+* **systems:** add minion ID and scan code return types for system variables ([#505](https://github.com/ni/systemlink-grafana-plugins/issues/505)) ([b71ae24](https://github.com/ni/systemlink-grafana-plugins/commit/b71ae247a97a446e16f0e4cd76aff1c19ceb681e))
+
+## [4.73.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.72.0...v4.73.0) (2025-11-18)
+
+### Features
+
+* **notebook:** Cancel the current request before progressing refresh ([#532](https://github.com/ni/systemlink-grafana-plugins/issues/532)) ([4496746](https://github.com/ni/systemlink-grafana-plugins/commit/44967466c399cd1862b99ad3d56ef1d5f5826764))
+
+## [4.72.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.71.0...v4.72.0) (2025-11-18)
+
+### Features
+
+* **dataframes:** Pass column filter and onchange callback to the query builder ([#531](https://github.com/ni/systemlink-grafana-plugins/issues/531)) ([f246275](https://github.com/ni/systemlink-grafana-plugins/commit/f2462755b554c1cf59e371a6dd7c0b0576ba0d2b))
+
+## [4.71.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.70.0...v4.71.0) (2025-11-17)
+
+### Features
+
+* **dataframe:** Add and transform variables in query and columns ([#518](https://github.com/ni/systemlink-grafana-plugins/issues/518)) ([1491a5b](https://github.com/ni/systemlink-grafana-plugins/commit/1491a5b897b0a661f1d203e1b3d97bcfacb9ecd9))
+
 ## [4.70.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.69.0...v4.70.0) (2025-11-17)
 
 ### Features

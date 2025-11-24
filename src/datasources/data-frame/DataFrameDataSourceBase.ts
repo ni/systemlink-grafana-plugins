@@ -48,7 +48,9 @@ export abstract class DataFrameDataSourceBase<
 
     public abstract processQuery(query: DataFrameDataQuery): ValidDataFrameQuery;
 
-    public abstract processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery;
+    public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
+        return query as ValidDataFrameVariableQuery;
+    }
 
     public abstract getTableProperties(id?: string): Promise<TableProperties>;
 
@@ -87,7 +89,7 @@ export abstract class DataFrameDataSourceBase<
         }
     }
 
-    public async getColumnOptions(filter: string): Promise<Option[]> {
+    public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
         return Promise.resolve([]);
     }
 
@@ -105,6 +107,10 @@ export abstract class DataFrameDataSourceBase<
         }
 
         return DataFrameDataSourceBase._partNumbersCache;
+    }
+
+    public transformQuery(query: string) {
+        return this.templateSrv.replace(query);
     }
 
     private async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {

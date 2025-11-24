@@ -1,15 +1,17 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetricFindQueryOptions, MetricFindValue, TimeRange } from "@grafana/data";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameFeatureTogglesDefaults, DataFrameVariableQuery, DataTableProjections, TableDataRows, TableProperties, ValidDataFrameQuery, ValidDataFrameVariableQuery } from "./types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameFeatureTogglesDefaults, DataFrameVariableQuery, DataTableProjections, TableDataRows, TableProperties, ValidDataFrameQuery, ValidDataFrameVariableQuery, DataFrameQuery } from "./types";
 import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
 import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
 import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
 import { Observable } from "rxjs";
+import { DataQuery } from "@grafana/schema";
+import _ from "lodash";
 
 export class DataFrameDataSource extends DataFrameDataSourceBase {
   private queryByTablePropertiesFeatureEnabled = false;
-  private datasource: DataFrameDataSourceV1 | DataFrameDataSourceV2;
-  public defaultQuery: ValidDataFrameQuery;
+  private datasource: DataFrameDataSourceBase;
+  public variablesCache: Record<string, string> = {};
 
   constructor(
     public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
@@ -26,13 +28,32 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     } else {
       this.datasource = new DataFrameDataSourceV1(instanceSettings, backendSrv, templateSrv);
     }
-    this.defaultQuery = { ...this.datasource.defaultQuery, refId: 'A' };
+  }
+
+  public get defaultQuery(): Required<Omit<DataFrameQuery, keyof DataQuery>> {
+    return this.datasource.defaultQuery;
+  }
+
+  public prepareQuery(query: DataFrameQuery): DataFrameQuery {
+    return this.datasource.prepareQuery(query);
   }
 
   public runQuery(
     query: DataFrameDataQuery,
     options: DataQueryRequest<DataFrameDataQuery>
   ): Promise<DataFrameDTO> | Observable<DataFrameDTO> {
+    const dashboardVariables = Object.fromEntries(
+      this.templateSrv.getVariables()
+        .map(variable => [
+          variable.name,
+          this.templateSrv.replace(`\$${variable.name}`)
+      ])
+    );
+
+    if (!_.isEqual(this.variablesCache, dashboardVariables)) {
+      this.variablesCache = dashboardVariables;
+    }
+
     return this.datasource.runQuery(query, options);
   }
 
@@ -44,6 +65,10 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     query: DataFrameVariableQuery,
     options: LegacyMetricFindQueryOptions
   ): Promise<MetricFindValue[]> {
+    if (!this.datasource.metricFindQuery) {
+      return Promise.resolve([]);
+    }
+
     return this.datasource.metricFindQuery(query, options);
   }
 
@@ -84,7 +109,11 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.processVariableQuery(query);
   }
 
-  public async getColumnOptions(filter: string): Promise<Option[]> {
-    return this.datasource.getColumnOptions(filter);
+  public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
+    return this.datasource.getColumnOptionsWithVariables(filter);
+  }
+
+  public transformQuery(query: string) {
+    return this.datasource.transformQuery(query);
   }
 }
