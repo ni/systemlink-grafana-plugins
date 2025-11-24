@@ -1,3 +1,13 @@
+## [4.79.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.78.1...v4.79.0) (2025-11-24)
+
+### Features
+
+* **alarms:** Introduce output type and its logic ([#530](https://github.com/ni/systemlink-grafana-plugins/issues/530)) ([5f2353a](https://github.com/ni/systemlink-grafana-plugins/commit/5f2353a9f7715d2016e193a0df5e72a8660b729f))
+
+### Bug Fixes
+
+* **dataframe:** Remove unnecessary async  ([#547](https://github.com/ni/systemlink-grafana-plugins/issues/547)) ([08eab96](https://github.com/ni/systemlink-grafana-plugins/commit/08eab96c663f51401813678dbb82f982e56a8e62))
+
 ## [4.78.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.78.0...v4.78.1) (2025-11-21)
 
 ### Bug Fixes
