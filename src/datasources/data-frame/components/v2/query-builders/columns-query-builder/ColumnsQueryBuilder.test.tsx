@@ -11,7 +11,11 @@ describe('ColumnsQueryBuilder', () => {
     });
 
     async function renderElement(filter: string, disabled = false) {
-        const reactNode = React.createElement(ColumnsQueryBuilder, { filter, onChange: mockOnChange, disabled });
+        const reactNode = React.createElement(ColumnsQueryBuilder, { 
+            filter, 
+            onChange: mockOnChange, 
+            disabled 
+        });
         const renderResult = render(reactNode);
         return {
             renderResult,
