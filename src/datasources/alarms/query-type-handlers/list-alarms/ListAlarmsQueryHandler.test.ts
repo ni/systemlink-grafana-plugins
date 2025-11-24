@@ -6,7 +6,7 @@ import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAl
 import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
 import { User } from 'shared/types/QueryUsers.types';
-import { AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
+import { AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType } from 'datasources/alarms/types/ListAlarms.types';
 import { Workspace } from 'core/types';
 import { AlarmsPropertiesOptions, TRANSITION_SPECIFIC_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 
@@ -154,6 +154,7 @@ describe('ListAlarmsQueryHandler', () => {
     const defaultQuery = datastore.defaultQuery;
 
     expect(defaultQuery).toEqual({
+      outputType: 'Properties',
       filter: '',
       properties: ['displayName', 'currentSeverityLevel', 'occurredAt', 'source', 'state', 'workspace'],
       take: 1000,
@@ -1566,6 +1567,85 @@ describe('ListAlarmsQueryHandler', () => {
             transitionInclusionOption,
           })
         );
+      });
+    });
+
+    describe('Total Count output type', () => {
+      let query: ListAlarmsQuery;
+
+      beforeEach(() => {
+        query = buildAlarmsQuery({ outputType: OutputType.TotalCount });
+      });
+
+      it('should return total count of alarms from the API response', async () => {
+        const response = await datastore.runQuery(query, options);
+
+        expect(response).toEqual({
+          refId: 'A',
+          name: 'A',
+          fields: [
+            {
+              name: 'A',
+              type: 'number',
+              values: [1],
+            },
+          ],
+        });
+      });
+
+      it('should call the query alarms API with an empty filter, take set to 1 and returnCount set to true by default', async () => {
+        await datastore.runQuery(query, options);
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: expect.stringContaining(QUERY_ALARMS_RELATIVE_PATH),
+            method: 'POST',
+            data: { filter: '', take: 1, returnCount: true },
+            showErrorAlert: false
+          })
+        );
+      });
+
+      it('should return 0 when totalCount is undefined', async () => {
+        backendServer.fetch
+        .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
+        .mockReturnValue(createFetchResponse({ totalCount: undefined }));
+
+        const result = await datastore.runQuery(query, options);
+
+        expect(result).toEqual({ refId: 'A', name: 'A', fields: [{ name: 'A', type: 'number', values: [0] }] });
+      });
+
+      it('should pass the filter to the API', async () => {
+        const filterQuery = buildAlarmsQuery({ outputType: OutputType.TotalCount, filter: 'alarmId = "test-alarm-123"' });
+
+        await datastore.runQuery(filterQuery, options);
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: expect.stringContaining(QUERY_ALARMS_RELATIVE_PATH),
+            method: 'POST',
+            data: { filter: 'alarmId = "test-alarm-123"', take: 1, returnCount: true },
+            showErrorAlert: false
+          })
+        );
+      });
+
+      it('should pass the transformed filter to the API', async () => {
+        jest.useFakeTimers().setSystemTime(new Date('2025-01-01'));
+        const filterQuery = buildAlarmsQuery({ outputType: OutputType.TotalCount, filter: 'acknowledgedAt > "${__now:date}"'});
+
+        await datastore.runQuery(filterQuery, options);
+
+        expect(backendServer.fetch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              filter: 'acknowledgedAt > "2025-01-01T00:00:00.000Z"',
+            }),
+          })
+        );
+
+        jest.useRealTimers();
       });
     });
   });
