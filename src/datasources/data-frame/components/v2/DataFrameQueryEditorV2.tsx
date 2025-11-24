@@ -132,21 +132,27 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const onDataTableFilterChange = (event?: Event | React.FormEvent<Element>) => {
         if (event) {
             const dataTableFilter = (event as CustomEvent).detail.linq;
-            handleQueryChange({ ...migratedQuery, dataTableFilter });
+            if (dataTableFilter !== migratedQuery.dataTableFilter) {
+                handleQueryChange({ ...migratedQuery, dataTableFilter });
+            }
         }
     };
 
     const onResultsFilterChange = (event?: Event | React.FormEvent<Element>) => {
         if (event) {
             const resultsFilter = (event as CustomEvent).detail.linq;
-            handleQueryChange({ ...migratedQuery, resultsFilter });
+            if (resultsFilter !== migratedQuery.resultsFilter) {
+                handleQueryChange({ ...migratedQuery, resultsFilter });
+            }
         }
     };
 
     const onColumnsFilterChange = (event?: Event | React.FormEvent<Element>) => {
         if (event) {
             const columnsFilter = (event as CustomEvent).detail.linq;
-            handleQueryChange({ ...migratedQuery, columnsFilter });
+            if (columnsFilter !== migratedQuery.columnsFilter) {
+                handleQueryChange({ ...migratedQuery, columnsFilter });
+            }
         }
     };
 
