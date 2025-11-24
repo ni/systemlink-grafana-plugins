@@ -5,7 +5,7 @@ import { AlarmsQuery, QueryType } from '../types/types';
 import { InlineField } from 'core/components/InlineField';
 import { CONTROL_WIDTH, LABEL_WIDTH, labels, tooltips } from '../constants/AlarmsQueryEditor.constants';
 import { Combobox, Space, Stack } from '@grafana/ui';
-import { DEFAULT_QUERY_TYPE, defaultAlarmsCountQuery, defaultAlarmsTrendQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
+import { DEFAULT_QUERY_TYPE, defaultAlarmsTrendQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
 import { ListAlarmsQuery } from '../types/ListAlarms.types';
 import { ListAlarmsQueryEditor } from './editors/list-alarms/ListAlarmsQueryEditor';
 import { AlarmsTrendQueryEditor } from './editors/alarms-trend/AlarmsTrendQueryEditor';
@@ -104,6 +104,6 @@ export function AlarmsQueryEditor({ datasource, query, onChange, onRunQuery }: P
           />
         </>
       )}
-    </>
+    </Stack>
   );
 }

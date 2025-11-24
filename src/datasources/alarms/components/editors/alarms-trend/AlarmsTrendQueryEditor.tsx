@@ -43,7 +43,6 @@ export function AlarmsTrendQueryEditor({ query, handleQueryChange, datasource }:
 
   return (
     <>
-      <Space v={1} />
       <Stack>
         <InlineField
           label={labels.queryBy}
