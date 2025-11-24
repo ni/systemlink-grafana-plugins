@@ -1,3 +1,9 @@
+## [4.79.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.79.0...v4.79.1) (2025-11-24)
+
+### Bug Fixes
+
+* **alarms:** Remove Alarms Count query type and related code ([#533](https://github.com/ni/systemlink-grafana-plugins/issues/533)) ([30e3fe3](https://github.com/ni/systemlink-grafana-plugins/commit/30e3fe3d1536a796e06dfa4c25a07445130c61f3))
+
 ## [4.79.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.78.1...v4.79.0) (2025-11-24)
 
 ### Features
