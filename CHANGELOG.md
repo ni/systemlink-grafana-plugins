@@ -1,3 +1,9 @@
+## [4.81.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.80.0...v4.81.0) (2025-11-25)
+
+### Features
+
+* **dataframes:** Disable columns query builder based on results filter ([#544](https://github.com/ni/systemlink-grafana-plugins/issues/544)) ([f1d8b01](https://github.com/ni/systemlink-grafana-plugins/commit/f1d8b018a48f8e299a41904c8f870182cd786335))
+
 ## [4.80.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.79.2...v4.80.0) (2025-11-25)
 
 ### Features
