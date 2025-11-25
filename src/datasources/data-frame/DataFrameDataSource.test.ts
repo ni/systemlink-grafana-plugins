@@ -26,7 +26,7 @@ describe('DataFrameDataSource', () => {
     let templateSrv: TemplateSrv;
     let backendSrv: BackendSrv;
     const mockFilter = { 
-        dataTableFilter: 'query',
+        dataTableFilter: 'dataTableQuery',
         resultFilter: 'resultQuery',
         columnFilter: 'columnQuery'
     };

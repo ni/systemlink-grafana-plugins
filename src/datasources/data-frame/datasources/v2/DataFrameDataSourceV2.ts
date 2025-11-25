@@ -181,12 +181,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private queryTablesInternal$(
         filter: string,
         take = TAKE_LIMIT,
-        projection?: DataTableProjections[],
-        substitutions?: string[]
+        projection?: DataTableProjections[]
     ): Observable<TableProperties[]> {
         const response = this.post$<TablePropertiesList>(
             `${this.baseUrl}/query-tables`,
-            { filter, take, projection, substitutions },
+            { filter, take, projection },
             { useApiIngress: true }
         );
 
@@ -222,9 +221,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return columnOptionsWithVariables;
     }
 
-    private async getColumnOptions(filter: string): Promise<Option[]> {
+    private async getColumnOptions(dataTableFilter: string): Promise<Option[]> {
         const tables = await lastValueFrom(
-          this.queryTables$({ dataTableFilter: filter }, TAKE_LIMIT, [
+          this.queryTables$({ dataTableFilter }, TAKE_LIMIT, [
             DataTableProjections.ColumnName,
             DataTableProjections.ColumnDataType,
         ]));

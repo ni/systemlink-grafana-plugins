@@ -66,12 +66,12 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
     }, [datasource]);
 
     const dataTableNameLookupCallback = useCallback(async (query: string) => {
-        const filter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;
+        const dataTableFilter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;  
         const response = await lastValueFrom(
-            datasource.queryTables$(
-                {dataTableFilter: filter},
-                5,
-                [DataTableProjections.Name]
+            datasource.queryTables$(  
+                { dataTableFilter },  
+                5,  
+                [DataTableProjections.Name]  
             )
         );
 
