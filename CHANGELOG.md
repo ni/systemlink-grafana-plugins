@@ -1,3 +1,9 @@
+## [4.82.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.81.0...v4.82.0) (2025-11-25)
+
+### Features
+
+* **dataframes:** Update the datasource infrastructure to support results filter ([#528](https://github.com/ni/systemlink-grafana-plugins/issues/528)) ([07898eb](https://github.com/ni/systemlink-grafana-plugins/commit/07898eb9e4f13381a2a1a509d43b8d4765e2f54e))
+
 ## [4.81.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.80.0...v4.81.0) (2025-11-25)
 
 ### Features
