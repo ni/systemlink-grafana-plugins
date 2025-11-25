@@ -1528,8 +1528,10 @@ describe('DataFrameDataSourceV2', () => {
                 await ds.getColumnOptionsWithVariables('name = "${var1}"');
 
                 expect(templateSrv.replace).toHaveBeenCalledWith('name = "${var1}"', scopedVars);
-                expect(queryTablesMock$).toHaveBeenCalledWith('name = "VarValue"', TAKE_LIMIT, [
-                    DataTableProjections.ColumnName,
+                expect(queryTablesMock$).toHaveBeenCalledWith(
+                    {dataTableFilter: 'name = "VarValue"'}, 
+                    TAKE_LIMIT, 
+                    [DataTableProjections.ColumnName,
                     DataTableProjections.ColumnDataType,
                 ]);
             });
