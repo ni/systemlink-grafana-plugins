@@ -41,6 +41,7 @@ describe('DataFrameDataSourceBase', () => {
                 { name: 'Var1' },
                 { name: 'Var2' },
             ]),
+            replace: jest.fn((query: string) => query),
         } as any;
     });
 
@@ -137,10 +138,19 @@ describe('DataFrameDataSourceBase', () => {
 
     it('should return empty array for getColumnOptionsWithVariables', async () => {
         const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
-        
-        const options = await ds.getColumnOptionsWithVariables('filter');   
-        
+
+        const options = await ds.getColumnOptionsWithVariables('filter');
+
         expect(options).toEqual([]);
+    });
+
+    it('should return query as it is for processVariableQuery', async () => {
+        const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+        const query = { key: 'dataframe-variable-query' } as any;
+
+        const result = ds.processVariableQuery(query);
+
+        expect(result).toBe(query);
     });
 
     describe('loadWorkspaces', () => {
@@ -337,6 +347,31 @@ describe('DataFrameDataSourceBase', () => {
             expect(ds.errorDescription).toContain(
                 `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
             );
+        });
+    });
+
+    describe('transformQuery', () => {
+        let ds: TestDataFrameDataSource;
+
+        beforeEach(() => {
+            ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+        });
+
+        it('should return the replaced query string', () => {
+            const query = 'id = $var';
+            (templateSrv.replace as jest.Mock).mockReturnValue('id = <valid-id-value>');  
+            
+            const result = ds.transformQuery(query);
+            
+            expect(result).toBe('id = <valid-id-value>');
+        });
+
+        it('should propagate errors thrown by templateSrv.replace', () => {
+            const query = 'errorQuery';
+            
+            (templateSrv.replace as jest.Mock).mockImplementation(() => { throw new Error('replace failed'); });
+            
+            expect(() => ds.transformQuery(query)).toThrow('replace failed');
         });
     });
 });

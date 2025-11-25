@@ -2,7 +2,7 @@ import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryType, TransitionInclusionOption } from 'datasources/alarms/types/types';
 import { ListAlarmsQueryHandler } from 'datasources/alarms/query-type-handlers/list-alarms/ListAlarmsQueryHandler';
-import { AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery } from 'datasources/alarms/types/ListAlarms.types';
+import { AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType } from 'datasources/alarms/types/ListAlarms.types';
 import { ListAlarmsQueryEditor } from './ListAlarmsQueryEditor';
 import userEvent from '@testing-library/user-event';
 import { AlarmsPropertiesOptions, takeErrorMessages, AlarmsTransitionInclusionOptions } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
@@ -25,6 +25,7 @@ const defaultProps = {
   query: {
     refId: 'A',
     queryType: QueryType.ListAlarms,
+    outputType: OutputType.Properties,
   },
   handleQueryChange: mockHandleQueryChange,
   datasource: mockDatasource,
@@ -32,7 +33,11 @@ const defaultProps = {
 
 async function renderElement(query: ListAlarmsQuery = { ...defaultProps.query }) {
   return await act(async () => {
-    const reactNode = React.createElement(ListAlarmsQueryEditor, { ...defaultProps, query });
+    const reactNode = React.createElement(ListAlarmsQueryEditor, {
+      query: { ...defaultProps.query, ...query },
+      handleQueryChange: defaultProps.handleQueryChange,
+      datasource: defaultProps.datasource,
+    });
 
     return render(reactNode);
   });
@@ -60,6 +65,13 @@ describe('ListAlarmsQueryEditor', () => {
     expect(screen.getAllByText('Property').length).toBe(1);
     expect(screen.getAllByText('Operator').length).toBe(1);
     expect(screen.getAllByText('Value').length).toBe(1);
+  });
+
+  it('should render outputType control', async () => {
+    await renderElement();
+
+    expect(screen.getByText('Output')).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeInTheDocument();
   });
 
   it('should call handleQueryChange when filter changes', async () => {
@@ -113,6 +125,52 @@ describe('ListAlarmsQueryEditor', () => {
 
     expect(screen.getByText('Test Error Title')).toBeInTheDocument();
     expect(screen.getByText('Test Error Description')).toBeInTheDocument();
+  });
+
+  describe('Output Type', () => {
+    it('should call handleQueryChange with total count as output type when switched to TotalCount', async () => {
+      const container = await renderElement();
+      const totalCountRadio = container.getByRole('radio', { name: OutputType.TotalCount });
+
+      await userEvent.click(totalCountRadio);
+
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          outputType: OutputType.TotalCount,
+        })
+      );
+    });
+
+    it('should call handleQueryChange with properties as output type when switched to Properties', async () => {
+      const container = await renderElement({ refId: 'A', outputType: OutputType.TotalCount });
+      const propertiesRadio = container.getByRole('radio', { name: OutputType.Properties });
+
+      await userEvent.click(propertiesRadio);
+
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          outputType: OutputType.Properties,
+        })
+      );
+    });
+
+    it('should show properties, include transition, descending and take controls when output type is Properties', async () => {
+      const container = await renderElement({ refId: 'A', outputType: OutputType.Properties });
+      
+      expect(container.getAllByRole('combobox').length).toBe(2);
+      expect(container.getByPlaceholderText('Select the properties to query')).toBeInTheDocument();
+      expect(container.getByRole('combobox', { name: 'Include Transition' })).toBeInTheDocument();
+      expect(container.getByRole('switch', { name: 'Descending' })).toBeInTheDocument();
+      expect(container.getByRole('spinbutton', { name: 'Take' })).toBeInTheDocument();
+    });
+
+    it('should hide properties, include transition, descending and take controls when output type is TotalCount', async () => {
+      const container = await renderElement({ refId: 'A', outputType: OutputType.TotalCount });
+
+      expect(container.queryAllByRole('combobox').length).toBe(0);
+      expect(container.queryByRole('switch', { name: 'Descending' })).not.toBeInTheDocument();
+      expect(container.queryByRole('spinbutton', { name: 'Take' })).not.toBeInTheDocument();
+    });
   });
 
   describe('Properties', () => {
@@ -172,10 +230,12 @@ describe('ListAlarmsQueryEditor', () => {
       fireEvent.change(takeInput, { target: { value: '250' } });
       fireEvent.blur(takeInput);
 
-      expect(mockHandleQueryChange).toHaveBeenCalledWith({
-        refId: 'A',
-        take: 250,
-      });
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          refId: 'A',
+          take: 250,
+        })
+      );
     });
 
     it('should preserve other query properties when take changes', async () => {
@@ -189,6 +249,8 @@ describe('ListAlarmsQueryEditor', () => {
 
       expect(mockHandleQueryChange).toHaveBeenCalledWith({
         refId: 'A',
+        queryType: QueryType.ListAlarms,
+        outputType: OutputType.Properties,
         filter: 'existing filter',
         descending: true,
         take: 300
@@ -325,10 +387,12 @@ describe('ListAlarmsQueryEditor', () => {
 
       fireEvent.click(descendingSwitch);
 
-      expect(mockHandleQueryChange).toHaveBeenCalledWith({
-        refId: 'A',
-        descending: true
-      });
+      expect(mockHandleQueryChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          refId: 'A',
+          descending: true
+        })
+      );
     });
 
     it('should preserve other query properties when descending changes', async () => {
@@ -340,9 +404,11 @@ describe('ListAlarmsQueryEditor', () => {
 
       expect(mockHandleQueryChange).toHaveBeenCalledWith({
         refId: 'A',
+        queryType: QueryType.ListAlarms,
+        outputType: OutputType.Properties,
         filter: 'test filter',
         take: 500,
-        descending: true
+        descending: true,
       });
     });
   });

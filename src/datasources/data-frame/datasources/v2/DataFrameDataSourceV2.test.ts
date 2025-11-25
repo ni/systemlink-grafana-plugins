@@ -6,7 +6,7 @@ import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
 import { Workspace } from 'core/types';
-import { lastValueFrom, of, throwError } from 'rxjs';
+import { isObservable, lastValueFrom, Observable, of, throwError } from 'rxjs';
 
 jest.mock('core/query-builder.utils', () => {
     const actualQueryBuilderUtils = jest.requireActual('core/query-builder.utils');
@@ -573,6 +573,33 @@ describe('DataFrameDataSourceV2', () => {
                         fields: expectedFields
                     });
                 });
+
+                it('should return 1 million values when the query returns more than 1 million columns', async () => {
+                    const queryWithColumnProperties = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableProperties: [DataTableProperties.Name],
+                        columnProperties: [DataTableProperties.ColumnName],
+                        take: 1000,
+                        refId: 'A',
+                    };
+                    const mockTables = Array.from({ length: 1000 }, (_, i) => ({
+                        id: `table-${i}`,
+                        name: `Table ${i}`,
+                        columns: Array.from({ length: 2000 }, (_, j) => ({
+                            name: `Column ${j}`,
+                            dataType: 'string'
+                        }))
+                    }));
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                    const result = await lastValueFrom(
+                        ds.runQuery(queryWithColumnProperties, options)
+                    );
+
+                    for (const field of result.fields) {
+                        expect(field.values?.length).toEqual(1000000);
+                    }
+                });
             });
         });
     });
@@ -786,20 +813,6 @@ describe('DataFrameDataSourceV2', () => {
     });
 
     describe('shouldRunQuery', () => {
-        it('should call processQuery with the provided query', () => {
-            const query = {
-                type: DataFrameQueryType.Data,
-                dataTableFilter: 'name = "Test Table"',
-                dataTableProperties: [DataTableProperties.Name],
-                take: 1000
-            } as ValidDataFrameQueryV2;
-            const processQuerySpy = jest.spyOn(ds, 'processQuery');
-
-            ds.shouldRunQuery(query);
-
-            expect(processQuerySpy).toHaveBeenCalledWith(query);
-        });
-
         it('should return true when query type is Properties', () => {
             const query = {
                 type: DataFrameQueryType.Properties,
@@ -870,6 +883,32 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.columns).toEqual(['col1', 'col2']);
             });
 
+            it('should return empty array when columns array is empty', () => {
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-123',
+                    columns: [],
+                    refId: 'A'
+                } as DataFrameDataQuery;
+
+                const result = ds.processQuery(query);
+
+                expect(result.columns).toEqual([]);
+            });
+
+            it('should return empty array when columns array contains objects without name property', () => {
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-123',
+                    columns: [{ dataType: 'string' }, { dataType: 'string' }] as any,
+                    refId: 'A'
+                } as DataFrameDataQuery;
+
+                const result = ds.processQuery(query);
+
+                expect(result.columns).toEqual([]);
+            });
+
             it('should not convert columns if they are already strings', () => {
                 const query = {
                     type: DataFrameQueryType.Data,
@@ -916,7 +955,6 @@ describe('DataFrameDataSourceV2', () => {
                 const v1Query = {
                     type: DataFrameQueryType.Data,
                     tableId: 'table-456',
-                    columns: ['col1', 'col2'],
                     decimationMethod: 'LOSSY',
                     filterNulls: true,
                     applyTimeFilters: true,
@@ -939,7 +977,7 @@ describe('DataFrameDataSourceV2', () => {
                         DataTableProperties.Workspace
                     ],
                     columnProperties: [],
-                    columns: ['col1', 'col2'],
+                    columns: [],
                     includeIndexColumns: false,
                     filterNulls: true,
                     decimationMethod: 'LOSSY',
@@ -973,6 +1011,97 @@ describe('DataFrameDataSourceV2', () => {
                 const result = ds.processQuery(v1Query);
 
                 expect(result.dataTableFilter).toBe('');
+            });
+
+            describe('should migrate columns from V1 to V2 correctly', () => {
+                let getSpy$: jest.SpyInstance;
+
+                beforeEach(() => {
+                    getSpy$ = jest.spyOn(ds, 'get$');
+                });
+
+                it('should return an observable that resolves to migrated columns when columns are provided', async () => {
+                    getSpy$.mockReturnValue(of({
+                        columns: [
+                            {
+                                name: 'col1',
+                                dataType: 'INT64'
+                            },
+                            {
+                                name: 'col2',
+                                dataType: 'STRING'
+                            }
+                        ]
+                    }));
+                    const v1Query = {
+                        type: DataFrameQueryType.Data,
+                        tableId: 'table-789',
+                        columns: ['col1', 'col2'],
+                        refId: 'E'
+                    } as DataFrameQueryV1;
+
+                    const result = ds.processQuery(v1Query);
+
+                    expect(getSpy$).toHaveBeenCalledWith(
+                        expect.stringContaining('tables/table-789')
+                    );
+                    expect(isObservable(result.columns)).toBe(true);
+                    expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
+                        ['col1-Numeric', 'col2-String']
+                    );
+                });
+
+                it('should not call get$ and should return an empty array when no columns are provided', () => {
+                    const v1Query = {
+                        type: DataFrameQueryType.Data,
+                        tableId: 'table-789',
+                        columns: [],
+                        refId: 'E'
+                    } as DataFrameQueryV1;
+
+                    const result = ds.processQuery(v1Query);
+
+                    expect(getSpy$).not.toHaveBeenCalled();
+                    expect(result.columns).toEqual([]);
+                });
+
+                it('should not call get$ and should return an empty array when columns are objects without name property', () => {
+                    const v1Query = {
+                        type: DataFrameQueryType.Data,
+                        tableId: 'table-789',
+                        columns: [{ dataType: 'string' }, { dataType: 'string' }] as any,
+                        refId: 'E'
+                    } as DataFrameQueryV1;
+
+                    const result = ds.processQuery(v1Query);
+
+                    expect(getSpy$).not.toHaveBeenCalled();
+                    expect(result.columns).toEqual([]);
+                });
+
+                it('should return an observable with original columns when columns are not found in table metadata', async () => {
+                    getSpy$.mockReturnValue(of({
+                        columns: [
+                            {
+                                name: 'col2',
+                                dataType: 'STRING'
+                            }
+                        ]
+                    }));
+                    const v1Query = {
+                        type: DataFrameQueryType.Data,
+                        tableId: 'table-789',
+                        columns: ['col1', 'col2'],
+                        refId: 'E'
+                    } as DataFrameQueryV1;
+
+                    const result = ds.processQuery(v1Query);
+
+                    expect(isObservable(result.columns)).toBe(true);
+                    expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
+                        ['col1', 'col2-String']
+                    );
+                });
             });
         });
 
@@ -1029,6 +1158,19 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual(v2Query);
             });
+        });
+    });
+
+    describe('prepareQuery', () => {
+        it('should return the query as is', () => {
+            const query = {
+                type: DataFrameQueryType.Data,
+                refId: 'A'
+            } as ValidDataFrameQueryV2;
+
+            const result = ds.prepareQuery(query);
+
+            expect(result).toBe(query);
         });
     });
 
@@ -1562,6 +1704,64 @@ describe('DataFrameDataSourceV2', () => {
                     { label: 'Column 2', value: 'Column 2-Numeric' }
                 ]);
             });
+        });
+    });
+
+    describe('transformQuery', () => {
+        it('should transform with the new scopedVariables when passed in as parameter', () => {
+            const input = 'name = "${Table}" AND id != "abc"';
+            const scopedVars = {
+                Table: { text: 'Table2', value: 'Table2' }
+            };
+            
+            ds.transformQuery(input, scopedVars);    
+            expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
+        })
+
+        it('should transform with saved scopedVariables when not passed in as parameter', async () => {
+            const scopedVars = {
+                name: { value: 'Test Table' }
+            }
+            const query = {
+                type: DataFrameQueryType.Data,
+                dataTableFilter: '',
+            } as DataFrameQueryV2;
+            const options = {
+                scopedVars: scopedVars
+            } as unknown as DataQueryRequest<DataFrameQueryV2>;
+            await lastValueFrom(ds.runQuery(query, options));
+            const input = 'name = "${Table}" AND id != "abc"';
+            
+            ds.transformQuery(input);   
+ 
+            expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
+        });
+
+        it('should replace single-value variables', () => {
+            const input = 'name = "${Table}" AND id != "abc"';
+            templateSrv.replace.mockReturnValue('name = "Table1" AND id != "abc"');
+            
+            const result = ds.transformQuery(input);
+
+            expect(result).toBe('name = "Table1" AND id != "abc"');
+        })
+
+        it('should transform and expand multi-value variables', () => {
+            const input = 'name = "{Table1,Table2}" AND id != "abc"';
+
+            const result = ds.transformQuery(input);
+
+            expect(result).toBe('(name = "Table1" || name = "Table2") AND id != "abc"');
+        });
+
+        it('should replace ${__now:date} placeholder in time fields', () => {
+            const input = 'createdAt >= "${__now:date}"';
+
+            const result = ds.transformQuery(input);
+
+            //Check if result matches ISO date format
+            expect(result).toMatch(/^createdAt >= "\d{4}-\d{2}-\d{2}T.+Z"$/);
+            expect(result).not.toContain('${__now:date}');
         });
     });
 });

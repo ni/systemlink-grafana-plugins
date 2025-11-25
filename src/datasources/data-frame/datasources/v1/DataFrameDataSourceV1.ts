@@ -15,8 +15,6 @@ import {
   DataFrameQueryType,
   DataFrameDataSourceOptions,
   DataTableProjections,
-  DataFrameVariableQuery,
-  ValidDataFrameVariableQuery,
   CombinedFilters,
 } from '../../types';
 import { propertiesCacheTTL } from '../../constants';
@@ -26,7 +24,7 @@ import { replaceVariables } from 'core/utils';
 import { LEGACY_METADATA_TYPE } from 'core/types';
 import { Observable, of } from 'rxjs';
 
-export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQueryV1> {
+export class DataFrameDataSourceV1 extends DataFrameDataSourceBase {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
   defaultQuery = defaultQueryV1;
 
@@ -77,7 +75,12 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     return properties;
   }
 
-  async getDecimatedTableData(query: DataFrameQueryV1, columns: Column[], timeRange: TimeRange, intervals = 1000): Promise<TableDataRows> {
+  async getDecimatedTableData(
+    query: DataFrameQueryV1,
+    columns: Column[],
+    timeRange: TimeRange,
+    intervals = 1000
+  ): Promise<TableDataRows> {
     const filters: ColumnFilter[] = [];
 
     if (query.applyTimeFilters) {
@@ -88,15 +91,18 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
       filters.push(...this.constructNullFilters(columns));
     }
 
-    return await this.post<TableDataRows>(`${this.baseUrl}/tables/${query.tableId}/query-decimated-data`, {
-      columns: query.columns,
-      filters,
-      decimation: {
-        intervals,
-        method: query.decimationMethod,
-        yColumns: this.getNumericColumns(columns).map(c => c.name),
-      },
-    });
+    return await this.post<TableDataRows>(
+      `${this.baseUrl}/tables/${query.tableId}/query-decimated-data`,
+      {
+        columns: query.columns,
+        filters,
+        decimation: {
+          intervals,
+          method: query.decimationMethod,
+          yColumns: this.getNumericColumns(columns).map(c => c.name),
+        },
+      }
+    );
   }
 
   queryTables$(
@@ -130,13 +136,9 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     return deepEqual(migratedQuery, query) ? (query as ValidDataFrameQueryV1) : migratedQuery;
   }
 
-  async metricFindQuery(tableQuery: DataFrameVariableQuery): Promise<MetricFindValue[]> {
+  async metricFindQuery(tableQuery: DataFrameQueryV1): Promise<MetricFindValue[]> {
     const tableProperties = await this.getTableProperties((tableQuery as DataFrameQueryV1).tableId);
     return tableProperties.columns.map(col => ({ text: col.name, value: col.name }));
-  }
-
-  public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
-    return query as ValidDataFrameVariableQuery;
   }
 
   private getColumnTypes(columnNames: string[], tableProperties: Column[]): Column[] {

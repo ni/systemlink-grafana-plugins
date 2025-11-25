@@ -7,26 +7,30 @@ import React from "react";
 import { cleanup, render, RenderResult, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
-import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties, DataFrameDataQuery } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { COLUMN_OPTIONS_LIMIT } from "datasources/data-frame/constants";
 import { ComboboxOption } from "@grafana/ui";
 import { errorMessages } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
+import { of } from "rxjs";
 
 jest.mock("./query-builders/DataFrameQueryBuilderWrapper", () => ({
     DataFrameQueryBuilderWrapper: jest.fn(() => <div data-testid="mock-data-frame-query-builder-wrapper" />)
 }));
 
 const renderComponent = (
-    queryOverrides: Partial<DataFrameQueryV2> = {},
+    queryOverrides: Partial<DataFrameDataQuery> = {},
     errorTitle = '',
     errorDescription = '',
-    columnOptions: ComboboxOption[] = []
+    columnOptions: ComboboxOption[] = [],
+    processQueryOverride?: jest.Mock<DataFrameQuery, [ValidDataFrameQueryV2]>,
+    variablesCache: Record<string, string> = {},
+    mockDatasource: Partial<DataFrameDataSource> = {}
 ) => {
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
-    const processQuery = jest
+    const processQuery = processQueryOverride ?? jest
         .fn<DataFrameQuery, [ValidDataFrameQueryV2]>()
         .mockImplementation(query => ({ ...defaultQueryV2, ...query }));
     const datasource = {
@@ -42,7 +46,9 @@ const renderComponent = (
                 { label: 'ColumnE', value: 'ColumnE' },
                 ...columnOptions
             ]
-        )
+        ),
+        transformQuery: jest.fn((filter: string) => filter),
+        variablesCache
     } as unknown as DataFrameDataSource;
 
     const initialQuery = {
@@ -52,7 +58,7 @@ const renderComponent = (
 
     const renderResult = render(
         <DataFrameQueryEditorV2
-            datasource={datasource}
+            datasource={mockDatasource.processQuery ? mockDatasource as DataFrameDataSource : datasource}
             query={initialQuery}
             onChange={onChange}
             onRunQuery={onRunQuery}
@@ -62,7 +68,7 @@ const renderComponent = (
     onChange.mockImplementation(newQuery => {
         renderResult.rerender(
             <DataFrameQueryEditorV2
-                datasource={datasource}
+                datasource={mockDatasource.processQuery ? mockDatasource as DataFrameDataSource : datasource}
                 query={newQuery}
                 onChange={onChange}
                 onRunQuery={onRunQuery}
@@ -74,6 +80,18 @@ const renderComponent = (
 };
 
 describe("DataFrameQueryEditorV2", () => {
+    it("should call processQuery with the initial query", () => {
+        const { processQuery } = renderComponent({
+            type: DataFrameQueryType.Data,
+            tableId: 'ExistingFilter',
+        });
+
+        expect(processQuery).toHaveBeenCalledWith(expect.objectContaining({
+            type: DataFrameQueryType.Data,
+            tableId: 'ExistingFilter',
+        }));
+    });
+
     it("should render query type options", () => {
         renderComponent();
 
@@ -153,6 +171,9 @@ describe("DataFrameQueryEditorV2", () => {
 
             describe('columns field', () => {
                 let columnsField: HTMLElement;
+                let datasource: DataFrameDataSource;
+
+                const processQuery = jest.fn(query => ({ ...defaultQueryV2, ...query }))
 
                 async function changeFilterValue(filterValue = 'NewFilter') {
                     // Get the onDataTableFilterChange callback from the mock
@@ -178,7 +199,10 @@ describe("DataFrameQueryEditorV2", () => {
                 }
 
                 beforeEach(() => {
+                    const latestQueryBuilderWrapperCall = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls.slice(-1)[0];
+                    const latestProps = latestQueryBuilderWrapperCall ? latestQueryBuilderWrapperCall[0] : undefined;
                     columnsField = screen.getAllByRole('combobox')[0];
+                    datasource = latestProps?.datasource as DataFrameDataSource;
                 });
 
                 it('should show the columns field', () => {
@@ -191,6 +215,7 @@ describe("DataFrameQueryEditorV2", () => {
                     await changeFilterValue();
                     await clickColumnOptions();
 
+                    await waitFor(() => expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1));
                     const optionTexts = getColumnOptionTexts();
                     expect(optionTexts).toEqual(expect.arrayContaining(
                         [
@@ -212,12 +237,37 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(within(document.body).queryAllByRole('option').length).toBe(0);
                 });
 
+                it('should not load column options when filter is unchanged', async () => {
+                    //Make initial filter change
+                    await changeFilterValue();
+
+                    // wait for column to be fetched
+                    await waitFor(() => {
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1);
+                    });
+                    await clickColumnOptions();
+                    const firstLoadOptions = getColumnOptionTexts();
+                    expect(firstLoadOptions.length).toBeGreaterThan(0);
+
+                    // Switch to Properties query type and back to Data to simulate re-render
+                    await userEvent.click(screen.getByRole("radio", { name: DataFrameQueryType.Properties }));
+                    await userEvent.click(screen.getByRole("radio", { name: DataFrameQueryType.Data }));
+
+                    // reopen dropdown
+                    await clickColumnOptions();
+                    const secondLoadOptions = getColumnOptionTexts();
+
+                    expect(secondLoadOptions).toEqual(firstLoadOptions);
+                    expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1);
+                });
+
                 describe('column limit', () => {
                     it('should not render warning alert when column limit is not exceeded', async () => {
                         await changeFilterValue();
                         await clickColumnOptions();
 
                         const optionTexts = getColumnOptionTexts();
+                        
                         expect(optionTexts.length).toBeLessThanOrEqual(COLUMN_OPTIONS_LIMIT);
                         await waitFor(() => {
                             expect(screen.queryByRole('alert')).not.toBeInTheDocument();
@@ -424,6 +474,263 @@ describe("DataFrameQueryEditorV2", () => {
                             );
                         });
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('UpdatedFilter');
+                    });
+
+                    it('should fetch column options when switching to Data query type after changing filter in Properties type', async () => {
+                        const user = userEvent.setup();
+                        // Start in Properties mode with an initial filter value
+                        const { datasource } = renderComponent({ type: DataFrameQueryType.Properties, dataTableFilter: 'InitialFilter' });
+                        const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                        const { onDataTableFilterChange } = props;
+                        const getColumnOptionsSpy = jest.spyOn(datasource, 'getColumnOptionsWithVariables');
+
+                        // While in Properties mode the columns combobox should not be rendered
+                        expect(screen.queryByPlaceholderText('Select columns')).not.toBeInTheDocument();
+                        expect(getColumnOptionsSpy).not.toHaveBeenCalled();
+
+                        // Change the filter while still in Properties mode
+                        const mockEvent = { detail: { linq: 'UpdatedFilter' } } as Event & { detail: { linq: string } };
+                        onDataTableFilterChange(mockEvent);
+    
+                        // Still should not fetch columns in Properties mode
+                        expect(getColumnOptionsSpy).not.toHaveBeenCalled();
+
+                        // Switch to Data mode – now the use effect should run and fetch columns with the updated filter
+                        const dataRadios = screen.getAllByRole('radio', { name: DataFrameQueryType.Data });
+                        await user.click(dataRadios[0]);
+
+                        await waitFor(() => {
+                            expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('UpdatedFilter');
+                        });
+                    });
+                });
+
+                describe('column option population based on filter', () => {
+                    it('should load column options on initial render with non-empty filter', async () => {
+                    const mockColumnOptions = [
+                        { label: 'Column1', value: 'Column1' },
+                        { label: 'Column2', value: 'Column2' },
+                    ];
+                    const datasource = {
+                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue(mockColumnOptions),
+                        transformQuery: jest.fn(f => f),
+                    } as any;
+
+                    renderComponent({
+                            ...defaultQueryV2,
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: 'InitialFilter',
+                        }, '', '', [], processQuery,{}, datasource);
+
+                    await waitFor(() => {
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('InitialFilter');
+                    });
+                    });
+
+                    it('should not load column options when filter becomes empty', async () => {
+                        const { datasource, renderResult } = renderComponent({
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: 'InitialFilter',
+                        });
+                        const getColumnOptionsSpy = jest.spyOn(datasource, 'getColumnOptionsWithVariables');
+
+                        await waitFor(() => expect(getColumnOptionsSpy).toHaveBeenCalledTimes(1));
+                        getColumnOptionsSpy.mockClear();
+                        renderResult.rerender(
+                            <DataFrameQueryEditorV2
+                                datasource={datasource}
+                                query={{ ...defaultQueryV2, refId: 'A', type: DataFrameQueryType.Data, dataTableFilter: '' }}
+                                onChange={() => {}}
+                                onRunQuery={() => {}}
+                            />
+                        );
+                        
+                        await waitFor(() => expect(datasource.getColumnOptionsWithVariables).not.toHaveBeenCalled());
+                    });
+
+                    it('should call getColumnOptionsWithVariables with transformed filter on initial render', async () => {
+                        const datasource = {
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                            getColumnOptionsWithVariables: jest.fn().mockResolvedValue([{ label: 'Col1', value: 'Col1' }]),
+                            transformQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
+                        } as any;
+
+                        renderComponent(
+                            {
+                                ...defaultQueryV2,
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                dataTableFilter: 'InitialFilter',
+                            },
+                            '',
+                            '',
+                            [],
+                            processQuery,
+                            {},
+                            datasource
+                        );
+
+                        await waitFor(() => {
+                            expect(datasource.transformQuery).toHaveBeenCalledWith('InitialFilter');
+                            expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('TRANSFORMED_InitialFilter');
+                        });
+                    });
+
+                    it('should call transformQuery before deciding to load column options', async () => {
+                        const datasource = {
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                            getColumnOptionsWithVariables: jest.fn().mockResolvedValue([{ label: 'Col1', value: 'Col1' }]),
+                            transformQuery: jest.fn(f => f),
+                        } as any;
+                        renderComponent(
+                            {
+                                ...defaultQueryV2,
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                dataTableFilter: 'FilterX',
+                            },
+                            '',
+                            '',
+                            [],
+                            processQuery,
+                            {},
+                            datasource
+                        );
+                        
+                        await waitFor(() => expect(datasource.transformQuery).toHaveBeenCalledWith('FilterX'));
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('FilterX');
+                    });
+                })
+
+                describe('column option population based on variables cache', () => {
+                    it('should trigger useEffect when variables cache object reference changes', async () => {
+                        const initialVariablesCache = { var1: 'value1' };
+                        const updatedVariablesCache = { var1: 'value2' };
+                        const datasource = {
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                            getColumnOptionsWithVariables: jest.fn().mockResolvedValue([{ label: 'Col1', value: 'Col1' }]),
+                            transformQuery: jest.fn(f => f),
+                        } as any;
+
+                        renderComponent(
+                            {
+                                    ...defaultQueryV2,
+                                    refId: 'A',
+                                    type: DataFrameQueryType.Data,
+                                    dataTableFilter: 'FilterWithVar',
+                                },
+                            '',
+                            '',
+                            [],
+                            processQuery,
+                            initialVariablesCache,
+                            datasource,
+                        );
+
+                        await waitFor(() => {
+                            expect(datasource.transformQuery).toHaveBeenCalledWith('FilterWithVar');
+                            expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('FilterWithVar');
+                        });
+
+                        datasource.getColumnOptionsWithVariables.mockClear();
+                        datasource.transformQuery.mockClear();
+
+                        // Update variables cache reference and rerender
+                        renderComponent(
+                            {
+                                    ...defaultQueryV2,
+                                    refId: 'A',
+                                    type: DataFrameQueryType.Data,
+                                    dataTableFilter: 'FilterWithVar',
+                                },
+                            '',
+                            '',
+                            [],
+                            processQuery,
+                            updatedVariablesCache,
+                            datasource
+                        );
+
+                        await waitFor(() => {
+                            expect(datasource.transformQuery).toHaveBeenCalledWith('FilterWithVar');
+                        });
+                    });
+                });
+
+                describe("columns value setting", () => {
+                    beforeAll(() => {
+                        // Mock offsetHeight for combobox virtualization so options render in tests
+                        jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
+                    });
+
+                    it("should be set with a value when a list of columns is provided in the query", async () => {
+                        renderComponent({
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: 'name = "TestTable"',
+                            columns: ['ColumnD-String']
+                        });
+
+                        await waitFor(() => {
+                            expect(document.body).toHaveTextContent('ColumnD (String)');
+                        });
+                    });
+
+                    it("should call onChange with a list of columns when processQuery returns an observable", async () => {
+                        const columns = of(['ColumnB-Numeric', 'ColumnD-String']);
+                        const processQueryOverride = jest
+                            .fn<DataFrameQuery, [ValidDataFrameQueryV2]>()
+                            .mockImplementation(query => ({
+                                ...defaultQueryV2,
+                                ...query,
+                                columns
+                            }));
+
+                        const { onChange } = renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                dataTableFilter: 'name = "TestTable"',
+                                columns: ['ColumnB', 'ColumnD']
+                            },
+                            '',
+                            '',
+                            [],
+                            processQueryOverride
+                        );
+
+                        await waitFor(() => {
+                            expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                                columns: ['ColumnB-Numeric', 'ColumnD-String']
+                            }));
+                        });
+                    });
+
+                    it("should call onRunQuery with a list of columns when processQuery returns an observable", async () => {
+                        const columns = of(['ColumnB-Numeric', 'ColumnD-String']);
+                        const processQueryOverride = jest
+                            .fn<DataFrameQuery, [ValidDataFrameQueryV2]>()
+                            .mockImplementation(query => ({
+                                ...defaultQueryV2,
+                                ...query,
+                                columns
+                            }));
+
+                        const { onRunQuery } = renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                dataTableFilter: 'name = "TestTable"',
+                                columns: ['ColumnB', 'ColumnD']
+                            },
+                            '',
+                            '',
+                            [],
+                            processQueryOverride
+                        );
+
+                        await waitFor(() => {
+                            expect(onRunQuery).toHaveBeenCalled();
+                        });
                     });
                 });
             });
@@ -898,6 +1205,29 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
+        it("should not call onChange or onRunQuery when the dataTableFilter remains unchanged", async () => {
+            const { onChange, onRunQuery } = renderComponent({
+                type: DataFrameQueryType.Data,
+                dataTableFilter: 'SameFilter'
+            });
+
+            // Get the onDataTableFilterChange callback from the mock
+            const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+            const { onDataTableFilterChange } = props;
+
+            // Simulate the filter change event with the same filter
+            const mockEvent = {
+                detail: { linq: "SameFilter" }
+            } as Event & { detail: { linq: string; }; };
+
+            onDataTableFilterChange(mockEvent);
+
+            await waitFor(() => {
+                expect(onChange).not.toHaveBeenCalled();
+                expect(onRunQuery).not.toHaveBeenCalled();
+            });
+        });
+
         it("should verify dataTableFilter is passed correctly", () => {
             renderComponent({ type: DataFrameQueryType.Data, dataTableFilter: 'TestFilter' });
 
@@ -939,6 +1269,29 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
+        it("should not call onChange or onRunQuery when the columnsFilter remains unchanged", async () => {
+            const { onChange, onRunQuery } = renderComponent({
+                type: DataFrameQueryType.Data,
+                columnsFilter: 'SameColumnsFilter'
+            });
+
+            // Get the onColumnsFilterChange callback from the mock
+            const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+            const { onColumnsFilterChange } = props;
+
+            // Simulate the filter change event with the same filter
+            const mockEvent = {
+                detail: { linq: "SameColumnsFilter" }
+            } as Event & { detail: { linq: string; }; };
+
+            onColumnsFilterChange(mockEvent);
+
+            await waitFor(() => {
+                expect(onChange).not.toHaveBeenCalled();
+                expect(onRunQuery).not.toHaveBeenCalled();
+            });
+        });
+
         it('should pass resultsFilter to the query builder wrapper', () => {
             renderComponent({ type: DataFrameQueryType.Data, resultsFilter: 'InitialResultsFilter' });
 
@@ -969,6 +1322,29 @@ describe("DataFrameQueryEditorV2", () => {
                 expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
                     resultsFilter: 'NewResultsFilter'
                 }));
+            });
+        });
+
+        it('should not call onChange or onRunQuery when the resultsFilter remains unchanged', async () => {
+            const { onChange, onRunQuery } = renderComponent({
+                type: DataFrameQueryType.Data,
+                resultsFilter: 'SameResultsFilter'
+            });
+
+            // Get the onResultsFilterChange callback from the mock
+            const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+            const { onResultsFilterChange } = props;
+
+            // Simulate the filter change event with the same filter
+            const mockEvent = {
+                detail: { linq: 'SameResultsFilter' }
+            } as Event & { detail: { linq: string; }; };
+
+            onResultsFilterChange(mockEvent);
+
+            await waitFor(() => {
+                expect(onChange).not.toHaveBeenCalled();
+                expect(onRunQuery).not.toHaveBeenCalled();
             });
         });
     });
