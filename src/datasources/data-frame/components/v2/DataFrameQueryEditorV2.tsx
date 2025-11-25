@@ -69,23 +69,21 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             const transformedFilter = datasource.transformQuery(filter);
             const filterChanged = lastFilterRef.current !== transformedFilter;
 
-            if (migratedQuery.type === DataFrameQueryType.Data && filterChanged) {
-                lastFilterRef.current = transformedFilter;
+            if (migratedQuery.type !== DataFrameQueryType.Data || !filterChanged) {
+                return;
+            }
 
-                if (transformedFilter) {
-                    fetchAndSetColumnOptions(transformedFilter);
-                } else {
-                    const resetColumnOptions = () => {
-                        if (isColumnLimitExceeded) {
-                            setIsColumnLimitExceeded(false);
-                        }
+            lastFilterRef.current = transformedFilter;
 
-                        if (columnOptions.length > 0) {
-                            setColumnOptions([]);
-                        }
-                    };
-                    resetColumnOptions();
-                }
+            if (transformedFilter) {
+                fetchAndSetColumnOptions(transformedFilter);
+                return;
+            }
+
+            // Clear column options if filter is empty
+            setIsColumnLimitExceeded(false);
+            if (columnOptions.length > 0) {
+                setColumnOptions([]);
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
