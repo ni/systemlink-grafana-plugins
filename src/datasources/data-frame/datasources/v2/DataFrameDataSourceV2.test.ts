@@ -240,7 +240,7 @@ describe('DataFrameDataSourceV2', () => {
                         expect(result.refId).toBe('A');
                     });
 
-                    it('should return empty DataFrame when table query returns no results', async () => {
+                    it('should throw error when table query returns no results', async () => {
                         queryTablesSpy.mockReturnValue(of([]));
                         const query = {
                             refId: 'A',
@@ -249,13 +249,9 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "Test"',
                         } as DataFrameQueryV2;
 
-                        const result = await lastValueFrom(ds.runQuery(query, options));
-
-                        expect(result).toEqual({
-                            refId: 'A',
-                            name: 'A',
-                            fields: []
-                        });
+                        await expect(lastValueFrom(ds.runQuery(query, options))).rejects.toThrow(
+                            'One or more selected columns are invalid. Please update your column selection or refine your data table filter.'
+                        );
                     });
 
                     it('should throw error and publish alert when selected columns do not exist in table', async () => {
@@ -304,10 +300,10 @@ describe('DataFrameDataSourceV2', () => {
                             'name = "Test"',
                             expect.any(Number),
                             expect.arrayContaining([
-                                expect.stringContaining('ColumnName'),
-                                expect.stringContaining('ColumnDataType'),
-                                expect.stringContaining('ColumnType'),
-                                expect.stringContaining('ColumnProperties')
+                                'COLUMN_NAME',
+                                'COLUMN_DATA_TYPE',
+                                'COLUMN_COLUMN_TYPE',
+                                'COLUMN_PROPERTIES'
                             ])
                         );
                     });
@@ -339,7 +335,7 @@ describe('DataFrameDataSourceV2', () => {
                         expect(queryTablesSpy).toHaveBeenCalled();
                     });
 
-                    it('should return empty fields when table has undefined columns property', async () => {
+                    it('should throw error when table has undefined columns property', async () => {
                         const mockTables = [
                             {
                                 id: 'table1',
@@ -354,12 +350,12 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: '',
                         } as DataFrameQueryV2;
 
-                        const result = await lastValueFrom(ds.runQuery(query, options));
-
-                        expect(result.fields).toEqual([]);
+                        await expect(lastValueFrom(ds.runQuery(query, options))).rejects.toThrow(
+                            'One or more selected columns are invalid. Please update your column selection or refine your data table filter.'
+                        );
                     });
 
-                    it('should return empty fields when table has empty columns array', async () => {
+                    it('should throw error when table has empty columns array', async () => {
                         const mockTables = [
                             {
                                 id: 'table1',
@@ -374,9 +370,9 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: '',
                         } as DataFrameQueryV2;
 
-                        const result = await lastValueFrom(ds.runQuery(query, options));
-
-                        expect(result.fields).toEqual([]);
+                        await expect(lastValueFrom(ds.runQuery(query, options))).rejects.toThrow(
+                            'One or more selected columns are invalid. Please update your column selection or refine your data table filter.'
+                        );
                     });
                 });
 
