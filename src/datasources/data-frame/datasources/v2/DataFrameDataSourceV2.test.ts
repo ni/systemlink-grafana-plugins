@@ -272,7 +272,7 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await lastValueFrom(ds.runQuery(validQuery, options));
 
                     expect(queryTablesSpy$).toHaveBeenCalledWith(
-                        'name = "Test Table"',
+                        { dataTableFilter: 'name = "Test Table"' },
                         1000,
                         [DataTableProjections.Name]
                     );
@@ -563,7 +563,7 @@ describe('DataFrameDataSourceV2', () => {
                     );
 
                     expect(queryTablesSpy$).toHaveBeenCalledWith(
-                        'name = "Test Table"',
+                        { dataTableFilter: 'name = "Test Table"' },
                         1000,
                         expectedProjections
                     );
@@ -718,7 +718,7 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await ds.metricFindQuery(query, options);
 
                 expect(queryTablesSpy$).toHaveBeenCalledWith(
-                    'name = "Test Table"',
+                    { dataTableFilter: 'name = "Test Table"' },
                     1000,
                     [DataTableProjections.Name]
                 );
@@ -934,9 +934,9 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual({
                     type: DataFrameQueryType.Properties,
-                    resultsFilter: '',
+                    resultFilter: '',
                     dataTableFilter: 'id = "table-123"',
-                    columnsFilter: '',
+                    columnFilter: '',
                     dataTableProperties: [DataTableProperties.Properties],
                     columnProperties: [],
                     columns: [],
@@ -965,9 +965,9 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual({
                     type: DataFrameQueryType.Data,
-                    resultsFilter: '',
+                    resultFilter: '',
                     dataTableFilter: 'id = "table-456"',
-                    columnsFilter: '',
+                    columnFilter: '',
                     dataTableProperties: [
                         DataTableProperties.Name,
                         DataTableProperties.Id,
@@ -1120,9 +1120,9 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual({
                     type: DataFrameQueryType.Properties,
-                    resultsFilter: '',
+                    resultFilter: '',
                     dataTableFilter: 'name = "test"',
-                    columnsFilter: '',
+                    columnFilter: '',
                     dataTableProperties: [DataTableProperties.Name, DataTableProperties.Id],
                     columnProperties: [DataTableProperties.ColumnName],
                     columns: [],
@@ -1139,9 +1139,9 @@ describe('DataFrameDataSourceV2', () => {
             it('should preserve all V2 query properties', () => {
                 const v2Query = {
                     type: DataFrameQueryType.Data,
-                    resultsFilter: '',
+                    resultFilter: '',
                     dataTableFilter: 'workspace = "ws-1"',
-                    columnsFilter: '',
+                    columnFilter: '',
                     dataTableProperties: [],
                     columnProperties: [],
                     columns: ['col1', 'col2'],
@@ -1191,9 +1191,9 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual({
                     queryType: DataFrameVariableQueryType.ListColumns,
-                    resultsFilter: '',
+                    resultFilter: '',
                     dataTableFilter: 'id = "table-123"',
-                    columnsFilter: '',
+                    columnFilter: '',
                     refId: 'A'
                 });
                 expect(result).not.toHaveProperty('tableId');
@@ -1245,9 +1245,9 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual({
                     queryType: DataFrameVariableQueryType.ListColumns,
-                    resultsFilter: '',
+                    resultFilter: '',
                     dataTableFilter: 'id = "table-456"',
-                    columnsFilter: '',
+                    columnFilter: '',
                     refId: 'D',
                     hide: true,
                     key: 'custom-key'
@@ -1267,9 +1267,9 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual({
                     queryType: DataFrameVariableQueryType.ListDataTables,
-                    resultsFilter: '',
+                    resultFilter: '',
                     dataTableFilter: 'name = "test"',
-                    columnsFilter: '',
+                    columnFilter: '',
                     refId: 'E'
                 });
             });
@@ -1285,9 +1285,9 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result).toEqual({
                     queryType: DataFrameVariableQueryType.ListColumns,
-                    resultsFilter: '',
+                    resultFilter: '',
                     dataTableFilter: 'workspace = "ws-1"',
-                    columnsFilter: '',
+                    columnFilter: '',
                     refId: 'F'
                 });
             });
@@ -1295,9 +1295,9 @@ describe('DataFrameDataSourceV2', () => {
             it('should preserve all V2 variable query properties', () => {
                 const v2Query = {
                     queryType: DataFrameVariableQueryType.ListDataTables,
-                    resultsFilter: '',
+                    resultFilter: '',
                     dataTableFilter: 'workspace = "ws-1"',
-                    columnsFilter: '',
+                    columnFilter: '',
                     refId: 'G',
                     hide: false
                 } as DataFrameVariableQueryV2;
@@ -1338,38 +1338,38 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should call the `post$` method with the expected arguments and return tables', async () => {
-            const filter = 'test-filter';
+            const filter = { dataTableFilter: 'test-filter' };
             const take = 10;
             const projection = [DataTableProjections.Name, DataTableProjections.Id];
             const result = await lastValueFrom(ds.queryTables$(filter, take, projection));
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
-                { filter, take, projection },
+                { filter: filter.dataTableFilter, take, projection },
                 { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
         });
 
         it('should use TAKE_LIMIT as default take value when not provided', async () => {
-            const filter = 'test-filter';
+            const filter = { dataTableFilter: 'test-filter' };
             const result = await lastValueFrom(ds.queryTables$(filter));
 
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
-                { filter, take: TAKE_LIMIT },
+                { filter: filter.dataTableFilter, take: TAKE_LIMIT },
                 { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
         });
 
         it('should use undefined as default projection value when not provided', async () => {
-            const filter = 'test-filter';
+            const filter = { dataTableFilter: 'test-filter' };
             const take = 15;
             const result = await lastValueFrom(ds.queryTables$(filter, take));
 
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
-                { filter, take, projection: undefined },
+                { filter: filter.dataTableFilter, take, projection: undefined },
                 { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
@@ -1378,7 +1378,7 @@ describe('DataFrameDataSourceV2', () => {
         it('should throw error with unknown error when API returns error without status', async () => {
             postMock$.mockReturnValue(throwError(() => new Error('Some unknown error')));
 
-            await expect(lastValueFrom(ds.queryTables$('test-filter'))).rejects.toThrow(
+            await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: 'test-filter' }))).rejects.toThrow(
                 'The query failed due to an unknown error.'
             );
         });
@@ -1386,7 +1386,7 @@ describe('DataFrameDataSourceV2', () => {
         it('should throw too many requests error when API returns 429 status', async () => {
             postMock$.mockReturnValue(throwError(() => createQueryTablesError(429)));
 
-            await expect(lastValueFrom(ds.queryTables$('test-filter'))).rejects.toThrow(
+            await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: 'test-filter' }))).rejects.toThrow(
                 'The query to fetch data tables failed due to too many requests. Please try again later.'
             );
         });
@@ -1394,7 +1394,7 @@ describe('DataFrameDataSourceV2', () => {
         it('should throw timeOut error when API returns 504 status', async () => {
             postMock$.mockReturnValue(throwError(() => createQueryTablesError(504)));
 
-            await expect(lastValueFrom(ds.queryTables$('test-filter'))).rejects.toThrow(
+            await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: 'test-filter' }))).rejects.toThrow(
                 'The query to fetch data tables experienced a timeout error. Narrow your query with a more specific filter and try again.'
             );
         });
@@ -1402,7 +1402,7 @@ describe('DataFrameDataSourceV2', () => {
         it('should throw error with status code and message when API returns 500 status', async () => {
             postMock$.mockReturnValue(throwError(() => createQueryTablesError(500)));
 
-            await expect(lastValueFrom(ds.queryTables$('test-filter'))).rejects.toThrow(
+            await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: 'test-filter' }))).rejects.toThrow(
                 'The query failed due to the following error: (status 500) "Error".'
             );
         });
@@ -1412,7 +1412,7 @@ describe('DataFrameDataSourceV2', () => {
             (ds as any).appEvents = { publish: publishMock };
             postMock$.mockReturnValue(throwError(() => createQueryTablesError(429)));
 
-            await expect(lastValueFrom(ds.queryTables$('test-filter'))).rejects.toThrow();
+            await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: 'test-filter' }))).rejects.toThrow();
 
             expect(publishMock).toHaveBeenCalledWith({
                 type: 'alert-error',

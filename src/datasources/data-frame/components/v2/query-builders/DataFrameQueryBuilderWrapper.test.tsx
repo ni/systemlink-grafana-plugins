@@ -67,14 +67,14 @@ jest.mock("shared/components/ResultsQueryBuilder/ResultsQueryBuilder", () => ({
 }));
 
 const renderComponent = (
-    resultsFilter = '',
+    resultFilter = '',
     dataTableFilter = '',
-    columnsFilter = '',
+    columnFilter = '',
     queryByResultAndColumnProperties = true
 ) => {
-    const onResultsFilterChange = jest.fn();
+    const onResultFilterChange = jest.fn();
     const onDataTableFilterChange = jest.fn();
-    const onColumnsFilterChange = jest.fn();
+    const onColumnFilterChange = jest.fn();
     const datasource = {
         loadWorkspaces: jest.fn().mockResolvedValue(
             new Map([
@@ -103,12 +103,12 @@ const renderComponent = (
     const renderResult = render(
         <DataFrameQueryBuilderWrapper
             datasource={datasource}
-            resultsFilter={resultsFilter}
+            resultFilter={resultFilter}
             dataTableFilter={dataTableFilter}
-            columnsFilter={columnsFilter}
-            onResultsFilterChange={onResultsFilterChange}
+            columnFilter={columnFilter}
+            onResultFilterChange={onResultFilterChange}
             onDataTableFilterChange={onDataTableFilterChange}
-            onColumnsFilterChange={onColumnsFilterChange}
+            onColumnFilterChange={onColumnFilterChange}
         />
     );
 
@@ -116,21 +116,21 @@ const renderComponent = (
         renderResult.rerender(
             <DataFrameQueryBuilderWrapper
                 datasource={datasource}
-                resultsFilter={resultsFilter}
+                resultFilter={resultFilter}
                 dataTableFilter={event.detail.linq}
-                columnsFilter={columnsFilter}
-                onResultsFilterChange={onResultsFilterChange}
+                columnFilter={columnFilter}
+                onResultFilterChange={onResultFilterChange}
                 onDataTableFilterChange={onDataTableFilterChange}
-                onColumnsFilterChange={onColumnsFilterChange}
+                onColumnFilterChange={onColumnFilterChange}
             />
         );
     });
 
     return {
         renderResult,
-        onResultsFilterChange,
+        onResultFilterChange,
         onDataTableFilterChange,
-        onColumnsFilterChange,
+        onColumnFilterChange,
         datasource
     };
 };
@@ -222,8 +222,8 @@ describe('DataFrameQueryBuilderWrapper', () => {
             );
         });
 
-        it('should call onColumnsFilterChange when the columns filter is changed in the ColumnsQueryBuilder component', async () => {
-           const { onColumnsFilterChange } = renderComponent();
+        it('should call onColumnFilterChange when the columns filter is changed in the ColumnsQueryBuilder component', async () => {
+           const { onColumnFilterChange } = renderComponent();
            const [[props]] = (ColumnsQueryBuilder as jest.Mock).mock.calls;
 
            // Simulate a change event
@@ -231,7 +231,7 @@ describe('DataFrameQueryBuilderWrapper', () => {
            await props.onChange({ detail: eventDetail });
 
            await waitFor(() => {
-               expect(onColumnsFilterChange).toHaveBeenCalledWith({ detail: eventDetail });
+               expect(onColumnFilterChange).toHaveBeenCalledWith({ detail: eventDetail });
            });
         });
 
@@ -241,6 +241,40 @@ describe('DataFrameQueryBuilderWrapper', () => {
             await waitFor(() => {
                 expect(screen.queryByTestId('mock-columns-query-builder')).not.toBeInTheDocument();
             });
+        });
+
+        
+        it('should pass disabled=true to ColumnsQueryBuilder when resultFilter is empty', async () => {
+            renderComponent('', '', 'column filter');
+
+            expect(ColumnsQueryBuilder).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    disabled: true,
+                }),
+                {}
+            );
+        });
+
+        it('should pass disabled=true to ColumnsQueryBuilder when resultFilter is only whitespace', async () => {
+            renderComponent('   ', '', 'column filter');
+
+            expect(ColumnsQueryBuilder).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    disabled: true,
+                }),
+                {}
+            );
+        });
+
+        it('should pass disabled=false to ColumnsQueryBuilder when resultFilter has content', async () => {
+            renderComponent('status = "passed"', '', 'column filter');
+
+            expect(ColumnsQueryBuilder).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    disabled: false,
+                }),
+                {}
+            );
         });
     });
 
@@ -335,8 +369,8 @@ describe('DataFrameQueryBuilderWrapper', () => {
             });
         });
 
-        it('should call onResultsFilterChange when the results filter is changed in the ResultsQueryBuilder component', async () => {
-           const { onResultsFilterChange } = renderComponent();
+        it('should call onResultFilterChange when the results filter is changed in the ResultsQueryBuilder component', async () => {
+           const { onResultFilterChange } = renderComponent();
            const [[props]] = (ResultsQueryBuilder as jest.Mock).mock.calls;
 
            // Simulate a change event
@@ -344,7 +378,7 @@ describe('DataFrameQueryBuilderWrapper', () => {
            await props.onChange({ detail: eventDetail });
 
            await waitFor(() => {
-               expect(onResultsFilterChange).toHaveBeenCalledWith({ detail: eventDetail });
+               expect(onResultFilterChange).toHaveBeenCalledWith({ detail: eventDetail });
            });
         });
 

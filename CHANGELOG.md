@@ -1,3 +1,21 @@
+## [4.81.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.80.0...v4.81.0) (2025-11-25)
+
+### Features
+
+* **dataframes:** Disable columns query builder based on results filter ([#544](https://github.com/ni/systemlink-grafana-plugins/issues/544)) ([f1d8b01](https://github.com/ni/systemlink-grafana-plugins/commit/f1d8b018a48f8e299a41904c8f870182cd786335))
+
+## [4.80.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.79.2...v4.80.0) (2025-11-25)
+
+### Features
+
+* **dataframe:** Reduce component re-renders due to state updates ([#549](https://github.com/ni/systemlink-grafana-plugins/issues/549)) ([81fd7c7](https://github.com/ni/systemlink-grafana-plugins/commit/81fd7c73a188d74416d6b6227af6885ad19650cb))
+
+## [4.79.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.79.1...v4.79.2) (2025-11-25)
+
+### Bug Fixes
+
+* **dataframe:** Query reset when the query type is data ([#548](https://github.com/ni/systemlink-grafana-plugins/issues/548)) ([64cdf89](https://github.com/ni/systemlink-grafana-plugins/commit/64cdf8917cfc8da85857ff645561e30b67cd9372))
+
 ## [4.79.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.79.0...v4.79.1) (2025-11-24)
 
 ### Bug Fixes

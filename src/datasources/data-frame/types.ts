@@ -32,9 +32,9 @@ export interface DataFrameQueryV1 extends DataQuery {
 
 export interface DataFrameQueryV2 extends DataQuery {
   type: DataFrameQueryType;
-  resultsFilter?: string;
+  resultFilter?: string;
   dataTableFilter?: string;
-  columnsFilter?: string;
+  columnFilter?: string;
   dataTableProperties?: DataTableProperties[];
   columnProperties?: DataTableProperties[];
   columns?: string[] | Observable<string[]>;
@@ -48,16 +48,16 @@ export interface DataFrameQueryV2 extends DataQuery {
 
 export interface DataFrameVariableQueryV2 extends DataQuery {
   queryType: DataFrameVariableQueryType;
-  resultsFilter?: string;
+  resultFilter?: string;
   dataTableFilter?: string;
-  columnsFilter?: string;
+  columnFilter?: string;
 }
 
 export const defaultVariableQueryV2: Omit<ValidDataFrameVariableQuery, 'refId'> = {
   queryType: DataFrameVariableQueryType.ListDataTables,
-  resultsFilter: '',
+  resultFilter: '',
   dataTableFilter: '',
-  columnsFilter: ''
+  columnFilter: ''
 };
 
 export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
@@ -110,6 +110,12 @@ export enum DataTableProjections {
   Properties = 'PROPERTIES'
 }
 
+export interface CombinedFilters {
+  resultFilter?: string;
+  dataTableFilter?: string;
+  columnFilter?: string;
+}
+
 export enum DataTableProjectionType {
   DataTable = 'dataTable',
   Column = 'column'
@@ -126,9 +132,9 @@ export const defaultDatatableProperties: DataTableProperties[] = [
 
 export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   type: DataFrameQueryType.Data,
-  resultsFilter: '',
+  resultFilter: '',
   dataTableFilter: '',
-  columnsFilter: '',
+  columnFilter: '',
   dataTableProperties: defaultDatatableProperties,
   columnProperties: [],
   columns: [],
