@@ -150,6 +150,295 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(queryTablesSpy$).not.toHaveBeenCalled();
             });
+
+            describe('column handling', () => {
+                let options: DataQueryRequest<DataFrameQueryV2>;
+                let queryTablesSpy: jest.SpyInstance;
+
+                beforeEach(() => {
+                    options = {
+                        scopedVars: {},
+                    } as any;
+                    queryTablesSpy = jest.spyOn(ds, 'queryTables$');
+                });
+
+                describe('when columns are not selected', () => {
+                    it('should return empty DataFrame and skip table query when columns array is empty', async () => {
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: []
+                        } as DataFrameQueryV2;
+                        
+                        const result = await lastValueFrom(ds.runQuery(query, options));
+                        
+                        expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
+                        expect(queryTablesSpy).not.toHaveBeenCalled();
+                    });
+
+                    it('should return empty DataFrame and skip table query when columns observable emits empty array', async () => {
+                        const query: any = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: of([]),
+                        };
+                        
+                        const result = await lastValueFrom(ds.runQuery(query, options));
+                        
+                        expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
+                        expect(queryTablesSpy).not.toHaveBeenCalled();
+                    });
+                });
+
+                describe('when columns are selected', () => {
+                    it('should query tables and return results when columns are provided as array', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            columns: [
+                                { name: 'colA', dataType: 'INT32', columnType: 'NonNullable', properties: {} },
+                                { name: 'colB', dataType: 'TIMESTAMP', columnType: 'NonNullable', properties: {} }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['colA-Numeric', 'colB-Timestamp'],
+                            dataTableFilter: 'name = "Test"',
+                        } as DataFrameQueryV2;
+                        
+                        const result = await lastValueFrom(ds.runQuery(query, options));
+                        
+                        expect(queryTablesSpy).toHaveBeenCalledWith(
+                            'name = "Test"',
+                            expect.any(Number),
+                            expect.any(Array)
+                        );
+                        expect(result.refId).toBe('A');
+                    });
+
+                    it('should query tables and return results when columns are provided as observable', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            columns: [
+                                { name: 'colX', dataType: 'FLOAT64', columnType: 'NonNullable', properties: {} }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        
+                        const query: any = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: of(['colX-Numeric']),
+                            dataTableFilter: '',
+                        };
+                        
+                        const result = await lastValueFrom(ds.runQuery(query, options));
+                        
+                        expect(queryTablesSpy).toHaveBeenCalled();
+                        expect(result.refId).toBe('A');
+                    });
+
+                    it('should return empty DataFrame when table query returns no results', async () => {
+                        queryTablesSpy.mockReturnValue(of([]));
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                        } as DataFrameQueryV2;
+
+                        const result = await lastValueFrom(ds.runQuery(query, options));
+
+                        expect(result).toEqual({
+                            refId: 'A',
+                            name: 'A',
+                            fields: []
+                        });
+                    });
+
+                    it('should throw error and publish alert when selected columns do not exist in table', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                columns: [
+                                    { name: 'colX', dataType: 'INT32', columnType: 'NonNullable', properties: {} },
+                                    { name: 'colY', dataType: 'STRING', columnType: 'NonNullable', properties: {} }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['colA-Numeric', 'colB-String'],
+                            dataTableFilter: 'name = "Test"',
+                        } as DataFrameQueryV2;
+
+                        await expect(lastValueFrom(ds.runQuery(query, options))).rejects.toThrow(
+                            'One or more selected columns are invalid. Please update your column selection or refine your data table filter.'
+                        );
+                    });
+
+                    it('should include column metadata projections when querying tables with specified columns', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                columns: [
+                                    { name: 'temp', dataType: 'FLOAT64', columnType: 'NonNullable', properties: {} }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['temp-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                        } as DataFrameQueryV2;
+
+                        await lastValueFrom(ds.runQuery(query, options));
+
+                        expect(queryTablesSpy).toHaveBeenCalledWith(
+                            'name = "Test"',
+                            expect.any(Number),
+                            expect.arrayContaining([
+                                expect.stringContaining('ColumnName'),
+                                expect.stringContaining('ColumnDataType'),
+                                expect.stringContaining('ColumnType'),
+                                expect.stringContaining('ColumnProperties')
+                            ])
+                        );
+                    });
+
+                    it('should match all numeric data types (INT32/INT64/FLOAT32/FLOAT64) to Numeric column selector', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                columns: [
+                                    { name: 'value', dataType: 'INT32', columnType: 'NonNullable', properties: {} },
+                                    { name: 'value', dataType: 'INT64', columnType: 'NonNullable', properties: {} },
+                                    { name: 'value', dataType: 'FLOAT32', columnType: 'NonNullable', properties: {} },
+                                    { name: 'value', dataType: 'FLOAT64', columnType: 'NonNullable', properties: {} }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['value-Numeric'],
+                            dataTableFilter: '',
+                        } as DataFrameQueryV2;
+
+                        const result = await lastValueFrom(ds.runQuery(query, options));
+
+                        expect(result.refId).toBe('A');
+                        // All numeric types should be matched
+                        expect(queryTablesSpy).toHaveBeenCalled();
+                    });
+
+                    it('should return empty fields when table has undefined columns property', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                columns: undefined
+                            } as any
+                        ];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric'],
+                            dataTableFilter: '',
+                        } as DataFrameQueryV2;
+
+                        const result = await lastValueFrom(ds.runQuery(query, options));
+
+                        expect(result.fields).toEqual([]);
+                    });
+
+                    it('should return empty fields when table has empty columns array', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                columns: []
+                            }
+                        ];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric'],
+                            dataTableFilter: '',
+                        } as DataFrameQueryV2;
+
+                        const result = await lastValueFrom(ds.runQuery(query, options));
+
+                        expect(result.fields).toEqual([]);
+                    });
+                });
+
+                describe('invalid columns', () => {
+                    const errorMessage = 'One or more selected columns are invalid. Please update your column selection or refine your data table filter.';
+
+                    it('should throw error when some selected columns are invalid', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                columns: [
+                                    { name: 'colA', dataType: 'INT32', columnType: 'NonNullable', properties: {} },
+                                    { name: 'colB', dataType: 'STRING', columnType: 'NonNullable', properties: {} }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['colA-Numeric', 'colB-String', 'colC-String'],
+                            dataTableFilter: 'name = "Test"',
+                        } as DataFrameQueryV2;
+
+                        await expect(lastValueFrom(ds.runQuery(query, options))).rejects.toThrow(
+                            errorMessage
+                        );
+                    });
+
+                    it('should publish alert when any of the selected columns are invalid', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                columns: [
+                                    { name: 'colX', dataType: 'FLOAT64', columnType: 'NonNullable', properties: {} }
+                                ]
+                            }
+                        ];
+                        const publishMock = jest.fn();
+                        (ds as any).appEvents = { publish: publishMock };
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        const query: any = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: of(['colY-Numeric']),
+                            dataTableFilter: '',
+                        };
+
+                        await expect(lastValueFrom(ds.runQuery(query, options))).rejects.toThrow(
+                            errorMessage
+                        );
+
+                        expect(publishMock).toHaveBeenCalledWith({
+                            type: 'alert-error',
+                            payload: [
+                                'Column selection error',
+                                errorMessage
+                            ],
+                        });
+                    });
+                })
+            });
         });
 
         describe("when query type is properties", () => {
