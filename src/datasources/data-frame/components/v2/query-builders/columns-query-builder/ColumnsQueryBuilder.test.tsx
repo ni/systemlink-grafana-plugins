@@ -10,8 +10,12 @@ describe('ColumnsQueryBuilder', () => {
         jest.clearAllMocks();
     });
 
-    async function renderElement(filter: string) {
-        const reactNode = React.createElement(ColumnsQueryBuilder, { filter, onChange: mockOnChange });
+    async function renderElement(filter: string, disabled = false) {
+        const reactNode = React.createElement(ColumnsQueryBuilder, { 
+            filter, 
+            onChange: mockOnChange, 
+            disabled 
+        });
         const renderResult = render(reactNode);
         return {
             renderResult,
@@ -50,6 +54,23 @@ describe('ColumnsQueryBuilder', () => {
             expect(mockOnChange).toHaveBeenCalledWith(expect.objectContaining({
                 detail: eventDetail
             }));
+        });
+    });
+
+    describe('disabled prop', () => {
+        it('should render with disabled state when disabled prop is true', async () => {
+            const { renderResult } = await renderElement('', true);
+            const queryBuilder = renderResult.getByRole('dialog');
+            
+            expect(queryBuilder).toBeInTheDocument();
+            expect(queryBuilder).toHaveAttribute('disabled');
+        });
+
+        it('should render with enabled state when disabled prop is false', async () => {
+            const { renderResult } = await renderElement('columnName = "test"', false);
+            const queryBuilder = renderResult.getByRole('dialog');
+            
+            expect(queryBuilder).not.toHaveAttribute('disabled');
         });
     });
 });
