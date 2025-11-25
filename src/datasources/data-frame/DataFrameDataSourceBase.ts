@@ -59,19 +59,18 @@ export abstract class DataFrameDataSourceBase<
         timeRange: TimeRange,
         intervals?: number
     ): Promise<TableDataRows>;
-    
+
+    public abstract queryTables$(
+        filters: CombinedFilters,
+        take?: number,
+        projection?: DataTableProjections[]
+    ): Observable<TableProperties[]>;
+
     public abstract queryTables(
         query: string,
         take?: number,
         projection?: DataTableProjections[]
     ): Promise<TableProperties[]>;
-
-    public abstract queryTables$(
-        filters: CombinedFilters,
-        take?: number,
-        projections?: DataTableProjections[]
-    ): Observable<TableProperties[]>;
-
 
     public async testDatasource(): Promise<TestDataSourceResponse> {
         await this.get(`${this.baseUrl}/tables`, { params: { take: 1 } });

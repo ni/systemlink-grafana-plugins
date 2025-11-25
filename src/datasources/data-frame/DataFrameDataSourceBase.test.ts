@@ -76,7 +76,7 @@ describe('DataFrameDataSourceBase', () => {
             return Promise.resolve([] as unknown as TableDataRows);
         }
 
-        public queryTables$(filters: CombinedFilters): Observable<TableProperties[]> {
+        public queryTables$(_filters: CombinedFilters): Observable<TableProperties[]> {
             return of([]);
         }
 
@@ -141,20 +141,6 @@ describe('DataFrameDataSourceBase', () => {
         const options = await ds.getColumnOptionsWithVariables('filter');   
         
         expect(options).toEqual([]);
-    });
-
-    describe('queryTablesWithCombineFilters', () => {
-        it('should accept take and projections parameters and return empty array by default', async () => {
-            const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
-            
-            const result = await lastValueFrom(ds.queryTables$({
-                dataTableFilter: 'name = "test"',
-                resultsFilter: 'status = "passed"',
-                columnsFilter: 'name = "column1"'
-            }));
-            
-            expect(result).toEqual([]);
-        });
     });
 
     describe('loadWorkspaces', () => {

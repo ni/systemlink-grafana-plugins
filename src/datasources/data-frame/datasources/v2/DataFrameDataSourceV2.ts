@@ -61,8 +61,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         }
 
         if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
+            const filters  = {
+                dataTableFilter: processedQuery.dataTableFilter,
+            }
             const tables = await lastValueFrom(this.queryTables$(
-                { dataTableFilter: processedQuery.dataTableFilter },
+                filters,
                 TAKE_LIMIT,
                 [DataTableProjections.Name]
             ));
@@ -161,38 +164,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
         throw new Error('Method not implemented.');
     }
 
-    queryTables(
-        filter: string,
-        take = TAKE_LIMIT,
-        projection?: DataTableProjections[]
-    ): Promise<TableProperties[]> {
-        return Promise.resolve([]);
-    }
-
-    public async getColumnOptions(filter: string): Promise<Option[]> {
-        const tables = await lastValueFrom(this.queryTables$(
-            { dataTableFilter: filter },
-            TAKE_LIMIT,
-            [
-                DataTableProjections.ColumnName,
-                DataTableProjections.ColumnDataType,
-            ]
-        ));
-
-        const hasColumns = tables.some(
-            table => Array.isArray(table.columns)
-                && table.columns.length > 0
-        );
-        if (!hasColumns) {
-            return [];
-        }
-
-        const columnTypeMap = this.createColumnNameDataTypesMap(tables);
-
-        return this.createColumnOptions(columnTypeMap);
-    }
-
-    public queryTables$(
+    queryTables$(
         filters: CombinedFilters,
         take?: number,
         projections?: DataTableProjections[]
@@ -224,6 +196,48 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase<DataFrameQuer
                 throw new Error(errorMessage);
             })
         );
+    }
+
+    queryTables(
+        filter: string,
+        take = TAKE_LIMIT,
+        projection?: DataTableProjections[]
+    ): Promise<TableProperties[]> {
+        return Promise.resolve([]);
+    }
+
+    public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
+        const variableReplacedFilter = this.transformQuery(
+            filter,
+            this.scopedVars
+        );
+        const columnOptionsWithoutVariables = await this.getColumnOptions(
+            variableReplacedFilter
+        );
+        const columnOptionsWithVariables = [
+            ...this.getVariableOptions(),
+            ...columnOptionsWithoutVariables
+        ];
+        return columnOptionsWithVariables;
+    }
+
+    private async getColumnOptions(filter: string): Promise<Option[]> {
+        const tables = await lastValueFrom(this.queryTables$({dataTableFilter: filter}, TAKE_LIMIT, [
+            DataTableProjections.ColumnName,
+            DataTableProjections.ColumnDataType,
+        ]));
+
+        const hasColumns = tables.some(
+            table => Array.isArray(table.columns)
+                && table.columns.length > 0
+        );
+        if (!hasColumns) {
+            return [];
+        }
+
+        const columnTypeMap = this.createColumnNameDataTypesMap(tables);
+
+        return this.createColumnOptions(columnTypeMap);
     }
 
     private areAllObjectsWithNameProperty(object: any[]): object is Array<{ name: string; }> {

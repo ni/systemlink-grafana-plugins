@@ -1181,7 +1181,7 @@ describe('DataFrameDataSourceV2', () => {
         });
     });
 
-    describe('queryTablesInternal$', () => {
+    describe('queryTables$', () => {
         let postMock$: jest.SpyInstance;
         const mockTables = [{ id: '1', name: 'Table 1' }, { id: '2', name: 'Table 2' }];
 
@@ -1196,53 +1196,38 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should call the `post$` method with the expected arguments and return tables', async () => {
-            const filter = 'test-filter';
+            const filter = { dataTableFilter: 'test-filter' };
             const take = 10;
             const projection = [DataTableProjections.Name, DataTableProjections.Id];
-            const result = await lastValueFrom(ds['queryTablesInternal$'](filter, take, projection));
+            const result = await lastValueFrom(ds.queryTables$(filter, take, projection));
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
-                { filter, take, projection },
+                { filter: filter.dataTableFilter, take, projection },
                 { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
         });
 
         it('should use TAKE_LIMIT as default take value when not provided', async () => {
-            const filter = 'test-filter';
-            const result = await lastValueFrom(ds['queryTablesInternal$'](filter));
+            const filter = { dataTableFilter: 'test-filter' };
+            const result = await lastValueFrom(ds.queryTables$(filter));
 
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
-                { filter, take: TAKE_LIMIT },
+                { filter: filter.dataTableFilter, take: TAKE_LIMIT },
                 { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
         });
 
         it('should use undefined as default projection value when not provided', async () => {
-            const filter = 'test-filter';
+            const filter = { dataTableFilter: 'test-filter' };
             const take = 15;
-            const result = await lastValueFrom(ds['queryTablesInternal$'](filter, take));
+            const result = await lastValueFrom(ds.queryTables$(filter, take));
 
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
-                { filter, take, projection: undefined },
-                { useApiIngress: true }
-            );
-            expect(result).toBe(mockTables);
-        });
-
-        it('should pass substitutions parameter when provided', async () => {
-            const filter = 'test-filter';
-            const take = 15;
-            const projection = [DataTableProjections.Name];
-            const substitutions = ['$workspace', '$status'];
-            
-            const result = await lastValueFrom(ds['queryTablesInternal$'](filter, take, projection, substitutions));
-
-            expect(postMock$).toHaveBeenCalledWith(`${ds.baseUrl}/query-tables`, 
-                { filter, take, projection, substitutions },
+                { filter: filter.dataTableFilter, take, projection: undefined },
                 { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
@@ -1251,7 +1236,7 @@ describe('DataFrameDataSourceV2', () => {
         it('should throw error with unknown error when API returns error without status', async () => {
             postMock$.mockReturnValue(throwError(() => new Error('Some unknown error')));
 
-            await expect(lastValueFrom(ds['queryTablesInternal$']('test-filter'))).rejects.toThrow(
+            await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: 'test-filter' }))).rejects.toThrow(
                 'The query failed due to an unknown error.'
             );
         });
@@ -1259,7 +1244,7 @@ describe('DataFrameDataSourceV2', () => {
         it('should throw too many requests error when API returns 429 status', async () => {
             postMock$.mockReturnValue(throwError(() => createQueryTablesError(429)));
 
-            await expect(lastValueFrom(ds['queryTablesInternal$']('test-filter'))).rejects.toThrow(
+            await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: 'test-filter' }))).rejects.toThrow(
                 'The query to fetch data tables failed due to too many requests. Please try again later.'
             );
         });
@@ -1267,7 +1252,7 @@ describe('DataFrameDataSourceV2', () => {
         it('should throw timeOut error when API returns 504 status', async () => {
             postMock$.mockReturnValue(throwError(() => createQueryTablesError(504)));
 
-            await expect(lastValueFrom(ds['queryTablesInternal$']('test-filter'))).rejects.toThrow(
+            await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: 'test-filter' }))).rejects.toThrow(
                 'The query to fetch data tables experienced a timeout error. Narrow your query with a more specific filter and try again.'
             );
         });
@@ -1275,7 +1260,7 @@ describe('DataFrameDataSourceV2', () => {
         it('should throw error with status code and message when API returns 500 status', async () => {
             postMock$.mockReturnValue(throwError(() => createQueryTablesError(500)));
 
-            await expect(lastValueFrom(ds['queryTablesInternal$']('test-filter'))).rejects.toThrow(
+            await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: 'test-filter' }))).rejects.toThrow(
                 'The query failed due to the following error: (status 500) "Error".'
             );
         });
@@ -1285,7 +1270,7 @@ describe('DataFrameDataSourceV2', () => {
             (ds as any).appEvents = { publish: publishMock };
             postMock$.mockReturnValue(throwError(() => createQueryTablesError(429)));
 
-            await expect(lastValueFrom(ds['queryTablesInternal$']('test-filter'))).rejects.toThrow();
+            await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: 'test-filter' }))).rejects.toThrow();
 
             expect(publishMock).toHaveBeenCalledWith({
                 type: 'alert-error',
@@ -1575,49 +1560,6 @@ describe('DataFrameDataSourceV2', () => {
                     { label: 'Column 2', value: 'Column 2-Numeric' }
                 ]);
             });
-        });
-    });
-
-    describe('queryTablesWithCombineFilters', () => {
-        let queryTablesMock: jest.SpyInstance;
-
-        beforeEach(() => {
-            queryTablesMock = jest.spyOn(ds as any, 'queryTablesInternal$').mockReturnValue(of([]));
-        });
-
-        it('should pass all parameter to queryTables$', async () => {
-            const filters = {
-                dataTableFilter: 'name = "test"',
-                resultsFilter: 'status = "passed"',
-                columnsFilter: 'name = "column2"'
-            };
-            const take = 10;
-            const projections = [DataTableProjections.Name, DataTableProjections.Id];
-
-            await lastValueFrom(ds.queryTables$(filters, take, projections));
-
-            expect(queryTablesMock).toHaveBeenCalledWith(
-                filters.dataTableFilter,
-                take,
-                projections
-            );
-        });
-
-        it('should return the result from queryTables$', async () => {
-            const mockTables = [
-                { id: '1', name: 'Table 1' },
-                { id: '2', name: 'Table 2' }
-            ];
-            queryTablesMock.mockReturnValue(of(mockTables));
-            const filters = {
-                dataTableFilter: 'name = "test"',
-                resultsFilter: 'status = "passed"',
-                columnsFilter: 'name = "column2"'
-            };
-
-            const result = await lastValueFrom(ds.queryTables$(filters));
-
-            expect(result).toEqual(mockTables);
         });
     });
 });
