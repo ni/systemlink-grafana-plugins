@@ -20,22 +20,22 @@ import { TestMeasurementStatus } from '../constants/ResultsQueryBuilder.constant
 
 interface DataFrameQueryBuilderWrapperProps {
     datasource: DataFrameDataSource;
-    resultsFilter?: string;
+    resultFilter?: string;
     dataTableFilter?: string;
-    columnsFilter?: string;
-    onResultsFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
+    columnFilter?: string;
+    onResultFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
     onDataTableFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
-    onColumnsFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
+    onColumnFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
 }
 
 export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapperProps> = ({
     datasource,
-    resultsFilter,
+    resultFilter,
     dataTableFilter,
-    columnsFilter,
-    onResultsFilterChange,
+    columnFilter,
+    onResultFilterChange,
     onDataTableFilterChange,
-    onColumnsFilterChange,
+    onColumnFilterChange,
 }) => {
     const isQueryByResultAndColumnPropertiesEnabled = 
     datasource.instanceSettings.jsonData.featureToggles.queryByResultAndColumnProperties;
@@ -96,12 +96,12 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                         }}
                     >
                         <ResultsQueryBuilder
-                            filter={resultsFilter}
+                            filter={resultFilter}
                             workspaces={workspaces}
                             partNumbers={partNumbers}
                             status={statusOptions}
                             globalVariableOptions={datasource.globalVariableOptions()}
-                            onChange={onResultsFilterChange}
+                            onChange={onResultFilterChange}
                         />
                     </div>
                 </>
@@ -141,9 +141,9 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                         }}
                     >
                         <ColumnsQueryBuilder
-                            filter={columnsFilter}
-                            onChange={onColumnsFilterChange}
-                            disabled={!resultsFilter || resultsFilter.trim() === ''}
+                            filter={columnFilter}
+                            onChange={onColumnFilterChange}
+                            disabled={!resultFilter || resultFilter.trim() === ''}
                         />
                     </div>
                 </>

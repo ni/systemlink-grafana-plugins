@@ -144,30 +144,30 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     };
 
-    const onResultsFilterChange = (event?: Event | React.FormEvent<Element>) => {
+    const onResultFilterChange = (event?: Event | React.FormEvent<Element>) => {
         if (!event) {
             return;
         }
 
-        const resultsFilter = (event as CustomEvent).detail.linq;
-        if (resultsFilter === migratedQuery.resultsFilter) {
+        const resultFilter = (event as CustomEvent).detail.linq;
+        if (resultFilter === migratedQuery.resultFilter) {
             return;
         }
 
-        handleQueryChange({ ...migratedQuery, resultsFilter });
+        handleQueryChange({ ...migratedQuery, resultFilter });
     };
 
-    const onColumnsFilterChange = (event?: Event | React.FormEvent<Element>) => {
+    const onColumnFilterChange = (event?: Event | React.FormEvent<Element>) => {
         if (!event) {
             return;
         }
 
-        const columnsFilter = (event as CustomEvent).detail.linq;
-        if (columnsFilter === migratedQuery.columnsFilter) {
+        const columnFilter = (event as CustomEvent).detail.linq;
+        if (columnFilter === migratedQuery.columnFilter) {
             return;
         }
 
-        handleQueryChange({ ...migratedQuery, columnsFilter });
+        handleQueryChange({ ...migratedQuery, columnFilter });
     };
 
     const onDataTablePropertiesChange = (properties: Array<ComboboxOption<DataTableProperties>>) => {
@@ -262,12 +262,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                     )}
                     <DataFrameQueryBuilderWrapper
                         datasource={datasource}
-                        resultsFilter={migratedQuery.resultsFilter}
+                        resultFilter={migratedQuery.resultFilter}
                         dataTableFilter={migratedQuery.dataTableFilter}
-                        columnsFilter={migratedQuery.columnsFilter}
-                        onResultsFilterChange={onResultsFilterChange}
+                        columnFilter={migratedQuery.columnFilter}
+                        onResultFilterChange={onResultFilterChange}
                         onDataTableFilterChange={onDataTableFilterChange}
-                        onColumnsFilterChange={onColumnsFilterChange}
+                        onColumnFilterChange={onColumnFilterChange}
                     />
 
                     {migratedQuery.type === DataFrameQueryType.Properties && (
