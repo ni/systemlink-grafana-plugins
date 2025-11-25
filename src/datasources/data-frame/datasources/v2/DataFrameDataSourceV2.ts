@@ -1,7 +1,7 @@
 import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1 } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, CombinedFilters } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -79,8 +79,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
+            const filters  = {
+                dataTableFilter: processedQuery.dataTableFilter,
+            }
             const tables = await lastValueFrom(this.queryTables$(
-                processedQuery.dataTableFilter,
+                filters,
                 TAKE_LIMIT,
                 [DataTableProjections.Name]
             ));
@@ -185,6 +188,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     queryTables$(
+        filters: CombinedFilters,
+        take?: number,
+        projections?: DataTableProjections[]
+    ): Observable<TableProperties[]> {
+        // TODO: Implement logic to combine with result and column filters.
+        return this.queryTablesInternal$(filters.dataTableFilter!, take, projections);
+    }
+
+    private queryTablesInternal$(
         filter: string,
         take = TAKE_LIMIT,
         projection?: DataTableProjections[]
@@ -227,8 +239,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return columnOptionsWithVariables;
     }
 
-    private async getColumnOptions(filter: string): Promise<Option[]> {
-        const tables = await lastValueFrom(this.queryTables$(filter, TAKE_LIMIT, [
+    private async getColumnOptions(dataTableFilter: string): Promise<Option[]> {
+        const tables = await lastValueFrom(
+          this.queryTables$({ dataTableFilter }, TAKE_LIMIT, [
             DataTableProjections.ColumnName,
             DataTableProjections.ColumnDataType,
         ]));
@@ -594,7 +607,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const projectionExcludingId = projections
             .filter(projection => projection !== DataTableProjections.Id);
         const tables$ = this.queryTables$(
-            processedQuery.dataTableFilter,
+            { dataTableFilter: processedQuery.dataTableFilter },
             processedQuery.take,
             projectionExcludingId
         );
