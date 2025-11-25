@@ -223,7 +223,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private async getColumnOptions(filter: string): Promise<Option[]> {
-        const tables = await lastValueFrom(this.queryTables$({dataTableFilter: filter}, TAKE_LIMIT, [
+        const tables = await lastValueFrom(
+          this.queryTables$({ dataTableFilter: filter }, TAKE_LIMIT, [
             DataTableProjections.ColumnName,
             DataTableProjections.ColumnDataType,
         ]));

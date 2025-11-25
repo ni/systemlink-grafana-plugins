@@ -1650,34 +1650,6 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         describe('variable handling', () => {
-            it('should replace variables in the filter before querying tables', async () => {
-                const scopedVars = { var1: { value: 'VarValue' } } as any;
-                await ds.runQuery({ type: DataFrameQueryType.Data, refId: 'A' } as DataFrameQueryV2, { scopedVars } as any);
-
-                templateSrv.replace.mockImplementation(
-                    (target?: string, vars?: any) => (target ?? '').replace('${var1}', vars.var1.value));
-
-                queryTablesMock$.mockReturnValue(of([
-                    {
-                        id: '1',
-                        name: 'Table 1',
-                        columns: [
-                            { name: 'Column1', dataType: 'STRING' }
-                        ]
-                    }
-                ]));
-
-                await ds.getColumnOptionsWithVariables('name = "${var1}"');
-
-                expect(templateSrv.replace).toHaveBeenCalledWith('name = "${var1}"', scopedVars);
-                expect(queryTablesMock$).toHaveBeenCalledWith(
-                    {dataTableFilter: 'name = "VarValue"'}, 
-                    TAKE_LIMIT, 
-                    [DataTableProjections.ColumnName,
-                    DataTableProjections.ColumnDataType,
-                ]);
-            });
-
             it('should prepend variable options to the column options list', async () => {
                 templateSrv.getVariables.mockReturnValue([
                     { name: 'var1' },

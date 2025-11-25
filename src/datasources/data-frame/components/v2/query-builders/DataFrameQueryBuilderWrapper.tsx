@@ -69,9 +69,7 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
         const filter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;
         const response = await lastValueFrom(
             datasource.queryTables$(
-                {
-                    dataTableFilter: filter
-                },
+                {dataTableFilter: filter},
                 5,
                 [DataTableProjections.Name]
             )
