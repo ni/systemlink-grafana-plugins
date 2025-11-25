@@ -1,3 +1,9 @@
+## [4.80.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.79.2...v4.80.0) (2025-11-25)
+
+### Features
+
+* **dataframe:** Reduce component re-renders due to state updates ([#549](https://github.com/ni/systemlink-grafana-plugins/issues/549)) ([81fd7c7](https://github.com/ni/systemlink-grafana-plugins/commit/81fd7c73a188d74416d6b6227af6885ad19650cb))
+
 ## [4.79.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.79.1...v4.79.2) (2025-11-25)
 
 ### Bug Fixes
