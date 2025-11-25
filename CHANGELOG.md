@@ -1,3 +1,9 @@
+## [4.79.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.79.1...v4.79.2) (2025-11-25)
+
+### Bug Fixes
+
+* **dataframe:** Query reset when the query type is data ([#548](https://github.com/ni/systemlink-grafana-plugins/issues/548)) ([64cdf89](https://github.com/ni/systemlink-grafana-plugins/commit/64cdf8917cfc8da85857ff645561e30b67cd9372))
+
 ## [4.79.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.79.0...v4.79.1) (2025-11-24)
 
 ### Bug Fixes
