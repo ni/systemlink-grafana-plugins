@@ -146,6 +146,10 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   take: TAKE_LIMIT
 };
 
+export interface QueryResultsResponse {
+  results: Array<{id: string}>;
+}
+
 export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
   label: string,
   projection: DataTableProjections,
