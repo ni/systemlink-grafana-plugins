@@ -1236,55 +1236,55 @@ describe("DataFrameQueryEditorV2", () => {
             expect(props.dataTableFilter).toBe('TestFilter');
         });
 
-        it("should pass columnsFilter to the query builder wrapper", () => {
-            renderComponent({ type: DataFrameQueryType.Data, columnsFilter: 'InitialColumnsFilter' });
+        it("should pass columnFilter to the query builder wrapper", () => {
+            renderComponent({ type: DataFrameQueryType.Data, columnFilter: 'InitialColumnFilter' });
 
             expect(DataFrameQueryBuilderWrapper).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    columnsFilter: 'InitialColumnsFilter',
-                    onColumnsFilterChange: expect.any(Function),
+                    columnFilter: 'InitialColumnFilter',
+                    onColumnFilterChange: expect.any(Function),
                 }),
                 expect.anything() // React context
             );
         });
 
-        it("should call onChange with updated columnsFilter when columns filter changes", async () => {
+        it("should call onChange with updated columnFilter when columns filter changes", async () => {
             const { onChange } = renderComponent({ type: DataFrameQueryType.Data });
 
-            // Get the onColumnsFilterChange callback from the mock
+            // Get the onColumnFilterChange callback from the mock
             const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
-            const { onColumnsFilterChange } = props;
+            const { onColumnFilterChange } = props;
 
             // Simulate the filter change event
             const mockEvent = {
-                detail: { linq: "NewColumnsFilter" }
+                detail: { linq: "NewColumnFilter" }
             } as Event & { detail: { linq: string; }; };
 
-            onColumnsFilterChange(mockEvent);
+            onColumnFilterChange(mockEvent);
 
             await waitFor(() => {
                 expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                    columnsFilter: 'NewColumnsFilter'
+                    columnFilter: 'NewColumnFilter'
                 }));
             });
         });
 
-        it("should not call onChange or onRunQuery when the columnsFilter remains unchanged", async () => {
+        it("should not call onChange or onRunQuery when the columnFilter remains unchanged", async () => {
             const { onChange, onRunQuery } = renderComponent({
                 type: DataFrameQueryType.Data,
-                columnsFilter: 'SameColumnsFilter'
+                columnFilter: 'SameColumnFilter'
             });
 
-            // Get the onColumnsFilterChange callback from the mock
+            // Get the onColumnFilterChange callback from the mock
             const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
-            const { onColumnsFilterChange } = props;
+            const { onColumnFilterChange } = props;
 
             // Simulate the filter change event with the same filter
             const mockEvent = {
-                detail: { linq: "SameColumnsFilter" }
+                detail: { linq: "SameColumnFilter" }
             } as Event & { detail: { linq: string; }; };
 
-            onColumnsFilterChange(mockEvent);
+            onColumnFilterChange(mockEvent);
 
             await waitFor(() => {
                 expect(onChange).not.toHaveBeenCalled();
@@ -1292,55 +1292,55 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
-        it('should pass resultsFilter to the query builder wrapper', () => {
-            renderComponent({ type: DataFrameQueryType.Data, resultsFilter: 'InitialResultsFilter' });
+        it('should pass resultFilter to the query builder wrapper', () => {
+            renderComponent({ type: DataFrameQueryType.Data, resultFilter: 'InitialResultFilter' });
 
             expect(DataFrameQueryBuilderWrapper).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    resultsFilter: 'InitialResultsFilter',
-                    onResultsFilterChange: expect.any(Function),
+                    resultFilter: 'InitialResultFilter',
+                    onResultFilterChange: expect.any(Function),
                 }),
                 expect.anything() // React context
             );
         });
 
-        it('should call onChange with updated resultsFilter when results filter changes', async () => {
+        it('should call onChange with updated resultFilter when results filter changes', async () => {
             const { onChange } = renderComponent({ type: DataFrameQueryType.Data });
 
-            // Get the onResultsFilterChange callback from the mock
+            // Get the onResultFilterChange callback from the mock
             const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
-            const { onResultsFilterChange } = props;
+            const { onResultFilterChange } = props;
 
             // Simulate the filter change event
             const mockEvent = {
-                detail: { linq: 'NewResultsFilter' }
+                detail: { linq: 'NewResultFilter' }
             } as Event & { detail: { linq: string; }; };
 
-            onResultsFilterChange(mockEvent);
+            onResultFilterChange(mockEvent);
 
             await waitFor(() => {
                 expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                    resultsFilter: 'NewResultsFilter'
+                    resultFilter: 'NewResultFilter'
                 }));
             });
         });
 
-        it('should not call onChange or onRunQuery when the resultsFilter remains unchanged', async () => {
+        it('should not call onChange or onRunQuery when the resultFilter remains unchanged', async () => {
             const { onChange, onRunQuery } = renderComponent({
                 type: DataFrameQueryType.Data,
-                resultsFilter: 'SameResultsFilter'
+                resultFilter: 'SameResultFilter'
             });
 
-            // Get the onResultsFilterChange callback from the mock
+            // Get the onResultFilterChange callback from the mock
             const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
-            const { onResultsFilterChange } = props;
+            const { onResultFilterChange } = props;
 
             // Simulate the filter change event with the same filter
             const mockEvent = {
-                detail: { linq: 'SameResultsFilter' }
+                detail: { linq: 'SameResultFilter' }
             } as Event & { detail: { linq: string; }; };
 
-            onResultsFilterChange(mockEvent);
+            onResultFilterChange(mockEvent);
 
             await waitFor(() => {
                 expect(onChange).not.toHaveBeenCalled();
