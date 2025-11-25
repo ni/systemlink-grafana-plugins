@@ -133,30 +133,43 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     };
 
     const onDataTableFilterChange = (event?: Event | React.FormEvent<Element>) => {
-        if (event) {
-            const dataTableFilter = (event as CustomEvent).detail.linq;
-            if (dataTableFilter !== migratedQuery.dataTableFilter) {
-                handleQueryChange({ ...migratedQuery, dataTableFilter });
-            }
+        if (!event) {
+            return;
         }
+
+        const dataTableFilter = (event as CustomEvent).detail.linq;
+        if (dataTableFilter === migratedQuery.dataTableFilter) {
+            return;
+        }
+
+        handleQueryChange({ ...migratedQuery, dataTableFilter });
+
     };
 
     const onResultsFilterChange = (event?: Event | React.FormEvent<Element>) => {
-        if (event) {
-            const resultsFilter = (event as CustomEvent).detail.linq;
-            if (resultsFilter !== migratedQuery.resultsFilter) {
-                handleQueryChange({ ...migratedQuery, resultsFilter });
-            }
+        if (!event) {
+            return;
         }
+
+        const resultsFilter = (event as CustomEvent).detail.linq;
+        if (resultsFilter === migratedQuery.resultsFilter) {
+            return;
+        }
+
+        handleQueryChange({ ...migratedQuery, resultsFilter });
     };
 
     const onColumnsFilterChange = (event?: Event | React.FormEvent<Element>) => {
-        if (event) {
-            const columnsFilter = (event as CustomEvent).detail.linq;
-            if (columnsFilter !== migratedQuery.columnsFilter) {
-                handleQueryChange({ ...migratedQuery, columnsFilter });
-            }
+        if (!event) {
+            return;
         }
+
+        const columnsFilter = (event as CustomEvent).detail.linq;
+        if (columnsFilter === migratedQuery.columnsFilter) {
+            return;
+        }
+
+        handleQueryChange({ ...migratedQuery, columnsFilter });
     };
 
     const onDataTablePropertiesChange = (properties: Array<ComboboxOption<DataTableProperties>>) => {
