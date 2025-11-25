@@ -178,6 +178,11 @@ for Visual Studio Code is recommended to simplify development.
 To create a new data source, run `npm run generate` in the root directory and
 follow the instructions.
 
+### Considerations updating to a new Grafana version
+
+- Update the `@grafana` scoped npm package dependency versions to align with the [`ni/grafana`](https://github.com/ni/grafana) upgrade version.
+- Follow the validation instructions in the [`Skyline/Grafana README.md`](https://dev.azure.com/ni/DevCentral/_git/Skyline?path=/Grafana/README.MD&_a=preview).
+
 ### Security scanning with Snyk
 
 This repository uses [Snyk](https://snyk.io/) for security scanning to identify and fix vulnerabilities in code before they reach production. Snyk provides Static Application Security Testing (SAST) that scans your code for security issues as you develop.
