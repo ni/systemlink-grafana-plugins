@@ -2,7 +2,7 @@ import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, 
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, CombinedFilters, QueryResultsResponse } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -558,7 +558,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const requestBody = {
             filter: resultFilter,
             projection: ['id'],
-            take: 1000,
+            take: RESULT_IDS_LIMIT,
             orderBy: 'UPDATED_AT',
             descending: true
         };
@@ -572,10 +572,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 if (!response.results || response.results.length === 0) {
                     return [];
                 }
-                // Extract unique result IDs
-                const resultIds = response.results
-                    .map(result => result.id);
-                return Array.from(resultIds);
+                return response.results.map(result => result.id);
             }),
             catchError(error => {
                 const errorMessage = this.getErrorMessage(error);
@@ -607,7 +604,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             combinedFilters.push(`(${filters.dataTableFilter})`);
         }
         
-        const combinedFilter = combinedFilters.length > 0 ? combinedFilters.join(' && ') : '';
-        return combinedFilter;
+        return combinedFilters.join(' && ');
     }
 }

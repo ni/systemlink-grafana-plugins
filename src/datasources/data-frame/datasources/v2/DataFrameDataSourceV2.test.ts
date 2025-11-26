@@ -273,9 +273,12 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await lastValueFrom(ds.runQuery(validQuery, options));
 
                     expect(queryTablesSpy$).toHaveBeenCalledWith(
-                        { resultFilter: 'partNumber = "12345"', dataTableFilter: 'name = "Test Table"' },
-                        1000,
-                        [DataTableProjections.Name]
+                      {
+                        resultFilter: 'partNumber = "12345"',
+                        dataTableFilter: 'name = "Test Table"',
+                      },
+                      1000,
+                      [DataTableProjections.Name]
                     );
                     expect(result).toEqual({
                         refId: 'A',
@@ -1498,9 +1501,15 @@ describe('DataFrameDataSourceV2', () => {
             const projection = [DataTableProjections.Name, DataTableProjections.Id];
             const result = await lastValueFrom(ds.queryTables$(filter, take, projection));
             expect(postMock$).toHaveBeenCalledWith(
-                `${ds.baseUrl}/query-tables`,
-                { filter: filter.dataTableFilter, take, projection, substitutions: undefined, interactive: true },
-                { useApiIngress: true }
+              `${ds.baseUrl}/query-tables`,
+              {
+                filter: filter.dataTableFilter,
+                take,
+                projection,
+                substitutions: undefined,
+                interactive: true,
+              },
+              { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
         });
@@ -1510,9 +1519,15 @@ describe('DataFrameDataSourceV2', () => {
             const result = await lastValueFrom(ds.queryTables$(filter));
 
             expect(postMock$).toHaveBeenCalledWith(
-                `${ds.baseUrl}/query-tables`,
-                { filter: filter.dataTableFilter, take: TAKE_LIMIT, projection: undefined, substitutions: undefined, interactive: true },
-                { useApiIngress: true }
+              `${ds.baseUrl}/query-tables`,
+              {
+                filter: filter.dataTableFilter,
+                take: TAKE_LIMIT,
+                projection: undefined,
+                substitutions: undefined,
+                interactive: true,
+              },
+              { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
         });
@@ -1523,9 +1538,15 @@ describe('DataFrameDataSourceV2', () => {
             const result = await lastValueFrom(ds.queryTables$(filter, take));
 
             expect(postMock$).toHaveBeenCalledWith(
-                `${ds.baseUrl}/query-tables`,
-                { filter: filter.dataTableFilter, take, projection: undefined, substitutions: undefined, interactive: true },
-                { useApiIngress: true }
+              `${ds.baseUrl}/query-tables`,
+              {
+                filter: filter.dataTableFilter,
+                take,
+                projection: undefined,
+                substitutions: undefined,
+                interactive: true,
+              },
+              { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
         });
