@@ -1,3 +1,9 @@
+## [4.82.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.82.0...v4.82.1) (2025-11-26)
+
+### Bug Fixes
+
+* **dataframe:** Restrict query editor re-render with stale query when the query changed ([#554](https://github.com/ni/systemlink-grafana-plugins/issues/554)) ([9b5f453](https://github.com/ni/systemlink-grafana-plugins/commit/9b5f453cf4e95dba3c74176a7c0ec7f42c964293))
+
 ## [4.82.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.81.0...v4.82.0) (2025-11-25)
 
 ### Features
