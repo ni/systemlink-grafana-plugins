@@ -250,7 +250,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         return this.getTable(tableId).pipe(
-            map(table => this.migrateColumnsFromV1ToV2(currentColumns, table))
+            map(table => this.migrateColumnsFromV1ToV2(currentColumns, table)),
+            catchError(error => {
+                const errorMessage = this.getErrorMessage(error);
+                this.appEvents?.publish?.({
+                    type: AppEvents.alertError.name,
+                    payload: ['Error during fetching columns for migration', errorMessage],
+                });
+                return of(currentColumns);
+            })
         );
     }
 
