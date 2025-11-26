@@ -70,11 +70,17 @@ const renderComponent = (
     resultFilter = '',
     dataTableFilter = '',
     columnFilter = '',
-    queryByResultAndColumnProperties = true
+    queryByResultAndColumnProperties = true,
+    throwErrorFromQueryTables = false
 ) => {
     const onResultFilterChange = jest.fn();
     const onDataTableFilterChange = jest.fn();
     const onColumnFilterChange = jest.fn();
+    const mockValidQueryTableResponse = of([
+        { id: 'table1', name: 'Table 1', columns: [{ name: 'ColumnA' }, { name: 'ColumnB' }] },
+        { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, { name: 'ColumnE' }] },
+    ]);
+    const mockErrorQueryTableResponse = of(new Error('Query Tables Error'));
     const datasource = {
         loadWorkspaces: jest.fn().mockResolvedValue(
             new Map([
@@ -90,10 +96,7 @@ const renderComponent = (
             ]
         ),
         queryTables$: jest.fn().mockReturnValue(
-            of([
-                { id: 'table1', name: 'Table 1', columns: [{ name: 'ColumnA' }, { name: 'ColumnB' }] },
-                { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, { name: 'ColumnE' }] },
-            ])
+            throwErrorFromQueryTables ? mockErrorQueryTableResponse : mockValidQueryTableResponse
         ),
         instanceSettings: {
             jsonData: { featureToggles: { queryByResultAndColumnProperties } },
@@ -184,6 +187,16 @@ describe('DataFrameQueryBuilderWrapper', () => {
                 expect(optionsList).toBeInTheDocument();
                 expect(within(optionsList).getByText('Table 1:Table 1')).toBeInTheDocument();
                 expect(within(optionsList).getByText('Table 2:Table 2')).toBeInTheDocument();
+            });
+        });
+
+        it('should handle error from queryTables in the DataTableQueryBuilder component', async () => {
+            renderComponent('', '', '', true, true);
+
+            await waitFor(() => {
+                const optionsList = screen.getByTestId('data-table-name-options-list');
+                expect(optionsList).toBeInTheDocument();
+                expect(optionsList.children).toHaveLength(0);
             });
         });
 
