@@ -83,7 +83,7 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
             const uniqueNames = new Set(response.map(table => table.name));
             return Array.from(uniqueNames).map(name => ({ label: name, value: name }));
         }
-        catch (_error) {
+        catch {
             return [];
         }
     }, [datasource]);
