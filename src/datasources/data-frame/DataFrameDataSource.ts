@@ -2,7 +2,6 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetri
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import {
   Column,
-  Option,
   DataFrameDataQuery,
   DataFrameDataSourceOptions,
   DataFrameFeatureTogglesDefaults,
@@ -12,7 +11,8 @@ import {
   TableProperties,
   ValidDataFrameQuery,
   ValidDataFrameVariableQuery, DataFrameQuery,
-  CombinedFilters
+  CombinedFilters,
+  ColumnOptions
 } from "./types";
 import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
 import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
@@ -122,7 +122,7 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.processVariableQuery(query);
   }
 
-  public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
+  public async getColumnOptionsWithVariables(filter: string): Promise<ColumnOptions> {
     return this.datasource.getColumnOptionsWithVariables(filter);
   }
 

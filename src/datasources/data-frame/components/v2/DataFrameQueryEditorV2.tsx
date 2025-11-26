@@ -27,6 +27,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnLimitExceeded, setIsColumnLimitExceeded] = useState<boolean>(false);
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
+    const [xColumnOptions, setXColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
+    const [isXColumnLimitExceeded, setIsXColumnLimitExceeded] = useState<boolean>(false);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -51,11 +53,15 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
             try {
                 const columnOptions = await datasource.getColumnOptionsWithVariables(filter);
-                const limitedColumnOptions = columnOptions.slice(0, COLUMN_OPTIONS_LIMIT);
-                setIsColumnLimitExceeded(columnOptions.length > COLUMN_OPTIONS_LIMIT);
+                const limitedColumnOptions = columnOptions.allColumns.slice(0, COLUMN_OPTIONS_LIMIT);
+                const limitedXColumnOptions = columnOptions.xColumns.slice(0, COLUMN_OPTIONS_LIMIT);
+                setIsColumnLimitExceeded(columnOptions.allColumns.length > COLUMN_OPTIONS_LIMIT);
+                setIsXColumnLimitExceeded(columnOptions.xColumns.length > COLUMN_OPTIONS_LIMIT);
                 setColumnOptions(limitedColumnOptions);
+                setXColumnOptions(limitedXColumnOptions);
             } catch (error) {
                 setColumnOptions([]);
+                setXColumnOptions([]);
             }
         },
         [
@@ -82,8 +88,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
             // Clear column options if filter is empty
             setIsColumnLimitExceeded(false);
+            setIsXColumnLimitExceeded(false);
             if (columnOptions.length > 0) {
                 setColumnOptions([]);
+            }
+            if (xColumnOptions.length > 0) {
+                setXColumnOptions([]);
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -210,8 +220,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         handleQueryChange({ ...migratedQuery, decimationMethod: option.value }, false);
     };
 
-    const onXColumnChange = (option: ComboboxOption<string>) => {
-        handleQueryChange({ ...migratedQuery, xColumn: option.value }, false);
+    const onXColumnChange = (option: ComboboxOption<string> | null) => {
+        const xColumn = option ? option.value : null;
+        handleQueryChange({ ...migratedQuery, xColumn }, false);
     };
 
     const onUseTimeRangeChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -257,6 +268,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                         <>
                             {isColumnLimitExceeded && (
                                 <Alert title='Warning' severity='warning'>{errorMessages.columnLimitExceeded}</Alert>
+                            )}
+                            {isXColumnLimitExceeded && (
+                                <Alert title='Warning' severity='warning'>{errorMessages.xColumnLimitExceeded}</Alert>
                             )}
                         </>
                     )}
@@ -373,8 +387,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                                 width={INLINE_LABEL_WIDTH}
                                 value={migratedQuery.xColumn}
                                 onChange={onXColumnChange}
-                                options={[]}
+                                options={xColumnOptions}
                                 createCustomValue={false}
+                                isClearable={true}
                             />
                         </InlineField>
                         <InlineField

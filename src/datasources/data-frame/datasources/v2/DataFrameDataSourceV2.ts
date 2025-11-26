@@ -1,7 +1,7 @@
 import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, CombinedFilters } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, CombinedFilters, ColumnOptions } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -61,9 +61,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
-            const filters  = {
+            const filters = {
                 dataTableFilter: processedQuery.dataTableFilter,
-            }
+            };
             const tables = await lastValueFrom(this.queryTables$(
                 filters,
                 TAKE_LIMIT,
@@ -75,8 +75,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             }));
         }
 
-        const columns = await this.getColumnOptions(processedQuery.dataTableFilter);
-        const limitedColumns = columns.splice(0, COLUMN_OPTIONS_LIMIT);
+        const columns = await this.getColumnOptions(processedQuery.dataTableFilter, false);
+        const limitedColumns = columns.allColumns.splice(0, COLUMN_OPTIONS_LIMIT);
 
         return limitedColumns.map(column => ({
             text: column.label,
@@ -210,35 +210,78 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return Promise.resolve([]);
     }
 
-    public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
-        const columnOptionsWithoutVariables = await this.getColumnOptions(
-            filter
-        );
+    public async getColumnOptionsWithVariables(
+        filter: string
+    ): Promise<ColumnOptions> {
+        const columnOptionsWithoutVariables = await this.getColumnOptions(filter);
         const columnOptionsWithVariables = [
             ...this.getVariableOptions(),
-            ...columnOptionsWithoutVariables
+            ...columnOptionsWithoutVariables.allColumns
         ];
-        return columnOptionsWithVariables;
+        const xColumnOptionsWithVariables = [
+            ...this.getVariableOptions(),
+            ...columnOptionsWithoutVariables.xColumns
+        ];
+        return { allColumns: columnOptionsWithVariables, xColumns: xColumnOptionsWithVariables };
     }
 
-    private async getColumnOptions(dataTableFilter: string): Promise<Option[]> {
+    private async getColumnOptions(
+        dataTableFilter: string,
+        includeXColumns = true
+    ): Promise<{ allColumns: Option[], xColumns: Option[]; }> {
         const tables = await lastValueFrom(
-          this.queryTables$({ dataTableFilter }, TAKE_LIMIT, [
-            DataTableProjections.ColumnName,
-            DataTableProjections.ColumnDataType,
-        ]));
+            this.queryTables$({ dataTableFilter }, TAKE_LIMIT, [
+                DataTableProjections.ColumnName,
+                DataTableProjections.ColumnDataType,
+            ]));
+
+        if (tables.length === 0 || !tables[0].columns) {
+            return { allColumns: [], xColumns: [] };
+        }
 
         const hasColumns = tables.some(
             table => Array.isArray(table.columns)
                 && table.columns.length > 0
         );
         if (!hasColumns) {
-            return [];
+            return { allColumns: [], xColumns: [] };
         }
 
         const columnTypeMap = this.createColumnNameDataTypesMap(tables);
+        const columnOptions = this.createColumnOptions(columnTypeMap);
+        const xColumnOptions = includeXColumns ? this.getXColumnOptions(tables) : [];
 
-        return this.createColumnOptions(columnTypeMap);
+        return { allColumns: columnOptions, xColumns: xColumnOptions };
+    }
+
+    private getXColumnOptions(tables: TableProperties[]): Option[] {
+        let potentialXColumns = new Set(
+            tables[0].columns.map(
+                column => `${column.name}-${this.transformColumnType(column.dataType)}`
+            )
+        );
+
+        for (let i = 1; (i < tables.length) && (potentialXColumns.size > 0); i++) {
+            const tableColumnsSet = new Set(
+                tables[i].columns.map(
+                    column => `${column.name}-${this.transformColumnType(column.dataType)}`
+                )
+            );
+
+            potentialXColumns = new Set(
+                [...potentialXColumns].filter(column => tableColumnsSet.has(column))
+            );
+        }
+
+        return Array.from(potentialXColumns).map(columnValue => {
+            const parts = columnValue.split('-');
+            const columnName = parts.slice(0, -1).join('-');
+
+            return {
+                label: columnName,
+                value: columnValue
+            };
+        });
     }
 
     private getMigratedColumns(
