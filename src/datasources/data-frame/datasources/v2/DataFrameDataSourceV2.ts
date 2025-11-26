@@ -204,9 +204,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         projection?: DataTableProjections[],
         substitutions?: string[]
     ): Observable<TableProperties[]> {
+        const requestBody = { 
+            filter, 
+            take, 
+            projection, 
+            substitutions, 
+            interactive: true 
+        };
         const response = this.post$<TablePropertiesList>(
             `${this.baseUrl}/query-tables`,
-            { filter, take, projection, substitutions },
+            requestBody,
             { useApiIngress: true }
         );
 
@@ -511,7 +518,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const projectionExcludingId = projections
             .filter(projection => projection !== DataTableProjections.Id);
         const tables$ = this.queryTables$(
-            { dataTableFilter: processedQuery.dataTableFilter },
+            { resultFilter: processedQuery.resultFilter || '', dataTableFilter: processedQuery.dataTableFilter },
             processedQuery.take,
             projectionExcludingId
         );
@@ -550,7 +557,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const queryResultsUrl = `${this.instanceSettings.url}/nitestmonitor/v2/query-results`;
         const requestBody = {
             filter: resultFilter,
-            projection: ['id', 'dataTableIds'],
+            projection: ['id'],
             take: 1000,
             orderBy: 'UPDATED_AT',
             descending: true
@@ -559,7 +566,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return this.post$<QueryResultsResponse>(
             queryResultsUrl,
             requestBody,
-            { showErrorAlert: false, useApiIngress: true }
+            { showErrorAlert: false }
         ).pipe(
             map(response => {
                 if (!response.results || response.results.length === 0) {
@@ -567,9 +574,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 }
                 // Extract unique result IDs
                 const resultIds = response.results
-                    .map(result => result.id)
-                    .filter(id => id !== undefined && id !== null);
-                return Array.from(new Set(resultIds));
+                    .map(result => result.id);
+                return Array.from(resultIds);
             }),
             catchError(error => {
                 const errorMessage = this.getErrorMessage(error);

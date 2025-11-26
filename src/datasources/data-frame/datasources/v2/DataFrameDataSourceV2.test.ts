@@ -242,6 +242,7 @@ describe('DataFrameDataSourceV2', () => {
             describe('when dataTableProperties, columnProperties and a valid take are provided', () => {
                 const validQuery = {
                     type: DataFrameQueryType.Properties,
+                    resultFilter: 'partNumber = "12345"',
                     dataTableFilter: 'name = "Test Table"',
                     dataTableProperties: [DataTableProperties.Name],
                     columnProperties: [],
@@ -272,7 +273,7 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await lastValueFrom(ds.runQuery(validQuery, options));
 
                     expect(queryTablesSpy$).toHaveBeenCalledWith(
-                        { dataTableFilter: 'name = "Test Table"' },
+                        { resultFilter: 'partNumber = "12345"', dataTableFilter: 'name = "Test Table"' },
                         1000,
                         [DataTableProjections.Name]
                     );
@@ -311,6 +312,7 @@ describe('DataFrameDataSourceV2', () => {
                     ];
                     const queryWithAllProperties = {
                         type: DataFrameQueryType.Properties,
+                        resultFilter: '',
                         dataTableFilter: 'name = "Test Table"',
                         dataTableProperties,
                         columnProperties,
@@ -563,7 +565,7 @@ describe('DataFrameDataSourceV2', () => {
                     );
 
                     expect(queryTablesSpy$).toHaveBeenCalledWith(
-                        { dataTableFilter: 'name = "Test Table"' },
+                        { resultFilter: '', dataTableFilter: 'name = "Test Table"' },
                         1000,
                         expectedProjections
                     );
@@ -1325,6 +1327,7 @@ describe('DataFrameDataSourceV2', () => {
 
     describe('queryTables$', () => {
         let postMock$: jest.SpyInstance;
+        let queryResultIdsMock$: jest.SpyInstance;
         const mockTables = [{ id: '1', name: 'Table 1' }, { id: '2', name: 'Table 2' }];
 
         function createQueryTablesError(status: number) {
@@ -1335,6 +1338,158 @@ describe('DataFrameDataSourceV2', () => {
 
         beforeEach(() => {
             postMock$ = jest.spyOn(ds, 'post$').mockReturnValue(of({ tables: mockTables }));
+            queryResultIdsMock$ = jest.spyOn(ds as any, 'queryResultIds$');
+        });
+
+        it('should fetch result IDs when result filter is provided', async () => {
+            const mockResultsResponse = {
+                results: [
+                    { id: 'result-1' },
+                    { id: 'result-2' },
+                    ]
+            };
+            postMock$
+                .mockReturnValueOnce(of(mockResultsResponse)) // First call to Test Monitor API
+                .mockReturnValueOnce(of({ tables: mockTables })); // Second call to DataFrames API
+
+            const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
+            await lastValueFrom(ds.queryTables$(filters));
+
+            expect(postMock$).toHaveBeenCalledWith(
+                `${instanceSettings.url}/nitestmonitor/v2/query-results`,
+                {
+                    filter: 'status = "Passed"',
+                    projection: ['id'],
+                    take: 1000,
+                    orderBy: 'UPDATED_AT',
+                    descending: true
+                },
+                { showErrorAlert: false }
+            );
+        });
+
+        it('should extract result IDs and build filter with substitutions', async () => {
+            const mockResultsResponse = {
+                results: [
+                    { id: 'result-1' },
+                    { id: 'result-2' },
+                    { id: 'result-3' },
+                ]
+            };
+            postMock$
+                .mockReturnValueOnce(of(mockResultsResponse))
+                .mockReturnValueOnce(of({ tables: mockTables }));
+
+            const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
+            await lastValueFrom(ds.queryTables$(filters));
+
+            // Check that the data tables API was called with the correct filter
+            expect(postMock$).toHaveBeenCalledWith(
+                `${ds.baseUrl}/query-tables`,
+                {
+                    filter: '(new[] {@0, @1, @2}.Contains(testResultId))',
+                    take: TAKE_LIMIT,
+                    projection: undefined,
+                    substitutions: ['result-1', 'result-2', 'result-3'],
+                    interactive: true
+                },
+                { useApiIngress: true }
+            );
+        });
+
+        it('should return empty array when Test Monitor API returns no results', async () => {
+            postMock$.mockReturnValue(of({ results: [] }));
+
+            const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
+            const result = await lastValueFrom(ds.queryTables$(filters));
+
+            expect(result).toEqual([]);
+            // Should not call DataFrames API when no results
+            expect(postMock$).toHaveBeenCalledTimes(1);
+        });
+
+        it('should handle API error from Test Monitor and return empty array', async () => {
+            const publishMock = jest.fn();
+            (ds as any).appEvents = { publish: publishMock };
+            postMock$.mockReturnValue(throwError(() => new Error('API Error')));
+
+            const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
+            const result = await lastValueFrom(ds.queryTables$(filters));
+
+            expect(result).toEqual([]);
+            expect(publishMock).toHaveBeenCalledWith({
+                type: 'alert-error',
+                payload: ['Error querying test results', expect.any(String)],
+            });
+        });
+
+        it('should not query result IDs when result filter is empty string', async () => {
+            const filters = {
+                resultFilter: '',
+                dataTableFilter: 'name = "Table1"'
+            };
+
+            const result = await lastValueFrom(ds.queryTables$(filters, 10));
+
+            expect(queryResultIdsMock$).not.toHaveBeenCalled();
+            expect(postMock$).toHaveBeenCalledWith(
+                `${ds.baseUrl}/query-tables`,
+                {
+                    filter: 'name = "Table1"',
+                    take: 10,
+                    projection: undefined,
+                    substitutions: undefined,
+                    interactive: true
+                },
+                { useApiIngress: true }
+            );
+            expect(result).toBe(mockTables);
+        });
+
+        it('should combine result filter and data table filter with AND when both are provided', async () => {
+            const filters = {
+                resultFilter: 'status = "Passed"',
+                dataTableFilter: 'name = "Table1"'
+            };
+            const mockResultIds = ['result-1'];
+            queryResultIdsMock$.mockReturnValue(of(mockResultIds));
+
+            await lastValueFrom(ds.queryTables$(filters, 10));
+
+            expect(postMock$).toHaveBeenCalledWith(
+                `${ds.baseUrl}/query-tables`,
+                {
+                    filter: '(new[] {@0}.Contains(testResultId)) && (name = "Table1")',
+                    take: 10,
+                    projection: undefined,
+                    substitutions: ['result-1'],
+                    interactive: true
+                },
+                { useApiIngress: true }
+            );
+        });
+
+        it('should use only result filter when data table filter is empty', async () => {
+            const filters = {
+                resultFilter: 'status = "Passed"',
+                dataTableFilter: ''
+            };
+            const mockResultIds = ['result-1', 'result-2'];
+            queryResultIdsMock$.mockReturnValue(of(mockResultIds));
+
+            await lastValueFrom(ds.queryTables$(filters, 10));
+
+            expect(postMock$).toHaveBeenCalledWith(
+                `${ds.baseUrl}/query-tables`,
+                {
+                    filter: '(new[] {@0, @1}.Contains(testResultId))',
+                    take: 10,
+                    projection: undefined,
+                    substitutions: ['result-1', 'result-2'],
+                    interactive: true
+                },
+                { useApiIngress: true }
+            );
         });
 
         it('should call the `post$` method with the expected arguments and return tables', async () => {
@@ -1344,7 +1499,7 @@ describe('DataFrameDataSourceV2', () => {
             const result = await lastValueFrom(ds.queryTables$(filter, take, projection));
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
-                { filter: filter.dataTableFilter, take, projection },
+                { filter: filter.dataTableFilter, take, projection, substitutions: undefined, interactive: true },
                 { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
@@ -1356,7 +1511,7 @@ describe('DataFrameDataSourceV2', () => {
 
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
-                { filter: filter.dataTableFilter, take: TAKE_LIMIT },
+                { filter: filter.dataTableFilter, take: TAKE_LIMIT, projection: undefined, substitutions: undefined, interactive: true },
                 { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
@@ -1369,7 +1524,7 @@ describe('DataFrameDataSourceV2', () => {
 
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
-                { filter: filter.dataTableFilter, take, projection: undefined },
+                { filter: filter.dataTableFilter, take, projection: undefined, substitutions: undefined, interactive: true },
                 { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
