@@ -518,7 +518,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const projectionExcludingId = projections
             .filter(projection => projection !== DataTableProjections.Id);
         const tables$ = this.queryTables$(
-            { resultFilter: processedQuery.resultFilter || '', dataTableFilter: processedQuery.dataTableFilter },
+            { dataTableFilter: processedQuery.dataTableFilter },
             processedQuery.take,
             projectionExcludingId
         );
