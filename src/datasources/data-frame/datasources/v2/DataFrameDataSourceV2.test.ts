@@ -273,12 +273,9 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await lastValueFrom(ds.runQuery(validQuery, options));
 
                     expect(queryTablesSpy$).toHaveBeenCalledWith(
-                      {
-                        resultFilter: 'partNumber = "12345"',
-                        dataTableFilter: 'name = "Test Table"',
-                      },
-                      1000,
-                      [DataTableProjections.Name]
+                        { dataTableFilter: 'name = "Test Table"' },
+                        1000,
+                        [DataTableProjections.Name]
                     );
                     expect(result).toEqual({
                         refId: 'A',
@@ -315,7 +312,6 @@ describe('DataFrameDataSourceV2', () => {
                     ];
                     const queryWithAllProperties = {
                         type: DataFrameQueryType.Properties,
-                        resultFilter: '',
                         dataTableFilter: 'name = "Test Table"',
                         dataTableProperties,
                         columnProperties,
@@ -568,7 +564,7 @@ describe('DataFrameDataSourceV2', () => {
                     );
 
                     expect(queryTablesSpy$).toHaveBeenCalledWith(
-                        { resultFilter: '', dataTableFilter: 'name = "Test Table"' },
+                        { dataTableFilter: 'name = "Test Table"' },
                         1000,
                         expectedProjections
                     );
