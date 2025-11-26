@@ -242,7 +242,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     concatMap(() => forkJoin(
                         batch.map(request =>
                             this.getDecimatedTableData$(request).pipe(
-                                map(tableDataRows => ({ tableId: request.tableId, data: tableDataRows }))
+                                map(tableDataRows => ({ 
+                                    tableId: request.tableId, 
+                                    data: tableDataRows 
+                                }))
                             )
                         )
                     ))
