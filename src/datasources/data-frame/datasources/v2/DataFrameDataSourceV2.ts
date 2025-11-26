@@ -1,14 +1,14 @@
 import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, ColumnType } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, REQUESTS_PER_SECOND, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
-import { catchError, combineLatestWith, concatMap, delay, forkJoin, from, lastValueFrom, map, Observable, of, scan, takeLast } from "rxjs";
+import { catchError, combineLatestWith, concatMap, forkJoin, from, lastValueFrom, map, mergeMap, Observable, of, reduce, timer } from "rxjs";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
@@ -237,25 +237,21 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const batches = _.chunk(decimatedDataRequests, REQUESTS_PER_SECOND);
 
         return from(batches).pipe(
-            concatMap((batch, index) => {
-                const batchObservables = batch.map(request =>
-                    this.getDecimatedTableData$(request).pipe(
-                        map(tableDataRows => ({
-                            tableId: request.tableId,
-                            data: tableDataRows,
-                        }))
-                    )
-                );
-                const delayTime = index === batches.length - 1 ? 0 : DELAY_BETWEEN_REQUESTS_MS;
-                return forkJoin(batchObservables).pipe(delay(delayTime));
-            }),
-            scan((acc, results) => {
-                for (const { tableId, data } of results) {
-                    acc[tableId] = data;
-                }
+            mergeMap((batch, index) =>
+                timer(index * DELAY_BETWEEN_REQUESTS_MS).pipe(
+                    concatMap(() => forkJoin(
+                        batch.map(request =>
+                            this.getDecimatedTableData$(request).pipe(
+                                map(tableDataRows => ({ tableId: request.tableId, data: tableDataRows }))
+                            )
+                        )
+                    ))
+                )
+            ),
+            reduce((acc, results) => {
+                results.forEach(({ tableId, data }) => acc[tableId] = data);
                 return acc;
-            }, {} as Record<string, TableDataRows>),
-            takeLast(1)
+            }, {} as Record<string, TableDataRows>)
         );
     }
 
