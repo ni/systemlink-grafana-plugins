@@ -15,8 +15,8 @@ import {
     ValidDataFrameVariableQuery,
     DataFrameDataQuery,
     DataFrameVariableQuery,
-    Option,
-    CombinedFilters
+    CombinedFilters,
+    ColumnOptions
 } from './types';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { extractErrorInfo } from 'core/errors';
@@ -90,8 +90,8 @@ export abstract class DataFrameDataSourceBase<
         }
     }
 
-    public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
-        return Promise.resolve([]);
+    public async getColumnOptionsWithVariables(filter: string): Promise<ColumnOptions> {
+        return Promise.resolve({ allColumns: [], xColumns: [] });
     }
 
     public async loadPartNumbers(): Promise<string[]> {
