@@ -273,7 +273,10 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await lastValueFrom(ds.runQuery(validQuery, options));
 
                     expect(queryTablesSpy$).toHaveBeenCalledWith(
-                        { dataTableFilter: 'name = "Test Table"' },
+                        { 
+                            dataTableFilter: 'name = "Test Table"',
+                            resultFilter: 'partNumber = "12345"'
+                        },
                         1000,
                         [DataTableProjections.Name]
                     );
@@ -288,6 +291,30 @@ describe('DataFrameDataSourceV2', () => {
                             }
                         ]
                     });
+                });
+
+                it('should pass empty resultFilter to queryTables$ when not provided', async () => {
+                    const queryWithoutResultFilter = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'name = "Table1"',
+                        dataTableProperties: [DataTableProperties.Name],
+                        columnProperties: [],
+                        take: 1000,
+                        refId: 'C',
+                    };
+                    const mockTables = [{ id: 'table-1', name: 'Table 1' }];
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                    await lastValueFrom(ds.runQuery(queryWithoutResultFilter, options));
+
+                    expect(queryTablesSpy$).toHaveBeenCalledWith(
+                        { 
+                            dataTableFilter: 'name = "Table1"',
+                            resultFilter: ''
+                        },
+                        1000,
+                        [DataTableProjections.Name]
+                    );
                 });
 
                 it('should return expected fields when for all the properties', async () => {
@@ -564,7 +591,10 @@ describe('DataFrameDataSourceV2', () => {
                     );
 
                     expect(queryTablesSpy$).toHaveBeenCalledWith(
-                        { dataTableFilter: 'name = "Test Table"' },
+                        { 
+                            dataTableFilter: 'name = "Test Table"',
+                            resultFilter: ''
+                        },
                         1000,
                         expectedProjections
                     );
@@ -719,7 +749,10 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await ds.metricFindQuery(query, options);
 
                 expect(queryTablesSpy$).toHaveBeenCalledWith(
-                    { dataTableFilter: 'name = "Test Table"' },
+                    { 
+                        dataTableFilter: 'name = "Test Table"',
+                        resultFilter: ''
+                    },
                     1000,
                     [DataTableProjections.Name]
                 );
@@ -727,6 +760,51 @@ describe('DataFrameDataSourceV2', () => {
                     { text: 'Table 1', value: 'table-1' },
                     { text: 'Table 2', value: 'table-2' }
                 ]);
+            });
+
+            it('should pass resultFilter to queryTables$ when provided', async () => {
+                const queryWithResultFilter = {
+                    queryType: DataFrameVariableQueryType.ListDataTables,
+                    dataTableFilter: 'name = "${name}"',
+                    resultFilter: 'status = "Passed"',
+                    refId: 'A'
+                } as DataFrameVariableQuery;
+                templateSrv.replace.mockReturnValue('name = "Test Table"');
+                const mockTables = [{ id: 'table-1', name: 'Table 1' }];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                await ds.metricFindQuery(queryWithResultFilter, options);
+
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    { 
+                        dataTableFilter: 'name = "Test Table"',
+                        resultFilter: 'status = "Passed"'
+                    },
+                    1000,
+                    [DataTableProjections.Name]
+                );
+            });
+
+            it('should pass empty resultFilter when not provided', async () => {
+                const queryWithoutResultFilter = {
+                    queryType: DataFrameVariableQueryType.ListDataTables,
+                    dataTableFilter: 'workspace = "ws-1"',
+                    refId: 'A'
+                } as DataFrameVariableQuery;
+                templateSrv.replace.mockReturnValue('workspace = "ws-1"');
+                const mockTables = [{ id: 'table-1', name: 'Table 1' }];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                await ds.metricFindQuery(queryWithoutResultFilter, options);
+
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    { 
+                        dataTableFilter: 'workspace = "ws-1"',
+                        resultFilter: ''
+                    },
+                    1000,
+                    [DataTableProjections.Name]
+                );
             });
         });
 
