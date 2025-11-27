@@ -1,7 +1,7 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
-import { DataFrameDataQuery, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
+import { ColumnType, DataFrameDataQuery, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
@@ -220,12 +220,12 @@ describe('DataFrameDataSourceV2', () => {
                                 {
                                     name: 'colA',
                                     dataType: 'INT32',
-                                    columnType: 'NonNullable'
+                                    columnType: ColumnType.Normal
                                 },
                                 {
                                     name: 'colB',
                                     dataType: 'TIMESTAMP',
-                                    columnType: 'NonNullable'
+                                    columnType: ColumnType.Normal
                                 }
                             ]
                         }];
@@ -258,7 +258,7 @@ describe('DataFrameDataSourceV2', () => {
                                 {
                                     name: 'colX',
                                     dataType: 'FLOAT64',
-                                    columnType: 'NonNullable'
+                                    columnType: ColumnType.Normal
                                 }
                             ]
                         }];
@@ -305,12 +305,12 @@ describe('DataFrameDataSourceV2', () => {
                                     {
                                         name: 'colX',
                                         dataType: 'INT32',
-                                        columnType: 'NonNullable'
+                                        columnType: ColumnType.Normal
                                     },
                                     {
                                         name: 'colY',
                                         dataType: 'STRING',
-                                        columnType: 'NonNullable'
+                                        columnType: ColumnType.Normal
                                     }
                                 ]
                             }
@@ -338,7 +338,7 @@ describe('DataFrameDataSourceV2', () => {
                                     {
                                         name: 'temp',
                                         dataType: 'FLOAT64',
-                                        columnType: 'NonNullable',
+                                        columnType: ColumnType.Normal,
                                     }
                                 ]
                             }
@@ -419,12 +419,12 @@ describe('DataFrameDataSourceV2', () => {
                                     {
                                         name: 'colA',
                                         dataType: 'INT32',
-                                        columnType: 'NonNullable'
+                                        columnType: ColumnType.Normal
                                     },
                                     {
                                         name: 'colB',
                                         dataType: 'STRING',
-                                        columnType: 'NonNullable'
+                                        columnType: ColumnType.Normal
                                     }
                                 ]
                             }
@@ -454,7 +454,7 @@ describe('DataFrameDataSourceV2', () => {
                                     {
                                         name: 'colX',
                                         dataType: 'FLOAT64',
-                                        columnType: 'NonNullable'
+                                        columnType: ColumnType.Normal
                                     }
                                 ]
                             }

@@ -809,7 +809,7 @@ describe("DataFrameQueryEditorV2", () => {
                     });
 
                     it('should update the query when a column is removed', async () => {
-                        const { onChange } = renderComponent({
+                        const { onChange, onRunQuery } = renderComponent({
                         type: DataFrameQueryType.Data,
                         dataTableFilter: 'TestFilter',
                         columns: ['ColumnA', 'ColumnB-Numeric'],
@@ -824,11 +824,12 @@ describe("DataFrameQueryEditorV2", () => {
                             columns: ['ColumnB-Numeric'],
                             })
                         );
+                        expect(onRunQuery).toHaveBeenCalled();
                         });
                     });
 
                     it('should update the query with an empty array when all columns are removed', async () => {
-                        const { onChange } = renderComponent({
+                        const { onChange, onRunQuery } = renderComponent({
                         type: DataFrameQueryType.Data,
                         dataTableFilter: 'TestFilter',
                         columns: ['ColumnA'],
@@ -843,6 +844,7 @@ describe("DataFrameQueryEditorV2", () => {
                             columns: [],
                             })
                         );
+                        expect(onRunQuery).toHaveBeenCalled();
                         });
                     });
                 });

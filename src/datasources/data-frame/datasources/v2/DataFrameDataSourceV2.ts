@@ -417,7 +417,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             tables
                         );
                         if (Object.keys(selectedTableColumnMap).length > 0) {
-                            // Fetch decimated data for selected columns
+                            // TODO: Implement fetching decimated data for selected columns if needed.
                         }
                         
                         return this.buildDataFrame(processedQuery.refId);
