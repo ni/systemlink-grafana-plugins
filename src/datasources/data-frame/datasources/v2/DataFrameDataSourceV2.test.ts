@@ -244,7 +244,7 @@ describe('DataFrameDataSourceV2', () => {
                         const result = await lastValueFrom(ds.runQuery(query, options));
 
                         expect(queryTablesSpy).toHaveBeenCalledWith(
-                            'name = "Test"',
+                            {"dataTableFilter": "name = \"Test\""},
                             TAKE_LIMIT,
                             projections
                         );
@@ -274,7 +274,7 @@ describe('DataFrameDataSourceV2', () => {
                         const result = await lastValueFrom(ds.runQuery(query, options));
 
                         expect(queryTablesSpy).toHaveBeenCalledWith(
-                           'name == "Test"',
+                            { "dataTableFilter": "name == \"Test\"" },
                             TAKE_LIMIT,
                             projections
                         );
@@ -354,7 +354,7 @@ describe('DataFrameDataSourceV2', () => {
                         await lastValueFrom(ds.runQuery(query, options));
 
                         expect(queryTablesSpy).toHaveBeenCalledWith(
-                            'name = "Test"',
+                            {"dataTableFilter": "name = \"Test\""},
                             TAKE_LIMIT,
                             projections
                         );
