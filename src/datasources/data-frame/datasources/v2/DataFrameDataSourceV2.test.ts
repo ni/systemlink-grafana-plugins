@@ -1112,6 +1112,46 @@ describe('DataFrameDataSourceV2', () => {
                         ['col1', 'col2-String']
                     );
                 });
+
+                it('should return an observable with original columns when get table call failed', async () => {
+                    getSpy$.mockReturnValue(throwError(() => new Error('Table not found')));
+                    const v1Query = {
+                        type: DataFrameQueryType.Data,
+                        tableId: 'table-789',
+                        columns: ['col1', 'col2'],
+                        refId: 'E'
+                    } as DataFrameQueryV1;
+
+                    const result = ds.processQuery(v1Query);
+
+                    expect(isObservable(result.columns)).toBe(true);
+                    expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
+                        ['col1', 'col2']
+                    );
+                });
+
+                it('should publish the error when get table call failed', async () => {
+                    getSpy$.mockReturnValue(throwError(() => new Error('Table not found')));
+                    const publishMock = jest.fn();
+                    (ds as any).appEvents = { publish: publishMock };
+                    const v1Query = {
+                        type: DataFrameQueryType.Data,
+                        tableId: 'table-789',
+                        columns: ['col1', 'col2'],
+                        refId: 'E'
+                    } as DataFrameQueryV1;
+
+                    const result = ds.processQuery(v1Query);
+                    await lastValueFrom(result.columns as Observable<string[]>);
+
+                    expect(publishMock).toHaveBeenCalledWith({
+                        type: 'alert-error',
+                        payload: [
+                            'Error during fetching columns for migration',
+                            'The query failed due to an unknown error.'
+                        ],
+                    });
+                });
             });
         });
 

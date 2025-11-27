@@ -1,3 +1,9 @@
+## [4.82.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.82.1...v4.82.2) (2025-11-27)
+
+### Bug Fixes
+
+* **results:** Use inclusive time range filters for accurate results/ steps counts ([#558](https://github.com/ni/systemlink-grafana-plugins/issues/558)) ([c7f0815](https://github.com/ni/systemlink-grafana-plugins/commit/c7f081559f33758f20b844c4919cde5026b556e3))
+
 ## [4.82.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.82.0...v4.82.1) (2025-11-26)
 
 ### Bug Fixes
