@@ -310,21 +310,21 @@ describe('DataFrameDataSource', () => {
     describe('transformQuery', () => {
         it('should delegate to v2 transformQuery when feature toggle is true', () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
-            v2Mock.transformQuery.mockClear();
+            v2Mock.transformDataTableQuery.mockClear();
             
-            const result = ds.transformQuery('filter');
+            const result = ds.transformDataTableQuery('filter');
             
-            expect(v2Mock.transformQuery).toHaveBeenCalledWith('filter');
+            expect(v2Mock.transformDataTableQuery).toHaveBeenCalledWith('filter');
             expect(result).toBe('v2-filter');
         });
 
         it('should delegate to v1 base transformQuery when feature toggle is false', () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
-            v1Mock.transformQuery.mockClear();
+            v1Mock.transformDataTableQuery.mockClear();
             
-            const result = ds.transformQuery('filter');
+            const result = ds.transformDataTableQuery('filter');
             
-            expect(v1Mock.transformQuery).toHaveBeenCalledWith('filter');
+            expect(v1Mock.transformDataTableQuery).toHaveBeenCalledWith('filter');
             expect(result).toBe('v1-filter');
         });
      });
