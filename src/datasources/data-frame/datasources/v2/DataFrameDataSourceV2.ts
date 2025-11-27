@@ -362,7 +362,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     public transformResultQuery(query: string, scopedVars: ScopedVars = this.scopedVars) {
         return transformComputedFieldsQuery(
             this.templateSrv.replace(query, scopedVars),
-            this.dataTableComputedDataFields,
+            this.resultsComputedDataFields,
         );
     }
 
