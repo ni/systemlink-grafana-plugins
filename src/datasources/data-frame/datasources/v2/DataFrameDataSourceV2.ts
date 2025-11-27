@@ -221,7 +221,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return columnOptionsWithVariables;
     }
 
-    // TODO: Make this method private after implementing the runQuery method for data query type.
+    // TODO(#3526598): Make this method private after implementing the runQuery method for data query type.
     public getDecimatedTableDataInBatches$(
         tableColumnsMap: Record<string, Column[]>,
         query: ValidDataFrameQueryV2,
