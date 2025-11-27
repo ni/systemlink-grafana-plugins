@@ -16,6 +16,7 @@ import {
     DataFrameDataQuery,
     DataFrameVariableQuery,
     Option,
+    ColumnFilter,
     CombinedFilters
 } from './types';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
@@ -112,6 +113,37 @@ export abstract class DataFrameDataSourceBase<
 
     public transformDataTableQuery(query: string) {
         return this.templateSrv.replace(query);
+    }
+
+    protected constructNullFilters(columns: Column[]): ColumnFilter[] {
+        return columns.flatMap(({ name, columnType, dataType }) => {
+            const filters: ColumnFilter[] = [];
+
+            if (columnType === 'NULLABLE') {
+                filters.push({ column: name, operation: 'NOT_EQUALS', value: null });
+            }
+            if (dataType === 'FLOAT32' || dataType === 'FLOAT64') {
+                filters.push({ column: name, operation: 'NOT_EQUALS', value: 'NaN' });
+            }
+            return filters;
+        });
+    }
+
+    protected getNumericColumns(columns: Column[]): Column[] {
+        return columns.filter(this.isColumnNumeric);
+    }
+
+    private isColumnNumeric(column: Column): boolean {
+        switch (column.dataType) {
+            case 'FLOAT32':
+            case 'FLOAT64':
+            case 'INT32':
+            case 'INT64':
+            case 'TIMESTAMP':
+                return true;
+            default:
+                return false;
+        }
     }
 
     private async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {
