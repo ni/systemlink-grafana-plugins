@@ -1401,10 +1401,11 @@ describe('DataFrameDataSourceV2', () => {
             });
         });
 
-        it('should fetch result IDs when result filter is provided', async () => {
-           const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
+        it('should extract result IDs and build filter with substitutions', async () => {
+            const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
             await lastValueFrom(ds.queryTables$(filters));
 
+            // Check that the Test Monitor API was called with the correct filter
             expect(postMock$).toHaveBeenCalledWith(
                 `${instanceSettings.url}/nitestmonitor/v2/query-results`,
                 {
@@ -1416,12 +1417,6 @@ describe('DataFrameDataSourceV2', () => {
                 },
                 { showErrorAlert: false }
             );
-        });
-
-        it('should extract result IDs and build filter with substitutions', async () => {
-            const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
-            await lastValueFrom(ds.queryTables$(filters));
-
             // Check that the data tables API was called with the correct filter
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
@@ -1603,6 +1598,8 @@ describe('DataFrameDataSourceV2', () => {
                     'The query to fetch results failed due to too many requests. Please try again later.'
                 ],
             });
+            // Should not call DataFrames API when no results 
+            expect(publishMock).toHaveBeenCalledTimes(1);
         });
 
         it('should call the `post$` method with the expected arguments and return tables', async () => {
