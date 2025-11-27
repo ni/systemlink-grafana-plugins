@@ -12,6 +12,7 @@ import { SystemQuery, SystemQueryType, SystemSummary, SystemVariableQuery, Syste
 import { getWorkspaceName } from 'core/utils';
 import { SystemsDataSourceBase } from './components/SystemsDataSourceBase';
 import { transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { SystemFieldMapping } from './constants/SystemsQueryBuilder.constants';
 
 export class SystemDataSource extends SystemsDataSourceBase {
   constructor(
@@ -41,13 +42,16 @@ export class SystemDataSource extends SystemsDataSourceBase {
         ],
       };
     } else {
-      let processedFilter = query.filter || '';
-      if (processedFilter) {
+      let processedFilter = '';
+      if (query.filter) {
+        let tempFilter = this.templateSrv.replace(query.filter, options.scopedVars);
+        tempFilter = this.mapUIFieldsToBackendFields(tempFilter);
         processedFilter = transformComputedFieldsQuery(
-          this.templateSrv.replace(processedFilter, options.scopedVars),
+          tempFilter,
           this.systemsComputedDataFields
         );
       }
+
       const properties = await this.getSystemProperties(
         this.templateSrv.replace(query.systemName, options.scopedVars),
         defaultProjection,
@@ -75,6 +79,16 @@ export class SystemDataSource extends SystemsDataSourceBase {
         ],
       };
     }
+  }
+
+  private mapUIFieldsToBackendFields(filter: string): string {
+    let mappedFilter = filter;
+    Object.entries(SystemFieldMapping).forEach(([uiField, backendField]) => {
+      const regex = new RegExp(`\\b${uiField}\\b`, 'g');
+      mappedFilter = mappedFilter.replace(regex, backendField);
+    });
+
+    return mappedFilter;
   }
 
   async getSystemProperties(systemFilter: string, projection = defaultProjection, workspace?: string, filter?: string, systemsComputedDataFields?: any) {

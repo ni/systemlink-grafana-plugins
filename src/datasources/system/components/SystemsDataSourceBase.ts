@@ -10,8 +10,49 @@ export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, 
     abstract shouldRunQuery(query: SystemQuery): boolean;
 
     public readonly systemsComputedDataFields = new Map<string, ExpressionTransformFunction>([
-        ...this.getDefaultComputedDataFields(),
+        ...this.getDefaultComputedDataFields(), ...this.getBooleanFieldComputedData()
     ]);
+
+    /**
+     * Handle boolean fields that need .Equals() method instead of = operator
+     */
+    private getBooleanFieldComputedData(): Array<[string, ExpressionTransformFunction]> {
+        return [
+            ['grains.data.minion_blackout', this.handleBooleanField('grains.data.minion_blackout')],
+        ];
+    }
+
+    private handleBooleanField(backendFieldName: string): ExpressionTransformFunction {
+        return (value: string, operation: string, _options?: Map<string, unknown>) => {
+            let values = [value];
+
+            if (this.isMultiSelectValue(value)) {
+                values = this.getMultipleValuesArray(value);
+            }
+
+            const booleanValues = values.map(v => {
+                const cleanValue = v.replace(/"/g, '').toLowerCase();
+                return cleanValue === 'true' ? 'true' : 'false';
+            });
+
+            if (booleanValues.length > 1) {
+                const expressions = booleanValues.map(boolVal =>
+                    operation === QueryBuilderOperations.DOES_NOT_EQUAL.name
+                        ? `!${backendFieldName}.Equals(${boolVal})`
+                        : `${backendFieldName}.Equals(${boolVal})`
+                );
+
+                const concatOperator = operation === QueryBuilderOperations.DOES_NOT_EQUAL.name ? ' && ' : ' || ';
+                return `(${expressions.join(concatOperator)})`;
+            }
+
+            if (operation === QueryBuilderOperations.DOES_NOT_EQUAL.name) {
+                return `!${backendFieldName}.Equals(${booleanValues[0]})`;
+            }
+
+            return `${backendFieldName}.Equals(${booleanValues[0]})`;
+        };
+    }
 
     /**
      * @returns Gathers all fields and applies the default transformation algorithm based on the operation type
@@ -48,7 +89,6 @@ export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, 
 
             return `(${expression})`;
         }
-
         return buildExpressionFromTemplate(containsExpressionTemplate, field, values[0])!;
     }
 
