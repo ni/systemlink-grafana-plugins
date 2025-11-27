@@ -174,13 +174,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         take?: number,
         projections?: DataTableProjections[]
     ): Observable<TableProperties[]> {
-        if (filters.resultFilter) {
+        const isQueryByResultFeatureEnabled = this.instanceSettings.jsonData?.featureToggles?.queryByResultAndColumnProperties
+        if (filters.resultFilter && isQueryByResultFeatureEnabled) {
             return this.queryResultIds$(filters.resultFilter).pipe(
                 switchMap(resultIds => {
                     if (resultIds.length === 0) {
                         return of([]);
                     }
-                    const {resultFilter, substitutions} = this.buildResultIdFilter(resultIds);
+                    const resultFilter = this.buildResultIdFilter(resultIds);
                     const combinedFilter = this.buildCombinedFilter({
                         resultFilter,
                         dataTableFilter: filters.dataTableFilter
@@ -189,12 +190,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         combinedFilter,
                         take,
                         projections,
-                        substitutions
+                        resultIds
                     );
                 })
             );
         }
-        return this.queryTablesInternal$(filters.dataTableFilter || '', take, projections);
+        return this.queryTablesInternal$(filters.dataTableFilter || '', take, projections, undefined);
     }
 
     private queryTablesInternal$(
@@ -204,11 +205,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         substitutions?: string[]
     ): Observable<TableProperties[]> {
         const requestBody = { 
+            interactive: true, 
             filter, 
             take, 
             projection, 
             substitutions, 
-            interactive: true 
         };
         const response = this.post$<TablePropertiesList>(
             `${this.baseUrl}/query-tables`,
@@ -584,13 +585,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
-    private buildResultIdFilter(resultIds: string[]): { resultFilter: string; substitutions: string[] } {
+    private buildResultIdFilter(resultIds: string[]): string {
         if (resultIds.length === 0) {
-            return { resultFilter: '', substitutions: [] };
+            return '';
         }
         const placeholders = resultIds.map((_, index) => `@${index}`).join(', ');
         const resultFilter = `new[] {${placeholders}}.Contains(testResultId)`;
-        return { resultFilter, substitutions: resultIds };
+        return resultFilter;
     }
 
     private buildCombinedFilter(filters: CombinedFilters): string {

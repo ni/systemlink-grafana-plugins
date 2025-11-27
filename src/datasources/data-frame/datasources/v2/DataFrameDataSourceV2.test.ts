@@ -31,7 +31,17 @@ describe('DataFrameDataSourceV2', () => {
         (queryBuilderUtils.timeFieldsQuery as jest.Mock).mockImplementation(actualQueryBuilderUtils.timeFieldsQuery);
         (queryBuilderUtils.multipleValuesQuery as jest.Mock).mockImplementation(actualQueryBuilderUtils.multipleValuesQuery);
 
-        instanceSettings = { id: 1, name: 'test', type: 'test', url: '', jsonData: {} } as any;
+        instanceSettings = { 
+            id: 1, 
+            name: 'test', 
+            type: 'test', 
+            url: '', 
+            jsonData: { 
+                featureToggles: { 
+                    queryByResultAndColumnProperties: true 
+                } 
+            } 
+        } as any;
         backendSrv = {} as any;
         templateSrv = {
             replace: jest.fn((value: string) => value),
@@ -242,7 +252,6 @@ describe('DataFrameDataSourceV2', () => {
             describe('when dataTableProperties, columnProperties and a valid take are provided', () => {
                 const validQuery = {
                     type: DataFrameQueryType.Properties,
-                    resultFilter: 'partNumber = "12345"',
                     dataTableFilter: 'name = "Test Table"',
                     dataTableProperties: [DataTableProperties.Name],
                     columnProperties: [],
@@ -1326,8 +1335,8 @@ describe('DataFrameDataSourceV2', () => {
 
     describe('queryTables$', () => {
         let postMock$: jest.SpyInstance;
-        let queryResultIdsMock$: jest.SpyInstance;
         const mockTables = [{ id: '1', name: 'Table 1' }, { id: '2', name: 'Table 2' }];
+        const mockResultsResponse = {results: [{ id: 'result-1' },{ id: 'result-2' },]};
 
         function createQueryTablesError(status: number) {
             return new Error(
@@ -1336,22 +1345,18 @@ describe('DataFrameDataSourceV2', () => {
         }
 
         beforeEach(() => {
-            postMock$ = jest.spyOn(ds, 'post$').mockReturnValue(of({ tables: mockTables }));
-            queryResultIdsMock$ = jest.spyOn(ds as any, 'queryResultIds$');
+            postMock$ = jest.spyOn(ds, 'post$').mockImplementation((url, body, options) => {
+                if (url.includes('nitestmonitor/v2/query-results')) {
+                    return of(mockResultsResponse);
+                } else if (url.includes('query-tables')) {
+                    return of({ tables: mockTables });
+                }
+                return of({});
+            });
         });
 
         it('should fetch result IDs when result filter is provided', async () => {
-            const mockResultsResponse = {
-                results: [
-                    { id: 'result-1' },
-                    { id: 'result-2' },
-                    ]
-            };
-            postMock$
-                .mockReturnValueOnce(of(mockResultsResponse)) // First call to Test Monitor API
-                .mockReturnValueOnce(of({ tables: mockTables })); // Second call to DataFrames API
-
-            const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
+           const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
             await lastValueFrom(ds.queryTables$(filters));
 
             expect(postMock$).toHaveBeenCalledWith(
@@ -1368,17 +1373,6 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should extract result IDs and build filter with substitutions', async () => {
-            const mockResultsResponse = {
-                results: [
-                    { id: 'result-1' },
-                    { id: 'result-2' },
-                    { id: 'result-3' },
-                ]
-            };
-            postMock$
-                .mockReturnValueOnce(of(mockResultsResponse))
-                .mockReturnValueOnce(of({ tables: mockTables }));
-
             const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
             await lastValueFrom(ds.queryTables$(filters));
 
@@ -1386,18 +1380,23 @@ describe('DataFrameDataSourceV2', () => {
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
                 {
-                    filter: '(new[] {@0, @1, @2}.Contains(testResultId))',
+                    interactive: true,
+                    filter: '(new[] {@0, @1}.Contains(testResultId))',
                     take: TAKE_LIMIT,
                     projection: undefined,
-                    substitutions: ['result-1', 'result-2', 'result-3'],
-                    interactive: true
+                    substitutions: ['result-1', 'result-2']
                 },
                 { useApiIngress: true }
             );
         });
 
         it('should return empty array when Test Monitor API returns no results', async () => {
-            postMock$.mockReturnValue(of({ results: [] }));
+            postMock$.mockImplementation((url) => {
+                if (url.includes('query-results')) {
+                    return of({ results: [] });
+                } 
+                return of({ tables: mockTables });            
+            });
 
             const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
             const result = await lastValueFrom(ds.queryTables$(filters));
@@ -1420,6 +1419,7 @@ describe('DataFrameDataSourceV2', () => {
                 type: 'alert-error',
                 payload: ['Error querying test results', expect.any(String)],
             });
+            expect(postMock$).toHaveBeenCalledTimes(1);
         });
 
         it('should not query result IDs when result filter is empty string', async () => {
@@ -1430,15 +1430,44 @@ describe('DataFrameDataSourceV2', () => {
 
             const result = await lastValueFrom(ds.queryTables$(filters, 10));
 
-            expect(queryResultIdsMock$).not.toHaveBeenCalled();
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
                 {
+                    interactive: true,
                     filter: 'name = "Table1"',
                     take: 10,
                     projection: undefined,
-                    substitutions: undefined,
-                    interactive: true
+                    substitutions: undefined
+                },
+                { useApiIngress: true }
+            );
+            expect(result).toBe(mockTables);
+        });
+
+        it('should not query result IDs when feature flag is disabled', async () => {
+            const dsWithoutFeature = new DataFrameDataSourceV2(
+                { ...instanceSettings, jsonData: {} } as any,
+                backendSrv,
+                templateSrv
+            );
+            const postMockWithoutFeature$ = jest.spyOn(dsWithoutFeature, 'post$').mockReturnValue(of({ tables: mockTables }));
+            const filters = {
+                resultFilter: 'status = "Passed"',
+                dataTableFilter: 'name = "Table1"'
+            };
+
+            const result = await lastValueFrom(dsWithoutFeature.queryTables$(filters, 10));
+
+            // Should only call query-tables, not query-results
+            expect(postMockWithoutFeature$).toHaveBeenCalledTimes(1);
+            expect(postMockWithoutFeature$).toHaveBeenCalledWith(
+                expect.stringContaining('query-tables'),
+                {
+                    interactive: true,
+                    filter: 'name = "Table1"',
+                    take: 10,
+                    projection: undefined,
+                    substitutions: undefined
                 },
                 { useApiIngress: true }
             );
@@ -1450,19 +1479,28 @@ describe('DataFrameDataSourceV2', () => {
                 resultFilter: 'status = "Passed"',
                 dataTableFilter: 'name = "Table1"'
             };
-            const mockResultIds = ['result-1'];
-            queryResultIdsMock$.mockReturnValue(of(mockResultIds));
 
             await lastValueFrom(ds.queryTables$(filters, 10));
 
             expect(postMock$).toHaveBeenCalledWith(
+                `${instanceSettings.url}/nitestmonitor/v2/query-results`,
+                {
+                    filter: 'status = "Passed"',
+                    projection: ['id'],
+                    take: 1000,
+                    orderBy: 'UPDATED_AT',
+                    descending: true
+                },
+                { showErrorAlert: false }
+            );
+            expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
                 {
-                    filter: '(new[] {@0}.Contains(testResultId)) && (name = "Table1")',
+                    interactive: true,
+                    filter: '(new[] {@0, @1}.Contains(testResultId)) && (name = "Table1")',
                     take: 10,
                     projection: undefined,
-                    substitutions: ['result-1'],
-                    interactive: true
+                    substitutions: ['result-1', 'result-2']
                 },
                 { useApiIngress: true }
             );
@@ -1473,19 +1511,17 @@ describe('DataFrameDataSourceV2', () => {
                 resultFilter: 'status = "Passed"',
                 dataTableFilter: ''
             };
-            const mockResultIds = ['result-1', 'result-2'];
-            queryResultIdsMock$.mockReturnValue(of(mockResultIds));
 
             await lastValueFrom(ds.queryTables$(filters, 10));
 
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
                 {
+                    interactive: true,
                     filter: '(new[] {@0, @1}.Contains(testResultId))',
                     take: 10,
                     projection: undefined,
-                    substitutions: ['result-1', 'result-2'],
-                    interactive: true
+                    substitutions: ['result-1', 'result-2']
                 },
                 { useApiIngress: true }
             );
@@ -1499,11 +1535,11 @@ describe('DataFrameDataSourceV2', () => {
             expect(postMock$).toHaveBeenCalledWith(
               `${ds.baseUrl}/query-tables`,
               {
+                interactive: true,
                 filter: filter.dataTableFilter,
                 take,
                 projection,
-                substitutions: undefined,
-                interactive: true,
+                substitutions: undefined
               },
               { useApiIngress: true }
             );
@@ -1517,11 +1553,11 @@ describe('DataFrameDataSourceV2', () => {
             expect(postMock$).toHaveBeenCalledWith(
               `${ds.baseUrl}/query-tables`,
               {
+                interactive: true,
                 filter: filter.dataTableFilter,
                 take: TAKE_LIMIT,
                 projection: undefined,
-                substitutions: undefined,
-                interactive: true,
+                substitutions: undefined
               },
               { useApiIngress: true }
             );
@@ -1536,11 +1572,11 @@ describe('DataFrameDataSourceV2', () => {
             expect(postMock$).toHaveBeenCalledWith(
               `${ds.baseUrl}/query-tables`,
               {
+                interactive: true,
                 filter: filter.dataTableFilter,
                 take,
                 projection: undefined,
-                substitutions: undefined,
-                interactive: true,
+                substitutions: undefined
               },
               { useApiIngress: true }
             );
