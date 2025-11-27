@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useTheme2 } from '@grafana/ui';
 import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 import { QBField, QueryBuilderOption, Workspace } from 'core/types';
-import { addOptionsToLookup, filterXSSLINQExpression } from 'core/utils';
+import { addOptionsToLookup, filterXSSField, filterXSSLINQExpression } from 'core/utils';
 import { SystemFields, SystemStaticFields } from 'datasources/system/constants/SystemsQueryBuilder.constants';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
@@ -12,7 +12,8 @@ type SystemsQueryBuilderProps = QueryBuilderProps &
     React.HTMLAttributes<Element> & {
         filter?: string;
         globalVariableOptions: QueryBuilderOption[];
-        workspaces: Workspace[] | null;
+        workspaces: Workspace[];
+        areDependenciesLoaded: boolean;
     };
 
 export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
@@ -20,6 +21,7 @@ export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
     onChange,
     globalVariableOptions,
     workspaces,
+    areDependenciesLoaded,
 }) => {
     const theme = useTheme2();
     document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
@@ -32,30 +34,37 @@ export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
     }, [filter]);
 
     const workspaceField = useMemo(() => {
-        if (!workspaces) {
-            return null;
+        const workspaceField = SystemFields.WORKSPACE;
+        return {
+            ...workspaceField,
+            lookup: {
+                ...workspaceField.lookup,
+                dataSource: [
+                    ...(workspaceField.lookup?.dataSource || []),
+                    ...workspaces.map(({ id, name }) => (filterXSSField({ label: name, value: id }))),
+                ],
+            },
         }
-        const workspaceOptions = workspaces.map(({ id, name }) => ({ label: name, value: id }));
-
-        return addOptionsToLookup(SystemFields.WORKSPACE, workspaceOptions);
     }, [workspaces]);
 
     useEffect(() => {
-        if (!workspaceField) {
+        if (!areDependenciesLoaded) {
             return;
         }
 
-        const fields = [...SystemStaticFields, workspaceField].map(field => {
-            if (field.lookup?.dataSource) {
-                return {
-                    ...field,
-                    lookup: {
-                        dataSource: [...globalVariableOptions, ...field.lookup?.dataSource],
-                    },
-                };
-            }
-            return field;
-        });
+        const fields = [workspaceField, ...SystemStaticFields]
+            .sort((a, b) => a.label?.localeCompare(b?.label ?? '') ?? 0)
+            .map(field => {
+                if (field.lookup?.dataSource) {
+                    return {
+                        ...field,
+                        lookup: {
+                            dataSource: [...globalVariableOptions.map(filterXSSField), ...field.lookup?.dataSource.map(filterXSSField)],
+                        },
+                    };
+                }
+                return field;
+            });
 
         setFields(fields);
 

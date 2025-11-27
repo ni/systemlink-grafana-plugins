@@ -4,10 +4,45 @@ import { QueryBuilderOperations } from "core/query-builder.constants";
 import { DataSourceBase } from "core/DataSourceBase";
 import { SystemQuery } from "../types";
 import { DataFrameDTO, DataQueryRequest, DataSourceJsonData } from "@grafana/data";
+import { Workspace } from "core/types";
+import { parseErrorMessage } from "core/errors";
 
 export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, DataSourceJsonData> {
+    private workspacesLoaded!: () => void;
+
+    public areWorkspacesLoaded$ = new Promise<void>(resolve => this.workspacesLoaded = resolve);
+
+    public error = '';
+
+    public readonly workspacesCache = new Map<string, Workspace>([]);
+
     abstract runQuery(query: SystemQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
     abstract shouldRunQuery(query: SystemQuery): boolean;
+
+    public getCachedWorkspaces(): Workspace[] {
+        return Array.from(this.workspacesCache.values());
+    }
+
+    public async loadDependencies(): Promise<void> {
+        this.error = '';
+
+        await this.loadWorkspaces();
+    }
+
+    private async loadWorkspaces(): Promise<void> {
+        if (this.workspacesCache.size > 0) {
+            return;
+        }
+
+        const workspaces = await this.getWorkspaces()
+            .catch(error => {
+                this.error = parseErrorMessage(error)!;
+            });
+
+        workspaces?.forEach(workspace => this.workspacesCache.set(workspace.id, workspace));
+
+        this.workspacesLoaded();
+    }
 
     public readonly systemsComputedDataFields = new Map<string, ExpressionTransformFunction>([
         ...this.getDefaultComputedDataFields(), ...this.getBooleanFieldComputedData()

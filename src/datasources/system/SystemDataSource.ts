@@ -13,24 +13,20 @@ import { getWorkspaceName } from 'core/utils';
 import { SystemsDataSourceBase } from './components/SystemsDataSourceBase';
 import { transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { SystemFieldMapping } from './constants/SystemsQueryBuilder.constants';
-import { Workspace } from 'core/types';
-import { WorkspaceUtils } from 'shared/workspace.utils';
-import { extractErrorInfo } from 'core/errors';
 
 export class SystemDataSource extends SystemsDataSourceBase {
+  private dependenciesLoadedPromise: Promise<void>;
+
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
-    this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
+    this.dependenciesLoadedPromise = this.loadDependencies();
   }
 
   baseUrl = this.instanceSettings.url + '/nisysmgmt/v1';
-  workspaceUtils: WorkspaceUtils;
-  errorTitle = '';
-  errorDescription = '';
 
   defaultQuery = {
     queryKind: SystemQueryType.Summary,
@@ -81,6 +77,8 @@ export class SystemDataSource extends SystemsDataSourceBase {
   }
 
   async runQuery(query: SystemQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    await this.dependenciesLoadedPromise;
+
     if (query.queryKind === SystemQueryType.Summary) {
       const summary = await this.get<SystemSummary>(this.baseUrl + '/get-systems-summary');
       return {
@@ -169,37 +167,5 @@ export class SystemDataSource extends SystemsDataSourceBase {
   async testDatasource(): Promise<TestDataSourceResponse> {
     await this.get(this.baseUrl + '/get-systems-summary');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
-  }
-
-  public async loadWorkspaces(): Promise<Map<string, Workspace>> {
-    try {
-      return await this.workspaceUtils.getWorkspaces();
-    } catch (error) {
-      if (!this.errorTitle) {
-        this.handleDependenciesError(error);
-      }
-      return new Map<string, Workspace>();
-    }
-  }
-
-  private handleDependenciesError(error: unknown): void {
-    const errorDetails = extractErrorInfo((error as Error).message);
-    this.errorTitle = 'Warning during workorders query';
-    switch (errorDetails.statusCode) {
-      case '404':
-        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
-        break;
-      case '429':
-        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
-        break;
-      case '504':
-        this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
-        break;
-      default:
-        this.errorDescription = errorDetails.message
-          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-          : 'Some values may not be available in the query builder lookups due to an unknown error.';
-        break;
-    }
   }
 }

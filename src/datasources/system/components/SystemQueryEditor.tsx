@@ -13,12 +13,13 @@ type Props = QueryEditorProps<SystemDataSource, SystemQuery>;
 export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
 
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
+
   //Handle existing dashboards with MetaData queries
   if ((query.queryKind as any) === LEGACY_METADATA_TYPE) {
     query.queryKind = SystemQueryType.Properties;
   }
-
-  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
 
   useEffect(() => {
     if (query.queryKind === SystemQueryType.Summary) {
@@ -29,12 +30,10 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
   }, []); // Only run on mount
 
   useEffect(() => {
-    const loadWorkspaces = async () => {
-      const workspaces = await datasource.loadWorkspaces();
-      setWorkspaces(Array.from(workspaces.values()));
-    };
-
-    loadWorkspaces();
+    Promise.all([datasource.areWorkspacesLoaded$]).then(() => {
+      setWorkspaces(Array.from(datasource.workspacesCache.values()));
+      setAreDependenciesLoaded(true);
+    });
   }, [datasource]);
 
   const onQueryTypeChange = (value: SystemQueryType) => {
@@ -43,16 +42,9 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
   };
 
   function onParameterChange(ev: CustomEvent) {
-    const newFilter = ev.detail?.linq ?? '';
-
-    if (query.filter !== newFilter) {
-      const updatedQuery = {
-        ...query,
-        filter: newFilter,
-        systemName: '',
-        workspace: ''
-      };
-      onChange(updatedQuery);
+    if (query.filter !== ev.detail.linq) {
+      query.filter = ev.detail.linq;
+      onChange(query);
       onRunQuery();
     }
   }
@@ -74,6 +66,7 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
               onChange={(event: any) => onParameterChange(event)}
               globalVariableOptions={datasource.getVariableOptions()}
               workspaces={workspaces}
+              areDependenciesLoaded={areDependenciesLoaded}
             />
           </InlineField>
         </>
