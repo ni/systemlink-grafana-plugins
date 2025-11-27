@@ -1,3 +1,45 @@
+## [4.82.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.82.1...v4.82.2) (2025-11-27)
+
+### Bug Fixes
+
+* **results:** Use inclusive time range filters for accurate results/ steps counts ([#558](https://github.com/ni/systemlink-grafana-plugins/issues/558)) ([c7f0815](https://github.com/ni/systemlink-grafana-plugins/commit/c7f081559f33758f20b844c4919cde5026b556e3))
+
+## [4.82.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.82.0...v4.82.1) (2025-11-26)
+
+### Bug Fixes
+
+* **dataframe:** Restrict query editor re-render with stale query when the query changed ([#554](https://github.com/ni/systemlink-grafana-plugins/issues/554)) ([9b5f453](https://github.com/ni/systemlink-grafana-plugins/commit/9b5f453cf4e95dba3c74176a7c0ec7f42c964293))
+
+## [4.82.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.81.0...v4.82.0) (2025-11-25)
+
+### Features
+
+* **dataframes:** Update the datasource infrastructure to support results filter ([#528](https://github.com/ni/systemlink-grafana-plugins/issues/528)) ([07898eb](https://github.com/ni/systemlink-grafana-plugins/commit/07898eb9e4f13381a2a1a509d43b8d4765e2f54e))
+
+## [4.81.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.80.0...v4.81.0) (2025-11-25)
+
+### Features
+
+* **dataframes:** Disable columns query builder based on results filter ([#544](https://github.com/ni/systemlink-grafana-plugins/issues/544)) ([f1d8b01](https://github.com/ni/systemlink-grafana-plugins/commit/f1d8b018a48f8e299a41904c8f870182cd786335))
+
+## [4.80.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.79.2...v4.80.0) (2025-11-25)
+
+### Features
+
+* **dataframe:** Reduce component re-renders due to state updates ([#549](https://github.com/ni/systemlink-grafana-plugins/issues/549)) ([81fd7c7](https://github.com/ni/systemlink-grafana-plugins/commit/81fd7c73a188d74416d6b6227af6885ad19650cb))
+
+## [4.79.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.79.1...v4.79.2) (2025-11-25)
+
+### Bug Fixes
+
+* **dataframe:** Query reset when the query type is data ([#548](https://github.com/ni/systemlink-grafana-plugins/issues/548)) ([64cdf89](https://github.com/ni/systemlink-grafana-plugins/commit/64cdf8917cfc8da85857ff645561e30b67cd9372))
+
+## [4.79.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.79.0...v4.79.1) (2025-11-24)
+
+### Bug Fixes
+
+* **alarms:** Remove Alarms Count query type and related code ([#533](https://github.com/ni/systemlink-grafana-plugins/issues/533)) ([30e3fe3](https://github.com/ni/systemlink-grafana-plugins/commit/30e3fe3d1536a796e06dfa4c25a07445130c61f3))
+
 ## [4.79.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.78.1...v4.79.0) (2025-11-24)
 
 ### Features

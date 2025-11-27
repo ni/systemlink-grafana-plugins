@@ -15,7 +15,8 @@ import {
     ValidDataFrameVariableQuery,
     DataFrameDataQuery,
     DataFrameVariableQuery,
-    Option
+    Option,
+    CombinedFilters
 } from './types';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { extractErrorInfo } from 'core/errors';
@@ -62,7 +63,7 @@ export abstract class DataFrameDataSourceBase<
     ): Promise<TableDataRows>;
 
     public abstract queryTables$(
-        query: string,
+        filters: CombinedFilters,
         take?: number,
         projection?: DataTableProjections[]
     ): Observable<TableProperties[]>;

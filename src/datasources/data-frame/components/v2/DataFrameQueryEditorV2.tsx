@@ -27,7 +27,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnLimitExceeded, setIsColumnLimitExceeded] = useState<boolean>(false);
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
-    const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -66,25 +65,28 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     useEffect(
         () => {
-            if (migratedQuery.type !== DataFrameQueryType.Data) {
-                return;
-            }
-
             const filter = migratedQuery.dataTableFilter;
-            if (!filter) {
-                setIsColumnLimitExceeded(false);
-                setColumnOptions([]);
-                return;
-            }
-
             const transformedFilter = datasource.transformQuery(filter);
             const filterChanged = lastFilterRef.current !== transformedFilter;
+
+            if (migratedQuery.type !== DataFrameQueryType.Data || !filterChanged) {
+                return;
+            }
+
             lastFilterRef.current = transformedFilter;
 
-            if (filterChanged) {
+            if (transformedFilter) {
                 fetchAndSetColumnOptions(transformedFilter);
+                return;
+            }
+
+            // Clear column options if filter is empty
+            setIsColumnLimitExceeded(false);
+            if (columnOptions.length > 0) {
+                setColumnOptions([]);
             }
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             migratedQuery.type,
             migratedQuery.dataTableFilter,
@@ -106,21 +108,20 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     useEffect(() => {
         const isDataTablePropertiesEmpty = migratedQuery.dataTableProperties.length === 0;
         const isColumnPropertiesEmpty = migratedQuery.columnProperties.length === 0;
+        const isPropertiesEmpty = isDataTablePropertiesEmpty && isColumnPropertiesEmpty;
 
-        setIsPropertiesNotSelected(isDataTablePropertiesEmpty && isColumnPropertiesEmpty);
+        if (isPropertiesEmpty !== isPropertiesNotSelected) {
+            setIsPropertiesNotSelected(isPropertiesEmpty);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [migratedQuery.dataTableProperties, migratedQuery.columnProperties]);
 
     useEffect(() => {
         if (isObservable(migratedQuery.columns)) {
             lastValueFrom(migratedQuery.columns)
                 .then(columns => {
-                    setSelectedColumns(columns);
                     handleQueryChange({ ...migratedQuery, columns });
                 });
-        } else {
-            if (!_.isEqual(migratedQuery.columns, selectedColumns)) {
-                setSelectedColumns(migratedQuery.columns);
-            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [migratedQuery.columns]);
@@ -130,24 +131,46 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     };
 
     const onDataTableFilterChange = (event?: Event | React.FormEvent<Element>) => {
-        if (event) {
-            const dataTableFilter = (event as CustomEvent).detail.linq;
-            handleQueryChange({ ...migratedQuery, dataTableFilter });
+        if (!event) {
+            return;
         }
+
+        const dataTableFilter = (event as CustomEvent).detail.linq;
+        if (dataTableFilter === migratedQuery.dataTableFilter) {
+            return;
+        }
+
+        (query as DataFrameQueryV2).dataTableFilter = dataTableFilter;
+        handleQueryChange({ ...migratedQuery, dataTableFilter });
+
     };
 
-    const onResultsFilterChange = (event?: Event | React.FormEvent<Element>) => {
-        if (event) {
-            const resultsFilter = (event as CustomEvent).detail.linq;
-            handleQueryChange({ ...migratedQuery, resultsFilter });
+    const onResultFilterChange = (event?: Event | React.FormEvent<Element>) => {
+        if (!event) {
+            return;
         }
+
+        const resultFilter = (event as CustomEvent).detail.linq;
+        if (resultFilter === migratedQuery.resultFilter) {
+            return;
+        }
+
+        (query as DataFrameQueryV2).resultFilter = resultFilter;
+        handleQueryChange({ ...migratedQuery, resultFilter });
     };
 
-    const onColumnsFilterChange = (event?: Event | React.FormEvent<Element>) => {
-        if (event) {
-            const columnsFilter = (event as CustomEvent).detail.linq;
-            handleQueryChange({ ...migratedQuery, columnsFilter });
+    const onColumnFilterChange = (event?: Event | React.FormEvent<Element>) => {
+        if (!event) {
+            return;
         }
+
+        const columnFilter = (event as CustomEvent).detail.linq;
+        if (columnFilter === migratedQuery.columnFilter) {
+            return;
+        }
+
+        (query as DataFrameQueryV2).columnFilter = columnFilter;
+        handleQueryChange({ ...migratedQuery, columnFilter });
     };
 
     const onDataTablePropertiesChange = (properties: Array<ComboboxOption<DataTableProperties>>) => {
@@ -242,12 +265,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                     )}
                     <DataFrameQueryBuilderWrapper
                         datasource={datasource}
-                        resultsFilter={migratedQuery.resultsFilter}
+                        resultFilter={migratedQuery.resultFilter}
                         dataTableFilter={migratedQuery.dataTableFilter}
-                        columnsFilter={migratedQuery.columnsFilter}
-                        onResultsFilterChange={onResultsFilterChange}
+                        columnFilter={migratedQuery.columnFilter}
+                        onResultFilterChange={onResultFilterChange}
                         onDataTableFilterChange={onDataTableFilterChange}
-                        onColumnsFilterChange={onColumnsFilterChange}
+                        onColumnFilterChange={onColumnFilterChange}
                     />
 
                     {migratedQuery.type === DataFrameQueryType.Properties && (
@@ -293,7 +316,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                                 width='auto'
                                 minWidth={40}
                                 maxWidth={40}
-                                value={selectedColumns}
+                                value={
+                                    isObservable(migratedQuery.columns) ? [] : migratedQuery.columns
+                                }
                                 onChange={onColumnsChange}
                                 options={columnOptions}
                                 createCustomValue={false}

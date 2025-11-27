@@ -25,6 +25,11 @@ describe('DataFrameDataSource', () => {
     let v2Mock: jest.Mocked<DataFrameDataSourceV2>;
     let templateSrv: TemplateSrv;
     let backendSrv: BackendSrv;
+    const mockFilter = { 
+        dataTableFilter: 'dataTableQuery',
+        resultFilter: 'resultQuery',
+        columnFilter: 'columnQuery'
+    };
 
     beforeEach(() => {
         (DataFrameDataSourceV1 as unknown as jest.Mock).mockClear();
@@ -89,8 +94,8 @@ describe('DataFrameDataSource', () => {
         await expect(ds.getDecimatedTableData({} as any, [], {} as TimeRange, 10)).resolves.toBe('v1-decimated');
         expect(v1Mock.getDecimatedTableData).toHaveBeenCalled();
 
-        await expect(lastValueFrom(ds.queryTables$('query'))).resolves.toEqual(['v1-tables']);
-        expect(v1Mock.queryTables$).toHaveBeenCalledWith('query', undefined, undefined);
+        await expect(lastValueFrom(ds.queryTables$(mockFilter))).resolves.toEqual(['v1-tables']);
+        expect(v1Mock.queryTables$).toHaveBeenCalledWith(mockFilter, undefined, undefined);
 
         await expect(ds.queryTables('query')).resolves.toEqual(['v1-tables']);
         expect(v1Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined);
@@ -129,8 +134,8 @@ describe('DataFrameDataSource', () => {
         await expect(ds.getDecimatedTableData({} as any, [], {} as TimeRange, 10)).resolves.toBe('v2-decimated');
         expect(v2Mock.getDecimatedTableData).toHaveBeenCalled();
 
-        await expect(lastValueFrom(ds.queryTables$('query'))).resolves.toEqual(['v2-tables']);
-        expect(v2Mock.queryTables$).toHaveBeenCalledWith('query', undefined, undefined);
+        await expect(lastValueFrom(ds.queryTables$(mockFilter))).resolves.toEqual(['v2-tables']);
+        expect(v2Mock.queryTables$).toHaveBeenCalledWith(mockFilter, undefined, undefined);
 
         await expect(ds.queryTables('query')).resolves.toEqual(['v2-tables']);
         expect(v2Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined);
