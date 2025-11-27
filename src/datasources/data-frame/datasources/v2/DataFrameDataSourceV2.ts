@@ -1,14 +1,14 @@
 import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, CombinedFilters } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters } from "../../types";
+import { COLUMN_OPTIONS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, REQUESTS_PER_SECOND, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
-import { catchError, combineLatestWith, from, lastValueFrom, map, Observable, of } from "rxjs";
+import { catchError, combineLatestWith, concatMap, forkJoin, from, lastValueFrom, map, mergeMap, Observable, of, reduce, timer } from "rxjs";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
@@ -219,6 +219,80 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             ...columnOptionsWithoutVariables
         ];
         return columnOptionsWithVariables;
+    }
+
+    // TODO(#3526598): Make this method private after implementing the runQuery method for data query type.
+    public getDecimatedTableDataInBatches$(
+        tableColumnsMap: Record<string, Column[]>,
+        query: ValidDataFrameQueryV2,
+        timeRange: TimeRange,
+        intervals = 1000
+    ): Observable<Record<string, TableDataRows>> {
+        const decimatedDataRequests = this.getDecimatedDataRequests(
+            tableColumnsMap,
+            query,
+            timeRange,
+            intervals
+        );
+        const batches = _.chunk(decimatedDataRequests, REQUESTS_PER_SECOND);
+
+        return from(batches).pipe(
+            mergeMap((batch, index) =>
+                timer(index * DELAY_BETWEEN_REQUESTS_MS).pipe(
+                    concatMap(() => forkJoin(
+                        batch.map(request =>
+                            this.getDecimatedTableData$(request).pipe(
+                                map(tableDataRows => ({ 
+                                    tableId: request.tableId, 
+                                    data: tableDataRows 
+                                }))
+                            )
+                        )
+                    ))
+                )
+            ),
+            reduce((acc, results) => {
+                results.forEach(({ tableId, data }) => acc[tableId] = data);
+                return acc;
+            }, {} as Record<string, TableDataRows>)
+        );
+    }
+
+    private getDecimatedDataRequests(
+        tableColumnsMap: Record<string, Column[]>,
+        query: ValidDataFrameQueryV2,
+        timeRange: TimeRange,
+        intervals = 1000
+    ): DecimatedDataRequest[] {
+        return Object.entries(tableColumnsMap).map(([tableId, columns]) => {
+            const filters: ColumnFilter[] = query.filterNulls
+                ? this.constructNullFilters(columns)
+                : [];
+
+            return {
+                tableId,
+                columns: columns.map(column => column.name),
+                filters,
+                decimation: {
+                    method: query.decimationMethod,
+                    xColumn: query.xColumn || undefined,
+                    yColumns: this.getNumericColumns(columns).map(column => column.name),
+                    intervals,
+                }
+            };
+        });
+    }
+
+    private getDecimatedTableData$(request: DecimatedDataRequest): Observable<TableDataRows> {
+        return this.post$<TableDataRows>(
+            `${this.baseUrl}/tables/${request.tableId}/query-decimated-data`,
+            {
+                columns: request.columns,
+                filters: request.filters,
+                decimation: request.decimation,
+            },
+            { useApiIngress: true }
+        );
     }
 
     private async getColumnOptions(dataTableFilter: string): Promise<Option[]> {
