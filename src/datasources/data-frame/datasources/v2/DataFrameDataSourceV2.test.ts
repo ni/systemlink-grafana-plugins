@@ -1375,6 +1375,7 @@ describe('DataFrameDataSourceV2', () => {
 
     describe('queryTables$', () => {
         let postMock$: jest.SpyInstance;
+        const publishMock = jest.fn();
         const mockTables = [{ id: '1', name: 'Table 1' }, { id: '2', name: 'Table 2' }];
         const mockResultsResponse = {results: [{ id: 'result-1' },{ id: 'result-2' },]};
 
@@ -1399,6 +1400,7 @@ describe('DataFrameDataSourceV2', () => {
                 }
                 return of({});
             });
+            (ds as any).appEvents = { publish: publishMock };
         });
 
         it('should extract result IDs and build filter with substitutions', async () => {
@@ -1552,45 +1554,27 @@ describe('DataFrameDataSourceV2', () => {
             );
         });
 
-        it('should throw error with unknown error when query results API returns error without status', async () => {
+        it('should return empty array when query results API returns error without status', async () => {
             postMock$.mockReturnValue(throwError(() => new Error('Some unknown error')));
 
-            await expect(lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }))).rejects.toThrow(
-                'The query failed due to an unknown error.'
-            );
+            await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
+
+            expect(publishMock).toHaveBeenCalledWith({
+                type: 'alert-error',
+                payload: [
+                    'Error querying test results',
+                    'The query failed due to an unknown error.'
+                ],
+            });
+            expect(publishMock).toHaveBeenCalledTimes(1);
         });
 
-        it('should throw too many requests error when query results API returns 429 status', async () => {
+        it('should return empty array when query results API returns 429 status', async () => {
             postMock$.mockReturnValue(throwError(() => createQueryResultsError(429)));
 
-            await expect(lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }))).rejects.toThrow(
-                'The query to fetch results failed due to too many requests. Please try again later.'
-            );
-        });
-
-        it('should throw timeOut error when query results API returns 504 status', async () => {
-            postMock$.mockReturnValue(throwError(() => createQueryResultsError(504)));
-
-            await expect(lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }))).rejects.toThrow(
-                'The query to fetch results experienced a timeout error. Narrow your query with a more specific filter and try again.'
-            );
-        });
-
-        it('should throw error with status code and message when query results API returns 500 status', async () => {
-            postMock$.mockReturnValue(throwError(() => createQueryResultsError(500)));
-
-            await expect(lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }))).rejects.toThrow(
-                'The query failed due to the following error: (status 500) "Error".'
-            );
-        });
-
-        it('should publish alertError event when error occurs in query results API', async () => {
-            const publishMock = jest.fn();
-            (ds as any).appEvents = { publish: publishMock };
-            postMock$.mockReturnValue(throwError(() => createQueryResultsError(429)));
-
-            await expect(lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }))).rejects.toThrow();
-
+            const result = await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
+            
+            expect(result).toEqual([]);
             expect(publishMock).toHaveBeenCalledWith({
                 type: 'alert-error',
                 payload: [
@@ -1598,7 +1582,54 @@ describe('DataFrameDataSourceV2', () => {
                     'The query to fetch results failed due to too many requests. Please try again later.'
                 ],
             });
-            // Should not call DataFrames API when no results 
+            expect(publishMock).toHaveBeenCalledTimes(1);
+        });
+
+        it('should return empty array when query results API returns 504 status', async () => {
+            postMock$.mockReturnValue(throwError(() => createQueryResultsError(504)));
+
+            const result = await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
+            
+            expect(result).toEqual([]);
+            expect(publishMock).toHaveBeenCalledWith({
+                type: 'alert-error',
+                payload: [
+                    'Error querying test results',
+                    'The query to fetch results experienced a timeout error. Narrow your query with a more specific filter and try again.'
+                ],
+            });
+            expect(publishMock).toHaveBeenCalledTimes(1);
+        });
+
+        it('should return empty array when query results API returns 500 status', async () => {
+            postMock$.mockReturnValue(throwError(() => createQueryResultsError(500)));
+
+            const result = await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
+            
+            expect(result).toEqual([]);
+            expect(publishMock).toHaveBeenCalledWith({
+                type: 'alert-error',
+                payload: [
+                    'Error querying test results',
+                    'The query failed due to the following error: (status 500) "Error".'
+                ],
+            });
+            expect(publishMock).toHaveBeenCalledTimes(1);
+        });
+
+        it('should publish alertError event when error occurs in query results API', async () => {
+            postMock$.mockReturnValue(throwError(() => createQueryResultsError(429)));
+
+            const result = await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
+
+            expect(result).toEqual([]);
+            expect(publishMock).toHaveBeenCalledWith({
+                type: 'alert-error',
+                payload: [
+                    'Error querying test results',
+                    'The query to fetch results failed due to too many requests. Please try again later.'
+                ],
+            });
             expect(publishMock).toHaveBeenCalledTimes(1);
         });
 
