@@ -26,11 +26,17 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
     const [fields, setFields] = useState<Array<QBField | QBFieldWithDataSourceCallback>>([]);
     const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
     const optionsRef = useRef<Record<string, QueryBuilderOption[]>>({});
+    const dataTableNameLookupCallbackRef = useRef(dataTableNameLookupCallback);
+
+    // Keep the ref updated with the latest callback
+    useEffect(() => {
+        dataTableNameLookupCallbackRef.current = dataTableNameLookupCallback;
+    }, [dataTableNameLookupCallback]);
 
     const dataTableNameField = useMemo(() => {
         const dataTableNamesWithGlobalVariableOptionsCallback = (): QBFieldLookupCallback => {
             return _.debounce(async (query: string, callback: Function) => {
-                const options = await dataTableNameLookupCallback(query);
+                const options = await dataTableNameLookupCallbackRef.current(query);
                 const optionsWithGlobalVariable = [...globalVariableOptions, ...options].map(filterXSSField);
                 callback(optionsWithGlobalVariable);
 
@@ -50,7 +56,7 @@ export const DataTableQueryBuilder: React.FC<DataTableQueryBuilderProps> = ({
         };
 
         return updatedField;
-    }, [dataTableNameLookupCallback, globalVariableOptions]);
+    }, [globalVariableOptions]);
 
     const workspaceField = useMemo(() => {
         if (workspaces.length === 0) {

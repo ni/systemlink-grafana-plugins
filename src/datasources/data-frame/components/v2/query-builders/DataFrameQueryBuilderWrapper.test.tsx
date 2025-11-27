@@ -66,6 +66,13 @@ jest.mock("shared/components/ResultsQueryBuilder/ResultsQueryBuilder", () => ({
    ResultsQueryBuilder: jest.fn(() => <div data-testid="mock-results-query-builder" />)
 }));
 
+const queryTablesMock$ = jest.fn().mockReturnValue(
+    of([
+        { id: 'table1', name: 'Table 1', columns: [{ name: 'ColumnA' }, { name: 'ColumnB' }] },
+        { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, { name: 'ColumnE' }] },
+    ])
+);
+
 const renderComponent = (
     resultFilter = '',
     dataTableFilter = '',
@@ -89,7 +96,7 @@ const renderComponent = (
                 { label: 'Var2', value: 'Value2' },
             ]
         ),
-        queryTables$: jest.fn().mockReturnValue(
+        queryTables$: queryTablesMock$.mockReturnValue(
             of([
                 { id: 'table1', name: 'Table 1', columns: [{ name: 'ColumnA' }, { name: 'ColumnB' }] },
                 { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, { name: 'ColumnE' }] },
@@ -198,6 +205,41 @@ describe('DataFrameQueryBuilderWrapper', () => {
             await waitFor(() => {
                 expect(onDataTableFilterChange).toHaveBeenCalledWith({ detail: { linq: 'new filter' } });
             });
+        });
+
+        it('should update dataTableNameLookupCallback with new resultFilter', async () => {
+            const { renderResult, onDataTableFilterChange, datasource } = renderComponent('status = "Passed"', 'name = "Test Table"');
+            
+            // Verify queryTables$ was called with the first resultFilter
+            expect(queryTablesMock$).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    resultFilter: 'status = "Passed"',
+                }),
+                expect.anything(),
+                expect.anything()
+            );
+
+            // Update resultFilter
+            renderResult.rerender(
+                <DataFrameQueryBuilderWrapper
+                    datasource={datasource}
+                    resultFilter='status = "Failed"'
+                    dataTableFilter=''
+                    columnFilter=''
+                    onResultFilterChange={()=>{}}
+                    onDataTableFilterChange={onDataTableFilterChange}
+                    onColumnFilterChange={()=>{}}
+                />
+            );
+
+            // Verify queryTables$ was called with the updated resultFilter
+            expect(queryTablesMock$).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    resultFilter: 'status = "Failed"',
+                }),
+                expect.anything(),
+                expect.anything()
+            );
         });
     });
 

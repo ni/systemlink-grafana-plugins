@@ -69,7 +69,7 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
         const dataTableFilter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;  
         const response = await lastValueFrom(
             datasource.queryTables$(  
-                { dataTableFilter },  
+                { dataTableFilter, resultFilter },  
                 5,  
                 [DataTableProjections.Name]  
             )
@@ -81,7 +81,7 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
 
         const uniqueNames = new Set(response.map(table => table.name));
         return Array.from(uniqueNames).map(name => ({ label: name, value: name }));
-    }, [datasource]);
+    }, [datasource, resultFilter]);
 
     return (
         <>
