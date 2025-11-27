@@ -47,29 +47,26 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     const getExistingColumnSelection = useCallback(() => {
       if (isObservable(migratedQuery.columns)) {
-        return { columns: [] };
+        return [];
       }
-      return { columns: migratedQuery.columns };
+      return migratedQuery.columns
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const formatSavedSelectedColumns = useCallback(
-        (existingColumnSelection: string[], datasource: any) => {
-            const columnDataTypeMap = existingColumnSelection.reduce<Record<string, Set<string>>>((acc, column) => {
-                const lastHyphenIndex = column.lastIndexOf('-');
-                const columnName = column.substring(0, lastHyphenIndex);
-                const dataType = column.substring(lastHyphenIndex + 1);
-                const transformedDataType = datasource.transformColumnType(dataType);
+        (
+            existingColumnSelection: string[],
+            datasource: any
+        ) => {
+            const columnDataTypeMap: Record<string, Set<string>> = {};
+            existingColumnSelection.forEach(column => {
+            const lastHyphenIndex = column.lastIndexOf('-');
+            const columnName = column.substring(0, lastHyphenIndex);
+            const dataType = column.substring(lastHyphenIndex + 1);
+            const transformedDataType = datasource.transformColumnType(dataType);
 
-                if (!acc[columnName]) {
-                    acc[columnName] = new Set<string>();
-                }
-                
-                acc[columnName].add(transformedDataType);
-
-                return acc;
-            }, {});
-
+            (columnDataTypeMap[columnName]??= new Set()).add(transformedDataType);
+            });
             return datasource.createColumnOptions(columnDataTypeMap);
         },
         []
@@ -77,9 +74,36 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     const getInvalidSelectedColumns = (selectedColumns: Array<ComboboxOption<string>>, columnOptions: Array<ComboboxOption<string>>) => {
         const columnOptionValues = columnOptions.map(option => option.value);
-        const invalidColumns = selectedColumns.filter(selected => !columnOptionValues.includes(selected.value));
+        const invalidColumns = selectedColumns
+            .filter(
+                selected => !columnOptionValues
+                    .includes(selected.value)
+                );
         return invalidColumns;
     }
+
+    const validateAndSetSelectedColumns = useCallback(
+        (
+            existingColumnSelection: string[],
+            columnOptions: Array<ComboboxOption<string>>
+        ) => {
+            const selectedColumns = formatSavedSelectedColumns(existingColumnSelection, datasource);
+            setSelectedColumn(selectedColumns);
+            
+            const invalidColumns = getInvalidSelectedColumns(selectedColumns, columnOptions);
+            if (invalidColumns.length > 0) {
+                const invalidColumnNames = invalidColumns.map(col => col.label).join(', ');
+                const message = invalidColumns.length === 1
+                    ? `The selected column '${invalidColumnNames}' is not valid.`
+                    : `The selected columns '${invalidColumnNames}' are not valid.`;
+                setInvalidSelectedColumnsMessage(message);
+            } else {
+                setInvalidSelectedColumnsMessage('');
+            }
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        []
+    );
 
     const fetchAndSetColumnOptions = useCallback(
         async (filter: string) => {
@@ -88,31 +112,26 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             }
 
             try {
-                const columnOptions = await datasource.getColumnOptionsWithVariables(filter);
+                const columnOptions = await datasource.getColumnOptionsWithVariables(
+                    filter
+                );
                 const existingColumnSelection = getExistingColumnSelection();
-                if (existingColumnSelection?.columns?.length > 0) {
-                    const selectedColumns = formatSavedSelectedColumns(existingColumnSelection.columns, datasource);
-                    setSelectedColumn(selectedColumns);
-                    
-                    const invalidColumns = getInvalidSelectedColumns(selectedColumns, columnOptions);
-                    if (invalidColumns.length > 0) {
-                        const invalidColumnNames = invalidColumns.map(col => col.label).join(', ');
-                        const message = invalidColumns.length === 1
-                            ? `The selected column '${invalidColumnNames}' is not valid.`
-                            : `The selected columns '${invalidColumnNames}' are not valid.`;
-                        setInvalidSelectedColumnsMessage(message);
-                    } else {
-                        setInvalidSelectedColumnsMessage('');
-                    }
-                }
-                const limitedColumnOptions = columnOptions.slice(0, COLUMN_OPTIONS_LIMIT);
+                validateAndSetSelectedColumns(existingColumnSelection, columnOptions);
+                const limitedColumnOptions = columnOptions.slice(
+                    0,
+                    COLUMN_OPTIONS_LIMIT
+                );
                 setIsColumnLimitExceeded(columnOptions.length > COLUMN_OPTIONS_LIMIT);
                 setColumnOptions(limitedColumnOptions);
             } catch (error) {
                 setColumnOptions([]);
             }
         },
-        [datasource, getExistingColumnSelection, formatSavedSelectedColumns]
+        [
+            datasource,
+            getExistingColumnSelection,
+            validateAndSetSelectedColumns
+        ]
     );
 
     useEffect(
@@ -194,7 +213,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
         (query as DataFrameQueryV2).dataTableFilter = dataTableFilter;
         const existingColumnSelection = getExistingColumnSelection();
-        const shouldRunQuery = _.isEmpty(existingColumnSelection.columns);
+        const shouldRunQuery = _.isEmpty(existingColumnSelection);
         handleQueryChange({ ...migratedQuery, dataTableFilter }, shouldRunQuery);
     };
 

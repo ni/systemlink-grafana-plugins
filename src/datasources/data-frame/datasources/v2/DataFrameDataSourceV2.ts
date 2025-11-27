@@ -227,6 +227,40 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return columnOptionsWithVariables;
     }
 
+    public transformQuery(query: string, scopedVars: ScopedVars = this.scopedVars) {
+        return transformComputedFieldsQuery(
+            this.templateSrv.replace(query, scopedVars),
+            this.dataTableComputedDataFields,
+        );
+    }
+
+    public transformColumnType(dataType: string): string {
+        const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType)
+            ? 'Numeric'
+            : this.toSentenceCase(dataType);
+        return type;
+    }
+
+    public createColumnOptions(columnTypeMap: Record<string, Set<string>>): Option[] {
+        const options: Option[] = [];
+
+        Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
+            const columnDataType = Array.from(dataTypes);
+
+            if (columnDataType.length === 1) {
+                // Single type: show just the name as label and value as name with type in sentence case
+                options.push({ label: name, value: `${name}-${columnDataType[0]}` });
+            } else {
+                // Multiple types: show type in label and value
+                columnDataType.forEach(type => {
+                    options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
+                });
+            }
+        });
+
+        return options;
+    };
+
     private async getColumnOptions(dataTableFilter: string): Promise<Option[]> {
         const tables = await lastValueFrom(
           this.queryTables$({ dataTableFilter }, TAKE_LIMIT, [
@@ -275,13 +309,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         });
     }
 
-    public transformQuery(query: string, scopedVars: ScopedVars = this.scopedVars) {
-        return transformComputedFieldsQuery(
-            this.templateSrv.replace(query, scopedVars),
-            this.dataTableComputedDataFields,
-        );
-    }
-
     private areAllObjectsWithNameProperty(object: any[]): object is Array<{ name: string; }> {
         return _.every(
             object,
@@ -308,13 +335,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
     }
 
-    public transformColumnType(dataType: string): string {
-        const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType)
-            ? 'Numeric'
-            : this.toSentenceCase(dataType);
-        return type;
-    }
-
     private createColumnNameDataTypesMap(tables: TableProperties[]): Record<string, Set<string>> {
         const columnNameDataTypeMap: Record<string, Set<string>> = {};
         tables.forEach(table => {
@@ -326,26 +346,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             });
         });
         return columnNameDataTypeMap;
-    };
-
-    public createColumnOptions(columnTypeMap: Record<string, Set<string>>): Option[] {
-        const options: Option[] = [];
-
-        Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
-            const columnDataType = Array.from(dataTypes);
-
-            if (columnDataType.length === 1) {
-                // Single type: show just the name as label and value as name with type in sentence case
-                options.push({ label: name, value: `${name}-${columnDataType[0]}` });
-            } else {
-                // Multiple types: show type in label and value
-                columnDataType.forEach(type => {
-                    options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
-                });
-            }
-        });
-
-        return options;
     };
 
     /**
