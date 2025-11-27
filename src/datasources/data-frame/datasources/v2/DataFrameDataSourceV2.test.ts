@@ -1832,5 +1832,13 @@ describe('DataFrameDataSourceV2', () => {
             expect(result).toMatch(/^UpdatedAt >= "\d{4}-\d{2}-\d{2}T.+Z"$/);
             expect(result).not.toContain('${__now:date}');
         });
+
+        it('should transform list field in query', () => {
+            const input = 'Keywords.Contains("{keyword1,keyword2}")';
+            
+            const result = ds.transformResultQuery(input);
+            
+            expect(result).toBe('(Keywords.Contains("keyword1") || Keywords.Contains("keyword2"))');
+        });
     });
 });
