@@ -1817,10 +1817,10 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should transform and expand multi-value variables', () => {
-            const input = 'Name = "{Result1,Result2}" AND Id != "abc"';
+            const input = 'HostName = "{host1,host2}" AND Id != "abc"';
             const result = ds.transformResultQuery(input);
 
-            expect(result).toBe('(Name = "Result1" || Name = "Result2") AND Id != "abc"');
+            expect(result).toBe('(HostName = "host1" || HostName = "host2") AND Id != "abc"');
         });
 
         it('should replace ${__now:date} placeholder in time fields', () => {
