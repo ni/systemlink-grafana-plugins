@@ -66,7 +66,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     useEffect(
         () => {
             const filter = migratedQuery.dataTableFilter;
-            const transformedFilter = datasource.transformQuery(filter);
+            const transformedFilter = datasource.transformDataTableQuery(filter);
             const filterChanged = lastFilterRef.current !== transformedFilter;
 
             if (migratedQuery.type !== DataFrameQueryType.Data || !filterChanged) {

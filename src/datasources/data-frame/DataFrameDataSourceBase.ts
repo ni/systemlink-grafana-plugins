@@ -111,7 +111,7 @@ export abstract class DataFrameDataSourceBase<
         return DataFrameDataSourceBase._partNumbersCache;
     }
 
-    public transformQuery(query: string) {
+    public transformDataTableQuery(query: string) {
         return this.templateSrv.replace(query);
     }
 
