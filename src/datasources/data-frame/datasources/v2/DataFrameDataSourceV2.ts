@@ -394,7 +394,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 ];
 
                 const tables$ = this.queryTables$(
-                    processedQuery.dataTableFilter || '',
+                    { 
+                        dataTableFilter: processedQuery.dataTableFilter 
+                    },
                     TAKE_LIMIT,
                     projections
                 );
