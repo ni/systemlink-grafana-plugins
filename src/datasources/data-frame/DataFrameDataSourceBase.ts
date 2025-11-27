@@ -114,6 +114,14 @@ export abstract class DataFrameDataSourceBase<
         return this.templateSrv.replace(query);
     }
 
+    public createColumnOptions(_columnTypeMap: Record<string, Set<string>>): Option[] {
+        return [];
+    }
+
+    public transformColumnType(dataType: string): string {
+        return dataType;
+    }
+
     private async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {
         return this.post<string[]>(
             this.queryResultValuesUrl,

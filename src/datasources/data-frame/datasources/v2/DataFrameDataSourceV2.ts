@@ -320,7 +320,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
     }
 
-    private transformColumnType(dataType: string): string {
+    public transformColumnType(dataType: string): string {
         const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType)
             ? 'Numeric'
             : this.toSentenceCase(dataType);
@@ -340,7 +340,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return columnNameDataTypeMap;
     };
 
-    private createColumnOptions(columnTypeMap: Record<string, Set<string>>): Option[] {
+    public createColumnOptions(columnTypeMap: Record<string, Set<string>>): Option[] {
         const options: Option[] = [];
 
         Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
