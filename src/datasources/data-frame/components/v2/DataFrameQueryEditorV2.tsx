@@ -182,7 +182,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         handleQueryChange({ ...migratedQuery, type: queryType });
     };
 
-    const onDataTableFilterChange = async (event?: Event | React.FormEvent<Element>) => {
+    const onDataTableFilterChange = (event?: Event | React.FormEvent<Element>) => {
         if (!event) {
             return;
         }
@@ -192,7 +192,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             return;
         }
 
-        const existingColumnSelection = await getExistingColumnSelection();
+        (query as DataFrameQueryV2).dataTableFilter = dataTableFilter;
+        const existingColumnSelection = getExistingColumnSelection();
         const shouldRunQuery = _.isEmpty(existingColumnSelection.columns);
         handleQueryChange({ ...migratedQuery, dataTableFilter }, shouldRunQuery);
     };
@@ -207,6 +208,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             return;
         }
 
+        (query as DataFrameQueryV2).resultFilter = resultFilter;
         handleQueryChange({ ...migratedQuery, resultFilter });
     };
 
@@ -220,6 +222,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             return;
         }
 
+        (query as DataFrameQueryV2).columnFilter = columnFilter;
         handleQueryChange({ ...migratedQuery, columnFilter });
     };
 

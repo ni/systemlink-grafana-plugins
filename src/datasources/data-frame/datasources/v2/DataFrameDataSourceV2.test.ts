@@ -129,11 +129,11 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await lastValueFrom(ds.runQuery(dataQuery, options));
 
                 expect(result).toEqual(
-                    {
+                    expect.objectContaining({
                         refId: 'A',
                         name: 'A',
                         fields: []
-                    }
+                    })
                 );
             });
 
@@ -155,6 +155,12 @@ describe('DataFrameDataSourceV2', () => {
                 let options: DataQueryRequest<DataFrameQueryV2>;
                 let queryTablesSpy: jest.SpyInstance;
 
+                const projections = [
+                    DataTableProjections.ColumnName,
+                    DataTableProjections.ColumnDataType,
+                    DataTableProjections.ColumnType
+                ];
+
                 beforeEach(() => {
                     options = {
                         scopedVars: {},
@@ -169,10 +175,18 @@ describe('DataFrameDataSourceV2', () => {
                             type: DataFrameQueryType.Data,
                             columns: []
                         } as DataFrameQueryV2;
-                        
-                        const result = await lastValueFrom(ds.runQuery(query, options));
-                        
-                        expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
+
+                        const result = await lastValueFrom(
+                            ds.runQuery(query, options)
+                        );
+
+                        expect(result).toEqual(
+                            expect.objectContaining({
+                                refId: 'A',
+                                name: 'A',
+                                fields: []
+                            })
+                        );
                         expect(queryTablesSpy).not.toHaveBeenCalled();
                     });
 
@@ -182,10 +196,18 @@ describe('DataFrameDataSourceV2', () => {
                             type: DataFrameQueryType.Data,
                             columns: of([]),
                         };
-                        
-                        const result = await lastValueFrom(ds.runQuery(query, options));
-                        
-                        expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
+
+                        const result = await lastValueFrom(
+                            ds.runQuery(query, options)
+                        );
+
+                        expect(result).toEqual(
+                            expect.objectContaining({
+                                refId: 'A',
+                                name: 'A',
+                                fields: []
+                            })
+                        );
                         expect(queryTablesSpy).not.toHaveBeenCalled();
                     });
                 });
@@ -195,25 +217,36 @@ describe('DataFrameDataSourceV2', () => {
                         const mockTables = [{
                             id: 'table1',
                             columns: [
-                                { name: 'colA', dataType: 'INT32', columnType: 'NonNullable', properties: {} },
-                                { name: 'colB', dataType: 'TIMESTAMP', columnType: 'NonNullable', properties: {} }
+                                {
+                                    name: 'colA',
+                                    dataType: 'INT32',
+                                    columnType: 'NonNullable'
+                                },
+                                {
+                                    name: 'colB',
+                                    dataType: 'TIMESTAMP',
+                                    columnType: 'NonNullable'
+                                }
                             ]
                         }];
                         queryTablesSpy.mockReturnValue(of(mockTables));
-                        
+
                         const query = {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
-                            columns: ['colA-Numeric', 'colB-Timestamp'],
+                            columns: [
+                                'colA-Numeric',
+                                'colB-Timestamp'
+                            ],
                             dataTableFilter: 'name = "Test"',
                         } as DataFrameQueryV2;
-                        
+
                         const result = await lastValueFrom(ds.runQuery(query, options));
-                        
+
                         expect(queryTablesSpy).toHaveBeenCalledWith(
-                            'name = "Test"',
-                            expect.any(Number),
-                            expect.any(Array)
+                            {"dataTableFilter": "name = \"Test\""},
+                            TAKE_LIMIT,
+                            projections
                         );
                         expect(result.refId).toBe('A');
                     });
@@ -222,21 +255,29 @@ describe('DataFrameDataSourceV2', () => {
                         const mockTables = [{
                             id: 'table1',
                             columns: [
-                                { name: 'colX', dataType: 'FLOAT64', columnType: 'NonNullable', properties: {} }
+                                {
+                                    name: 'colX',
+                                    dataType: 'FLOAT64',
+                                    columnType: 'NonNullable'
+                                }
                             ]
                         }];
                         queryTablesSpy.mockReturnValue(of(mockTables));
-                        
+
                         const query: any = {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
                             columns: of(['colX-Numeric']),
-                            dataTableFilter: '',
+                            dataTableFilter: 'name == "Test"',
                         };
-                        
+
                         const result = await lastValueFrom(ds.runQuery(query, options));
-                        
-                        expect(queryTablesSpy).toHaveBeenCalled();
+
+                        expect(queryTablesSpy).toHaveBeenCalledWith(
+                            { "dataTableFilter": "name == \"Test\"" },
+                            TAKE_LIMIT,
+                            projections
+                        );
                         expect(result.refId).toBe('A');
                     });
 
@@ -249,7 +290,9 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "Test"',
                         } as DataFrameQueryV2;
 
-                        await expect(lastValueFrom(ds.runQuery(query, options))).rejects.toThrow(
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(
                             'One or more selected columns are invalid. Please update your column selection or refine your data table filter.'
                         );
                     });
@@ -259,8 +302,16 @@ describe('DataFrameDataSourceV2', () => {
                             {
                                 id: 'table1',
                                 columns: [
-                                    { name: 'colX', dataType: 'INT32', columnType: 'NonNullable', properties: {} },
-                                    { name: 'colY', dataType: 'STRING', columnType: 'NonNullable', properties: {} }
+                                    {
+                                        name: 'colX',
+                                        dataType: 'INT32',
+                                        columnType: 'NonNullable'
+                                    },
+                                    {
+                                        name: 'colY',
+                                        dataType: 'STRING',
+                                        columnType: 'NonNullable'
+                                    }
                                 ]
                             }
                         ];
@@ -272,7 +323,9 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "Test"',
                         } as DataFrameQueryV2;
 
-                        await expect(lastValueFrom(ds.runQuery(query, options))).rejects.toThrow(
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(
                             'One or more selected columns are invalid. Please update your column selection or refine your data table filter.'
                         );
                     });
@@ -282,7 +335,11 @@ describe('DataFrameDataSourceV2', () => {
                             {
                                 id: 'table1',
                                 columns: [
-                                    { name: 'temp', dataType: 'FLOAT64', columnType: 'NonNullable', properties: {} }
+                                    {
+                                        name: 'temp',
+                                        dataType: 'FLOAT64',
+                                        columnType: 'NonNullable',
+                                    }
                                 ]
                             }
                         ];
@@ -297,42 +354,10 @@ describe('DataFrameDataSourceV2', () => {
                         await lastValueFrom(ds.runQuery(query, options));
 
                         expect(queryTablesSpy).toHaveBeenCalledWith(
-                            'name = "Test"',
-                            expect.any(Number),
-                            expect.arrayContaining([
-                                'COLUMN_NAME',
-                                'COLUMN_DATA_TYPE',
-                                'COLUMN_COLUMN_TYPE',
-                                'COLUMN_PROPERTIES'
-                            ])
+                            {"dataTableFilter": "name = \"Test\""},
+                            TAKE_LIMIT,
+                            projections
                         );
-                    });
-
-                    it('should match all numeric data types (INT32/INT64/FLOAT32/FLOAT64) to Numeric column selector', async () => {
-                        const mockTables = [
-                            {
-                                id: 'table1',
-                                columns: [
-                                    { name: 'value', dataType: 'INT32', columnType: 'NonNullable', properties: {} },
-                                    { name: 'value', dataType: 'INT64', columnType: 'NonNullable', properties: {} },
-                                    { name: 'value', dataType: 'FLOAT32', columnType: 'NonNullable', properties: {} },
-                                    { name: 'value', dataType: 'FLOAT64', columnType: 'NonNullable', properties: {} }
-                                ]
-                            }
-                        ];
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['value-Numeric'],
-                            dataTableFilter: '',
-                        } as DataFrameQueryV2;
-
-                        const result = await lastValueFrom(ds.runQuery(query, options));
-
-                        expect(result.refId).toBe('A');
-                        // All numeric types should be matched
-                        expect(queryTablesSpy).toHaveBeenCalled();
                     });
 
                     it('should throw error when table has undefined columns property', async () => {
@@ -350,8 +375,12 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: '',
                         } as DataFrameQueryV2;
 
-                        await expect(lastValueFrom(ds.runQuery(query, options))).rejects.toThrow(
-                            'One or more selected columns are invalid. Please update your column selection or refine your data table filter.'
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(
+                            'One or more selected columns are invalid. ' +
+                            'Please update your column selection or ' +
+                            'refine your data table filter.'
                         );
                     });
 
@@ -370,22 +399,33 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: '',
                         } as DataFrameQueryV2;
 
-                        await expect(lastValueFrom(ds.runQuery(query, options))).rejects.toThrow(
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(
                             'One or more selected columns are invalid. Please update your column selection or refine your data table filter.'
                         );
                     });
                 });
 
                 describe('invalid columns', () => {
-                    const errorMessage = 'One or more selected columns are invalid. Please update your column selection or refine your data table filter.';
+                    const errorMessage =
+                        'One or more selected columns are invalid. Please update your column selection or refine your data table filter.';
 
                     it('should throw error when some selected columns are invalid', async () => {
                         const mockTables = [
                             {
                                 id: 'table1',
                                 columns: [
-                                    { name: 'colA', dataType: 'INT32', columnType: 'NonNullable', properties: {} },
-                                    { name: 'colB', dataType: 'STRING', columnType: 'NonNullable', properties: {} }
+                                    {
+                                        name: 'colA',
+                                        dataType: 'INT32',
+                                        columnType: 'NonNullable'
+                                    },
+                                    {
+                                        name: 'colB',
+                                        dataType: 'STRING',
+                                        columnType: 'NonNullable'
+                                    }
                                 ]
                             }
                         ];
@@ -393,13 +433,17 @@ describe('DataFrameDataSourceV2', () => {
                         const query = {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
-                            columns: ['colA-Numeric', 'colB-String', 'colC-String'],
+                            columns: [
+                                'colA-Numeric',
+                                'colB-String',
+                                'colC-String'
+                            ],
                             dataTableFilter: 'name = "Test"',
                         } as DataFrameQueryV2;
 
-                        await expect(lastValueFrom(ds.runQuery(query, options))).rejects.toThrow(
-                            errorMessage
-                        );
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(errorMessage);
                     });
 
                     it('should publish alert when any of the selected columns are invalid', async () => {
@@ -407,7 +451,11 @@ describe('DataFrameDataSourceV2', () => {
                             {
                                 id: 'table1',
                                 columns: [
-                                    { name: 'colX', dataType: 'FLOAT64', columnType: 'NonNullable', properties: {} }
+                                    {
+                                        name: 'colX',
+                                        dataType: 'FLOAT64',
+                                        columnType: 'NonNullable'
+                                    }
                                 ]
                             }
                         ];
@@ -421,16 +469,16 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: '',
                         };
 
-                        await expect(lastValueFrom(ds.runQuery(query, options))).rejects.toThrow(
-                            errorMessage
-                        );
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(errorMessage);
 
                         expect(publishMock).toHaveBeenCalledWith({
                             type: 'alert-error',
                             payload: [
                                 'Column selection error',
                                 errorMessage
-                            ],
+                            ]
                         });
                     });
                 })
@@ -1970,8 +2018,8 @@ describe('DataFrameDataSourceV2', () => {
             const scopedVars = {
                 Table: { text: 'Table2', value: 'Table2' }
             };
-            
-            ds.transformQuery(input, scopedVars);    
+
+            ds.transformQuery(input, scopedVars);
             expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
         })
 

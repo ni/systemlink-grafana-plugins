@@ -223,7 +223,7 @@ describe('QueryStepsDataSource', () => {
         expect.objectContaining({
           url: queryStepsUrl,
           data: expect.objectContaining({
-            filter: '(startedAt > "${__from:date}" && startedAt < "${__to:date}")',
+            filter: '(startedAt >= "${__from:date}" && startedAt <= "${__to:date}")',
           }),
         })
       );
@@ -907,8 +907,8 @@ describe('QueryStepsDataSource', () => {
         Started: 'startedAt',
       };
       const selectedUseTimeRangeFor = 'Started';
-      const filter = `(${timeRange[selectedUseTimeRangeFor]} > "\${__from:date}" && ${timeRange[selectedUseTimeRangeFor]} < "\${__to:date}")`;
-      const replacedFilter = `(${timeRange[selectedUseTimeRangeFor]} > "2025-04-01" && ${timeRange[selectedUseTimeRangeFor]} < "2025-04-02")`;
+      const filter = `(${timeRange[selectedUseTimeRangeFor]} >= "\${__from:date}" && ${timeRange[selectedUseTimeRangeFor]} <= "\${__to:date}")`;
+      const replacedFilter = `(${timeRange[selectedUseTimeRangeFor]} >= "2025-04-01" && ${timeRange[selectedUseTimeRangeFor]} <= "2025-04-02")`;
       templateSrv.replace.calledWith().mockReturnValue(replacedFilter);
 
       const query = buildQuery({
