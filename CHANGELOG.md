@@ -1,3 +1,27 @@
+## [4.83.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.82.2...v4.83.0) (2025-11-27)
+
+### Features
+
+* **dataframe:** Handle API errors during column migration ([#555](https://github.com/ni/systemlink-grafana-plugins/issues/555)) ([229076b](https://github.com/ni/systemlink-grafana-plugins/commit/229076b6b69731de9ca73b59edec72d824b60459))
+
+## [4.82.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.82.1...v4.82.2) (2025-11-27)
+
+### Bug Fixes
+
+* **results:** Use inclusive time range filters for accurate results/ steps counts ([#558](https://github.com/ni/systemlink-grafana-plugins/issues/558)) ([c7f0815](https://github.com/ni/systemlink-grafana-plugins/commit/c7f081559f33758f20b844c4919cde5026b556e3))
+
+## [4.82.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.82.0...v4.82.1) (2025-11-26)
+
+### Bug Fixes
+
+* **dataframe:** Restrict query editor re-render with stale query when the query changed ([#554](https://github.com/ni/systemlink-grafana-plugins/issues/554)) ([9b5f453](https://github.com/ni/systemlink-grafana-plugins/commit/9b5f453cf4e95dba3c74176a7c0ec7f42c964293))
+
+## [4.82.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.81.0...v4.82.0) (2025-11-25)
+
+### Features
+
+* **dataframes:** Update the datasource infrastructure to support results filter ([#528](https://github.com/ni/systemlink-grafana-plugins/issues/528)) ([07898eb](https://github.com/ni/systemlink-grafana-plugins/commit/07898eb9e4f13381a2a1a509d43b8d4765e2f54e))
+
 ## [4.81.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.80.0...v4.81.0) (2025-11-25)
 
 ### Features

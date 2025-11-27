@@ -150,6 +150,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             return;
         }
 
+        (query as DataFrameQueryV2).dataTableFilter = dataTableFilter;
         handleQueryChange({ ...migratedQuery, dataTableFilter });
 
     };
@@ -164,6 +165,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             return;
         }
 
+        (query as DataFrameQueryV2).resultFilter = resultFilter;
         handleQueryChange({ ...migratedQuery, resultFilter });
     };
 
@@ -177,6 +179,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             return;
         }
 
+        (query as DataFrameQueryV2).columnFilter = columnFilter;
         handleQueryChange({ ...migratedQuery, columnFilter });
     };
 

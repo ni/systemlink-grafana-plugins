@@ -192,7 +192,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return response.pipe(
             map(res => res.tables),
             catchError(error => {
-                const errorMessage = this.getErrorMessage(error);
+                const errorMessage = this.getErrorMessage(error, 'data tables');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
                     payload: ['Error during data tables query', errorMessage],
@@ -293,7 +293,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         return this.getTable(tableId).pipe(
-            map(table => this.migrateColumnsFromV1ToV2(currentColumns, table))
+            map(table => this.migrateColumnsFromV1ToV2(currentColumns, table)),
+            catchError(error => {
+                const errorMessage = this.getErrorMessage(error, 'data table columns');
+                this.appEvents?.publish?.({
+                    type: AppEvents.alertError.name,
+                    payload: ['Error during fetching columns for migration', errorMessage],
+                });
+                return of(currentColumns);
+            })
         );
     }
 
@@ -330,16 +338,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return _.every(array, entry => typeof entry === 'string');
     }
 
-    private getErrorMessage(error: Error): string {
+    private getErrorMessage(error: Error, context: string): string {
         const errorDetails = extractErrorInfo(error.message);
 
         switch (errorDetails.statusCode) {
             case '':
                 return 'The query failed due to an unknown error.';
             case '429':
-                return 'The query to fetch data tables failed due to too many requests. Please try again later.';
+                return `The query to fetch ${context} failed due to too many requests. Please try again later.`;
             case '504':
-                return 'The query to fetch data tables experienced a timeout error. Narrow your query with a more specific filter and try again.';
+                return `The query to fetch ${context} experienced a timeout error. Narrow your query with a more specific filter and try again.`;
             default:
                 return `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
         }
