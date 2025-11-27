@@ -76,7 +76,7 @@ const renderComponent = (
         );
     });
 
-    return { renderResult, onChange, onRunQuery, processQuery, datasource };
+    return { renderResult, onChange, onRunQuery, processQuery, datasource, initialQuery };
 };
 
 describe("DataFrameQueryEditorV2", () => {
@@ -1205,6 +1205,26 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
+        it("should update query prop when dataTableFilter changes", async () => {
+            const { initialQuery } = renderComponent({
+                type: DataFrameQueryType.Data,
+                dataTableFilter: 'InitialFilter'
+            });
+
+            // Get the onDataTableFilterChange callback from the mock
+            const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+            const { onDataTableFilterChange } = props;
+
+            // Simulate the filter change event
+            const mockEvent = {
+                detail: { linq: "NewFilter" }
+            } as Event & { detail: { linq: string; }; };
+
+            onDataTableFilterChange(mockEvent);
+
+            expect(initialQuery.dataTableFilter).toBe('NewFilter');
+        });
+
         it("should not call onChange or onRunQuery when the dataTableFilter remains unchanged", async () => {
             const { onChange, onRunQuery } = renderComponent({
                 type: DataFrameQueryType.Data,
@@ -1269,6 +1289,26 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
+        it("should update query prop when columnFilter changes", async () => {
+            const { initialQuery } = renderComponent({
+                type: DataFrameQueryType.Data,
+                dataTableFilter: 'InitialFilter'
+            });
+
+            // Get the onColumnFilterChange callback from the mock
+            const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+            const { onColumnFilterChange } = props;
+
+            // Simulate the filter change event
+            const mockEvent = {
+                detail: { linq: "NewColumnFilter" }
+            } as Event & { detail: { linq: string; }; };
+
+            onColumnFilterChange(mockEvent);
+
+            expect(initialQuery.columnFilter).toBe('NewColumnFilter');
+        });
+
         it("should not call onChange or onRunQuery when the columnFilter remains unchanged", async () => {
             const { onChange, onRunQuery } = renderComponent({
                 type: DataFrameQueryType.Data,
@@ -1323,6 +1363,26 @@ describe("DataFrameQueryEditorV2", () => {
                     resultFilter: 'NewResultFilter'
                 }));
             });
+        });
+
+        it('should update query prop when resultFilter changes', async () => {
+            const { initialQuery } = renderComponent({
+                type: DataFrameQueryType.Data,
+                resultFilter: 'InitialResultFilter'
+            });
+
+            // Get the onResultFilterChange callback from the mock
+            const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+            const { onResultFilterChange } = props;
+
+            // Simulate the filter change event
+            const mockEvent = {
+                detail: { linq: 'NewResultFilter' }
+            } as Event & { detail: { linq: string; }; };
+
+            onResultFilterChange(mockEvent);
+
+            expect(initialQuery.resultFilter).toBe('NewResultFilter');
         });
 
         it('should not call onChange or onRunQuery when the resultFilter remains unchanged', async () => {
