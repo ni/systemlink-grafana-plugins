@@ -328,4 +328,52 @@ describe('DataFrameDataSource', () => {
             expect(result).toBe('v1-filter');
         });
      });
+
+    describe('createColumnOptions', () => {
+        it('should delegate to v2 createColumnOptions when feature toggle is true', () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
+            v2Mock.createColumnOptions = jest.fn().mockReturnValue([
+                { label: 'Col1', value: 'Col1-String' }
+            ]);
+            
+            const columnTypeMap = { Col1: new Set(['String']) };
+            const result = ds.createColumnOptions(columnTypeMap);
+            
+            expect(v2Mock.createColumnOptions).toHaveBeenCalledWith(columnTypeMap);
+            expect(result).toEqual([{ label: 'Col1', value: 'Col1-String' }]);
+        });
+
+        it('should delegate to v1 createColumnOptions when feature toggle is false', () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
+            v1Mock.createColumnOptions = jest.fn().mockReturnValue([]);
+            
+            const columnTypeMap = { Col1: new Set(['String']) };
+            const result = ds.createColumnOptions(columnTypeMap);
+            
+            expect(v1Mock.createColumnOptions).toHaveBeenCalledWith(columnTypeMap);
+            expect(result).toEqual([]);
+        });
+    });
+
+    describe('transformColumnType', () => {
+        it('should delegate to v2 transformColumnType when feature toggle is true', () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
+            v2Mock.transformColumnType = jest.fn().mockReturnValue('Numeric');
+            
+            const result = ds.transformColumnType('INT32');
+            
+            expect(v2Mock.transformColumnType).toHaveBeenCalledWith('INT32');
+            expect(result).toBe('Numeric');
+        });
+
+        it('should delegate to v1 transformColumnType when feature toggle is false', () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
+            v1Mock.transformColumnType = jest.fn().mockReturnValue('INT32');
+            
+            const result = ds.transformColumnType('INT32');
+            
+            expect(v1Mock.transformColumnType).toHaveBeenCalledWith('INT32');
+            expect(result).toBe('INT32');
+        });
+    });
 });
