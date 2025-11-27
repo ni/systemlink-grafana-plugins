@@ -13,6 +13,9 @@ import { getWorkspaceName } from 'core/utils';
 import { SystemsDataSourceBase } from './components/SystemsDataSourceBase';
 import { transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { SystemFieldMapping } from './constants/SystemsQueryBuilder.constants';
+import { Workspace } from 'core/types';
+import { WorkspaceUtils } from 'shared/workspace.utils';
+import { extractErrorInfo } from 'core/errors';
 
 export class SystemDataSource extends SystemsDataSourceBase {
   constructor(
@@ -21,15 +24,61 @@ export class SystemDataSource extends SystemsDataSourceBase {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
   }
 
   baseUrl = this.instanceSettings.url + '/nisysmgmt/v1';
+  workspaceUtils: WorkspaceUtils;
+  errorTitle = '';
+  errorDescription = '';
 
   defaultQuery = {
     queryKind: SystemQueryType.Summary,
     systemName: '',
     workspace: ''
   };
+
+  prepareQuery(query: SystemQuery): SystemQuery {
+    const prepared = { ...query };
+
+    if (!prepared.queryKind) {
+      prepared.queryKind = this.defaultQuery.queryKind;
+    }
+
+    if ((prepared.systemName || prepared.workspace) && prepared.queryKind === SystemQueryType.Properties) {
+      console.log('Building filter from legacy fields');
+      prepared.filter = this.buildFilterFromLegacyFields(prepared);
+      prepared.systemName = '';
+      prepared.workspace = '';
+    }
+
+    return prepared;
+  }
+
+  private buildFilterFromLegacyFields(query: SystemQuery): string {
+    console.log('Am intrat in Building filter from legacy fields');
+    const parts: string[] = [];
+
+    if (query.filter?.trim()) {
+      parts.push(query.filter);
+    }
+
+    if (query.systemName?.trim()) {
+      const systemPart = `(id = "${query.systemName}" || alias = "${query.systemName}")`;
+      if (!query.filter?.includes('id =') && !query.filter?.includes('alias =')) {
+        parts.push(systemPart);
+      }
+    }
+
+    if (query.workspace?.trim() && !query.systemName) {
+      const workspacePart = `workspace = "${query.workspace}"`;
+      if (!query.filter?.includes('workspace =')) {
+        parts.push(workspacePart);
+      }
+    }
+
+    return parts.join(' && ');
+  }
 
   async runQuery(query: SystemQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     if (query.queryKind === SystemQueryType.Summary) {
@@ -51,13 +100,8 @@ export class SystemDataSource extends SystemsDataSourceBase {
           this.systemsComputedDataFields
         );
       }
-
-      const properties = await this.getSystemProperties(
-        this.templateSrv.replace(query.systemName, options.scopedVars),
-        defaultProjection,
-        this.templateSrv.replace(query.workspace, options.scopedVars),
-        processedFilter
-      );
+      console.log('Processed Filter: ', processedFilter);
+      const properties = await this.getSystemProperties(processedFilter, defaultProjection);
       const workspaces = await this.getWorkspaces();
       return {
         refId: query.refId,
@@ -91,22 +135,17 @@ export class SystemDataSource extends SystemsDataSourceBase {
     return mappedFilter;
   }
 
-  async getSystemProperties(systemFilter: string, projection = defaultProjection, workspace?: string, filter?: string, systemsComputedDataFields?: any) {
-    const filters = [
-      systemFilter && `id = "${systemFilter}" || alias = "${systemFilter}"`,
-      workspace && !systemFilter && `workspace = "${workspace}"`,
-      filter && filter.trim() !== '' && `(${filter})`,
-    ];
+  async getSystemProperties(filter?: string, projection = defaultProjection) {
     const response = await this.getSystems({
-      filter: filters.filter(Boolean).join(' && '),
+      filter: filter || '',
       projection: `new(${projection.join()})`,
       orderBy: defaultOrderBy,
     });
     return response.data;
   }
 
-  async metricFindQuery({ workspace, queryReturnType }: SystemVariableQuery): Promise<MetricFindValue[]> {
-    const properties = await this.getSystemProperties('', [systemFields.ID, systemFields.ALIAS, systemFields.SCAN_CODE], this.templateSrv.replace(workspace));
+  async metricFindQuery({ queryReturnType }: SystemVariableQuery): Promise<MetricFindValue[]> {
+    const properties = await this.getSystemProperties('', [systemFields.ID, systemFields.ALIAS, systemFields.SCAN_CODE]);
     return properties.map(system => this.getSystemNameForMetricQuery({ queryReturnType }, system));
   }
 
@@ -130,5 +169,37 @@ export class SystemDataSource extends SystemsDataSourceBase {
   async testDatasource(): Promise<TestDataSourceResponse> {
     await this.get(this.baseUrl + '/get-systems-summary');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
+  }
+
+  public async loadWorkspaces(): Promise<Map<string, Workspace>> {
+    try {
+      return await this.workspaceUtils.getWorkspaces();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, Workspace>();
+    }
+  }
+
+  private handleDependenciesError(error: unknown): void {
+    const errorDetails = extractErrorInfo((error as Error).message);
+    this.errorTitle = 'Warning during workorders query';
+    switch (errorDetails.statusCode) {
+      case '404':
+        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
+        break;
+      case '429':
+        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
+        break;
+      case '504':
+        this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
+        break;
+      default:
+        this.errorDescription = errorDetails.message
+          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+          : 'Some values may not be available in the query builder lookups due to an unknown error.';
+        break;
+    }
   }
 }

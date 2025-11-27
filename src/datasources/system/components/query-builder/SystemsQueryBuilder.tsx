@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTheme2 } from '@grafana/ui';
 import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
-import { QBField, QueryBuilderOption } from 'core/types';
-import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
-import { SystemStaticFields } from 'datasources/system/constants/SystemsQueryBuilder.constants';
+import { QBField, QueryBuilderOption, Workspace } from 'core/types';
+import { addOptionsToLookup, filterXSSLINQExpression } from 'core/utils';
+import { SystemFields, SystemStaticFields } from 'datasources/system/constants/SystemsQueryBuilder.constants';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
 import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
@@ -12,12 +12,14 @@ type SystemsQueryBuilderProps = QueryBuilderProps &
     React.HTMLAttributes<Element> & {
         filter?: string;
         globalVariableOptions: QueryBuilderOption[];
+        workspaces: Workspace[] | null;
     };
 
 export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
     filter,
     onChange,
     globalVariableOptions,
+    workspaces,
 }) => {
     const theme = useTheme2();
     document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
@@ -29,13 +31,26 @@ export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
         return filterXSSLINQExpression(filter);
     }, [filter]);
 
+    const workspaceField = useMemo(() => {
+        if (!workspaces) {
+            return null;
+        }
+        const workspaceOptions = workspaces.map(({ id, name }) => ({ label: name, value: id }));
+
+        return addOptionsToLookup(SystemFields.WORKSPACE, workspaceOptions);
+    }, [workspaces]);
+
     useEffect(() => {
-        const fields = [...SystemStaticFields].map(field => {
+        if (!workspaceField) {
+            return;
+        }
+
+        const fields = [...SystemStaticFields, workspaceField].map(field => {
             if (field.lookup?.dataSource) {
                 return {
                     ...field,
                     lookup: {
-                        dataSource: [...globalVariableOptions, ...field.lookup?.dataSource].map(filterXSSField),
+                        dataSource: [...globalVariableOptions, ...field.lookup?.dataSource],
                     },
                 };
             }

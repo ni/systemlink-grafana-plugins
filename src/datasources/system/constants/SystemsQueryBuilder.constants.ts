@@ -43,7 +43,7 @@ export const SystemFieldMapping: Record<string, string> = {
 
 export const SystemFields: Record<string, QBField> = {
     ID: {
-        label: 'System ID',
+        label: 'Minion ID',
         dataField: SystemUIFieldNames.ID,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
@@ -59,6 +59,17 @@ export const SystemFields: Record<string, QBField> = {
             QueryBuilderOperations.CONTAINS.name,
             QueryBuilderOperations.DOES_NOT_CONTAIN.name,
         ],
+    },
+    WORKSPACE: {
+        label: 'Workspace',
+        dataField: SystemUIFieldNames.WORKSPACE,
+        filterOperations: [
+            QueryBuilderOperations.EQUALS.name,
+            QueryBuilderOperations.DOES_NOT_EQUAL.name,
+        ],
+        lookup: {
+            dataSource: [],
+        }
     },
     CONNECTION_STATUS: {
         label: 'Connection Status',
