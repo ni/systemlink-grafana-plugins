@@ -583,7 +583,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 return response.results.map(result => result.id);
             }),
             catchError(error => {
-                const errorMessage = this.getErrorMessage(error);
+                const errorMessage = this.getErrorMessage(error, 'results');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
                     payload: ['Error querying test results', errorMessage],

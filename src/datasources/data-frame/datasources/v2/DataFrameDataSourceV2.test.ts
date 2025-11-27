@@ -1384,6 +1384,12 @@ describe('DataFrameDataSourceV2', () => {
             );
         }
 
+        function createQueryResultsError(status: number) {
+            return new Error(
+                `Request to url "${ds.instanceSettings.url}/nitestmonitor/v2/query-results" failed with status code: ${status}. Error message: "Error"`
+            );
+        }
+
         beforeEach(() => {
             postMock$ = jest.spyOn(ds, 'post$').mockImplementation((url, body, options) => {
                 if (url.includes('nitestmonitor/v2/query-results')) {
@@ -1443,22 +1449,6 @@ describe('DataFrameDataSourceV2', () => {
 
             expect(result).toEqual([]);
             // Should not call DataFrames API when no results
-            expect(postMock$).toHaveBeenCalledTimes(1);
-        });
-
-        it('should handle API error from Test Monitor and return empty array', async () => {
-            const publishMock = jest.fn();
-            (ds as any).appEvents = { publish: publishMock };
-            postMock$.mockReturnValue(throwError(() => new Error('API Error')));
-
-            const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
-            const result = await lastValueFrom(ds.queryTables$(filters));
-
-            expect(result).toEqual([]);
-            expect(publishMock).toHaveBeenCalledWith({
-                type: 'alert-error',
-                payload: ['Error querying test results', expect.any(String)],
-            });
             expect(postMock$).toHaveBeenCalledTimes(1);
         });
 
@@ -1565,6 +1555,54 @@ describe('DataFrameDataSourceV2', () => {
                 },
                 { useApiIngress: true }
             );
+        });
+
+        it('should throw error with unknown error when query results API returns error without status', async () => {
+            postMock$.mockReturnValue(throwError(() => new Error('Some unknown error')));
+
+            await expect(lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }))).rejects.toThrow(
+                'The query failed due to an unknown error.'
+            );
+        });
+
+        it('should throw too many requests error when query results API returns 429 status', async () => {
+            postMock$.mockReturnValue(throwError(() => createQueryResultsError(429)));
+
+            await expect(lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }))).rejects.toThrow(
+                'The query to fetch results failed due to too many requests. Please try again later.'
+            );
+        });
+
+        it('should throw timeOut error when query results API returns 504 status', async () => {
+            postMock$.mockReturnValue(throwError(() => createQueryResultsError(504)));
+
+            await expect(lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }))).rejects.toThrow(
+                'The query to fetch results experienced a timeout error. Narrow your query with a more specific filter and try again.'
+            );
+        });
+
+        it('should throw error with status code and message when query results API returns 500 status', async () => {
+            postMock$.mockReturnValue(throwError(() => createQueryResultsError(500)));
+
+            await expect(lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }))).rejects.toThrow(
+                'The query failed due to the following error: (status 500) "Error".'
+            );
+        });
+
+        it('should publish alertError event when error occurs in query results API', async () => {
+            const publishMock = jest.fn();
+            (ds as any).appEvents = { publish: publishMock };
+            postMock$.mockReturnValue(throwError(() => createQueryResultsError(429)));
+
+            await expect(lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }))).rejects.toThrow();
+
+            expect(publishMock).toHaveBeenCalledWith({
+                type: 'alert-error',
+                payload: [
+                    'Error querying test results',
+                    'The query to fetch results failed due to too many requests. Please try again later.'
+                ],
+            });
         });
 
         it('should call the `post$` method with the expected arguments and return tables', async () => {
