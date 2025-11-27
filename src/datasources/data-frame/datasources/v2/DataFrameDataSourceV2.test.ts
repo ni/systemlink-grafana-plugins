@@ -2069,4 +2069,150 @@ describe('DataFrameDataSourceV2', () => {
             expect(result).not.toContain('${__now:date}');
         });
     });
+
+    describe('transformColumnType', () => {
+        it('should transform INT32 to Numeric', () => {
+            const result = ds.transformColumnType('INT32');
+            expect(result).toBe('Numeric');
+        });
+
+        it('should transform INT64 to Numeric', () => {
+            const result = ds.transformColumnType('INT64');
+            expect(result).toBe('Numeric');
+        });
+
+        it('should transform FLOAT32 to Numeric', () => {
+            const result = ds.transformColumnType('FLOAT32');
+            expect(result).toBe('Numeric');
+        });
+
+        it('should transform FLOAT64 to Numeric', () => {
+            const result = ds.transformColumnType('FLOAT64');
+            expect(result).toBe('Numeric');
+        });
+
+        it('should transform TIMESTAMP to sentence case', () => {
+            const result = ds.transformColumnType('TIMESTAMP');
+            expect(result).toBe('Timestamp');
+        });
+
+        it('should transform STRING to sentence case', () => {
+            const result = ds.transformColumnType('STRING');
+            expect(result).toBe('String');
+        });
+
+        it('should transform BOOLEAN to sentence case', () => {
+            const result = ds.transformColumnType('BOOLEAN');
+            expect(result).toBe('Boolean');
+        });
+
+        it('should handle lowercase data types', () => {
+            const result = ds.transformColumnType('string');
+            expect(result).toBe('String');
+        });
+
+        it('should handle mixed case data types', () => {
+            const result = ds.transformColumnType('StRiNg');
+            expect(result).toBe('String');
+        });
+    });
+
+    describe('createColumnOptions', () => {
+        it('should create option with column name as label when column has single data type', () => {
+            const columnTypeMap = {
+                'Column1': new Set(['String'])
+            };
+
+            const result = ds.createColumnOptions(columnTypeMap);
+
+            expect(result).toEqual([
+                { label: 'Column1', value: 'Column1-String' }
+            ]);
+        });
+
+        it('should create options with data type in label when column has multiple data types', () => {
+            const columnTypeMap = {
+                'Column1': new Set(['String', 'Numeric'])
+            };
+
+            const result = ds.createColumnOptions(columnTypeMap);
+
+            expect(result).toEqual(expect.arrayContaining([
+                { label: 'Column1 (String)', value: 'Column1-String' },
+                { label: 'Column1 (Numeric)', value: 'Column1-Numeric' }
+            ]));
+        });
+
+        it('should handle multiple columns with different data types', () => {
+            const columnTypeMap = {
+                'Column1': new Set(['String']),
+                'Column2': new Set(['Numeric']),
+                'Column3': new Set(['Boolean'])
+            };
+
+            const result = ds.createColumnOptions(columnTypeMap);
+
+            expect(result).toEqual(expect.arrayContaining([
+                { label: 'Column1', value: 'Column1-String' },
+                { label: 'Column2', value: 'Column2-Numeric' },
+                { label: 'Column3', value: 'Column3-Boolean' }
+            ]));
+            expect(result).toHaveLength(3);
+        });
+
+        it('should handle column with multiple data types along with single data type columns', () => {
+            const columnTypeMap = {
+                'Column1': new Set(['String']),
+                'Column2': new Set(['Numeric', 'String']),
+                'Column3': new Set(['Boolean'])
+            };
+
+            const result = ds.createColumnOptions(columnTypeMap);
+
+            expect(result).toEqual(expect.arrayContaining([
+                { label: 'Column1', value: 'Column1-String' },
+                { label: 'Column2 (Numeric)', value: 'Column2-Numeric' },
+                { label: 'Column2 (String)', value: 'Column2-String' },
+                { label: 'Column3', value: 'Column3-Boolean' }
+            ]));
+            expect(result).toHaveLength(4);
+        });
+
+        it('should return empty array when columnTypeMap is empty', () => {
+            const columnTypeMap = {};
+
+            const result = ds.createColumnOptions(columnTypeMap);
+
+            expect(result).toEqual([]);
+        });
+
+        it('should handle columns with special characters in names', () => {
+            const columnTypeMap = {
+                'Column-With-Hyphens': new Set(['String']),
+                'Column_With_Underscores': new Set(['Numeric'])
+            };
+
+            const result = ds.createColumnOptions(columnTypeMap);
+
+            expect(result).toEqual(expect.arrayContaining([
+                { label: 'Column-With-Hyphens', value: 'Column-With-Hyphens-String' },
+                { label: 'Column_With_Underscores', value: 'Column_With_Underscores-Numeric' }
+            ]));
+        });
+
+        it('should handle column with more than two data types', () => {
+            const columnTypeMap = {
+                'Column1': new Set(['String', 'Numeric', 'Boolean'])
+            };
+
+            const result = ds.createColumnOptions(columnTypeMap);
+
+            expect(result).toEqual(expect.arrayContaining([
+                { label: 'Column1 (String)', value: 'Column1-String' },
+                { label: 'Column1 (Numeric)', value: 'Column1-Numeric' },
+                { label: 'Column1 (Boolean)', value: 'Column1-Boolean' }
+            ]));
+            expect(result).toHaveLength(3);
+        });
+    });
 });

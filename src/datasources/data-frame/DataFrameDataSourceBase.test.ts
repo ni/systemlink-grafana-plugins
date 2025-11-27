@@ -374,4 +374,28 @@ describe('DataFrameDataSourceBase', () => {
             expect(() => ds.transformQuery(query)).toThrow('replace failed');
         });
     });
+
+    describe('createColumnOptions', () => {
+        it('should return empty array by default', () => {
+            const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+            const columnTypeMap = {
+                'Column1': new Set(['String']),
+                'Column2': new Set(['Numeric'])
+            };
+
+            const result = ds.createColumnOptions(columnTypeMap);
+
+            expect(result).toEqual([]);
+        });
+    });
+
+    describe('transformColumnType', () => {
+        it('should return the same data type by default', () => {
+            const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+
+            expect(ds.transformColumnType('STRING')).toBe('STRING');
+            expect(ds.transformColumnType('INT32')).toBe('INT32');
+            expect(ds.transformColumnType('BOOLEAN')).toBe('BOOLEAN');
+        });
+    });
 });
