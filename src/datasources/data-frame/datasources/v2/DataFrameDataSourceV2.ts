@@ -37,7 +37,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         if (this.shouldQueryForData(processedQuery)) {
-            return this.getDecimatedDataForSelectedColumns$(processedQuery);
+            return this.getDecimatedDataForSelectedColumns$(
+                processedQuery
+            );
         }
 
         if (this.shouldQueryForProperties(processedQuery)) {
@@ -211,14 +213,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             ...columnOptionsWithoutVariables
         ];
         return columnOptionsWithVariables;
-    }
-
-    private buildDataFrame(refId: string): DataFrameDTO {
-        return createDataFrame({
-            refId,
-            name: refId,
-            fields: [],
-        });
     }
 
     private async getColumnOptions(filter: string): Promise<Option[]> {
@@ -403,17 +397,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             throw new Error(errorMessage);
                         }
 
-                        const dataframe: DataFrameDTO = this.buildDataFrame(processedQuery.refId);
-
-                        const tableColumnMap = this.buildSelectedColumnsMap(
-                            processedQuery,
+                        const selectedTableColumnMap = this.buildSelectedColumnsMap(
+                            selectedColumns,
                             tables
                         );
-                        if (Object.keys(tableColumnMap).length > 0) {
+                        if (Object.keys(selectedTableColumnMap).length > 0) {
                             // Fetch decimated data for selected columns
                         }
                         
-                        return dataframe;
+                        return this.buildDataFrame(processedQuery.refId);
+
                     })
                 );
             })
@@ -438,30 +431,29 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private buildSelectedColumnsMap(
-        processedQuery: ValidDataFrameQueryV2,
+        selectedColumns: string[],
         tables: TableProperties[]
     ): Record<string, Column[]> {
         const selectedTableColumnsMap: Record<string, Column[]> = {};
         tables.forEach(table => {
-            const selectedColumns = this.getSelectedColumnsForTable(
-                processedQuery, table
+            const selectedColumnsForTable = this.getSelectedColumnsForTable(
+                selectedColumns, table
             );
-            if (selectedColumns.length > 0) {
-                selectedTableColumnsMap[table.id] = selectedColumns;
+            if (selectedColumnsForTable.length > 0) {
+                selectedTableColumnsMap[table.id] = selectedColumnsForTable;
             }
         });
         return selectedTableColumnsMap;
     }
 
     private getSelectedColumnsForTable(
-        processedQuery: ValidDataFrameQueryV2,
+        selectedColumns: string[],
         table: TableProperties
     ): Column[] {
         if (!Array.isArray(table.columns) || table.columns.length === 0) {
             return [];
         }
 
-        const selectedColumns = processedQuery.columns as string[]
         const columnDetails: Column[] = [];
 
         table.columns.forEach(column => {
@@ -477,6 +469,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             }
         });
         return columnDetails;
+    }
+
+    private buildDataFrame(refId: string): DataFrameDTO {
+        return createDataFrame({
+            refId,
+            name: refId,
+            fields: [],
+        });
     }
 
     private get dataTableComputedDataFields(): Map<string, ExpressionTransformFunction> {

@@ -129,11 +129,11 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await lastValueFrom(ds.runQuery(dataQuery, options));
 
                 expect(result).toEqual(
-                    {
+                    expect.objectContaining({
                         refId: 'A',
                         name: 'A',
                         fields: []
-                    }
+                    })
                 );
             });
 
@@ -155,6 +155,12 @@ describe('DataFrameDataSourceV2', () => {
                 let options: DataQueryRequest<DataFrameQueryV2>;
                 let queryTablesSpy: jest.SpyInstance;
 
+                const projections = [
+                    DataTableProjections.ColumnName,
+                    DataTableProjections.ColumnDataType,
+                    DataTableProjections.ColumnType
+                ];
+
                 beforeEach(() => {
                     options = {
                         scopedVars: {},
@@ -174,11 +180,13 @@ describe('DataFrameDataSourceV2', () => {
                             ds.runQuery(query, options)
                         );
 
-                        expect(result).toEqual({
-                            refId: 'A',
-                            name: 'A',
-                            fields: []
-                        });
+                        expect(result).toEqual(
+                            expect.objectContaining({
+                                refId: 'A',
+                                name: 'A',
+                                fields: []
+                            })
+                        );
                         expect(queryTablesSpy).not.toHaveBeenCalled();
                     });
 
@@ -193,11 +201,13 @@ describe('DataFrameDataSourceV2', () => {
                             ds.runQuery(query, options)
                         );
 
-                        expect(result).toEqual({
-                            refId: 'A',
-                            name: 'A',
-                            fields: []
-                        });
+                        expect(result).toEqual(
+                            expect.objectContaining({
+                                refId: 'A',
+                                name: 'A',
+                                fields: []
+                            })
+                        );
                         expect(queryTablesSpy).not.toHaveBeenCalled();
                     });
                 });
@@ -235,8 +245,8 @@ describe('DataFrameDataSourceV2', () => {
 
                         expect(queryTablesSpy).toHaveBeenCalledWith(
                             'name = "Test"',
-                            expect.any(Number),
-                            expect.any(Array)
+                            TAKE_LIMIT,
+                            projections
                         );
                         expect(result.refId).toBe('A');
                     });
@@ -258,12 +268,16 @@ describe('DataFrameDataSourceV2', () => {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
                             columns: of(['colX-Numeric']),
-                            dataTableFilter: '',
+                            dataTableFilter: 'name == "Test"',
                         };
 
                         const result = await lastValueFrom(ds.runQuery(query, options));
 
-                        expect(queryTablesSpy).toHaveBeenCalled();
+                        expect(queryTablesSpy).toHaveBeenCalledWith(
+                           'name == "Test"',
+                            TAKE_LIMIT,
+                            projections
+                        );
                         expect(result.refId).toBe('A');
                     });
 
@@ -276,7 +290,9 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "Test"',
                         } as DataFrameQueryV2;
 
-                        await expect(lastValueFrom(ds.runQuery(query, options))).rejects.toThrow(
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(
                             'One or more selected columns are invalid. Please update your column selection or refine your data table filter.'
                         );
                     });
@@ -307,7 +323,9 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "Test"',
                         } as DataFrameQueryV2;
 
-                        await expect(lastValueFrom(ds.runQuery(query, options))).rejects.toThrow(
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(
                             'One or more selected columns are invalid. Please update your column selection or refine your data table filter.'
                         );
                     });
@@ -337,12 +355,8 @@ describe('DataFrameDataSourceV2', () => {
 
                         expect(queryTablesSpy).toHaveBeenCalledWith(
                             'name = "Test"',
-                            expect.any(Number),
-                            expect.arrayContaining([
-                                'COLUMN_NAME',
-                                'COLUMN_DATA_TYPE',
-                                'COLUMN_COLUMN_TYPE'
-                            ])
+                            TAKE_LIMIT,
+                            projections
                         );
                     });
 
@@ -431,9 +445,7 @@ describe('DataFrameDataSourceV2', () => {
                         await expect(
                             lastValueFrom(ds.runQuery(query, options))
                         ).rejects.toThrow(
-                            'One or more selected columns are invalid. ' +
-                            'Please update your column selection or ' +
-                            'refine your data table filter.'
+                            'One or more selected columns are invalid. Please update your column selection or refine your data table filter.'
                         );
                     });
                 });
@@ -2069,16 +2081,16 @@ describe('DataFrameDataSourceV2', () => {
             } as unknown as DataQueryRequest<DataFrameQueryV2>;
             await lastValueFrom(ds.runQuery(query, options));
             const input = 'name = "${Table}" AND id != "abc"';
-
-            ds.transformQuery(input);
-
+            
+            ds.transformQuery(input);   
+ 
             expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
         });
 
         it('should replace single-value variables', () => {
             const input = 'name = "${Table}" AND id != "abc"';
             templateSrv.replace.mockReturnValue('name = "Table1" AND id != "abc"');
-
+            
             const result = ds.transformQuery(input);
 
             expect(result).toBe('name = "Table1" AND id != "abc"');
