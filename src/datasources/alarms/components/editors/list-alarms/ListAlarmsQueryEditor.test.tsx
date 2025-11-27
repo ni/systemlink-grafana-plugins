@@ -414,6 +414,22 @@ describe('ListAlarmsQueryEditor', () => {
   });
 
   describe('Transition Inclusion', () => {
+    it('should display transition inclusion options in the correct order', async () => {
+      const container = await renderElement();
+      const transitionInclusionCombobox = container.getByRole('combobox', { name: 'Include Transition' });
+
+      await userEvent.click(transitionInclusionCombobox);
+
+      const optionElements = screen.getAllByRole('option');
+      const actualOrder = optionElements.map(option => option.textContent);
+
+      const expectedOrder = Object.values(TransitionInclusionOption).map(
+        option => AlarmsTransitionInclusionOptions[option].label
+      );
+
+      expect(actualOrder).toEqual(expectedOrder);
+    });
+
     it('should render the selected transition inclusion option in the UI', async () => {
       const container = await renderElement({
         refId: 'A',
