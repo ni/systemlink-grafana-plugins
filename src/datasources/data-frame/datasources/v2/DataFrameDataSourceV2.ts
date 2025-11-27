@@ -406,7 +406,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         }
                         
                         return this.buildDataFrame(processedQuery.refId);
-
                     })
                 );
             })

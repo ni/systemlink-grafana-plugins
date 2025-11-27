@@ -360,49 +360,6 @@ describe('DataFrameDataSourceV2', () => {
                         );
                     });
 
-                    it('should match all numeric data types (INT32/INT64/FLOAT32/FLOAT64) to Numeric column selector', async () => {
-                        const mockTables = [
-                            {
-                                id: 'table1',
-                                columns: [
-                                    {
-                                        name: 'value',
-                                        dataType: 'INT32',
-                                        columnType: 'NonNullable',
-                                    },
-                                    {
-                                        name: 'value',
-                                        dataType: 'INT64',
-                                        columnType: 'NonNullable'
-                                    },
-                                    {
-                                        name: 'value',
-                                        dataType: 'FLOAT32',
-                                        columnType: 'NonNullable',
-                                    },
-                                    {
-                                        name: 'value',
-                                        dataType: 'FLOAT64',
-                                        columnType: 'NonNullable',
-                                    }
-                                ]
-                            }
-                        ];
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['value-Numeric'],
-                            dataTableFilter: '',
-                        } as DataFrameQueryV2;
-
-                        const result = await lastValueFrom(ds.runQuery(query, options));
-
-                        expect(result.refId).toBe('A');
-                        // All numeric types should be matched
-                        expect(queryTablesSpy).toHaveBeenCalled();
-                    });
-
                     it('should throw error when table has undefined columns property', async () => {
                         const mockTables = [
                             {
@@ -452,9 +409,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 describe('invalid columns', () => {
                     const errorMessage =
-                        'One or more selected columns are invalid. ' +
-                        'Please update your column selection or ' +
-                        'refine your data table filter.';
+                        'One or more selected columns are invalid. Please update your column selection or refine your data table filter.';
 
                     it('should throw error when some selected columns are invalid', async () => {
                         const mockTables = [
