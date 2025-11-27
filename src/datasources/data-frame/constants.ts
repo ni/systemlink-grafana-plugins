@@ -29,7 +29,7 @@ export const TAKE_LIMIT = 1000;
 export const COLUMN_OPTIONS_LIMIT = 10000;
 export const TOTAL_ROWS_LIMIT = 1000000;
 
-export const REQUESTS_PER_SECOND = 2;
-export const DELAY_BETWEEN_REQUESTS_MS = 5000;
+export const REQUESTS_PER_SECOND = 6;
+export const DELAY_BETWEEN_REQUESTS_MS = 1000;
 
 export const PART_NUMBER_FIELD = 'partNumber';

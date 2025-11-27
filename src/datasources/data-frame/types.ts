@@ -350,7 +350,7 @@ export interface DecimatedDataRequest {
   tableId: string;
   columns: string[];
   filters: ColumnFilter[];
-  decimationOptions: DecimationOptions;
+  decimation: DecimationOptions;
 }
 
 export function isSystemLinkError(error: any): error is SystemLinkError {

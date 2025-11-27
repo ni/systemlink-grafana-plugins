@@ -271,12 +271,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
             return {
                 tableId,
-                columns: columns.map(c => c.name),
+                columns: columns.map(column => column.name),
                 filters,
-                decimationOptions: {
+                decimation: {
                     method: query.decimationMethod,
                     xColumn: query.xColumn || undefined,
-                    yColumns: this.getNumericColumns(columns).map(c => c.name),
+                    yColumns: this.getNumericColumns(columns).map(column => column.name),
                     intervals,
                 }
             };
@@ -289,7 +289,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             {
                 columns: request.columns,
                 filters: request.filters,
-                decimation: request.decimationOptions,
+                decimation: request.decimation,
             },
             { useApiIngress: true }
         );
