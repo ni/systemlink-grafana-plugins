@@ -1,4 +1,4 @@
-import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
+import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1 } from "../../types";
@@ -8,7 +8,7 @@ import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
-import { catchError, combineLatestWith, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, switchMap } from "rxjs";
+import { catchError, combineLatestWith, from, isObservable, lastValueFrom, map, Observable, of, switchMap } from "rxjs";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
@@ -37,21 +37,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         if (this.shouldQueryForData(processedQuery)) {
-            return (isObservable(processedQuery.columns)
-                ? processedQuery.columns
-                : of(processedQuery.columns)
-            ).pipe(
-                switchMap((columns) => {
-                    if (columns.length === 0) {
-                        return of({
-                            refId: processedQuery.refId,
-                            name: processedQuery.refId,
-                            fields: []
-                        });
-                    }
-                    return this.getDecimatedDataForSelectedColumns$({ ...processedQuery, columns });
-                })
-            );
+            return this.getDecimatedDataForSelectedColumns$(processedQuery);
         }
 
         if (this.shouldQueryForProperties(processedQuery)) {
@@ -227,6 +213,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return columnOptionsWithVariables;
     }
 
+    private buildDataFrame(refId: string): DataFrameDTO {
+        return createDataFrame({
+            refId,
+            name: refId,
+            fields: [],
+        });
+    }
+
     private async getColumnOptions(filter: string): Promise<Option[]> {
         const tables = await lastValueFrom(this.queryTables$(filter, TAKE_LIMIT, [
             DataTableProjections.ColumnName,
@@ -375,63 +369,71 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private getDecimatedDataForSelectedColumns$(
         processedQuery: ValidDataFrameQueryV2
     ): Observable<DataFrameDTO> {
-        const selectedColumns = new Set<string>(
-            processedQuery.columns as string[]
-        );
-        const projections: DataTableProjections[] = [
-            DataTableProjections.ColumnName,
-            DataTableProjections.ColumnDataType,
-            DataTableProjections.ColumnType,
-        ];
-
-        const tables$ = this.queryTables$(
-            processedQuery.dataTableFilter || '',
-            TAKE_LIMIT,
-            projections
-        );
-
-        return tables$.pipe(
-            map(tables => {
-                if (!this.areSelectedColumnsValid(selectedColumns, tables)) {
-                    const errorMessage = 'One or more selected columns are invalid. Please update your column selection or refine your data table filter.';
-                    this.appEvents?.publish?.({
-                        type: AppEvents.alertError.name,
-                        payload: ['Column selection error', errorMessage],
-                    });
-                    throw new Error(errorMessage);
-                } else {
-                    const tableColumnMap = this.buildSelectedColumnsMap(
-                        processedQuery,
-                        tables
+        const selectedColumns$ = isObservable(processedQuery.columns)
+            ? processedQuery.columns
+            : of(processedQuery.columns);
+        return selectedColumns$.pipe(
+            switchMap(selectedColumns => {
+                if (selectedColumns.length === 0) {
+                    return of(
+                        this.buildDataFrame(processedQuery.refId)
                     );
-                    if (Object.keys(tableColumnMap).length > 0) {
-                        // Fetch decimated data for selected columns
-                    }
                 }
 
-                return {
-                    refId: processedQuery.refId,
-                    name: processedQuery.refId,
-                    fields: [],
-                } as DataFrameDTO;
+                const projections: DataTableProjections[] = [
+                    DataTableProjections.ColumnName,
+                    DataTableProjections.ColumnDataType,
+                    DataTableProjections.ColumnType,
+                ];
+
+                const tables$ = this.queryTables$(
+                    processedQuery.dataTableFilter || '',
+                    TAKE_LIMIT,
+                    projections
+                );
+
+                return tables$.pipe(
+                    map(tables => {
+                        if (!this.areSelectedColumnsValid(selectedColumns, tables)) {
+                            const errorMessage = 'One or more selected columns are invalid. Please update your column selection or refine your data table filter.';
+                            this.appEvents?.publish?.({
+                                type: AppEvents.alertError.name,
+                                payload: ['Column selection error', errorMessage],
+                            });
+                            throw new Error(errorMessage);
+                        }
+
+                        const dataframe: DataFrameDTO = this.buildDataFrame(processedQuery.refId);
+
+                        const tableColumnMap = this.buildSelectedColumnsMap(
+                            processedQuery,
+                            tables
+                        );
+                        if (Object.keys(tableColumnMap).length > 0) {
+                            // Fetch decimated data for selected columns
+                        }
+                        
+                        return dataframe;
+                    })
+                );
             })
         );
     }
 
     private areSelectedColumnsValid(
-        selectedColumns: Set<string>,
+        selectedColumns: string[],
         tables: TableProperties[]
     ): boolean {
         const allTableColumns = new Set<string>(
             tables.flatMap(table =>
-                table.columns?.map(col =>
-                    `${col.name}-${this.transformColumnType(col.dataType)}`
+                table.columns?.map(column =>
+                    `${column.name}-${this.transformColumnType(column.dataType)}`
                 ) ?? []
             )
         );
 
-        return Array.from(selectedColumns).every(
-            selectedCol => allTableColumns.has(selectedCol)
+        return selectedColumns.every(
+            selectedColumn => allTableColumns.has(selectedColumn)
         );
     }
 
@@ -439,16 +441,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         processedQuery: ValidDataFrameQueryV2,
         tables: TableProperties[]
     ): Record<string, Column[]> {
-        const tableColumnMap: Record<string, Column[]> = {};
+        const selectedTableColumnsMap: Record<string, Column[]> = {};
         tables.forEach(table => {
             const selectedColumns = this.getSelectedColumnsForTable(
                 processedQuery, table
             );
             if (selectedColumns.length > 0) {
-                tableColumnMap[table.id] = selectedColumns;
+                selectedTableColumnsMap[table.id] = selectedColumns;
             }
         });
-        return tableColumnMap;
+        return selectedTableColumnsMap;
     }
 
     private getSelectedColumnsForTable(
@@ -459,28 +461,19 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return [];
         }
 
-        const selectedColumns = new Set<string>(
-            processedQuery.columns as string[]
-        );
+        const selectedColumns = processedQuery.columns as string[]
         const columnDetails: Column[] = [];
 
         table.columns.forEach(column => {
             const transformedType = this.transformColumnType(column.dataType);
-            const key = `${column.name}-${transformedType}`;
-            if (selectedColumns.has(key)) {
-                const exists = columnDetails
-                    .some(c => c.name === column.name
-                        && c.dataType === column.dataType
-                        && c.columnType === column.columnType
-                    );
-                if (!exists) {
-                    columnDetails.push({
-                        name: column.name,
-                        dataType: column.dataType,
-                        columnType: column.columnType,
-                        properties: {}
-                    });
-                }
+            const selectedColumnId = `${column.name}-${transformedType}`;
+            if (selectedColumns.includes(selectedColumnId)) {
+                columnDetails.push({
+                    name: column.name,
+                    dataType: column.dataType,
+                    columnType: column.columnType,
+                    properties: {}
+                });
             }
         });
         return columnDetails;
