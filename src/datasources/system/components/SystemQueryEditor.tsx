@@ -6,6 +6,7 @@ import { SystemQueryType, SystemQuery } from '../types';
 import { enumToOptions, useWorkspaceOptions } from 'core/utils';
 import { InlineField } from 'core/components/InlineField';
 import { LEGACY_METADATA_TYPE } from 'core/types';
+import { SystemsQueryBuilder } from './query-builder/SystemsQueryBuilder';
 
 type Props = QueryEditorProps<SystemDataSource, SystemQuery>;
 
@@ -22,7 +23,7 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
       onChange(query);
       onRunQuery();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 
   const workspaces = useWorkspaceOptions(datasource);
@@ -41,6 +42,14 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
     onChange({ ...query, workspace: option?.value ?? '' });
     onRunQuery();
   };
+
+  function onParameterChange(ev: CustomEvent) {
+    if (query.filter !== ev.detail.linq) {
+      query.filter = ev.detail.linq;
+      onChange(query);
+      onRunQuery();
+    }
+  }
 
   return (
     <>
@@ -74,6 +83,13 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
               />
             </InlineField>
           )}
+          <InlineField label="Filter" labelWidth={14} tooltip={tooltips.filter}>
+            <SystemsQueryBuilder
+              filter={query.filter}
+              onChange={(event: any) => onParameterChange(event)}
+              globalVariableOptions={datasource.getVariableOptions()}
+            />
+          </InlineField>
         </>
       )}
     </>
@@ -86,4 +102,5 @@ const tooltips = {
   system: `Query for a specific system by its name or ID. If left blank, the plugin returns all
             available systems. You can enter a variable into this field.`,
   workspace: `The workspace to search for the system specified.`,
+  filter: `Filter the systems by various properties. This is an optional field.`,
 };

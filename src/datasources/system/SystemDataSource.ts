@@ -2,18 +2,18 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
-  DataSourceJsonData,
   MetricFindValue,
   TestDataSourceResponse
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
-import { DataSourceBase } from 'core/DataSourceBase';
-import { defaultOrderBy, defaultProjection, systemFields } from './constants';
+import { defaultOrderBy, defaultProjection, systemFields } from './constants/constants';
 import { NetworkUtils } from './network-utils';
 import { SystemQuery, SystemQueryType, SystemSummary, SystemVariableQuery, SystemQueryReturnType, SystemProperties } from './types';
 import { getWorkspaceName } from 'core/utils';
+import { SystemsDataSourceBase } from './components/SystemsDataSourceBase';
+import { transformComputedFieldsQuery } from 'core/query-builder.utils';
 
-export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJsonData> {
+export class SystemDataSource extends SystemsDataSourceBase {
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
@@ -41,10 +41,18 @@ export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJson
         ],
       };
     } else {
+      let processedFilter = query.filter || '';
+      if (processedFilter) {
+        processedFilter = transformComputedFieldsQuery(
+          this.templateSrv.replace(processedFilter, options.scopedVars),
+          this.systemsComputedDataFields
+        );
+      }
       const properties = await this.getSystemProperties(
         this.templateSrv.replace(query.systemName, options.scopedVars),
         defaultProjection,
-        this.templateSrv.replace(query.workspace, options.scopedVars)
+        this.templateSrv.replace(query.workspace, options.scopedVars),
+        processedFilter
       );
       const workspaces = await this.getWorkspaces();
       return {
@@ -69,13 +77,14 @@ export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJson
     }
   }
 
-  async getSystemProperties(systemFilter: string, projection = defaultProjection, workspace?: string) {
+  async getSystemProperties(systemFilter: string, projection = defaultProjection, workspace?: string, filter?: string, systemsComputedDataFields?: any) {
     const filters = [
       systemFilter && `id = "${systemFilter}" || alias = "${systemFilter}"`,
       workspace && !systemFilter && `workspace = "${workspace}"`,
+      filter && filter.trim() !== '' && `(${filter})`,
     ];
     const response = await this.getSystems({
-      filter: filters.filter(Boolean).join(' '),
+      filter: filters.filter(Boolean).join(' && '),
       projection: `new(${projection.join()})`,
       orderBy: defaultOrderBy,
     });

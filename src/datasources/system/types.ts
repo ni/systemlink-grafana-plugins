@@ -9,6 +9,7 @@ export interface SystemQuery extends DataQuery {
   queryKind: SystemQueryType;
   systemName: string;
   workspace: string;
+  filter?: string;
 }
 
 export interface SystemVariableQuery {
@@ -41,3 +42,17 @@ export enum SystemQueryReturnType {
   MinionId = 'Minion Id',
   ScanCode = 'Scan Code'
 }
+
+export enum ConnectionStatus {
+  DISCONNECTED = 'DISCONNECTED',
+  CONNECTED_REFRESH_FAILED = 'CONNECTED_REFRESH_FAILED',
+  CONNECTED = 'CONNECTED',
+  VIRTUAL = 'VIRTUAL',
+};
+
+export const ConnectionStatusOptions = [
+  { label: 'Disconnected', value: ConnectionStatus.DISCONNECTED },
+  { label: 'Connected Refresh Failed', value: ConnectionStatus.CONNECTED_REFRESH_FAILED },
+  { label: 'Connected', value: ConnectionStatus.CONNECTED },
+  { label: 'Virtual', value: ConnectionStatus.VIRTUAL },
+];
