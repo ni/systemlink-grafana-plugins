@@ -6,7 +6,7 @@ import { Workspace, QueryBuilderOption } from 'core/types';
 import { DataSourceQBLookupCallback } from 'datasources/data-frame/types';
 import userEvent from '@testing-library/user-event';
 import { ColumnsQueryBuilder } from './columns-query-builder/ColumnsQueryBuilder';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { ResultsQueryBuilder } from 'shared/components/ResultsQueryBuilder/ResultsQueryBuilder';
 
 jest.mock("datasources/data-frame/components/v2/query-builders/data-table-query-builder/DataTableQueryBuilder", () => ({
@@ -80,7 +80,7 @@ const renderComponent = (
         { id: 'table1', name: 'Table 1', columns: [{ name: 'ColumnA' }, { name: 'ColumnB' }] },
         { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, { name: 'ColumnE' }] },
     ]);
-    const mockErrorQueryTableResponse = of(new Error('Query Tables Error'));
+    const mockErrorQueryTableResponse = throwError(() => new Error('Query Tables Error'));
     const datasource = {
         loadWorkspaces: jest.fn().mockResolvedValue(
             new Map([
