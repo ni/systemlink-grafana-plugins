@@ -21,3 +21,16 @@ export const systemFields = {
   SCAN_CODE: 'scanCode',
 } as const;
 
+export enum AllFieldNames {
+  ID = 'id',
+  ALIAS = 'alias',
+  CONNECTION_STATUS = 'connected.data.state',
+  WORKSPACE = 'workspace',
+  MODEL = 'grains.data.productname',
+  VENDOR = 'grains.data.manufacturer',
+  OS_FULL_NAME = 'grains.data.osfullname',
+  SCAN_CODE = 'scanCode',
+  SYSTEM_START_TIME = 'grains.data.boottime',
+  LOCKED_STATUS = 'grains.data.minion_blackout',
+}
+
