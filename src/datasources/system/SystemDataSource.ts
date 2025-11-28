@@ -139,10 +139,15 @@ export class SystemDataSource extends SystemsDataSourceBase {
     return response.data;
   }
 
-  async metricFindQuery({ queryReturnType }: SystemVariableQuery): Promise<MetricFindValue[]> {
+  async metricFindQuery({ queryReturnType, workspace }: SystemVariableQuery): Promise<MetricFindValue[]> {
     await this.dependenciesLoadedPromise;
 
-    const properties = await this.getSystemProperties('', [systemFields.ID, systemFields.ALIAS, systemFields.SCAN_CODE]);
+    let filter = '';
+    if (workspace) {
+      filter = `workspace = "${workspace}"`;
+    }
+
+    const properties = await this.getSystemProperties(filter, [systemFields.ID, systemFields.ALIAS, systemFields.SCAN_CODE]);
     return properties.map(system => this.getSystemNameForMetricQuery({ queryReturnType }, system));
   }
 
