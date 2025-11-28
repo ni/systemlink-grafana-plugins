@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useTheme2 } from '@grafana/ui';
 import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 import { QBField, QueryBuilderOption, Workspace } from 'core/types';
-import { addOptionsToLookup, filterXSSField, filterXSSLINQExpression } from 'core/utils';
+import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
 import { SystemFields, SystemStaticFields } from 'datasources/system/constants/SystemsQueryBuilder.constants';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';

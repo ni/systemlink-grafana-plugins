@@ -42,7 +42,6 @@ export class SystemDataSource extends SystemsDataSourceBase {
     }
 
     if ((prepared.systemName || prepared.workspace) && prepared.queryKind === SystemQueryType.Properties) {
-      console.log('Building filter from legacy fields');
       prepared.filter = this.buildFilterFromLegacyFields(prepared);
       prepared.systemName = '';
       prepared.workspace = '';
@@ -52,7 +51,6 @@ export class SystemDataSource extends SystemsDataSourceBase {
   }
 
   private buildFilterFromLegacyFields(query: SystemQuery): string {
-    console.log('Am intrat in Building filter from legacy fields');
     const parts: string[] = [];
 
     if (query.filter?.trim()) {
@@ -98,9 +96,8 @@ export class SystemDataSource extends SystemsDataSourceBase {
           this.systemsComputedDataFields
         );
       }
-      console.log('Processed Filter: ', processedFilter);
       const properties = await this.getSystemProperties(processedFilter, defaultProjection);
-      const workspaces = await this.getWorkspaces();
+      const workspaces = this.getCachedWorkspaces();
       return {
         refId: query.refId,
         fields: [
