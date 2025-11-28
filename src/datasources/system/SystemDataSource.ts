@@ -140,6 +140,8 @@ export class SystemDataSource extends SystemsDataSourceBase {
   }
 
   async metricFindQuery({ queryReturnType }: SystemVariableQuery): Promise<MetricFindValue[]> {
+    await this.dependenciesLoadedPromise;
+
     const properties = await this.getSystemProperties('', [systemFields.ID, systemFields.ALIAS, systemFields.SCAN_CODE]);
     return properties.map(system => this.getSystemNameForMetricQuery({ queryReturnType }, system));
   }
