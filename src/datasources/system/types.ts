@@ -49,7 +49,7 @@ export enum ConnectionStatus {
   CONNECTED = 'CONNECTED',
   VIRTUAL = 'VIRTUAL',
   APPROVED = 'APPROVED',
-};
+}
 
 export const ConnectionStatusOptions = [
   { label: 'Disconnected', value: ConnectionStatus.DISCONNECTED },
