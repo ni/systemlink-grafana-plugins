@@ -93,7 +93,7 @@ export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
             };
         });
         setOperations([...customOperations]);
-    }, [globalVariableOptions]);
+    }, [globalVariableOptions, workspaceField, areDependenciesLoaded]);
 
     return (
         <SlQueryBuilder
