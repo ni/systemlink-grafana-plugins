@@ -42,7 +42,7 @@ export class SystemDataSource extends SystemsDataSourceBase {
     }
 
     if ((prepared.systemName || prepared.workspace) && prepared.queryKind === SystemQueryType.Properties) {
-      prepared.filter = this.buildFilterFromLegacyFields(prepared);
+      prepared.filter = this.backwardCompatibility(prepared);
       prepared.systemName = '';
       prepared.workspace = '';
     }
@@ -50,7 +50,7 @@ export class SystemDataSource extends SystemsDataSourceBase {
     return prepared;
   }
 
-  private buildFilterFromLegacyFields(query: SystemQuery): string {
+  private backwardCompatibility(query: SystemQuery): string {
     const parts: string[] = [];
 
     if (query.filter?.trim()) {
@@ -58,10 +58,8 @@ export class SystemDataSource extends SystemsDataSourceBase {
     }
 
     if (query.systemName?.trim()) {
-      const systemPart = `(id = "${query.systemName}" || alias = "${query.systemName}")`;
-      if (!query.filter?.includes('id =') && !query.filter?.includes('alias =')) {
-        parts.push(systemPart);
-      }
+      const systemPart = `(id = "${query.systemName}")`;
+      parts.push(systemPart);
     }
 
     if (query.workspace?.trim() && !query.systemName) {
