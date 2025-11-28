@@ -144,7 +144,8 @@ export class SystemDataSource extends SystemsDataSourceBase {
 
     let filter = '';
     if (workspace) {
-      filter = `workspace = "${workspace}"`;
+      const resolvedWorkspace = this.templateSrv.replace(workspace);
+      filter = `workspace = "${resolvedWorkspace}"`;
     }
 
     const properties = await this.getSystemProperties(filter, [systemFields.ID, systemFields.ALIAS, systemFields.SCAN_CODE]);
