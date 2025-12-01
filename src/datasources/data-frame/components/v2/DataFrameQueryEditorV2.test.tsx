@@ -736,6 +736,123 @@ describe("DataFrameQueryEditorV2", () => {
                         });
                     });
                 });
+
+                describe('onColumnsChange', () => {
+                    let user: UserEvent;
+                    let onChange: jest.Mock;
+                    let onRunQuery: jest.Mock;
+
+                    beforeAll(() => {
+                        jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
+                    });
+
+                    beforeEach(async () => {
+                        user = userEvent.setup();
+                        cleanup();
+                        jest.clearAllMocks();
+                        const result = renderComponent({
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: '',
+                            columns: [],
+                        });
+                        onChange = result.onChange;
+                        onRunQuery = result.onRunQuery;
+
+                        await changeFilterValue('TestFilter');
+                        // Wait for columns to be loaded
+                        await new Promise(resolve => setTimeout(resolve, 50));
+                        onChange.mockClear();
+                    });
+
+                    it('should update the query with selected columns when columns are added', async () => {
+                        await clickColumnOptions();
+
+                        const columnOption = await screen.findByRole('option', { name: 'ColumnA' });
+                        await user.click(columnOption);
+
+                        await waitFor(() => {
+                            expect(onChange).toHaveBeenCalledWith(
+                                expect.objectContaining({
+                                    columns: ['ColumnA'],
+                                })
+                            );
+                            expect(onRunQuery).toHaveBeenCalled();
+                        });
+                    });
+
+                    it('should update the query with multiple selected columns', async () => {
+                        // Add first column
+                        await clickColumnOptions();
+                        const firstColumnOption = await screen.findByRole('option', { name: 'ColumnA' });
+                        await user.click(firstColumnOption);
+                        
+                        await waitFor(() => {
+                            expect(onChange).toHaveBeenCalledWith(
+                                expect.objectContaining({
+                                    columns: ['ColumnA'],
+                                })
+                            );
+                        });
+                        onChange.mockClear();
+
+                        // Wait for re-render to complete after first selection
+                        await waitFor(() => {
+                            expect(screen.getAllByRole('combobox')[0]).toBeInTheDocument();
+                        });
+
+                        // The MultiCombobox should still be open, find the second option
+                        const secondColumnOption = await screen.findByRole('option', { name: 'ColumnB (Numeric)' });
+                        await user.click(secondColumnOption);
+                        await waitFor(() => {
+                            expect(onChange).toHaveBeenCalledWith(
+                                expect.objectContaining({
+                                    columns: ['ColumnA', 'ColumnB-Numeric'],
+                                })
+                            );
+                        });
+                        expect(onRunQuery).toHaveBeenCalled();
+                    });
+
+                    it('should update the query when a column is removed', async () => {
+                        const { onChange, onRunQuery } = renderComponent({
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: 'TestFilter',
+                            columns: ['ColumnA', 'ColumnB-Numeric'],
+                        });
+
+                        const removeButton = screen.getAllByLabelText(/remove/i)[0];
+                        await user.click(removeButton);
+
+                        await waitFor(() => {
+                            expect(onChange).toHaveBeenCalledWith(
+                                expect.objectContaining({
+                                    columns: ['ColumnB-Numeric'],
+                                })
+                            );
+                            expect(onRunQuery).toHaveBeenCalled();
+                        });
+                    });
+
+                    it('should update the query with an empty array when all columns are removed', async () => {
+                        const { onChange, onRunQuery } = renderComponent({
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: 'TestFilter',
+                            columns: ['ColumnA'],
+                        });
+
+                        const removeButton = screen.getByLabelText(/remove/i);
+                        await user.click(removeButton);
+
+                        await waitFor(() => {
+                            expect(onChange).toHaveBeenCalledWith(
+                                expect.objectContaining({
+                                    columns: [],
+                                })
+                            );
+                            expect(onRunQuery).toHaveBeenCalled();
+                        });
+                    });
+                });
             });
 
             describe("include index columns", () => {
@@ -1432,4 +1549,5 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
     });
+
 });
