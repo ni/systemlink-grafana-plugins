@@ -365,6 +365,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private getXColumnOptions(tables: TableProperties[]): Option[] {
+        if (tables.length === 0 || !tables[0].columns) {
+            return [];
+        }
+
         const numericColumns = this.getNumericColumns(tables[0].columns);
         let potentialXColumns = new Set(
             numericColumns.map(column =>
@@ -386,8 +390,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         return Array.from(potentialXColumns).map(column => {
             const parts = column.split('-');
-            const columnValue = parts.slice(0, -1).join('-');
-            const columnName = parts.slice(0, -2).join('-');
+            // Remove the last part which is the original data type
+            parts.pop();
+            // Extract transformed column type
+            const transformedColumnType = parts.pop();
+            const columnName = parts.join('-');
+            const columnValue = `${columnName}-${transformedColumnType}`;
 
             return {
                 label: columnName,
