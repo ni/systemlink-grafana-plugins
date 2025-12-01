@@ -152,4 +152,47 @@ describe('DataTableQueryBuilder', () => {
             ]);
         });
     });
+
+    it('should use updated dataTableNameLookupCallback when prop changes', async () => {
+        const queryBuilderCallback = jest.fn();
+        const initialCallback = jest.fn().mockResolvedValue([
+            { label: 'Initial Table', value: 'initial-table' },
+        ]);
+        const updatedCallback = jest.fn().mockResolvedValue([
+            { label: 'Updated Table', value: 'updated-table' },
+        ]);
+
+        let dataTableNameField: QBFieldWithDataSourceCallback | undefined;
+        slQueryBuilderMock.mockImplementation((props: any) => {
+            dataTableNameField = props.fields?.find(
+              (field: { dataField: string }) => field.dataField === 'name'
+            ) as QBFieldWithDataSourceCallback;
+            return (<></>);
+        });
+
+        const { renderResult } = await renderElement('', [workspace], [], initialCallback);
+        
+        // Re-render with updated callback
+        renderResult.rerender(
+            <DataTableQueryBuilder
+                filter=""
+                workspaces={[workspace]}
+                globalVariableOptions={[]}
+                onChange={jest.fn()}
+                dataTableNameLookupCallback={updatedCallback}
+            />
+        );
+
+        const dataSource = dataTableNameField?.lookup?.dataSource as ((query: string, callback: Function) => void);
+        
+        // Trigger the lookup - should use the updated callback via the ref
+        dataSource('test-', queryBuilderCallback);
+
+        await waitFor(() => {
+            expect(updatedCallback).toHaveBeenCalledWith('test-');
+            expect(queryBuilderCallback).toHaveBeenCalledWith([
+                { "label": "Updated Table", "value": "updated-table" }
+            ]);
+        });
+    });
 });

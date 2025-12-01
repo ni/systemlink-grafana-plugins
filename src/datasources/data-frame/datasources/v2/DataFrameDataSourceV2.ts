@@ -62,8 +62,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
             const filters = {
-                dataTableFilter: processedQuery.dataTableFilter,
                 resultFilter: processedQuery.resultFilter,
+                dataTableFilter: processedQuery.dataTableFilter,
             };
             const tables = await lastValueFrom(this.queryTables$(
                 filters,
@@ -600,8 +600,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const projectionExcludingId = projections
             .filter(projection => projection !== DataTableProjections.Id);
         const filters = {
+            resultFilter: processedQuery.resultFilter,
             dataTableFilter: processedQuery.dataTableFilter,
-            resultFilter: processedQuery.resultFilter
         }
         const tables$ = this.queryTables$(
             filters,
@@ -661,7 +661,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 return response.results.map(result => result.id);
             }),
             catchError(error => {
-                const errorMessage = this.getErrorMessage(error);
+                const errorMessage = this.getErrorMessage(error, 'test results');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
                     payload: ['Error querying test results', errorMessage],
