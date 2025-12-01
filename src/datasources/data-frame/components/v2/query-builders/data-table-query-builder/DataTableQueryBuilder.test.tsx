@@ -171,7 +171,10 @@ describe('DataTableQueryBuilder', () => {
         });
 
         const { renderResult } = await renderElement('', [workspace], [], initialCallback);
-        
+
+        // Capture the dataSource before rerender
+        const dataSource = dataTableNameField?.lookup?.dataSource as ((query: string, callback: Function) => void);
+
         // Re-render with updated callback
         renderResult.rerender(
             <DataTableQueryBuilder
@@ -183,9 +186,7 @@ describe('DataTableQueryBuilder', () => {
             />
         );
 
-        const dataSource = dataTableNameField?.lookup?.dataSource as ((query: string, callback: Function) => void);
-        
-        // Trigger the lookup - should use the updated callback via the ref
+        // Call the original dataSource after rerender
         dataSource('test-', queryBuilderCallback);
 
         await waitFor(() => {
