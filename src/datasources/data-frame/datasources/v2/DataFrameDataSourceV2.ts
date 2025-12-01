@@ -1,14 +1,14 @@
 import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, REQUESTS_PER_SECOND, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse } from "../../types";
+import { COLUMN_OPTIONS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
-import { catchError, combineLatestWith, concatMap, forkJoin, from, lastValueFrom, map, mergeMap, Observable, of, reduce, timer } from "rxjs";
+import { catchError, combineLatestWith, concatMap, forkJoin, from, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap } from "rxjs";
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
@@ -175,18 +175,46 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         take?: number,
         projections?: DataTableProjections[]
     ): Observable<TableProperties[]> {
-        // TODO: Implement logic to combine with result and column filters.
-        return this.queryTablesInternal$(filters.dataTableFilter!, take, projections);
+        const isQueryByResultFeatureEnabled = this.instanceSettings.jsonData?.featureToggles?.queryByResultAndColumnProperties
+        if (filters.resultFilter && isQueryByResultFeatureEnabled) {
+            return this.queryResultIds$(filters.resultFilter).pipe(
+                switchMap(resultIds => {
+                    if (resultIds.length === 0) {
+                        return of([]);
+                    }
+                    const resultFilter = this.buildResultIdFilter(resultIds);
+                    const combinedFilter = this.buildCombinedFilter({
+                        resultFilter,
+                        dataTableFilter: filters.dataTableFilter
+                    });
+                    return this.queryTablesInternal$(
+                        combinedFilter,
+                        take,
+                        projections,
+                        resultIds
+                    );
+                })
+            );
+        }
+        return this.queryTablesInternal$(filters.dataTableFilter || '', take, projections, undefined);
     }
 
     private queryTablesInternal$(
         filter: string,
         take = TAKE_LIMIT,
-        projection?: DataTableProjections[]
+        projection?: DataTableProjections[],
+        substitutions?: string[]
     ): Observable<TableProperties[]> {
+        const requestBody = { 
+            interactive: true, 
+            filter, 
+            take, 
+            projection, 
+            substitutions, 
+        };
         const response = this.post$<TablePropertiesList>(
             `${this.baseUrl}/query-tables`,
-            { filter, take, projection },
+            requestBody,
             { useApiIngress: true }
         );
 
@@ -633,5 +661,59 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
 
         return dataFrame$;
+    }
+
+    private queryResultIds$(resultFilter: string): Observable<string[]> {
+        const queryResultsUrl = `${this.instanceSettings.url}/nitestmonitor/v2/query-results`;
+        const requestBody = {
+            filter: resultFilter,
+            projection: ['id'],
+            take: RESULT_IDS_LIMIT,
+            orderBy: 'UPDATED_AT',
+            descending: true
+        };
+
+        return this.post$<QueryResultsResponse>(
+            queryResultsUrl,
+            requestBody,
+            { showErrorAlert: false }
+        ).pipe(
+            map(response => {
+                if (!response.results || response.results.length === 0) {
+                    return [];
+                }
+                return response.results.map(result => result.id);
+            }),
+            catchError(error => {
+                const errorMessage = this.getErrorMessage(error, 'results');
+                this.appEvents?.publish?.({
+                    type: AppEvents.alertError.name,
+                    payload: ['Error querying test results', errorMessage],
+                });
+                return of([]);
+            })
+        );
+    }
+
+    private buildResultIdFilter(resultIds: string[]): string {
+        if (resultIds.length === 0) {
+            return '';
+        }
+        const placeholders = resultIds.map((_, index) => `@${index}`).join(', ');
+        const resultFilter = `new[] {${placeholders}}.Contains(testResultId)`;
+        return resultFilter;
+    }
+
+    private buildCombinedFilter(filters: CombinedFilters): string {
+        const combinedFilters: string[] = [];
+        
+        if (filters.resultFilter) {
+            combinedFilters.push(`(${filters.resultFilter})`);
+        }
+        if (filters.dataTableFilter) {
+            combinedFilters.push(`(${filters.dataTableFilter})`);
+        }
+        
+        return combinedFilters.join(' && ');
     }
 }

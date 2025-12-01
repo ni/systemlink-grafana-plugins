@@ -1,3 +1,13 @@
+## [4.84.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.83.0...v4.84.0) (2025-12-01)
+
+### Features
+
+* **dataframes:** Update queryTables$ to support result filter using substitution ([#557](https://github.com/ni/systemlink-grafana-plugins/issues/557)) ([83efdb6](https://github.com/ni/systemlink-grafana-plugins/commit/83efdb6de201451d6a013202d82afeca5c5a2e90))
+
+### Bug Fixes
+
+* **dataframe:** Handle query table errors when looking for data table name options in query builder ([#556](https://github.com/ni/systemlink-grafana-plugins/issues/556)) ([d788c58](https://github.com/ni/systemlink-grafana-plugins/commit/d788c586f17a065f29bf7196f8b889d1b1e23598))
+
 ## [4.83.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.82.2...v4.83.0) (2025-11-27)
 
 ### Features
