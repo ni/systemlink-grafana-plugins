@@ -6,7 +6,7 @@ import { Workspace, QueryBuilderOption } from 'core/types';
 import { DataSourceQBLookupCallback } from 'datasources/data-frame/types';
 import userEvent from '@testing-library/user-event';
 import { ColumnsQueryBuilder } from './columns-query-builder/ColumnsQueryBuilder';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { ResultsQueryBuilder } from 'shared/components/ResultsQueryBuilder/ResultsQueryBuilder';
 
 jest.mock("datasources/data-frame/components/v2/query-builders/data-table-query-builder/DataTableQueryBuilder", () => ({
@@ -77,11 +77,17 @@ const renderComponent = (
     resultFilter = '',
     dataTableFilter = '',
     columnFilter = '',
-    queryByResultAndColumnProperties = true
+    queryByResultAndColumnProperties = true,
+    throwErrorFromQueryTables = false
 ) => {
     const onResultFilterChange = jest.fn();
     const onDataTableFilterChange = jest.fn();
     const onColumnFilterChange = jest.fn();
+    const mockValidQueryTableResponse = of([
+        { id: 'table1', name: 'Table 1', columns: [{ name: 'ColumnA' }, { name: 'ColumnB' }] },
+        { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, { name: 'ColumnE' }] },
+    ]);
+    const mockErrorQueryTableResponse = throwError(() => new Error('Query Tables Error'));
     const datasource = {
         loadWorkspaces: jest.fn().mockResolvedValue(
             new Map([
@@ -96,11 +102,8 @@ const renderComponent = (
                 { label: 'Var2', value: 'Value2' },
             ]
         ),
-        queryTables$: queryTablesMock$.mockReturnValue(
-            of([
-                { id: 'table1', name: 'Table 1', columns: [{ name: 'ColumnA' }, { name: 'ColumnB' }] },
-                { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, { name: 'ColumnE' }] },
-            ])
+        queryTables$: jest.fn().mockReturnValue(
+            throwErrorFromQueryTables ? mockErrorQueryTableResponse : mockValidQueryTableResponse
         ),
         instanceSettings: {
             jsonData: { featureToggles: { queryByResultAndColumnProperties } },
@@ -191,6 +194,16 @@ describe('DataFrameQueryBuilderWrapper', () => {
                 expect(optionsList).toBeInTheDocument();
                 expect(within(optionsList).getByText('Table 1:Table 1')).toBeInTheDocument();
                 expect(within(optionsList).getByText('Table 2:Table 2')).toBeInTheDocument();
+            });
+        });
+
+        it('should handle error from queryTables in the DataTableQueryBuilder component', async () => {
+            renderComponent('', '', '', true, true);
+
+            await waitFor(() => {
+                const optionsList = screen.getByTestId('data-table-name-options-list');
+                expect(optionsList).toBeInTheDocument();
+                expect(optionsList.children).toHaveLength(0);
             });
         });
 

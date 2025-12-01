@@ -1,14 +1,14 @@
 import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, CombinedFilters, QueryResultsResponse } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse } from "../../types";
+import { COLUMN_OPTIONS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
-import { catchError, combineLatestWith, from, lastValueFrom, map, Observable, of, switchMap } from "rxjs";
+import { catchError, combineLatestWith, concatMap, forkJoin, from, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap } from "rxjs";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
@@ -61,10 +61,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
-            const filters  = {
+            const filters = {
                 dataTableFilter: processedQuery.dataTableFilter,
                 resultFilter: processedQuery.resultFilter,
-            }
+            };
             const tables = await lastValueFrom(this.queryTables$(
                 filters,
                 TAKE_LIMIT,
@@ -220,7 +220,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return response.pipe(
             map(res => res.tables),
             catchError(error => {
-                const errorMessage = this.getErrorMessage(error);
+                const errorMessage = this.getErrorMessage(error, 'data tables');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
                     payload: ['Error during data tables query', errorMessage],
@@ -249,12 +249,86 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return columnOptionsWithVariables;
     }
 
+    // TODO(#3526598): Make this method private after implementing the runQuery method for data query type.
+    public getDecimatedTableDataInBatches$(
+        tableColumnsMap: Record<string, Column[]>,
+        query: ValidDataFrameQueryV2,
+        timeRange: TimeRange,
+        intervals = 1000
+    ): Observable<Record<string, TableDataRows>> {
+        const decimatedDataRequests = this.getDecimatedDataRequests(
+            tableColumnsMap,
+            query,
+            timeRange,
+            intervals
+        );
+        const batches = _.chunk(decimatedDataRequests, REQUESTS_PER_SECOND);
+
+        return from(batches).pipe(
+            mergeMap((batch, index) =>
+                timer(index * DELAY_BETWEEN_REQUESTS_MS).pipe(
+                    concatMap(() => forkJoin(
+                        batch.map(request =>
+                            this.getDecimatedTableData$(request).pipe(
+                                map(tableDataRows => ({ 
+                                    tableId: request.tableId, 
+                                    data: tableDataRows 
+                                }))
+                            )
+                        )
+                    ))
+                )
+            ),
+            reduce((acc, results) => {
+                results.forEach(({ tableId, data }) => acc[tableId] = data);
+                return acc;
+            }, {} as Record<string, TableDataRows>)
+        );
+    }
+
+    private getDecimatedDataRequests(
+        tableColumnsMap: Record<string, Column[]>,
+        query: ValidDataFrameQueryV2,
+        timeRange: TimeRange,
+        intervals = 1000
+    ): DecimatedDataRequest[] {
+        return Object.entries(tableColumnsMap).map(([tableId, columns]) => {
+            const filters: ColumnFilter[] = query.filterNulls
+                ? this.constructNullFilters(columns)
+                : [];
+
+            return {
+                tableId,
+                columns: columns.map(column => column.name),
+                filters,
+                decimation: {
+                    method: query.decimationMethod,
+                    xColumn: query.xColumn || undefined,
+                    yColumns: this.getNumericColumns(columns).map(column => column.name),
+                    intervals,
+                }
+            };
+        });
+    }
+
+    private getDecimatedTableData$(request: DecimatedDataRequest): Observable<TableDataRows> {
+        return this.post$<TableDataRows>(
+            `${this.baseUrl}/tables/${request.tableId}/query-decimated-data`,
+            {
+                columns: request.columns,
+                filters: request.filters,
+                decimation: request.decimation,
+            },
+            { useApiIngress: true }
+        );
+    }
+
     private async getColumnOptions(dataTableFilter: string): Promise<Option[]> {
         const tables = await lastValueFrom(
-          this.queryTables$({ dataTableFilter }, TAKE_LIMIT, [
-            DataTableProjections.ColumnName,
-            DataTableProjections.ColumnDataType,
-        ]));
+            this.queryTables$({ dataTableFilter }, TAKE_LIMIT, [
+                DataTableProjections.ColumnName,
+                DataTableProjections.ColumnDataType,
+            ]));
 
         const hasColumns = tables.some(
             table => Array.isArray(table.columns)
@@ -278,7 +352,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         return this.getTable(tableId).pipe(
-            map(table => this.migrateColumnsFromV1ToV2(currentColumns, table))
+            map(table => this.migrateColumnsFromV1ToV2(currentColumns, table)),
+            catchError(error => {
+                const errorMessage = this.getErrorMessage(error, 'data table columns');
+                this.appEvents?.publish?.({
+                    type: AppEvents.alertError.name,
+                    payload: ['Error during fetching columns for migration', errorMessage],
+                });
+                return of(currentColumns);
+            })
         );
     }
 
@@ -315,16 +397,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return _.every(array, entry => typeof entry === 'string');
     }
 
-    private getErrorMessage(error: Error): string {
+    private getErrorMessage(error: Error, context: string): string {
         const errorDetails = extractErrorInfo(error.message);
 
         switch (errorDetails.statusCode) {
             case '':
                 return 'The query failed due to an unknown error.';
             case '429':
-                return 'The query to fetch data tables failed due to too many requests. Please try again later.';
+                return `The query to fetch ${context} failed due to too many requests. Please try again later.`;
             case '504':
-                return 'The query to fetch data tables experienced a timeout error. Narrow your query with a more specific filter and try again.';
+                return `The query to fetch ${context} experienced a timeout error. Narrow your query with a more specific filter and try again.`;
             default:
                 return `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
         }
