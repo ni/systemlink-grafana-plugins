@@ -307,8 +307,8 @@ describe('DataFrameDataSource', () => {
         });
     });
 
-    describe('transformQuery', () => {
-        it('should delegate to v2 transformQuery when feature toggle is true', () => {
+    describe('transformDataTableQuery', () => {
+        it('should delegate to v2 transformDataTableQuery when feature toggle is true', () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
             v2Mock.transformDataTableQuery.mockClear();
             
@@ -318,7 +318,7 @@ describe('DataFrameDataSource', () => {
             expect(result).toBe('v2-filter');
         });
 
-        it('should delegate to v1 base transformQuery when feature toggle is false', () => {
+        it('should delegate to v1 base transformDataTableQuery when feature toggle is false', () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
             v1Mock.transformDataTableQuery.mockClear();
             

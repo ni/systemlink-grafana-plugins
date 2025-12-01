@@ -434,7 +434,7 @@ describe('DataFrameDataSourceBase', () => {
         });
     });
 
-    describe('transformQuery', () => {
+    describe('transformDataTableQuery', () => {
         let ds: TestDataFrameDataSource;
 
         beforeEach(() => {
