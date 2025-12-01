@@ -66,13 +66,6 @@ jest.mock("shared/components/ResultsQueryBuilder/ResultsQueryBuilder", () => ({
    ResultsQueryBuilder: jest.fn(() => <div data-testid="mock-results-query-builder" />)
 }));
 
-const queryTablesMock$ = jest.fn().mockReturnValue(
-    of([
-        { id: 'table1', name: 'Table 1', columns: [{ name: 'ColumnA' }, { name: 'ColumnB' }] },
-        { id: 'table2', name: 'Table 2', columns: [{ name: 'ColumnD' }, { name: 'ColumnE' }] },
-    ])
-);
-
 const renderComponent = (
     resultFilter = '',
     dataTableFilter = '',
@@ -128,6 +121,20 @@ const renderComponent = (
                 datasource={datasource}
                 resultFilter={resultFilter}
                 dataTableFilter={event.detail.linq}
+                columnFilter={columnFilter}
+                onResultFilterChange={onResultFilterChange}
+                onDataTableFilterChange={onDataTableFilterChange}
+                onColumnFilterChange={onColumnFilterChange}
+            />
+        );
+    });
+
+    onResultFilterChange.mockImplementation((event) => {
+        renderResult.rerender(
+            <DataFrameQueryBuilderWrapper
+                datasource={datasource}
+                resultFilter={event.detail.linq}
+                dataTableFilter={dataTableFilter}
                 columnFilter={columnFilter}
                 onResultFilterChange={onResultFilterChange}
                 onDataTableFilterChange={onDataTableFilterChange}
@@ -221,10 +228,10 @@ describe('DataFrameQueryBuilderWrapper', () => {
         });
 
         it('should update dataTableNameLookupCallback with new resultFilter', async () => {
-            const { renderResult, onDataTableFilterChange, datasource } = renderComponent('status = "Passed"', 'name = "Test Table"');
+            const { onResultFilterChange, datasource } = renderComponent('status = "Passed"', 'name = "Test Table"');
             
             // Verify queryTables$ was called with the first resultFilter
-            expect(queryTablesMock$).toHaveBeenCalledWith(
+            expect(datasource.queryTables$).toHaveBeenCalledWith(
                 expect.objectContaining({
                     resultFilter: 'status = "Passed"',
                 }),
@@ -233,26 +240,18 @@ describe('DataFrameQueryBuilderWrapper', () => {
             );
 
             // Update resultFilter
-            renderResult.rerender(
-                <DataFrameQueryBuilderWrapper
-                    datasource={datasource}
-                    resultFilter='status = "Failed"'
-                    dataTableFilter=''
-                    columnFilter=''
-                    onResultFilterChange={()=>{}}
-                    onDataTableFilterChange={onDataTableFilterChange}
-                    onColumnFilterChange={()=>{}}
-                />
-            );
+            await onResultFilterChange({ detail: { linq: 'status = "Failed"' } });
 
-            // Verify queryTables$ was called with the updated resultFilter
-            expect(queryTablesMock$).toHaveBeenCalledWith(
+            // Wait for the lookup callback to be triggered with new resultFilter
+            await waitFor(() => {
+                expect(datasource.queryTables$).toHaveBeenCalledWith(
                 expect.objectContaining({
                     resultFilter: 'status = "Failed"',
                 }),
                 expect.anything(),
                 expect.anything()
             );
+            });
         });
     });
 
