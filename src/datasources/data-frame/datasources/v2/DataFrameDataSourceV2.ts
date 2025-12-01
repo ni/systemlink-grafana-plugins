@@ -81,11 +81,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             );
         }
 
-        if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
-            const filters = {
-                resultFilter: processedQuery.resultFilter,
-                dataTableFilter: processedQuery.dataTableFilter,
-            };
+        const filters = {
+            resultFilter: processedQuery.resultFilter,
+            dataTableFilter: processedQuery.dataTableFilter,
+        };
+
+        if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {           
             const tables = await lastValueFrom(this.queryTables$(
                 filters,
                 TAKE_LIMIT,
@@ -97,7 +98,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             }));
         }
 
-        const columns = await this.getColumnOptions(processedQuery.dataTableFilter);
+        const columns = await this.getColumnOptions(filters);
         const limitedColumns = columns.splice(0, COLUMN_OPTIONS_LIMIT);
 
         return limitedColumns.map(column => ({
@@ -260,9 +261,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return Promise.resolve([]);
     }
 
-    public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
+    public async getColumnOptionsWithVariables(filters: CombinedFilters): Promise<Option[]> {
         const columnOptionsWithoutVariables = await this.getColumnOptions(
-            filter
+            filters
         );
         const columnOptionsWithVariables = [
             ...this.getVariableOptions(),
@@ -345,9 +346,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
-    private async getColumnOptions(dataTableFilter: string): Promise<Option[]> {
+    private async getColumnOptions(filters: CombinedFilters): Promise<Option[]> {
         const tables = await lastValueFrom(
-            this.queryTables$({ dataTableFilter }, TAKE_LIMIT, [
+            this.queryTables$(filters, TAKE_LIMIT, [
                 DataTableProjections.ColumnName,
                 DataTableProjections.ColumnDataType,
             ]));

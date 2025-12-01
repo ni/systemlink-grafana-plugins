@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery, CombinedFilters } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
+import _ from 'lodash';
 import {
     errorMessages,
     INLINE_LABEL_WIDTH,
@@ -16,7 +17,6 @@ import {
     tooltips,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { isObservable, lastValueFrom } from 'rxjs';
-import _ from 'lodash';
 export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRunQuery, datasource }: Props) => {
     const migratedQuery = datasource.processQuery(query as DataFrameDataQuery) as ValidDataFrameQueryV2;
 
@@ -41,16 +41,19 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const dataTablePropertiesOptions = getPropertiesOptions(DataTableProjectionType.DataTable);
     const columnPropertiesOptions = getPropertiesOptions(DataTableProjectionType.Column);
 
-    const lastFilterRef = useRef<string>('');
+    const lastFilterRef = useRef<CombinedFilters>({
+        resultFilter: '',
+        dataTableFilter: ''
+    });
 
     const fetchAndSetColumnOptions = useCallback(
-        async (filter: string) => {
-            if (!filter) {
+        async (filters: CombinedFilters) => {
+            if (!filters.dataTableFilter && !filters.resultFilter) {
                 return;
             }
 
             try {
-                const columnOptions = await datasource.getColumnOptionsWithVariables(filter);
+                const columnOptions = await datasource.getColumnOptionsWithVariables(filters);
                 const limitedColumnOptions = columnOptions.slice(0, COLUMN_OPTIONS_LIMIT);
                 setIsColumnLimitExceeded(columnOptions.length > COLUMN_OPTIONS_LIMIT);
                 setColumnOptions(limitedColumnOptions);
@@ -66,8 +69,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     useEffect(
         () => {
             const dataTableFilter = migratedQuery.dataTableFilter;
-            const transformedFilter = datasource.transformDataTableQuery(dataTableFilter);
-            const filterChanged = lastFilterRef.current !== transformedFilter;
+            const resultFilter = migratedQuery.resultFilter;
+            const transformedFilter = {
+                resultFilter: datasource.transformResultQuery(resultFilter),
+                dataTableFilter: datasource.transformDataTableQuery(dataTableFilter),
+            };
+
+            const filterChanged = !_.isEqual(lastFilterRef.current, transformedFilter);
 
             if (migratedQuery.type !== DataFrameQueryType.Data || !filterChanged) {
                 return;
@@ -90,6 +98,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         [
             migratedQuery.type,
             migratedQuery.dataTableFilter,
+            migratedQuery.resultFilter,
             datasource.variablesCache,
             fetchAndSetColumnOptions,
             datasource,
