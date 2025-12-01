@@ -1,4 +1,4 @@
-import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
+import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse } from "../../types";
@@ -8,7 +8,7 @@ import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
-import { catchError, combineLatestWith, concatMap, forkJoin, from, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap } from "rxjs";
+import { catchError, combineLatestWith, concatMap, forkJoin, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap } from "rxjs";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
@@ -33,6 +33,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             processedQuery.dataTableFilter = this.transformQuery(
                 processedQuery.dataTableFilter,
                 options.scopedVars
+            );
+        }
+
+        if (this.shouldQueryForData(processedQuery)) {
+            return this.getFieldsForDataQuery$(
+                processedQuery
             );
         }
 
@@ -175,13 +181,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         take?: number,
         projections?: DataTableProjections[]
     ): Observable<TableProperties[]> {
-        if (filters.resultFilter) {
+        const isQueryByResultFeatureEnabled = this.instanceSettings.jsonData?.featureToggles?.queryByResultAndColumnProperties
+        if (filters.resultFilter && isQueryByResultFeatureEnabled) {
             return this.queryResultIds$(filters.resultFilter).pipe(
                 switchMap(resultIds => {
                     if (resultIds.length === 0) {
                         return of([]);
                     }
-                    const {resultFilter, substitutions} = this.buildResultIdFilter(resultIds);
+                    const resultFilter = this.buildResultIdFilter(resultIds);
                     const combinedFilter = this.buildCombinedFilter({
                         resultFilter,
                         dataTableFilter: filters.dataTableFilter
@@ -190,12 +197,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         combinedFilter,
                         take,
                         projections,
-                        substitutions
+                        resultIds
                     );
                 })
             );
         }
-        return this.queryTablesInternal$(filters.dataTableFilter || '', take, projections);
+        return this.queryTablesInternal$(filters.dataTableFilter || '', take, projections, undefined);
     }
 
     private queryTablesInternal$(
@@ -205,11 +212,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         substitutions?: string[]
     ): Observable<TableProperties[]> {
         const requestBody = { 
+            interactive: true, 
             filter, 
             take, 
             projection, 
             substitutions, 
-            interactive: true 
         };
         const response = this.post$<TablePropertiesList>(
             `${this.baseUrl}/query-tables`,
@@ -473,6 +480,138 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
+    private shouldQueryForData(query: ValidDataFrameQueryV2): boolean {
+        return query.type === DataFrameQueryType.Data;
+    }
+
+    private getFieldsForDataQuery$(
+        processedQuery: ValidDataFrameQueryV2
+    ): Observable<DataFrameDTO> {
+        return this.getDecimatedDataForSelectedColumns$(
+            processedQuery
+        )
+    }
+
+    private getDecimatedDataForSelectedColumns$(
+        processedQuery: ValidDataFrameQueryV2
+    ): Observable<DataFrameDTO> {
+        const selectedColumns$ = isObservable(processedQuery.columns)
+            ? processedQuery.columns
+            : of(processedQuery.columns);
+        return selectedColumns$.pipe(
+            switchMap(selectedColumns => {
+                if (selectedColumns.length === 0) {
+                    return of(
+                        this.buildDataFrame(processedQuery.refId)
+                    );
+                }
+
+                const projections: DataTableProjections[] = [
+                    DataTableProjections.ColumnName,
+                    DataTableProjections.ColumnDataType,
+                    DataTableProjections.ColumnType,
+                ];
+
+                const tables$ = this.queryTables$(
+                    { 
+                        dataTableFilter: processedQuery.dataTableFilter 
+                    },
+                    TAKE_LIMIT,
+                    projections
+                );
+
+                return tables$.pipe(
+                    map(tables => {
+                        if (!this.areSelectedColumnsValid(selectedColumns, tables)) {
+                            const errorMessage = 'One or more selected columns are invalid. Please update your column selection or refine your filters.';
+                            this.appEvents?.publish?.({
+                                type: AppEvents.alertError.name,
+                                payload: ['Column selection error', errorMessage],
+                            });
+                            throw new Error(errorMessage);
+                        }
+
+                        const selectedTableColumnMap = this.buildSelectedColumnsMap(
+                            selectedColumns,
+                            tables
+                        );
+                        if (Object.keys(selectedTableColumnMap).length > 0) {
+                            // TODO: Implement fetching decimated data for selected columns if needed.
+                        }
+                        
+                        return this.buildDataFrame(processedQuery.refId);
+                    })
+                );
+            })
+        );
+    }
+
+    private areSelectedColumnsValid(
+        selectedColumns: string[],
+        tables: TableProperties[]
+    ): boolean {
+        const allTableColumns = new Set<string>(
+            tables.flatMap(table =>
+                table.columns?.map(column =>
+                    `${column.name}-${this.transformColumnType(column.dataType)}`
+                ) ?? []
+            )
+        );
+
+        return selectedColumns.every(
+            selectedColumn => allTableColumns.has(selectedColumn)
+        );
+    }
+
+    private buildSelectedColumnsMap(
+        selectedColumns: string[],
+        tables: TableProperties[]
+    ): Record<string, Column[]> {
+        const selectedTableColumnsMap: Record<string, Column[]> = {};
+        tables.forEach(table => {
+            const selectedColumnsForTable = this.getSelectedColumnsForTable(
+                selectedColumns, table
+            );
+            if (selectedColumnsForTable.length > 0) {
+                selectedTableColumnsMap[table.id] = selectedColumnsForTable;
+            }
+        });
+        return selectedTableColumnsMap;
+    }
+
+    private getSelectedColumnsForTable(
+        selectedColumns: string[],
+        table: TableProperties
+    ): Column[] {
+        if (!Array.isArray(table.columns) || table.columns.length === 0) {
+            return [];
+        }
+
+        const selectedColumnDetails: Column[] = [];
+
+        table.columns.forEach(column => {
+            const transformedColumnType = this.transformColumnType(column.dataType);
+            const tableColumnId = `${column.name}-${transformedColumnType}`;
+            if (selectedColumns.includes(tableColumnId)) {
+                selectedColumnDetails.push({
+                    name: column.name,
+                    dataType: column.dataType,
+                    columnType: column.columnType,
+                    properties: {}
+                });
+            }
+        });
+        return selectedColumnDetails;
+    }
+
+    private buildDataFrame(refId: string): DataFrameDTO {
+        return createDataFrame({
+            refId,
+            name: refId,
+            fields: [],
+        });
+    }
+
     private get dataTableComputedDataFields(): Map<string, ExpressionTransformFunction> {
         const computedFields = new Map<string, ExpressionTransformFunction>();
         const queryBuilderFieldNames = new Set(Object.values(DataTableQueryBuilderFieldNames));
@@ -661,7 +800,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 return response.results.map(result => result.id);
             }),
             catchError(error => {
-                const errorMessage = this.getErrorMessage(error, 'test results');
+                const errorMessage = this.getErrorMessage(error, 'results');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
                     payload: ['Error querying test results', errorMessage],
@@ -671,13 +810,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
-    private buildResultIdFilter(resultIds: string[]): { resultFilter: string; substitutions: string[] } {
+    private buildResultIdFilter(resultIds: string[]): string {
         if (resultIds.length === 0) {
-            return { resultFilter: '', substitutions: [] };
+            return '';
         }
         const placeholders = resultIds.map((_, index) => `@${index}`).join(', ');
         const resultFilter = `new[] {${placeholders}}.Contains(testResultId)`;
-        return { resultFilter, substitutions: resultIds };
+        return resultFilter;
     }
 
     private buildCombinedFilter(filters: CombinedFilters): string {
