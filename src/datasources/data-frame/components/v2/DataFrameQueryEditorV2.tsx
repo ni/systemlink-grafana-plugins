@@ -225,7 +225,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     const onXColumnChange = (option: ComboboxOption<string> | null) => {
         const xColumn = option ? option.value : null;
-        handleQueryChange({ ...migratedQuery, xColumn }, false);
+        handleQueryChange({ ...migratedQuery, xColumn });
     };
 
     const onUseTimeRangeChange = (event: React.FormEvent<HTMLInputElement>) => {

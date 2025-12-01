@@ -2283,7 +2283,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.xColumns).toEqual([]);
             });
 
-            it('should return only common columns across all tables as xColumn options', async () => {
+            it('should return only common numeric columns across all tables as xColumn options', async () => {
                 queryTablesMock$.mockReturnValue(of([
                     {
                         id: '1',
@@ -2308,8 +2308,7 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await ds.getColumnOptionsWithVariables('some-filter');
 
                 expect(result.xColumns).toEqual([
-                    { label: 'Column 1', value: 'Column 1-Numeric' },
-                    { label: 'Column 2', value: 'Column 2-String' }
+                    { label: 'Column 1', value: 'Column 1-Numeric' }
                 ]);
             });
 
@@ -2368,8 +2367,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.xColumns).toEqual([
                     { label: '$var1', value: '$var1' },
                     { label: '$var2', value: '$var2' },
-                    { label: 'Column 1', value: 'Column 1-Numeric' },
-                    { label: 'Column 2', value: 'Column 2-String' }
+                    { label: 'Column 1', value: 'Column 1-Numeric' }
                 ]);
             });
 
@@ -2380,15 +2378,15 @@ describe('DataFrameDataSourceV2', () => {
                         name: 'Table 1',
                         columns: [
                             { name: 'Column 1', dataType: 'INT32' },
-                            { name: 'Column 2', dataType: 'STRING' }
+                            { name: 'Column 2', dataType: 'INT32' }
                         ]
                     },
                     {
                         id: '2',
                         name: 'Table 2',
                         columns: [
-                            { name: 'Column 1', dataType: 'BOOLEAN' },
-                            { name: 'Column 2', dataType: 'STRING' }
+                            { name: 'Column 1', dataType: 'INT32' },
+                            { name: 'Column 2', dataType: 'FLOAT32' }
                         ]
                     }
                 ]));
@@ -2396,7 +2394,35 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await ds.getColumnOptionsWithVariables('some-filter');
 
                 expect(result.xColumns).toEqual([
-                    { label: 'Column 2', value: 'Column 2-String' }
+                    { label: 'Column 1', value: 'Column 1-Numeric' }
+                ]);
+            });
+
+            it('should return properly when the column name contains "-" character', async () => {
+                queryTablesMock$.mockReturnValue(of([
+                    {
+                        id: '1',
+                        name: 'Table 1',
+                        columns: [
+                            { name: 'column-1', dataType: 'INT32' },
+                            { name: 'column-2', dataType: 'INT32' }
+                        ]
+                    },
+                    {
+                        id: '2',
+                        name: 'Table 2',
+                        columns: [
+                            { name: 'column-1', dataType: 'INT32' },
+                            { name: 'column-2', dataType: 'INT32' }
+                        ]
+                    }
+                ]));
+
+                const result = await ds.getColumnOptionsWithVariables('some-filter');
+
+                expect(result.xColumns).toEqual([
+                    { label: 'column-1', value: 'column-1-Numeric' },
+                    { label: 'column-2', value: 'column-2-Numeric' }
                 ]);
             });
         });

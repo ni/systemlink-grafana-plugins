@@ -247,14 +247,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     public async getColumnOptionsWithVariables(
         filter: string
     ): Promise<ColumnOptions> {
-        const columnOptionsWithoutVariables = await this.getColumnOptions(filter);
+        const columnOptions = await this.getColumnOptions(filter);
         const columnOptionsWithVariables = [
             ...this.getVariableOptions(),
-            ...columnOptionsWithoutVariables.allColumns
+            ...columnOptions.allColumns
         ];
         const xColumnOptionsWithVariables = [
             ...this.getVariableOptions(),
-            ...columnOptionsWithoutVariables.xColumns
+            ...columnOptions.xColumns
         ];
         return { allColumns: columnOptionsWithVariables, xColumns: xColumnOptionsWithVariables };
     }
@@ -363,17 +363,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private getXColumnOptions(tables: TableProperties[]): Option[] {
-        // TODO: Filter only numeric columns for X columns
+        const numericColumns = this.getNumericColumns(tables[0].columns);
         let potentialXColumns = new Set(
-            tables[0].columns.map(
-                column => `${column.name}-${this.transformColumnType(column.dataType)}`
+            numericColumns.map(column =>
+                `${column.name}-${this.transformColumnType(column.dataType)}-${column.dataType}`
             )
         );
 
         for (let i = 1; (i < tables.length) && (potentialXColumns.size > 0); i++) {
             const tableColumnsSet = new Set(
-                tables[i].columns.map(
-                    column => `${column.name}-${this.transformColumnType(column.dataType)}`
+                tables[i].columns.map(column =>
+                    `${column.name}-${this.transformColumnType(column.dataType)}-${column.dataType}`
                 )
             );
 
@@ -382,9 +382,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             );
         }
 
-        return Array.from(potentialXColumns).map(columnValue => {
-            const parts = columnValue.split('-');
-            const columnName = parts.slice(0, -1).join('-');
+        return Array.from(potentialXColumns).map(column => {
+            const parts = column.split('-');
+            const columnValue = parts.slice(0, -1).join('-');
+            const columnName = parts.slice(0, -2).join('-');
 
             return {
                 label: columnName,
