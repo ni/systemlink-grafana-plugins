@@ -1598,6 +1598,134 @@ describe("DataFrameQueryEditorV2", () => {
                         expect(onRunQuery).toHaveBeenCalled();
                     });
                 });
+
+                describe('x-column validation', () => {
+                    beforeAll(() => {
+                        jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
+                            .mockReturnValue(300);
+                    });
+
+                    beforeEach(() => {
+                        cleanup();
+                        jest.clearAllMocks();
+                    });
+
+                    it('should not show validation error when selected x-column is in the options list', async () => {
+                        const xColumns = [
+                            { label: 'ColumnA', value: 'ColumnA' },
+                            { label: 'ColumnB', value: 'ColumnB' },
+                        ];
+
+                        renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                dataTableFilter: 'TestFilter',
+                                xColumn: 'ColumnA',
+                            },
+                            '',
+                            '',
+                            [],
+                            xColumns
+                        );
+
+                        await waitFor(() => {
+                            expect(screen.queryByText(errorMessages.xColumnSelectionInvalid))
+                                .not.toBeInTheDocument();
+                        });
+                    });
+
+                    it('should show validation error when selected x-column is not in the options list', async () => {
+                        const xColumns = [
+                            { label: 'ColumnA', value: 'ColumnA' },
+                        ];
+
+                        renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                dataTableFilter: 'TestFilter',
+                                xColumn: 'MissingColumn',
+                            },
+                            '',
+                            '',
+                            [],
+                            xColumns
+                        );
+
+                        await waitFor(() => {
+                            expect(screen.getByText(errorMessages.xColumnSelectionInvalid))
+                                .toBeInTheDocument();
+                        });
+                    });
+
+                    it('should not show validation error when x-column is null', async () => {
+                        const xColumns = [
+                            { label: 'ColumnA', value: 'ColumnA' },
+                        ];
+
+                        renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                dataTableFilter: 'TestFilter',
+                                xColumn: null,
+                            },
+                            '',
+                            '',
+                            [],
+                            xColumns
+                        );
+
+                        await waitFor(() => {
+                            expect(screen.queryByText(errorMessages.xColumnSelectionInvalid))
+                                .not.toBeInTheDocument();
+                        });
+                    });
+
+                    it('should update validation state when x-column options change', async () => {
+                        const initialXColumns = [
+                            { label: 'ColumnA', value: 'ColumnA' },
+                        ];
+                        const { datasource } = renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                dataTableFilter: 'InitialFilter',
+                                xColumn: 'ColumnA',
+                            },
+                            '',
+                            '',
+                            [],
+                            initialXColumns
+                        );
+
+                        // Initially, validation should pass
+                        await waitFor(() => {
+                            expect(screen.queryByText(errorMessages.xColumnSelectionInvalid))
+                                .not.toBeInTheDocument();
+                        });
+
+                        // Update x-column options to not include ColumnA
+                        const updatedXColumns = [
+                            { label: 'ColumnB', value: 'ColumnB' },
+                        ];
+                        datasource.getColumnOptionsWithVariables = jest.fn().mockResolvedValue({
+                            allColumns: [],
+                            xColumns: updatedXColumns
+                        });
+                        // Trigger filter change to reload options
+                        const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                        const { onDataTableFilterChange } = props;
+                        const mockEvent = {
+                            detail: { linq: 'UpdatedFilter' }
+                        } as Event & { detail: { linq: string; }; };
+
+                        onDataTableFilterChange(mockEvent);
+
+                        // Now validation should fail since ColumnA is not in the updated options
+                        await waitFor(() => {
+                            expect(screen.getByText(errorMessages.xColumnSelectionInvalid))
+                                .toBeInTheDocument();
+                        });
+                    });
+                });
             });
 
             describe("use time range", () => {

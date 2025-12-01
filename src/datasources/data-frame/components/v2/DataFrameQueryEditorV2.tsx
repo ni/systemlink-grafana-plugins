@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery } from "../../types";
@@ -105,6 +105,14 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             datasource,
         ]
     );
+
+    const isXColumnSelectionInvalid = useMemo((): boolean => {
+        if (!migratedQuery.xColumn) {
+            return false;
+        }
+        const found = xColumnOptions.find(option => option.value === migratedQuery.xColumn);
+        return !found;
+    }, [migratedQuery.xColumn, xColumnOptions]);
 
     const handleQueryChange = useCallback(
         (query: DataFrameQueryV2, runQuery = true): void => {
@@ -384,6 +392,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             label={labels.xColumn}
                             labelWidth={INLINE_LABEL_WIDTH}
                             tooltip={tooltips.xColumn}
+                            invalid={isXColumnSelectionInvalid}
+                            error={isXColumnSelectionInvalid ? errorMessages.xColumnSelectionInvalid : ''}
                         >
                             <Combobox
                                 placeholder={placeholders.xColumn}
