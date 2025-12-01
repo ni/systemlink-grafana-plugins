@@ -98,6 +98,7 @@ const renderComponent = (
         queryTables$: jest.fn().mockReturnValue(
             throwErrorFromQueryTables ? mockErrorQueryTableResponse : mockValidQueryTableResponse
         ),
+        transformResultQuery: jest.fn((filter: string) => `test $${filter}`),
         instanceSettings: {
             jsonData: { featureToggles: { queryByResultAndColumnProperties } },
         },
@@ -252,6 +253,31 @@ describe('DataFrameQueryBuilderWrapper', () => {
                 expect.anything()
             );
             });
+        });
+
+        it('should call transformResultQuery in dataTableNameLookupCallback when resultFilter is provided', async () => {
+            const { datasource } = renderComponent('status = "Passed"', 'name = "Test Table"');
+            
+            await waitFor(() => {
+                expect(datasource.transformResultQuery).toHaveBeenCalledWith('status = "Passed"');
+                expect(datasource.queryTables$).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        resultFilter: 'test $status = "Passed"',
+                    }),
+                    expect.anything(),
+                    expect.anything()
+                );
+            });
+        });
+
+        it('should not call transformResultQuery when resultFilter is empty', async () => {
+            const { datasource } = renderComponent('', 'name = "Test Table"');
+            
+            await waitFor(() => {
+                expect(datasource.queryTables$).toHaveBeenCalled();
+            });
+
+            expect(datasource.transformResultQuery).not.toHaveBeenCalled();
         });
     });
 

@@ -115,6 +115,10 @@ export abstract class DataFrameDataSourceBase<
         return this.templateSrv.replace(query);
     }
 
+    public transformResultQuery(filter: string) {
+        return this.templateSrv.replace(filter);
+    }
+
     protected constructNullFilters(columns: Column[]): ColumnFilter[] {
         return columns.flatMap(({ name, columnType, dataType }) => {
             const filters: ColumnFilter[] = [];

@@ -458,4 +458,29 @@ describe('DataFrameDataSourceBase', () => {
             expect(() => ds.transformDataTableQuery(query)).toThrow('replace failed');
         });
     });
+
+    describe('transformResultQuery', () => {
+        let ds: TestDataFrameDataSource;
+
+        beforeEach(() => {
+            ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+        });
+
+        it('should return the replaced filter string', () => {
+            const filter = 'status = $status';
+            (templateSrv.replace as jest.Mock).mockReturnValue('status = "Passed"');  
+            
+            const result = ds.transformResultQuery(filter);
+            
+            expect(result).toBe('status = "Passed"');
+        });
+
+        it('should propagate errors thrown by templateSrv.replace', () => {
+            const filter = 'errorFilter';
+            
+            (templateSrv.replace as jest.Mock).mockImplementation(() => { throw new Error('replace failed'); });
+            
+            expect(() => ds.transformResultQuery(filter)).toThrow('replace failed');
+        });
+    });
 });
