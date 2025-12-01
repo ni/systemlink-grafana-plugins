@@ -3,12 +3,13 @@ import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
-import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
+import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
 import { catchError, combineLatestWith, concatMap, forkJoin, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap } from "rxjs";
+import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
@@ -30,7 +31,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const processedQuery = this.processQuery(query);
 
         if (processedQuery.dataTableFilter) {
-            processedQuery.dataTableFilter = this.transformQuery(
+            processedQuery.dataTableFilter = this.transformDataTableQuery(
                 processedQuery.dataTableFilter,
                 options.scopedVars
             );
@@ -60,7 +61,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const processedQuery = this.processVariableQuery(query);
 
         if (processedQuery.dataTableFilter) {
-            processedQuery.dataTableFilter = this.transformQuery(
+            processedQuery.dataTableFilter = this.transformDataTableQuery(
                 processedQuery.dataTableFilter,
                 options?.scopedVars! || ''
             );
@@ -386,10 +387,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         });
     }
 
-    public transformQuery(query: string, scopedVars: ScopedVars = this.scopedVars) {
+    public transformDataTableQuery(query: string, scopedVars: ScopedVars = this.scopedVars) {
         return transformComputedFieldsQuery(
             this.templateSrv.replace(query, scopedVars),
             this.dataTableComputedDataFields,
+        );
+    }
+
+    public transformResultQuery(query: string, scopedVars: ScopedVars = this.scopedVars) {
+        return transformComputedFieldsQuery(
+            this.templateSrv.replace(query, scopedVars),
+            this.resultsComputedDataFields,
         );
     }
 
@@ -631,6 +639,26 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         return computedFields;
     }
+
+    protected readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
+        Object.values(ResultsQueryBuilderFieldNames).map(field => {
+          let callback;
+          
+          switch (field) {
+            case ResultsQueryBuilderFieldNames.UPDATED_AT:
+            case ResultsQueryBuilderFieldNames.STARTED_AT:
+              callback = timeFieldsQuery(field);
+              break;
+            case ResultsQueryBuilderFieldNames.KEYWORDS:
+              callback = listFieldsQuery(field);
+              break;
+            default:
+              callback = multipleValuesQuery(field);
+          }
+    
+          return [field, callback];
+        })
+    );
 
     private isTimeField(field: DataTableProperties): boolean {
         const timeFields = [

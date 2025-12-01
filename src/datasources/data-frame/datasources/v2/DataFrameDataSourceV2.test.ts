@@ -2340,14 +2340,14 @@ describe('DataFrameDataSourceV2', () => {
         });
     });
 
-    describe('transformQuery', () => {
+    describe('transformDataTableQuery', () => {
         it('should transform with the new scopedVariables when passed in as parameter', () => {
             const input = 'name = "${Table}" AND id != "abc"';
             const scopedVars = {
                 Table: { text: 'Table2', value: 'Table2' }
             };
-
-            ds.transformQuery(input, scopedVars);
+            
+            ds.transformDataTableQuery(input, scopedVars);    
             expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
         })
 
@@ -2365,7 +2365,7 @@ describe('DataFrameDataSourceV2', () => {
             await lastValueFrom(ds.runQuery(query, options));
             const input = 'name = "${Table}" AND id != "abc"';
             
-            ds.transformQuery(input);   
+            ds.transformDataTableQuery(input);   
  
             expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
         });
@@ -2374,7 +2374,7 @@ describe('DataFrameDataSourceV2', () => {
             const input = 'name = "${Table}" AND id != "abc"';
             templateSrv.replace.mockReturnValue('name = "Table1" AND id != "abc"');
             
-            const result = ds.transformQuery(input);
+            const result = ds.transformDataTableQuery(input);
 
             expect(result).toBe('name = "Table1" AND id != "abc"');
         })
@@ -2382,7 +2382,7 @@ describe('DataFrameDataSourceV2', () => {
         it('should transform and expand multi-value variables', () => {
             const input = 'name = "{Table1,Table2}" AND id != "abc"';
 
-            const result = ds.transformQuery(input);
+            const result = ds.transformDataTableQuery(input);
 
             expect(result).toBe('(name = "Table1" || name = "Table2") AND id != "abc"');
         });
@@ -2390,11 +2390,76 @@ describe('DataFrameDataSourceV2', () => {
         it('should replace ${__now:date} placeholder in time fields', () => {
             const input = 'createdAt >= "${__now:date}"';
 
-            const result = ds.transformQuery(input);
+            const result = ds.transformDataTableQuery(input);
 
             //Check if result matches ISO date format
             expect(result).toMatch(/^createdAt >= "\d{4}-\d{2}-\d{2}T.+Z"$/);
             expect(result).not.toContain('${__now:date}');
+        });
+    });
+    
+    describe('transformResultQuery', () => {
+        it('should transform with the new scopedVariables when passed in as parameter', () => {
+            const input = 'Name = "${Result}" AND Id != "abc"';
+            const scopedVars = {
+                Result: { text: 'Result2', value: 'Result2' }
+            };
+            
+            ds.transformResultQuery(input, scopedVars);    
+            expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
+        })
+
+        it('should transform with saved scopedVariables when not passed in as parameter', async () => {
+            const scopedVars = {
+                name: { value: 'Test Result' }
+            }
+            const query = {
+                type: DataFrameQueryType.Data,
+                dataTableFilter: '',
+            } as DataFrameQueryV2;
+            const options = {
+                scopedVars: scopedVars
+            } as unknown as DataQueryRequest<DataFrameQueryV2>;
+            await lastValueFrom(ds.runQuery(query, options));
+            const input = 'Name = "${Result}" AND Id != "abc"';
+            
+            ds.transformResultQuery(input);   
+ 
+            expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
+        });
+
+        it('should replace single-value variables', () => {
+            const input = 'Name = "${Result}" AND Id != "abc"';
+            templateSrv.replace.mockReturnValue('Name = "Result1" AND Id != "abc"');
+            
+            const result = ds.transformResultQuery(input);
+
+            expect(result).toBe('Name = "Result1" AND Id != "abc"');
+        });
+
+        it('should transform and expand multi-value variables', () => {
+            const input = 'HostName = "{host1,host2}" AND Id != "abc"';
+            const result = ds.transformResultQuery(input);
+
+            expect(result).toBe('(HostName = "host1" || HostName = "host2") AND Id != "abc"');
+        });
+
+        it('should replace ${__now:date} placeholder in time fields', () => {
+            const input = 'UpdatedAt >= "${__now:date}"';
+
+            const result = ds.transformResultQuery(input);
+
+            //Check if result matches ISO date format
+            expect(result).toMatch(/^UpdatedAt >= "\d{4}-\d{2}-\d{2}T.+Z"$/);
+            expect(result).not.toContain('${__now:date}');
+        });
+
+        it('should transform list field in query', () => {
+            const input = 'Keywords.Contains("{keyword1,keyword2}")';
+            
+            const result = ds.transformResultQuery(input);
+            
+            expect(result).toBe('(Keywords.Contains("keyword1") || Keywords.Contains("keyword2"))');
         });
     });
 });
