@@ -69,9 +69,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     useEffect(
         () => {
             const dataTableFilter = migratedQuery.dataTableFilter;
-            const resultFilter = migratedQuery.resultFilter;
+            const resultFilter = migratedQuery.resultFilter || '';
             const transformedFilter = {
-                resultFilter: datasource.transformResultQuery(resultFilter),
+                resultFilter: resultFilter ? datasource.transformResultQuery(resultFilter) : '',
                 dataTableFilter: datasource.transformDataTableQuery(dataTableFilter),
             };
 
@@ -83,7 +83,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
             lastFilterRef.current = transformedFilter;
 
-            if (transformedFilter) {
+            if (transformedFilter.dataTableFilter || transformedFilter.resultFilter) {
                 fetchAndSetColumnOptions(transformedFilter);
                 return;
             }
