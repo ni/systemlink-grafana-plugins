@@ -141,7 +141,7 @@ describe('DataFrameDataSourceBase', () => {
 
         const options = await ds.getColumnOptionsWithVariables('filter');
 
-        expect(options).toEqual([]);
+        expect(options).toEqual({ allColumns: [], xColumns: []});
     });
 
     it('should return query as it is for processVariableQuery', async () => {

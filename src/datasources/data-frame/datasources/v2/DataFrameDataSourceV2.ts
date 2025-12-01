@@ -255,6 +255,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private getXColumnOptions(tables: TableProperties[]): Option[] {
+        // TODO: Filter only numeric columns for X columns
         let potentialXColumns = new Set(
             tables[0].columns.map(
                 column => `${column.name}-${this.transformColumnType(column.dataType)}`

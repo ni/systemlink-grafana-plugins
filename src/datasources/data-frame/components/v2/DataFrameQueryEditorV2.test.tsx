@@ -37,16 +37,19 @@ const renderComponent = (
         errorTitle,
         errorDescription,
         processQuery,
-        getColumnOptionsWithVariables: jest.fn().mockResolvedValue(
-            [
+        getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+            allColumns: [
                 { label: 'ColumnA', value: 'ColumnA' },
                 { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
                 { label: 'ColumnB (String)', value: 'ColumnB-String' },
                 { label: 'ColumnD (String)', value: 'ColumnD-String' },
                 { label: 'ColumnE', value: 'ColumnE' },
                 ...columnOptions
-            ]
-        ),
+            ],
+            xColumns: [{
+                label: 'ColumnA', value: 'ColumnA'
+            }]
+        }),
         transformQuery: jest.fn((filter: string) => filter),
         variablesCache
     } as unknown as DataFrameDataSource;
