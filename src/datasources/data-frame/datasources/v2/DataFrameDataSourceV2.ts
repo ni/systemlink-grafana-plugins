@@ -74,7 +74,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             );
         }
 
-        if(processedQuery.resultFilter) {
+        if (processedQuery.resultFilter) {
             processedQuery.resultFilter = this.transformResultQuery(
                 processedQuery.resultFilter,
                 options?.scopedVars! || ''
