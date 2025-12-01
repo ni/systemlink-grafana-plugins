@@ -422,7 +422,6 @@ describe('ListAlarmsQueryEditor', () => {
 
       const optionElements = screen.getAllByRole('option');
       const actualOrder = optionElements.map(option => option.textContent);
-
       const expectedOrder = Object.values(TransitionInclusionOption).map(
         option => AlarmsTransitionInclusionOptions[option].label
       );
