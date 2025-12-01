@@ -196,7 +196,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     };
 
     const onColumnsChange = (columns: Array<ComboboxOption<string>>) => {
-        handleQueryChange({ ...migratedQuery, columns: columns.map(column => column.value) }, false);
+        handleQueryChange({ ...migratedQuery, columns: columns.map(column => column.value) });
     };
 
     const onIncludeIndexColumnsChange = (event: React.FormEvent<HTMLInputElement>) => {
