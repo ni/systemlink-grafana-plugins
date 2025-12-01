@@ -37,7 +37,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         if (this.shouldQueryForData(processedQuery)) {
-            return this.getDecimatedDataForSelectedColumns$(
+            return this.getFieldsForDataQuery$(
                 processedQuery
             );
         }
@@ -373,6 +373,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return query.type === DataFrameQueryType.Data;
     }
 
+    private getFieldsForDataQuery$(
+        _processedQuery: ValidDataFrameQueryV2
+    ): Observable<DataFrameDTO> {
+        return this.getDecimatedDataForSelectedColumns$(
+            _processedQuery
+        )
+    }
+
     private getDecimatedDataForSelectedColumns$(
         processedQuery: ValidDataFrameQueryV2
     ): Observable<DataFrameDTO> {
@@ -404,7 +412,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 return tables$.pipe(
                     map(tables => {
                         if (!this.areSelectedColumnsValid(selectedColumns, tables)) {
-                            const errorMessage = 'One or more selected columns are invalid. Please update your column selection or refine your data table filter.';
+                            const errorMessage = 'One or more selected columns are invalid. Please update your column selection or refine your filters.';
                             this.appEvents?.publish?.({
                                 type: AppEvents.alertError.name,
                                 payload: ['Column selection error', errorMessage],
@@ -468,13 +476,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return [];
         }
 
-        const columnDetails: Column[] = [];
+        const selectedColumnDetails: Column[] = [];
 
         table.columns.forEach(column => {
-            const transformedType = this.transformColumnType(column.dataType);
-            const selectedColumnId = `${column.name}-${transformedType}`;
-            if (selectedColumns.includes(selectedColumnId)) {
-                columnDetails.push({
+            const transformedColumnType = this.transformColumnType(column.dataType);
+            const tableColumnId = `${column.name}-${transformedColumnType}`;
+            if (selectedColumns.includes(tableColumnId)) {
+                selectedColumnDetails.push({
                     name: column.name,
                     dataType: column.dataType,
                     columnType: column.columnType,
@@ -482,7 +490,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 });
             }
         });
-        return columnDetails;
+        return selectedColumnDetails;
     }
 
     private buildDataFrame(refId: string): DataFrameDTO {

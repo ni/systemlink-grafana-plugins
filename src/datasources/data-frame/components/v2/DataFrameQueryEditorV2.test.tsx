@@ -748,9 +748,9 @@ describe("DataFrameQueryEditorV2", () => {
                         cleanup();
                         jest.clearAllMocks();
                         const result = renderComponent({
-                        type: DataFrameQueryType.Data,
-                        dataTableFilter: '',
-                        columns: [],
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: '',
+                            columns: [],
                         });
                         onChange = result.onChange;
                         onRunQuery = result.onRunQuery;
@@ -768,12 +768,12 @@ describe("DataFrameQueryEditorV2", () => {
                         await user.click(columnOption);
 
                         await waitFor(() => {
-                        expect(onChange).toHaveBeenCalledWith(
-                            expect.objectContaining({
-                            columns: ['ColumnA'],
-                            })
-                        );
-                        expect(onRunQuery).toHaveBeenCalled();
+                            expect(onChange).toHaveBeenCalledWith(
+                                expect.objectContaining({
+                                    columns: ['ColumnA'],
+                                })
+                            );
+                            expect(onRunQuery).toHaveBeenCalled();
                         });
                     });
 
@@ -784,67 +784,69 @@ describe("DataFrameQueryEditorV2", () => {
                         await user.click(firstColumnOption);
                         
                         await waitFor(() => {
-                        expect(onChange).toHaveBeenCalledWith(
-                            expect.objectContaining({
-                            columns: ['ColumnA'],
-                            })
-                        );
+                            expect(onChange).toHaveBeenCalledWith(
+                                expect.objectContaining({
+                                    columns: ['ColumnA'],
+                                })
+                            );
                         });
                         onChange.mockClear();
 
                         // Wait for re-render to complete after first selection
-                        await new Promise(resolve => setTimeout(resolve, 100));
+                        await waitFor(() => {
+                            expect(screen.getAllByRole('combobox')[0]).toBeInTheDocument();
+                        });
 
                         // The MultiCombobox should still be open, find the second option
                         const secondColumnOption = await screen.findByRole('option', { name: 'ColumnB (Numeric)' });
                         await user.click(secondColumnOption);
-
                         await waitFor(() => {
-                        expect(onChange).toHaveBeenCalledWith(
-                            expect.objectContaining({
-                            columns: ['ColumnA', 'ColumnB-Numeric'],
-                            })
-                        );
+                            expect(onChange).toHaveBeenCalledWith(
+                                expect.objectContaining({
+                                    columns: ['ColumnA', 'ColumnB-Numeric'],
+                                })
+                            );
                         });
+                        expect(onRunQuery).toHaveBeenCalled();
                     });
 
                     it('should update the query when a column is removed', async () => {
                         const { onChange, onRunQuery } = renderComponent({
-                        type: DataFrameQueryType.Data,
-                        dataTableFilter: 'TestFilter',
-                        columns: ['ColumnA', 'ColumnB-Numeric'],
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: 'TestFilter',
+                            columns: ['ColumnA', 'ColumnB-Numeric'],
                         });
 
                         const removeButton = screen.getAllByLabelText(/remove/i)[0];
                         await user.click(removeButton);
 
                         await waitFor(() => {
-                        expect(onChange).toHaveBeenCalledWith(
-                            expect.objectContaining({
-                            columns: ['ColumnB-Numeric'],
-                            })
-                        );
-                        expect(onRunQuery).toHaveBeenCalled();
+                            expect(onChange).toHaveBeenCalledWith(
+                                expect.objectContaining({
+                                    columns: ['ColumnB-Numeric'],
+                                })
+                            );
+                            expect(onRunQuery).toHaveBeenCalled();
                         });
                     });
 
                     it('should update the query with an empty array when all columns are removed', async () => {
                         const { onChange, onRunQuery } = renderComponent({
-                        type: DataFrameQueryType.Data,
-                        dataTableFilter: 'TestFilter',
-                        columns: ['ColumnA'],
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: 'TestFilter',
+                            columns: ['ColumnA'],
                         });
 
                         const removeButton = screen.getByLabelText(/remove/i);
                         await user.click(removeButton);
 
                         await waitFor(() => {
-                        expect(onChange).toHaveBeenCalledWith(
-                            expect.objectContaining({
-                            columns: [],
-                            })
-                        );
-                        expect(onRunQuery).toHaveBeenCalled();
+                            expect(onChange).toHaveBeenCalledWith(
+                                expect.objectContaining({
+                                    columns: [],
+                                })
+                            );
+                            expect(onRunQuery).toHaveBeenCalled();
                         });
                     });
                 });
