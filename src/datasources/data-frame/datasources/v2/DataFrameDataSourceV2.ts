@@ -37,6 +37,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             );
         }
 
+        if (processedQuery.resultFilter) {
+            processedQuery.resultFilter = this.transformResultQuery(
+                processedQuery.resultFilter,
+                options.scopedVars
+            );
+        }
+
         if (this.shouldQueryForData(processedQuery)) {
             return this.getFieldsForDataQuery$(
                 processedQuery
@@ -63,6 +70,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         if (processedQuery.dataTableFilter) {
             processedQuery.dataTableFilter = this.transformDataTableQuery(
                 processedQuery.dataTableFilter,
+                options?.scopedVars! || ''
+            );
+        }
+
+        if(processedQuery.resultFilter) {
+            processedQuery.resultFilter = this.transformResultQuery(
+                processedQuery.resultFilter,
                 options?.scopedVars! || ''
             );
         }
@@ -184,7 +198,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     ): Observable<TableProperties[]> {
         const isQueryByResultFeatureEnabled = this.instanceSettings.jsonData?.featureToggles?.queryByResultAndColumnProperties
         if (filters.resultFilter && isQueryByResultFeatureEnabled) {
-            return this.queryResultIds$(filters.resultFilter).pipe(
+            const transformedResultFilter = filters.resultFilter ? this.transformResultQuery(filters.resultFilter) : '';
+            return this.queryResultIds$(transformedResultFilter).pipe(
                 switchMap(resultIds => {
                     if (resultIds.length === 0) {
                         return of([]);
