@@ -68,6 +68,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
             const filters = {
+                resultFilter: processedQuery.resultFilter,
                 dataTableFilter: processedQuery.dataTableFilter,
             };
             const tables = await lastValueFrom(this.queryTables$(
@@ -737,8 +738,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             .map(property => DataTableProjectionLabelLookup[property].projection);
         const projectionExcludingId = projections
             .filter(projection => projection !== DataTableProjections.Id);
+        const filters = {
+            resultFilter: processedQuery.resultFilter,
+            dataTableFilter: processedQuery.dataTableFilter,
+        }
         const tables$ = this.queryTables$(
-            { dataTableFilter: processedQuery.dataTableFilter },
+            filters,
             processedQuery.take,
             projectionExcludingId
         );
