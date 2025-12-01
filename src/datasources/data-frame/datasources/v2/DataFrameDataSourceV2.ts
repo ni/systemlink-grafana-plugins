@@ -374,10 +374,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private getFieldsForDataQuery$(
-        _processedQuery: ValidDataFrameQueryV2
+        processedQuery: ValidDataFrameQueryV2
     ): Observable<DataFrameDTO> {
         return this.getDecimatedDataForSelectedColumns$(
-            _processedQuery
+            processedQuery
         )
     }
 
