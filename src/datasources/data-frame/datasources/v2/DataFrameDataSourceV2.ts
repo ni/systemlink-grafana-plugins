@@ -198,8 +198,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     ): Observable<TableProperties[]> {
         const isQueryByResultFeatureEnabled = this.instanceSettings.jsonData?.featureToggles?.queryByResultAndColumnProperties
         if (filters.resultFilter && isQueryByResultFeatureEnabled) {
-            const transformedResultFilter = filters.resultFilter ? this.transformResultQuery(filters.resultFilter) : '';
-            return this.queryResultIds$(transformedResultFilter).pipe(
+            return this.queryResultIds$(filters.resultFilter).pipe(
                 switchMap(resultIds => {
                     if (resultIds.length === 0) {
                         return of([]);

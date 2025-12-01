@@ -1078,10 +1078,11 @@ describe('DataFrameDataSourceV2', () => {
             it('should pass resultFilter to queryTables$ when provided', async () => {
                 const queryWithResultFilter = {
                     queryType: DataFrameVariableQueryType.ListDataTables,
-                    dataTableFilter: 'name = "Test Table"',
+                    dataTableFilter: 'name = "${name}"',
                     resultFilter: 'status = "Passed"',
                     refId: 'A'
                 } as DataFrameVariableQuery;
+                templateSrv.replace.mockReturnValue('name = "Test Table"');
                 const mockTables = [{ id: 'table-1', name: 'Table 1' }];
                 queryTablesSpy$.mockReturnValue(of(mockTables));
 
@@ -1782,27 +1783,6 @@ describe('DataFrameDataSourceV2', () => {
                 return of({});
             });
             (ds as any).appEvents = { publish: publishMock };
-        });
-
-        it('should transform resultFilter before querying result IDs', async () => {
-            const transformResultQuerySpy = jest.spyOn(ds, 'transformResultQuery');
-            transformResultQuerySpy.mockReturnValue('status = "Passed"');
-            const filters = { resultFilter: 'status = "${status}"', dataTableFilter: '' };
-            
-            await lastValueFrom(ds.queryTables$(filters));
-
-            expect(transformResultQuerySpy).toHaveBeenCalledWith('status = "${status}"');
-            expect(postMock$).toHaveBeenCalledWith(
-                `${instanceSettings.url}/nitestmonitor/v2/query-results`,
-                {
-                    filter: 'status = "Passed"',
-                    projection: ['id'],
-                    take: 1000,
-                    orderBy: 'UPDATED_AT',
-                    descending: true
-                },
-                { showErrorAlert: false }
-            );
         });
 
         it('should extract result IDs and build filter with substitutions', async () => {
