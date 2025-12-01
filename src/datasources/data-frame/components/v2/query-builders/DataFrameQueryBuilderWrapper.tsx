@@ -66,21 +66,26 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
     }, [datasource]);
 
     const dataTableNameLookupCallback = useCallback(async (query: string) => {
-        const dataTableFilter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;  
-        const response = await lastValueFrom(
-            datasource.queryTables$(  
-                { dataTableFilter },  
-                5,  
-                [DataTableProjections.Name]  
-            )
-        );
+        const dataTableFilter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;
+        try {
+            const response = await lastValueFrom(
+                datasource.queryTables$(  
+                    { dataTableFilter },  
+                    5,  
+                    [DataTableProjections.Name]  
+                )
+            );
 
-        if (response.length === 0) {
+            if (response.length === 0) {
+                return [];
+            }
+
+            const uniqueNames = new Set(response.map(table => table.name));
+            return Array.from(uniqueNames).map(name => ({ label: name, value: name }));
+        }
+        catch {
             return [];
         }
-
-        const uniqueNames = new Set(response.map(table => table.name));
-        return Array.from(uniqueNames).map(name => ({ label: name, value: name }));
     }, [datasource]);
 
     return (
