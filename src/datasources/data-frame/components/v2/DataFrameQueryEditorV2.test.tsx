@@ -52,7 +52,7 @@ const renderComponent = (
                 ...xColumnOptions
             ]
         }),
-        transformQuery: jest.fn((filter: string) => filter),
+        transformDataTableQuery: jest.fn((filter: string) => filter),
         variablesCache
     } as unknown as DataFrameDataSource;
 
@@ -519,7 +519,7 @@ describe("DataFrameQueryEditorV2", () => {
                     const datasource = {
                         processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                         getColumnOptionsWithVariables: jest.fn().mockResolvedValue(mockColumnOptions),
-                        transformQuery: jest.fn(f => f),
+                        transformDataTableQuery: jest.fn(f => f),
                     } as any;
 
                     renderComponent({
@@ -559,7 +559,7 @@ describe("DataFrameQueryEditorV2", () => {
                         const datasource = {
                             processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue([{ label: 'Col1', value: 'Col1' }]),
-                            transformQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
+                            transformDataTableQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                         } as any;
 
                         renderComponent(
@@ -579,16 +579,16 @@ describe("DataFrameQueryEditorV2", () => {
                         );
 
                         await waitFor(() => {
-                            expect(datasource.transformQuery).toHaveBeenCalledWith('InitialFilter');
+                            expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('InitialFilter');
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('TRANSFORMED_InitialFilter');
                         });
                     });
 
-                    it('should call transformQuery before deciding to load column options', async () => {
+                    it('should call transformDataTableQuery before deciding to load column options', async () => {
                         const datasource = {
                             processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue([{ label: 'Col1', value: 'Col1' }]),
-                            transformQuery: jest.fn(f => f),
+                            transformDataTableQuery: jest.fn(f => f),
                         } as any;
                         renderComponent(
                             {
@@ -606,7 +606,7 @@ describe("DataFrameQueryEditorV2", () => {
                             datasource
                         );
                         
-                        await waitFor(() => expect(datasource.transformQuery).toHaveBeenCalledWith('FilterX'));
+                        await waitFor(() => expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterX'));
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('FilterX');
                     });
                 })
@@ -618,7 +618,7 @@ describe("DataFrameQueryEditorV2", () => {
                         const datasource = {
                             processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue([{ label: 'Col1', value: 'Col1' }]),
-                            transformQuery: jest.fn(f => f),
+                            transformDataTableQuery: jest.fn(f => f),
                         } as any;
 
                         renderComponent(
@@ -638,12 +638,12 @@ describe("DataFrameQueryEditorV2", () => {
                         );
 
                         await waitFor(() => {
-                            expect(datasource.transformQuery).toHaveBeenCalledWith('FilterWithVar');
+                            expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('FilterWithVar');
                         });
 
                         datasource.getColumnOptionsWithVariables.mockClear();
-                        datasource.transformQuery.mockClear();
+                        datasource.transformDataTableQuery.mockClear();
 
                         // Update variables cache reference and rerender
                         renderComponent(
@@ -663,7 +663,7 @@ describe("DataFrameQueryEditorV2", () => {
                         );
 
                         await waitFor(() => {
-                            expect(datasource.transformQuery).toHaveBeenCalledWith('FilterWithVar');
+                            expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
                         });
                     });
                 });
@@ -1361,7 +1361,7 @@ describe("DataFrameQueryEditorV2", () => {
                                 allColumns: [],
                                 xColumns: [{ label: 'XCol1', value: 'XCol1' }]
                             }),
-                            transformQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
+                            transformDataTableQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                         } as any;
 
                         renderComponent(
@@ -1381,20 +1381,20 @@ describe("DataFrameQueryEditorV2", () => {
                         );
 
                         await waitFor(() => {
-                            expect(datasource.transformQuery).toHaveBeenCalledWith('InitialFilter');
+                            expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('InitialFilter');
                             expect(datasource.getColumnOptionsWithVariables)
                                 .toHaveBeenCalledWith('TRANSFORMED_InitialFilter');
                         });
                     });
 
-                    it('should call transformQuery before deciding to load x-column options', async () => {
+                    it('should call transformDataTableQuery before deciding to load x-column options', async () => {
                         const datasource = {
                             processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
                                 allColumns: [],
                                 xColumns: [{ label: 'XCol1', value: 'XCol1' }]
                             }),
-                            transformQuery: jest.fn(f => f),
+                            transformDataTableQuery: jest.fn(f => f),
                         } as any;
                         renderComponent(
                             {
@@ -1412,7 +1412,7 @@ describe("DataFrameQueryEditorV2", () => {
                             datasource
                         );
 
-                        await waitFor(() => expect(datasource.transformQuery)
+                        await waitFor(() => expect(datasource.transformDataTableQuery)
                             .toHaveBeenCalledWith('FilterX'));
                         expect(datasource.getColumnOptionsWithVariables)
                             .toHaveBeenCalledWith('FilterX');
@@ -1429,7 +1429,7 @@ describe("DataFrameQueryEditorV2", () => {
                                 allColumns: [],
                                 xColumns: [{ label: 'XCol1', value: 'XCol1' }]
                             }),
-                            transformQuery: jest.fn(f => f),
+                            transformDataTableQuery: jest.fn(f => f),
                         } as any;
 
                         renderComponent(
@@ -1449,14 +1449,14 @@ describe("DataFrameQueryEditorV2", () => {
                         );
 
                         await waitFor(() => {
-                            expect(datasource.transformQuery)
+                            expect(datasource.transformDataTableQuery)
                                 .toHaveBeenCalledWith('FilterWithVar');
                             expect(datasource.getColumnOptionsWithVariables)
                                 .toHaveBeenCalledWith('FilterWithVar');
                         });
 
                         datasource.getColumnOptionsWithVariables.mockClear();
-                        datasource.transformQuery.mockClear();
+                        datasource.transformDataTableQuery.mockClear();
 
                         // Update variables cache reference and rerender
                         renderComponent(
@@ -1476,7 +1476,7 @@ describe("DataFrameQueryEditorV2", () => {
                         );
 
                         await waitFor(() => {
-                            expect(datasource.transformQuery).toHaveBeenCalledWith('FilterWithVar');
+                            expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
                         });
                     });
                 });

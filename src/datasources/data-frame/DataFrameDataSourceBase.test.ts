@@ -434,7 +434,7 @@ describe('DataFrameDataSourceBase', () => {
         });
     });
 
-    describe('transformQuery', () => {
+    describe('transformDataTableQuery', () => {
         let ds: TestDataFrameDataSource;
 
         beforeEach(() => {
@@ -445,7 +445,7 @@ describe('DataFrameDataSourceBase', () => {
             const query = 'id = $var';
             (templateSrv.replace as jest.Mock).mockReturnValue('id = <valid-id-value>');  
             
-            const result = ds.transformQuery(query);
+            const result = ds.transformDataTableQuery(query);
             
             expect(result).toBe('id = <valid-id-value>');
         });
@@ -455,7 +455,7 @@ describe('DataFrameDataSourceBase', () => {
             
             (templateSrv.replace as jest.Mock).mockImplementation(() => { throw new Error('replace failed'); });
             
-            expect(() => ds.transformQuery(query)).toThrow('replace failed');
+            expect(() => ds.transformDataTableQuery(query)).toThrow('replace failed');
         });
     });
 });

@@ -52,7 +52,7 @@ describe('DataFrameDataSource', () => {
             processQuery: jest.fn().mockReturnValue('v1-processed'),
             prepareQuery: jest.fn().mockReturnValue('v1-prepared'),
             processVariableQuery: jest.fn().mockReturnValue('v1-processed'),
-            transformQuery: jest.fn((query: string) => `v1-${query}`),
+            transformDataTableQuery: jest.fn((query: string) => `v1-${query}`),
         } as any;
 
         v2Mock = {
@@ -67,7 +67,7 @@ describe('DataFrameDataSource', () => {
             processQuery: jest.fn().mockReturnValue('v2-processed'),
             prepareQuery: jest.fn().mockReturnValue('v2-prepared'),
             processVariableQuery: jest.fn().mockReturnValue('v2-processed'),
-            transformQuery: jest.fn((query: string) => `v2-${query}`),
+            transformDataTableQuery: jest.fn((query: string) => `v2-${query}`),
         } as any;
 
         (DataFrameDataSourceV1 as unknown as jest.Mock).mockImplementation(() => v1Mock);
@@ -315,24 +315,24 @@ describe('DataFrameDataSource', () => {
         });
     });
 
-    describe('transformQuery', () => {
-        it('should delegate to v2 transformQuery when feature toggle is true', () => {
+    describe('transformDataTableQuery', () => {
+        it('should delegate to v2 transformDataTableQuery when feature toggle is true', () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
-            v2Mock.transformQuery.mockClear();
+            v2Mock.transformDataTableQuery.mockClear();
             
-            const result = ds.transformQuery('filter');
+            const result = ds.transformDataTableQuery('filter');
             
-            expect(v2Mock.transformQuery).toHaveBeenCalledWith('filter');
+            expect(v2Mock.transformDataTableQuery).toHaveBeenCalledWith('filter');
             expect(result).toBe('v2-filter');
         });
 
-        it('should delegate to v1 base transformQuery when feature toggle is false', () => {
+        it('should delegate to v1 base transformDataTableQuery when feature toggle is false', () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
-            v1Mock.transformQuery.mockClear();
+            v1Mock.transformDataTableQuery.mockClear();
             
-            const result = ds.transformQuery('filter');
+            const result = ds.transformDataTableQuery('filter');
             
-            expect(v1Mock.transformQuery).toHaveBeenCalledWith('filter');
+            expect(v1Mock.transformDataTableQuery).toHaveBeenCalledWith('filter');
             expect(result).toBe('v1-filter');
         });
      });

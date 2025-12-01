@@ -129,6 +129,20 @@ const renderComponent = (
         );
     });
 
+    onResultFilterChange.mockImplementation((event) => {
+        renderResult.rerender(
+            <DataFrameQueryBuilderWrapper
+                datasource={datasource}
+                resultFilter={event.detail.linq}
+                dataTableFilter={dataTableFilter}
+                columnFilter={columnFilter}
+                onResultFilterChange={onResultFilterChange}
+                onDataTableFilterChange={onDataTableFilterChange}
+                onColumnFilterChange={onColumnFilterChange}
+            />
+        );
+    });
+
     return {
         renderResult,
         onResultFilterChange,
@@ -210,6 +224,33 @@ describe('DataFrameQueryBuilderWrapper', () => {
 
             await waitFor(() => {
                 expect(onDataTableFilterChange).toHaveBeenCalledWith({ detail: { linq: 'new filter' } });
+            });
+        });
+
+        it('should update dataTableNameLookupCallback with new resultFilter', async () => {
+            const { onResultFilterChange, datasource } = renderComponent('status = "Passed"', 'name = "Test Table"');
+            
+            // Verify queryTables$ was called with the first resultFilter
+            expect(datasource.queryTables$).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    resultFilter: 'status = "Passed"',
+                }),
+                expect.anything(),
+                expect.anything()
+            );
+
+            // Update resultFilter
+            await onResultFilterChange({ detail: { linq: 'status = "Failed"' } });
+
+            // Wait for the lookup callback to be triggered with new resultFilter
+            await waitFor(() => {
+                expect(datasource.queryTables$).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    resultFilter: 'status = "Failed"',
+                }),
+                expect.anything(),
+                expect.anything()
+            );
             });
         });
     });
