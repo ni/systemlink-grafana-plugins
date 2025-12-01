@@ -234,7 +234,7 @@ describe('DataFrameQueryBuilderWrapper', () => {
             // Verify queryTables$ was called with the first resultFilter
             expect(datasource.queryTables$).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    resultFilter: 'status = "Passed"',
+                    resultFilter: 'test $status = "Passed"',
                 }),
                 expect.anything(),
                 expect.anything()
@@ -247,7 +247,7 @@ describe('DataFrameQueryBuilderWrapper', () => {
             await waitFor(() => {
                 expect(datasource.queryTables$).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    resultFilter: 'status = "Failed"',
+                    resultFilter: 'test $status = "Failed"',
                 }),
                 expect.anything(),
                 expect.anything()

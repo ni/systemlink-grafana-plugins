@@ -2140,10 +2140,56 @@ describe('DataFrameDataSourceV2', () => {
             jest.clearAllMocks();
         });
 
+        it('should pass both resultFilter and dataTableFilter to queryTables$', async () => {
+            queryTablesMock$.mockReturnValue(of([
+                {
+                    id: '1',
+                    name: 'Table 1',
+                    columns: [
+                        { name: 'Column 1', dataType: 'STRING' },
+                    ]
+                }
+            ]));
+
+            await ds.getColumnOptionsWithVariables({ 
+                dataTableFilter: 'name = "Table1"', 
+                resultFilter: 'status = "Passed"' 
+            });
+
+            expect(queryTablesMock$).toHaveBeenCalledWith(
+                { dataTableFilter: 'name = "Table1"', resultFilter: 'status = "Passed"' },
+                expect.any(Number),
+                expect.any(Array)
+            );
+        });
+
+        it('should pass empty resultFilter when not provided', async () => {
+            queryTablesMock$.mockReturnValue(of([
+                {
+                    id: '1',
+                    name: 'Table 1',
+                    columns: [
+                        { name: 'Column 1', dataType: 'STRING' },
+                    ]
+                }
+            ]));
+
+            await ds.getColumnOptionsWithVariables({ 
+                dataTableFilter: 'name = "Table1"', 
+                resultFilter: '' 
+            });
+
+            expect(queryTablesMock$).toHaveBeenCalledWith(
+                { dataTableFilter: 'name = "Table1"', resultFilter: '' },
+                expect.any(Number),
+                expect.any(Array)
+            );
+        });
+
         it('should return an empty array when no tables are found', async () => {
             queryTablesMock$.mockReturnValue(of([]));
 
-            const result = await ds.getColumnOptionsWithVariables('some-filter');
+            const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter', resultFilter: '' });
 
             expect(result).toEqual([]);
         });
@@ -2154,7 +2200,7 @@ describe('DataFrameDataSourceV2', () => {
                 { id: '2', name: 'Table 2' },
             ]));
 
-            const result = await ds.getColumnOptionsWithVariables('some-filter');
+            const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter', resultFilter: '' });
 
             expect(result).toEqual([]);
         });
@@ -2192,7 +2238,7 @@ describe('DataFrameDataSourceV2', () => {
                 }
             ]));
 
-            const result = await ds.getColumnOptionsWithVariables('some-filter');
+            const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter', resultFilter: '' });
             expect(result).toEqual([
                 { label: 'Column 1', value: 'Column 1-Numeric' },
                 { label: 'Column 2', value: 'Column 2-Numeric' },
@@ -2223,7 +2269,7 @@ describe('DataFrameDataSourceV2', () => {
                     }
                 ]));
 
-                const result = await ds.getColumnOptionsWithVariables('some-filter');
+                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter', resultFilter: '' });
 
                 expect(result).toEqual([
                     { label: 'Column 1', value: 'Column 1-String' },
@@ -2261,7 +2307,7 @@ describe('DataFrameDataSourceV2', () => {
                     }
                 ]));
 
-                const result = await ds.getColumnOptionsWithVariables('some-filter');
+                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter', resultFilter: '' });
 
                 expect(result).toEqual([
                     { label: 'Column 1 (Numeric)', value: 'Column 1-Numeric' },
@@ -2294,7 +2340,7 @@ describe('DataFrameDataSourceV2', () => {
                     }
                 ]));
 
-                const result = await ds.getColumnOptionsWithVariables('some-filter');
+                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter', resultFilter: '' });
 
                 expect(result).toEqual([
                     { label: 'Column A (String)', value: 'Column A-String' },
@@ -2334,7 +2380,7 @@ describe('DataFrameDataSourceV2', () => {
                     }
                 ]));
 
-                const result = await ds.getColumnOptionsWithVariables('some-filter');
+                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter', resultFilter: '' });
 
                 expect(result).toEqual([
                     { label: 'Column A', value: 'Column A-String' },
@@ -2363,7 +2409,7 @@ describe('DataFrameDataSourceV2', () => {
                     }
                 ]));
 
-                const result = await ds.getColumnOptionsWithVariables('some-filter');
+                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter', resultFilter: '' });
 
                 expect(result).toEqual([
                     { label: '$var1', value: '$var1' },
