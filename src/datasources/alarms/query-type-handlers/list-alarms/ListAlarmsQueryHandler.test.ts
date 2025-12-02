@@ -707,7 +707,7 @@ describe('ListAlarmsQueryHandler', () => {
             },
             {
               name: 'Transition overflow count',
-              type: 'string',
+              type: 'number',
               values: [5, 0],
             },
           ],
@@ -763,7 +763,7 @@ describe('ListAlarmsQueryHandler', () => {
               { name: 'Transition detail', type: 'string', values: ['Humidity back to normal'] },
               { name: 'Transition keywords', type: 'string', values: [['humidity', 'normal']] },
               { name: 'Transition occurred at', type: 'time', values: ['2025-09-16T10:00:00Z'] },
-              { name: 'Transition overflow count', type: 'string', values: [0] },
+              { name: 'Transition overflow count', type: 'number', values: [0] },
               { name: 'Transition properties', type: 'string', values: ['{"sensorId":"SENSOR-90"}'] },
               { name: 'Transition severity', type: 'string', values: [''] },
               { name: 'Transition short text', type: 'string', values: ['Humidity Normal'] },

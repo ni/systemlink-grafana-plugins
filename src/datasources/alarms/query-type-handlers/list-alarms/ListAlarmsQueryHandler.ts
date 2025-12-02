@@ -158,7 +158,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       const field = AlarmsPropertiesOptions[property];
       const fieldName = field.label;
       const fieldValue = field.value;
-      const fieldType = this.isTimeField(fieldValue) ? FieldType.time : FieldType.string;
+      const fieldType = this.getFieldTypeForProperty(fieldValue);
 
       const fieldValues = flattenedAlarms.map(alarm => {
         const transition = alarm.transitions?.[0];
@@ -206,6 +206,20 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     });
 
     return mappedFields;
+  }
+
+  private getFieldTypeForProperty(field: AlarmsProperties): FieldType {
+    let fieldType: FieldType;
+
+    if (this.isTimeField(field)) {
+      fieldType = FieldType.time;
+    } else if (field === AlarmsSpecificProperties.transitionOverflowCount) {
+      fieldType = FieldType.number;
+    } else {
+      fieldType = FieldType.string;
+    }
+
+    return fieldType;
   }
 
   private hasTransitionProperties(properties: AlarmsProperties[]): boolean {
