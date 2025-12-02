@@ -234,7 +234,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
-    public transformedColumnType(dataType: string): string {
+    public transformColumnDataType(dataType: string): string {
         const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType)
             ? 'Numeric'
             : this.toSentenceCase(dataType);
@@ -304,7 +304,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 tableColumn => tableColumn.name === selectedColumn
             );
             return matchingColumn
-                ? `${matchingColumn.name}-${this.transformedColumnType(matchingColumn.dataType)}`
+                ? `${matchingColumn.name}-${this.transformColumnDataType(matchingColumn.dataType)}`
                 : selectedColumn;
         });
     }
@@ -340,7 +340,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tables.forEach(table => {
             table.columns?.forEach((column: { name: string; dataType: string; }) => {
                 if (column?.name && column.dataType) {
-                    const dataType = this.transformedColumnType(column.dataType);
+                    const dataType = this.transformColumnDataType(column.dataType);
                     (columnNameDataTypeMap[column.name] ??= new Set()).add(dataType);
                 }
             });
@@ -434,7 +434,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const allTableColumns = new Set<string>(
             tables.flatMap(table =>
                 table.columns?.map(column =>
-                    `${column.name}-${this.transformedColumnType(column.dataType)}`
+                    `${column.name}-${this.transformColumnDataType(column.dataType)}`
                 ) ?? []
             )
         );
@@ -471,7 +471,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const columnDetails: Column[] = [];
 
         table.columns.forEach(column => {
-            const transformedType = this.transformedColumnType(column.dataType);
+            const transformedType = this.transformColumnDataType(column.dataType);
             const selectedColumnId = `${column.name}-${transformedType}`;
             if (selectedColumns.includes(selectedColumnId)) {
                 columnDetails.push({

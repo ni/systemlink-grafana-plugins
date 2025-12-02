@@ -2072,37 +2072,37 @@ describe('DataFrameDataSourceV2', () => {
 
     describe('transformColumnType', () => {
         it('should transform INT32 to Numeric', () => {
-            const result = ds.transformedColumnType('INT32');
+            const result = ds.transformColumnDataType('INT32');
             expect(result).toBe('Numeric');
         });
 
         it('should transform INT64 to Numeric', () => {
-            const result = ds.transformedColumnType('INT64');
+            const result = ds.transformColumnDataType('INT64');
             expect(result).toBe('Numeric');
         });
 
         it('should transform FLOAT32 to Numeric', () => {
-            const result = ds.transformedColumnType('FLOAT32');
+            const result = ds.transformColumnDataType('FLOAT32');
             expect(result).toBe('Numeric');
         });
 
         it('should transform FLOAT64 to Numeric', () => {
-            const result = ds.transformedColumnType('FLOAT64');
+            const result = ds.transformColumnDataType('FLOAT64');
             expect(result).toBe('Numeric');
         });
 
         it('should transform TIMESTAMP to sentence case', () => {
-            const result = ds.transformedColumnType('TIMESTAMP');
+            const result = ds.transformColumnDataType('TIMESTAMP');
             expect(result).toBe('Timestamp');
         });
 
         it('should transform STRING to sentence case', () => {
-            const result = ds.transformedColumnType('STRING');
+            const result = ds.transformColumnDataType('STRING');
             expect(result).toBe('String');
         });
 
         it('should transform BOOLEAN to sentence case', () => {
-            const result = ds.transformedColumnType('BOOLEAN');
+            const result = ds.transformColumnDataType('BOOLEAN');
             expect(result).toBe('Boolean');
         });
     });
