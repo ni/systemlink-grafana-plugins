@@ -243,7 +243,7 @@ describe("DataFrameQueryEditorV2", () => {
                             'ColumnA',
                             'ColumnB (Numeric)',
                             'ColumnB (String)',
-                            'ColumnD (String)',
+                            'ColumnD',
                             'ColumnE'
                         ]
                     ));
@@ -379,7 +379,7 @@ describe("DataFrameQueryEditorV2", () => {
                                     'ColumnA',
                                     'ColumnB (Numeric)',
                                     'ColumnB (String)',
-                                    'ColumnD (String)',
+                                    'ColumnD',
                                     'ColumnE',
                                 ])
                             );
@@ -489,7 +489,7 @@ describe("DataFrameQueryEditorV2", () => {
                                     'ColumnA',
                                     'ColumnB (Numeric)',
                                     'ColumnB (String)',
-                                    'ColumnD (String)',
+                                    'ColumnD',
                                     'ColumnE',
                                 ])
                             );
