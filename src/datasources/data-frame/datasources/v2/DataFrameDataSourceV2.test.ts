@@ -2565,11 +2565,11 @@ describe('DataFrameDataSourceV2', () => {
 
     describe('createColumnOptions', () => {
         it('should create option with column name as label when column has single data type', () => {
-            const columnTypeMap = {
+            const columnNameDataTypesMap = {
                 'Column1': new Set(['String'])
             };
 
-            const result = ds.createColumnOptions(columnTypeMap);
+            const result = ds.createColumnOptions(columnNameDataTypesMap);
 
             expect(result).toEqual([
                 { label: 'Column1', value: 'Column1-String' }
@@ -2577,11 +2577,11 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should create options with data type in label when column has multiple data types', () => {
-            const columnTypeMap = {
+            const columnNameDataTypesMap = {
                 'Column1': new Set(['String', 'Numeric'])
             };
 
-            const result = ds.createColumnOptions(columnTypeMap);
+            const result = ds.createColumnOptions(columnNameDataTypesMap);
 
             expect(result).toEqual(expect.arrayContaining([
                 { label: 'Column1 (String)', value: 'Column1-String' },
@@ -2590,13 +2590,13 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should handle multiple columns with different data types', () => {
-            const columnTypeMap = {
+            const columnNameDataTypesMap = {
                 'Column1': new Set(['String']),
                 'Column2': new Set(['Numeric']),
                 'Column3': new Set(['Boolean'])
             };
 
-            const result = ds.createColumnOptions(columnTypeMap);
+            const result = ds.createColumnOptions(columnNameDataTypesMap);
 
             expect(result).toEqual(expect.arrayContaining([
                 { label: 'Column1', value: 'Column1-String' },
@@ -2607,13 +2607,13 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should handle column with multiple data types along with single data type columns', () => {
-            const columnTypeMap = {
+            const columnNameDataTypesMap = {
                 'Column1': new Set(['String']),
                 'Column2': new Set(['Numeric', 'String']),
                 'Column3': new Set(['Boolean'])
             };
 
-            const result = ds.createColumnOptions(columnTypeMap);
+            const result = ds.createColumnOptions(columnNameDataTypesMap);
 
             expect(result).toEqual(expect.arrayContaining([
                 { label: 'Column1', value: 'Column1-String' },
@@ -2625,20 +2625,20 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should return empty array when columnTypeMap is empty', () => {
-            const columnTypeMap = {};
+            const columnNameDataTypesMap = {};
 
-            const result = ds.createColumnOptions(columnTypeMap);
+            const result = ds.createColumnOptions(columnNameDataTypesMap);
 
             expect(result).toEqual([]);
         });
 
         it('should handle columns with special characters in names', () => {
-            const columnTypeMap = {
+            const columnNameDataTypesMap = {
                 'Column-With-Hyphens': new Set(['String']),
                 'Column_With_Underscores': new Set(['Numeric'])
             };
 
-            const result = ds.createColumnOptions(columnTypeMap);
+            const result = ds.createColumnOptions(columnNameDataTypesMap);
 
             expect(result).toEqual(expect.arrayContaining([
                 { label: 'Column-With-Hyphens', value: 'Column-With-Hyphens-String' },
@@ -2647,11 +2647,11 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should handle column with more than two data types', () => {
-            const columnTypeMap = {
+            const columnNameDataTypesMap = {
                 'Column1': new Set(['String', 'Numeric', 'Boolean'])
             };
 
-            const result = ds.createColumnOptions(columnTypeMap);
+            const result = ds.createColumnOptions(columnNameDataTypesMap);
 
             expect(result).toEqual(expect.arrayContaining([
                 { label: 'Column1 (String)', value: 'Column1-String' },

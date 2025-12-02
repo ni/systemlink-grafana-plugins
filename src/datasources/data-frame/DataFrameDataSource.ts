@@ -130,8 +130,8 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.transformDataTableQuery(query);
   }
 
-  public createColumnOptions(columnTypeMap: Record<string, Set<string>>): Option[] {
-    return this.datasource.createColumnOptions(columnTypeMap);
+  public createColumnOptions(columnNameDataTypesMap: Record<string, Set<string>>): Option[] {
+    return this.datasource.createColumnOptions(columnNameDataTypesMap);
   }
 
   public transformColumnDataType(dataType: string): string {

@@ -462,12 +462,12 @@ describe('DataFrameDataSourceBase', () => {
     describe('createColumnOptions', () => {
         it('should return empty array by default', () => {
             const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
-            const columnTypeMap = {
+            const columnNameDataTypesMap = {
                 'Column1': new Set(['String']),
                 'Column2': new Set(['Numeric'])
             };
 
-            const result = ds.createColumnOptions(columnTypeMap);
+            const result = ds.createColumnOptions(columnNameDataTypesMap);
 
             expect(result).toEqual([]);
         });

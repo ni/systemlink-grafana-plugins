@@ -115,7 +115,7 @@ export abstract class DataFrameDataSourceBase<
         return this.templateSrv.replace(query);
     }
 
-    public createColumnOptions(_columnTypeMap: Record<string, Set<string>>): Option[] {
+    public createColumnOptions(_columnNameDataTypesMap: Record<string, Set<string>>): Option[] {
         return [];
     }
 

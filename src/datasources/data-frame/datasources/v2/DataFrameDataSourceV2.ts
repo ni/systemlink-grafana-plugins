@@ -264,19 +264,19 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return type;
     }
 
-    public createColumnOptions(columnTypeMap: Record<string, Set<string>>): Option[] {
+    public createColumnOptions(columnNameDataTypesMap: Record<string, Set<string>>): Option[] {
         const options: Option[] = [];
 
-        Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
-            const columnDataType = Array.from(dataTypes);
+        Object.entries(columnNameDataTypesMap).forEach(([columnName, dataTypes]) => {
+            const columnDataTypes = Array.from(dataTypes);
 
-            if (columnDataType.length === 1) {
+            if (columnDataTypes.length === 1) {
                 // Single type: show just the name as label and value as name with transformed type
-                options.push({ label: name, value: `${name}-${columnDataType[0]}` });
+                options.push({ label: columnName, value: `${columnName}-${columnDataTypes[0]}` });
             } else {
                 // Multiple types: show type in label and value
-                columnDataType.forEach(type => {
-                    options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
+                columnDataTypes.forEach(dataType => {
+                    options.push({ label: `${columnName} (${dataType})`, value: `${columnName}-${dataType}` });
                 });
             }
         });
@@ -373,9 +373,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return [];
         }
 
-        const columnTypeMap = this.createColumnNameDataTypesMap(tables);
+        const columnNameDataTypesMap = this.createColumnNameDataTypesMap(tables);
 
-        return this.createColumnOptions(columnTypeMap);
+        return this.createColumnOptions(columnNameDataTypesMap);
     }
 
     private getMigratedColumns(
