@@ -63,7 +63,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             const lastHyphenIndex = column.lastIndexOf('-');
             const columnName = column.substring(0, lastHyphenIndex);
             const dataType = column.substring(lastHyphenIndex + 1);
-            const transformedDataType = datasource.transformColumnType(dataType);
+            const transformedDataType = datasource.transformColumnDataType(dataType);
 
             (columnDataTypeMap[columnName]??= new Set()).add(transformedDataType);
             });
@@ -129,7 +129,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                 setColumnOptions([]);
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             datasource,
             getExistingColumnSelection,

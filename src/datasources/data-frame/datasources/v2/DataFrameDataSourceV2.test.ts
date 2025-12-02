@@ -293,7 +293,7 @@ describe('DataFrameDataSourceV2', () => {
                         await expect(
                             lastValueFrom(ds.runQuery(query, options))
                         ).rejects.toThrow(
-                            'One or more selected columns are invalid. Please update your column selection or refine your data table filter.'
+                            'One or more selected columns are invalid. Please update your column selection or refine your filters.'
                         );
                     });
 
@@ -326,7 +326,7 @@ describe('DataFrameDataSourceV2', () => {
                         await expect(
                             lastValueFrom(ds.runQuery(query, options))
                         ).rejects.toThrow(
-                            'One or more selected columns are invalid. Please update your column selection or refine your data table filter.'
+                            'One or more selected columns are invalid. Please update your column selection or refine your filters.'
                         );
                     });
 
@@ -378,9 +378,7 @@ describe('DataFrameDataSourceV2', () => {
                         await expect(
                             lastValueFrom(ds.runQuery(query, options))
                         ).rejects.toThrow(
-                            'One or more selected columns are invalid. ' +
-                            'Please update your column selection or ' +
-                            'refine your data table filter.'
+                            'One or more selected columns are invalid. Please update your column selection or refine your filters.'
                         );
                     });
 
@@ -402,14 +400,14 @@ describe('DataFrameDataSourceV2', () => {
                         await expect(
                             lastValueFrom(ds.runQuery(query, options))
                         ).rejects.toThrow(
-                            'One or more selected columns are invalid. Please update your column selection or refine your data table filter.'
+                            'One or more selected columns are invalid. Please update your column selection or refine your filters.'
                         );
                     });
                 });
 
                 describe('invalid columns', () => {
                     const errorMessage =
-                        'One or more selected columns are invalid. Please update your column selection or refine your data table filter.';
+                        'One or more selected columns are invalid. Please update your column selection or refine your filters.';
 
                     it('should throw error when some selected columns are invalid', async () => {
                         const mockTables = [
