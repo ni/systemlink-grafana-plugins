@@ -2526,7 +2526,7 @@ describe('DataFrameDataSourceV2', () => {
         });
     });
 
-    describe('transformColumnType', () => {
+    describe('transformColumnDataType', () => {
         it('should transform INT32 to Numeric', () => {
             const result = ds.transformColumnDataType('INT32');
             expect(result).toBe('Numeric');

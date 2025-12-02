@@ -257,13 +257,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return columnOptionsWithVariables;
     }
 
-    public transformQuery(query: string, scopedVars: ScopedVars = this.scopedVars) {
-        return transformComputedFieldsQuery(
-            this.templateSrv.replace(query, scopedVars),
-            this.dataTableComputedDataFields,
-        );
-    }
-
     public transformColumnDataType(dataType: string): string {
         const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType)
             ? 'Numeric'

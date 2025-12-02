@@ -965,18 +965,15 @@ describe("DataFrameQueryEditorV2", () => {
                         }); 
 
                         it('should not show an error message when selected columns exist in column options', async () => {
+                            await waitFor(() => {
+                                expect(mockDatasource.getColumnOptionsWithVariables).toHaveBeenCalled();
+                            });
 
-                        await waitFor(() => {
-                            expect(mockDatasource.getColumnOptionsWithVariables).toHaveBeenCalled();
+                            // No error message should be displayed
+                            await waitFor(() => {
+                                expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+                            });
                         });
-
-                        // No error message should be displayed
-                        await waitFor(() => {
-                            expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
-                        });
-                        });
-
-
                     });
 
                     describe('when existing columns are invalid', () => {
@@ -1047,8 +1044,8 @@ describe("DataFrameQueryEditorV2", () => {
                                 );
                                 expect(errorElement).toBeInTheDocument();
                             });
-                            });
                         });
+                    });
 
                     describe('when some columns are valid and some are invalid', () => {
                         it('should only show error for invalid columns', async () => {
@@ -1956,9 +1953,5 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
     });
-
 });
-
-
-
 
