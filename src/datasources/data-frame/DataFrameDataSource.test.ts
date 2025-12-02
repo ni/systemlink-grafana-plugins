@@ -161,7 +161,7 @@ describe('DataFrameDataSource', () => {
 
             const result = await ds.getColumnOptionsWithVariables({dataTableFilter: 'filter'});
 
-            expect(v1Mock.getColumnOptionsWithVariables).toHaveBeenCalledWith('filter');
+            expect(v1Mock.getColumnOptionsWithVariables).toHaveBeenCalledWith({dataTableFilter: 'filter'});
             expect(result).toEqual(['v1-column-options']);
         });
 
@@ -171,7 +171,7 @@ describe('DataFrameDataSource', () => {
 
             const result = await ds.getColumnOptionsWithVariables({dataTableFilter: 'filter'});
 
-            expect(v2Mock.getColumnOptionsWithVariables).toHaveBeenCalledWith('filter');
+            expect(v2Mock.getColumnOptionsWithVariables).toHaveBeenCalledWith({dataTableFilter: 'filter'});
             expect(result).toEqual(['v2-column-options']);
         });
    });

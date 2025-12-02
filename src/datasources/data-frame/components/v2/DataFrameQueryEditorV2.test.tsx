@@ -525,6 +525,7 @@ describe("DataFrameQueryEditorV2", () => {
                         processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                         getColumnOptionsWithVariables: jest.fn().mockResolvedValue(mockColumnOptions),
                         transformDataTableQuery: jest.fn(f => f),
+                        transformResultQuery: jest.fn(f => f),
                     } as any;
 
                     renderComponent({
