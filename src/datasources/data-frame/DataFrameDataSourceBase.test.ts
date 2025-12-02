@@ -147,7 +147,7 @@ describe('DataFrameDataSourceBase', () => {
     it('should return empty array for getColumnOptionsWithVariables', async () => {
         const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
 
-        const options = await ds.getColumnOptionsWithVariables('filter');
+        const options = await ds.getColumnOptionsWithVariables({dataTableFilter: 'filter'});
 
         expect(options).toEqual([]);
     });
@@ -480,6 +480,31 @@ describe('DataFrameDataSourceBase', () => {
             expect(ds.transformColumnDataType('STRING')).toBe('STRING');
             expect(ds.transformColumnDataType('INT32')).toBe('INT32');
             expect(ds.transformColumnDataType('BOOLEAN')).toBe('BOOLEAN');
+        });
+    });
+
+    describe('transformResultQuery', () => {
+        let ds: TestDataFrameDataSource;
+
+        beforeEach(() => {
+            ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+        });
+
+        it('should return the replaced filter string', () => {
+            const filter = 'status = $status';
+            (templateSrv.replace as jest.Mock).mockReturnValue('status = "Passed"');  
+            
+            const result = ds.transformResultQuery(filter);
+            
+            expect(result).toBe('status = "Passed"');
+        });
+
+        it('should propagate errors thrown by templateSrv.replace', () => {
+            const filter = 'errorFilter';
+            
+            (templateSrv.replace as jest.Mock).mockImplementation(() => { throw new Error('replace failed'); });
+            
+            expect(() => ds.transformResultQuery(filter)).toThrow('replace failed');
         });
     });
 });

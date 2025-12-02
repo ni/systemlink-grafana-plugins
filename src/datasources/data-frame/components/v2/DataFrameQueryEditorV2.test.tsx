@@ -48,6 +48,7 @@ const renderComponent = (
             ]
         ),
         transformDataTableQuery: jest.fn((filter: string) => filter),
+        transformResultQuery: jest.fn((filter: string) => filter),
         variablesCache,
         createColumnOptions: jest.fn((columnTypeMap: Record<string, Set<string>>) => {
             const options: ComboboxOption[] = [];
@@ -69,7 +70,7 @@ const renderComponent = (
                 return 'Numeric';
             }
             return dataType.charAt(0).toUpperCase() + dataType.slice(1).toLowerCase();
-        })
+        }),
     } as unknown as DataFrameDataSource;
 
     const initialQuery = {
@@ -368,7 +369,10 @@ describe("DataFrameQueryEditorV2", () => {
                         const columnsCombobox = screen.getAllByRole('combobox')[0];
                         await user.click(columnsCombobox);
 
-                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('ExistingFilter');
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
+                            dataTableFilter: 'ExistingFilter',
+                            resultFilter: ''
+                        });
 
                         // Column options should be fetched and available
                         await waitFor(() => {
@@ -494,7 +498,10 @@ describe("DataFrameQueryEditorV2", () => {
                                 ])
                             );
                         });
-                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('UpdatedFilter');
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
+                            dataTableFilter: 'UpdatedFilter',
+                            resultFilter: ''
+                        });
                     });
 
                     it('should fetch column options when switching to Data query type after changing filter in Properties type', async () => {
@@ -521,7 +528,10 @@ describe("DataFrameQueryEditorV2", () => {
                         await user.click(dataRadios[0]);
 
                         await waitFor(() => {
-                            expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('UpdatedFilter');
+                            expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
+                                dataTableFilter: 'UpdatedFilter',
+                                resultFilter: ''
+                            });
                         });
                     });
                 });
@@ -536,6 +546,7 @@ describe("DataFrameQueryEditorV2", () => {
                         processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                         getColumnOptionsWithVariables: jest.fn().mockResolvedValue(mockColumnOptions),
                         transformDataTableQuery: jest.fn(f => f),
+                        transformResultQuery: jest.fn(f => f),
                     } as any;
 
                     renderComponent({
@@ -546,7 +557,10 @@ describe("DataFrameQueryEditorV2", () => {
                         }, '', '', [], processQuery,{}, datasource);
 
                     await waitFor(() => {
-                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('InitialFilter');
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
+                            dataTableFilter: 'InitialFilter',
+                            resultFilter: ''
+                        });
                     });
                     });
 
@@ -571,11 +585,12 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => expect(datasource.getColumnOptionsWithVariables).not.toHaveBeenCalled());
                     });
 
-                    it('should call getColumnOptionsWithVariables with transformed filter on initial render', async () => {
+                    it('should call getColumnOptionsWithVariables with transformed filters on initial render', async () => {
                         const datasource = {
                             processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue([{ label: 'Col1', value: 'Col1' }]),
                             transformDataTableQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
+                            transformResultQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                         } as any;
 
                         renderComponent(
@@ -583,7 +598,8 @@ describe("DataFrameQueryEditorV2", () => {
                                 ...defaultQueryV2,
                                 refId: 'A',
                                 type: DataFrameQueryType.Data,
-                                dataTableFilter: 'InitialFilter',
+                                dataTableFilter: 'InitialDataTableFilter',
+                                resultFilter: 'InitialResultFilter',
                             },
                             '',
                             '',
@@ -594,16 +610,21 @@ describe("DataFrameQueryEditorV2", () => {
                         );
 
                         await waitFor(() => {
-                            expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('InitialFilter');
-                            expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('TRANSFORMED_InitialFilter');
+                            expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('InitialDataTableFilter');
+                            expect(datasource.transformResultQuery).toHaveBeenCalledWith('InitialResultFilter');
+                            expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
+                                dataTableFilter: 'TRANSFORMED_InitialDataTableFilter',
+                                resultFilter: 'TRANSFORMED_InitialResultFilter'
+                            });
                         });
                     });
 
-                    it('should call transformDataTableQuery before deciding to load column options', async () => {
+                    it('should transform variables before deciding to load column options', async () => {
                         const datasource = {
                             processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue([{ label: 'Col1', value: 'Col1' }]),
                             transformDataTableQuery: jest.fn(f => f),
+                            transformResultQuery: jest.fn(f => f),
                         } as any;
                         renderComponent(
                             {
@@ -611,6 +632,7 @@ describe("DataFrameQueryEditorV2", () => {
                                 refId: 'A',
                                 type: DataFrameQueryType.Data,
                                 dataTableFilter: 'FilterX',
+                                resultFilter: 'FilterY',
                             },
                             '',
                             '',
@@ -620,8 +642,14 @@ describe("DataFrameQueryEditorV2", () => {
                             datasource
                         );
                         
-                        await waitFor(() => expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterX'));
-                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('FilterX');
+                        await waitFor(() => {
+                            expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterX');
+                            expect(datasource.transformResultQuery).toHaveBeenCalledWith('FilterY');
+                        });
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
+                            dataTableFilter: 'FilterX',
+                            resultFilter: 'FilterY'
+                        });
                     });
                 })
 
@@ -633,6 +661,7 @@ describe("DataFrameQueryEditorV2", () => {
                             processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue([{ label: 'Col1', value: 'Col1' }]),
                             transformDataTableQuery: jest.fn(f => f),
+                            transformResultQuery: jest.fn(f => f),
                         } as any;
 
                         renderComponent(
@@ -641,6 +670,7 @@ describe("DataFrameQueryEditorV2", () => {
                                     refId: 'A',
                                     type: DataFrameQueryType.Data,
                                     dataTableFilter: 'FilterWithVar',
+                                    resultFilter: 'ResultWithVar',
                                 },
                             '',
                             '',
@@ -652,7 +682,11 @@ describe("DataFrameQueryEditorV2", () => {
 
                         await waitFor(() => {
                             expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
-                            expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('FilterWithVar');
+                            expect(datasource.transformResultQuery).toHaveBeenCalledWith('ResultWithVar');
+                            expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
+                                dataTableFilter: 'FilterWithVar',
+                                resultFilter: 'ResultWithVar'
+                            });
                         });
 
                         datasource.getColumnOptionsWithVariables.mockClear();
@@ -677,6 +711,99 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
                         });
+                    });
+                });
+
+                it('should only refetch column options when either resultFilter or dataTableFilter changes', async () => {
+                    const datasource = {
+                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue([{ label: 'Col1', value: 'Col1' }]),
+                        transformDataTableQuery: jest.fn((filter: string) => filter),
+                        transformResultQuery: jest.fn((filter: string) => filter),
+                    } as any;
+
+                    const { onChange } = renderComponent(
+                        {
+                            ...defaultQueryV2,
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: 'name = "Table1"',
+                            resultFilter: 'status = "Passed"',
+                        },
+                        '',
+                        '',
+                        [],
+                        undefined,
+                        {},
+                        datasource
+                    );
+
+                    await waitFor(() => {
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1);
+                    });
+
+                    datasource.getColumnOptionsWithVariables.mockClear();
+
+                    // Update resultFilter only
+                    onChange({
+                        ...defaultQueryV2,
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: 'name = "Table1"',
+                        resultFilter: 'status = "Failed"',
+                    });
+
+                    await waitFor(() => {
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1);
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
+                            dataTableFilter: 'name = "Table1"',
+                            resultFilter: 'status = "Failed"',
+                        });
+                    });
+                });
+
+                it('should not refetch column options when filters remain the same after variable substitution', async () => {
+                    const datasource = {
+                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue([{ label: 'Col1', value: 'Col1' }]),
+                        transformDataTableQuery: jest.fn(() => 'name = "Table1"'),
+                        transformResultQuery: jest.fn(() => 'status = "Passed"'),
+                    } as any;
+
+                    const { onChange } = renderComponent(
+                        {
+                            ...defaultQueryV2,
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: 'name = "$tableName"',
+                            resultFilter: 'status = "$status"',
+                        },
+                        '',
+                        '',
+                        [],
+                        undefined,
+                        {},
+                        datasource
+                    );
+
+                    await waitFor(() => {
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1);
+                    });
+
+                    datasource.getColumnOptionsWithVariables.mockClear();
+
+                    // Update with same filter values (variables expand to same values)
+                    onChange({
+                        ...defaultQueryV2,
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: 'name = "$tableName"',
+                        resultFilter: 'status = "$status"',
+                    });
+
+                    // Should not refetch since transformed values are the same
+                    await waitFor(() => {
+                        expect(datasource.getColumnOptionsWithVariables).not.toHaveBeenCalled();
                     });
                 });
 

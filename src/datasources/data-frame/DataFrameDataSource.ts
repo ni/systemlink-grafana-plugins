@@ -122,8 +122,8 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.processVariableQuery(query);
   }
 
-  public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
-    return this.datasource.getColumnOptionsWithVariables(filter);
+  public async getColumnOptionsWithVariables(filters: CombinedFilters): Promise<Option[]> {
+    return this.datasource.getColumnOptionsWithVariables(filters);
   }
 
   public transformDataTableQuery(query: string) {
@@ -136,5 +136,9 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
 
   public transformColumnDataType(dataType: string): string {
     return this.datasource.transformColumnDataType(dataType);
+  }
+
+  public transformResultQuery(query: string): string {
+    return this.datasource.transformResultQuery(query);
   }
 }
