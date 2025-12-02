@@ -70,14 +70,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         if (processedQuery.dataTableFilter) {
             processedQuery.dataTableFilter = this.transformDataTableQuery(
                 processedQuery.dataTableFilter,
-                options?.scopedVars! || {}
+                options?.scopedVars || {}
             );
         }
 
         if (processedQuery.resultFilter) {
             processedQuery.resultFilter = this.transformResultQuery(
                 processedQuery.resultFilter,
-                options?.scopedVars! || {}
+                options?.scopedVars || {}
             );
         }
 

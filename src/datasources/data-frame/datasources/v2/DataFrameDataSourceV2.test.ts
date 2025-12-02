@@ -92,17 +92,31 @@ describe('DataFrameDataSourceV2', () => {
             );
         });
 
-        it('should call transformComputedFieldsQuery when resultFilter is present', async () => {
+        it('should transform resultFilter and use it in API calls when resultFilter is present', async () => {
             const query = {
+                type: DataFrameQueryType.Properties,
                 resultFilter: 'status = "${status}"'
             } as DataFrameQueryV2;
             templateSrv.replace.mockReturnValue('status = "Passed"');
+            const postMock$ = jest.spyOn(ds, 'post$').mockImplementation((url) => {
+                if (url.includes('nitestmonitor/v2/query-results')) {
+                    return of({ results: [{ id: 'result-1' }], continuation: null });
+                }
+                return of({ tables: [] });
+            });
 
             await lastValueFrom(ds.runQuery(query, options));
 
             expect(templateSrv.replace).toHaveBeenCalledWith('status = "${status}"', options.scopedVars);
             expect(queryBuilderUtils.transformComputedFieldsQuery).toHaveBeenCalledWith(
                 'status = "Passed"',
+                expect.any(Object)
+            );
+            expect(postMock$).toHaveBeenCalledWith(
+                `${instanceSettings.url}/nitestmonitor/v2/query-results`,
+                expect.objectContaining({
+                    filter: 'status = "Passed"'
+                }),
                 expect.any(Object)
             );
         });
@@ -965,9 +979,11 @@ describe('DataFrameDataSourceV2', () => {
             );
         });
 
-        it('should call transformComputedFieldsQuery when resultFilter is present', async () => {
+        it('should transform resultFilter and pass transformed value to queryTables$ when present', async () => {
             const query = {
-                resultFilter: 'status = "${status}"'
+                queryType: DataFrameVariableQueryType.ListDataTables,
+                resultFilter: 'status = "${status}"',
+                refId: 'A'
             } as DataFrameVariableQuery;
             const optionsWithStatus = {
                 scopedVars: {
@@ -975,6 +991,7 @@ describe('DataFrameDataSourceV2', () => {
                 }
             };
             templateSrv.replace.mockReturnValue('status = "Passed"');
+            queryTablesSpy$.mockReturnValue(of([]));
 
             await ds.metricFindQuery(query, optionsWithStatus);
 
@@ -982,6 +999,13 @@ describe('DataFrameDataSourceV2', () => {
             expect(queryBuilderUtils.transformComputedFieldsQuery).toHaveBeenCalledWith(
                 'status = "Passed"',
                 expect.any(Object)
+            );
+            expect(queryTablesSpy$).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    resultFilter: 'status = "Passed"'
+                }),
+                expect.anything(),
+                expect.anything()
             );
         });
 
