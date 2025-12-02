@@ -71,7 +71,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             const filters = {
                 resultFilter: processedQuery.resultFilter,
                 dataTableFilter: processedQuery.dataTableFilter,
-            }
+            };
             const tables = await lastValueFrom(this.queryTables$(
                 filters,
                 TAKE_LIMIT,

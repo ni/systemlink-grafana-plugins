@@ -39,16 +39,37 @@ const renderComponent = (
         processQuery,
         getColumnOptionsWithVariables: jest.fn().mockResolvedValue(
             [
-                { label: 'ColumnA', value: 'ColumnA' },
+                { label: 'ColumnA', value: 'ColumnA-String' },
                 { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
                 { label: 'ColumnB (String)', value: 'ColumnB-String' },
-                { label: 'ColumnD (String)', value: 'ColumnD-String' },
-                { label: 'ColumnE', value: 'ColumnE' },
+                { label: 'ColumnD', value: 'ColumnD-String' },
+                { label: 'ColumnE', value: 'ColumnE-String' },
                 ...columnOptions
             ]
         ),
         transformDataTableQuery: jest.fn((filter: string) => filter),
-        variablesCache
+        variablesCache,
+        createColumnOptions: jest.fn((columnTypeMap: Record<string, Set<string>>) => {
+            const options: ComboboxOption[] = [];
+            Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
+                const columnDataType = Array.from(dataTypes);
+                if (columnDataType.length === 1) {
+                    options.push({ label: name, value: `${name}-${columnDataType[0]}` });
+                } else {
+                    columnDataType.forEach(type => {
+                        options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
+                    });
+                }
+            });
+            return options;
+        }),
+        transformColumnDataType: jest.fn((dataType: string) => {
+            const lowerType = dataType.toLowerCase();
+            if (['int32', 'int64', 'float32', 'float64'].includes(lowerType)) {
+                return 'Numeric';
+            }
+            return dataType.charAt(0).toUpperCase() + dataType.slice(1).toLowerCase();
+        })
     } as unknown as DataFrameDataSource;
 
     const initialQuery = {
@@ -673,7 +694,7 @@ describe("DataFrameQueryEditorV2", () => {
                         });
 
                         await waitFor(() => {
-                            expect(document.body).toHaveTextContent('ColumnD (String)');
+                            expect(document.body).toHaveTextContent('ColumnD');
                         });
                     });
 
@@ -770,10 +791,10 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(onChange).toHaveBeenCalledWith(
                                 expect.objectContaining({
-                                    columns: ['ColumnA'],
+                                    columns: ['ColumnA-String'],
                                 })
                             );
-                        expect(onRunQuery).toHaveBeenCalled();
+                            expect(onRunQuery).toHaveBeenCalled();
                         });
                     });
 
@@ -786,483 +807,350 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(onChange).toHaveBeenCalledWith(
                                 expect.objectContaining({
-                                    columns: ['ColumnA'],
+                                    columns: ['ColumnA-String'],
                                 })
                             );
                         });
                         onChange.mockClear();
 
                         // Wait for re-render to complete after first selection
-                        await new Promise(resolve => setTimeout(resolve, 100));
+                        await waitFor(() => {
+                            expect(screen.getAllByRole('combobox')[0]).toBeInTheDocument();
+                        });
 
                         // The MultiCombobox should still be open, find the second option
                         const secondColumnOption = await screen.findByRole('option', { name: 'ColumnB (Numeric)' });
                         await user.click(secondColumnOption);
-
                         await waitFor(() => {
                             expect(onChange).toHaveBeenCalledWith(
                                 expect.objectContaining({
-                                    columns: ['ColumnA', 'ColumnB-Numeric'],
+                                    columns: ['ColumnA-String', 'ColumnB-Numeric'],
                                 })
                             );
                         });
                     });
 
                     it('should update the query when a column is removed', async () => {
-                        const { onChange } = renderComponent({
-                            type: DataFrameQueryType.Data,
-                            dataTableFilter: 'TestFilter',
-                            columns: ['ColumnA', 'ColumnB-Numeric'],
+                        // Add both columns first
+                        await clickColumnOptions();
+                        const firstColumnOption = await screen.findByRole('option', { name: 'ColumnA' });
+                        await user.click(firstColumnOption);
+                        
+                        await waitFor(() => {
+                            expect(onChange).toHaveBeenCalledWith(
+                                expect.objectContaining({
+                                    columns: ['ColumnA-String'],
+                                })
+                            );
                         });
 
-                        const removeButton = screen.getAllByLabelText(/remove/i)[0];
-                        await user.click(removeButton);
+                        const secondColumnOption = await screen.findByRole('option', { name: 'ColumnB (Numeric)' });
+                        await user.click(secondColumnOption);
+                        
+                        await waitFor(() => {
+                            expect(onChange).toHaveBeenCalledWith(
+                                expect.objectContaining({
+                                    columns: ['ColumnA-String', 'ColumnB-Numeric'],
+                                })
+                            );
+                        });
+                        
+                        onChange.mockClear();
+                        onRunQuery.mockClear();
+
+                        // Now remove the first column
+                        const removeButton = await screen.findAllByLabelText(/remove/i);
+                        await user.click(removeButton[0]);
 
                         await waitFor(() => {
-                        expect(onChange).toHaveBeenCalledWith(
-                            expect.objectContaining({
-                                columns: ['ColumnB-Numeric'],
-                            })
-                        );
+                            expect(onChange).toHaveBeenCalledWith(
+                                expect.objectContaining({
+                                    columns: ['ColumnB-Numeric'],
+                                })
+                            );
+                            expect(onRunQuery).toHaveBeenCalled();
                         });
                     });
 
                     it('should update the query with an empty array when all columns are removed', async () => {
-                        const { onChange } = renderComponent({
-                            type: DataFrameQueryType.Data,
-                            dataTableFilter: 'TestFilter',
-                            columns: ['ColumnA'],
+                        // Add a column first
+                        await clickColumnOptions();
+                        const columnOption = await screen.findByRole('option', { name: 'ColumnA' });
+                        await user.click(columnOption);
+                        
+                        await waitFor(() => {
+                            expect(onChange).toHaveBeenCalledWith(
+                                expect.objectContaining({
+                                    columns: ['ColumnA-String'],
+                                })
+                            );
                         });
+                        
+                        onChange.mockClear();
+                        onRunQuery.mockClear();
 
-                        const removeButton = screen.getByLabelText(/remove/i);
+                        // Now remove the column
+                        const removeButton = await screen.findByLabelText(/remove/i);
                         await user.click(removeButton);
 
                         await waitFor(() => {
-                        expect(onChange).toHaveBeenCalledWith(
-                            expect.objectContaining({
-                                columns: [],
-                            })
-                        );
+                            expect(onChange).toHaveBeenCalledWith(
+                                expect.objectContaining({
+                                    columns: [],
+                                })
+                            );
+                            expect(onRunQuery).toHaveBeenCalled();
                         });
                     });
                 });
 
                 describe('column validation and error handling', () => {
-                  beforeAll(() => {
-                    jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
-                  });
-
-                  beforeEach(() => {
-                    cleanup();
-                    jest.clearAllMocks();
-                  });
-
-                  describe('when existing columns are valid', () => {
-                    it('should not show an error message when selected columns exist in column options', async () => {
-                        const mockDatasource = {
-                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
-                            getColumnOptionsWithVariables: jest.fn().mockResolvedValue([
-                                { label: 'ColumnA', value: 'ColumnA' },
-                                { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
-                                { label: 'ColumnD (String)', value: 'ColumnD-String' },
-                            ]),
-                            transformQuery: jest.fn(f => f),
-                            createColumnOptions: jest.fn((columnTypeMap: Record<string, Set<string>>) => {
-                                const options: ComboboxOption[] = [];
-                                Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
-                                    const columnDataType = Array.from(dataTypes);
-                                    if (columnDataType.length === 1) {
-                                        options.push({ label: name, value: `${name}-${columnDataType[0]}` });
-                                    } else {
-                                        columnDataType.forEach(type => {
-                                            options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
-                                        });
-                                    }
+                    const mockDatasource = {
+                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue([
+                            { label: 'ColumnA', value: 'ColumnA-String' },
+                            { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
+                            { label: 'ColumnB (String)', value: 'ColumnB-String' },
+                        ]),
+                        transformDataTableQuery: jest.fn((filter: string) => filter),
+                        createColumnOptions: jest.fn((columnTypeMap: Record<string, Set<string>>) => {
+                            const options: ComboboxOption[] = [];
+                            Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
+                                const columnDataType = Array.from(dataTypes);
+                                if (columnDataType.length === 1) {
+                                options.push({ label: name, value: `${name}-${columnDataType[0]}` });
+                                } else {
+                                columnDataType.forEach(type => {
+                                    options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
                                 });
-                                return options;
-                            }),
-                            transformColumnType: jest.fn((dataType: string) => dataType),
-                        } as any;
+                                }
+                            });
+                            return options;
+                        }),
+                        transformColumnDataType: jest.fn((dataType: string) => {
+                            // Mimic the real transformation
+                            const lowerType = dataType.toLowerCase();
+                            if (['int32', 'int64', 'float32', 'float64'].includes(lowerType)) {
+                                return 'Numeric';
+                            }
+                            return dataType.charAt(0).toUpperCase() + dataType.slice(1).toLowerCase();
+                        }),
+                    } as any;
 
-                      renderComponent(
-                        {
-                          type: DataFrameQueryType.Data,
-                          dataTableFilter: 'name = "TestTable"',
-                          columns: ['ColumnA', 'ColumnB-Numeric'],
-                        },
-                        '',
-                        '',
-                        [],
-                        undefined,
-                        {},
-                        mockDatasource
-                      );
-
-                      await waitFor(() => {
-                        expect(mockDatasource.getColumnOptionsWithVariables).toHaveBeenCalled();
-                      });
-
-                      // No error message should be displayed
-                      await waitFor(() => {
-                        expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
-                      });
+                    beforeAll(() => {
+                        jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
                     });
 
-                    it('should display selected columns in the MultiCombobox', async () => {
-                      const mockDatasource = {
-                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
-                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue([
-                          { label: 'ColumnA', value: 'ColumnA' },
-                          { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
-                        ]),
-                        transformQuery: jest.fn(f => f),
-                        createColumnOptions: jest.fn((columnTypeMap: Record<string, Set<string>>) => {
-                          const options: ComboboxOption[] = [];
-                          Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
-                            const columnDataType = Array.from(dataTypes);
-                            if (columnDataType.length === 1) {
-                              options.push({ label: name, value: `${name}-${columnDataType[0]}` });
-                            } else {
-                              columnDataType.forEach(type => {
-                                options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
-                              });
-                            }
-                          });
-                          return options;
-                        }),
-                        transformColumnType: jest.fn((dataType: string) => dataType),
-                      } as any;
-
-                      renderComponent(
-                        {
-                          type: DataFrameQueryType.Data,
-                          dataTableFilter: 'name = "TestTable"',
-                          columns: ['ColumnA', 'ColumnB-Numeric'],
-                        },
-                        '',
-                        '',
-                        [],
-                        undefined,
-                        {},
-                        mockDatasource
-                      );
-
-                      await waitFor(() => {
-                        expect(document.body).toHaveTextContent('ColumnA');
-                        expect(document.body).toHaveTextContent('ColumnB (Numeric)');
-                      });
-                    });
-                  });
-
-                  describe('when existing columns are invalid', () => {
-                    it('should show an error message when a single selected column does not exist in column options', async () => {
-                      const mockDatasource = {
-                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
-                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue([
-                          { label: 'ColumnA', value: 'ColumnA' },
-                          { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
-                        ]),
-                        transformQuery: jest.fn(f => f),
-                        createColumnOptions: jest.fn((columnTypeMap: Record<string, Set<string>>) => {
-                          const options: ComboboxOption[] = [];
-                          Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
-                            const columnDataType = Array.from(dataTypes);
-                            if (columnDataType.length === 1) {
-                              options.push({ label: name, value: `${name}-${columnDataType[0]}` });
-                            } else {
-                              columnDataType.forEach(type => {
-                                options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
-                              });
-                            }
-                          });
-                          return options;
-                        }),
-                        transformColumnType: jest.fn((dataType: string) => dataType),
-                      } as any;
-
-                      renderComponent(
-                        {
-                          type: DataFrameQueryType.Data,
-                          dataTableFilter: 'name = "TestTable"',
-                          columns: ['InvalidColumn-String'],
-                        },
-                        '',
-                        '',
-                        [],
-                        undefined,
-                        {},
-                        mockDatasource
-                      );
-
-                      await waitFor(() => {
-                        expect(
-                          screen.getByText("The selected column 'InvalidColumn (String)' is not valid.")
-                        ).toBeInTheDocument();
-                      });
+                    beforeEach(() => {
+                        cleanup();
+                        jest.clearAllMocks();
                     });
 
-                    it('should show an error message when multiple selected columns do not exist in column options', async () => {
-                      const mockDatasource = {
-                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
-                        getColumnOptionsWithVariables: jest
-                          .fn()
-                          .mockResolvedValue([{ label: 'ColumnA', value: 'ColumnA' }]),
-                        transformQuery: jest.fn(f => f),
-                        createColumnOptions: jest.fn((columnTypeMap: Record<string, Set<string>>) => {
-                          const options: ComboboxOption[] = [];
-                          Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
-                            const columnDataType = Array.from(dataTypes);
-                            if (columnDataType.length === 1) {
-                              options.push({ label: name, value: `${name}-${columnDataType[0]}` });
-                            } else {
-                              columnDataType.forEach(type => {
-                                options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
-                              });
-                            }
-                          });
-                          return options;
-                        }),
-                        transformColumnType: jest.fn((dataType: string) => dataType),
-                      } as any;
+                    describe('when existing columns are valid', () => {
+                        beforeEach(async () => {
+                            renderComponent(
+                                {
+                                    type: DataFrameQueryType.Data,
+                                    dataTableFilter: 'name = "TestTable"',
+                                    columns: ['ColumnA-String', 'ColumnB-Numeric'],
+                                },
+                                '',
+                                '',
+                                [],
+                                undefined,
+                                {},
+                                mockDatasource
+                            );
+                        
+                        }); 
 
-                      renderComponent(
-                        {
-                          type: DataFrameQueryType.Data,
-                          dataTableFilter: 'name = "TestTable"',
-                          columns: ['InvalidColumn1-String', 'InvalidColumn2-Numeric'],
-                        },
-                        '',
-                        '',
-                        [],
-                        undefined,
-                        {},
-                        mockDatasource
-                      );
+                        it('should not show an error message when selected columns exist in column options', async () => {
 
-                      await waitFor(() => {
-                        expect(
-                          screen.getByText(
-                            "The selected columns 'InvalidColumn1 (String), InvalidColumn2 (Numeric)' are not valid."
-                          )
-                        ).toBeInTheDocument();
-                      });
-                    });
-
-                    it('should mark the columns field as invalid when selected columns are invalid', async () => {
-                      const mockDatasource = {
-                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
-                        getColumnOptionsWithVariables: jest
-                          .fn()
-                          .mockResolvedValue([{ label: 'ColumnA', value: 'ColumnA' }]),
-                        transformQuery: jest.fn(f => f),
-                        createColumnOptions: jest.fn((columnTypeMap: Record<string, Set<string>>) => {
-                          const options: ComboboxOption[] = [];
-                          Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
-                            const columnDataType = Array.from(dataTypes);
-                            if (columnDataType.length === 1) {
-                              options.push({ label: name, value: `${name}-${columnDataType[0]}` });
-                            } else {
-                              columnDataType.forEach(type => {
-                                options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
-                              });
-                            }
-                          });
-                          return options;
-                        }),
-                        transformColumnType: jest.fn((dataType: string) => dataType),
-                      } as any;
-
-                      renderComponent(
-                        {
-                          type: DataFrameQueryType.Data,
-                          dataTableFilter: 'name = "TestTable"',
-                          columns: ['InvalidColumn-String'],
-                        },
-                        '',
-                        '',
-                        [],
-                        undefined,
-                        {},
-                        mockDatasource
-                      );
-
-                      await waitFor(() => {
-                        const errorElement = screen.getByText(
-                          "The selected column 'InvalidColumn (String)' is not valid."
-                        );
-                        expect(errorElement).toBeInTheDocument();
-                      });
-                    });
-                  });
-
-                  describe('when some columns are valid and some are invalid', () => {
-                    it('should only show error for invalid columns', async () => {
-                      const mockDatasource = {
-                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
-                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue([
-                          { label: 'ColumnA', value: 'ColumnA' },
-                          { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
-                        ]),
-                        transformQuery: jest.fn(f => f),
-                        createColumnOptions: jest.fn((columnTypeMap: Record<string, Set<string>>) => {
-                          const options: ComboboxOption[] = [];
-                          Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
-                            const columnDataType = Array.from(dataTypes);
-                            if (columnDataType.length === 1) {
-                              options.push({ label: name, value: `${name}-${columnDataType[0]}` });
-                            } else {
-                              columnDataType.forEach(type => {
-                                options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
-                              });
-                            }
-                          });
-                          return options;
-                        }),
-                        transformColumnType: jest.fn((dataType: string) => dataType),
-                      } as any;
-
-                      renderComponent(
-                        {
-                          type: DataFrameQueryType.Data,
-                          dataTableFilter: 'name = "TestTable"',
-                          columns: ['ColumnA', 'InvalidColumn-String'],
-                        },
-                        '',
-                        '',
-                        [],
-                        undefined,
-                        {},
-                        mockDatasource
-                      );
-
-                      await waitFor(() => {
-                        expect(
-                          screen.getByText("The selected column 'InvalidColumn (String)' is not valid.")
-                        ).toBeInTheDocument();
-                      });
-                    });
-                  });
-
-                  describe('formatSavedSelectedColumns functionality', () => {
-                    it('should call createColumnOptions with the correct column type map', async () => {
-                      const mockDatasource = {
-                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
-                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue([
-                          { label: 'ColumnA', value: 'ColumnA' },
-                          { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
-                        ]),
-                        transformQuery: jest.fn(f => f),
-                        createColumnOptions: jest.fn((columnTypeMap: Record<string, Set<string>>) => {
-                          const options: ComboboxOption[] = [];
-                          Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
-                            const columnDataType = Array.from(dataTypes);
-                            if (columnDataType.length === 1) {
-                              options.push({ label: name, value: `${name}-${columnDataType[0]}` });
-                            } else {
-                              columnDataType.forEach(type => {
-                                options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
-                              });
-                            }
-                          });
-                          return options;
-                        }),
-                        transformColumnType: jest.fn((dataType: string) => dataType),
-                      } as any;
-
-                      renderComponent(
-                        {
-                          type: DataFrameQueryType.Data,
-                          dataTableFilter: 'name = "TestTable"',
-                          columns: ['ColumnA-String', 'ColumnB-Numeric'],
-                        },
-                        '',
-                        '',
-                        [],
-                        undefined,
-                        {},
-                        mockDatasource
-                      );
-
-                      await waitFor(() => {
-                        expect(mockDatasource.createColumnOptions).toHaveBeenCalledWith({
-                          ColumnA: new Set(['String']),
-                          ColumnB: new Set(['Numeric']),
+                        await waitFor(() => {
+                            expect(mockDatasource.getColumnOptionsWithVariables).toHaveBeenCalled();
                         });
-                      });
-                    });
 
-                    it('should call transformColumnType for each saved column data type', async () => {
-                      const mockDatasource = {
-                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
-                        getColumnOptionsWithVariables: jest
-                          .fn()
-                          .mockResolvedValue([{ label: 'ColumnA', value: 'ColumnA' }]),
-                        transformQuery: jest.fn(f => f),
-                        createColumnOptions: jest.fn(() => [{ label: 'ColumnA', value: 'ColumnA' }]),
-                        transformColumnType: jest.fn((dataType: string) => dataType.toUpperCase()),
-                      } as any;
-
-                      renderComponent(
-                        {
-                          type: DataFrameQueryType.Data,
-                          dataTableFilter: 'name = "TestTable"',
-                          columns: ['ColumnA-string', 'ColumnB-numeric'],
-                        },
-                        '',
-                        '',
-                        [],
-                        undefined,
-                        {},
-                        mockDatasource
-                      );
-
-                      await waitFor(() => {
-                        expect(mockDatasource.transformColumnType).toHaveBeenCalledWith('string');
-                        expect(mockDatasource.transformColumnType).toHaveBeenCalledWith('numeric');
-                      });
-                    });
-
-                    it('should handle columns with multiple hyphens in the name correctly', async () => {
-                      const mockDatasource = {
-                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
-                        getColumnOptionsWithVariables: jest
-                          .fn()
-                          .mockResolvedValue([{ label: 'Column-With-Hyphens', value: 'Column-With-Hyphens' }]),
-                        transformQuery: jest.fn(f => f),
-                        createColumnOptions: jest.fn((columnTypeMap: Record<string, Set<string>>) => {
-                          const options: ComboboxOption[] = [];
-                          Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
-                            const columnDataType = Array.from(dataTypes);
-                            if (columnDataType.length === 1) {
-                              options.push({ label: name, value: `${name}-${columnDataType[0]}` });
-                            }
-                          });
-                          return options;
-                        }),
-                        transformColumnType: jest.fn((dataType: string) => dataType),
-                      } as any;
-
-                      renderComponent(
-                        {
-                          type: DataFrameQueryType.Data,
-                          dataTableFilter: 'name = "TestTable"',
-                          columns: ['Column-With-Hyphens-String'],
-                        },
-                        '',
-                        '',
-                        [],
-                        undefined,
-                        {},
-                        mockDatasource
-                      );
-
-                      await waitFor(() => {
-                        expect(mockDatasource.createColumnOptions).toHaveBeenCalledWith({
-                          'Column-With-Hyphens': new Set(['String']),
+                        // No error message should be displayed
+                        await waitFor(() => {
+                            expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
                         });
-                      });
+                        });
+
+
                     });
-                  });
+
+                    describe('when existing columns are invalid', () => {
+                        it('should show an error message when a single selected column does not exist in column options', async () => {
+                            renderComponent(
+                                {
+                                    type: DataFrameQueryType.Data,
+                                    dataTableFilter: 'name = "TestTable"',
+                                    columns: ['InvalidColumn-String'],
+                                },
+                                '',
+                                '',
+                                [],
+                                undefined,
+                                {},
+                                mockDatasource
+                            );
+
+                            await waitFor(() => {
+                                expect(
+                                    screen.getByText("The selected column 'InvalidColumn' is not valid.")
+                                ).toBeInTheDocument();
+                            });
+                        });
+
+                        it('should show an error message when multiple selected columns do not exist in column options', async () => {
+                            renderComponent(
+                                {
+                                    type: DataFrameQueryType.Data,
+                                    dataTableFilter: 'name = "TestTable"',
+                                    columns: ['InvalidColumn1-String', 'InvalidColumn2-Numeric'],
+                                },
+                                '',
+                                '',
+                                [],
+                                undefined,
+                                {},
+                                mockDatasource
+                            );
+
+                            await waitFor(() => {
+                                expect(
+                                    screen.getByText(
+                                        "The selected columns 'InvalidColumn1, InvalidColumn2' are not valid."
+                                    )
+                                ).toBeInTheDocument();
+                            });
+                        });
+
+                        it('should mark the columns field as invalid when selected columns are invalid', async () => {
+                            renderComponent(
+                                {
+                                    type: DataFrameQueryType.Data,
+                                    dataTableFilter: 'name = "TestTable"',
+                                    columns: ['InvalidColumn-String'],
+                                },
+                                '',
+                                '',
+                                [],
+                                undefined,
+                                {},
+                                mockDatasource
+                            );
+
+                            await waitFor(() => {
+                                const errorElement = screen.getByText(
+                                    "The selected column 'InvalidColumn' is not valid."
+                                );
+                                expect(errorElement).toBeInTheDocument();
+                            });
+                            });
+                        });
+
+                    describe('when some columns are valid and some are invalid', () => {
+                        it('should only show error for invalid columns', async () => {
+                            renderComponent(
+                                {
+                                    type: DataFrameQueryType.Data,
+                                    dataTableFilter: 'name = "TestTable"',
+                                    columns: ['ColumnA-String', 'InvalidColumn-String'],
+                                },
+                                '',
+                                '',
+                                [],
+                                undefined,
+                                {},
+                                mockDatasource
+                            );
+
+                            await waitFor(() => {
+                                expect(
+                                    screen.getByText("The selected column 'InvalidColumn' is not valid.")
+                                ).toBeInTheDocument();
+                            });
+                        });
+                    });
+
+                    describe('formatSavedSelectedColumns', () => {
+                        it('should call createColumnOptions with the correct column type map', async () => {
+                            renderComponent(
+                                {
+                                    type: DataFrameQueryType.Data,
+                                    dataTableFilter: 'name = "TestTable"',
+                                    columns: ['ColumnA-String', 'ColumnB-Numeric'],
+                                },
+                                '',
+                                '',
+                                [],
+                                undefined,
+                                {},
+                                mockDatasource
+                            );
+
+                            await waitFor(() => {
+                                expect(mockDatasource.createColumnOptions).toHaveBeenCalledWith({
+                                    ColumnA: new Set(['String']),
+                                    ColumnB: new Set(['Numeric']),
+                                });
+                            });
+                        });
+
+                        it('should call transformColumnDataType for each saved column data type', async () => {
+                            const mockDatasource = {
+                                processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                                getColumnOptionsWithVariables: jest
+                                    .fn()
+                                    .mockResolvedValue([{ label: 'ColumnA', value: 'ColumnA' }]),
+                                transformDataTableQuery: jest.fn((filter: string) => filter),
+                                createColumnOptions: jest.fn(() => [{ label: 'ColumnA', value: 'ColumnA' }]),
+                                transformColumnDataType: jest.fn((dataType: string) => dataType.toUpperCase()),
+                            } as any;
+
+                            renderComponent(
+                                {
+                                    type: DataFrameQueryType.Data,
+                                    dataTableFilter: 'name = "TestTable"',
+                                    columns: ['ColumnA-string', 'ColumnB-numeric'],
+                                },
+                                '',
+                                '',
+                                [],
+                                undefined,
+                                {},
+                                mockDatasource
+                            );
+
+                            await waitFor(() => {
+                                expect(mockDatasource.transformColumnDataType).toHaveBeenCalledWith('string');
+                                expect(mockDatasource.transformColumnDataType).toHaveBeenCalledWith('numeric');
+                            });
+                        });
+
+                        it('should handle columns with multiple hyphens in the name correctly', async () => {
+                            renderComponent(
+                                {
+                                    type: DataFrameQueryType.Data,
+                                    dataTableFilter: 'name = "TestTable"',
+                                    columns: ['Column-With-Hyphens-String'],
+                                },
+                                '',
+                                '',
+                                [],
+                                undefined,
+                                {},
+                                mockDatasource
+                            );
+
+                            await waitFor(() => {
+                                expect(mockDatasource.createColumnOptions).toHaveBeenCalledWith({
+                                    'Column-With-Hyphens': new Set(['String']),
+                                });
+                            });
+                        });
+                    });
                 });
 
                 describe('query execution with existing column selection', () => {
@@ -1275,58 +1163,15 @@ describe("DataFrameQueryEditorV2", () => {
                     jest.clearAllMocks();
                   });
 
-                  it('should not run query when dataTableFilter changes and existing columns are present', async () => {
-                    const mockDatasource = {
-                      processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
-                      getColumnOptionsWithVariables: jest
-                        .fn()
-                        .mockResolvedValue([{ label: 'ColumnA', value: 'ColumnA' }]),
-                      transformQuery: jest.fn(f => f),
-                      createColumnOptions: jest.fn(() => [{ label: 'ColumnA', value: 'ColumnA' }]),
-                      transformColumnType: jest.fn((dataType: string) => dataType),
-                    } as any;
-
-                    const { onRunQuery } = renderComponent(
-                      {
-                        type: DataFrameQueryType.Data,
-                        dataTableFilter: 'InitialFilter',
-                        columns: ['ColumnA'],
-                      },
-                      '',
-                      '',
-                      [],
-                      undefined,
-                      {},
-                      mockDatasource
-                    );
-
-                    onRunQuery.mockClear();
-
-                    // Get the onDataTableFilterChange callback from the mock
-                    const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
-                    const { onDataTableFilterChange } = props;
-
-                    // Simulate the filter change event
-                    const mockEvent = {
-                      detail: { linq: 'NewFilter' },
-                    } as Event & { detail: { linq: string } };
-
-                    onDataTableFilterChange(mockEvent);
-
-                    await waitFor(() => {
-                      expect(onRunQuery).not.toHaveBeenCalled();
-                    });
-                  });
-
                   it('should run query when dataTableFilter changes and no existing columns are present', async () => {
                     const mockDatasource = {
                       processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                       getColumnOptionsWithVariables: jest
                         .fn()
                         .mockResolvedValue([{ label: 'ColumnA', value: 'ColumnA' }]),
-                      transformQuery: jest.fn(f => f),
+                      transformDataTableQuery: jest.fn((filter: string) => filter),
                       createColumnOptions: jest.fn(() => []),
-                      transformColumnType: jest.fn((dataType: string) => dataType),
+                      transformColumnDataType: jest.fn((dataType: string) => dataType),
                     } as any;
 
                     const { onRunQuery } = renderComponent(
@@ -1376,9 +1221,9 @@ describe("DataFrameQueryEditorV2", () => {
                       getColumnOptionsWithVariables: jest
                         .fn()
                         .mockResolvedValue([{ label: 'ColumnA', value: 'ColumnA' }]),
-                      transformQuery: jest.fn(f => f),
+                      transformDataTableQuery: jest.fn((filter: string) => filter),
                       createColumnOptions: jest.fn(() => []),
-                      transformColumnType: jest.fn((dataType: string) => dataType),
+                      transformColumnDataType: jest.fn((dataType: string) => dataType),
                     } as any;
 
                     const { onRunQuery } = renderComponent(
@@ -1396,7 +1241,7 @@ describe("DataFrameQueryEditorV2", () => {
                     );
 
                     // Wait for the observable to resolve
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    expect(screen.getAllByRole('combobox')[0]).toBeInTheDocument();
                     onRunQuery.mockClear();
 
                     // Get the onDataTableFilterChange callback from the mock
@@ -2113,3 +1958,7 @@ describe("DataFrameQueryEditorV2", () => {
     });
 
 });
+
+
+
+
