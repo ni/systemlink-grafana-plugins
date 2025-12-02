@@ -64,7 +64,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         ]
     );
 
-    const selectedColumnOptions = useMemo((): Array<ComboboxOption<string>> => {
+    const columnOptionsMap = useMemo(() => {
+        return new Map(columnOptions.map(option => [option.value, option]));
+    }, [columnOptions]);
+
+    const selectedColumnIds = useMemo(() => {
         if (
             !migratedQuery.columns
             || isObservable(migratedQuery.columns)
@@ -72,35 +76,35 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             return [];
         }
 
-        const columnNameDataTypesMap: Record<string, Set<string>> = {};
-        migratedQuery.columns.forEach(column => {
-            const lastHyphenIndex = column.lastIndexOf('-');
-            const columnName = column.substring(0, lastHyphenIndex);
-            const transformedDataType = column.substring(lastHyphenIndex + 1);
+        return migratedQuery.columns;
+    }, [migratedQuery.columns]);
 
-            (columnNameDataTypesMap[columnName]??= new Set()).add(transformedDataType);
-        });
-        return datasource.createColumnOptions(columnNameDataTypesMap);
-    }, [datasource, migratedQuery.columns]);
+    const validColumnSelections = useMemo((): Array<ComboboxOption<string>> => {
+        return selectedColumnIds
+            .filter(columnId => columnOptionsMap.has(columnId))
+            .map(columnId => columnOptionsMap.get(columnId)!);
+    }, [columnOptionsMap, selectedColumnIds]);
+
+    const invalidColumnSelections = useMemo((): Array<ComboboxOption<string>> => {
+        return selectedColumnIds
+            .filter(columnId => !columnOptionsMap.has(columnId))
+            .map(columnId => ({ label: columnId, value: columnId }));
+    }, [columnOptionsMap, selectedColumnIds]);
+
+    const selectedColumnOptions = useMemo((): Array<ComboboxOption<string>> => {
+        return [...validColumnSelections, ...invalidColumnSelections];
+    }, [validColumnSelections, invalidColumnSelections]);
 
     const invalidSelectedColumnsMessage = useMemo(() => {
-        if(selectedColumnOptions.length === 0) {
+        if(invalidColumnSelections.length === 0) {
             return '';
         }
 
-        const columnOptionValuesSet = new Set(columnOptions.map(option => option.value));
-        const invalidColumns= selectedColumnOptions.filter(selectedColumn => 
-            !columnOptionValuesSet.has(selectedColumn.value)
-        );
-        if (invalidColumns.length === 0) {
-            return '';
-        }
-
-        const invalidColumnNames = invalidColumns.map(col => col.label).join(', ');
-        return invalidColumns.length === 1
+        const invalidColumnNames = invalidColumnSelections.map(col => col.label).join(', ');
+        return invalidColumnSelections.length === 1
             ? `The selected column '${invalidColumnNames}' is not valid.`
             : `The selected columns '${invalidColumnNames}' are not valid.`;
-    }, [selectedColumnOptions, columnOptions]);
+    }, [invalidColumnSelections]);
 
     useEffect(
         () => {
