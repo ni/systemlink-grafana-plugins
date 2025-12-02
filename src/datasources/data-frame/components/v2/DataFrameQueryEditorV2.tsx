@@ -45,13 +45,16 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     const lastFilterRef = useRef<string>('');
 
-    const getExistingColumnSelection = useCallback((columns: any) => {
-      if (isObservable(columns)) {
-        return [];
-      }
-      return columns
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const getExistingColumnSelection = useCallback(
+        (columns: any) => {
+            if (isObservable(columns)) {
+                return [];
+            }
+            return columns
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        },
+        []
+    );
 
     const formatSavedSelectedColumns = useCallback(
         (
@@ -60,12 +63,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         ) => {
             const columnDataTypeMap: Record<string, Set<string>> = {};
             existingColumnSelection.forEach(column => {
-            const lastHyphenIndex = column.lastIndexOf('-');
-            const columnName = column.substring(0, lastHyphenIndex);
-            const dataType = column.substring(lastHyphenIndex + 1);
-            const transformedDataType = datasource.transformColumnDataType(dataType);
+                const lastHyphenIndex = column.lastIndexOf('-');
+                const columnName = column.substring(0, lastHyphenIndex);
+                const dataType = column.substring(lastHyphenIndex + 1);
+                const transformedDataType = datasource.transformColumnDataType(dataType);
 
-            (columnDataTypeMap[columnName]??= new Set()).add(transformedDataType);
+                (columnDataTypeMap[columnName]??= new Set()).add(transformedDataType);
             });
             return datasource.createColumnOptions(columnDataTypeMap);
         },
@@ -214,9 +217,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         }
 
         (query as DataFrameQueryV2).dataTableFilter = dataTableFilter;
-        const existingColumnSelection = getExistingColumnSelection((query as DataFrameDataQuery).columns);
-        const shouldRunQuery = _.isEmpty(existingColumnSelection);
-        handleQueryChange({ ...migratedQuery, dataTableFilter }, shouldRunQuery);
+        handleQueryChange({ ...migratedQuery, dataTableFilter });
     };
 
     const onResultFilterChange = (event?: Event | React.FormEvent<Element>) => {
