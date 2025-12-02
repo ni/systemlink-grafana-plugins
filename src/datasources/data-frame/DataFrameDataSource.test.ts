@@ -331,6 +331,28 @@ describe('DataFrameDataSource', () => {
         });
      });
 
+    describe('transformResultQuery', () => {
+        it('should delegate to v2 transformResultQuery when feature toggle is true', () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
+            v2Mock.transformResultQuery.mockClear();
+            
+            const result = ds.transformResultQuery('filter');
+            
+            expect(v2Mock.transformResultQuery).toHaveBeenCalledWith('filter');
+            expect(result).toBe('v2-filter');
+        });
+
+        it('should delegate to v1 base transformResultQuery when feature toggle is false', () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
+            v1Mock.transformResultQuery.mockClear();
+            
+            const result = ds.transformResultQuery('filter');
+            
+            expect(v1Mock.transformResultQuery).toHaveBeenCalledWith('filter');
+            expect(result).toBe('v1-filter');
+        });
+    });
+
     describe('createColumnOptions', () => {
         it('should delegate to v2 createColumnOptions when feature toggle is true', () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
@@ -378,26 +400,4 @@ describe('DataFrameDataSource', () => {
             expect(result).toBe('INT32');
         });
     });
-
-    describe('transformResultQuery', () => {
-        it('should delegate to v2 transformResultQuery when feature toggle is true', () => {
-            const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
-            v2Mock.transformResultQuery.mockClear();
-            
-            const result = ds.transformResultQuery('filter');
-            
-            expect(v2Mock.transformResultQuery).toHaveBeenCalledWith('filter');
-            expect(result).toBe('v2-filter');
-        });
-
-        it('should delegate to v1 base transformResultQuery when feature toggle is false', () => {
-            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
-            v1Mock.transformResultQuery.mockClear();
-            
-            const result = ds.transformResultQuery('filter');
-            
-            expect(v1Mock.transformResultQuery).toHaveBeenCalledWith('filter');
-            expect(result).toBe('v1-filter');
-        });
-     });
 });

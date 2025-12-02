@@ -115,16 +115,16 @@ export abstract class DataFrameDataSourceBase<
         return this.templateSrv.replace(query);
     }
 
+    public transformResultQuery(filter: string) {
+        return this.templateSrv.replace(filter);
+    }
+
     public createColumnOptions(_columnNameDataTypesMap: Record<string, Set<string>>): Option[] {
         return [];
     }
 
     public transformColumnDataType(dataType: string): string {
         return dataType;
-    }
-
-    public transformResultQuery(filter: string) {
-        return this.templateSrv.replace(filter);
     }
 
     protected constructNullFilters(columns: Column[]): ColumnFilter[] {

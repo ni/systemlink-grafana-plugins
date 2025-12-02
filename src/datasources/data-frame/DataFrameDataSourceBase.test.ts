@@ -459,30 +459,6 @@ describe('DataFrameDataSourceBase', () => {
         });
     });
 
-    describe('createColumnOptions', () => {
-        it('should return empty array by default', () => {
-            const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
-            const columnNameDataTypesMap = {
-                'Column1': new Set(['String']),
-                'Column2': new Set(['Numeric'])
-            };
-
-            const result = ds.createColumnOptions(columnNameDataTypesMap);
-
-            expect(result).toEqual([]);
-        });
-    });
-
-    describe('transformColumnDataType', () => {
-        it('should return the same data type by default', () => {
-            const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
-
-            expect(ds.transformColumnDataType('STRING')).toBe('STRING');
-            expect(ds.transformColumnDataType('INT32')).toBe('INT32');
-            expect(ds.transformColumnDataType('BOOLEAN')).toBe('BOOLEAN');
-        });
-    });
-
     describe('transformResultQuery', () => {
         let ds: TestDataFrameDataSource;
 
@@ -505,6 +481,30 @@ describe('DataFrameDataSourceBase', () => {
             (templateSrv.replace as jest.Mock).mockImplementation(() => { throw new Error('replace failed'); });
             
             expect(() => ds.transformResultQuery(filter)).toThrow('replace failed');
+        });
+    });
+
+    describe('createColumnOptions', () => {
+        it('should return empty array by default', () => {
+            const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+            const columnNameDataTypesMap = {
+                'Column1': new Set(['String']),
+                'Column2': new Set(['Numeric'])
+            };
+
+            const result = ds.createColumnOptions(columnNameDataTypesMap);
+
+            expect(result).toEqual([]);
+        });
+    });
+
+    describe('transformColumnDataType', () => {
+        it('should return the same data type by default', () => {
+            const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+
+            expect(ds.transformColumnDataType('STRING')).toBe('STRING');
+            expect(ds.transformColumnDataType('INT32')).toBe('INT32');
+            expect(ds.transformColumnDataType('BOOLEAN')).toBe('BOOLEAN');
         });
     });
 });
