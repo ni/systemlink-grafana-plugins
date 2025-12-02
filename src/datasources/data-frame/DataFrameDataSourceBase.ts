@@ -91,7 +91,7 @@ export abstract class DataFrameDataSourceBase<
         }
     }
 
-    public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
+    public async getColumnOptionsWithVariables(filters: CombinedFilters): Promise<Option[]> {
         return Promise.resolve([]);
     }
 
