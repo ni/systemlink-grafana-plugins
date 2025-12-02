@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TimeRange } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { DataFrameDataSourceBase } from './DataFrameDataSourceBase';
-import { DataFrameQuery, DataFrameDataSourceOptions, TableProperties, TableDataRows, Column, DataFrameVariableQuery, ValidDataFrameVariableQuery, DataFrameDataQuery, CombinedFilters } from './types';
+import { DataFrameQuery, DataFrameDataSourceOptions, TableProperties, TableDataRows, Column, DataFrameVariableQuery, ValidDataFrameVariableQuery, DataFrameDataQuery, CombinedFilters, ColumnType, ColumnFilter } from './types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { Workspace } from 'core/types';
 import { lastValueFrom, Observable, of } from 'rxjs';
@@ -84,6 +84,14 @@ describe('DataFrameDataSourceBase', () => {
         public queryTables(_query: string): Promise<TableProperties[]> {
             return Promise.resolve([]);
         }
+
+        public constructNullFiltersWrapper(columns: Column[]): ColumnFilter[] {
+            return this.constructNullFilters(columns);
+        }
+
+        public getNumericColumnsWrapper(columns: Column[]): Column[] {
+            return this.getNumericColumns(columns);
+        }
     }
 
     it('should set baseUrl correctly', () => {
@@ -151,6 +159,82 @@ describe('DataFrameDataSourceBase', () => {
         const result = ds.processVariableQuery(query);
 
         expect(result).toBe(query);
+    });
+
+    it('should construct null filters for nullable and float columns for constructNullFilters', () => {
+        const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+        const columns: Column[] = [
+            {
+                name: 'col1',
+                columnType: ColumnType.Nullable,
+                dataType: 'STRING',
+                properties: {}
+            },
+            {
+                name: 'col2',
+                columnType: ColumnType.Normal,
+                dataType: 'FLOAT32',
+                properties: {}
+            },
+            {
+                name: 'col3',
+                columnType: ColumnType.Normal,
+                dataType: 'INT32',
+                properties: {}
+            },
+            {
+                name: 'col4',
+                columnType: ColumnType.Nullable,
+                dataType: 'INT32',
+                properties: {}
+            },
+        ];
+
+        const result = ds.constructNullFiltersWrapper(columns);
+
+        expect(result).toEqual([
+            { column: 'col1', operation: 'NOT_EQUALS', value: null },
+            { column: 'col2', operation: 'NOT_EQUALS', value: 'NaN' },
+            { column: 'col4', operation: 'NOT_EQUALS', value: null },
+        ]);
+    });
+
+    it('should return only numeric columns for getNumericColumns', () => {
+        const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+        const columns: Column[] = [
+            {
+                name: 'col1',
+                columnType: ColumnType.Normal,
+                dataType: 'FLOAT32',
+                properties: {}
+            },
+            {
+                name: 'col2',
+                columnType: ColumnType.Normal,
+                dataType: 'STRING',
+                properties: {}
+            },
+            {
+                name: 'col3',
+                columnType: ColumnType.Normal,
+                dataType: 'INT32',
+                properties: {}
+            },
+            {
+                name: 'col4',
+                columnType: ColumnType.Normal,
+                dataType: 'TIMESTAMP',
+                properties: {}
+            },
+        ];
+
+        const result = ds.getNumericColumnsWrapper(columns);
+
+        expect(result).toEqual([
+            columns[0],
+            columns[2],
+            columns[3]
+        ]);
     });
 
     describe('loadWorkspaces', () => {
@@ -350,7 +434,7 @@ describe('DataFrameDataSourceBase', () => {
         });
     });
 
-    describe('transformQuery', () => {
+    describe('transformDataTableQuery', () => {
         let ds: TestDataFrameDataSource;
 
         beforeEach(() => {
@@ -361,7 +445,7 @@ describe('DataFrameDataSourceBase', () => {
             const query = 'id = $var';
             (templateSrv.replace as jest.Mock).mockReturnValue('id = <valid-id-value>');  
             
-            const result = ds.transformQuery(query);
+            const result = ds.transformDataTableQuery(query);
             
             expect(result).toBe('id = <valid-id-value>');
         });
@@ -371,7 +455,7 @@ describe('DataFrameDataSourceBase', () => {
             
             (templateSrv.replace as jest.Mock).mockImplementation(() => { throw new Error('replace failed'); });
             
-            expect(() => ds.transformQuery(query)).toThrow('replace failed');
+            expect(() => ds.transformDataTableQuery(query)).toThrow('replace failed');
         });
     });
 

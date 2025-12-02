@@ -146,6 +146,10 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   take: TAKE_LIMIT
 };
 
+export interface QueryResultsResponse {
+  results: Array<{id: string}>;
+}
+
 export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
   label: string,
   projection: DataTableProjections,
@@ -337,6 +341,20 @@ export interface DataFrameDataSourceOptions extends DataSourceJsonData {
 export interface Option {
   label: string;
   value: string;
+}
+
+export interface DecimationOptions {
+  method?: string;
+  xColumn?: string;
+  yColumns?: string[];
+  intervals?: number;
+}
+
+export interface DecimatedDataRequest {
+  tableId: string;
+  columns: string[];
+  filters: ColumnFilter[];
+  decimation: DecimationOptions;
 }
 
 export function isSystemLinkError(error: any): error is SystemLinkError {

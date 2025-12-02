@@ -1,14 +1,15 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, CombinedFilters } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
-import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse } from "../../types";
+import { COLUMN_OPTIONS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
+import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
-import { catchError, combineLatestWith, from, isObservable, lastValueFrom, map, Observable, of, switchMap } from "rxjs";
+import { catchError, combineLatestWith, concatMap, forkJoin, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap } from "rxjs";
+import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
@@ -30,14 +31,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const processedQuery = this.processQuery(query);
 
         if (processedQuery.dataTableFilter) {
-            processedQuery.dataTableFilter = this.transformQuery(
+            processedQuery.dataTableFilter = this.transformDataTableQuery(
                 processedQuery.dataTableFilter,
                 options.scopedVars
             );
         }
 
         if (this.shouldQueryForData(processedQuery)) {
-            return this.getDecimatedDataForSelectedColumns$(
+            return this.getFieldsForDataQuery$(
                 processedQuery
             );
         }
@@ -60,16 +61,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const processedQuery = this.processVariableQuery(query);
 
         if (processedQuery.dataTableFilter) {
-            processedQuery.dataTableFilter = this.transformQuery(
+            processedQuery.dataTableFilter = this.transformDataTableQuery(
                 processedQuery.dataTableFilter,
                 options?.scopedVars! || ''
             );
         }
 
         if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
-            const filters  = {
+            const filters = {
+                resultFilter: processedQuery.resultFilter,
                 dataTableFilter: processedQuery.dataTableFilter,
-            }
+            };
             const tables = await lastValueFrom(this.queryTables$(
                 filters,
                 TAKE_LIMIT,
@@ -180,25 +182,53 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         take?: number,
         projections?: DataTableProjections[]
     ): Observable<TableProperties[]> {
-        // TODO: Implement logic to combine with result and column filters.
-        return this.queryTablesInternal$(filters.dataTableFilter!, take, projections);
+        const isQueryByResultFeatureEnabled = this.instanceSettings.jsonData?.featureToggles?.queryByResultAndColumnProperties
+        if (filters.resultFilter && isQueryByResultFeatureEnabled) {
+            return this.queryResultIds$(filters.resultFilter).pipe(
+                switchMap(resultIds => {
+                    if (resultIds.length === 0) {
+                        return of([]);
+                    }
+                    const resultFilter = this.buildResultIdFilter(resultIds);
+                    const combinedFilter = this.buildCombinedFilter({
+                        resultFilter,
+                        dataTableFilter: filters.dataTableFilter
+                    });
+                    return this.queryTablesInternal$(
+                        combinedFilter,
+                        take,
+                        projections,
+                        resultIds
+                    );
+                })
+            );
+        }
+        return this.queryTablesInternal$(filters.dataTableFilter || '', take, projections, undefined);
     }
 
     private queryTablesInternal$(
         filter: string,
         take = TAKE_LIMIT,
-        projection?: DataTableProjections[]
+        projection?: DataTableProjections[],
+        substitutions?: string[]
     ): Observable<TableProperties[]> {
+        const requestBody = { 
+            interactive: true, 
+            filter, 
+            take, 
+            projection, 
+            substitutions, 
+        };
         const response = this.post$<TablePropertiesList>(
             `${this.baseUrl}/query-tables`,
-            { filter, take, projection },
+            requestBody,
             { useApiIngress: true }
         );
 
         return response.pipe(
             map(res => res.tables),
             catchError(error => {
-                const errorMessage = this.getErrorMessage(error);
+                const errorMessage = this.getErrorMessage(error, 'data tables');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
                     payload: ['Error during data tables query', errorMessage],
@@ -261,12 +291,86 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return options;
     }
 
+    // TODO(#3526598): Make this method private after implementing the runQuery method for data query type.
+    public getDecimatedTableDataInBatches$(
+        tableColumnsMap: Record<string, Column[]>,
+        query: ValidDataFrameQueryV2,
+        timeRange: TimeRange,
+        intervals = 1000
+    ): Observable<Record<string, TableDataRows>> {
+        const decimatedDataRequests = this.getDecimatedDataRequests(
+            tableColumnsMap,
+            query,
+            timeRange,
+            intervals
+        );
+        const batches = _.chunk(decimatedDataRequests, REQUESTS_PER_SECOND);
+
+        return from(batches).pipe(
+            mergeMap((batch, index) =>
+                timer(index * DELAY_BETWEEN_REQUESTS_MS).pipe(
+                    concatMap(() => forkJoin(
+                        batch.map(request =>
+                            this.getDecimatedTableData$(request).pipe(
+                                map(tableDataRows => ({ 
+                                    tableId: request.tableId, 
+                                    data: tableDataRows 
+                                }))
+                            )
+                        )
+                    ))
+                )
+            ),
+            reduce((acc, results) => {
+                results.forEach(({ tableId, data }) => acc[tableId] = data);
+                return acc;
+            }, {} as Record<string, TableDataRows>)
+        );
+    }
+
+    private getDecimatedDataRequests(
+        tableColumnsMap: Record<string, Column[]>,
+        query: ValidDataFrameQueryV2,
+        timeRange: TimeRange,
+        intervals = 1000
+    ): DecimatedDataRequest[] {
+        return Object.entries(tableColumnsMap).map(([tableId, columns]) => {
+            const filters: ColumnFilter[] = query.filterNulls
+                ? this.constructNullFilters(columns)
+                : [];
+
+            return {
+                tableId,
+                columns: columns.map(column => column.name),
+                filters,
+                decimation: {
+                    method: query.decimationMethod,
+                    xColumn: query.xColumn || undefined,
+                    yColumns: this.getNumericColumns(columns).map(column => column.name),
+                    intervals,
+                }
+            };
+        });
+    }
+
+    private getDecimatedTableData$(request: DecimatedDataRequest): Observable<TableDataRows> {
+        return this.post$<TableDataRows>(
+            `${this.baseUrl}/tables/${request.tableId}/query-decimated-data`,
+            {
+                columns: request.columns,
+                filters: request.filters,
+                decimation: request.decimation,
+            },
+            { useApiIngress: true }
+        );
+    }
+
     private async getColumnOptions(dataTableFilter: string): Promise<Option[]> {
         const tables = await lastValueFrom(
-          this.queryTables$({ dataTableFilter }, TAKE_LIMIT, [
-            DataTableProjections.ColumnName,
-            DataTableProjections.ColumnDataType,
-        ]));
+            this.queryTables$({ dataTableFilter }, TAKE_LIMIT, [
+                DataTableProjections.ColumnName,
+                DataTableProjections.ColumnDataType,
+            ]));
 
         const hasColumns = tables.some(
             table => Array.isArray(table.columns)
@@ -290,7 +394,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         return this.getTable(tableId).pipe(
-            map(table => this.migrateColumnsFromV1ToV2(currentColumns, table))
+            map(table => this.migrateColumnsFromV1ToV2(currentColumns, table)),
+            catchError(error => {
+                const errorMessage = this.getErrorMessage(error, 'data table columns');
+                this.appEvents?.publish?.({
+                    type: AppEvents.alertError.name,
+                    payload: ['Error during fetching columns for migration', errorMessage],
+                });
+                return of(currentColumns);
+            })
         );
     }
 
@@ -309,6 +421,20 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         });
     }
 
+    public transformDataTableQuery(query: string, scopedVars: ScopedVars = this.scopedVars) {
+        return transformComputedFieldsQuery(
+            this.templateSrv.replace(query, scopedVars),
+            this.dataTableComputedDataFields,
+        );
+    }
+
+    public transformResultQuery(query: string, scopedVars: ScopedVars = this.scopedVars) {
+        return transformComputedFieldsQuery(
+            this.templateSrv.replace(query, scopedVars),
+            this.resultsComputedDataFields,
+        );
+    }
+
     private areAllObjectsWithNameProperty(object: any[]): object is Array<{ name: string; }> {
         return _.every(
             object,
@@ -320,16 +446,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return _.every(array, entry => typeof entry === 'string');
     }
 
-    private getErrorMessage(error: Error): string {
+    private getErrorMessage(error: Error, context: string): string {
         const errorDetails = extractErrorInfo(error.message);
 
         switch (errorDetails.statusCode) {
             case '':
                 return 'The query failed due to an unknown error.';
             case '429':
-                return 'The query to fetch data tables failed due to too many requests. Please try again later.';
+                return `The query to fetch ${context} failed due to too many requests. Please try again later.`;
             case '504':
-                return 'The query to fetch data tables experienced a timeout error. Narrow your query with a more specific filter and try again.';
+                return `The query to fetch ${context} experienced a timeout error. Narrow your query with a more specific filter and try again.`;
             default:
                 return `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
         }
@@ -373,6 +499,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return query.type === DataFrameQueryType.Data;
     }
 
+    private getFieldsForDataQuery$(
+        processedQuery: ValidDataFrameQueryV2
+    ): Observable<DataFrameDTO> {
+        return this.getDecimatedDataForSelectedColumns$(
+            processedQuery
+        )
+    }
+
     private getDecimatedDataForSelectedColumns$(
         processedQuery: ValidDataFrameQueryV2
     ): Observable<DataFrameDTO> {
@@ -404,7 +538,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 return tables$.pipe(
                     map(tables => {
                         if (!this.areSelectedColumnsValid(selectedColumns, tables)) {
-                            const errorMessage = 'One or more selected columns are invalid. Please update your column selection or refine your data table filter.';
+                            const errorMessage = 'One or more selected columns are invalid. Please update your column selection or refine your filters.';
                             this.appEvents?.publish?.({
                                 type: AppEvents.alertError.name,
                                 payload: ['Column selection error', errorMessage],
@@ -417,7 +551,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             tables
                         );
                         if (Object.keys(selectedTableColumnMap).length > 0) {
-                            // Fetch decimated data for selected columns
+                            // TODO: Implement fetching decimated data for selected columns if needed.
                         }
                         
                         return this.buildDataFrame(processedQuery.refId);
@@ -468,13 +602,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return [];
         }
 
-        const columnDetails: Column[] = [];
+        const selectedColumnDetails: Column[] = [];
 
         table.columns.forEach(column => {
-            const transformedType = this.transformColumnDataType(column.dataType);
-            const selectedColumnId = `${column.name}-${transformedType}`;
-            if (selectedColumns.includes(selectedColumnId)) {
-                columnDetails.push({
+            const transformedColumnType = this.transformColumnDataType(column.dataType);
+            const tableColumnId = `${column.name}-${transformedColumnType}`;
+            if (selectedColumns.includes(tableColumnId)) {
+                selectedColumnDetails.push({
                     name: column.name,
                     dataType: column.dataType,
                     columnType: column.columnType,
@@ -482,7 +616,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 });
             }
         });
-        return columnDetails;
+        return selectedColumnDetails;
     }
 
     private buildDataFrame(refId: string): DataFrameDTO {
@@ -512,6 +646,26 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         return computedFields;
     }
+
+    protected readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
+        Object.values(ResultsQueryBuilderFieldNames).map(field => {
+          let callback;
+          
+          switch (field) {
+            case ResultsQueryBuilderFieldNames.UPDATED_AT:
+            case ResultsQueryBuilderFieldNames.STARTED_AT:
+              callback = timeFieldsQuery(field);
+              break;
+            case ResultsQueryBuilderFieldNames.KEYWORDS:
+              callback = listFieldsQuery(field);
+              break;
+            default:
+              callback = multipleValuesQuery(field);
+          }
+    
+          return [field, callback];
+        })
+    );
 
     private isTimeField(field: DataTableProperties): boolean {
         const timeFields = [
@@ -619,8 +773,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             .map(property => DataTableProjectionLabelLookup[property].projection);
         const projectionExcludingId = projections
             .filter(projection => projection !== DataTableProjections.Id);
+        const filters = {
+            resultFilter: processedQuery.resultFilter,
+            dataTableFilter: processedQuery.dataTableFilter,
+        }
         const tables$ = this.queryTables$(
-            { dataTableFilter: processedQuery.dataTableFilter },
+            filters,
             processedQuery.take,
             projectionExcludingId
         );
@@ -653,5 +811,59 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
 
         return dataFrame$;
+    }
+
+    private queryResultIds$(resultFilter: string): Observable<string[]> {
+        const queryResultsUrl = `${this.instanceSettings.url}/nitestmonitor/v2/query-results`;
+        const requestBody = {
+            filter: resultFilter,
+            projection: ['id'],
+            take: RESULT_IDS_LIMIT,
+            orderBy: 'UPDATED_AT',
+            descending: true
+        };
+
+        return this.post$<QueryResultsResponse>(
+            queryResultsUrl,
+            requestBody,
+            { showErrorAlert: false }
+        ).pipe(
+            map(response => {
+                if (!response.results || response.results.length === 0) {
+                    return [];
+                }
+                return response.results.map(result => result.id);
+            }),
+            catchError(error => {
+                const errorMessage = this.getErrorMessage(error, 'results');
+                this.appEvents?.publish?.({
+                    type: AppEvents.alertError.name,
+                    payload: ['Error querying test results', errorMessage],
+                });
+                return of([]);
+            })
+        );
+    }
+
+    private buildResultIdFilter(resultIds: string[]): string {
+        if (resultIds.length === 0) {
+            return '';
+        }
+        const placeholders = resultIds.map((_, index) => `@${index}`).join(', ');
+        const resultFilter = `new[] {${placeholders}}.Contains(testResultId)`;
+        return resultFilter;
+    }
+
+    private buildCombinedFilter(filters: CombinedFilters): string {
+        const combinedFilters: string[] = [];
+        
+        if (filters.resultFilter) {
+            combinedFilters.push(`(${filters.resultFilter})`);
+        }
+        if (filters.dataTableFilter) {
+            combinedFilters.push(`(${filters.dataTableFilter})`);
+        }
+        
+        return combinedFilters.join(' && ');
     }
 }

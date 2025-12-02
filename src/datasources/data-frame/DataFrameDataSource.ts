@@ -126,8 +126,8 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.getColumnOptionsWithVariables(filter);
   }
 
-  public transformQuery(query: string) {
-    return this.datasource.transformQuery(query);
+  public transformDataTableQuery(query: string) {
+    return this.datasource.transformDataTableQuery(query);
   }
 
   public createColumnOptions(columnTypeMap: Record<string, Set<string>>): Option[] {

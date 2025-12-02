@@ -1,7 +1,7 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
-import { DataFrameDataQuery, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
+import { ColumnType, DataFrameDataQuery, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
@@ -31,7 +31,17 @@ describe('DataFrameDataSourceV2', () => {
         (queryBuilderUtils.timeFieldsQuery as jest.Mock).mockImplementation(actualQueryBuilderUtils.timeFieldsQuery);
         (queryBuilderUtils.multipleValuesQuery as jest.Mock).mockImplementation(actualQueryBuilderUtils.multipleValuesQuery);
 
-        instanceSettings = { id: 1, name: 'test', type: 'test', url: '', jsonData: {} } as any;
+        instanceSettings = { 
+            id: 1, 
+            name: 'test', 
+            type: 'test', 
+            url: '', 
+            jsonData: { 
+                featureToggles: { 
+                    queryByResultAndColumnProperties: true 
+                } 
+            } 
+        } as any;
         backendSrv = {} as any;
         templateSrv = {
             replace: jest.fn((value: string) => value),
@@ -481,6 +491,274 @@ describe('DataFrameDataSourceV2', () => {
                     });
                 })
             });
+
+            describe('column handling', () => {
+                let options: DataQueryRequest<DataFrameQueryV2>;
+                let queryTablesSpy: jest.SpyInstance;
+
+                const projections = [
+                    DataTableProjections.ColumnName,
+                    DataTableProjections.ColumnDataType,
+                    DataTableProjections.ColumnType
+                ];
+
+                beforeEach(() => {
+                    options = {
+                        scopedVars: {},
+                    } as any;
+                    queryTablesSpy = jest.spyOn(ds, 'queryTables$');
+                });
+
+                describe('when columns are not selected', () => {
+                    it('should return empty DataFrame and skip table query when columns array is empty', async () => {
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: []
+                        } as DataFrameQueryV2;
+
+                        const result = await lastValueFrom(
+                            ds.runQuery(query, options)
+                        );
+
+                        expect(result).toEqual(
+                            expect.objectContaining({
+                                refId: 'A',
+                                name: 'A',
+                                fields: []
+                            })
+                        );
+                        expect(queryTablesSpy).not.toHaveBeenCalled();
+                    });
+
+                    it('should return empty DataFrame and skip table query when columns observable emits empty array', async () => {
+                        const query: any = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: of([]),
+                        };
+
+                        const result = await lastValueFrom(
+                            ds.runQuery(query, options)
+                        );
+
+                        expect(result).toEqual(
+                            expect.objectContaining({
+                                refId: 'A',
+                                name: 'A',
+                                fields: []
+                            })
+                        );
+                        expect(queryTablesSpy).not.toHaveBeenCalled();
+                    });
+                });
+
+                describe('when columns are selected', () => {
+                    it('should query tables and return results when columns are provided as array', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            columns: [
+                                {
+                                    name: 'colA',
+                                    dataType: 'INT32',
+                                    columnType: ColumnType.Normal
+                                },
+                                {
+                                    name: 'colB',
+                                    dataType: 'TIMESTAMP',
+                                    columnType: ColumnType.Normal
+                                }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: [
+                                'colA-Numeric',
+                                'colB-Timestamp'
+                            ],
+                            dataTableFilter: 'name = "Test"',
+                        } as DataFrameQueryV2;
+
+                        const result = await lastValueFrom(ds.runQuery(query, options));
+
+                        expect(queryTablesSpy).toHaveBeenCalledWith(
+                            {"dataTableFilter": "name = \"Test\""},
+                            TAKE_LIMIT,
+                            projections
+                        );
+                        expect(result.refId).toBe('A');
+                    });
+
+                    it('should query tables and return results when columns are provided as observable', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            columns: [
+                                {
+                                    name: 'colX',
+                                    dataType: 'FLOAT64',
+                                    columnType: ColumnType.Normal
+                                }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const query: any = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: of(['colX-Numeric']),
+                            dataTableFilter: 'name == "Test"',
+                        };
+
+                        const result = await lastValueFrom(ds.runQuery(query, options));
+
+                        expect(queryTablesSpy).toHaveBeenCalledWith(
+                            { "dataTableFilter": "name == \"Test\"" },
+                            TAKE_LIMIT,
+                            projections
+                        );
+                        expect(result.refId).toBe('A');
+                    });
+
+                    it('should throw error when table query returns no results', async () => {
+                        queryTablesSpy.mockReturnValue(of([]));
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                        } as DataFrameQueryV2;
+
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(
+                            'One or more selected columns are invalid. Please update your column selection or refine your filters.'
+                        );
+                    });
+
+                    it('should throw error when table has undefined columns property', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                columns: undefined
+                            } as any
+                        ];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric'],
+                            dataTableFilter: '',
+                        } as DataFrameQueryV2;
+
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(
+                            'One or more selected columns are invalid. Please update your column selection or refine your filters.'
+                        );
+                    });
+
+                    it('should throw error when table has empty columns array', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                columns: []
+                            }
+                        ];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric'],
+                            dataTableFilter: '',
+                        } as DataFrameQueryV2;
+
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(
+                            'One or more selected columns are invalid. Please update your column selection or refine your filters.'
+                        );
+                    });
+                });
+
+                describe('invalid columns', () => {
+                    const errorMessage =
+                        'One or more selected columns are invalid. Please update your column selection or refine your filters.';
+
+                    it('should throw error when some selected columns are invalid', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                columns: [
+                                    {
+                                        name: 'colA',
+                                        dataType: 'INT32',
+                                        columnType: ColumnType.Normal
+                                    },
+                                    {
+                                        name: 'colB',
+                                        dataType: 'STRING',
+                                        columnType: ColumnType.Normal
+                                    }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: [
+                                'colA-Numeric',
+                                'colB-String',
+                                'colC-String'
+                            ],
+                            dataTableFilter: 'name = "Test"',
+                        } as DataFrameQueryV2;
+
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(errorMessage);
+                    });
+
+                    it('should publish alert when any of the selected columns are invalid', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                columns: [
+                                    {
+                                        name: 'colX',
+                                        dataType: 'FLOAT64',
+                                        columnType: ColumnType.Normal
+                                    }
+                                ]
+                            }
+                        ];
+                        const publishMock = jest.fn();
+                        (ds as any).appEvents = { publish: publishMock };
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        const query: any = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: of(['colY-Numeric']),
+                            dataTableFilter: '',
+                        };
+
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(errorMessage);
+
+                        expect(publishMock).toHaveBeenCalledWith({
+                            type: 'alert-error',
+                            payload: [
+                                'Column selection error',
+                                errorMessage
+                            ]
+                        });
+                    });
+                })
+            });
         });
 
         describe("when query type is properties", () => {
@@ -573,6 +851,7 @@ describe('DataFrameDataSourceV2', () => {
             describe('when dataTableProperties, columnProperties and a valid take are provided', () => {
                 const validQuery = {
                     type: DataFrameQueryType.Properties,
+                    resultFilter: 'partNumber = "12345"',
                     dataTableFilter: 'name = "Test Table"',
                     dataTableProperties: [DataTableProperties.Name],
                     columnProperties: [],
@@ -603,7 +882,10 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await lastValueFrom(ds.runQuery(validQuery, options));
 
                     expect(queryTablesSpy$).toHaveBeenCalledWith(
-                        { dataTableFilter: 'name = "Test Table"' },
+                        { 
+                            dataTableFilter: 'name = "Test Table"',
+                            resultFilter: 'partNumber = "12345"'
+                        },
                         1000,
                         [DataTableProjections.Name]
                     );
@@ -618,6 +900,30 @@ describe('DataFrameDataSourceV2', () => {
                             }
                         ]
                     });
+                });
+
+                it('should pass empty resultFilter to queryTables$ when not provided', async () => {
+                    const queryWithoutResultFilter = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'name = "Table1"',
+                        dataTableProperties: [DataTableProperties.Name],
+                        columnProperties: [],
+                        take: 1000,
+                        refId: 'C',
+                    };
+                    const mockTables = [{ id: 'table-1', name: 'Table 1' }];
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                    await lastValueFrom(ds.runQuery(queryWithoutResultFilter, options));
+
+                    expect(queryTablesSpy$).toHaveBeenCalledWith(
+                        { 
+                            dataTableFilter: 'name = "Table1"',
+                            resultFilter: ''
+                        },
+                        1000,
+                        [DataTableProjections.Name]
+                    );
                 });
 
                 it('should return expected fields when for all the properties', async () => {
@@ -894,7 +1200,10 @@ describe('DataFrameDataSourceV2', () => {
                     );
 
                     expect(queryTablesSpy$).toHaveBeenCalledWith(
-                        { dataTableFilter: 'name = "Test Table"' },
+                        { 
+                            dataTableFilter: 'name = "Test Table"',
+                            resultFilter: ''
+                        },
                         1000,
                         expectedProjections
                     );
@@ -1049,7 +1358,10 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await ds.metricFindQuery(query, options);
 
                 expect(queryTablesSpy$).toHaveBeenCalledWith(
-                    { dataTableFilter: 'name = "Test Table"' },
+                    { 
+                        dataTableFilter: 'name = "Test Table"',
+                        resultFilter: ''
+                    },
                     1000,
                     [DataTableProjections.Name]
                 );
@@ -1057,6 +1369,51 @@ describe('DataFrameDataSourceV2', () => {
                     { text: 'Table 1', value: 'table-1' },
                     { text: 'Table 2', value: 'table-2' }
                 ]);
+            });
+
+            it('should pass resultFilter to queryTables$ when provided', async () => {
+                const queryWithResultFilter = {
+                    queryType: DataFrameVariableQueryType.ListDataTables,
+                    dataTableFilter: 'name = "${name}"',
+                    resultFilter: 'status = "Passed"',
+                    refId: 'A'
+                } as DataFrameVariableQuery;
+                templateSrv.replace.mockReturnValue('name = "Test Table"');
+                const mockTables = [{ id: 'table-1', name: 'Table 1' }];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                await ds.metricFindQuery(queryWithResultFilter, options);
+
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    { 
+                        dataTableFilter: 'name = "Test Table"',
+                        resultFilter: 'status = "Passed"'
+                    },
+                    1000,
+                    [DataTableProjections.Name]
+                );
+            });
+
+            it('should pass empty resultFilter when not provided', async () => {
+                const queryWithoutResultFilter = {
+                    queryType: DataFrameVariableQueryType.ListDataTables,
+                    dataTableFilter: 'workspace = "ws-1"',
+                    refId: 'A'
+                } as DataFrameVariableQuery;
+                templateSrv.replace.mockReturnValue('workspace = "ws-1"');
+                const mockTables = [{ id: 'table-1', name: 'Table 1' }];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                await ds.metricFindQuery(queryWithoutResultFilter, options);
+
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    { 
+                        dataTableFilter: 'workspace = "ws-1"',
+                        resultFilter: ''
+                    },
+                    1000,
+                    [DataTableProjections.Name]
+                );
             });
         });
 
@@ -1433,6 +1790,46 @@ describe('DataFrameDataSourceV2', () => {
                         ['col1', 'col2-String']
                     );
                 });
+
+                it('should return an observable with original columns when get table call failed', async () => {
+                    getSpy$.mockReturnValue(throwError(() => new Error('Table not found')));
+                    const v1Query = {
+                        type: DataFrameQueryType.Data,
+                        tableId: 'table-789',
+                        columns: ['col1', 'col2'],
+                        refId: 'E'
+                    } as DataFrameQueryV1;
+
+                    const result = ds.processQuery(v1Query);
+
+                    expect(isObservable(result.columns)).toBe(true);
+                    expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
+                        ['col1', 'col2']
+                    );
+                });
+
+                it('should publish the error when get table call failed', async () => {
+                    getSpy$.mockReturnValue(throwError(() => new Error('Table not found')));
+                    const publishMock = jest.fn();
+                    (ds as any).appEvents = { publish: publishMock };
+                    const v1Query = {
+                        type: DataFrameQueryType.Data,
+                        tableId: 'table-789',
+                        columns: ['col1', 'col2'],
+                        refId: 'E'
+                    } as DataFrameQueryV1;
+
+                    const result = ds.processQuery(v1Query);
+                    await lastValueFrom(result.columns as Observable<string[]>);
+
+                    expect(publishMock).toHaveBeenCalledWith({
+                        type: 'alert-error',
+                        payload: [
+                            'Error during fetching columns for migration',
+                            'The query failed due to an unknown error.'
+                        ],
+                    });
+                });
             });
         });
 
@@ -1656,7 +2053,9 @@ describe('DataFrameDataSourceV2', () => {
 
     describe('queryTables$', () => {
         let postMock$: jest.SpyInstance;
+        const publishMock = jest.fn();
         const mockTables = [{ id: '1', name: 'Table 1' }, { id: '2', name: 'Table 2' }];
+        const mockResultsResponse = {results: [{ id: 'result-1' },{ id: 'result-2' },]};
 
         function createQueryTablesError(status: number) {
             return new Error(
@@ -1664,8 +2063,252 @@ describe('DataFrameDataSourceV2', () => {
             );
         }
 
+        function createQueryResultsError(status: number) {
+            return new Error(
+                `Request to url "${ds.instanceSettings.url}/nitestmonitor/v2/query-results" failed with status code: ${status}. Error message: "Error"`
+            );
+        }
+
         beforeEach(() => {
-            postMock$ = jest.spyOn(ds, 'post$').mockReturnValue(of({ tables: mockTables }));
+            postMock$ = jest.spyOn(ds, 'post$').mockImplementation((url, body, options) => {
+                if (url.includes('nitestmonitor/v2/query-results')) {
+                    return of(mockResultsResponse);
+                } else if (url.includes('query-tables')) {
+                    return of({ tables: mockTables });
+                }
+                return of({});
+            });
+            (ds as any).appEvents = { publish: publishMock };
+        });
+
+        it('should extract result IDs and build filter with substitutions', async () => {
+            const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
+            await lastValueFrom(ds.queryTables$(filters));
+
+            // Check that the Test Monitor API was called with the correct filter
+            expect(postMock$).toHaveBeenCalledWith(
+                `${instanceSettings.url}/nitestmonitor/v2/query-results`,
+                {
+                    filter: 'status = "Passed"',
+                    projection: ['id'],
+                    take: 1000,
+                    orderBy: 'UPDATED_AT',
+                    descending: true
+                },
+                { showErrorAlert: false }
+            );
+            // Check that the data tables API was called with the correct filter
+            expect(postMock$).toHaveBeenCalledWith(
+                `${ds.baseUrl}/query-tables`,
+                {
+                    interactive: true,
+                    filter: '(new[] {@0, @1}.Contains(testResultId))',
+                    take: TAKE_LIMIT,
+                    projection: undefined,
+                    substitutions: ['result-1', 'result-2']
+                },
+                { useApiIngress: true }
+            );
+        });
+
+        it('should return empty array when Test Monitor API returns no results', async () => {
+            postMock$.mockImplementation((url) => {
+                if (url.includes('query-results')) {
+                    return of({ results: [] });
+                } 
+                return of({ tables: mockTables });            
+            });
+
+            const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
+            const result = await lastValueFrom(ds.queryTables$(filters));
+
+            expect(result).toEqual([]);
+            // Should not call DataFrames API when no results
+            expect(postMock$).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not query result IDs when result filter is empty string', async () => {
+            const filters = {
+                resultFilter: '',
+                dataTableFilter: 'name = "Table1"'
+            };
+
+            const result = await lastValueFrom(ds.queryTables$(filters, 10));
+
+            expect(postMock$).toHaveBeenCalledWith(
+                `${ds.baseUrl}/query-tables`,
+                {
+                    interactive: true,
+                    filter: 'name = "Table1"',
+                    take: 10,
+                    projection: undefined,
+                    substitutions: undefined
+                },
+                { useApiIngress: true }
+            );
+            expect(result).toBe(mockTables);
+        });
+
+        it('should not query result IDs when feature flag is disabled', async () => {
+            const dsWithoutFeature = new DataFrameDataSourceV2(
+                { ...instanceSettings, jsonData: {} } as any,
+                backendSrv,
+                templateSrv
+            );
+            const postMockWithoutFeature$ = jest.spyOn(dsWithoutFeature, 'post$').mockReturnValue(of({ tables: mockTables }));
+            const filters = {
+                resultFilter: 'status = "Passed"',
+                dataTableFilter: 'name = "Table1"'
+            };
+
+            const result = await lastValueFrom(dsWithoutFeature.queryTables$(filters, 10));
+
+            // Should only call query-tables, not query-results
+            expect(postMockWithoutFeature$).toHaveBeenCalledTimes(1);
+            expect(postMockWithoutFeature$).toHaveBeenCalledWith(
+                expect.stringContaining('query-tables'),
+                {
+                    interactive: true,
+                    filter: 'name = "Table1"',
+                    take: 10,
+                    projection: undefined,
+                    substitutions: undefined
+                },
+                { useApiIngress: true }
+            );
+            expect(result).toBe(mockTables);
+        });
+
+        it('should combine result filter and data table filter with AND when both are provided', async () => {
+            const filters = {
+                resultFilter: 'status = "Passed"',
+                dataTableFilter: 'name = "Table1"'
+            };
+
+            await lastValueFrom(ds.queryTables$(filters, 10));
+
+            expect(postMock$).toHaveBeenCalledWith(
+                `${instanceSettings.url}/nitestmonitor/v2/query-results`,
+                {
+                    filter: 'status = "Passed"',
+                    projection: ['id'],
+                    take: 1000,
+                    orderBy: 'UPDATED_AT',
+                    descending: true
+                },
+                { showErrorAlert: false }
+            );
+            expect(postMock$).toHaveBeenCalledWith(
+                `${ds.baseUrl}/query-tables`,
+                {
+                    interactive: true,
+                    filter: '(new[] {@0, @1}.Contains(testResultId)) && (name = "Table1")',
+                    take: 10,
+                    projection: undefined,
+                    substitutions: ['result-1', 'result-2']
+                },
+                { useApiIngress: true }
+            );
+        });
+
+        it('should use only result filter when data table filter is empty', async () => {
+            const filters = {
+                resultFilter: 'status = "Passed"',
+                dataTableFilter: ''
+            };
+
+            await lastValueFrom(ds.queryTables$(filters, 10));
+
+            expect(postMock$).toHaveBeenCalledWith(
+                `${ds.baseUrl}/query-tables`,
+                {
+                    interactive: true,
+                    filter: '(new[] {@0, @1}.Contains(testResultId))',
+                    take: 10,
+                    projection: undefined,
+                    substitutions: ['result-1', 'result-2']
+                },
+                { useApiIngress: true }
+            );
+        });
+
+        it('should return empty array when query results API returns error without status', async () => {
+            postMock$.mockReturnValue(throwError(() => new Error('Some unknown error')));
+
+            await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
+
+            expect(publishMock).toHaveBeenCalledWith({
+                type: 'alert-error',
+                payload: [
+                    'Error querying test results',
+                    'The query failed due to an unknown error.'
+                ],
+            });
+            expect(publishMock).toHaveBeenCalledTimes(1);
+        });
+
+        it('should return empty array when query results API returns 429 status', async () => {
+            postMock$.mockReturnValue(throwError(() => createQueryResultsError(429)));
+
+            const result = await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
+            
+            expect(result).toEqual([]);
+            expect(publishMock).toHaveBeenCalledWith({
+                type: 'alert-error',
+                payload: [
+                    'Error querying test results',
+                    'The query to fetch results failed due to too many requests. Please try again later.'
+                ],
+            });
+            expect(publishMock).toHaveBeenCalledTimes(1);
+        });
+
+        it('should return empty array when query results API returns 504 status', async () => {
+            postMock$.mockReturnValue(throwError(() => createQueryResultsError(504)));
+
+            const result = await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
+            
+            expect(result).toEqual([]);
+            expect(publishMock).toHaveBeenCalledWith({
+                type: 'alert-error',
+                payload: [
+                    'Error querying test results',
+                    'The query to fetch results experienced a timeout error. Narrow your query with a more specific filter and try again.'
+                ],
+            });
+            expect(publishMock).toHaveBeenCalledTimes(1);
+        });
+
+        it('should return empty array when query results API returns 500 status', async () => {
+            postMock$.mockReturnValue(throwError(() => createQueryResultsError(500)));
+
+            const result = await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
+            
+            expect(result).toEqual([]);
+            expect(publishMock).toHaveBeenCalledWith({
+                type: 'alert-error',
+                payload: [
+                    'Error querying test results',
+                    'The query failed due to the following error: (status 500) "Error".'
+                ],
+            });
+            expect(publishMock).toHaveBeenCalledTimes(1);
+        });
+
+        it('should publish alertError event when error occurs in query results API', async () => {
+            postMock$.mockReturnValue(throwError(() => createQueryResultsError(429)));
+
+            const result = await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
+
+            expect(result).toEqual([]);
+            expect(publishMock).toHaveBeenCalledWith({
+                type: 'alert-error',
+                payload: [
+                    'Error querying test results',
+                    'The query to fetch results failed due to too many requests. Please try again later.'
+                ],
+            });
+            expect(publishMock).toHaveBeenCalledTimes(1);
         });
 
         it('should call the `post$` method with the expected arguments and return tables', async () => {
@@ -1674,9 +2317,15 @@ describe('DataFrameDataSourceV2', () => {
             const projection = [DataTableProjections.Name, DataTableProjections.Id];
             const result = await lastValueFrom(ds.queryTables$(filter, take, projection));
             expect(postMock$).toHaveBeenCalledWith(
-                `${ds.baseUrl}/query-tables`,
-                { filter: filter.dataTableFilter, take, projection },
-                { useApiIngress: true }
+              `${ds.baseUrl}/query-tables`,
+              {
+                interactive: true,
+                filter: filter.dataTableFilter,
+                take,
+                projection,
+                substitutions: undefined
+              },
+              { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
         });
@@ -1686,9 +2335,15 @@ describe('DataFrameDataSourceV2', () => {
             const result = await lastValueFrom(ds.queryTables$(filter));
 
             expect(postMock$).toHaveBeenCalledWith(
-                `${ds.baseUrl}/query-tables`,
-                { filter: filter.dataTableFilter, take: TAKE_LIMIT },
-                { useApiIngress: true }
+              `${ds.baseUrl}/query-tables`,
+              {
+                interactive: true,
+                filter: filter.dataTableFilter,
+                take: TAKE_LIMIT,
+                projection: undefined,
+                substitutions: undefined
+              },
+              { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
         });
@@ -1699,9 +2354,15 @@ describe('DataFrameDataSourceV2', () => {
             const result = await lastValueFrom(ds.queryTables$(filter, take));
 
             expect(postMock$).toHaveBeenCalledWith(
-                `${ds.baseUrl}/query-tables`,
-                { filter: filter.dataTableFilter, take, projection: undefined },
-                { useApiIngress: true }
+              `${ds.baseUrl}/query-tables`,
+              {
+                interactive: true,
+                filter: filter.dataTableFilter,
+                take,
+                projection: undefined,
+                substitutions: undefined
+              },
+              { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
         });
@@ -2010,14 +2671,14 @@ describe('DataFrameDataSourceV2', () => {
         });
     });
 
-    describe('transformQuery', () => {
+    describe('transformDataTableQuery', () => {
         it('should transform with the new scopedVariables when passed in as parameter', () => {
             const input = 'name = "${Table}" AND id != "abc"';
             const scopedVars = {
                 Table: { text: 'Table2', value: 'Table2' }
             };
-
-            ds.transformQuery(input, scopedVars);
+            
+            ds.transformDataTableQuery(input, scopedVars);    
             expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
         })
 
@@ -2035,7 +2696,7 @@ describe('DataFrameDataSourceV2', () => {
             await lastValueFrom(ds.runQuery(query, options));
             const input = 'name = "${Table}" AND id != "abc"';
             
-            ds.transformQuery(input);   
+            ds.transformDataTableQuery(input);   
  
             expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
         });
@@ -2044,7 +2705,7 @@ describe('DataFrameDataSourceV2', () => {
             const input = 'name = "${Table}" AND id != "abc"';
             templateSrv.replace.mockReturnValue('name = "Table1" AND id != "abc"');
             
-            const result = ds.transformQuery(input);
+            const result = ds.transformDataTableQuery(input);
 
             expect(result).toBe('name = "Table1" AND id != "abc"');
         })
@@ -2052,7 +2713,7 @@ describe('DataFrameDataSourceV2', () => {
         it('should transform and expand multi-value variables', () => {
             const input = 'name = "{Table1,Table2}" AND id != "abc"';
 
-            const result = ds.transformQuery(input);
+            const result = ds.transformDataTableQuery(input);
 
             expect(result).toBe('(name = "Table1" || name = "Table2") AND id != "abc"');
         });
@@ -2060,11 +2721,76 @@ describe('DataFrameDataSourceV2', () => {
         it('should replace ${__now:date} placeholder in time fields', () => {
             const input = 'createdAt >= "${__now:date}"';
 
-            const result = ds.transformQuery(input);
+            const result = ds.transformDataTableQuery(input);
 
             //Check if result matches ISO date format
             expect(result).toMatch(/^createdAt >= "\d{4}-\d{2}-\d{2}T.+Z"$/);
             expect(result).not.toContain('${__now:date}');
+        });
+    });
+    
+    describe('transformResultQuery', () => {
+        it('should transform with the new scopedVariables when passed in as parameter', () => {
+            const input = 'Name = "${Result}" AND Id != "abc"';
+            const scopedVars = {
+                Result: { text: 'Result2', value: 'Result2' }
+            };
+            
+            ds.transformResultQuery(input, scopedVars);    
+            expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
+        })
+
+        it('should transform with saved scopedVariables when not passed in as parameter', async () => {
+            const scopedVars = {
+                name: { value: 'Test Result' }
+            }
+            const query = {
+                type: DataFrameQueryType.Data,
+                dataTableFilter: '',
+            } as DataFrameQueryV2;
+            const options = {
+                scopedVars: scopedVars
+            } as unknown as DataQueryRequest<DataFrameQueryV2>;
+            await lastValueFrom(ds.runQuery(query, options));
+            const input = 'Name = "${Result}" AND Id != "abc"';
+            
+            ds.transformResultQuery(input);   
+ 
+            expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
+        });
+
+        it('should replace single-value variables', () => {
+            const input = 'Name = "${Result}" AND Id != "abc"';
+            templateSrv.replace.mockReturnValue('Name = "Result1" AND Id != "abc"');
+            
+            const result = ds.transformResultQuery(input);
+
+            expect(result).toBe('Name = "Result1" AND Id != "abc"');
+        });
+
+        it('should transform and expand multi-value variables', () => {
+            const input = 'HostName = "{host1,host2}" AND Id != "abc"';
+            const result = ds.transformResultQuery(input);
+
+            expect(result).toBe('(HostName = "host1" || HostName = "host2") AND Id != "abc"');
+        });
+
+        it('should replace ${__now:date} placeholder in time fields', () => {
+            const input = 'UpdatedAt >= "${__now:date}"';
+
+            const result = ds.transformResultQuery(input);
+
+            //Check if result matches ISO date format
+            expect(result).toMatch(/^UpdatedAt >= "\d{4}-\d{2}-\d{2}T.+Z"$/);
+            expect(result).not.toContain('${__now:date}');
+        });
+
+        it('should transform list field in query', () => {
+            const input = 'Keywords.Contains("{keyword1,keyword2}")';
+            
+            const result = ds.transformResultQuery(input);
+            
+            expect(result).toBe('(Keywords.Contains("keyword1") || Keywords.Contains("keyword2"))');
         });
     });
 
