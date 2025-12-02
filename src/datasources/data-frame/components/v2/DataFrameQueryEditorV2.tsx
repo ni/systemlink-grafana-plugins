@@ -27,7 +27,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnLimitExceeded, setIsColumnLimitExceeded] = useState<boolean>(false);
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
-    const [selectedColumn, setSelectedColumn] = useState<Array<ComboboxOption<string>>>([]);
+    const [selectedColumns, setSelectedColumns] = useState<Array<ComboboxOption<string>>>([]);
     const [invalidSelectedColumnsMessage, setInvalidSelectedColumnsMessage] = useState<string>('');
 
     const getPropertiesOptions = (
@@ -45,11 +45,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     const lastFilterRef = useRef<string>('');
 
-    const getExistingColumnSelection = useCallback(() => {
-      if (isObservable(migratedQuery.columns)) {
+    const getExistingColumnSelection = useCallback((columns: any) => {
+      if (isObservable(columns)) {
         return [];
       }
-      return migratedQuery.columns
+      return columns
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -80,15 +80,15 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                     .includes(selected.value)
                 );
         return invalidColumns;
-    }
+    };
 
     const validateAndSetSelectedColumns = useCallback(
         (
-            existingColumnSelection: string[],
+            columnSelections: string[],
             columnOptions: Array<ComboboxOption<string>>
         ) => {
-            const selectedColumns = formatSavedSelectedColumns(existingColumnSelection, datasource);
-            setSelectedColumn(selectedColumns);
+            const selectedColumns = formatSavedSelectedColumns(columnSelections, datasource);
+            setSelectedColumns(selectedColumns);
             
             const invalidColumns = getInvalidSelectedColumns(selectedColumns, columnOptions);
             if (invalidColumns.length > 0) {
@@ -106,7 +106,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     );
 
     const fetchAndSetColumnOptions = useCallback(
-        async (filter: string) => {
+        async (filter: string, columns: any) => {
             if (!filter) {
                 return;
             }
@@ -115,8 +115,10 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                 const columnOptions = await datasource.getColumnOptionsWithVariables(
                     filter
                 );
-                const existingColumnSelection = getExistingColumnSelection();
-                validateAndSetSelectedColumns(existingColumnSelection, columnOptions);
+                const existingColumnSelection = getExistingColumnSelection(columns ?? []);
+                if (existingColumnSelection.length !== 0) {
+                    validateAndSetSelectedColumns(existingColumnSelection, columnOptions);
+                }
                 const limitedColumnOptions = columnOptions.slice(
                     0,
                     COLUMN_OPTIONS_LIMIT
@@ -127,6 +129,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                 setColumnOptions([]);
             }
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             datasource,
             getExistingColumnSelection,
@@ -147,7 +150,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             lastFilterRef.current = transformedFilter;
 
             if (transformedFilter) {
-                fetchAndSetColumnOptions(transformedFilter);
+                fetchAndSetColumnOptions(transformedFilter, migratedQuery.columns);
                 return;
             }
 
@@ -163,7 +166,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             migratedQuery.dataTableFilter,
             datasource.variablesCache,
             fetchAndSetColumnOptions,
-            datasource,
+            datasource
         ]
     );
 
@@ -212,7 +215,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         }
 
         (query as DataFrameQueryV2).dataTableFilter = dataTableFilter;
-        const existingColumnSelection = getExistingColumnSelection();
+        const existingColumnSelection = getExistingColumnSelection((query as DataFrameDataQuery).columns);
         const shouldRunQuery = _.isEmpty(existingColumnSelection);
         handleQueryChange({ ...migratedQuery, dataTableFilter }, shouldRunQuery);
     };
@@ -268,7 +271,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     };
 
     const onColumnsChange = (columns: Array<ComboboxOption<string>>) => {
-        setSelectedColumn(columns);
+        validateAndSetSelectedColumns(columns.map(column => column.value), columnOptions);
         handleQueryChange({ ...migratedQuery, columns: columns.map(column => column.value) });
     };
 
@@ -391,7 +394,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                                 width='auto'
                                 minWidth={40}
                                 maxWidth={40}
-                                value={selectedColumn}
+                                value={selectedColumns}
                                 onChange={onColumnsChange}
                                 options={columnOptions}
                                 createCustomValue={false}

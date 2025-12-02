@@ -118,7 +118,7 @@ export abstract class DataFrameDataSourceBase<
         return [];
     }
 
-    public transformColumnType(dataType: string): string {
+    public transformedColumnType(dataType: string): string {
         return dataType;
     }
 

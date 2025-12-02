@@ -389,13 +389,13 @@ describe('DataFrameDataSourceBase', () => {
         });
     });
 
-    describe('transformColumnType', () => {
+    describe('transformedColumnType', () => {
         it('should return the same data type by default', () => {
             const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
 
-            expect(ds.transformColumnType('STRING')).toBe('STRING');
-            expect(ds.transformColumnType('INT32')).toBe('INT32');
-            expect(ds.transformColumnType('BOOLEAN')).toBe('BOOLEAN');
+            expect(ds.transformedColumnType('STRING')).toBe('STRING');
+            expect(ds.transformedColumnType('INT32')).toBe('INT32');
+            expect(ds.transformedColumnType('BOOLEAN')).toBe('BOOLEAN');
         });
     });
 });

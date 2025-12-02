@@ -134,7 +134,7 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.createColumnOptions(columnTypeMap);
   }
 
-  public transformColumnType(dataType: string): string {
-    return this.datasource.transformColumnType(dataType);
+  public transformedColumnType(dataType: string): string {
+    return this.datasource.transformedColumnType(dataType);
   }
 }

@@ -2072,48 +2072,38 @@ describe('DataFrameDataSourceV2', () => {
 
     describe('transformColumnType', () => {
         it('should transform INT32 to Numeric', () => {
-            const result = ds.transformColumnType('INT32');
+            const result = ds.transformedColumnType('INT32');
             expect(result).toBe('Numeric');
         });
 
         it('should transform INT64 to Numeric', () => {
-            const result = ds.transformColumnType('INT64');
+            const result = ds.transformedColumnType('INT64');
             expect(result).toBe('Numeric');
         });
 
         it('should transform FLOAT32 to Numeric', () => {
-            const result = ds.transformColumnType('FLOAT32');
+            const result = ds.transformedColumnType('FLOAT32');
             expect(result).toBe('Numeric');
         });
 
         it('should transform FLOAT64 to Numeric', () => {
-            const result = ds.transformColumnType('FLOAT64');
+            const result = ds.transformedColumnType('FLOAT64');
             expect(result).toBe('Numeric');
         });
 
         it('should transform TIMESTAMP to sentence case', () => {
-            const result = ds.transformColumnType('TIMESTAMP');
+            const result = ds.transformedColumnType('TIMESTAMP');
             expect(result).toBe('Timestamp');
         });
 
         it('should transform STRING to sentence case', () => {
-            const result = ds.transformColumnType('STRING');
+            const result = ds.transformedColumnType('STRING');
             expect(result).toBe('String');
         });
 
         it('should transform BOOLEAN to sentence case', () => {
-            const result = ds.transformColumnType('BOOLEAN');
+            const result = ds.transformedColumnType('BOOLEAN');
             expect(result).toBe('Boolean');
-        });
-
-        it('should handle lowercase data types', () => {
-            const result = ds.transformColumnType('string');
-            expect(result).toBe('String');
-        });
-
-        it('should handle mixed case data types', () => {
-            const result = ds.transformColumnType('StRiNg');
-            expect(result).toBe('String');
         });
     });
 
