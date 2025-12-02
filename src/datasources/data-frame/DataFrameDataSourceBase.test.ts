@@ -147,7 +147,7 @@ describe('DataFrameDataSourceBase', () => {
     it('should return empty array for getColumnOptionsWithVariables', async () => {
         const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
 
-        const options = await ds.getColumnOptionsWithVariables('filter');
+        const options = await ds.getColumnOptionsWithVariables({dataTableFilter: 'filter'});
 
         expect(options).toEqual([]);
     });

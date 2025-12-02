@@ -159,7 +159,7 @@ describe('DataFrameDataSource', () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(false));
             v1Mock.getColumnOptionsWithVariables = jest.fn().mockResolvedValue(['v1-column-options']);
 
-            const result = await ds.getColumnOptionsWithVariables('filter');
+            const result = await ds.getColumnOptionsWithVariables({dataTableFilter: 'filter'});
 
             expect(v1Mock.getColumnOptionsWithVariables).toHaveBeenCalledWith('filter');
             expect(result).toEqual(['v1-column-options']);
@@ -169,7 +169,7 @@ describe('DataFrameDataSource', () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(true));
             v2Mock.getColumnOptionsWithVariables = jest.fn().mockResolvedValue(['v2-column-options']);
 
-            const result = await ds.getColumnOptionsWithVariables('filter');
+            const result = await ds.getColumnOptionsWithVariables({dataTableFilter: 'filter'});
 
             expect(v2Mock.getColumnOptionsWithVariables).toHaveBeenCalledWith('filter');
             expect(result).toEqual(['v2-column-options']);

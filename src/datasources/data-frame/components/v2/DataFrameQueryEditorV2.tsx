@@ -5,7 +5,6 @@ import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, D
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
-import _ from 'lodash';
 import {
     errorMessages,
     INLINE_LABEL_WIDTH,
@@ -17,6 +16,7 @@ import {
     tooltips,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { isObservable, lastValueFrom } from 'rxjs';
+import _ from 'lodash';
 export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRunQuery, datasource }: Props) => {
     const migratedQuery = datasource.processQuery(query as DataFrameDataQuery) as ValidDataFrameQueryV2;
 
