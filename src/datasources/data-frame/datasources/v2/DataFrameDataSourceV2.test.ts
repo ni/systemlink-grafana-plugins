@@ -96,7 +96,7 @@ describe('DataFrameDataSourceV2', () => {
             const query = {
                 resultFilter: 'status = "${status}"'
             } as DataFrameQueryV2;
-                templateSrv.replace.mockReturnValue('status = "Passed"');
+            templateSrv.replace.mockReturnValue('status = "Passed"');
 
             await lastValueFrom(ds.runQuery(query, options));
 
@@ -1082,7 +1082,15 @@ describe('DataFrameDataSourceV2', () => {
                     resultFilter: 'status = "Passed"',
                     refId: 'A'
                 } as DataFrameVariableQuery;
-                templateSrv.replace.mockReturnValue('name = "Test Table"');
+                templateSrv.replace.mockImplementation((text?: string) => {
+                    if (text === 'name = "${name}"') {
+                        return 'name = "Test Table"';
+                    }
+                    if (text === 'status = "Passed"') {
+                        return 'status = "Passed"';
+                    }
+                    return text || '';
+                });
                 const mockTables = [{ id: 'table-1', name: 'Table 1' }];
                 queryTablesSpy$.mockReturnValue(of(mockTables));
 
