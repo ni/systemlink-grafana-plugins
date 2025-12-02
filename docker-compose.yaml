@@ -10,8 +10,10 @@ services:
         grafana_image: ${GRAFANA_IMAGE:-grafana}
     environment:
       - GF_USERS_DEFAULT_THEME=light
+      - GF_PATHS_CONFIG=/etc/grafana/grafana.ini
     ports:
       - 3000:3000/tcp
     volumes:
       - ./dist:/var/lib/grafana/plugins/ni-systemlink-app
+      - ./.config/grafana.ini:/etc/grafana/grafana.ini
       - ./provisioning:/etc/grafana/provisioning
