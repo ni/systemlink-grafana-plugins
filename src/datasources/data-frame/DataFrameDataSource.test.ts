@@ -54,6 +54,7 @@ describe('DataFrameDataSource', () => {
             processVariableQuery: jest.fn().mockReturnValue('v1-processed'),
             transformDataTableQuery: jest.fn((query: string) => `v1-${query}`),
             transformResultQuery: jest.fn((query: string) => `v1-${query}`),
+            transformColumnQuery: jest.fn((query: string) => `v1-${query}`),
         } as any;
 
         v2Mock = {
@@ -70,6 +71,7 @@ describe('DataFrameDataSource', () => {
             processVariableQuery: jest.fn().mockReturnValue('v2-processed'),
             transformDataTableQuery: jest.fn((query: string) => `v2-${query}`),
             transformResultQuery: jest.fn((query: string) => `v2-${query}`),
+            transformColumnQuery: jest.fn((query: string) => `v2-${query}`),
         } as any;
 
         (DataFrameDataSourceV1 as unknown as jest.Mock).mockImplementation(() => v1Mock);
@@ -349,6 +351,28 @@ describe('DataFrameDataSource', () => {
             const result = ds.transformResultQuery('filter');
             
             expect(v1Mock.transformResultQuery).toHaveBeenCalledWith('filter');
+            expect(result).toBe('v1-filter');
+        });
+     });
+
+    describe('transformColumnQuery', () => {
+        it('should delegate to v2 transformColumnQuery when feature toggle is true', () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
+            v2Mock.transformColumnQuery.mockClear();
+            
+            const result = ds.transformColumnQuery('filter');
+            
+            expect(v2Mock.transformColumnQuery).toHaveBeenCalledWith('filter');
+            expect(result).toBe('v2-filter');
+        });
+
+        it('should delegate to v1 base transformColumnQuery when feature toggle is false', () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
+            v1Mock.transformColumnQuery.mockClear();
+            
+            const result = ds.transformColumnQuery('filter');
+            
+            expect(v1Mock.transformColumnQuery).toHaveBeenCalledWith('filter');
             expect(result).toBe('v1-filter');
         });
      });

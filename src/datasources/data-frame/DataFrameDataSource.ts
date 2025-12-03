@@ -133,4 +133,8 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
   public transformResultQuery(query: string): string {
     return this.datasource.transformResultQuery(query);
   }
+
+  public transformColumnQuery(query: string): string {
+    return this.datasource.transformColumnQuery(query);
+  }
 }
