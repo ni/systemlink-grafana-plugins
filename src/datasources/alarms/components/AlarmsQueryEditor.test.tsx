@@ -298,7 +298,7 @@ describe('AlarmsQueryEditor', () => {
       );
     });
 
-    it('should call onChange with defaultAlarmTrendQuery when switched to alarms trend query type from other query type', async () => {
+    it('should call onChange with defaultAlarmTrendQuery when switched to alarm trend query type from other query type', async () => {
       const query = buildQuery({ queryType: QueryType.ListAlarms });
 
       renderElement(query);
@@ -336,7 +336,7 @@ describe('AlarmsQueryEditor', () => {
       });
     });
 
-    it('should preserve the current state of AlarmTrendQuery when switching from alarms trend to other types', async () => {
+    it('should preserve the current state of AlarmTrendQuery when switching from alarm trend to other types', async () => {
       const initialAlarmTrendQuery = {
         refId: 'A',
         queryType: QueryType.AlarmTrend,
