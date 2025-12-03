@@ -41,7 +41,7 @@ export const tooltips = {
   properties: 'This field specifies the properties to use in the query.',
   descending: 'This toggle returns the alarms query in descending order.',
   take: 'This field specifies the maximum number of alarms to return.',
-  groupBySeverity: 'This toggle groups the alarms trend results by severity.',
+  groupBySeverity: 'This toggle groups alarm trends by severity.',
   transitionInclusion: 'This field specifies whether to include no transitions, only the most recent transitions, or all transitions in the alarm query.',
 };
 
