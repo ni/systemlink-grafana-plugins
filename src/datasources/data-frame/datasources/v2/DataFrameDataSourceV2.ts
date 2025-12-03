@@ -384,41 +384,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return { uniqueColumnsAcrossTables, commonColumnsAcrossTables };
     }
 
-    private getCommonColumnsAcrossTables(tables: TableProperties[]): Option[] {
-        if (!this.tablesContainsColumns(tables)) {
-            return [];
-        }
-
-        const numericColumns = this.getNumericColumns(tables[0].columns);
-        let commonColumns = this.createColumnIdentifierSet(numericColumns);
-
-        for (let i = 1; (i < tables.length) && (commonColumns.size > 0); i++) {
-            const tableColumnsSet = this.createColumnIdentifierSet(tables[i].columns);
-            commonColumns = new Set(
-                [...commonColumns].filter(column => tableColumnsSet.has(column))
-            );
-        }
-
-        return [...commonColumns].map(column => 
-            this.extractColumnOptionFromColumnIdentifier(column)
-        );
-    }
-
     private tablesContainsColumns(tables: TableProperties[]): boolean {
         return tables.length > 0 && tables[0].columns !== undefined;
-    }
-
-    private extractColumnOptionFromColumnIdentifier(columnIdentifier: string): Option {
-        const parts = columnIdentifier.split('-');
-        // Extract transformed column type
-        const transformedColumnType = parts.pop();
-        const columnName = parts.join('-');
-        const columnValue = `${columnName}-${transformedColumnType}`;
-
-        return {
-            label: columnName,
-            value: columnValue
-        };
     }
 
     private createColumnIdentifierSet(columns: Column[]): Set<string> {
@@ -544,6 +511,35 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         return options;
     };
+
+    private getCommonColumnsAcrossTables(tables: TableProperties[]): Option[] {
+        if (!this.tablesContainsColumns(tables)) {
+            return [];
+        }
+
+        const numericColumns = this.getNumericColumns(tables[0].columns);
+        let commonColumns = this.createColumnIdentifierSet(numericColumns);
+
+        for (let i = 1; (i < tables.length) && (commonColumns.size > 0); i++) {
+            const tableColumnsSet = this.createColumnIdentifierSet(tables[i].columns);
+            commonColumns = new Set(
+                [...commonColumns].filter(column => tableColumnsSet.has(column))
+            );
+        }
+
+        return [...commonColumns].map(column => 
+            ({label: this.extractColumnNameFromColumnIdentifier(column), value: column})
+        );
+    }
+
+    private extractColumnNameFromColumnIdentifier(columnIdentifier: string): string {
+        const parts = columnIdentifier.split('-');
+        // Remove transformed column type
+        parts.pop();
+        const columnName = parts.join('-');
+
+        return columnName;
+    }
 
     /**
      * Converts a string to sentence case (e.g., 'TIMESTAMP' -> 'Timestamp').
