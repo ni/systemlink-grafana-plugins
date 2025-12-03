@@ -15,7 +15,7 @@ You can use the _SystemLink Alarms_ data source for scenarios such as:
 
 - **List all active critical alarms**: Retrieve a list of all active alarms. This alarm list includes the severity level and other properties.
 - **Count of unacknowledged alarms**: Retrieve and display a count of unacknowledged alarms. Various query conditions filter this alarm count.
-- **View the trend of active alarms over the past week**: Visualize weekly alarm activity to identify anomalies.
+- **View the trend of active alarms over the past week**: Visualize weekly alarm activity to identify spikes and anomalies.
 
 ### Additional Resources
 
