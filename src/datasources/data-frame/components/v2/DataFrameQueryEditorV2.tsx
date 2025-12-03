@@ -53,10 +53,16 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
             try {
                 const columnOptions = await datasource.getColumnOptionsWithVariables(filter);
-                const limitedColumnOptions = columnOptions.allColumns.slice(0, COLUMN_OPTIONS_LIMIT);
-                const limitedXColumnOptions = columnOptions.xColumns.slice(0, COLUMN_OPTIONS_LIMIT);
-                setIsColumnLimitExceeded(columnOptions.allColumns.length > COLUMN_OPTIONS_LIMIT);
-                setIsXColumnLimitExceeded(columnOptions.xColumns.length > COLUMN_OPTIONS_LIMIT);
+                const limitedColumnOptions = columnOptions.uniqueColumnsAcrossTables
+                    .slice(0, COLUMN_OPTIONS_LIMIT);
+                const limitedXColumnOptions = columnOptions.commonColumnsAcrossTables
+                    .slice(0, COLUMN_OPTIONS_LIMIT);
+                setIsColumnLimitExceeded(
+                    columnOptions.uniqueColumnsAcrossTables.length > COLUMN_OPTIONS_LIMIT
+                );
+                setIsXColumnLimitExceeded(
+                    columnOptions.commonColumnsAcrossTables.length > COLUMN_OPTIONS_LIMIT
+                );
                 setColumnOptions(limitedColumnOptions);
                 setXColumnOptions(limitedXColumnOptions);
             } catch (error) {

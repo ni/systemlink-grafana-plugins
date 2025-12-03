@@ -92,7 +92,7 @@ export abstract class DataFrameDataSourceBase<
     }
 
     public async getColumnOptionsWithVariables(filter: string): Promise<ColumnOptions> {
-        return Promise.resolve({ allColumns: [], xColumns: [] });
+        return Promise.resolve({ uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] });
     }
 
     public async loadPartNumbers(): Promise<string[]> {

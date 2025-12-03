@@ -149,7 +149,7 @@ describe('DataFrameDataSourceBase', () => {
 
         const options = await ds.getColumnOptionsWithVariables('filter');
 
-        expect(options).toEqual({ allColumns: [], xColumns: []});
+        expect(options).toEqual({ uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] });
     });
 
     it('should return query as it is for processVariableQuery', async () => {

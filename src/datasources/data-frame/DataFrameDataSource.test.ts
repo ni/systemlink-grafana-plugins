@@ -155,9 +155,9 @@ describe('DataFrameDataSource', () => {
     describe('getColumnOptionsWithVariables', () => {
         it('should call getColumnOptionsWithVariables on DataFrameDataSourceV1 when feature toggle is false', async () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(false));
-            const mockColumnOptions = { 
-                allColumns: ['v1-column-options'], 
-                xColumns: ['v1-xcolumn-options'] 
+            const mockColumnOptions = {
+                uniqueColumnsAcrossTables: ['v1-column-options'],
+                commonColumnsAcrossTables: ['v1-xcolumn-options']
             };
             v1Mock.getColumnOptionsWithVariables = jest.fn().mockResolvedValue(mockColumnOptions);
 
@@ -169,9 +169,9 @@ describe('DataFrameDataSource', () => {
 
         it('should call getColumnOptionsWithVariables on DataFrameDataSourceV2 when feature toggle is true', async () => {
             const ds = new DataFrameDataSource(mockInstanceSettings(true));
-            const mockColumnOptions = { 
-                allColumns: ['v2-column-options'], 
-                xColumns: ['v2-xcolumn-options'] 
+            const mockColumnOptions = {
+                uniqueColumnsAcrossTables: ['v2-column-options'],
+                commonColumnsAcrossTables: ['v2-xcolumn-options']
             };
             v2Mock.getColumnOptionsWithVariables = jest.fn().mockResolvedValue(mockColumnOptions);
 

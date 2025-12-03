@@ -39,7 +39,7 @@ const renderComponent = (
         errorDescription,
         processQuery,
         getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
-            allColumns: [
+            uniqueColumnsAcrossTables: [
                 { label: 'ColumnA', value: 'ColumnA' },
                 { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
                 { label: 'ColumnB (String)', value: 'ColumnB-String' },
@@ -47,7 +47,7 @@ const renderComponent = (
                 { label: 'ColumnE', value: 'ColumnE' },
                 ...columnOptions
             ],
-            xColumns: [
+            commonColumnsAcrossTables: [
                 { label: 'ColumnA', value: 'ColumnA' },
                 ...xColumnOptions
             ]
@@ -178,7 +178,7 @@ describe("DataFrameQueryEditorV2", () => {
                 let columnsField: HTMLElement;
                 let datasource: DataFrameDataSource;
 
-                const processQuery = jest.fn(query => ({ ...defaultQueryV2, ...query }))
+                const processQuery = jest.fn(query => ({ ...defaultQueryV2, ...query }));
 
                 async function changeFilterValue(filterValue = 'NewFilter') {
                     // Get the onDataTableFilterChange callback from the mock
@@ -272,7 +272,7 @@ describe("DataFrameQueryEditorV2", () => {
                         await clickColumnOptions();
 
                         const optionTexts = getColumnOptionTexts();
-                        
+
                         expect(optionTexts.length).toBeLessThanOrEqual(COLUMN_OPTIONS_LIMIT);
                         await waitFor(() => {
                             expect(screen.queryByRole('alert')).not.toBeInTheDocument();
@@ -494,9 +494,9 @@ describe("DataFrameQueryEditorV2", () => {
                         expect(getColumnOptionsSpy).not.toHaveBeenCalled();
 
                         // Change the filter while still in Properties mode
-                        const mockEvent = { detail: { linq: 'UpdatedFilter' } } as Event & { detail: { linq: string } };
+                        const mockEvent = { detail: { linq: 'UpdatedFilter' } } as Event & { detail: { linq: string; }; };
                         onDataTableFilterChange(mockEvent);
-    
+
                         // Still should not fetch columns in Properties mode
                         expect(getColumnOptionsSpy).not.toHaveBeenCalled();
 
@@ -512,26 +512,26 @@ describe("DataFrameQueryEditorV2", () => {
 
                 describe('column option population based on filter', () => {
                     it('should load column options on initial render with non-empty filter', async () => {
-                    const mockColumnOptions = [
-                        { label: 'Column1', value: 'Column1' },
-                        { label: 'Column2', value: 'Column2' },
-                    ];
-                    const datasource = {
-                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
-                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue(mockColumnOptions),
-                        transformDataTableQuery: jest.fn(f => f),
-                    } as any;
+                        const mockColumnOptions = [
+                            { label: 'Column1', value: 'Column1' },
+                            { label: 'Column2', value: 'Column2' },
+                        ];
+                        const datasource = {
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                            getColumnOptionsWithVariables: jest.fn().mockResolvedValue(mockColumnOptions),
+                            transformDataTableQuery: jest.fn(f => f),
+                        } as any;
 
-                    renderComponent({
+                        renderComponent({
                             ...defaultQueryV2,
                             refId: 'A',
                             type: DataFrameQueryType.Data,
                             dataTableFilter: 'InitialFilter',
-                        }, '', '', [], [], processQuery,{}, datasource);
+                        }, '', '', [], [], processQuery, {}, datasource);
 
-                    await waitFor(() => {
-                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('InitialFilter');
-                    });
+                        await waitFor(() => {
+                            expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('InitialFilter');
+                        });
                     });
 
                     it('should not load column options when filter becomes empty', async () => {
@@ -547,11 +547,11 @@ describe("DataFrameQueryEditorV2", () => {
                             <DataFrameQueryEditorV2
                                 datasource={datasource}
                                 query={{ ...defaultQueryV2, refId: 'A', type: DataFrameQueryType.Data, dataTableFilter: '' }}
-                                onChange={() => {}}
-                                onRunQuery={() => {}}
+                                onChange={() => { }}
+                                onRunQuery={() => { }}
                             />
                         );
-                        
+
                         await waitFor(() => expect(datasource.getColumnOptionsWithVariables).not.toHaveBeenCalled());
                     });
 
@@ -605,11 +605,11 @@ describe("DataFrameQueryEditorV2", () => {
                             {},
                             datasource
                         );
-                        
+
                         await waitFor(() => expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterX'));
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith('FilterX');
                     });
-                })
+                });
 
                 describe('column option population based on variables cache', () => {
                     it('should trigger useEffect when variables cache object reference changes', async () => {
@@ -623,11 +623,11 @@ describe("DataFrameQueryEditorV2", () => {
 
                         renderComponent(
                             {
-                                    ...defaultQueryV2,
-                                    refId: 'A',
-                                    type: DataFrameQueryType.Data,
-                                    dataTableFilter: 'FilterWithVar',
-                                },
+                                ...defaultQueryV2,
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                dataTableFilter: 'FilterWithVar',
+                            },
                             '',
                             '',
                             [],
@@ -648,11 +648,11 @@ describe("DataFrameQueryEditorV2", () => {
                         // Update variables cache reference and rerender
                         renderComponent(
                             {
-                                    ...defaultQueryV2,
-                                    refId: 'A',
-                                    type: DataFrameQueryType.Data,
-                                    dataTableFilter: 'FilterWithVar',
-                                },
+                                ...defaultQueryV2,
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                dataTableFilter: 'FilterWithVar',
+                            },
                             '',
                             '',
                             [],
@@ -793,7 +793,7 @@ describe("DataFrameQueryEditorV2", () => {
                         await clickColumnOptions();
                         const firstColumnOption = await screen.findByRole('option', { name: 'ColumnA' });
                         await user.click(firstColumnOption);
-                        
+
                         await waitFor(() => {
                             expect(onChange).toHaveBeenCalledWith(
                                 expect.objectContaining({
@@ -988,8 +988,8 @@ describe("DataFrameQueryEditorV2", () => {
                     const latestQueryBuilderWrapperCall = (
                         DataFrameQueryBuilderWrapper as jest.Mock
                     ).mock.calls.slice(-1)[0];
-                    const latestProps = latestQueryBuilderWrapperCall 
-                        ? latestQueryBuilderWrapperCall[0] 
+                    const latestProps = latestQueryBuilderWrapperCall
+                        ? latestQueryBuilderWrapperCall[0]
                         : undefined;
                     xColumnField = screen.getAllByRole('combobox')[2];
                     datasource = latestProps?.datasource as DataFrameDataSource;
@@ -1003,8 +1003,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                 it('should load x-column combobox options when filter changes', async () => {
                     await changeFilterValue();
-
-                    await waitFor(() => 
+                    await waitFor(() =>
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1)
                     );
                     await clickXColumnCombobox();
@@ -1246,7 +1245,7 @@ describe("DataFrameQueryEditorV2", () => {
                         const { onDataTableFilterChange } = props;
 
                         // Simulate filter change while in Data type
-                        const mockEvent = { detail: { linq: 'UpdatedFilter' } } as Event 
+                        const mockEvent = { detail: { linq: 'UpdatedFilter' } } as Event
                             & { detail: { linq: string; }; };
                         onDataTableFilterChange(mockEvent);
 
@@ -1271,7 +1270,7 @@ describe("DataFrameQueryEditorV2", () => {
                         const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
                         const { onDataTableFilterChange } = props;
                         const getColumnOptionsSpy = jest.spyOn(
-                            datasource, 
+                            datasource,
                             'getColumnOptionsWithVariables'
                         );
 
@@ -1281,7 +1280,7 @@ describe("DataFrameQueryEditorV2", () => {
                         expect(getColumnOptionsSpy).not.toHaveBeenCalled();
 
                         // Change the filter while still in Properties mode
-                        const mockEvent = { detail: { linq: 'UpdatedFilter' } } as Event 
+                        const mockEvent = { detail: { linq: 'UpdatedFilter' } } as Event
                             & { detail: { linq: string; }; };
                         onDataTableFilterChange(mockEvent);
 
@@ -1290,7 +1289,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                         // Switch to Data mode – now the use effect should run and fetch x-columns with the updated filter
                         const dataRadios = screen.getAllByRole(
-                            'radio', 
+                            'radio',
                             { name: DataFrameQueryType.Data }
                         );
                         await user.click(dataRadios[0]);
@@ -1328,7 +1327,7 @@ describe("DataFrameQueryEditorV2", () => {
                             dataTableFilter: 'InitialFilter',
                         });
                         const getColumnOptionsSpy = jest.spyOn(
-                            datasource, 
+                            datasource,
                             'getColumnOptionsWithVariables'
                         );
 
@@ -1338,11 +1337,11 @@ describe("DataFrameQueryEditorV2", () => {
                             <DataFrameQueryEditorV2
                                 datasource={datasource}
                                 query={
-                                    { 
-                                        ...defaultQueryV2, 
+                                    {
+                                        ...defaultQueryV2,
                                         refId: 'A',
                                         type: DataFrameQueryType.Data,
-                                        dataTableFilter: '' 
+                                        dataTableFilter: ''
                                     }
                                 }
                                 onChange={() => { }}
@@ -1358,8 +1357,8 @@ describe("DataFrameQueryEditorV2", () => {
                         const datasource = {
                             processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
-                                allColumns: [],
-                                xColumns: [{ label: 'XCol1', value: 'XCol1' }]
+                                uniqueColumnsAcrossTables: [],
+                                commonColumnsAcrossTables: [{ label: 'XCol1', value: 'XCol1' }]
                             }),
                             transformDataTableQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                         } as any;
@@ -1391,8 +1390,8 @@ describe("DataFrameQueryEditorV2", () => {
                         const datasource = {
                             processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
-                                allColumns: [],
-                                xColumns: [{ label: 'XCol1', value: 'XCol1' }]
+                                uniqueColumnsAcrossTables: [],
+                                commonColumnsAcrossTables: [{ label: 'XCol1', value: 'XCol1' }]
                             }),
                             transformDataTableQuery: jest.fn(f => f),
                         } as any;
@@ -1426,8 +1425,8 @@ describe("DataFrameQueryEditorV2", () => {
                         const datasource = {
                             processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
-                                allColumns: [],
-                                xColumns: [{ label: 'XCol1', value: 'XCol1' }]
+                                uniqueColumnsAcrossTables: [],
+                                commonColumnsAcrossTables: [{ label: 'XCol1', value: 'XCol1' }]
                             }),
                             transformDataTableQuery: jest.fn(f => f),
                         } as any;
@@ -1532,7 +1531,7 @@ describe("DataFrameQueryEditorV2", () => {
                         await clickXColumnCombobox();
 
                         const xColumnOption = await screen.findByRole(
-                            'option', 
+                            'option',
                             { name: 'ColumnA' }
                         );
                         await user.click(xColumnOption);
@@ -1583,7 +1582,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                         // Wait for options to appear and click on ColumnB
                         const xColumnOption = await screen.findByRole(
-                            'option', 
+                            'option',
                             { name: 'ColumnB' }
                         );
                         await user.click(xColumnOption);

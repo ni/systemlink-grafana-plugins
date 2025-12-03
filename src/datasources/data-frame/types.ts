@@ -339,8 +339,8 @@ export interface DataFrameDataSourceOptions extends DataSourceJsonData {
 }
 
 export interface ColumnOptions {
-  allColumns: Option[];
-  xColumns: Option[];
+  uniqueColumnsAcrossTables: Option[];
+  commonColumnsAcrossTables: Option[];
 }
 
 export interface Option {
