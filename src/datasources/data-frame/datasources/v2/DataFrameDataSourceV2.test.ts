@@ -2343,7 +2343,7 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         describe('common columns across tables', () => {
-            it('should return an empty array for xColumns when no tables are found', async () => {
+            it('should return an empty array when no tables are found', async () => {
                 queryTablesMock$.mockReturnValue(of([]));
 
                 const result = await ds.getColumnOptionsWithVariables('some-filter');
@@ -2351,7 +2351,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.commonColumnsAcrossTables).toEqual([]);
             });
 
-            it('should return an empty array for xColumns when tables have no columns', async () => {
+            it('should return an empty array when tables have no columns', async () => {
                 queryTablesMock$.mockReturnValue(of([
                     { id: '1', name: 'Table 1' },
                     { id: '2', name: 'Table 2' },
@@ -2362,7 +2362,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.commonColumnsAcrossTables).toEqual([]);
             });
 
-            it('should return only common numeric columns across all tables as xColumn options', async () => {
+            it('should return only common numeric columns across all tables', async () => {
                 queryTablesMock$.mockReturnValue(of([
                     {
                         id: '1',
@@ -2377,7 +2377,7 @@ describe('DataFrameDataSourceV2', () => {
                         id: '2',
                         name: 'Table 2',
                         columns: [
-                            { name: 'Column 1', dataType: 'INT32' },
+                            { name: 'Column 1', dataType: 'FLOAT32' },
                             { name: 'Column 2', dataType: 'STRING' },
                             { name: 'Column 4', dataType: 'TIMESTAMP' }
                         ]
@@ -2391,7 +2391,7 @@ describe('DataFrameDataSourceV2', () => {
                 ]);
             });
 
-            it('should return empty xColumns when no columns are common across tables', async () => {
+            it('should return empty array when no columns are common across tables', async () => {
                 queryTablesMock$.mockReturnValue(of([
                     {
                         id: '1',
@@ -2416,7 +2416,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.commonColumnsAcrossTables).toEqual([]);
             });
 
-            it('should prepend variable options to xColumns', async () => {
+            it('should prepend variable options', async () => {
                 templateSrv.getVariables.mockReturnValue([
                     { name: 'var1' },
                     { name: 'var2' }
@@ -2446,33 +2446,6 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.commonColumnsAcrossTables).toEqual([
                     { label: '$var1', value: '$var1' },
                     { label: '$var2', value: '$var2' },
-                    { label: 'Column 1', value: 'Column 1-Numeric' }
-                ]);
-            });
-
-            it('should match xColumns by both name and data type', async () => {
-                queryTablesMock$.mockReturnValue(of([
-                    {
-                        id: '1',
-                        name: 'Table 1',
-                        columns: [
-                            { name: 'Column 1', dataType: 'INT32' },
-                            { name: 'Column 2', dataType: 'INT32' }
-                        ]
-                    },
-                    {
-                        id: '2',
-                        name: 'Table 2',
-                        columns: [
-                            { name: 'Column 1', dataType: 'INT32' },
-                            { name: 'Column 2', dataType: 'FLOAT32' }
-                        ]
-                    }
-                ]));
-
-                const result = await ds.getColumnOptionsWithVariables('some-filter');
-
-                expect(result.commonColumnsAcrossTables).toEqual([
                     { label: 'Column 1', value: 'Column 1-Numeric' }
                 ]);
             });

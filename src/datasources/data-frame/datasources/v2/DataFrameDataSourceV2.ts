@@ -375,16 +375,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         const numericColumns = this.getNumericColumns(tables[0].columns);
-        let xColumns = this.createColumnIdentifierSet(numericColumns);
+        let commonColumns = this.createColumnIdentifierSet(numericColumns);
 
-        for (let i = 1; (i < tables.length) && (xColumns.size > 0); i++) {
+        for (let i = 1; (i < tables.length) && (commonColumns.size > 0); i++) {
             const tableColumnsSet = this.createColumnIdentifierSet(tables[i].columns);
-            xColumns = new Set(
-                [...xColumns].filter(column => tableColumnsSet.has(column))
+            commonColumns = new Set(
+                [...commonColumns].filter(column => tableColumnsSet.has(column))
             );
         }
 
-        return [...xColumns].map(column => this.extractColumnOptionFromColumnIdentifier(column));
+        return [...commonColumns].map(column => 
+            this.extractColumnOptionFromColumnIdentifier(column)
+        );
     }
 
     private tablesContainsColumns(tables: TableProperties[]): boolean {
@@ -393,8 +395,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private extractColumnOptionFromColumnIdentifier(columnIdentifier: string): Option {
         const parts = columnIdentifier.split('-');
-        // Remove the last part which is the original data type
-        parts.pop();
         // Extract transformed column type
         const transformedColumnType = parts.pop();
         const columnName = parts.join('-');
@@ -409,7 +409,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private createColumnIdentifierSet(columns: Column[]): Set<string> {
         return new Set(
             columns.map(column =>
-                `${column.name}-${this.transformColumnType(column.dataType)}-${column.dataType}`
+                `${column.name}-${this.transformColumnType(column.dataType)}`
             )
         );
     }
