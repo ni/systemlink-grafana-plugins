@@ -1,13 +1,13 @@
-import { AlarmsTrendQueryHandler } from './AlarmsTrendQueryHandler';
+import { AlarmTrendQueryHandler } from './AlarmTrendQueryHandler';
 import { createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { DataQueryRequest, FieldType } from '@grafana/data';
 import { QueryAlarmsResponse, Alarm, AlarmTransitionType, TransitionInclusionOption, AlarmTransitionSeverityLevel } from 'datasources/alarms/types/types';
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
 import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAlarms.constants';
-import { AlarmsTrendQuery, AlarmTrendSeverityLevelLabel } from 'datasources/alarms/types/AlarmsTrend.types';
+import { AlarmTrendQuery, AlarmTrendSeverityLevelLabel } from 'datasources/alarms/types/AlarmTrend.types';
 
-let datastore: AlarmsTrendQueryHandler, backendServer: MockProxy<BackendSrv>;
+let datastore: AlarmTrendQueryHandler, backendServer: MockProxy<BackendSrv>;
 
 const sampleAlarm: Alarm = {
   instanceId: 'INST-001',
@@ -80,8 +80,8 @@ function buildAlarmsResponse(alarms: Array<Partial<Alarm>>): Alarm[] {
   }));
 }
 
-describe('AlarmsTrendQueryHandler', () => {
-  let query: AlarmsTrendQuery;
+describe('AlarmTrendQueryHandler', () => {
+  let query: AlarmTrendQuery;
   let options: DataQueryRequest;
 
   beforeEach(() => {
@@ -100,7 +100,7 @@ describe('AlarmsTrendQueryHandler', () => {
       }
     } as DataQueryRequest;
 
-    [datastore, backendServer] = setupDataSource(AlarmsTrendQueryHandler);
+    [datastore, backendServer] = setupDataSource(AlarmTrendQueryHandler);
 
     backendServer.fetch
       .calledWith(requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH }))
@@ -122,7 +122,7 @@ describe('AlarmsTrendQueryHandler', () => {
     jest.restoreAllMocks();
   });
 
-  it('should set defaultAlarmsTrendQuery to defaultQuery', () => {
+  it('should set defaultAlarmTrendQuery to defaultQuery', () => {
     const defaultQuery = datastore.defaultQuery;
 
     expect(defaultQuery).toEqual({ filter: '', groupBySeverity: true });

@@ -1,9 +1,9 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { AlarmsTrendQueryEditor } from './AlarmsTrendQueryEditor';
+import { AlarmTrendQueryEditor } from './AlarmTrendQueryEditor';
 import { QueryType } from 'datasources/alarms/types/types';
-import { AlarmsTrendQuery } from 'datasources/alarms/types/AlarmsTrend.types';
-import { AlarmsTrendQueryHandler } from 'datasources/alarms/query-type-handlers/alarms-trend/AlarmsTrendQueryHandler';
+import { AlarmTrendQuery } from 'datasources/alarms/types/AlarmTrend.types';
+import { AlarmTrendQueryHandler } from 'datasources/alarms/query-type-handlers/alarm-trend/AlarmTrendQueryHandler';
 
 const mockHandleQueryChange = jest.fn();
 const mockGlobalVars = [{ label: '$var1', value: '$value1' }];
@@ -15,26 +15,26 @@ const mockDatasource = {
       ['2', { id: '2', name: 'AnotherWorkspaceName' }],
     ])
   ),
-} as unknown as AlarmsTrendQueryHandler;
+} as unknown as AlarmTrendQueryHandler;
 
 const defaultProps = {
   query: {
     refId: 'A',
-    queryType: QueryType.AlarmsTrend
+    queryType: QueryType.AlarmTrend
   },
   handleQueryChange: mockHandleQueryChange,
   datasource: mockDatasource
 };
 
-async function renderElement(query: AlarmsTrendQuery = { ...defaultProps.query }) {
+async function renderElement(query: AlarmTrendQuery = { ...defaultProps.query }) {
   return await act(async () => {
-    const reactNode = React.createElement(AlarmsTrendQueryEditor, { ...defaultProps, query });
+    const reactNode = React.createElement(AlarmTrendQueryEditor, { ...defaultProps, query });
 
     return render(reactNode);
   });
 }
 
-describe('AlarmsTrendQueryEditor', () => {
+describe('AlarmTrendQueryEditor', () => {
   it('should render the query builder', async () => {
     await renderElement();
 
@@ -54,7 +54,7 @@ describe('AlarmsTrendQueryEditor', () => {
   it('should render group by severity toggle as checked when groupBySeverity is true', async () => {
     await renderElement({ 
       refId: 'A', 
-      queryType: QueryType.AlarmsTrend, 
+      queryType: QueryType.AlarmTrend, 
       groupBySeverity: true 
     });
 
@@ -65,7 +65,7 @@ describe('AlarmsTrendQueryEditor', () => {
   it('should render group by severity toggle as unchecked when groupBySeverity is false', async () => {
     await renderElement({ 
       refId: 'A', 
-      queryType: QueryType.AlarmsTrend, 
+      queryType: QueryType.AlarmTrend, 
       groupBySeverity: false 
     });
 
@@ -76,7 +76,7 @@ describe('AlarmsTrendQueryEditor', () => {
   it('should call handleQueryChange with false when group by severity toggle is unchecked', async () => {
     await renderElement({ 
       refId: 'A', 
-      queryType: QueryType.AlarmsTrend, 
+      queryType: QueryType.AlarmTrend, 
       groupBySeverity: true 
     });
 
@@ -86,7 +86,7 @@ describe('AlarmsTrendQueryEditor', () => {
     expect(mockHandleQueryChange).toHaveBeenCalledWith(
       expect.objectContaining({ 
         refId: 'A',
-        queryType: QueryType.AlarmsTrend,
+        queryType: QueryType.AlarmTrend,
         groupBySeverity: false 
       })
     );
@@ -95,7 +95,7 @@ describe('AlarmsTrendQueryEditor', () => {
   it('should call handleQueryChange with true when group by severity toggle is checked', async () => {
     await renderElement({ 
       refId: 'A', 
-      queryType: QueryType.AlarmsTrend, 
+      queryType: QueryType.AlarmTrend, 
       groupBySeverity: false 
     });
 
@@ -105,7 +105,7 @@ describe('AlarmsTrendQueryEditor', () => {
     expect(mockHandleQueryChange).toHaveBeenCalledWith(
       expect.objectContaining({ 
         refId: 'A',
-        queryType: QueryType.AlarmsTrend,
+        queryType: QueryType.AlarmTrend,
         groupBySeverity: true
       })
     );
@@ -123,7 +123,7 @@ describe('AlarmsTrendQueryEditor', () => {
   });
 
   it('should not call handleQueryChange when filter changes with same value', async () => {
-    const container = await renderElement({ refId: 'A', queryType: QueryType.AlarmsTrend, filter: 'same-query' });
+    const container = await renderElement({ refId: 'A', queryType: QueryType.AlarmTrend, filter: 'same-query' });
     const queryBuilder = container.getByRole('dialog');
     const event = { detail: { linq: 'same-query' } };
     
@@ -134,14 +134,14 @@ describe('AlarmsTrendQueryEditor', () => {
   });
 
   it('should call datasource.globalVariableOptions and render variable name when its filter is applied', async () => {
-    const container = await renderElement({ refId: 'A', queryType: QueryType.AlarmsTrend, filter: 'currentSeverityLevel = "$value1"' });
+    const container = await renderElement({ refId: 'A', queryType: QueryType.AlarmTrend, filter: 'currentSeverityLevel = "$value1"' });
 
     expect(mockDatasource.globalVariableOptions).toHaveBeenCalled();
     expect(container.getByText('$var1')).toBeInTheDocument();
   });
 
   it('should call loadWorkspaces and render workspace name when workspace filter is applied', async () => {
-    const container = await renderElement({ refId: 'A', queryType: QueryType.AlarmsTrend, filter: 'workspace = "1"' });
+    const container = await renderElement({ refId: 'A', queryType: QueryType.AlarmTrend, filter: 'workspace = "1"' });
 
     expect(mockDatasource.loadWorkspaces).toHaveBeenCalled();
     expect(container.getByText('WorkspaceName')).toBeInTheDocument();
@@ -163,7 +163,7 @@ describe('AlarmsTrendQueryEditor', () => {
   it('should preserve groupBySeverity when filter changes', async () => {
     const container = await renderElement({ 
       refId: 'A', 
-      queryType: QueryType.AlarmsTrend, 
+      queryType: QueryType.AlarmTrend, 
       groupBySeverity: true,
       filter: 'old-query'
     });
