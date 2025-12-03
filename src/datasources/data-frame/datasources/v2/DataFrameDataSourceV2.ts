@@ -274,7 +274,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     // TODO(#3526598): Make this method private after implementing the runQuery method for data query type.
     public getDecimatedTableDataInBatches$(
-        tableColumnsMap: Record<string, Column[]>,
+        tableColumnsMap: Record<string, { columns: Column[], selectedColumns: Column[] }>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
         intervals = 1000
@@ -310,28 +310,80 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private getDecimatedDataRequests(
-        tableColumnsMap: Record<string, Column[]>,
+        tableColumnsMap: Record<string, { columns: Column[], selectedColumns: Column[] }>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
         intervals = 1000
     ): DecimatedDataRequest[] {
-        return Object.entries(tableColumnsMap).map(([tableId, columns]) => {
-            const filters: ColumnFilter[] = query.filterNulls
-                ? this.constructNullFilters(columns)
+        return Object.entries(tableColumnsMap).map(([tableId, columnMap]) => {
+            const nullfilters: ColumnFilter[] = query.filterNulls
+                ? this.constructNullFilters(columnMap.selectedColumns)
                 : [];
+            const timeFilters: ColumnFilter[] = query.applyTimeFilters
+                ? this.constructTimeFilters(query.xColumn, columnMap.columns, timeRange)
+                : [];
+            const filters: ColumnFilter[] = [
+                ...nullfilters,
+                ...timeFilters
+            ];
+            const yColumns = this.getNumericColumns(columnMap.selectedColumns)
+                .map(column => column.name);
 
             return {
                 tableId,
-                columns: columns.map(column => column.name),
+                columns: columnMap.selectedColumns.map(column => column.name),
                 filters,
                 decimation: {
                     method: query.decimationMethod,
                     xColumn: query.xColumn || undefined,
-                    yColumns: this.getNumericColumns(columns).map(column => column.name),
+                    yColumns,
                     intervals,
                 }
             };
         });
+    }
+
+    private constructTimeFilters(
+        xColumn: string | null,
+        columns: Column[],
+        timeRange: TimeRange
+    ): ColumnFilter[] {
+        let columnName: string | undefined;
+
+        if (xColumn) {
+            columnName = this.extractColumnNameFromColumnIdentifier(xColumn);
+        } else {
+            const timeIndexColumn = columns.find(c =>
+                c.dataType === 'TIMESTAMP' && c.columnType === 'INDEX'
+            );
+            columnName = timeIndexColumn?.name;
+        }
+
+        if (!columnName) {
+            return [];
+        }
+
+        return [
+            {
+                column: columnName,
+                operation: 'GREATER_THAN_EQUALS',
+                value: timeRange.from.toISOString()
+            },
+            {
+                column: columnName,
+                operation: 'LESS_THAN_EQUALS',
+                value: timeRange.to.toISOString()
+            },
+        ];
+    }
+
+    private extractColumnNameFromColumnIdentifier(columnIdentifier: string): string {
+        const parts = columnIdentifier.split('-');
+        // Remove transformed column type
+        parts.pop();
+        const columnName = parts.join('-');
+
+        return columnName;
     }
 
     private getDecimatedTableData$(request: DecimatedDataRequest): Observable<TableDataRows> {
