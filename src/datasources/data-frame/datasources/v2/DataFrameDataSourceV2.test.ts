@@ -31,16 +31,16 @@ describe('DataFrameDataSourceV2', () => {
         (queryBuilderUtils.timeFieldsQuery as jest.Mock).mockImplementation(actualQueryBuilderUtils.timeFieldsQuery);
         (queryBuilderUtils.multipleValuesQuery as jest.Mock).mockImplementation(actualQueryBuilderUtils.multipleValuesQuery);
 
-        instanceSettings = {
-            id: 1,
-            name: 'test',
-            type: 'test',
-            url: '',
-            jsonData: {
-                featureToggles: {
-                    queryByResultAndColumnProperties: true
-                }
-            }
+        instanceSettings = { 
+            id: 1, 
+            name: 'test', 
+            type: 'test', 
+            url: '', 
+            jsonData: { 
+                featureToggles: { 
+                    queryByResultAndColumnProperties: true 
+                } 
+            } 
         } as any;
         backendSrv = {} as any;
         templateSrv = {
@@ -88,6 +88,35 @@ describe('DataFrameDataSourceV2', () => {
             expect(templateSrv.replace).toHaveBeenCalledWith('name = "${name}"', options.scopedVars);
             expect(queryBuilderUtils.transformComputedFieldsQuery).toHaveBeenCalledWith(
                 'name = "Test Table"',
+                expect.any(Object)
+            );
+        });
+
+        it('should transform resultFilter and use it in API calls when resultFilter is present', async () => {
+            const query = {
+                type: DataFrameQueryType.Properties,
+                resultFilter: 'status = "${status}"'
+            } as DataFrameQueryV2;
+            templateSrv.replace.mockReturnValue('status = "Passed"');
+            const postMock$ = jest.spyOn(ds, 'post$').mockImplementation((url) => {
+                if (url.includes('nitestmonitor/v2/query-results')) {
+                    return of({ results: [{ id: 'result-1' }], continuation: null });
+                }
+                return of({ tables: [] });
+            });
+
+            await lastValueFrom(ds.runQuery(query, options));
+
+            expect(templateSrv.replace).toHaveBeenCalledWith('status = "${status}"', options.scopedVars);
+            expect(queryBuilderUtils.transformComputedFieldsQuery).toHaveBeenCalledWith(
+                'status = "Passed"',
+                expect.any(Object)
+            );
+            expect(postMock$).toHaveBeenCalledWith(
+                `${instanceSettings.url}/nitestmonitor/v2/query-results`,
+                expect.objectContaining({
+                    filter: 'status = "Passed"'
+                }),
                 expect.any(Object)
             );
         });
@@ -254,7 +283,7 @@ describe('DataFrameDataSourceV2', () => {
                         const result = await lastValueFrom(ds.runQuery(query, options));
 
                         expect(queryTablesSpy).toHaveBeenCalledWith(
-                            { "dataTableFilter": "name = \"Test\"" },
+                            {"dataTableFilter": "name = \"Test\""},
                             TAKE_LIMIT,
                             projections
                         );
@@ -426,7 +455,7 @@ describe('DataFrameDataSourceV2', () => {
                             ]
                         });
                     });
-                });
+                })
             });
         });
 
@@ -551,7 +580,7 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await lastValueFrom(ds.runQuery(validQuery, options));
 
                     expect(queryTablesSpy$).toHaveBeenCalledWith(
-                        {
+                        { 
                             dataTableFilter: 'name = "Test Table"',
                             resultFilter: 'partNumber = "12345"'
                         },
@@ -586,7 +615,7 @@ describe('DataFrameDataSourceV2', () => {
                     await lastValueFrom(ds.runQuery(queryWithoutResultFilter, options));
 
                     expect(queryTablesSpy$).toHaveBeenCalledWith(
-                        {
+                        { 
                             dataTableFilter: 'name = "Table1"',
                             resultFilter: ''
                         },
@@ -869,7 +898,7 @@ describe('DataFrameDataSourceV2', () => {
                     );
 
                     expect(queryTablesSpy$).toHaveBeenCalledWith(
-                        {
+                        { 
                             dataTableFilter: 'name = "Test Table"',
                             resultFilter: ''
                         },
@@ -950,6 +979,36 @@ describe('DataFrameDataSourceV2', () => {
             );
         });
 
+        it('should transform resultFilter and pass transformed value to queryTables$ when present', async () => {
+            const query = {
+                queryType: DataFrameVariableQueryType.ListDataTables,
+                resultFilter: 'status = "${status}"',
+                refId: 'A'
+            } as DataFrameVariableQuery;
+            const optionsWithStatus = {
+                scopedVars: {
+                    status: { value: 'Passed' }
+                }
+            };
+            templateSrv.replace.mockReturnValue('status = "Passed"');
+            queryTablesSpy$.mockReturnValue(of([]));
+
+            await ds.metricFindQuery(query, optionsWithStatus);
+
+            expect(templateSrv.replace).toHaveBeenCalledWith('status = "${status}"', optionsWithStatus.scopedVars);
+            expect(queryBuilderUtils.transformComputedFieldsQuery).toHaveBeenCalledWith(
+                'status = "Passed"',
+                expect.any(Object)
+            );
+            expect(queryTablesSpy$).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    resultFilter: 'status = "Passed"'
+                }),
+                expect.anything(),
+                expect.anything()
+            );
+        });
+
         it('should use expected ExpressionTransformFunction for the fields', async () => {
             const transformComputedFieldsQuerySpy = queryBuilderUtils
                 .transformComputedFieldsQuery as jest.Mock;
@@ -1027,7 +1086,7 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await ds.metricFindQuery(query, options);
 
                 expect(queryTablesSpy$).toHaveBeenCalledWith(
-                    {
+                    { 
                         dataTableFilter: 'name = "Test Table"',
                         resultFilter: ''
                     },
@@ -1047,14 +1106,22 @@ describe('DataFrameDataSourceV2', () => {
                     resultFilter: 'status = "Passed"',
                     refId: 'A'
                 } as DataFrameVariableQuery;
-                templateSrv.replace.mockReturnValue('name = "Test Table"');
+                templateSrv.replace.mockImplementation((text?: string) => {
+                    if (text === 'name = "${name}"') {
+                        return 'name = "Test Table"';
+                    }
+                    if (text === 'status = "Passed"') {
+                        return 'status = "Passed"';
+                    }
+                    return text || '';
+                });
                 const mockTables = [{ id: 'table-1', name: 'Table 1' }];
                 queryTablesSpy$.mockReturnValue(of(mockTables));
 
                 await ds.metricFindQuery(queryWithResultFilter, options);
 
                 expect(queryTablesSpy$).toHaveBeenCalledWith(
-                    {
+                    { 
                         dataTableFilter: 'name = "Test Table"',
                         resultFilter: 'status = "Passed"'
                     },
@@ -1076,7 +1143,7 @@ describe('DataFrameDataSourceV2', () => {
                 await ds.metricFindQuery(queryWithoutResultFilter, options);
 
                 expect(queryTablesSpy$).toHaveBeenCalledWith(
-                    {
+                    { 
                         dataTableFilter: 'workspace = "ws-1"',
                         resultFilter: ''
                     },
@@ -1111,6 +1178,57 @@ describe('DataFrameDataSourceV2', () => {
                     { text: 'Column 1', value: 'Column 1-String' },
                     { text: 'Column 2', value: 'Column 2-Numeric' }
                 ]);
+            });
+
+            it('should pass resultFilter to queryTables$ when provided', async () => {
+                const queryWithResultFilter = {
+                    queryType: DataFrameVariableQueryType.ListColumns,
+                    dataTableFilter: 'name = "${name}"',
+                    resultFilter: 'status = "Passed"',
+                    refId: 'A'
+                } as DataFrameVariableQuery;
+                templateSrv.replace.mockImplementation((text) => {
+                    if (text === 'name = "${name}"') {
+                        return 'name = "Test Table"';
+                    }
+                    if (text === 'status = "Passed"') {
+                        return 'status = "Passed"';
+                    }
+                    return text || '';
+                });
+                const mockTables = [{ id: 'table-1', name: 'Table 1' }];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                await ds.metricFindQuery(queryWithResultFilter, options);
+
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    { 
+                        dataTableFilter: 'name = "Test Table"',
+                        resultFilter: 'status = "Passed"'
+                    },
+                    1000,
+                    [DataTableProjections.ColumnName, DataTableProjections.ColumnDataType]
+                );
+            });
+
+            it('should pass empty resultFilter when not provided', async () => {
+                const queryWithoutResultFilter = {
+                    queryType: DataFrameVariableQueryType.ListColumns,
+                    dataTableFilter: 'name = "${name}"',
+                    refId: 'A'
+                } as DataFrameVariableQuery;
+                templateSrv.replace.mockReturnValue('name = "Test Table"');
+
+                await ds.metricFindQuery(queryWithoutResultFilter, options);
+
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    {
+                        dataTableFilter: 'name = "Test Table"',
+                        resultFilter: ''
+                    },
+                    1000,
+                    [DataTableProjections.ColumnName, DataTableProjections.ColumnDataType]
+                );
             });
 
             it('should return only 10000 columns when more than 10000 column options are available', async () => {
@@ -1724,7 +1842,7 @@ describe('DataFrameDataSourceV2', () => {
         let postMock$: jest.SpyInstance;
         const publishMock = jest.fn();
         const mockTables = [{ id: '1', name: 'Table 1' }, { id: '2', name: 'Table 2' }];
-        const mockResultsResponse = { results: [{ id: 'result-1' }, { id: 'result-2' },] };
+        const mockResultsResponse = {results: [{ id: 'result-1' },{ id: 'result-2' },]};
 
         function createQueryTablesError(status: number) {
             return new Error(
@@ -1784,8 +1902,8 @@ describe('DataFrameDataSourceV2', () => {
             postMock$.mockImplementation((url) => {
                 if (url.includes('query-results')) {
                     return of({ results: [] });
-                }
-                return of({ tables: mockTables });
+                } 
+                return of({ tables: mockTables });            
             });
 
             const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
@@ -1920,7 +2038,7 @@ describe('DataFrameDataSourceV2', () => {
             postMock$.mockReturnValue(throwError(() => createQueryResultsError(429)));
 
             const result = await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
-
+            
             expect(result).toEqual([]);
             expect(publishMock).toHaveBeenCalledWith({
                 type: 'alert-error',
@@ -1936,7 +2054,7 @@ describe('DataFrameDataSourceV2', () => {
             postMock$.mockReturnValue(throwError(() => createQueryResultsError(504)));
 
             const result = await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
-
+            
             expect(result).toEqual([]);
             expect(publishMock).toHaveBeenCalledWith({
                 type: 'alert-error',
@@ -1952,7 +2070,7 @@ describe('DataFrameDataSourceV2', () => {
             postMock$.mockReturnValue(throwError(() => createQueryResultsError(500)));
 
             const result = await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
-
+            
             expect(result).toEqual([]);
             expect(publishMock).toHaveBeenCalledWith({
                 type: 'alert-error',
@@ -1986,15 +2104,15 @@ describe('DataFrameDataSourceV2', () => {
             const projection = [DataTableProjections.Name, DataTableProjections.Id];
             const result = await lastValueFrom(ds.queryTables$(filter, take, projection));
             expect(postMock$).toHaveBeenCalledWith(
-                `${ds.baseUrl}/query-tables`,
-                {
-                    interactive: true,
-                    filter: filter.dataTableFilter,
-                    take,
-                    projection,
-                    substitutions: undefined
-                },
-                { useApiIngress: true }
+              `${ds.baseUrl}/query-tables`,
+              {
+                interactive: true,
+                filter: filter.dataTableFilter,
+                take,
+                projection,
+                substitutions: undefined
+              },
+              { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
         });
@@ -2004,15 +2122,15 @@ describe('DataFrameDataSourceV2', () => {
             const result = await lastValueFrom(ds.queryTables$(filter));
 
             expect(postMock$).toHaveBeenCalledWith(
-                `${ds.baseUrl}/query-tables`,
-                {
-                    interactive: true,
-                    filter: filter.dataTableFilter,
-                    take: TAKE_LIMIT,
-                    projection: undefined,
-                    substitutions: undefined
-                },
-                { useApiIngress: true }
+              `${ds.baseUrl}/query-tables`,
+              {
+                interactive: true,
+                filter: filter.dataTableFilter,
+                take: TAKE_LIMIT,
+                projection: undefined,
+                substitutions: undefined
+              },
+              { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
         });
@@ -2023,15 +2141,15 @@ describe('DataFrameDataSourceV2', () => {
             const result = await lastValueFrom(ds.queryTables$(filter, take));
 
             expect(postMock$).toHaveBeenCalledWith(
-                `${ds.baseUrl}/query-tables`,
-                {
-                    interactive: true,
-                    filter: filter.dataTableFilter,
-                    take,
-                    projection: undefined,
-                    substitutions: undefined
-                },
-                { useApiIngress: true }
+              `${ds.baseUrl}/query-tables`,
+              {
+                interactive: true,
+                filter: filter.dataTableFilter,
+                take,
+                projection: undefined,
+                substitutions: undefined
+              },
+              { useApiIngress: true }
             );
             expect(result).toBe(mockTables);
         });
@@ -2106,11 +2224,56 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         describe('unique columns across tables', () => {
+            it('should pass both resultFilter and dataTableFilter to queryTables$', async () => {
+                queryTablesMock$.mockReturnValue(of([
+                    {
+                        id: '1',
+                        name: 'Table 1',
+                        columns: [
+                            { name: 'Column 1', dataType: 'STRING' },
+                        ]
+                    }
+                ]));
+
+                await ds.getColumnOptionsWithVariables({ 
+                    dataTableFilter: 'name = "Table1"', 
+                    resultFilter: 'status = "Passed"' 
+                });
+
+                expect(queryTablesMock$).toHaveBeenCalledWith(
+                    { dataTableFilter: 'name = "Table1"', resultFilter: 'status = "Passed"' },
+                    expect.any(Number),
+                    expect.any(Array)
+                );
+            });
+
+            it('should pass empty resultFilter when not provided', async () => {
+                queryTablesMock$.mockReturnValue(of([
+                    {
+                        id: '1',
+                        name: 'Table 1',
+                        columns: [
+                            { name: 'Column 1', dataType: 'STRING' },
+                        ]
+                    }
+                ]));
+
+                await ds.getColumnOptionsWithVariables({ 
+                    dataTableFilter: 'name = "Table1"', 
+                    resultFilter: '' 
+                });
+
+                expect(queryTablesMock$).toHaveBeenCalledWith(
+                    { dataTableFilter: 'name = "Table1"', resultFilter: '' },
+                    expect.any(Number),
+                    expect.any(Array)
+                );
+            });
 
             it('should return an empty array when no tables are found', async () => {
                 queryTablesMock$.mockReturnValue(of([]));
 
-                const result = await ds.getColumnOptionsWithVariables('some-filter');
+                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                 expect(result.uniqueColumnsAcrossTables).toEqual([]);
             });
@@ -2121,7 +2284,7 @@ describe('DataFrameDataSourceV2', () => {
                     { id: '2', name: 'Table 2' },
                 ]));
 
-                const result = await ds.getColumnOptionsWithVariables('some-filter');
+                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                 expect(result.uniqueColumnsAcrossTables).toEqual([]);
             });
@@ -2159,7 +2322,7 @@ describe('DataFrameDataSourceV2', () => {
                     }
                 ]));
 
-                const result = await ds.getColumnOptionsWithVariables('some-filter');
+                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
                 expect(result.uniqueColumnsAcrossTables).toEqual([
                     { label: 'Column 1', value: 'Column 1-Numeric' },
                     { label: 'Column 2', value: 'Column 2-Numeric' },
@@ -2190,7 +2353,7 @@ describe('DataFrameDataSourceV2', () => {
                         }
                     ]));
 
-                    const result = await ds.getColumnOptionsWithVariables('some-filter');
+                    const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                     expect(result.uniqueColumnsAcrossTables).toEqual([
                         { label: 'Column 1', value: 'Column 1-String' },
@@ -2228,7 +2391,7 @@ describe('DataFrameDataSourceV2', () => {
                         }
                     ]));
 
-                    const result = await ds.getColumnOptionsWithVariables('some-filter');
+                    const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                     expect(result.uniqueColumnsAcrossTables).toEqual([
                         { label: 'Column 1 (Numeric)', value: 'Column 1-Numeric' },
@@ -2261,7 +2424,7 @@ describe('DataFrameDataSourceV2', () => {
                         }
                     ]));
 
-                    const result = await ds.getColumnOptionsWithVariables('some-filter');
+                    const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                     expect(result.uniqueColumnsAcrossTables).toEqual([
                         { label: 'Column A (String)', value: 'Column A-String' },
@@ -2301,7 +2464,7 @@ describe('DataFrameDataSourceV2', () => {
                         }
                     ]));
 
-                    const result = await ds.getColumnOptionsWithVariables('some-filter');
+                    const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                     expect(result.uniqueColumnsAcrossTables).toEqual([
                         { label: 'Column A', value: 'Column A-String' },
@@ -2330,7 +2493,7 @@ describe('DataFrameDataSourceV2', () => {
                         }
                     ]));
 
-                    const result = await ds.getColumnOptionsWithVariables('some-filter');
+                    const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                     expect(result.uniqueColumnsAcrossTables).toEqual([
                         { label: '$var1', value: '$var1' },
@@ -2346,7 +2509,9 @@ describe('DataFrameDataSourceV2', () => {
             it('should return an empty array when no tables are found', async () => {
                 queryTablesMock$.mockReturnValue(of([]));
 
-                const result = await ds.getColumnOptionsWithVariables('some-filter');
+                const result = await ds.getColumnOptionsWithVariables({
+                     dataTableFilter: 'some-filter' 
+                });
 
                 expect(result.commonColumnsAcrossTables).toEqual([]);
             });
@@ -2357,7 +2522,9 @@ describe('DataFrameDataSourceV2', () => {
                     { id: '2', name: 'Table 2' },
                 ]));
 
-                const result = await ds.getColumnOptionsWithVariables('some-filter');
+                const result = await ds.getColumnOptionsWithVariables({ 
+                    dataTableFilter: 'some-filter' 
+                });
 
                 expect(result.commonColumnsAcrossTables).toEqual([]);
             });
@@ -2384,7 +2551,9 @@ describe('DataFrameDataSourceV2', () => {
                     }
                 ]));
 
-                const result = await ds.getColumnOptionsWithVariables('some-filter');
+                const result = await ds.getColumnOptionsWithVariables({ 
+                    dataTableFilter: 'some-filter' 
+                });
 
                 expect(result.commonColumnsAcrossTables).toEqual([
                     { label: 'Column 1', value: 'Column 1-Numeric' }
@@ -2411,7 +2580,9 @@ describe('DataFrameDataSourceV2', () => {
                     }
                 ]));
 
-                const result = await ds.getColumnOptionsWithVariables('some-filter');
+                const result = await ds.getColumnOptionsWithVariables({
+                     dataTableFilter: 'some-filter' 
+                });
 
                 expect(result.commonColumnsAcrossTables).toEqual([]);
             });
@@ -2441,7 +2612,9 @@ describe('DataFrameDataSourceV2', () => {
                     }
                 ]));
 
-                const result = await ds.getColumnOptionsWithVariables('some-filter');
+                const result = await ds.getColumnOptionsWithVariables({
+                     dataTableFilter: 'some-filter' 
+                });
 
                 expect(result.commonColumnsAcrossTables).toEqual([
                     { label: '$var1', value: '$var1' },
@@ -2486,15 +2659,15 @@ describe('DataFrameDataSourceV2', () => {
             const scopedVars = {
                 Table: { text: 'Table2', value: 'Table2' }
             };
-
-            ds.transformDataTableQuery(input, scopedVars);
+            
+            ds.transformDataTableQuery(input, scopedVars);    
             expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
-        });
+        })
 
         it('should transform with saved scopedVariables when not passed in as parameter', async () => {
             const scopedVars = {
                 name: { value: 'Test Table' }
-            };
+            }
             const query = {
                 type: DataFrameQueryType.Data,
                 dataTableFilter: '',
@@ -2504,20 +2677,20 @@ describe('DataFrameDataSourceV2', () => {
             } as unknown as DataQueryRequest<DataFrameQueryV2>;
             await lastValueFrom(ds.runQuery(query, options));
             const input = 'name = "${Table}" AND id != "abc"';
-
-            ds.transformDataTableQuery(input);
-
+            
+            ds.transformDataTableQuery(input);   
+ 
             expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
         });
 
         it('should replace single-value variables', () => {
             const input = 'name = "${Table}" AND id != "abc"';
             templateSrv.replace.mockReturnValue('name = "Table1" AND id != "abc"');
-
+            
             const result = ds.transformDataTableQuery(input);
 
             expect(result).toBe('name = "Table1" AND id != "abc"');
-        });
+        })
 
         it('should transform and expand multi-value variables', () => {
             const input = 'name = "{Table1,Table2}" AND id != "abc"';
@@ -2537,22 +2710,22 @@ describe('DataFrameDataSourceV2', () => {
             expect(result).not.toContain('${__now:date}');
         });
     });
-
+    
     describe('transformResultQuery', () => {
         it('should transform with the new scopedVariables when passed in as parameter', () => {
             const input = 'Name = "${Result}" AND Id != "abc"';
             const scopedVars = {
                 Result: { text: 'Result2', value: 'Result2' }
             };
-
-            ds.transformResultQuery(input, scopedVars);
+            
+            ds.transformResultQuery(input, scopedVars);    
             expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
-        });
+        })
 
         it('should transform with saved scopedVariables when not passed in as parameter', async () => {
             const scopedVars = {
                 name: { value: 'Test Result' }
-            };
+            }
             const query = {
                 type: DataFrameQueryType.Data,
                 dataTableFilter: '',
@@ -2562,16 +2735,16 @@ describe('DataFrameDataSourceV2', () => {
             } as unknown as DataQueryRequest<DataFrameQueryV2>;
             await lastValueFrom(ds.runQuery(query, options));
             const input = 'Name = "${Result}" AND Id != "abc"';
-
-            ds.transformResultQuery(input);
-
+            
+            ds.transformResultQuery(input);   
+ 
             expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
         });
 
         it('should replace single-value variables', () => {
             const input = 'Name = "${Result}" AND Id != "abc"';
             templateSrv.replace.mockReturnValue('Name = "Result1" AND Id != "abc"');
-
+            
             const result = ds.transformResultQuery(input);
 
             expect(result).toBe('Name = "Result1" AND Id != "abc"');
@@ -2596,9 +2769,9 @@ describe('DataFrameDataSourceV2', () => {
 
         it('should transform list field in query', () => {
             const input = 'Keywords.Contains("{keyword1,keyword2}")';
-
+            
             const result = ds.transformResultQuery(input);
-
+            
             expect(result).toBe('(Keywords.Contains("keyword1") || Keywords.Contains("keyword2"))');
         });
     });

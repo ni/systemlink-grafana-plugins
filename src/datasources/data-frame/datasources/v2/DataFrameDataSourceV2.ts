@@ -37,6 +37,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             );
         }
 
+        if (processedQuery.resultFilter) {
+            processedQuery.resultFilter = this.transformResultQuery(
+                processedQuery.resultFilter,
+                options.scopedVars
+            );
+        }
+
         if (this.shouldQueryForData(processedQuery)) {
             return this.getFieldsForDataQuery$(
                 processedQuery
@@ -63,15 +70,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         if (processedQuery.dataTableFilter) {
             processedQuery.dataTableFilter = this.transformDataTableQuery(
                 processedQuery.dataTableFilter,
-                options?.scopedVars! || ''
+                options?.scopedVars || {}
             );
         }
 
-        if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
-            const filters = {
-                resultFilter: processedQuery.resultFilter,
-                dataTableFilter: processedQuery.dataTableFilter,
-            };
+        if (processedQuery.resultFilter) {
+            processedQuery.resultFilter = this.transformResultQuery(
+                processedQuery.resultFilter,
+                options?.scopedVars || {}
+            );
+        }
+
+        const filters = {
+            resultFilter: processedQuery.resultFilter,
+            dataTableFilter: processedQuery.dataTableFilter,
+        };
+
+        if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {           
             const tables = await lastValueFrom(this.queryTables$(
                 filters,
                 TAKE_LIMIT,
@@ -83,7 +98,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             }));
         }
 
-        const columns = await this.getColumnOptions(processedQuery.dataTableFilter, false);
+        const columns = await this.getColumnOptions(filters, false);
         const limitedColumns = columns.uniqueColumnsAcrossTables.splice(0, COLUMN_OPTIONS_LIMIT);
 
         return limitedColumns.map(column => ({
@@ -247,9 +262,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     public async getColumnOptionsWithVariables(
-        filter: string
+        filters: CombinedFilters
     ): Promise<ColumnOptions> {
-        const columnOptions = await this.getColumnOptions(filter);
+        const columnOptions = await this.getColumnOptions(filters);
         const uniqueColumnsAcrossTablesWithVariables = [
             ...this.getVariableOptions(),
             ...columnOptions.uniqueColumnsAcrossTables
@@ -339,11 +354,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private async getColumnOptions(
-        dataTableFilter: string,
+        filters: CombinedFilters,
         includeCommonColumnsAcrossTables = true
     ): Promise<ColumnOptions> {
         const tables = await lastValueFrom(
-            this.queryTables$({ dataTableFilter }, TAKE_LIMIT, [
+            this.queryTables$(filters, TAKE_LIMIT, [
                 DataTableProjections.ColumnName,
                 DataTableProjections.ColumnDataType,
             ]));

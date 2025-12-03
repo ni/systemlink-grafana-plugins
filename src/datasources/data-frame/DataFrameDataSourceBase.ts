@@ -91,7 +91,7 @@ export abstract class DataFrameDataSourceBase<
         }
     }
 
-    public async getColumnOptionsWithVariables(filter: string): Promise<ColumnOptions> {
+    public async getColumnOptionsWithVariables(filters: CombinedFilters): Promise<ColumnOptions> {
         return Promise.resolve({ uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] });
     }
 
@@ -113,6 +113,10 @@ export abstract class DataFrameDataSourceBase<
 
     public transformDataTableQuery(query: string) {
         return this.templateSrv.replace(query);
+    }
+
+    public transformResultQuery(filter: string) {
+        return this.templateSrv.replace(filter);
     }
 
     protected constructNullFilters(columns: Column[]): ColumnFilter[] {
