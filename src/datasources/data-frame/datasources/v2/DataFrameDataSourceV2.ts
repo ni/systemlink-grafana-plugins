@@ -390,9 +390,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private createColumnIdentifierSet(columns: Column[]): Set<string> {
         return new Set(
-            columns.map(column =>
-                `${column.name}-${this.transformColumnType(column.dataType)}`
-            )
+            columns.map(column => this.getColumnIdentifier(column.name, column.dataType))
         );
     }
 
@@ -427,7 +425,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 tableColumn => tableColumn.name === selectedColumn
             );
             return matchingColumn
-                ? `${matchingColumn.name}-${this.transformColumnType(matchingColumn.dataType)}`
+                ? this.getColumnIdentifier(matchingColumn.name, matchingColumn.dataType)
                 : selectedColumn;
         });
     }
@@ -532,6 +530,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
+    private getColumnIdentifier(columnName: string, dataType: string): string {
+        const transformedType = this.transformColumnType(dataType);
+        return `${columnName}-${transformedType}`;
+    }
+
     private extractColumnNameFromColumnIdentifier(columnIdentifier: string): string {
         const parts = columnIdentifier.split('-');
         // Remove transformed column type
@@ -613,6 +616,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             throw new Error(errorMessage);
                         }
 
+                        if (
+                            processedQuery.xColumn 
+                            && !this.isSelectedXColumnValid(processedQuery.xColumn, tables)
+                        ) {
+                            const errorMessage = 'The selected X column is invalid. Please update your X column selection or refine your filters.';
+                            this.appEvents?.publish?.({
+                                type: AppEvents.alertError.name,
+                                payload: ['X Column selection error', errorMessage],
+                            });
+                            throw new Error(errorMessage);
+                        }
+
                         const selectedTableColumnMap = this.buildSelectedColumnsMap(
                             selectedColumns,
                             tables
@@ -634,8 +649,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     ): boolean {
         const allTableColumns = new Set<string>(
             tables.flatMap(table =>
-                table.columns?.map(column =>
-                    `${column.name}-${this.transformColumnType(column.dataType)}`
+                table.columns?.map(column => 
+                    this.getColumnIdentifier(column.name, column.dataType)
                 ) ?? []
             )
         );
@@ -643,6 +658,20 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return selectedColumns.every(
             selectedColumn => allTableColumns.has(selectedColumn)
         );
+    }
+
+    private isSelectedXColumnValid(
+        xColumn: string,
+        tables: TableProperties[]
+    ): boolean {
+        for (const table of tables) {
+            const columnIdentifierSet = this.createColumnIdentifierSet(table.columns);
+            if (!columnIdentifierSet.has(xColumn)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private buildSelectedColumnsMap(
@@ -672,8 +701,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const selectedColumnDetails: Column[] = [];
 
         table.columns.forEach(column => {
-            const transformedColumnType = this.transformColumnType(column.dataType);
-            const tableColumnId = `${column.name}-${transformedColumnType}`;
+            const tableColumnId = this.getColumnIdentifier(column.name, column.dataType);
             if (selectedColumns.includes(tableColumnId)) {
                 selectedColumnDetails.push({
                     name: column.name,
