@@ -617,7 +617,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         }
 
                         if (
-                            processedQuery.xColumn 
+                            processedQuery.xColumn
                             && !this.isSelectedXColumnValid(processedQuery.xColumn, tables)
                         ) {
                             const errorMessage = 'The selected X column is invalid. Please update your X column selection or refine your filters.';
@@ -649,7 +649,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     ): boolean {
         const allTableColumns = new Set<string>(
             tables.flatMap(table =>
-                table.columns?.map(column => 
+                table.columns?.map(column =>
                     this.getColumnIdentifier(column.name, column.dataType)
                 ) ?? []
             )

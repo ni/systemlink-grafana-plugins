@@ -469,7 +469,7 @@ describe('DataFrameDataSourceV2', () => {
                 });
 
                 describe('X column validation', () => {
-                    const xColumnErrorMessage = 
+                    const xColumnErrorMessage =
                         'The selected X column is invalid. Please update your X column selection or refine your filters.';
 
                     it('should not throw error when X column is valid', async () => {
