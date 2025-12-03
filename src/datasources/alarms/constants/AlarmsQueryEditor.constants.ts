@@ -30,25 +30,25 @@ export const labels = {
   properties: 'Properties',
   descending: 'Descending',
   take: 'Take',
-  groupBySeverity: 'Group by severity',
-  transitionInclusion: 'Include Transition',
+  groupBySeverity: 'Group By Severity',
+  transitionInclusion: 'Transitions',
 };
 
 export const tooltips = {
-  queryType: 'This field specifies the query type to display alarms data or trend.',
-  outputType: 'This field specifies the output type to fetch alarms properties or total count.',
+  queryType: 'This field specifies the query type for a query that displays data or trends about alarms.',
+  outputType: 'This field specifies the output type for a query to return the properties or the total count of alarms.',
   queryBy: 'This optional field specifies the query filters.',
   properties: 'This field specifies the properties to use in the query.',
   descending: 'This toggle returns the alarms query in descending order.',
   take: 'This field specifies the maximum number of alarms to return.',
-  groupBySeverity: 'This toggle returns the alarms trend grouped by severity.',
-  transitionInclusion: 'This field specifies whether to include all transitions, only the most recent, or none.',
+  groupBySeverity: 'This toggle groups the alarms trend results by severity.',
+  transitionInclusion: 'This field specifies whether to include no transitions, only the most recent transitions, or all transitions in the alarm query.',
 };
 
 export const takeErrorMessages = {
-  minErrorMsg: `Enter a value greater than or equal to ${QUERY_EDITOR_MIN_TAKE.toLocaleString()}`,
-  maxErrorMsg: `Enter a value less than or equal to ${QUERY_EDITOR_MAX_TAKE.toLocaleString()}`,
-  transitionAllMaxTakeErrorMsg: `Enter a value less than or equal to ${QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL.toLocaleString()}`,
+  minErrorMsg: `Enter a value greater than or equal to ${QUERY_EDITOR_MIN_TAKE.toLocaleString()}.`,
+  maxErrorMsg: `Enter a value less than or equal to ${QUERY_EDITOR_MAX_TAKE.toLocaleString()}.`,
+  transitionAllMaxTakeErrorMsg: `Enter a value less than or equal to ${QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL.toLocaleString()}.`,
 };
 
 export const PROPERTIES_ERROR_MESSAGE = 'You must select at least one property.';
