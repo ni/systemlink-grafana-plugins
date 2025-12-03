@@ -1,3 +1,9 @@
+## [4.87.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.86.0...v4.87.0) (2025-12-03)
+
+### Features
+
+* **dataframe:** Show error when x column selection becomes invalid ([#567](https://github.com/ni/systemlink-grafana-plugins/issues/567)) ([65011ef](https://github.com/ni/systemlink-grafana-plugins/commit/65011ef4800df6b19faf80ae9cc4fe6efb06534c))
+
 ## [4.86.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.85.0...v4.86.0) (2025-12-03)
 
 ### Features
