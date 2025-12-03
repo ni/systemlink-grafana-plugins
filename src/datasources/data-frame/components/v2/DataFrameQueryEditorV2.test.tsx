@@ -501,7 +501,7 @@ describe("DataFrameQueryEditorV2", () => {
                         expect(getColumnOptionsSpy).not.toHaveBeenCalled();
 
                         // Change the filter while still in Properties mode
-                        const mockEvent = { detail: { linq: 'UpdatedFilter' } } as Event & { detail: { linq: string; }; };
+                        const mockEvent = { detail: { linq: 'UpdatedFilter' } } as Event & { detail: { linq: string } };
                         onDataTableFilterChange(mockEvent);
 
                         // Still should not fetch columns in Properties mode

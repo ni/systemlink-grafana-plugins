@@ -186,7 +186,7 @@ describe('DataFrameDataSource', () => {
 
     describe('dashboard variables caching', () => {
         const backendSrv = {} as BackendSrv;
-        const createTemplateSrv = (variables: Array<{ name: string; value: string; }>): TemplateSrv => {
+        const createTemplateSrv = (variables: Array<{ name: string; value: string }>): TemplateSrv => {
             return {
                 getVariables: () => variables,
                 replace: (input: string) => {
