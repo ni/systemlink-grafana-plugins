@@ -384,15 +384,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         ];
     }
 
-    private extractColumnNameFromColumnIdentifier(columnIdentifier: string): string {
-        const parts = columnIdentifier.split('-');
-        // Remove transformed column type
-        parts.pop();
-        const columnName = parts.join('-');
-
-        return columnName;
-    }
-
     private getDecimatedTableData$(request: DecimatedDataRequest): Observable<TableDataRows> {
         return this.post$<TableDataRows>(
             `${this.baseUrl}/tables/${request.tableId}/query-decimated-data`,
