@@ -2223,149 +2223,73 @@ describe('DataFrameDataSourceV2', () => {
             jest.clearAllMocks();
         });
 
-        it('should pass both resultFilter and dataTableFilter to queryTables$', async () => {
-            queryTablesMock$.mockReturnValue(of([
-                {
-                    id: '1',
-                    name: 'Table 1',
-                    columns: [
-                        { name: 'Column 1', dataType: 'STRING' },
-                    ]
-                }
-            ]));
-
-            await ds.getColumnOptionsWithVariables({ 
-                dataTableFilter: 'name = "Table1"', 
-                resultFilter: 'status = "Passed"' 
-            });
-
-            expect(queryTablesMock$).toHaveBeenCalledWith(
-                { dataTableFilter: 'name = "Table1"', resultFilter: 'status = "Passed"' },
-                expect.any(Number),
-                expect.any(Array)
-            );
-        });
-
-        it('should pass empty resultFilter when not provided', async () => {
-            queryTablesMock$.mockReturnValue(of([
-                {
-                    id: '1',
-                    name: 'Table 1',
-                    columns: [
-                        { name: 'Column 1', dataType: 'STRING' },
-                    ]
-                }
-            ]));
-
-            await ds.getColumnOptionsWithVariables({ 
-                dataTableFilter: 'name = "Table1"', 
-                resultFilter: '' 
-            });
-
-            expect(queryTablesMock$).toHaveBeenCalledWith(
-                { dataTableFilter: 'name = "Table1"', resultFilter: '' },
-                expect.any(Number),
-                expect.any(Array)
-            );
-        });
-
-        it('should return an empty array when no tables are found', async () => {
-            queryTablesMock$.mockReturnValue(of([]));
-
-            const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
-
-            expect(result).toEqual([]);
-        });
-
-        it('should return an empty array when tables have no columns', async () => {
-            queryTablesMock$.mockReturnValue(of([
-                { id: '1', name: 'Table 1', columns: [] },
-                { id: '2', name: 'Table 2' },
-            ]));
-
-            const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
-
-            expect(result).toEqual([]);
-        });
-
-        it('should treat all numeric types as one data type -`Numeric`', async () => {
-            queryTablesMock$.mockReturnValue(of([
-                {
-                    id: '1',
-                    name: 'Table 1',
-                    columns: [
-                        { name: 'Column 1', dataType: 'INT32' },
-                    ]
-                },
-                {
-                    id: '2',
-                    name: 'Table 2',
-                    columns: [
-                        { name: 'Column 2', dataType: 'INT64' },
-                    ]
-                },
-                {
-                    id: '3',
-                    name: 'Table 3',
-                    columns: [
-                        { name: 'Column 3', dataType: 'FLOAT32' },
-                    ]
-                },
-                {
-                    id: '4',
-                    name: 'Table 4',
-                    columns: [
-                        { name: 'Column 4', dataType: 'FLOAT64' },
-                    ]
-
-                }
-            ]));
-
-            const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
-            expect(result).toEqual([
-                { label: 'Column 1', value: 'Column 1-Numeric' },
-                { label: 'Column 2', value: 'Column 2-Numeric' },
-                { label: 'Column 3', value: 'Column 3-Numeric' },
-                { label: 'Column 4', value: 'Column 4-Numeric' },
-            ]);
-        });
-
-        describe('when column names do not repeat', () => {
-            it('should show only the name in the labels', async () => {
+        describe('unique columns across tables', () => {
+            it('should pass both resultFilter and dataTableFilter to queryTables$', async () => {
                 queryTablesMock$.mockReturnValue(of([
                     {
                         id: '1',
                         name: 'Table 1',
                         columns: [
                             { name: 'Column 1', dataType: 'STRING' },
-                            { name: 'Column 2', dataType: 'INT32' },
-                        ]
-                    },
-                    {
-                        id: '2',
-                        name: 'Table 2',
-                        columns: [
-                            { name: 'Column 3', dataType: 'TIMESTAMP' },
-                            { name: 'Column 4', dataType: 'BOOLEAN' },
-                            { name: 'Column 5', dataType: 'STRING' },
                         ]
                     }
                 ]));
 
+                await ds.getColumnOptionsWithVariables({ 
+                    dataTableFilter: 'name = "Table1"', 
+                    resultFilter: 'status = "Passed"' 
+                });
+
+                expect(queryTablesMock$).toHaveBeenCalledWith(
+                    { dataTableFilter: 'name = "Table1"', resultFilter: 'status = "Passed"' },
+                    expect.any(Number),
+                    expect.any(Array)
+                );
+            });
+
+            it('should pass empty resultFilter when not provided', async () => {
+                queryTablesMock$.mockReturnValue(of([
+                    {
+                        id: '1',
+                        name: 'Table 1',
+                        columns: [
+                            { name: 'Column 1', dataType: 'STRING' },
+                        ]
+                    }
+                ]));
+
+                await ds.getColumnOptionsWithVariables({ 
+                    dataTableFilter: 'name = "Table1"', 
+                    resultFilter: '' 
+                });
+
+                expect(queryTablesMock$).toHaveBeenCalledWith(
+                    { dataTableFilter: 'name = "Table1"', resultFilter: '' },
+                    expect.any(Number),
+                    expect.any(Array)
+                );
+            });
+
+            it('should return an empty array when no tables are found', async () => {
+                queryTablesMock$.mockReturnValue(of([]));
+
                 const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
-                expect(result).toEqual([
-                    { label: 'Column 1', value: 'Column 1-String' },
-                    { label: 'Column 2', value: 'Column 2-Numeric' },
-                    { label: 'Column 3', value: 'Column 3-Timestamp' },
-                    { label: 'Column 4', value: 'Column 4-Boolean' },
-                    { label: 'Column 5', value: 'Column 5-String' },
-                ]);
+                expect(result.uniqueColumnsAcrossTables).toEqual([]);
             });
-        });
 
-        describe('when column names repeat but data type differs', () => {
-            it('should group numeric types as `Numeric`', async () => {
+            it('should return an empty array when tables have no columns', async () => {
+                queryTablesMock$.mockReturnValue(of([
+                    { id: '1', name: 'Table 1', columns: [] },
+                    { id: '2', name: 'Table 2' },
+                ]));
+
+                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
+
+                expect(result.uniqueColumnsAcrossTables).toEqual([]);
+            });
+
+            it('should treat all numeric types as one data type -`Numeric`', async () => {
                 queryTablesMock$.mockReturnValue(of([
                     {
                         id: '1',
@@ -2378,104 +2302,292 @@ describe('DataFrameDataSourceV2', () => {
                         id: '2',
                         name: 'Table 2',
                         columns: [
-                            { name: 'Column 1', dataType: 'INT64' },
+                            { name: 'Column 2', dataType: 'INT64' },
                         ]
                     },
                     {
                         id: '3',
                         name: 'Table 3',
                         columns: [
-                            { name: 'Column 1', dataType: 'STRING' },
+                            { name: 'Column 3', dataType: 'FLOAT32' },
                         ]
+                    },
+                    {
+                        id: '4',
+                        name: 'Table 4',
+                        columns: [
+                            { name: 'Column 4', dataType: 'FLOAT64' },
+                        ]
+
                     }
                 ]));
 
                 const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
-
-                expect(result).toEqual([
-                    { label: 'Column 1 (Numeric)', value: 'Column 1-Numeric' },
-                    { label: 'Column 1 (String)', value: 'Column 1-String' }
+                expect(result.uniqueColumnsAcrossTables).toEqual([
+                    { label: 'Column 1', value: 'Column 1-Numeric' },
+                    { label: 'Column 2', value: 'Column 2-Numeric' },
+                    { label: 'Column 3', value: 'Column 3-Numeric' },
+                    { label: 'Column 4', value: 'Column 4-Numeric' },
                 ]);
             });
 
-            it('should show data types in label', async () => {
+            describe('when column names do not repeat', () => {
+                it('should show only the name in the labels', async () => {
+                    queryTablesMock$.mockReturnValue(of([
+                        {
+                            id: '1',
+                            name: 'Table 1',
+                            columns: [
+                                { name: 'Column 1', dataType: 'STRING' },
+                                { name: 'Column 2', dataType: 'INT32' },
+                            ]
+                        },
+                        {
+                            id: '2',
+                            name: 'Table 2',
+                            columns: [
+                                { name: 'Column 3', dataType: 'TIMESTAMP' },
+                                { name: 'Column 4', dataType: 'BOOLEAN' },
+                                { name: 'Column 5', dataType: 'STRING' },
+                            ]
+                        }
+                    ]));
+
+                    const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
+
+                    expect(result.uniqueColumnsAcrossTables).toEqual([
+                        { label: 'Column 1', value: 'Column 1-String' },
+                        { label: 'Column 2', value: 'Column 2-Numeric' },
+                        { label: 'Column 3', value: 'Column 3-Timestamp' },
+                        { label: 'Column 4', value: 'Column 4-Boolean' },
+                        { label: 'Column 5', value: 'Column 5-String' },
+                    ]);
+                });
+            });
+
+            describe('when column names repeat but data type differs', () => {
+                it('should group numeric types as `Numeric`', async () => {
+                    queryTablesMock$.mockReturnValue(of([
+                        {
+                            id: '1',
+                            name: 'Table 1',
+                            columns: [
+                                { name: 'Column 1', dataType: 'INT32' },
+                            ]
+                        },
+                        {
+                            id: '2',
+                            name: 'Table 2',
+                            columns: [
+                                { name: 'Column 1', dataType: 'INT64' },
+                            ]
+                        },
+                        {
+                            id: '3',
+                            name: 'Table 3',
+                            columns: [
+                                { name: 'Column 1', dataType: 'STRING' },
+                            ]
+                        }
+                    ]));
+
+                    const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
+
+                    expect(result.uniqueColumnsAcrossTables).toEqual([
+                        { label: 'Column 1 (Numeric)', value: 'Column 1-Numeric' },
+                        { label: 'Column 1 (String)', value: 'Column 1-String' }
+                    ]);
+                });
+
+                it('should show data types in label', async () => {
+                    queryTablesMock$.mockReturnValue(of([
+                        {
+                            id: '1',
+                            name: 'Table 1',
+                            columns: [
+                                { name: 'Column A', dataType: 'STRING' },
+                                { name: 'Column B', dataType: 'INT64' },
+                                { name: 'Column C', dataType: 'BOOLEAN' },
+                                { name: 'Column D', dataType: 'INT32' },
+                            ]
+                        },
+                        {
+                            id: '2',
+                            name: 'Table 2',
+                            columns: [
+                                { name: 'Column A', dataType: 'BOOLEAN' },
+                                { name: 'Column B', dataType: 'TIMESTAMP' },
+                                { name: 'Column C', dataType: 'STRING' },
+                                { name: 'Column D', dataType: 'FLOAT64' },
+                                { name: 'Column E', dataType: 'FLOAT32' },
+                            ]
+                        }
+                    ]));
+
+                    const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
+
+                    expect(result.uniqueColumnsAcrossTables).toEqual([
+                        { label: 'Column A (String)', value: 'Column A-String' },
+                        { label: 'Column A (Boolean)', value: 'Column A-Boolean' },
+                        { label: 'Column B (Numeric)', value: 'Column B-Numeric' },
+                        { label: 'Column B (Timestamp)', value: 'Column B-Timestamp' },
+                        { label: 'Column C (Boolean)', value: 'Column C-Boolean' },
+                        { label: 'Column C (String)', value: 'Column C-String' },
+                        { label: 'Column D', value: 'Column D-Numeric' },
+                        { label: 'Column E', value: 'Column E-Numeric' }
+                    ]);
+                });
+            });
+
+            describe('when column names repeat but data type is same', () => {
+                it('should not show data types in label', async () => {
+                    queryTablesMock$.mockReturnValue(of([
+                        {
+                            id: '1',
+                            name: 'Table 1',
+                            columns: [
+                                { name: 'Column A', dataType: 'STRING' },
+                                { name: 'Column B', dataType: 'INT64' },
+                                { name: 'Column C', dataType: 'BOOLEAN' },
+                                { name: 'Column D', dataType: 'INT32' },
+                            ]
+                        },
+                        {
+                            id: '2',
+                            name: 'Table 2',
+                            columns: [
+                                { name: 'Column A', dataType: 'STRING' },
+                                { name: 'Column B', dataType: 'FLOAT64' },
+                                { name: 'Column C', dataType: 'BOOLEAN' },
+                                { name: 'Column D', dataType: 'FLOAT64' },
+                            ]
+                        }
+                    ]));
+
+                    const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
+
+                    expect(result.uniqueColumnsAcrossTables).toEqual([
+                        { label: 'Column A', value: 'Column A-String' },
+                        { label: 'Column B', value: 'Column B-Numeric' },
+                        { label: 'Column C', value: 'Column C-Boolean' },
+                        { label: 'Column D', value: 'Column D-Numeric' },
+                    ]);
+                });
+            });
+
+            describe('variable handling', () => {
+                it('should prepend variable options to the column options list', async () => {
+                    templateSrv.getVariables.mockReturnValue([
+                        { name: 'var1' },
+                        { name: 'var2' }
+                    ] as any);
+
+                    queryTablesMock$.mockReturnValue(of([
+                        {
+                            id: '1',
+                            name: 'Table 1',
+                            columns: [
+                                { name: 'Column 1', dataType: 'STRING' },
+                                { name: 'Column 2', dataType: 'INT32' }
+                            ]
+                        }
+                    ]));
+
+                    const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
+
+                    expect(result.uniqueColumnsAcrossTables).toEqual([
+                        { label: '$var1', value: '$var1' },
+                        { label: '$var2', value: '$var2' },
+                        { label: 'Column 1', value: 'Column 1-String' },
+                        { label: 'Column 2', value: 'Column 2-Numeric' }
+                    ]);
+                });
+            });
+        });
+
+        describe('common columns across tables', () => {
+            it('should return an empty array when no tables are found', async () => {
+                queryTablesMock$.mockReturnValue(of([]));
+
+                const result = await ds.getColumnOptionsWithVariables({
+                     dataTableFilter: 'some-filter' 
+                });
+
+                expect(result.commonColumnsAcrossTables).toEqual([]);
+            });
+
+            it('should return an empty array when tables have no columns', async () => {
+                queryTablesMock$.mockReturnValue(of([
+                    { id: '1', name: 'Table 1' },
+                    { id: '2', name: 'Table 2' },
+                ]));
+
+                const result = await ds.getColumnOptionsWithVariables({ 
+                    dataTableFilter: 'some-filter' 
+                });
+
+                expect(result.commonColumnsAcrossTables).toEqual([]);
+            });
+
+            it('should return only common numeric columns across all tables', async () => {
                 queryTablesMock$.mockReturnValue(of([
                     {
                         id: '1',
                         name: 'Table 1',
                         columns: [
-                            { name: 'Column A', dataType: 'STRING' },
-                            { name: 'Column B', dataType: 'INT64' },
-                            { name: 'Column C', dataType: 'BOOLEAN' },
-                            { name: 'Column D', dataType: 'INT32' },
+                            { name: 'Column 1', dataType: 'INT32' },
+                            { name: 'Column 2', dataType: 'STRING' },
+                            { name: 'Column 3', dataType: 'BOOLEAN' }
                         ]
                     },
                     {
                         id: '2',
                         name: 'Table 2',
                         columns: [
-                            { name: 'Column A', dataType: 'BOOLEAN' },
-                            { name: 'Column B', dataType: 'TIMESTAMP' },
-                            { name: 'Column C', dataType: 'STRING' },
-                            { name: 'Column D', dataType: 'FLOAT64' },
-                            { name: 'Column E', dataType: 'FLOAT32' },
+                            { name: 'Column 1', dataType: 'FLOAT32' },
+                            { name: 'Column 2', dataType: 'STRING' },
+                            { name: 'Column 4', dataType: 'TIMESTAMP' }
                         ]
                     }
                 ]));
 
-                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
+                const result = await ds.getColumnOptionsWithVariables({ 
+                    dataTableFilter: 'some-filter' 
+                });
 
-                expect(result).toEqual([
-                    { label: 'Column A (String)', value: 'Column A-String' },
-                    { label: 'Column A (Boolean)', value: 'Column A-Boolean' },
-                    { label: 'Column B (Numeric)', value: 'Column B-Numeric' },
-                    { label: 'Column B (Timestamp)', value: 'Column B-Timestamp' },
-                    { label: 'Column C (Boolean)', value: 'Column C-Boolean' },
-                    { label: 'Column C (String)', value: 'Column C-String' },
-                    { label: 'Column D', value: 'Column D-Numeric' },
-                    { label: 'Column E', value: 'Column E-Numeric' }
+                expect(result.commonColumnsAcrossTables).toEqual([
+                    { label: 'Column 1', value: 'Column 1-Numeric' }
                 ]);
             });
-        });
 
-        describe('when column names repeat but data type is same', () => {
-            it('should not show data types in label', async () => {
+            it('should return empty array when no columns are common across tables', async () => {
                 queryTablesMock$.mockReturnValue(of([
                     {
                         id: '1',
                         name: 'Table 1',
                         columns: [
-                            { name: 'Column A', dataType: 'STRING' },
-                            { name: 'Column B', dataType: 'INT64' },
-                            { name: 'Column C', dataType: 'BOOLEAN' },
-                            { name: 'Column D', dataType: 'INT32' },
+                            { name: 'Column 1', dataType: 'INT32' },
+                            { name: 'Column 2', dataType: 'STRING' }
                         ]
                     },
                     {
                         id: '2',
                         name: 'Table 2',
                         columns: [
-                            { name: 'Column A', dataType: 'STRING' },
-                            { name: 'Column B', dataType: 'FLOAT64' },
-                            { name: 'Column C', dataType: 'BOOLEAN' },
-                            { name: 'Column D', dataType: 'FLOAT64' },
+                            { name: 'Column 3', dataType: 'BOOLEAN' },
+                            { name: 'Column 4', dataType: 'TIMESTAMP' }
                         ]
                     }
                 ]));
 
-                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
+                const result = await ds.getColumnOptionsWithVariables({
+                     dataTableFilter: 'some-filter' 
+                });
 
-                expect(result).toEqual([
-                    { label: 'Column A', value: 'Column A-String' },
-                    { label: 'Column B', value: 'Column B-Numeric' },
-                    { label: 'Column C', value: 'Column C-Boolean' },
-                    { label: 'Column D', value: 'Column D-Numeric' },
-                ]);
+                expect(result.commonColumnsAcrossTables).toEqual([]);
             });
-        });
 
-        describe('variable handling', () => {
-            it('should prepend variable options to the column options list', async () => {
+            it('should prepend variable options', async () => {
                 templateSrv.getVariables.mockReturnValue([
                     { name: 'var1' },
                     { name: 'var2' }
@@ -2486,19 +2598,58 @@ describe('DataFrameDataSourceV2', () => {
                         id: '1',
                         name: 'Table 1',
                         columns: [
-                            { name: 'Column 1', dataType: 'STRING' },
-                            { name: 'Column 2', dataType: 'INT32' }
+                            { name: 'Column 1', dataType: 'INT32' },
+                            { name: 'Column 2', dataType: 'STRING' }
+                        ]
+                    },
+                    {
+                        id: '2',
+                        name: 'Table 2',
+                        columns: [
+                            { name: 'Column 1', dataType: 'INT32' },
+                            { name: 'Column 2', dataType: 'STRING' }
                         ]
                     }
                 ]));
 
-                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
+                const result = await ds.getColumnOptionsWithVariables({
+                     dataTableFilter: 'some-filter' 
+                });
 
-                expect(result).toEqual([
+                expect(result.commonColumnsAcrossTables).toEqual([
                     { label: '$var1', value: '$var1' },
                     { label: '$var2', value: '$var2' },
-                    { label: 'Column 1', value: 'Column 1-String' },
-                    { label: 'Column 2', value: 'Column 2-Numeric' }
+                    { label: 'Column 1', value: 'Column 1-Numeric' }
+                ]);
+            });
+
+            it('should return properly when the column name contains "-" character', async () => {
+                queryTablesMock$.mockReturnValue(of([
+                    {
+                        id: '1',
+                        name: 'Table 1',
+                        columns: [
+                            { name: 'column-1', dataType: 'INT32' },
+                            { name: 'column-2', dataType: 'INT32' }
+                        ]
+                    },
+                    {
+                        id: '2',
+                        name: 'Table 2',
+                        columns: [
+                            { name: 'column-1', dataType: 'INT32' },
+                            { name: 'column-2', dataType: 'INT32' }
+                        ]
+                    }
+                ]));
+
+                const result = await ds.getColumnOptionsWithVariables({
+                     dataTableFilter: 'some-filter' 
+                });
+
+                expect(result.commonColumnsAcrossTables).toEqual([
+                    { label: 'column-1', value: 'column-1-Numeric' },
+                    { label: 'column-2', value: 'column-2-Numeric' }
                 ]);
             });
         });
