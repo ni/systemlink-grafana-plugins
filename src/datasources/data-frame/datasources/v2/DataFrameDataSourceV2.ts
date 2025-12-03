@@ -323,14 +323,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         intervals = 1000
     ): DecimatedDataRequest[] {
         return Object.entries(tableColumnsMap).map(([tableId, columnMap]) => {
-            const nullfilters: ColumnFilter[] = query.filterNulls
+            const nullFilters: ColumnFilter[] = query.filterNulls
                 ? this.constructNullFilters(columnMap.selectedColumns)
                 : [];
             const timeFilters: ColumnFilter[] = query.applyTimeFilters
                 ? this.constructTimeFilters(query.xColumn, columnMap.columns, timeRange)
                 : [];
             const filters: ColumnFilter[] = [
-                ...nullfilters,
+                ...nullFilters,
                 ...timeFilters
             ];
             const yColumns = this.getNumericColumns(columnMap.selectedColumns)
