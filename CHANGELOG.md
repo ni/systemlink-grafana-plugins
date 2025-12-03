@@ -1,3 +1,9 @@
+## [4.86.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.85.0...v4.86.0) (2025-12-03)
+
+### Features
+
+* **dataframe:** Populate options for xColumn control ([#562](https://github.com/ni/systemlink-grafana-plugins/issues/562)) ([8e0f3dd](https://github.com/ni/systemlink-grafana-plugins/commit/8e0f3dde74d99d19ecff8eada9cf4b9d5cff749c))
+
 ## [4.85.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.84.0...v4.85.0) (2025-12-02)
 
 ### Features
