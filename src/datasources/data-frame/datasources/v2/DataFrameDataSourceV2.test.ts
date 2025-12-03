@@ -2814,7 +2814,7 @@ describe('DataFrameDataSourceV2', () => {
             
             const result = ds.transformColumnQuery(input);
 
-            expect(result).toBe('columns.any(it.name = "Column1") && !columns.any(it.name = "abc")');
+            expect(result).toBe('columns.any((it.name = "Column1")) && !columns.any(it.name = "abc")');
         });
 
         it('should transform and expand multi-value variables', () => {
@@ -2849,7 +2849,7 @@ describe('DataFrameDataSourceV2', () => {
             expect(result).toBe('columns.any(it.name.Contains("Temp"))');
         });
 
-        it('should transform DOES_NOT_CONTAINS operation with column name field to negated columns.any expression', () => {
+        it('should transform DOES_NOT_CONTAIN operation with column name field to negated columns.any expression', () => {
             const input = '!name.Contains("Temp")';
             
             const result = ds.transformColumnQuery(input);

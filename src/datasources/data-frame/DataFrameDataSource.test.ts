@@ -383,5 +383,5 @@ describe('DataFrameDataSource', () => {
             expect(v1Mock.transformColumnQuery).toHaveBeenCalledWith('filter');
             expect(result).toBe('v1-filter');
         });
-     });
+    });
 });

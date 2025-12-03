@@ -787,9 +787,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private transformToIteratorExpression (expression: string, field: string): string {
         const fieldPattern = new RegExp(`\\b${field}\\b`, 'g');
-        return expression
-            .replace(fieldPattern, `it.${field}`)
-            .replace(new RegExp(`\\b${field}\\.contains\\b`, 'g'), `it.${ field }.contains`);
+        return expression.replace(fieldPattern, `it.${field}`);
     }
 
     private isTimeField(field: DataTableProperties): boolean {
