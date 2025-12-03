@@ -121,6 +121,33 @@ describe('DataFrameDataSourceV2', () => {
             );
         });
 
+        it('should call transformComputedFieldsQuery when columnFilter is present', async () => {
+            const query = {
+                type: DataFrameQueryType.Properties,
+                columnFilter: 'name = "${columnName}"',
+                dataTableProperties: [DataTableProperties.Name],
+                take: 1000,
+                refId: 'A'
+            } as DataFrameQueryV2;
+            templateSrv.replace.mockReturnValue('name = "TestColumn"');
+            const queryTablesSpy$ = jest.spyOn(ds, 'queryTables$').mockReturnValue(of([]));
+
+            await lastValueFrom(ds.runQuery(query, options));
+
+            expect(templateSrv.replace).toHaveBeenCalledWith('name = "${columnName}"', options.scopedVars);
+            expect(queryBuilderUtils.transformComputedFieldsQuery).toHaveBeenCalledWith(
+                'name = "TestColumn"',
+                expect.any(Object)
+            );
+            expect(queryTablesSpy$).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    columnFilter: 'columns.any(it.name = "TestColumn")'
+                }),
+                expect.anything(),
+                expect.anything()
+            );
+        });
+
         it('should use expected ExpressionTransformFunction for the fields', async () => {
             const transformComputedFieldsQuerySpy = queryBuilderUtils.transformComputedFieldsQuery as jest.Mock;
             const timeFieldsQuery = queryBuilderUtils.timeFieldsQuery as jest.Mock;
@@ -582,7 +609,8 @@ describe('DataFrameDataSourceV2', () => {
                     expect(queryTablesSpy$).toHaveBeenCalledWith(
                         { 
                             dataTableFilter: 'name = "Test Table"',
-                            resultFilter: 'partNumber = "12345"'
+                            resultFilter: 'partNumber = "12345"',
+                            columnFilter: ''
                         },
                         1000,
                         [DataTableProjections.Name]
@@ -617,7 +645,8 @@ describe('DataFrameDataSourceV2', () => {
                     expect(queryTablesSpy$).toHaveBeenCalledWith(
                         { 
                             dataTableFilter: 'name = "Table1"',
-                            resultFilter: ''
+                            resultFilter: '',
+                            columnFilter: ''
                         },
                         1000,
                         [DataTableProjections.Name]
@@ -900,7 +929,8 @@ describe('DataFrameDataSourceV2', () => {
                     expect(queryTablesSpy$).toHaveBeenCalledWith(
                         { 
                             dataTableFilter: 'name = "Test Table"',
-                            resultFilter: ''
+                            resultFilter: '',
+                            columnFilter: ''
                         },
                         1000,
                         expectedProjections
@@ -1009,6 +1039,36 @@ describe('DataFrameDataSourceV2', () => {
             );
         });
 
+        it('should transform columnFilter and pass transformed value to queryTables$ when present', async () => {
+            const query = {
+                queryType: DataFrameVariableQueryType.ListDataTables,
+                columnFilter: 'name = "${columnName}"',
+                refId: 'A'
+            } as DataFrameVariableQuery;
+            const optionsWithColumnName = {
+                scopedVars: {
+                    columnName: { value: 'TestColumn' }
+                }
+            };
+            templateSrv.replace.mockReturnValue('name = "TestColumn"');
+            queryTablesSpy$.mockReturnValue(of([]));
+
+            await ds.metricFindQuery(query, optionsWithColumnName);
+
+            expect(templateSrv.replace).toHaveBeenCalledWith('name = "${columnName}"', optionsWithColumnName.scopedVars);
+            expect(queryBuilderUtils.transformComputedFieldsQuery).toHaveBeenCalledWith(
+                'name = "TestColumn"',
+                expect.any(Object)
+            );
+            expect(queryTablesSpy$).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    columnFilter: 'columns.any(it.name = "TestColumn")'
+                }),
+                expect.anything(),
+                expect.anything()
+            );
+        });
+
         it('should use expected ExpressionTransformFunction for the fields', async () => {
             const transformComputedFieldsQuerySpy = queryBuilderUtils
                 .transformComputedFieldsQuery as jest.Mock;
@@ -1088,7 +1148,8 @@ describe('DataFrameDataSourceV2', () => {
                 expect(queryTablesSpy$).toHaveBeenCalledWith(
                     { 
                         dataTableFilter: 'name = "Test Table"',
-                        resultFilter: ''
+                        resultFilter: '',
+                        columnFilter: ''
                     },
                     1000,
                     [DataTableProjections.Name]
@@ -1123,7 +1184,8 @@ describe('DataFrameDataSourceV2', () => {
                 expect(queryTablesSpy$).toHaveBeenCalledWith(
                     { 
                         dataTableFilter: 'name = "Test Table"',
-                        resultFilter: 'status = "Passed"'
+                        resultFilter: 'status = "Passed"',
+                        columnFilter: ''
                     },
                     1000,
                     [DataTableProjections.Name]
@@ -1145,7 +1207,59 @@ describe('DataFrameDataSourceV2', () => {
                 expect(queryTablesSpy$).toHaveBeenCalledWith(
                     { 
                         dataTableFilter: 'workspace = "ws-1"',
-                        resultFilter: ''
+                        resultFilter: '',
+                        columnFilter: ''
+                    },
+                    1000,
+                    [DataTableProjections.Name]
+                );
+            });
+
+            it('should transform columnFilter and pass transformed value to queryTables$ when present', async () => {
+                const queryWithColumnFilter = {
+                    queryType: DataFrameVariableQueryType.ListDataTables,
+                    columnFilter: 'name = "${columnName}"',
+                    refId: 'A'
+                } as DataFrameVariableQuery;
+                const optionsWithColumnName = {
+                    scopedVars: {
+                        name: { value: 'Test Table' },
+                        columnName: { value: 'TestColumn' }
+                    }
+                };
+                templateSrv.replace.mockReturnValue('name = "TestColumn"');
+                queryTablesSpy$.mockReturnValue(of([]));
+
+                await ds.metricFindQuery(queryWithColumnFilter, optionsWithColumnName);
+                
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    {
+                        dataTableFilter: '',
+                        resultFilter: '',
+                        columnFilter: 'columns.any(it.name = "TestColumn")'
+                    },
+                    1000,
+                    [DataTableProjections.Name]
+                );
+            });
+
+            it('should pass empty columnFilter when not provided', async () => {
+                const queryWithoutColumnFilter = {
+                    queryType: DataFrameVariableQueryType.ListDataTables,
+                    dataTableFilter: 'workspace = "ws-1"',
+                    refId: 'A'
+                } as DataFrameVariableQuery;
+                templateSrv.replace.mockReturnValue('workspace = "ws-1"');
+                const mockTables = [{ id: 'table-1', name: 'Table 1' }];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                await ds.metricFindQuery(queryWithoutColumnFilter, options);
+
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    { 
+                        dataTableFilter: 'workspace = "ws-1"',
+                        resultFilter: '',
+                        columnFilter: ''
                     },
                     1000,
                     [DataTableProjections.Name]
@@ -1204,7 +1318,8 @@ describe('DataFrameDataSourceV2', () => {
                 expect(queryTablesSpy$).toHaveBeenCalledWith(
                     { 
                         dataTableFilter: 'name = "Test Table"',
-                        resultFilter: 'status = "Passed"'
+                        resultFilter: 'status = "Passed"',
+                        columnFilter: ''
                     },
                     1000,
                     [DataTableProjections.ColumnName, DataTableProjections.ColumnDataType]
@@ -1224,7 +1339,56 @@ describe('DataFrameDataSourceV2', () => {
                 expect(queryTablesSpy$).toHaveBeenCalledWith(
                     {
                         dataTableFilter: 'name = "Test Table"',
-                        resultFilter: ''
+                        resultFilter: '',
+                        columnFilter: ''
+                    },
+                    1000,
+                    [DataTableProjections.ColumnName, DataTableProjections.ColumnDataType]
+                );
+            });
+
+            it('should transform columnFilter and pass transformed value to queryTables$ when present', async () => {
+                const queryWithColumnFilter = {
+                    queryType: DataFrameVariableQueryType.ListColumns,
+                    columnFilter: 'name = "${columnName}"',
+                    refId: 'A'
+                } as DataFrameVariableQuery;
+                const optionsWithColumnName = {
+                    scopedVars: {
+                        name: { value: 'Test Table' },
+                        columnName: { value: 'TestColumn' }
+                    }
+                };
+                templateSrv.replace.mockReturnValue('name = "TestColumn"');
+
+                await ds.metricFindQuery(queryWithColumnFilter, optionsWithColumnName);
+                
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    {
+                        dataTableFilter: '',
+                        resultFilter: '',
+                        columnFilter: 'columns.any(it.name = "TestColumn")'
+                    },
+                    1000,
+                    [DataTableProjections.ColumnName, DataTableProjections.ColumnDataType]
+                );
+            });
+
+            it('should pass empty columnFilter when not provided', async () => {
+                const queryWithoutColumnFilter = {
+                    queryType: DataFrameVariableQueryType.ListColumns,
+                    dataTableFilter: 'name = "${name}"',
+                    refId: 'A'
+                } as DataFrameVariableQuery;
+                templateSrv.replace.mockReturnValue('name = "Test Table"');
+
+                await ds.metricFindQuery(queryWithoutColumnFilter, options);
+
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    {
+                        dataTableFilter: 'name = "Test Table"',
+                        resultFilter: '',
+                        columnFilter: ''
                     },
                     1000,
                     [DataTableProjections.ColumnName, DataTableProjections.ColumnDataType]
@@ -2224,7 +2388,7 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         describe('unique columns across tables', () => {
-            it('should pass both resultFilter and dataTableFilter to queryTables$', async () => {
+            it('should pass all filters to queryTables$', async () => {
                 queryTablesMock$.mockReturnValue(of([
                     {
                         id: '1',
@@ -2237,11 +2401,16 @@ describe('DataFrameDataSourceV2', () => {
 
                 await ds.getColumnOptionsWithVariables({ 
                     dataTableFilter: 'name = "Table1"', 
-                    resultFilter: 'status = "Passed"' 
+                    resultFilter: 'status = "Passed"' ,
+                    columnFilter: 'name = "Column 1"'
                 });
 
                 expect(queryTablesMock$).toHaveBeenCalledWith(
-                    { dataTableFilter: 'name = "Table1"', resultFilter: 'status = "Passed"' },
+                    { 
+                        dataTableFilter: 'name = "Table1"', 
+                        resultFilter: 'status = "Passed"', 
+                        columnFilter: 'name = "Column 1"' 
+                    },
                     expect.any(Number),
                     expect.any(Array)
                 );
