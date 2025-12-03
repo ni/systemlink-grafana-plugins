@@ -91,8 +91,8 @@ export abstract class DataFrameDataSourceBase<
         }
     }
 
-    public async getColumnOptionsWithVariables(filter: string): Promise<ColumnOptions> {
-        return Promise.resolve({ allColumns: [], xColumns: [] });
+    public async getColumnOptionsWithVariables(filters: CombinedFilters): Promise<ColumnOptions> {
+        return Promise.resolve({ uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] });
     }
 
     public async loadPartNumbers(): Promise<string[]> {
@@ -113,6 +113,10 @@ export abstract class DataFrameDataSourceBase<
 
     public transformDataTableQuery(query: string) {
         return this.templateSrv.replace(query);
+    }
+
+    public transformResultQuery(filter: string) {
+        return this.templateSrv.replace(filter);
     }
 
     protected constructNullFilters(columns: Column[]): ColumnFilter[] {

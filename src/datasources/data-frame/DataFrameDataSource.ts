@@ -122,11 +122,15 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.processVariableQuery(query);
   }
 
-  public async getColumnOptionsWithVariables(filter: string): Promise<ColumnOptions> {
-    return this.datasource.getColumnOptionsWithVariables(filter);
+  public async getColumnOptionsWithVariables(filters: CombinedFilters): Promise<ColumnOptions> {
+    return this.datasource.getColumnOptionsWithVariables(filters);
   }
 
   public transformDataTableQuery(query: string) {
     return this.datasource.transformDataTableQuery(query);
+  }
+
+  public transformResultQuery(query: string): string {
+    return this.datasource.transformResultQuery(query);
   }
 }

@@ -1,3 +1,12 @@
+## [4.85.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.84.0...v4.85.0) (2025-12-02)
+
+### Features
+
+* **dataframe:** Decode selected columns and create tableColumn map ([#552](https://github.com/ni/systemlink-grafana-plugins/issues/552)) ([8d9e0da](https://github.com/ni/systemlink-grafana-plugins/commit/8d9e0da9d17f938fcaf14667cd900ac0f117f416))
+* **dataframes:** Add method to transform results query ([#564](https://github.com/ni/systemlink-grafana-plugins/issues/564)) ([9bab2a1](https://github.com/ni/systemlink-grafana-plugins/commit/9bab2a1ea3085a9e66920faa567b8f9fc09156b7))
+* **dataframes:** Integrate result filter in editor and callback ([#559](https://github.com/ni/systemlink-grafana-plugins/issues/559)) ([51ed470](https://github.com/ni/systemlink-grafana-plugins/commit/51ed4707b6b0df8621dea8e39fb4958da6f04f01))
+* **dataframes:** Update datasource to use transformed result query ([#566](https://github.com/ni/systemlink-grafana-plugins/issues/566)) ([9654c80](https://github.com/ni/systemlink-grafana-plugins/commit/9654c80a4ac5c7e625491b8aee097a0ce032daf2))
+
 ## [4.84.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.83.0...v4.84.0) (2025-12-01)
 
 ### Features
