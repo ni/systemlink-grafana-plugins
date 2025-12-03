@@ -1,3 +1,9 @@
+## [4.88.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.87.0...v4.88.0) (2025-12-03)
+
+### Features
+
+* **alarms:** Introduce error message for 401 unauthorized access ([#565](https://github.com/ni/systemlink-grafana-plugins/issues/565)) ([3c583e6](https://github.com/ni/systemlink-grafana-plugins/commit/3c583e668ab4317bf8834a0255be0e2dd61065da))
+
 ## [4.87.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.86.0...v4.87.0) (2025-12-03)
 
 ### Features
