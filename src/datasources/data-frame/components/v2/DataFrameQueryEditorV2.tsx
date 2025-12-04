@@ -99,7 +99,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     }, [validColumnSelections, invalidColumnSelections]);
 
     const invalidSelectedColumnsMessage = useMemo(() => {
-        if(invalidColumnSelections.length === 0) {
+        if (invalidColumnSelections.length === 0) {
             return '';
         }
 
