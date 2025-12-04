@@ -305,7 +305,8 @@ describe("DataFrameQueryEditorV2", () => {
 
                             // Increase offsetHeight to allow more options to be rendered in the test environment
                             jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(200);
-                            renderComponent({ dataTableFilter: ' ' }, '', '', columnOptions);
+                            const result = renderComponent({ dataTableFilter: ' ' }, '', '', columnOptions);
+                            datasource = result.datasource;
 
                             await changeFilterValue();
                         });
@@ -331,6 +332,20 @@ describe("DataFrameQueryEditorV2", () => {
                             expect(alert).toBeInTheDocument();
 
                             await changeFilterValue('');
+
+                            await waitFor(() => {
+                                expect(alert).not.toBeInTheDocument();
+                            });
+                        });
+
+                        it('should hide the warning alert when filter is changed and the `getColumnOptionsWithVariables` errored', async () => {
+                            await changeFilterValue();
+                            const alert = screen.getByRole('alert');
+                            expect(alert).toBeInTheDocument();
+
+                            // Mock getColumnOptionsWithVariables to throw error
+                            jest.spyOn(datasource, 'getColumnOptionsWithVariables').mockRejectedValue(new Error('Test error'));
+                            await changeFilterValue('AnotherFilter');
 
                             await waitFor(() => {
                                 expect(alert).not.toBeInTheDocument();
@@ -1470,7 +1485,8 @@ describe("DataFrameQueryEditorV2", () => {
                             // Increase offsetHeight to allow more options to be rendered in the test environment
                             jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
                                 .mockReturnValue(200);
-                            renderComponent({ dataTableFilter: ' ' }, '', '', [], xColumnOptions);
+                            const result = renderComponent({ dataTableFilter: ' ' }, '', '', [], xColumnOptions);
+                            datasource = result.datasource;
 
                             await changeFilterValue();
                         });
@@ -1497,6 +1513,20 @@ describe("DataFrameQueryEditorV2", () => {
                             expect(alert).toBeInTheDocument();
 
                             await changeFilterValue('');
+
+                            await waitFor(() => {
+                                expect(alert).not.toBeInTheDocument();
+                            });
+                        });
+
+                        it('should hide the warning alert when filter is changed and the `getColumnOptionsWithVariables` errored', async () => {
+                            await changeFilterValue();
+                            const alert = screen.getByRole('alert');
+                            expect(alert).toBeInTheDocument();
+
+                            // Mock getColumnOptionsWithVariables to throw error
+                            jest.spyOn(datasource, 'getColumnOptionsWithVariables').mockRejectedValue(new Error('Test error'));
+                            await changeFilterValue('AnotherFilter');
 
                             await waitFor(() => {
                                 expect(alert).not.toBeInTheDocument();
