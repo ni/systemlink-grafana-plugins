@@ -86,7 +86,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             dataTableFilter: processedQuery.dataTableFilter,
         };
 
-        if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {           
+        if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
             const tables = await lastValueFrom(this.queryTables$(
                 filters,
                 TAKE_LIMIT,
@@ -525,8 +525,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             );
         }
 
-        return [...commonColumns].map(column => 
-            ({label: this.extractColumnNameFromColumnIdentifier(column), value: column})
+        return [...commonColumns].map(column =>
+            ({ label: this.extractColumnNameFromColumnIdentifier(column), value: column })
         );
     }
 
@@ -664,14 +664,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         xColumn: string,
         tables: TableProperties[]
     ): boolean {
-        for (const table of tables) {
-            const columnIdentifierSet = this.createColumnIdentifierSet(table.columns);
-            if (!columnIdentifierSet.has(xColumn)) {
-                return false;
-            }
-        }
-
-        return true;
+        return tables.every(table => this.createColumnIdentifierSet(table.columns).has(xColumn));
     }
 
     private buildSelectedColumnsMap(
