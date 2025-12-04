@@ -322,23 +322,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         timeRange: TimeRange,
         intervals = 1000
     ): DecimatedDataRequest[] {
-        return Object.entries(tableColumnsMap).map(([tableId, columnMap]) => {
+        return Object.entries(tableColumnsMap).map(([tableId, columnsMap]) => {
             const nullFilters: ColumnFilter[] = query.filterNulls
-                ? this.constructNullFilters(columnMap.selectedColumns)
+                ? this.constructNullFilters(columnsMap.selectedColumns)
                 : [];
             const timeFilters: ColumnFilter[] = query.applyTimeFilters
-                ? this.constructTimeFilters(query.xColumn, columnMap.columns, timeRange)
+                ? this.constructTimeFilters(query.xColumn, columnsMap.columns, timeRange)
                 : [];
             const filters: ColumnFilter[] = [
                 ...nullFilters,
                 ...timeFilters
             ];
-            const yColumns = this.getNumericColumns(columnMap.selectedColumns)
+            const yColumns = this.getNumericColumns(columnsMap.selectedColumns)
                 .map(column => column.name);
 
             return {
                 tableId,
-                columns: columnMap.selectedColumns.map(column => column.name),
+                columns: columnsMap.selectedColumns.map(column => column.name),
                 filters,
                 decimation: {
                     method: query.decimationMethod,
@@ -360,8 +360,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         if (xColumn) {
             columnName = this.extractColumnNameFromColumnIdentifier(xColumn);
         } else {
-            const timeIndexColumn = columns.find(c =>
-                c.dataType === 'TIMESTAMP' && c.columnType === 'INDEX'
+            const timeIndexColumn = columns.find(column =>
+                column.dataType === 'TIMESTAMP' && column.columnType === 'INDEX'
             );
             columnName = timeIndexColumn?.name;
         }
