@@ -632,12 +632,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         selectedColumns: string[],
         tables: TableProperties[]
     ): boolean {
-        const allTableColumns = new Set<string>(
-            tables.flatMap(table =>
-                table.columns?.map(column =>
-                    `${column.name}-${this.transformColumnDataType(column.dataType)}`
-                ) ?? []
-            )
+        const allTableColumns = this.createColumnIdentifierSet(
+            tables.flatMap(table => table.columns ?? [])
         );
 
         return selectedColumns.every(
