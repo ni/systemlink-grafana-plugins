@@ -363,8 +363,15 @@ describe('DataFrameDataSource', () => {
 
     describe('parseColumnIdentifier', () => {
         it('should delegate to v2 parseColumnIdentifier when feature toggle is true', () => {
-            const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
-            const parsedColumnIdentifier = { columnName: 'column1', transformedDataType: 'Numeric' };
+            const ds = new DataFrameDataSource(
+                mockInstanceSettings(true),
+                backendSrv,
+                templateSrv
+            );
+            const parsedColumnIdentifier = {
+                columnName: 'column1',
+                transformedDataType: 'Numeric'
+            };
             v2Mock.parseColumnIdentifier = jest.fn().mockReturnValue(parsedColumnIdentifier);
             
             const result = ds.parseColumnIdentifier('column1-Numeric');
@@ -374,8 +381,15 @@ describe('DataFrameDataSource', () => {
         });
 
         it('should delegate to v1 parseColumnIdentifier when feature toggle is false', () => {
-            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
-            const parsedColumnIdentifier = { columnName: 'column1', transformedDataType: 'Numeric' };
+            const ds = new DataFrameDataSource(
+                mockInstanceSettings(false),
+                backendSrv,
+                templateSrv
+            );
+            const parsedColumnIdentifier = {
+                columnName: 'column1',
+                transformedDataType: 'Numeric'
+            };
             v1Mock.parseColumnIdentifier = jest.fn().mockReturnValue(parsedColumnIdentifier);
             
             const result = ds.parseColumnIdentifier('column1-Numeric');

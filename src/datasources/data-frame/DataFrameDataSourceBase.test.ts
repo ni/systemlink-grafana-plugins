@@ -486,9 +486,17 @@ describe('DataFrameDataSourceBase', () => {
 
     describe('parseColumnIdentifier', () => {
         it('should return the empty column name and data type by default', () => {
-            const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+            const ds = new TestDataFrameDataSource(
+                instanceSettings,
+                backendSrv,
+                templateSrv
+            );
 
-            expect(ds.parseColumnIdentifier('column1-INT32')).toEqual({ columnName: '', transformedDataType: '' });
+            const parseResult = ds.parseColumnIdentifier('any-input');
+            expect(parseResult).toEqual({
+                columnName: '',
+                transformedDataType: ''
+            });
         });
     });
 });
