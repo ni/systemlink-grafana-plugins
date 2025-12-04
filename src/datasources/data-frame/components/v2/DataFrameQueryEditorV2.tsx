@@ -234,7 +234,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     const onIncludeIndexColumnsChange = (event: React.FormEvent<HTMLInputElement>) => {
         const includeIndexColumns = event.currentTarget.checked;
-        handleQueryChange({ ...migratedQuery, includeIndexColumns }, false);
+        handleQueryChange({ ...migratedQuery, includeIndexColumns });
     };
 
     const onFilterNullsChange = (event: React.FormEvent<HTMLInputElement>) => {

@@ -669,30 +669,34 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         const selectedColumnDetails: Column[] = [];
+        let tableIndexColumn: Column[] = [];
 
-        if (includeIndexColumns) {
-            const indexColumn = table.columns.filter(column => column.columnType === ColumnType.Index);
-            table.columns = table.columns.filter(col => col.columnType !== ColumnType.Index);
-            selectedColumnDetails.push(...indexColumn.map(indexColumn => ({
-                name: indexColumn.name,
-                dataType: indexColumn.dataType,
-                columnType: indexColumn.columnType,
-                properties: {}
-            })));
+        if(includeIndexColumns) {
+            tableIndexColumn = table.columns.filter(column => column.columnType === ColumnType.Index);
+            table.columns = table.columns.filter(column => column.columnType !== ColumnType.Index);
         }
+        
+        table.columns
+            .forEach(column => {
+                const transformedColumnType = this.transformColumnDataType(column.dataType);
+                const tableColumnId = `${column.name}-${transformedColumnType}`;
 
-
-        table.columns.forEach(column => {
-            const transformedColumnType = this.transformColumnDataType(column.dataType);
-            const tableColumnId = `${column.name}-${transformedColumnType}`;
-            if (selectedColumns.includes(tableColumnId)) {
-                selectedColumnDetails.push({
-                    name: column.name,
-                    dataType: column.dataType,
-                    columnType: column.columnType,
-                    properties: {}
-                });
-            }
+                if (selectedColumns.includes(tableColumnId)) {
+                    if (includeIndexColumns && tableIndexColumn.length > 0) {
+                        selectedColumnDetails.push(...tableIndexColumn.map(indexColumn => ({
+                            name: indexColumn.name,
+                            dataType: indexColumn.dataType,
+                            columnType: indexColumn.columnType,
+                            properties: {}
+                        })));
+                    }
+                    selectedColumnDetails.push({
+                        name: column.name,
+                        dataType: column.dataType,
+                        columnType: column.columnType,
+                        properties: {}
+                    });
+                }
         });
         return selectedColumnDetails;
     }
