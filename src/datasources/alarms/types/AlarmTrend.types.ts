@@ -1,6 +1,6 @@
 import { AlarmsQuery, AlarmTransition, AlarmTransitionSeverityLevel, AlarmTransitionType, Alarm } from './types';
 
-export interface AlarmsTrendQuery extends AlarmsQuery {
+export interface AlarmTrendQuery extends AlarmsQuery {
   filter?: string;
   groupBySeverity?: boolean;
 }

@@ -86,7 +86,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             dataTableFilter: processedQuery.dataTableFilter,
         };
 
-        if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {           
+        if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
             const tables = await lastValueFrom(this.queryTables$(
                 filters,
                 TAKE_LIMIT,
@@ -281,7 +281,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     // TODO(#3526598): Make this method private after implementing the runQuery method for data query type.
     public getDecimatedTableDataInBatches$(
-        tableColumnsMap: Record<string, Column[]>,
+        tableColumnsMap: Record<string, { columns: Column[], selectedColumns: Column[] }>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
         intervals = 1000
@@ -317,28 +317,71 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private getDecimatedDataRequests(
-        tableColumnsMap: Record<string, Column[]>,
+        tableColumnsMap: Record<string, { columns: Column[], selectedColumns: Column[] }>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
         intervals = 1000
     ): DecimatedDataRequest[] {
-        return Object.entries(tableColumnsMap).map(([tableId, columns]) => {
-            const filters: ColumnFilter[] = query.filterNulls
-                ? this.constructNullFilters(columns)
+        return Object.entries(tableColumnsMap).map(([tableId, columnsMap]) => {
+            const nullFilters: ColumnFilter[] = query.filterNulls
+                ? this.constructNullFilters(columnsMap.selectedColumns)
                 : [];
+            const timeFilters: ColumnFilter[] = query.applyTimeFilters
+                ? this.constructTimeFilters(query.xColumn, columnsMap.columns, timeRange)
+                : [];
+            const filters: ColumnFilter[] = [
+                ...nullFilters,
+                ...timeFilters
+            ];
+            const yColumns = this.getNumericColumns(columnsMap.selectedColumns)
+                .map(column => column.name);
 
             return {
                 tableId,
-                columns: columns.map(column => column.name),
+                columns: columnsMap.selectedColumns.map(column => column.name),
                 filters,
                 decimation: {
                     method: query.decimationMethod,
                     xColumn: query.xColumn || undefined,
-                    yColumns: this.getNumericColumns(columns).map(column => column.name),
+                    yColumns,
                     intervals,
                 }
             };
         });
+    }
+
+    private constructTimeFilters(
+        xColumn: string | null,
+        columns: Column[],
+        timeRange: TimeRange
+    ): ColumnFilter[] {
+        let columnName: string | undefined;
+
+        if (xColumn) {
+            columnName = this.extractColumnNameFromColumnIdentifier(xColumn);
+        } else {
+            const timeIndexColumn = columns.find(column =>
+                column.dataType === 'TIMESTAMP' && column.columnType === 'INDEX'
+            );
+            columnName = timeIndexColumn?.name;
+        }
+
+        if (!columnName) {
+            return [];
+        }
+
+        return [
+            {
+                column: columnName,
+                operation: 'GREATER_THAN_EQUALS',
+                value: timeRange.from.toISOString()
+            },
+            {
+                column: columnName,
+                operation: 'LESS_THAN_EQUALS',
+                value: timeRange.to.toISOString()
+            },
+        ];
     }
 
     private getDecimatedTableData$(request: DecimatedDataRequest): Observable<TableDataRows> {
@@ -375,8 +418,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return { uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] };
         }
 
-        const columnTypeMap = this.createColumnNameDataTypesMap(tables);
-        const uniqueColumnsAcrossTables = this.getUniqueColumnsAcrossTables(columnTypeMap);
+        const columnNameDataTypesMap = this.createColumnNameDataTypesMap(tables);
+        const uniqueColumnsAcrossTables = this.getUniqueColumnsAcrossTables(columnNameDataTypesMap);
         const commonColumnsAcrossTables = includeCommonColumnsAcrossTables
             ? this.getCommonColumnsAcrossTables(tables)
             : [];
@@ -390,9 +433,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private createColumnIdentifierSet(columns: Column[]): Set<string> {
         return new Set(
-            columns.map(column =>
-                `${column.name}-${this.transformColumnType(column.dataType)}`
-            )
+            columns.map(column => this.getColumnIdentifier(column.name, column.dataType))
         );
     }
 
@@ -427,7 +468,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 tableColumn => tableColumn.name === selectedColumn
             );
             return matchingColumn
-                ? `${matchingColumn.name}-${this.transformColumnType(matchingColumn.dataType)}`
+                ? this.getColumnIdentifier(matchingColumn.name, matchingColumn.dataType)
                 : selectedColumn;
         });
     }
@@ -472,7 +513,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
     }
 
-    private transformColumnType(dataType: string): string {
+    private transformColumnDataType(dataType: string): string {
         const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType)
             ? 'Numeric'
             : this.toSentenceCase(dataType);
@@ -484,7 +525,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tables.forEach(table => {
             table.columns?.forEach((column: { name: string; dataType: string; }) => {
                 if (column?.name && column.dataType) {
-                    const dataType = this.transformColumnType(column.dataType);
+                    const dataType = this.transformColumnDataType(column.dataType);
                     (columnNameDataTypeMap[column.name] ??= new Set()).add(dataType);
                 }
             });
@@ -492,19 +533,19 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return columnNameDataTypeMap;
     };
 
-    private getUniqueColumnsAcrossTables(columnTypeMap: Record<string, Set<string>>): Option[] {
+    private getUniqueColumnsAcrossTables(columnNameDataTypesMap: Record<string, Set<string>>): Option[] {
         const options: Option[] = [];
 
-        Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
+        Object.entries(columnNameDataTypesMap).forEach(([columnName, dataTypes]) => {
             const columnDataType = Array.from(dataTypes);
 
             if (columnDataType.length === 1) {
                 // Single type: show just the name as label and value as name with type in sentence case
-                options.push({ label: name, value: `${name}-${columnDataType[0]}` });
+                options.push({ label: columnName, value: `${columnName}-${columnDataType[0]}` });
             } else {
                 // Multiple types: show type in label and value
-                columnDataType.forEach(type => {
-                    options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
+                columnDataType.forEach(dataType => {
+                    options.push({ label: `${columnName} (${dataType})`, value: `${columnName}-${dataType}` });
                 });
             }
         });
@@ -527,9 +568,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             );
         }
 
-        return [...commonColumns].map(column => 
-            ({label: this.extractColumnNameFromColumnIdentifier(column), value: column})
+        return [...commonColumns].map(column =>
+            ({ label: this.extractColumnNameFromColumnIdentifier(column), value: column })
         );
+    }
+
+    private getColumnIdentifier(columnName: string, dataType: string): string {
+        const transformedDataType = this.transformColumnDataType(dataType);
+        return `${columnName}-${transformedDataType}`;
     }
 
     private extractColumnNameFromColumnIdentifier(columnIdentifier: string): string {
@@ -613,6 +659,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             throw new Error(errorMessage);
                         }
 
+                        if (
+                            processedQuery.xColumn
+                            && !this.isSelectedXColumnValid(processedQuery.xColumn, tables)
+                        ) {
+                            const errorMessage = 'The selected X column is invalid. Please update your X column selection or refine your filters.';
+                            this.appEvents?.publish?.({
+                                type: AppEvents.alertError.name,
+                                payload: ['X Column selection error', errorMessage],
+                            });
+                            throw new Error(errorMessage);
+                        }
+
                         const selectedTableColumnMap = this.buildSelectedColumnsMap(
                             selectedColumns,
                             tables
@@ -632,17 +690,20 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         selectedColumns: string[],
         tables: TableProperties[]
     ): boolean {
-        const allTableColumns = new Set<string>(
-            tables.flatMap(table =>
-                table.columns?.map(column =>
-                    `${column.name}-${this.transformColumnType(column.dataType)}`
-                ) ?? []
-            )
+        const allTableColumns = this.createColumnIdentifierSet(
+            tables.flatMap(table => table.columns ?? [])
         );
 
         return selectedColumns.every(
             selectedColumn => allTableColumns.has(selectedColumn)
         );
+    }
+
+    private isSelectedXColumnValid(
+        xColumn: string,
+        tables: TableProperties[]
+    ): boolean {
+        return tables.every(table => this.createColumnIdentifierSet(table.columns).has(xColumn));
     }
 
     private buildSelectedColumnsMap(
@@ -672,8 +733,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const selectedColumnDetails: Column[] = [];
 
         table.columns.forEach(column => {
-            const transformedColumnType = this.transformColumnType(column.dataType);
-            const tableColumnId = `${column.name}-${transformedColumnType}`;
+            const tableColumnId = this.getColumnIdentifier(column.name, column.dataType);
             if (selectedColumns.includes(tableColumnId)) {
                 selectedColumnDetails.push({
                     name: column.name,
