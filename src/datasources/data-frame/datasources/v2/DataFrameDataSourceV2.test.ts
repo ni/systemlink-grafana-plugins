@@ -57,7 +57,8 @@ describe('DataFrameDataSourceV2', () => {
         backendSrv = {} as any;
         templateSrv = {
             replace: jest.fn((value: string) => value),
-            getVariables: jest.fn(() => [])
+            getVariables: jest.fn(() => []),
+            containsTemplate: jest.fn(() => false)
         } as any;
         ds = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
     });
