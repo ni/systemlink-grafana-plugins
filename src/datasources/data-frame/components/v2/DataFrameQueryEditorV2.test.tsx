@@ -977,6 +977,7 @@ describe("DataFrameQueryEditorV2", () => {
                                 })
                             );
                         });
+                        expect(onRunQuery).toHaveBeenCalled();
                     });
 
                     it('should update the query when a column is removed', async () => {
