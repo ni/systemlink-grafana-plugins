@@ -1,7 +1,7 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -615,7 +615,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
                         const selectedTableColumnMap = this.buildSelectedColumnsMap(
                             selectedColumns,
-                            tables
+                            tables,
+                            processedQuery.includeIndexColumns
                         );
                         if (Object.keys(selectedTableColumnMap).length > 0) {
                             // TODO: Implement fetching decimated data for selected columns if needed.
@@ -643,12 +644,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private buildSelectedColumnsMap(
         selectedColumns: string[],
-        tables: TableProperties[]
+        tables: TableProperties[],
+        includeIndexColumns: boolean
     ): Record<string, Column[]> {
         const selectedTableColumnsMap: Record<string, Column[]> = {};
         tables.forEach(table => {
             const selectedColumnsForTable = this.getSelectedColumnsForTable(
-                selectedColumns, table
+                selectedColumns, table, includeIndexColumns
             );
             if (selectedColumnsForTable.length > 0) {
                 selectedTableColumnsMap[table.id] = selectedColumnsForTable;
@@ -659,13 +661,26 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private getSelectedColumnsForTable(
         selectedColumns: string[],
-        table: TableProperties
+        table: TableProperties,
+        includeIndexColumns: boolean
     ): Column[] {
         if (!Array.isArray(table.columns) || table.columns.length === 0) {
             return [];
         }
 
         const selectedColumnDetails: Column[] = [];
+
+        if (includeIndexColumns) {
+            const indexColumn = table.columns.filter(column => column.columnType === ColumnType.Index);
+            table.columns = table.columns.filter(col => col.columnType !== ColumnType.Index);
+            selectedColumnDetails.push(...indexColumn.map(indexColumn => ({
+                name: indexColumn.name,
+                dataType: indexColumn.dataType,
+                columnType: indexColumn.columnType,
+                properties: {}
+            })));
+        }
+
 
         table.columns.forEach(column => {
             const transformedColumnType = this.transformColumnDataType(column.dataType);
