@@ -501,11 +501,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             );
         }
 
-        if(query.columns && !isObservable(query.columns)) {
+        if (query.columns && !isObservable(query.columns)) {
             query.columns = this.transformColumns(query.columns);
         }
 
-        if(query.xColumn){
+        if (query.xColumn){
             query.xColumn = this.transformXColumn(query.xColumn, scopedVars);
         }
 
