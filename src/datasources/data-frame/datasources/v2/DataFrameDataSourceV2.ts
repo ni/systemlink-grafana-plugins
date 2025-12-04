@@ -358,7 +358,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         let columnName: string | undefined;
 
         if (xColumn) {
-            columnName = this.extractColumnNameFromColumnIdentifier(xColumn);
+            columnName = this.parseColumnIdentifier(xColumn).columnName;
         } else {
             const timeIndexColumn = columns.find(column =>
                 column.dataType === 'TIMESTAMP' && column.columnType === 'INDEX'
@@ -568,9 +568,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             );
         }
 
-        return [...commonColumns].map(column =>
-            ({ label: this.extractColumnNameFromColumnIdentifier(column), value: column })
-        );
+        return [...commonColumns].map(column => {
+            return {
+                label: this.parseColumnIdentifier(column).columnName,
+                value: column
+            }
+        });
     }
 
     private getColumnIdentifier(columnName: string, dataType: string): string {
@@ -578,13 +581,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return `${columnName}-${transformedDataType}`;
     }
 
-    private extractColumnNameFromColumnIdentifier(columnIdentifier: string): string {
+    public parseColumnIdentifier(
+        columnIdentifier: string
+    ): { columnName: string, transformedDataType: string } {
         const parts = columnIdentifier.split('-');
         // Remove transformed column type
-        parts.pop();
+        const transformedDataType = parts.pop() ?? '';
         const columnName = parts.join('-');
 
-        return columnName;
+        return {
+            columnName,
+            transformedDataType
+        };
     }
 
     /**

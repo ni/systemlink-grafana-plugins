@@ -3016,4 +3016,22 @@ describe('DataFrameDataSourceV2', () => {
             expect(result).toBe('(Keywords.Contains("keyword1") || Keywords.Contains("keyword2"))');
         });
     });
+
+    describe('parseColumnIdentifier', () => {
+        it('should parse column identifier with hyphen correctly', () => {
+            const identifier = 'column 1-Numeric';
+
+            const result = ds.parseColumnIdentifier(identifier);
+
+            expect(result).toEqual({ columnName: 'column 1', transformedDataType: 'Numeric' });
+        });
+
+        it('should parse column identifier with multiple hyphens correctly', () => {
+            const identifier = 'column-2-Timestamp';
+
+            const result = ds.parseColumnIdentifier(identifier);
+
+            expect(result).toEqual({ columnName: 'column-2', transformedDataType: 'Timestamp' });
+        });
+    });
 });
