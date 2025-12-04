@@ -1078,9 +1078,9 @@ describe("DataFrameQueryEditorV2", () => {
                                 if (columnDataType.length === 1) {
                                 options.push({ label: name, value: `${name}-${columnDataType[0]}` });
                                 } else {
-                                columnDataType.forEach(type => {
-                                    options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
-                                });
+                                    columnDataType.forEach(type => {
+                                        options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
+                                    });
                                 }
                             });
                             return options;
