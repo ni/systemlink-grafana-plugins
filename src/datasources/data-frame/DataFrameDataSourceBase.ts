@@ -127,6 +127,13 @@ export abstract class DataFrameDataSourceBase<
         return dataType;
     }
 
+    public parseColumnIdentifier(_columnIdentifier: string): { columnName: string, transformedDataType: string } {
+        return {
+            columnName: '',
+            transformedDataType: ''
+        };
+    }
+
     protected constructNullFilters(columns: Column[]): ColumnFilter[] {
         return columns.flatMap(({ name, columnType, dataType }) => {
             const filters: ColumnFilter[] = [];

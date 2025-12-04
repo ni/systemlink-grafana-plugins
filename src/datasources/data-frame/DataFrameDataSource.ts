@@ -141,4 +141,8 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
   public transformColumnDataType(dataType: string): string {
     return this.datasource.transformColumnDataType(dataType);
   }
+
+  public parseColumnIdentifier(columnIdentifier: string): { columnName: string, transformedDataType: string } {
+    return this.datasource.parseColumnIdentifier(columnIdentifier);
+  }
 }

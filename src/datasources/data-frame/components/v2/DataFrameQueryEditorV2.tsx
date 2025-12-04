@@ -103,8 +103,14 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const invalidColumnSelections = useMemo((): Array<ComboboxOption<string>> => {
         return selectedColumnIds
             .filter(columnId => !columnOptionsMap.has(columnId))
-            .map(columnId => ({ label: columnId, value: columnId }));
-    }, [columnOptionsMap, selectedColumnIds]);
+            .map(columnId => {
+                const parsedColumnIdentifier = datasource.parseColumnIdentifier(columnId);
+                return { 
+                    label: `${parsedColumnIdentifier.columnName} (${parsedColumnIdentifier.transformedDataType})}`, 
+                    value: columnId
+                };
+            });
+    }, [datasource, columnOptionsMap, selectedColumnIds]);
 
     const selectedColumnOptions = useMemo((): Array<ComboboxOption<string>> => {
         return [...validColumnSelections, ...invalidColumnSelections];

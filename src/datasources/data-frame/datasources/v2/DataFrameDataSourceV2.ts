@@ -473,6 +473,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
+    public parseColumnIdentifier(columnIdentifier: string): { columnName: string, transformedDataType: string } {
+        const parts = columnIdentifier.split('-');
+        // Remove transformed column type
+        const transformedDataType = parts.pop() ?? '';
+        const columnName = parts.join('-');
+
+        return {
+            columnName,
+            transformedDataType
+        };
+    }
+
     private areAllObjectsWithNameProperty(object: any[]): object is Array<{ name: string; }> {
         return _.every(
             object,
@@ -548,17 +560,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         return [...commonColumns].map(column => 
-            ({label: this.extractColumnNameFromColumnIdentifier(column), value: column})
+            ({label: this.parseColumnIdentifier(column).columnName, value: column})
         );
-    }
-
-    private extractColumnNameFromColumnIdentifier(columnIdentifier: string): string {
-        const parts = columnIdentifier.split('-');
-        // Remove transformed column type
-        parts.pop();
-        const columnName = parts.join('-');
-
-        return columnName;
     }
 
     /**
