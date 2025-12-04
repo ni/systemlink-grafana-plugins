@@ -358,7 +358,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         let columnName: string | undefined;
 
         if (xColumn) {
-            columnName = this.extractColumnNameFromColumnIdentifier(xColumn);
+            columnName = this.parseColumnIdentifier(xColumn).columnName;
         } else {
             const timeIndexColumn = columns.find(column =>
                 column.dataType === 'TIMESTAMP' && column.columnType === 'INDEX'
