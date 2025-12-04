@@ -1,4 +1,4 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldConfig, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
 import { AlarmsProperties, AlarmsSpecificProperties, AlarmsState, AlarmsTransitionProperties, ListAlarmsQuery, OutputType } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery, QueryAlarmsRequest, TransitionInclusionOption } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
@@ -159,7 +159,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       const fieldName = field.label;
       const fieldValue = field.value;
       const fieldType = this.getFieldTypeForProperty(fieldValue);
-      let config = FieldType.enum === fieldType ? { type: { enum: [] } } : field.config;
+      const config = this.getConfigForFieldType(fieldType, fieldValue);
 
       const fieldValues = flattenedAlarms.map(alarm => {
         const transition = alarm.transitions?.[0];
@@ -203,10 +203,33 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
             return value ?? '';
         }
       });
-      return { name: fieldName, values: fieldValues, type: fieldType };
+      return { name: fieldName, values: fieldValues, type: fieldType, config };
     });
 
     return mappedFields;
+  }
+  private getConfigForFieldType(fieldType: FieldType, field: AlarmsProperties): FieldConfig {
+    if(fieldType !== FieldType.enum) {
+      return {};
+    }
+
+    switch(field) {
+      case AlarmsSpecificProperties.state:
+        return {
+          type: {
+            enum: {
+              text: [
+                AlarmsState.Set,
+                AlarmsState.Acknowledged,
+                AlarmsState.ClearedUnacknowledged,
+                AlarmsState.Cleared
+              ]
+            }
+          }
+        };
+      default:
+        return {};
+      }
   }
 
   private getFieldTypeForProperty(field: AlarmsProperties): FieldType {
