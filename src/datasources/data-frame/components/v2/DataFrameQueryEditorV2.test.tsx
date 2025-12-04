@@ -68,7 +68,8 @@ const renderComponent = (
         transformResultQuery: jest.fn((filter: string) => filter),
         variablesCache,
         parseColumnIdentifier: mockParseColumnIdentifier,
-    } as unknown as DataFrameDataSource; 
+    } as unknown as DataFrameDataSource;
+
     const initialQuery = {
         refId: 'A',
         ...queryOverrides,
