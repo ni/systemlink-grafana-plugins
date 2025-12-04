@@ -71,6 +71,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             } catch (error) {
                 setColumnOptions([]);
                 setXColumnOptions([]);
+                setIsColumnLimitExceeded(false);
+                setIsXColumnLimitExceeded(false);
             }
         },
         [
