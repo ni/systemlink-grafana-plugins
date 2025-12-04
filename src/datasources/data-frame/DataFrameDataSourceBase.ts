@@ -119,10 +119,6 @@ export abstract class DataFrameDataSourceBase<
         return this.templateSrv.replace(filter);
     }
 
-    public transformColumnDataType(dataType: string): string {
-        return dataType;
-    }
-
     public parseColumnIdentifier(_columnIdentifier: string): { columnName: string, transformedDataType: string } {
         return {
             columnName: '',

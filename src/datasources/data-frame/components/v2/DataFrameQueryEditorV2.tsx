@@ -106,7 +106,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             .map(columnId => {
                 const parsedColumnIdentifier = datasource.parseColumnIdentifier(columnId);
                 return { 
-                    label: `${parsedColumnIdentifier.columnName} (${parsedColumnIdentifier.transformedDataType})}`, 
+                    label: `${parsedColumnIdentifier.columnName} (${parsedColumnIdentifier.transformedDataType})`, 
                     value: columnId
                 };
             });
