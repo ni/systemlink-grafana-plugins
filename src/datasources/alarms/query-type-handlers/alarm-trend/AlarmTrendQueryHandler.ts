@@ -34,7 +34,7 @@ export class AlarmTrendQueryHandler extends AlarmsQueryHandlerCore {
     return { start, end, intervalMs };
   }
 
-  private getTrendQueryFilter(query: AlarmsTrendQuery, start: Date, end: Date, scopedVars: ScopedVars): string {
+  private getTrendQueryFilter(query: AlarmTrendQuery, start: Date, end: Date, scopedVars: ScopedVars): string {
     const startIso = start.toISOString();
     const endIso = end.toISOString();
     const activeAndTransitionedBeforeStartFilter = `(active = "true" && mostRecentSetOccurredAt < "${startIso}")`;
@@ -49,8 +49,8 @@ export class AlarmTrendQueryHandler extends AlarmsQueryHandlerCore {
     ].join(' || ')})`;
 
     if (query.filter && query.filter.trim() !== '') {
-      query.filter = this.transformAlarmsQuery(scopedVars, query.filter);
-      return `${defaultTrendQueryFilter} && (${query.filter})`;
+      const transformedFilter = this.transformAlarmsQuery(scopedVars, query.filter);
+      return `${defaultTrendQueryFilter} && (${transformedFilter})`;
     }
 
     return defaultTrendQueryFilter;

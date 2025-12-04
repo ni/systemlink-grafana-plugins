@@ -178,7 +178,7 @@ describe('AlarmTrendQueryHandler', () => {
     });
 
     it('should replace template variables in filter', async () => {
-      const query: AlarmsTrendQuery = {
+      const query: AlarmTrendQuery = {
         refId: 'A',
         filter: 'workspace = "$workspace"',
       };
