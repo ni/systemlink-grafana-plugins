@@ -491,7 +491,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         });
         return columnNameDataTypeMap;
     };
-    
+
     private getUniqueColumnsAcrossTables(columnTypeMap: Record<string, Set<string>>): Option[] {
         const options: Option[] = [];
 

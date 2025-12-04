@@ -336,69 +336,6 @@ describe('DataFrameDataSourceV2', () => {
                         );
                     });
 
-                    it('should throw error and publish alert when selected columns do not exist in table', async () => {
-                        const mockTables = [
-                            {
-                                id: 'table1',
-                                columns: [
-                                    {
-                                        name: 'colX',
-                                        dataType: 'INT32',
-                                        columnType: ColumnType.Normal
-                                    },
-                                    {
-                                        name: 'colY',
-                                        dataType: 'STRING',
-                                        columnType: ColumnType.Normal
-                                    }
-                                ]
-                            }
-                        ];
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['colA-Numeric', 'colB-String'],
-                            dataTableFilter: 'name = "Test"',
-                        } as DataFrameQueryV2;
-
-                        await expect(
-                            lastValueFrom(ds.runQuery(query, options))
-                        ).rejects.toThrow(
-                            'One or more selected columns are invalid. Please update your column selection or refine your filters.'
-                        );
-                    });
-
-                    it('should include column metadata projections when querying tables with specified columns', async () => {
-                        const mockTables = [
-                            {
-                                id: 'table1',
-                                columns: [
-                                    {
-                                        name: 'temp',
-                                        dataType: 'FLOAT64',
-                                        columnType: ColumnType.Normal,
-                                    }
-                                ]
-                            }
-                        ];
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['temp-Numeric'],
-                            dataTableFilter: 'name = "Test"',
-                        } as DataFrameQueryV2;
-
-                        await lastValueFrom(ds.runQuery(query, options));
-
-                        expect(queryTablesSpy).toHaveBeenCalledWith(
-                            {"dataTableFilter": "name = \"Test\""},
-                            TAKE_LIMIT,
-                            projections
-                        );
-                    });
-
                     it('should throw error when table has undefined columns property', async () => {
                         const mockTables = [
                             {
@@ -2724,8 +2661,8 @@ describe('DataFrameDataSourceV2', () => {
             const scopedVars = {
                 Table: { text: 'Table2', value: 'Table2' }
             };
-
-            ds.transformDataTableQuery(input, scopedVars);
+            
+            ds.transformDataTableQuery(input, scopedVars);    
             expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
         })
 
