@@ -763,12 +763,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         [ ColumnsQueryBuilderFieldNames.ColumnName ].map(field => [ field, this.convertToColumnsAnyExpression(field) ])
     );
 
+    /**
+     * Creates a transformation function that converts a field and value into a columns.any() expression.
+     * 
+     * @param field - The field name to be used in the expression
+     * @returns A transformation function that takes a value and operation and returns a columns.any() expression string
+     * 
+     * @example
+     * // Negated operation (DOES_NOT_CONTAIN)
+     * // Input: field = "name", value = "{column1,column2}", operation = "notcontains"
+     * // Output: !columns.any(it.name.contains("column1") || it.name.contains("column2"))
+     */
     private convertToColumnsAnyExpression (field: string): ExpressionTransformFunction {
         return (value: string, operation: string) => {
             const isNegatedOperation = this.isNegatedOperation(operation);
             const positiveOperation = this.getPositiveOperation(operation);
             const innerExpression = multipleValuesQuery(field)(value, positiveOperation);
-            const cleanedExpression = this.removeNegationWrapper(innerExpression);
+            const cleanedExpression = this.removeWrapper(innerExpression);
             const transformedExpression = this.transformToIteratorExpression(cleanedExpression, field);
 
             return isNegatedOperation
@@ -795,9 +806,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return operation;
     }
 
-    private removeNegationWrapper (expression: string): string {
-        return expression.startsWith('!(')
-            ? expression.slice(2, -1)
+    private removeWrapper (expression: string): string {
+        return expression.startsWith('(')
+            ? expression.slice(1, -1)
             : expression;
     }
 
