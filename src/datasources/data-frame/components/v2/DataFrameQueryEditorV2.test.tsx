@@ -1171,6 +1171,33 @@ describe("DataFrameQueryEditorV2", () => {
                             });
                         });
 
+                        it('should display both valid and invalid columns in the combobox', async () => {
+                            renderComponent(
+                                {
+                                    type: DataFrameQueryType.Data,
+                                    dataTableFilter: 'name = "TestTable"',
+                                    columns: ['ColumnA-String', 'InvalidColumn-String'],
+                                },
+                                '',
+                                '',
+                                [],
+                                [],
+                                undefined,
+                                {},
+                                mockDatasource
+                            );
+
+                            await waitFor(() => {
+                                expect(mockDatasource.getColumnOptionsWithVariables).toHaveBeenCalled();
+                            });
+
+                            // Verify both valid and invalid columns are displayed
+                            await waitFor(() => {
+                                expect(document.body).toHaveTextContent('ColumnA');
+                                expect(document.body).toHaveTextContent('InvalidColumn');
+                            });
+                        });
+
                         it('should clear error message when invalid columns become valid', async () => {
                             // Initial filter - column is valid
                             mockDatasource.getColumnOptionsWithVariables.mockResolvedValue({

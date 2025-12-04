@@ -3019,7 +3019,7 @@ describe('DataFrameDataSourceV2', () => {
 
     describe('parseColumnIdentifier', () => {
         it('should parse column identifier with hyphen correctly', () => {
-            const identifier = 'column-1-Numeric';
+            const identifier = 'column 1-Numeric';
 
             const result = ds.parseColumnIdentifier(identifier);
 
