@@ -55,26 +55,16 @@ const renderComponent = (
         transformDataTableQuery: jest.fn((filter: string) => filter),
         transformResultQuery: jest.fn((filter: string) => filter),
         variablesCache,
-        createColumnOptions: jest.fn((columnTypeMap: Record<string, Set<string>>) => {
-            const options: ComboboxOption[] = [];
-            Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
-                const columnDataType = Array.from(dataTypes);
-                if (columnDataType.length === 1) {
-                    options.push({ label: name, value: `${name}-${columnDataType[0]}` });
-                } else {
-                    columnDataType.forEach(type => {
-                        options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
-                    });
-                }
-            });
-            return options;
-        }),
-        transformColumnDataType: jest.fn((dataType: string) => {
-            const lowerType = dataType.toLowerCase();
-            if (['int32', 'int64', 'float32', 'float64'].includes(lowerType)) {
-                return 'Numeric';
-            }
-            return dataType.charAt(0).toUpperCase() + dataType.slice(1).toLowerCase();
+        parseColumnIdentifier : jest.fn((columnIdentifier: string) => {
+            const parts = columnIdentifier.split('-');
+            // Remove transformed column type
+            const transformedDataType = parts.pop() ?? '';
+            const columnName = parts.join('-');
+
+            return {
+                columnName,
+                transformedDataType
+            };
         }),
     } as unknown as DataFrameDataSource;
 
