@@ -279,33 +279,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         };
     }
 
-    public transformColumnDataType(dataType: string): string {
-        const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType)
-            ? 'Numeric'
-            : this.toSentenceCase(dataType);
-        return type;
-    }
-
-    public createColumnOptions(columnNameDataTypesMap: Record<string, Set<string>>): Option[] {
-        const options: Option[] = [];
-
-        Object.entries(columnNameDataTypesMap).forEach(([columnName, dataTypes]) => {
-            const columnDataTypes = Array.from(dataTypes);
-
-            if (columnDataTypes.length === 1) {
-                // Single type: show just the name as label and value as name with transformed type
-                options.push({ label: columnName, value: `${columnName}-${columnDataTypes[0]}` });
-            } else {
-                // Multiple types: show type in label and value
-                columnDataTypes.forEach(dataType => {
-                    options.push({ label: `${columnName} (${dataType})`, value: `${columnName}-${dataType}` });
-                });
-            }
-        });
-
-        return options;
-    }
-
     // TODO(#3526598): Make this method private after implementing the runQuery method for data query type.
     public getDecimatedTableDataInBatches$(
         tableColumnsMap: Record<string, Column[]>,
@@ -473,18 +446,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
-    public parseColumnIdentifier(columnIdentifier: string): { columnName: string, transformedDataType: string } {
-        const parts = columnIdentifier.split('-');
-        // Remove transformed column type
-        const transformedDataType = parts.pop() ?? '';
-        const columnName = parts.join('-');
-
-        return {
-            columnName,
-            transformedDataType
-        };
-    }
-
     private areAllObjectsWithNameProperty(object: any[]): object is Array<{ name: string; }> {
         return _.every(
             object,
@@ -511,6 +472,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
     }
 
+    public transformColumnDataType(dataType: string): string {
+        const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType)
+            ? 'Numeric'
+            : this.toSentenceCase(dataType);
+        return type;
+    }
+
     private createColumnNameDataTypesMap(tables: TableProperties[]): Record<string, Set<string>> {
         const columnNameDataTypeMap: Record<string, Set<string>> = {};
         tables.forEach(table => {
@@ -523,20 +491,20 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         });
         return columnNameDataTypeMap;
     };
-
-    private getUniqueColumnsAcrossTables(columnTypeMap: Record<string, Set<string>>): Option[] {
+    
+    private getUniqueColumnsAcrossTables(columnNameDataTypesMap: Record<string, Set<string>>): Option[] {
         const options: Option[] = [];
 
-        Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
+        Object.entries(columnNameDataTypesMap).forEach(([columnName, dataTypes]) => {
             const columnDataType = Array.from(dataTypes);
 
             if (columnDataType.length === 1) {
                 // Single type: show just the name as label and value as name with type in sentence case
-                options.push({ label: name, value: `${name}-${columnDataType[0]}` });
+                options.push({ label: columnName, value: `${columnName}-${columnDataType[0]}` });
             } else {
                 // Multiple types: show type in label and value
-                columnDataType.forEach(type => {
-                    options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
+                columnDataType.forEach(dataType => {
+                    options.push({ label: `${columnName} (${dataType})`, value: `${columnName}-${dataType}` });
                 });
             }
         });
@@ -562,6 +530,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return [...commonColumns].map(column => 
             ({label: this.parseColumnIdentifier(column).columnName, value: column})
         );
+    }
+
+    public parseColumnIdentifier(columnIdentifier: string): { columnName: string, transformedDataType: string } {
+        const parts = columnIdentifier.split('-');
+        // Remove transformed column type
+        const transformedDataType = parts.pop() ?? '';
+        const columnName = parts.join('-');
+
+        return {
+            columnName,
+            transformedDataType
+        };
     }
 
     /**
