@@ -495,16 +495,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private getUniqueColumnsAcrossTables(columnNameDataTypesMap: Record<string, Set<string>>): Option[] {
         const options: Option[] = [];
 
-        Object.entries(columnNameDataTypesMap).forEach(([name, dataTypes]) => {
+        Object.entries(columnNameDataTypesMap).forEach(([columnName, dataTypes]) => {
             const columnDataType = Array.from(dataTypes);
 
             if (columnDataType.length === 1) {
                 // Single type: show just the name as label and value as name with type in sentence case
-                options.push({ label: name, value: `${name}-${columnDataType[0]}` });
+                options.push({ label: columnName, value: `${columnName}-${columnDataType[0]}` });
             } else {
                 // Multiple types: show type in label and value
-                columnDataType.forEach(type => {
-                    options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
+                columnDataType.forEach(dataType => {
+                    options.push({ label: `${columnName} (${dataType})`, value: `${columnName}-${dataType}` });
                 });
             }
         });
