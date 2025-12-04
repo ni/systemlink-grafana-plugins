@@ -1061,28 +1061,6 @@ describe("DataFrameQueryEditorV2", () => {
                             { label: 'ColumnB (String)', value: 'ColumnB-String' },
                         ]),
                         transformDataTableQuery: jest.fn((filter: string) => filter),
-                        createColumnOptions: jest.fn((columnTypeMap: Record<string, Set<string>>) => {
-                            const options: ComboboxOption[] = [];
-                            Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
-                                const columnDataType = Array.from(dataTypes);
-                                if (columnDataType.length === 1) {
-                                options.push({ label: name, value: `${name}-${columnDataType[0]}` });
-                                } else {
-                                    columnDataType.forEach(type => {
-                                        options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
-                                    });
-                                }
-                            });
-                            return options;
-                        }),
-                        transformColumnDataType: jest.fn((dataType: string) => {
-                            // Mimic the real transformation
-                            const lowerType = dataType.toLowerCase();
-                            if (['int32', 'int64', 'float32', 'float64'].includes(lowerType)) {
-                                return 'Numeric';
-                            }
-                            return dataType.charAt(0).toUpperCase() + dataType.slice(1).toLowerCase();
-                        }),
                     } as any;
 
                     beforeAll(() => {
@@ -1256,8 +1234,6 @@ describe("DataFrameQueryEditorV2", () => {
                                     .fn()
                                     .mockResolvedValue([{ label: 'ColumnA', value: 'ColumnA' }]),
                                 transformDataTableQuery: jest.fn((filter: string) => filter),
-                                createColumnOptions: jest.fn(() => [{ label: 'ColumnA', value: 'ColumnA' }]),
-                                transformColumnDataType: jest.fn((dataType: string) => dataType.toUpperCase()),
                             } as any;
 
                             renderComponent(
@@ -1323,8 +1299,6 @@ describe("DataFrameQueryEditorV2", () => {
                         .fn()
                         .mockResolvedValue([{ label: 'ColumnA', value: 'ColumnA' }]),
                       transformDataTableQuery: jest.fn((filter: string) => filter),
-                      createColumnOptions: jest.fn(() => []),
-                      transformColumnDataType: jest.fn((dataType: string) => dataType),
                     } as any;
 
                     const { onRunQuery } = renderComponent(
@@ -1376,8 +1350,6 @@ describe("DataFrameQueryEditorV2", () => {
                         .fn()
                         .mockResolvedValue([{ label: 'ColumnA', value: 'ColumnA' }]),
                       transformDataTableQuery: jest.fn((filter: string) => filter),
-                      createColumnOptions: jest.fn(() => []),
-                      transformColumnDataType: jest.fn((dataType: string) => dataType),
                     } as any;
 
                     const { onRunQuery } = renderComponent(
