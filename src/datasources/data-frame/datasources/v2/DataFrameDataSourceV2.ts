@@ -10,6 +10,7 @@ import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/componen
 import _ from "lodash";
 import { catchError, combineLatestWith, concatMap, forkJoin, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap } from "rxjs";
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
+import { replaceVariables } from "core/utils";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
@@ -29,34 +30,21 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     ): Observable<DataFrameDTO> {
         this.scopedVars = options.scopedVars;
         const processedQuery = this.processQuery(query);
+        const transformedQuery = this.transformQuery(processedQuery, options.scopedVars);
 
-        if (processedQuery.dataTableFilter) {
-            processedQuery.dataTableFilter = this.transformDataTableQuery(
-                processedQuery.dataTableFilter,
-                options.scopedVars
-            );
-        }
-
-        if (processedQuery.resultFilter) {
-            processedQuery.resultFilter = this.transformResultQuery(
-                processedQuery.resultFilter,
-                options.scopedVars
-            );
-        }
-
-        if (this.shouldQueryForData(processedQuery)) {
+        if (this.shouldQueryForData(transformedQuery)) {
             return this.getFieldsForDataQuery$(
-                processedQuery
+                transformedQuery
             );
         }
 
-        if (this.shouldQueryForProperties(processedQuery)) {
-            return this.getFieldsForPropertiesQuery$(processedQuery);
+        if (this.shouldQueryForProperties(transformedQuery)) {
+            return this.getFieldsForPropertiesQuery$(transformedQuery);
         }
 
         return of({
-            refId: processedQuery.refId,
-            name: processedQuery.refId,
+            refId: transformedQuery.refId,
+            name: transformedQuery.refId,
             fields: []
         });
     }
@@ -485,6 +473,43 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             this.templateSrv.replace(query, scopedVars),
             this.resultsComputedDataFields,
         );
+    }
+
+    private transformColumns(columns: string[]): string[] {
+        return replaceVariables(columns, this.templateSrv);
+    }
+
+    private transformXColumn(xColumn: string, scopedVars: ScopedVars = this.scopedVars): string {
+        return this.templateSrv.replace(xColumn, scopedVars);
+    }
+
+    private transformQuery(
+        query: ValidDataFrameQueryV2, 
+        scopedVars: ScopedVars = this.scopedVars
+    ): ValidDataFrameQueryV2 {
+        if (query.dataTableFilter) {
+            query.dataTableFilter = this.transformDataTableQuery(
+                query.dataTableFilter,
+                scopedVars
+            );
+        }
+
+        if (query.resultFilter) {
+            query.resultFilter = this.transformResultQuery(
+                query.resultFilter,
+                scopedVars
+            );
+        }
+
+        if(query.columns && !isObservable(query.columns)) {
+            query.columns = this.transformColumns(query.columns);
+        }
+
+        if(query.xColumn){
+            query.xColumn = this.transformXColumn(query.xColumn, scopedVars);
+        }
+
+        return query;
     }
 
     private areAllObjectsWithNameProperty(object: any[]): object is Array<{ name: string; }> {
