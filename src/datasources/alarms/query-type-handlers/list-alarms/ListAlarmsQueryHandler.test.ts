@@ -1502,7 +1502,7 @@ describe('ListAlarmsQueryHandler', () => {
             ],
             transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
             take: 500,
-          });  
+          });
           jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
             buildAlarmsResponse([
               {
@@ -1667,7 +1667,7 @@ describe('ListAlarmsQueryHandler', () => {
           });
         });
 
-        it('should map transition keywords field correctly when transition inclusion options in most recent only', async () => {
+        it('should map transition keywords field correctly when transition inclusion options is most recent only', async () => {
           const query = buildAlarmsQuery({
             properties: [AlarmsTransitionProperties.transitionKeywords],
             transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
