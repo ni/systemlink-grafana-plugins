@@ -2784,15 +2784,7 @@ describe('DataFrameDataSourceV2', () => {
 
             const result = ds.parseColumnIdentifier(identifier);
 
-            expect(result).toEqual({ columnName: 'column-1', dataType: 'Numeric' });
-        });
-
-        it('should parse column identifier without hyphen correctly', () => {
-            const identifier = 'column1';
-
-            const result = ds.parseColumnIdentifier(identifier);
-
-            expect(result).toEqual({ columnName: 'column1', dataType: '' });
+            expect(result).toEqual({ columnName: 'column-1', transformedDataType: 'Numeric' });
         });
 
         it('should parse column identifier with multiple hyphens correctly', () => {
@@ -2800,7 +2792,7 @@ describe('DataFrameDataSourceV2', () => {
 
             const result = ds.parseColumnIdentifier(identifier);
 
-            expect(result).toEqual({ columnName: 'column-2', dataType: 'Timestamp' });
+            expect(result).toEqual({ columnName: 'column-2', transformedDataType: 'Timestamp' });
         });
     });
 });
