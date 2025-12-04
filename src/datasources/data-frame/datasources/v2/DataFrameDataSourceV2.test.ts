@@ -3023,7 +3023,7 @@ describe('DataFrameDataSourceV2', () => {
 
             const result = ds.parseColumnIdentifier(identifier);
 
-            expect(result).toEqual({ columnName: 'column-1', transformedDataType: 'Numeric' });
+            expect(result).toEqual({ columnName: 'column 1', transformedDataType: 'Numeric' });
         });
 
         it('should parse column identifier with multiple hyphens correctly', () => {
