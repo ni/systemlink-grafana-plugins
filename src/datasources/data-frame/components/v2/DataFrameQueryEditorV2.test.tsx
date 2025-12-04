@@ -2789,5 +2789,5 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
     });
-});
 
+});
