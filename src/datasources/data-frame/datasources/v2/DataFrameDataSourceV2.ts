@@ -391,7 +391,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private createColumnIdentifierSet(columns: Column[]): Set<string> {
         return new Set(
             columns.map(column =>
-                `${column.name}-${this.transformColumnType(column.dataType)}`
+                `${column.name}-${this.transformColumnDataType(column.dataType)}`
             )
         );
     }
@@ -427,7 +427,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 tableColumn => tableColumn.name === selectedColumn
             );
             return matchingColumn
-                ? `${matchingColumn.name}-${this.transformColumnType(matchingColumn.dataType)}`
+                ? `${matchingColumn.name}-${this.transformColumnDataType(matchingColumn.dataType)}`
                 : selectedColumn;
         });
     }
@@ -472,7 +472,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
     }
 
-    private transformColumnType(dataType: string): string {
+    private transformColumnDataType(dataType: string): string {
         const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType)
             ? 'Numeric'
             : this.toSentenceCase(dataType);
@@ -484,7 +484,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tables.forEach(table => {
             table.columns?.forEach((column: { name: string; dataType: string; }) => {
                 if (column?.name && column.dataType) {
-                    const dataType = this.transformColumnType(column.dataType);
+                    const dataType = this.transformColumnDataType(column.dataType);
                     (columnNameDataTypeMap[column.name] ??= new Set()).add(dataType);
                 }
             });
@@ -635,7 +635,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const allTableColumns = new Set<string>(
             tables.flatMap(table =>
                 table.columns?.map(column =>
-                    `${column.name}-${this.transformColumnType(column.dataType)}`
+                    `${column.name}-${this.transformColumnDataType(column.dataType)}`
                 ) ?? []
             )
         );
@@ -672,7 +672,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const selectedColumnDetails: Column[] = [];
 
         table.columns.forEach(column => {
-            const transformedColumnType = this.transformColumnType(column.dataType);
+            const transformedColumnType = this.transformColumnDataType(column.dataType);
             const tableColumnId = `${column.name}-${transformedColumnType}`;
             if (selectedColumns.includes(tableColumnId)) {
                 selectedColumnDetails.push({
