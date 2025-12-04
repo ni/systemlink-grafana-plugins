@@ -2850,7 +2850,7 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should transform DOES_NOT_CONTAIN operation with column name field to negated columns.any expression', () => {
-            const input = '!name.Contains("Temp")';
+            const input = '!(name.Contains("Temp"))';
             
             const result = ds.transformColumnQuery(input);
 
@@ -2882,7 +2882,7 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should handle multi-value does not contain operation correctly', () => {
-            const input = '!name.Contains("{temp,pressure}")';
+            const input = '!(name.Contains("{temp,pressure}"))';
             
             const result = ds.transformColumnQuery(input);
 
