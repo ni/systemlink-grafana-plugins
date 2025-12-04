@@ -574,7 +574,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private getColumnIdentifier(columnName: string, dataType: string): string {
-        const transformedDataType = this.transformColumnType(dataType);
+        const transformedDataType = this.transformColumnDataType(dataType);
         return `${columnName}-${transformedDataType}`;
     }
 
