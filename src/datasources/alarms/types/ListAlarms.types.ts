@@ -61,10 +61,3 @@ export enum AlarmsTransitionProperties {
 export type AlarmsProperties = AlarmsSpecificProperties | AlarmsTransitionProperties;
 
 export type ComputedAlarmProperty = AlarmsSpecificProperties.state | AlarmsSpecificProperties.source;
-
-export enum AlarmsState {
-  Cleared = 'Cleared',
-  ClearedUnacknowledged = 'Cleared; NotAcknowledged',
-  Acknowledged = 'Acknowledged',
-  Set = 'Set',
-}
