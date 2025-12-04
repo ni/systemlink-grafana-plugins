@@ -5,29 +5,29 @@ import { AlarmsQuery, QueryType } from '../types/types';
 import { QueryEditorProps } from '@grafana/data';
 import { AlarmsDataSource } from '../AlarmsDataSource';
 import userEvent from '@testing-library/user-event';
-import { defaultAlarmsTrendQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
+import { defaultAlarmTrendQuery, defaultListAlarmsQuery } from '../constants/DefaultQueries.constants';
 import { ListAlarmsQueryEditor } from './editors/list-alarms/ListAlarmsQueryEditor';
-import { AlarmsTrendQueryEditor } from './editors/alarms-trend/AlarmsTrendQueryEditor';
+import { AlarmTrendQueryEditor } from './editors/alarm-trend/AlarmTrendQueryEditor';
 
 jest.mock('./editors/list-alarms/ListAlarmsQueryEditor', () => ({
   ListAlarmsQueryEditor: jest.fn(() => <div data-testid="mock-list-alarms" />),
 }));
-jest.mock('./editors/alarms-trend/AlarmsTrendQueryEditor', () => ({
-  AlarmsTrendQueryEditor: jest.fn(() => <div data-testid="mock-alarms-trend" />),
+jest.mock('./editors/alarm-trend/AlarmTrendQueryEditor', () => ({
+  AlarmTrendQueryEditor: jest.fn(() => <div data-testid="mock-alarm-trend" />),
 }));
 
 const mockListAlarmsQueryHandler = {
   defaultQuery: defaultListAlarmsQuery,
 };
-const mockAlarmsTrendQueryHandler = {
-  defaultQuery: defaultAlarmsTrendQuery,
+const mockAlarmTrendQueryHandler = {
+  defaultQuery: defaultAlarmTrendQuery,
 };
 const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
 const mockDatasource = {
   prepareQuery: jest.fn((query: AlarmsQuery) => query),
   listAlarmsQueryHandler: mockListAlarmsQueryHandler,
-  alarmsTrendQueryHandler: mockAlarmsTrendQueryHandler,
+  alarmTrendQueryHandler: mockAlarmTrendQueryHandler,
 } as unknown as AlarmsDataSource;
 
 const defaultProps: QueryEditorProps<AlarmsDataSource, AlarmsQuery> = {
@@ -133,12 +133,12 @@ describe('AlarmsQueryEditor', () => {
   });
 
   it('should preserve base query properties across query type changes', async () => {
-    const initialAlarmsTrendQuery = {
+    const initialAlarmTrendQuery = {
       refId: 'A',
-      queryType: QueryType.AlarmsTrend,
+      queryType: QueryType.AlarmTrend,
       hide: false, // Base query property
     } as AlarmsQuery;
-    const { onChange } = renderAlarmsQueryEditorWithRerender(initialAlarmsTrendQuery, mockDatasource, mockOnRunQuery);
+    const { onChange } = renderAlarmsQueryEditorWithRerender(initialAlarmTrendQuery, mockDatasource, mockOnRunQuery);
 
     await clickQueryTypeOption(QueryType.ListAlarms);
 
@@ -153,15 +153,15 @@ describe('AlarmsQueryEditor', () => {
       );
     });
 
-    await clickQueryTypeOption(QueryType.AlarmsTrend);
+    await clickQueryTypeOption(QueryType.AlarmTrend);
 
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith(
         expect.objectContaining({
           refId: 'A',
           hide: false,
-          queryType: QueryType.AlarmsTrend,
-          ...defaultAlarmsTrendQuery,
+          queryType: QueryType.AlarmTrend,
+          ...defaultAlarmTrendQuery,
         })
       );
     });
@@ -195,7 +195,7 @@ describe('AlarmsQueryEditor', () => {
     });
 
     it('should call onChange with defaultListAlarmsQuery when switched to list alarms query type from other query type', async () => {
-      const query = buildQuery({ queryType: QueryType.AlarmsTrend });
+      const query = buildQuery({ queryType: QueryType.AlarmTrend });
 
       renderElement(query);
       await clickQueryTypeOption(QueryType.ListAlarms);
@@ -219,7 +219,7 @@ describe('AlarmsQueryEditor', () => {
       } as AlarmsQuery);
 
       renderElement(query);
-      await clickQueryTypeOption(QueryType.AlarmsTrend);
+      await clickQueryTypeOption(QueryType.AlarmTrend);
 
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(
@@ -239,14 +239,14 @@ describe('AlarmsQueryEditor', () => {
       } as AlarmsQuery;
       const { onChange } = renderAlarmsQueryEditorWithRerender(initialListAlarmsQuery, mockDatasource, mockOnRunQuery);
 
-      await clickQueryTypeOption(QueryType.AlarmsTrend);
+      await clickQueryTypeOption(QueryType.AlarmTrend);
 
       await waitFor(() => {
         expect(onChange).toHaveBeenCalledWith(
           expect.objectContaining({
             refId: 'A',
-            queryType: QueryType.AlarmsTrend,
-            ...defaultAlarmsTrendQuery
+            queryType: QueryType.AlarmTrend,
+            ...defaultAlarmTrendQuery
           })
         );
       });
@@ -266,50 +266,50 @@ describe('AlarmsQueryEditor', () => {
     });
   });
 
-  describe('AlarmsTrendQueryEditor', () => {
-    it('should render the AlarmsTrendQueryEditor if queryType is AlarmsTrend', () => {
-      const query = buildQuery({ queryType: QueryType.AlarmsTrend });
+  describe('AlarmTrendQueryEditor', () => {
+    it('should render the AlarmTrendQueryEditor if queryType is AlarmTrend', () => {
+      const query = buildQuery({ queryType: QueryType.AlarmTrend });
 
       renderElement(query);
 
-      expect(screen.getByTestId('mock-alarms-trend')).toBeInTheDocument();
+      expect(screen.getByTestId('mock-alarm-trend')).toBeInTheDocument();
     });
 
-    it('should not render the AlarmsTrendQueryEditor when queryType is invalid', () => {
+    it('should not render the AlarmTrendQueryEditor when queryType is invalid', () => {
       const query = buildQuery({ queryType: undefined });
 
       renderElement(query);
 
-      expect(screen.queryByTestId('mock-alarms-trend')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('mock-alarm-trend')).not.toBeInTheDocument();
     });
 
-    it('should pass the correct props to AlarmsTrendQueryEditor', () => {
-      const query = buildQuery({ queryType: QueryType.AlarmsTrend });
+    it('should pass the correct props to AlarmTrendQueryEditor', () => {
+      const query = buildQuery({ queryType: QueryType.AlarmTrend });
 
       renderElement(query);
 
-      expect(AlarmsTrendQueryEditor).toHaveBeenCalledWith(
+      expect(AlarmTrendQueryEditor).toHaveBeenCalledWith(
         expect.objectContaining({
           query,
           handleQueryChange: expect.any(Function),
-          datasource: mockDatasource.alarmsTrendQueryHandler,
+          datasource: mockDatasource.alarmTrendQueryHandler,
         }),
         expect.anything()
       );
     });
 
-    it('should call onChange with defaultAlarmsTrendQuery when switched to alarms trend query type from other query type', async () => {
+    it('should call onChange with defaultAlarmTrendQuery when switched to alarm trend query type from other query type', async () => {
       const query = buildQuery({ queryType: QueryType.ListAlarms });
 
       renderElement(query);
-      await clickQueryTypeOption(QueryType.AlarmsTrend);
+      await clickQueryTypeOption(QueryType.AlarmTrend);
 
       await waitFor(() => {
         expect(mockOnChange).toHaveBeenCalledWith(
           expect.objectContaining({
             refId: 'A',
-            queryType: QueryType.AlarmsTrend,
-            ...defaultAlarmsTrendQuery,
+            queryType: QueryType.AlarmTrend,
+            ...defaultAlarmTrendQuery,
           })
         );
         expect(mockOnRunQuery).toHaveBeenCalled();
@@ -319,7 +319,7 @@ describe('AlarmsQueryEditor', () => {
     it('should not affect the same properties when switching between query types', async () => {
       const query = buildQuery({
         refId: 'A',
-        queryType: QueryType.AlarmsTrend,
+        queryType: QueryType.AlarmTrend,
         filter: 'initial-filter' 
       } as AlarmsQuery);
 
@@ -336,13 +336,13 @@ describe('AlarmsQueryEditor', () => {
       });
     });
 
-    it('should preserve the current state of AlarmsTrendQuery when switching from alarms trend to other types', async () => {
-      const initialAlarmsTrendQuery = {
+    it('should preserve the current state of AlarmTrendQuery when switching from alarm trend to other types', async () => {
+      const initialAlarmTrendQuery = {
         refId: 'A',
-        queryType: QueryType.AlarmsTrend,
-        filter: 'filter-in-alarms-trend',
+        queryType: QueryType.AlarmTrend,
+        filter: 'filter-in-alarm-trend',
       } as AlarmsQuery;
-      const { onChange } = renderAlarmsQueryEditorWithRerender(initialAlarmsTrendQuery, mockDatasource, mockOnRunQuery);
+      const { onChange } = renderAlarmsQueryEditorWithRerender(initialAlarmTrendQuery, mockDatasource, mockOnRunQuery);
 
       await clickQueryTypeOption(QueryType.ListAlarms);
 
@@ -356,15 +356,15 @@ describe('AlarmsQueryEditor', () => {
         );
       });
 
-      await clickQueryTypeOption(QueryType.AlarmsTrend);
+      await clickQueryTypeOption(QueryType.AlarmTrend);
 
       await waitFor(() => {
         expect(onChange).toHaveBeenCalledWith(
           expect.objectContaining({
             refId: 'A',
-            queryType: QueryType.AlarmsTrend,
-            ...defaultAlarmsTrendQuery,
-            filter: 'filter-in-alarms-trend',
+            queryType: QueryType.AlarmTrend,
+            ...defaultAlarmTrendQuery,
+            filter: 'filter-in-alarm-trend',
           })
         );
       });

@@ -1,3 +1,28 @@
+## [4.89.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.88.0...v4.89.0) (2025-12-04)
+
+### Features
+
+* **dataframe:** Add validation for xColumn selection ([#577](https://github.com/ni/systemlink-grafana-plugins/issues/577)) ([0fee9a0](https://github.com/ni/systemlink-grafana-plugins/commit/0fee9a021243bfa9d011960b36b1a72d1b56eef3))
+* **dataframe:** Reset column limit exceeded error when the column options fetching failed with an error ([#578](https://github.com/ni/systemlink-grafana-plugins/issues/578)) ([1dcc816](https://github.com/ni/systemlink-grafana-plugins/commit/1dcc816f6065da8c99340ace9fa7147377c189ab))
+
+## [4.88.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.87.0...v4.88.0) (2025-12-03)
+
+### Features
+
+* **alarms:** Introduce error message for 401 unauthorized access ([#565](https://github.com/ni/systemlink-grafana-plugins/issues/565)) ([3c583e6](https://github.com/ni/systemlink-grafana-plugins/commit/3c583e668ab4317bf8834a0255be0e2dd61065da))
+
+## [4.87.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.86.0...v4.87.0) (2025-12-03)
+
+### Features
+
+* **dataframe:** Show error when x column selection becomes invalid ([#567](https://github.com/ni/systemlink-grafana-plugins/issues/567)) ([65011ef](https://github.com/ni/systemlink-grafana-plugins/commit/65011ef4800df6b19faf80ae9cc4fe6efb06534c))
+
+## [4.86.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.85.0...v4.86.0) (2025-12-03)
+
+### Features
+
+* **dataframe:** Populate options for xColumn control ([#562](https://github.com/ni/systemlink-grafana-plugins/issues/562)) ([8e0f3dd](https://github.com/ni/systemlink-grafana-plugins/commit/8e0f3dde74d99d19ecff8eada9cf4b9d5cff749c))
+
 ## [4.85.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.84.0...v4.85.0) (2025-12-02)
 
 ### Features

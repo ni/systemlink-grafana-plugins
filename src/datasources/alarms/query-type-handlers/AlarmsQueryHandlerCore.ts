@@ -181,6 +181,9 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
       case '':
         errorMessage = 'The query failed due to an unknown error.';
         break;
+      case '401':
+        errorMessage = 'The query to fetch alarms failed due to unauthorized access. Please verify your credentials and try again.';
+        break;
       case '404':
         errorMessage =
           'The query to fetch alarms failed because the requested resource was not found. Please check the query parameters and try again.';
