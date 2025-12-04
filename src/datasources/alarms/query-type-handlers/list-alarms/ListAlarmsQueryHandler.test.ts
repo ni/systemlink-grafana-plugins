@@ -215,7 +215,7 @@ describe('ListAlarmsQueryHandler', () => {
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
-          fields: [{ name: 'Acknowledged', type: 'string', values: [] }],
+          fields: [{ name: 'Acknowledged', type: 'boolean', values: [] }],
         });
       });
 
@@ -291,8 +291,8 @@ describe('ListAlarmsQueryHandler', () => {
           fields: [
             {
               name: 'Properties',
-              type: 'string',
-              values: ['{"aProp":"valueA","zProp":"valueZ"}', '{"aProp":"valueA2","bProp":"valueB"}'],
+              type: 'other',
+              values: [{"aProp":"valueA","zProp":"valueZ"}, {"aProp":"valueA2","bProp":"valueB"}],
             },
           ],
         });
@@ -319,8 +319,8 @@ describe('ListAlarmsQueryHandler', () => {
           fields: [
             {
               name: 'Properties',
-              type: 'string',
-              values: ['{"normalProp":"value1"}', '{"anotherProp":"value2"}'],
+              type: 'other',
+              values: [{"normalProp":"value1"}, {"anotherProp":"value2"}],
             },
           ],
         });
@@ -348,8 +348,8 @@ describe('ListAlarmsQueryHandler', () => {
           fields: [
             {
               name: 'Properties',
-              type: 'string',
-              values: ['', ''],
+              type: 'other',
+              values: [{}, {}],
             },
           ],
         });
@@ -567,7 +567,7 @@ describe('ListAlarmsQueryHandler', () => {
           fields: [
             {
               name: 'Keywords',
-              type: 'string',
+              type: 'other',
               values: [
                 ['temperature', 'high'],
                 ['pressure'],
@@ -599,17 +599,17 @@ describe('ListAlarmsQueryHandler', () => {
           fields: [
             {
               name: 'Clear',
-              type: 'string',
+              type: 'boolean',
               values: [true, false],
             },
             {
               name: 'Acknowledged',
-              type: 'string', 
+              type: 'boolean', 
               values: [false, true],
             },
             {
               name: 'Active',
-              type: 'string',
+              type: 'boolean',
               values: [true, false],
             },
           ],
@@ -737,14 +737,14 @@ describe('ListAlarmsQueryHandler', () => {
             refId: 'A',
             name: 'A',
             fields: [
-              { name: 'Acknowledged', type: 'string', values: [true] },
+              { name: 'Acknowledged', type: 'boolean', values: [true] },
               { name: 'Acknowledged by', type: 'string', values: ['user123'] },
               { name: 'Acknowledged on', type: 'time', values: ['2025-09-16T10:30:00Z'] },
-              { name: 'Active', type: 'string', values: [true] },
+              { name: 'Active', type: 'boolean', values: [true] },
               { name: 'Alarm ID', type: 'string', values: ['ALARM-001'] },
               { name: 'Alarm name', type: 'string', values: ['High Temperature Alarm'] },
               { name: 'Channel', type: 'string', values: ['Main'] },
-              { name: 'Clear', type: 'string', values: [false] },
+              { name: 'Clear', type: 'boolean', values: [false] },
               { name: 'Condition', type: 'string', values: ['Temperature'] },
               { name: 'Created by', type: 'string', values: ['admin'] },
               { name: 'Current severity', type: 'string', values: ['High (3)'] },
@@ -752,19 +752,19 @@ describe('ListAlarmsQueryHandler', () => {
               { name: 'First occurrence', type: 'time', values: ['2025-09-16T09:00:00Z'] },
               { name: 'Highest severity', type: 'string', values: ['High (3)'] },
               { name: 'Instance ID', type: 'string', values: ['INST-001'] },
-              { name: 'Keywords', type: 'string', values: [['temperature']] },
+              { name: 'Keywords', type: 'other', values: [['temperature']] },
               { name: 'Last occurrence', type: 'time', values: ['2025-09-16T09:00:00Z'] },
               { name: 'Last transition occurrence', type: 'time', values: ['2025-09-16T10:00:00Z'] },
-              { name: 'Properties', type: 'string', values: ['{"location":"Lab-1"}'] },
+              { name: 'Properties', type: 'other', values: [{"location":"Lab-1"}] },
               { name: 'Resource type', type: 'string', values: [''] },
               { name: 'Source', type: 'string', values: [''] },
               { name: 'State', type: 'string', values: ['Acknowledged'] },
               { name: 'Transition condition', type: 'string', values: ['Humidity'] },
               { name: 'Transition detail', type: 'string', values: ['Humidity back to normal'] },
-              { name: 'Transition keywords', type: 'string', values: [['humidity', 'normal']] },
+              { name: 'Transition keywords', type: 'other', values: [['humidity', 'normal']] },
               { name: 'Transition occurred at', type: 'time', values: ['2025-09-16T10:00:00Z'] },
               { name: 'Transition overflow count', type: 'number', values: [0] },
-              { name: 'Transition properties', type: 'string', values: ['{"sensorId":"SENSOR-90"}'] },
+              { name: 'Transition properties', type: 'other', values: [{"sensorId":"SENSOR-90"}] },
               { name: 'Transition severity', type: 'string', values: [''] },
               { name: 'Transition short text', type: 'string', values: ['Humidity Normal'] },
               { name: 'Transition type', type: 'string', values: ['CLEAR'] },
@@ -886,7 +886,7 @@ describe('ListAlarmsQueryHandler', () => {
             fields: [
               {
                 name: 'Keywords',
-                type: 'string',
+                type: 'other',
                 values: [
                   ['temperature'],
                   ['temperature'],
@@ -894,7 +894,7 @@ describe('ListAlarmsQueryHandler', () => {
               },
               {
                 name: 'Transition keywords',
-                type: 'string',
+                type: 'other',
                 values: [
                   ['temperature', 'high'],
                   ['humidity', 'normal'],
@@ -929,18 +929,18 @@ describe('ListAlarmsQueryHandler', () => {
             fields: [
               {
                 name: 'Properties',
-                type: 'string',
+                type: 'other',
                 values: [
-                  '{"location":"Lab-1"}',
-                  '{"location":"Lab-1"}',
+                  {"location":"Lab-1"},
+                  {"location":"Lab-1"},
                 ],
               },
               {
                 name: 'Transition properties',
-                type: 'string',
+                type: 'other',
                 values: [
-                  '{"sensorId":"SENSOR-12"}',
-                  '{"sensorId":"SENSOR-90"}',
+                  {"sensorId":"SENSOR-12"},
+                  {"sensorId":"SENSOR-90"},
                 ],
               },
             ],
@@ -990,7 +990,7 @@ describe('ListAlarmsQueryHandler', () => {
               },
               {
                 name: 'Transition keywords',
-                type: 'string',
+                type: 'other',
                 values: [
                   ['temperature', 'high'],
                   ['humidity', 'normal'],
@@ -1003,10 +1003,10 @@ describe('ListAlarmsQueryHandler', () => {
               },
               {
                 name: 'Transition properties',
-                type: 'string',
+                type: 'other',
                 values: [
-                  '{"sensorId":"SENSOR-12"}',
-                  '{"sensorId":"SENSOR-90"}',
+                  {"sensorId":"SENSOR-12"},
+                  {"sensorId":"SENSOR-90"},
                 ],
               },
               {
@@ -1063,7 +1063,7 @@ describe('ListAlarmsQueryHandler', () => {
               },
               {
                 name: 'Transition keywords',
-                type: 'string',
+                type: 'other',
                 values: [['temperature', 'high']],
               },
               {
@@ -1073,8 +1073,8 @@ describe('ListAlarmsQueryHandler', () => {
               },
               {
                 name: 'Transition properties',
-                type: 'string',
-                values: ['{"sensorId":"SENSOR-12"}'],
+                type: 'other',
+                values: [{"sensorId":"SENSOR-12"}],
               },
               {
                 name: 'Transition severity',
@@ -1132,7 +1132,7 @@ describe('ListAlarmsQueryHandler', () => {
               },
               {
                 name: 'Transition keywords',
-                type: 'string',
+                type: 'other',
                 values: [['temperature', 'high']],
               },
               {
@@ -1142,8 +1142,8 @@ describe('ListAlarmsQueryHandler', () => {
               },
               {
                 name: 'Transition properties',
-                type: 'string',
-                values: ['{"sensorId":"SENSOR-12"}'],
+                type: 'other',
+                values: [{"sensorId":"SENSOR-12"}],
               },
               {
                 name: 'Transition severity',
@@ -1211,7 +1211,7 @@ describe('ListAlarmsQueryHandler', () => {
                 },
                 {
                   name: 'Transition keywords',
-                  type: 'string',
+                  type: 'other',
                   values: [''],
                 },
                 {
@@ -1221,7 +1221,7 @@ describe('ListAlarmsQueryHandler', () => {
                 },
                 {
                   name: 'Transition properties',
-                  type: 'string',
+                  type: 'other',
                   values: [''],
                 },
                 {
@@ -1432,7 +1432,7 @@ describe('ListAlarmsQueryHandler', () => {
             fields: [
               {
                 name: 'Transition keywords',
-                type: 'string',
+                type: 'other',
                 values: [
                   ['temperature', 'high'],
                   [],
@@ -1479,12 +1479,12 @@ describe('ListAlarmsQueryHandler', () => {
             fields: [
               {
                 name: 'Transition properties',
-                type: 'string',
+                type: 'other',
                 values: [
-                  '{"sensorId":"SENSOR-12"}',
-                  '',
-                  '{"aProp":"value2","zProp":"value1"}',
-                  '{"aProp2":"value2"}',
+                  {"sensorId":"SENSOR-12"},
+                  {},
+                  {"aProp":"value2","zProp":"value1"},
+                  {"aProp2":"value2"},
                 ],
               },
             ],

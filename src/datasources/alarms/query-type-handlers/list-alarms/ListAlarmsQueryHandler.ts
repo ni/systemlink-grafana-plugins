@@ -1,5 +1,5 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldConfig, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
-import { AlarmsProperties, AlarmsSpecificProperties, AlarmsState, AlarmsTransitionProperties, ListAlarmsQuery, OutputType } from '../../types/ListAlarms.types';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
+import { AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery, QueryAlarmsRequest, TransitionInclusionOption } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 import { AlarmPropertyKeyMap, AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TransitionPropertyKeyMap, QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL, TRANSITION_SPECIFIC_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
@@ -159,7 +159,6 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       const fieldName = field.label;
       const fieldValue = field.value;
       const fieldType = this.getFieldTypeForProperty(fieldValue);
-      const config = this.getConfigForFieldType(fieldType, fieldValue);
 
       const fieldValues = flattenedAlarms.map(alarm => {
         const transition = alarm.transitions?.[0];
@@ -203,33 +202,10 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
             return value ?? '';
         }
       });
-      return { name: fieldName, values: fieldValues, type: fieldType, config };
+      return { name: fieldName, values: fieldValues, type: fieldType };
     });
 
     return mappedFields;
-  }
-  private getConfigForFieldType(fieldType: FieldType, field: AlarmsProperties): FieldConfig {
-    if(fieldType !== FieldType.enum) {
-      return {};
-    }
-
-    switch(field) {
-      case AlarmsSpecificProperties.state:
-        return {
-          type: {
-            enum: {
-              text: [
-                AlarmsState.Set,
-                AlarmsState.Acknowledged,
-                AlarmsState.ClearedUnacknowledged,
-                AlarmsState.Cleared
-              ]
-            }
-          }
-        };
-      default:
-        return {};
-      }
   }
 
   private getFieldTypeForProperty(field: AlarmsProperties): FieldType {
@@ -243,8 +219,6 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       case this.isObjectField(field):
       case this.isArrayField(field):
         return FieldType.other;
-      case this.isEnumField(field):
-        return FieldType.enum;
       default:
         return FieldType.string;
     }
@@ -255,7 +229,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   private isBooleanField(field: AlarmsProperties): boolean {
-    return field === AlarmsSpecificProperties.clear || field === AlarmsSpecificProperties.acknowledged;
+    return field === AlarmsSpecificProperties.clear || field === AlarmsSpecificProperties.acknowledged || field === AlarmsSpecificProperties.active;
   }
 
   private isObjectField(field: AlarmsProperties): boolean {
@@ -264,10 +238,6 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
 
   private isArrayField(field: AlarmsProperties): boolean {
     return field === AlarmsSpecificProperties.keywords || field === AlarmsTransitionProperties.transitionKeywords;
-  }
-
-  private isEnumField(field: AlarmsProperties): boolean {
-    return field === AlarmsSpecificProperties.state;
   }
 
   private hasTransitionProperties(properties: AlarmsProperties[]): boolean {
@@ -282,7 +252,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     );
   }
 
-  private getSortedCustomProperties(properties: { [key: string]: string }): { [key: string]: string; } {
+  private getSortedCustomProperties(properties: { [key: string]: string }): Object {
     if (Object.keys(properties).length <= 0) {
       return {};
     }
@@ -314,11 +284,11 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     }
   }
  
-  private getAlarmState(isCleared: boolean, isAcknowledged: boolean): AlarmsState {
+  private getAlarmState(isCleared: boolean, isAcknowledged: boolean): string {
     if (isCleared) {
-      return isAcknowledged ? AlarmsState.Cleared : AlarmsState.ClearedUnacknowledged;
+      return isAcknowledged ? 'Cleared' : 'Cleared; NotAcknowledged';
     }
-    return isAcknowledged ? AlarmsState.Acknowledged : AlarmsState.Set;
+    return isAcknowledged ? 'Acknowledged' : 'Set';
   }
  
   private getSource(properties: { [key: string]: string }): string {
