@@ -121,7 +121,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             return '';
         }
 
-        const invalidColumnNames = invalidColumnSelections.map(col => col.label).join(', ');
+        const invalidColumnNames = invalidColumnSelections.map(column => column.label).join(', ');
         return invalidColumnSelections.length === 1
             ? `The selected column '${invalidColumnNames}' is not valid.`
             : `The selected columns '${invalidColumnNames}' are not valid.`;

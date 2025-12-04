@@ -527,14 +527,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             );
         }
 
-        return [...commonColumns].map(column => 
-            (
-                {
-                    label: this.parseColumnIdentifier(column).columnName,
-                    value: column
-                }
-            )
-        );
+        return [...commonColumns].map(column => {
+            return {
+                label: this.parseColumnIdentifier(column).columnName,
+                value: column
+            }
+        });
     }
 
     public parseColumnIdentifier(
