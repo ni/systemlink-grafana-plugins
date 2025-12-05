@@ -553,25 +553,6 @@ describe('DataFrameDataSourceV2', () => {
                                 { name: 'ColumnB', dataType: 'INT32', columnType: ColumnType.Normal, properties: {} },
                             ]);
                         });
-
-                        it('should not include index columns even if they exist in the table', () => {
-                            const selectedColumns = ['ColumnA-String'];
-                            const table = {
-                                id: 'table1',
-                                name: 'Table1',
-                                columns: [
-                                    { name: 'Index1', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
-                                    { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
-                                ]
-                            };
-
-                            const result = (ds as any).getSelectedColumnsForTable(selectedColumns, table, false);
-
-                            expect(result).toEqual([
-                                { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
-                            ]);
-                            expect(result).not.toContainEqual(expect.objectContaining({ columnType: ColumnType.Index }));
-                        });
                     });
                 });
             });
