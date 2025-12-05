@@ -209,7 +209,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   private getFieldTypeForProperty(field: AlarmsProperties): FieldType {
-    switch(true) {
+    switch (true) {
       case this.isTimeField(field):
         return FieldType.time;
       case this.isNumberField(field):
@@ -262,7 +262,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     );
   }
 
-  private getSortedCustomProperties(properties: { [key: string]: string }): Object {
+  private getSortedCustomProperties(properties: { [key: string]: string }): { [key: string]: string } {
     if (Object.keys(properties).length <= 0) {
       return {};
     }
