@@ -360,4 +360,42 @@ describe('DataFrameDataSource', () => {
             expect(result).toBe('v1-filter');
         });
     });
+
+    describe('parseColumnIdentifier', () => {
+        it('should delegate to v2 parseColumnIdentifier when feature toggle is true', () => {
+            const ds = new DataFrameDataSource(
+                mockInstanceSettings(true),
+                backendSrv,
+                templateSrv
+            );
+            const parsedColumnIdentifier = {
+                columnName: 'column1',
+                transformedDataType: 'Numeric'
+            };
+            v2Mock.parseColumnIdentifier = jest.fn().mockReturnValue(parsedColumnIdentifier);
+            
+            const result = ds.parseColumnIdentifier('column1-Numeric');
+            
+            expect(v2Mock.parseColumnIdentifier).toHaveBeenCalledWith('column1-Numeric');
+            expect(result).toBe(parsedColumnIdentifier);
+        });
+
+        it('should delegate to v1 parseColumnIdentifier when feature toggle is false', () => {
+            const ds = new DataFrameDataSource(
+                mockInstanceSettings(false),
+                backendSrv,
+                templateSrv
+            );
+            const parsedColumnIdentifier = {
+                columnName: 'column1',
+                transformedDataType: 'Numeric'
+            };
+            v1Mock.parseColumnIdentifier = jest.fn().mockReturnValue(parsedColumnIdentifier);
+            
+            const result = ds.parseColumnIdentifier('column1-Numeric');
+            
+            expect(v1Mock.parseColumnIdentifier).toHaveBeenCalledWith('column1-Numeric');
+            expect(result).toBe(parsedColumnIdentifier);
+        });
+    });
 });

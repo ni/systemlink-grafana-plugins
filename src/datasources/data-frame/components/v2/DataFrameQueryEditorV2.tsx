@@ -17,6 +17,7 @@ import {
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { isObservable, lastValueFrom } from 'rxjs';
 import _ from 'lodash';
+
 export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRunQuery, datasource }: Props) => {
     const migratedQuery = datasource.processQuery(query as DataFrameDataQuery) as ValidDataFrameQueryV2;
 
@@ -71,12 +72,62 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             } catch (error) {
                 setColumnOptions([]);
                 setXColumnOptions([]);
+                setIsColumnLimitExceeded(false);
+                setIsXColumnLimitExceeded(false);
             }
         },
         [
             datasource
         ]
     );
+
+    const columnOptionsMap = useMemo(() => {
+        return new Map(columnOptions.map(option => [option.value, option]));
+    }, [columnOptions]);
+
+    const selectedColumnIds = useMemo(() => {
+        if (
+            !migratedQuery.columns
+            || isObservable(migratedQuery.columns)
+        ) {
+            return [];
+        }
+
+        return migratedQuery.columns;
+    }, [migratedQuery.columns]);
+
+    const validColumnSelections = useMemo((): Array<ComboboxOption<string>> => {
+        return selectedColumnIds
+            .filter(columnId => columnOptionsMap.has(columnId))
+            .map(columnId => columnOptionsMap.get(columnId)!);
+    }, [columnOptionsMap, selectedColumnIds]);
+
+    const invalidColumnSelections = useMemo((): Array<ComboboxOption<string>> => {
+        return selectedColumnIds
+            .filter(columnId => !columnOptionsMap.has(columnId))
+            .map(columnId => {
+                const parsedColumnIdentifier = datasource.parseColumnIdentifier(columnId);
+                return { 
+                    label: `${parsedColumnIdentifier.columnName} (${parsedColumnIdentifier.transformedDataType})`, 
+                    value: columnId
+                };
+            });
+    }, [datasource, columnOptionsMap, selectedColumnIds]);
+
+    const selectedColumnOptions = useMemo((): Array<ComboboxOption<string>> => {
+        return [...validColumnSelections, ...invalidColumnSelections];
+    }, [validColumnSelections, invalidColumnSelections]);
+
+    const invalidSelectedColumnsMessage = useMemo(() => {
+        if (invalidColumnSelections.length === 0) {
+            return '';
+        }
+
+        const invalidColumnNames = invalidColumnSelections.map(column => column.label).join(', ');
+        return invalidColumnSelections.length === 1
+            ? `The selected column '${invalidColumnNames}' is not valid.`
+            : `The selected columns '${invalidColumnNames}' are not valid.`;
+    }, [invalidColumnSelections]);
 
     useEffect(
         () => {
@@ -347,15 +398,15 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             label={labels.columns}
                             labelWidth={INLINE_LABEL_WIDTH}
                             tooltip={tooltips.columns}
+                            invalid={!!invalidSelectedColumnsMessage}
+                            error={invalidSelectedColumnsMessage}
                         >
                             <MultiCombobox
                                 placeholder={placeholders.columns}
                                 width='auto'
                                 minWidth={40}
                                 maxWidth={40}
-                                value={
-                                    isObservable(migratedQuery.columns) ? [] : migratedQuery.columns
-                                }
+                                value={selectedColumnOptions}
                                 onChange={onColumnsChange}
                                 options={columnOptions}
                                 createCustomValue={false}

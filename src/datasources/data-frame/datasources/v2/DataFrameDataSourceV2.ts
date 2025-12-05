@@ -86,7 +86,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             dataTableFilter: processedQuery.dataTableFilter,
         };
 
-        if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {           
+        if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
             const tables = await lastValueFrom(this.queryTables$(
                 filters,
                 TAKE_LIMIT,
@@ -281,7 +281,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     // TODO(#3526598): Make this method private after implementing the runQuery method for data query type.
     public getDecimatedTableDataInBatches$(
-        tableColumnsMap: Record<string, Column[]>,
+        tableColumnsMap: Record<string, { columns: Column[], selectedColumns: Column[] }>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
         intervals = 1000
@@ -317,28 +317,71 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private getDecimatedDataRequests(
-        tableColumnsMap: Record<string, Column[]>,
+        tableColumnsMap: Record<string, { columns: Column[], selectedColumns: Column[] }>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
         intervals = 1000
     ): DecimatedDataRequest[] {
-        return Object.entries(tableColumnsMap).map(([tableId, columns]) => {
-            const filters: ColumnFilter[] = query.filterNulls
-                ? this.constructNullFilters(columns)
+        return Object.entries(tableColumnsMap).map(([tableId, columnsMap]) => {
+            const nullFilters: ColumnFilter[] = query.filterNulls
+                ? this.constructNullFilters(columnsMap.selectedColumns)
                 : [];
+            const timeFilters: ColumnFilter[] = query.applyTimeFilters
+                ? this.constructTimeFilters(query.xColumn, columnsMap.columns, timeRange)
+                : [];
+            const filters: ColumnFilter[] = [
+                ...nullFilters,
+                ...timeFilters
+            ];
+            const yColumns = this.getNumericColumns(columnsMap.selectedColumns)
+                .map(column => column.name);
 
             return {
                 tableId,
-                columns: columns.map(column => column.name),
+                columns: columnsMap.selectedColumns.map(column => column.name),
                 filters,
                 decimation: {
                     method: query.decimationMethod,
                     xColumn: query.xColumn || undefined,
-                    yColumns: this.getNumericColumns(columns).map(column => column.name),
+                    yColumns,
                     intervals,
                 }
             };
         });
+    }
+
+    private constructTimeFilters(
+        xColumn: string | null,
+        columns: Column[],
+        timeRange: TimeRange
+    ): ColumnFilter[] {
+        let columnName: string | undefined;
+
+        if (xColumn) {
+            columnName = this.parseColumnIdentifier(xColumn).columnName;
+        } else {
+            const timeIndexColumn = columns.find(column =>
+                column.dataType === 'TIMESTAMP' && column.columnType === 'INDEX'
+            );
+            columnName = timeIndexColumn?.name;
+        }
+
+        if (!columnName) {
+            return [];
+        }
+
+        return [
+            {
+                column: columnName,
+                operation: 'GREATER_THAN_EQUALS',
+                value: timeRange.from.toISOString()
+            },
+            {
+                column: columnName,
+                operation: 'LESS_THAN_EQUALS',
+                value: timeRange.to.toISOString()
+            },
+        ];
     }
 
     private getDecimatedTableData$(request: DecimatedDataRequest): Observable<TableDataRows> {
@@ -390,9 +433,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private createColumnIdentifierSet(columns: Column[]): Set<string> {
         return new Set(
-            columns.map(column =>
-                `${column.name}-${this.transformColumnDataType(column.dataType)}`
-            )
+            columns.map(column => this.getColumnIdentifier(column.name, column.dataType))
         );
     }
 
@@ -427,7 +468,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 tableColumn => tableColumn.name === selectedColumn
             );
             return matchingColumn
-                ? `${matchingColumn.name}-${this.transformColumnDataType(matchingColumn.dataType)}`
+                ? this.getColumnIdentifier(matchingColumn.name, matchingColumn.dataType)
                 : selectedColumn;
         });
     }
@@ -527,18 +568,31 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             );
         }
 
-        return [...commonColumns].map(column => 
-            ({label: this.extractColumnNameFromColumnIdentifier(column), value: column})
-        );
+        return [...commonColumns].map(column => {
+            return {
+                label: this.parseColumnIdentifier(column).columnName,
+                value: column
+            }
+        });
     }
 
-    private extractColumnNameFromColumnIdentifier(columnIdentifier: string): string {
+    private getColumnIdentifier(columnName: string, dataType: string): string {
+        const transformedDataType = this.transformColumnDataType(dataType);
+        return `${columnName}-${transformedDataType}`;
+    }
+
+    public parseColumnIdentifier(
+        columnIdentifier: string
+    ): { columnName: string, transformedDataType: string } {
         const parts = columnIdentifier.split('-');
         // Remove transformed column type
-        parts.pop();
+        const transformedDataType = parts.pop() ?? '';
         const columnName = parts.join('-');
 
-        return columnName;
+        return {
+            columnName,
+            transformedDataType
+        };
     }
 
     /**
@@ -613,6 +667,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             throw new Error(errorMessage);
                         }
 
+                        if (
+                            processedQuery.xColumn
+                            && !this.isSelectedXColumnValid(processedQuery.xColumn, tables)
+                        ) {
+                            const errorMessage = 'The selected X column is invalid. Please update your X column selection or refine your filters.';
+                            this.appEvents?.publish?.({
+                                type: AppEvents.alertError.name,
+                                payload: ['X Column selection error', errorMessage],
+                            });
+                            throw new Error(errorMessage);
+                        }
+
                         const selectedTableColumnMap = this.buildSelectedColumnsMap(
                             selectedColumns,
                             tables,
@@ -640,6 +706,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return selectedColumns.every(
             selectedColumn => allTableColumns.has(selectedColumn)
         );
+    }
+
+    private isSelectedXColumnValid(
+        xColumn: string,
+        tables: TableProperties[]
+    ): boolean {
+        return tables.every(table => this.createColumnIdentifierSet(table.columns).has(xColumn));
     }
 
     private buildSelectedColumnsMap(
@@ -678,8 +751,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         
         table.columns
             .forEach(column => {
-                const transformedColumnType = this.transformColumnDataType(column.dataType);
-                const tableColumnId = `${column.name}-${transformedColumnType}`;
+                    const tableColumnId = this.getColumnIdentifier(column.name, column.dataType);
 
                 if (selectedColumns.includes(tableColumnId)) {
                     if (includeIndexColumns && tableIndexColumn.length > 0) {
