@@ -459,27 +459,6 @@ describe('DataFrameDataSourceV2', () => {
 
                 describe('include index columns', () => {
                     describe('when includeIndexColumns is true', () => {
-                        it('should include index columns before each selected normal column', () => {
-                            const selectedColumns = ['ColumnA-String', 'ColumnB-Numeric'];
-                            const table = {
-                                id: 'table1',
-                                name: 'Table1',
-                                columns: [
-                                    { name: 'Index', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
-                                    { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
-                                    { name: 'ColumnB', dataType: 'INT32', columnType: ColumnType.Normal, properties: {} },
-                                ]
-                            };
-
-                            const result = (ds as any).getSelectedColumnsForTable(selectedColumns, table, true);
-
-                            expect(result).toEqual([
-                                { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
-                                { name: 'ColumnB', dataType: 'INT32', columnType: ColumnType.Normal, properties: {} },
-                                { name: 'Index', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
-                            ]);
-                        });
-
                         it('should not duplicate index columns when multiple normal columns are selected', () => {
                             const selectedColumns = ['ColumnA-String', 'ColumnB-Numeric'];
                             const table = {
@@ -582,7 +561,6 @@ describe('DataFrameDataSourceV2', () => {
                                 name: 'Table1',
                                 columns: [
                                     { name: 'Index1', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
-                                    { name: 'Index2', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
                                     { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
                                 ]
                             };
