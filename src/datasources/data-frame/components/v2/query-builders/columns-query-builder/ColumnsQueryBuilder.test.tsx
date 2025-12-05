@@ -32,7 +32,7 @@ describe('ColumnsQueryBuilder', () => {
         });
 
         it('should select column name in query builder', async () => {
-            const { conditionsContainer } = await renderElement('columnName = "test-column"');
+            const { conditionsContainer } = await renderElement('name = "test-column"');
 
             expect(conditionsContainer?.length).toBe(1);
             expect(conditionsContainer.item(0)?.textContent).toContain("test-column");

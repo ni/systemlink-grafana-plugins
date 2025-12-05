@@ -114,6 +114,9 @@ describe('AlarmTrendQueryHandler', () => {
         if (template === '${__to:date}') {
           return '2025-01-01T11:00:00.000Z';
         }
+        if (template === 'workspace = "$workspace"') {
+          return 'workspace = "Lab-1"';
+        }
         return template || '';
       });
   });
@@ -170,6 +173,26 @@ describe('AlarmTrendQueryHandler', () => {
           data: expect.objectContaining({
             filter: expect.stringMatching(expectedFilterPattern)
           })
+        })
+      );
+    });
+
+    it('should replace template variables in filter', async () => {
+      const query: AlarmTrendQuery = {
+        refId: 'A',
+        filter: 'workspace = "$workspace"',
+      };
+
+      await datastore.runQuery(query, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: expect.stringContaining(QUERY_ALARMS_RELATIVE_PATH),
+          method: 'POST',
+          data: expect.objectContaining({
+            filter: expect.stringContaining('workspace = "Lab-1"')
+          }),
+          showErrorAlert: false
         })
       );
     });

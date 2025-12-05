@@ -10,6 +10,9 @@ import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/componen
 import _ from "lodash";
 import { catchError, combineLatestWith, concatMap, forkJoin, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap } from "rxjs";
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
+import { replaceVariables } from "core/utils";
+import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
+import { QueryBuilderOperations } from "core/query-builder.constants";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
@@ -29,35 +32,22 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     ): Observable<DataFrameDTO> {
         this.scopedVars = options.scopedVars;
         const processedQuery = this.processQuery(query);
+        const transformedQuery = this.transformQuery(processedQuery, options.scopedVars);
 
-        if (processedQuery.dataTableFilter) {
-            processedQuery.dataTableFilter = this.transformDataTableQuery(
-                processedQuery.dataTableFilter,
-                options.scopedVars
-            );
-        }
-
-        if (processedQuery.resultFilter) {
-            processedQuery.resultFilter = this.transformResultQuery(
-                processedQuery.resultFilter,
-                options.scopedVars
-            );
-        }
-
-        if (this.shouldQueryForData(processedQuery)) {
+        if (this.shouldQueryForData(transformedQuery)) {
             return this.getFieldsForDataQuery$(
-                processedQuery,
+                transformedQuery,
                 options
             );
         }
 
-        if (this.shouldQueryForProperties(processedQuery)) {
-            return this.getFieldsForPropertiesQuery$(processedQuery);
+        if (this.shouldQueryForProperties(transformedQuery)) {
+            return this.getFieldsForPropertiesQuery$(transformedQuery);
         }
 
         return of({
-            refId: processedQuery.refId,
-            name: processedQuery.refId,
+            refId: transformedQuery.refId,
+            name: transformedQuery.refId,
             fields: []
         });
     }
@@ -82,9 +72,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             );
         }
 
+        if (processedQuery.columnFilter) {
+            processedQuery.columnFilter = this.transformColumnQuery(
+                processedQuery.columnFilter,
+                options?.scopedVars || {}
+            );
+        }
+
         const filters = {
             resultFilter: processedQuery.resultFilter,
             dataTableFilter: processedQuery.dataTableFilter,
+            columnFilter: processedQuery.columnFilter
         };
 
         if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
@@ -208,7 +206,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     const resultFilter = this.buildResultIdFilter(resultIds);
                     const combinedFilter = this.buildCombinedFilter({
                         resultFilter,
-                        dataTableFilter: filters.dataTableFilter
+                        dataTableFilter: filters.dataTableFilter,
+                        columnFilter: filters.columnFilter
                     });
                     return this.queryTablesInternal$(
                         combinedFilter,
@@ -487,6 +486,57 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
+    public transformColumnQuery(query: string, scopedVars: ScopedVars = this.scopedVars) {
+        return transformComputedFieldsQuery(
+            this.templateSrv.replace(query, scopedVars),
+            this.columnComputedDataFields,
+        );
+    }
+
+    private transformColumns(columns: string[]): string[] {
+        return replaceVariables(columns, this.templateSrv);
+    }
+
+    private transformXColumn(xColumn: string, scopedVars: ScopedVars = this.scopedVars): string {
+        return this.templateSrv.replace(xColumn, scopedVars);
+    }
+
+    private transformQuery(
+        query: ValidDataFrameQueryV2, 
+        scopedVars: ScopedVars = this.scopedVars
+    ): ValidDataFrameQueryV2 {
+        if (query.dataTableFilter) {
+            query.dataTableFilter = this.transformDataTableQuery(
+                query.dataTableFilter,
+                scopedVars
+            );
+        }
+
+        if (query.resultFilter) {
+            query.resultFilter = this.transformResultQuery(
+                query.resultFilter,
+                scopedVars
+            );
+        }
+
+        if (query.columnFilter) {
+            query.columnFilter = this.transformColumnQuery(
+                query.columnFilter,
+                scopedVars
+            );
+        }
+
+        if (query.columns && !isObservable(query.columns)) {
+            query.columns = this.transformColumns(query.columns);
+        }
+
+        if (query.xColumn){
+            query.xColumn = this.transformXColumn(query.xColumn, scopedVars);
+        }
+
+        return query;
+    }
+
     private areAllObjectsWithNameProperty(object: any[]): object is Array<{ name: string; }> {
         return _.every(
             object,
@@ -653,7 +703,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
                 const tables$ = this.queryTables$(
                     {
-                        dataTableFilter: processedQuery.dataTableFilter
+                        resultFilter: processedQuery.resultFilter,
+                        dataTableFilter: processedQuery.dataTableFilter,
+                        columnFilter: processedQuery.columnFilter,
                     },
                     TAKE_LIMIT,
                     projections
@@ -948,6 +1000,76 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         })
     );
 
+    protected readonly columnComputedDataFields = new Map<string, ExpressionTransformFunction>(
+        [ColumnsQueryBuilderFieldNames.ColumnName].map(field => [
+            field,
+            this.convertToColumnsAnyExpression(field)
+        ])
+    );
+
+    private convertToColumnsAnyExpression (field: string): ExpressionTransformFunction {
+        return (value: string, operation: string) => {
+            const isNegatedOperation = this.isNegatedOperation(operation);
+            const positiveOperation = this.getPositiveOperation(operation);
+            const columnNameValue = this.parseColumnNameFromValue(value);
+            const innerExpression = multipleValuesQuery(field)(columnNameValue, positiveOperation);
+            const cleanedExpression = this.removeWrapper(innerExpression);
+            const transformedExpression = this.transformToIteratorExpression(cleanedExpression, field);
+
+            return isNegatedOperation
+                ? `!columns.any(${transformedExpression})`
+                : `columns.any(${transformedExpression})`;
+        };
+    }
+
+    private isNegatedOperation (operation: string): boolean {
+        return (
+            operation === '!=' ||
+            operation === QueryBuilderOperations.DOES_NOT_EQUAL.name ||
+            operation === QueryBuilderOperations.DOES_NOT_CONTAIN.name
+        );
+    }
+
+    private getPositiveOperation (operation: string): string {
+        if (operation === '!=' || operation === QueryBuilderOperations.DOES_NOT_EQUAL.name) {
+            return QueryBuilderOperations.EQUALS.name;
+        }
+        if (operation === QueryBuilderOperations.DOES_NOT_CONTAIN.name) {
+            return QueryBuilderOperations.CONTAINS.name;
+        }
+        return operation;
+    }
+
+    private removeWrapper (expression: string): string {
+        return expression.startsWith('(')
+            ? expression.slice(1, -1)
+            : expression;
+    }
+
+    private transformToIteratorExpression (expression: string, field: string): string {
+        const fieldPattern = new RegExp(`\\b${field}\\b`, 'g');
+        return expression.replace(fieldPattern, `it.${field}`);
+    }
+
+    private parseColumnNameFromValue(filterValue: string): string {
+        const transformedDataTypes = ['Numeric', 'String', 'Bool', 'Timestamp'];
+        
+        if (filterValue.startsWith('{') && filterValue.endsWith('}')) {
+            const values = filterValue.slice(1, -1).split(',');
+            const extractedNames = values.map(value => {
+                const endsWithDataType = transformedDataTypes.some(dataType => value.endsWith(`-${dataType}`));
+                if (endsWithDataType) {
+                    return this.parseColumnIdentifier(value).columnName;
+                }
+                return value;
+            });
+            const uniqueNames = [...new Set(extractedNames)];
+            return `{${uniqueNames.join(',')}}`;
+        }
+        
+        return filterValue;
+    }
+
     private isTimeField(field: DataTableProperties): boolean {
         const timeFields = [
             DataTableProperties.CreatedAt,
@@ -1057,6 +1179,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const filters = {
             resultFilter: processedQuery.resultFilter,
             dataTableFilter: processedQuery.dataTableFilter,
+            columnFilter: processedQuery.columnFilter
         };
         const tables$ = this.queryTables$(
             filters,
@@ -1143,6 +1266,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
         if (filters.dataTableFilter) {
             combinedFilters.push(`(${filters.dataTableFilter})`);
+        }
+        if (filters.resultFilter && filters.columnFilter) {
+            combinedFilters.push(`(${filters.columnFilter})`);
         }
 
         return combinedFilters.join(' && ');

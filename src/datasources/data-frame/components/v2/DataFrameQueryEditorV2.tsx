@@ -46,12 +46,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     const lastFilterRef = useRef<CombinedFilters>({
         resultFilter: '',
-        dataTableFilter: ''
+        dataTableFilter: '',
+        columnFilter: '',
     });
 
     const fetchAndSetColumnOptions = useCallback(
         async (filters: CombinedFilters) => {
-            if (!filters.dataTableFilter && !filters.resultFilter) {
+            if (!filters.dataTableFilter && !filters.resultFilter && !filters.columnFilter) {
                 return;
             }
 
@@ -133,9 +134,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         () => {
             const dataTableFilter = migratedQuery.dataTableFilter;
             const resultFilter = migratedQuery.resultFilter;
+            const columnFilter = migratedQuery.columnFilter;
             const transformedFilter = {
                 resultFilter: datasource.transformResultQuery(resultFilter),
                 dataTableFilter: datasource.transformDataTableQuery(dataTableFilter),
+                columnFilter: datasource.transformColumnQuery(columnFilter)
             };
 
             const filterChanged = !_.isEqual(lastFilterRef.current, transformedFilter);
@@ -146,7 +149,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
             lastFilterRef.current = transformedFilter;
 
-            if (transformedFilter.dataTableFilter || transformedFilter.resultFilter) {
+            if (
+                transformedFilter.dataTableFilter || 
+                transformedFilter.resultFilter || 
+                transformedFilter.columnFilter
+            ) {
                 fetchAndSetColumnOptions(transformedFilter);
                 return;
             }
@@ -166,6 +173,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             migratedQuery.type,
             migratedQuery.dataTableFilter,
             migratedQuery.resultFilter,
+            migratedQuery.columnFilter,
             datasource.variablesCache,
             fetchAndSetColumnOptions,
             datasource,

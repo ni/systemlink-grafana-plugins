@@ -1,4 +1,4 @@
-import { DataFrameDTO, DataQueryRequest, FieldType } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, FieldType, ScopedVars } from '@grafana/data';
 import { AlarmsQueryHandlerCore } from 'datasources/alarms/query-type-handlers/AlarmsQueryHandlerCore';
 import { defaultAlarmTrendQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { Alarm, AlarmTransitionSeverityLevel, AlarmTransitionType, TransitionInclusionOption } from 'datasources/alarms/types/types';
@@ -12,7 +12,7 @@ export class AlarmTrendQueryHandler extends AlarmsQueryHandlerCore {
     const { start, end, intervalMs } = this.extractTimeParameters(options);
     const startTime = start.getTime();
     const endTime = end.getTime();
-    const filter = this.getTrendQueryFilter(query, start, end);
+    const filter = this.getTrendQueryFilter(query, start, end, options.scopedVars);
     const requestBody = { filter, transitionInclusionOption: TransitionInclusionOption.All };
     const alarms = await this.queryAlarmsUntilComplete(requestBody);
     const alarmsWithTimestamp = this.enrichTransitionsWithTimestamp(alarms);
@@ -34,7 +34,12 @@ export class AlarmTrendQueryHandler extends AlarmsQueryHandlerCore {
     return { start, end, intervalMs };
   }
 
-  private getTrendQueryFilter(query: AlarmTrendQuery, start: Date, end: Date): string {
+  private getTrendQueryFilter(
+    query: AlarmTrendQuery,
+    start: Date,
+    end: Date,
+    scopedVars: ScopedVars
+  ): string {
     const startIso = start.toISOString();
     const endIso = end.toISOString();
     const activeAndTransitionedBeforeStartFilter = `(active = "true" && mostRecentSetOccurredAt < "${startIso}")`;
@@ -49,7 +54,8 @@ export class AlarmTrendQueryHandler extends AlarmsQueryHandlerCore {
     ].join(' || ')})`;
 
     if (query.filter && query.filter.trim() !== '') {
-      return `${defaultTrendQueryFilter} && (${query.filter})`;
+      const transformedFilter = this.transformAlarmsQuery(scopedVars, query.filter);
+      return `${defaultTrendQueryFilter} && (${transformedFilter})`;
     }
 
     return defaultTrendQueryFilter;

@@ -1,3 +1,34 @@
+## [4.94.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.93.0...v4.94.0) (2025-12-05)
+
+### Features
+
+* **dataframes:** Parse column name from variable ([#586](https://github.com/ni/systemlink-grafana-plugins/issues/586)) ([c2ef703](https://github.com/ni/systemlink-grafana-plugins/commit/c2ef703972a42be679729eeb6b02e8cebd0b1281))
+
+## [4.93.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.92.0...v4.93.0) (2025-12-05)
+
+### Features
+
+* **dataframes:** Add result and column filter in query tables call from column selection ([#585](https://github.com/ni/systemlink-grafana-plugins/issues/585)) ([40970b4](https://github.com/ni/systemlink-grafana-plugins/commit/40970b4aac390ff0a3410d71eb0f989f4b621e9c))
+
+## [4.92.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.91.0...v4.92.0) (2025-12-05)
+
+### Features
+
+* **dataframes:** Add support to query with column filter ([#576](https://github.com/ni/systemlink-grafana-plugins/issues/576)) ([9de0e4e](https://github.com/ni/systemlink-grafana-plugins/commit/9de0e4ee5ae9250db1938cc0c88caa7c113658f0))
+* **dataframes:** Transform column filter ([#575](https://github.com/ni/systemlink-grafana-plugins/issues/575)) ([9488094](https://github.com/ni/systemlink-grafana-plugins/commit/94880947f9350c006313ee1d21dfe89f64268311))
+
+## [4.91.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.90.1...v4.91.0) (2025-12-05)
+
+### Features
+
+* **dataframe:** Add variable support for columns and x column ([#582](https://github.com/ni/systemlink-grafana-plugins/issues/582)) ([a7049bf](https://github.com/ni/systemlink-grafana-plugins/commit/a7049bf5344c8f4992c0d32f793d3dbaeb7d5867))
+
+## [4.90.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.90.0...v4.90.1) (2025-12-05)
+
+### Bug Fixes
+
+* **alarms:** Add support for template variable workflow in alarm trend ([#581](https://github.com/ni/systemlink-grafana-plugins/issues/581)) ([50f1a68](https://github.com/ni/systemlink-grafana-plugins/commit/50f1a689c1291799c687e63971e97df810d3e386))
+
 ## [4.90.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.89.0...v4.90.0) (2025-12-04)
 
 ### Features
