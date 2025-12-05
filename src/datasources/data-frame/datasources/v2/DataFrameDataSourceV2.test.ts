@@ -367,7 +367,7 @@ describe('DataFrameDataSourceV2', () => {
                             {
                                 "resultFilter": "status = \"Active\"", 
                                 "dataTableFilter": "name = \"Test\"", 
-                                "columnFilter": "name = \"colA\""
+                                "columnFilter": "columns.any(it.name = \"colA\")"
                             },
                             TAKE_LIMIT,
                             projections
@@ -393,8 +393,8 @@ describe('DataFrameDataSourceV2', () => {
                             type: DataFrameQueryType.Data,
                             columns: of(['colX-Numeric']),
                             resultFilter: 'status = "Active"',
-                            dataTableFilter: 'name == "Test"',
-                            columnFilter: 'name == "colX"'
+                            dataTableFilter: 'name = "Test"',
+                            columnFilter: 'name = "colX"'
                         };
 
                         const result = await lastValueFrom(ds.runQuery(query, options));
@@ -402,8 +402,8 @@ describe('DataFrameDataSourceV2', () => {
                         expect(queryTablesSpy).toHaveBeenCalledWith(
                             { 
                                 "resultFilter": "status = \"Active\"",
-                                "dataTableFilter": "name == \"Test\"",
-                                "columnFilter": "name == \"colX\""
+                                "dataTableFilter": "name = \"Test\"",
+                                "columnFilter": "columns.any(it.name = \"colX\")"
                             },
                             TAKE_LIMIT,
                             projections
