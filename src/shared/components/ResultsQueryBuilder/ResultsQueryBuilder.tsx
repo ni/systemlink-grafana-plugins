@@ -9,7 +9,7 @@ import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcompone
 import {
   ResultsQueryBuilderFields,
   ResultsQueryBuilderStaticFields,
-} from 'datasources/results/constants/ResultsQueryBuilder.constants';
+} from './ResultsQueryBuilder.constants';
 import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
 
 type ResultsQueryBuilderProps = QueryBuilderProps &
