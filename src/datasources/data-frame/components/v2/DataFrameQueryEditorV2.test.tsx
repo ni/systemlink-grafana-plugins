@@ -1136,6 +1136,7 @@ describe("DataFrameQueryEditorV2", () => {
                         }),
                         transformDataTableQuery: jest.fn((filter: string) => filter),
                         transformResultQuery: jest.fn((filter: string) => filter),
+                        transformColumnQuery: jest.fn((filter: string) => filter),
                         parseColumnIdentifier: mockParseColumnIdentifier,
                     } as any;
 
