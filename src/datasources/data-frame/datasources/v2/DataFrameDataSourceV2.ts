@@ -903,23 +903,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return expression.replace(fieldPattern, `it.${field}`);
     }
 
-    private parseColumnNameFromValue(value: string): string {
+    private parseColumnNameFromValue(filterValue: string): string {
         const transformedDataTypes = ['Numeric', 'String', 'Bool', 'Timestamp'];
         
-        if (value.startsWith('{') && value.endsWith('}')) {
-            const values = value.slice(1, -1).split(',');
-            const extractedNames = values.map(val => {
-                const endsWithDataType = transformedDataTypes.some(dataType => val.endsWith(`-${dataType}`));
+        if (filterValue.startsWith('{') && filterValue.endsWith('}')) {
+            const values = filterValue.slice(1, -1).split(',');
+            const extractedNames = values.map(value => {
+                const endsWithDataType = transformedDataTypes.some(dataType => value.endsWith(`-${dataType}`));
                 if (endsWithDataType) {
-                    return this.parseColumnIdentifier(val).columnName;
+                    return this.parseColumnIdentifier(value).columnName;
                 }
-                return val;
+                return value;
             });
             const uniqueNames = [...new Set(extractedNames)];
             return `{${uniqueNames.join(',')}}`;
         }
         
-        return value;
+        return filterValue;
     }
 
     private isTimeField(field: DataTableProperties): boolean {
