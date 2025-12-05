@@ -769,7 +769,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private dataFrameToFields(rows: string[][], columns: Column[]): FieldDTO[] {
-        // Create table metadata fields (tableId and tableName)
+        // Create table metadata fields (tableId)
         const metadataFields: FieldDTO[] = [
             {
                 name: 'tableId',
