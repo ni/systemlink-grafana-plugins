@@ -1,3 +1,10 @@
+## [4.92.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.91.0...v4.92.0) (2025-12-05)
+
+### Features
+
+* **dataframes:** Add support to query with column filter ([#576](https://github.com/ni/systemlink-grafana-plugins/issues/576)) ([9de0e4e](https://github.com/ni/systemlink-grafana-plugins/commit/9de0e4ee5ae9250db1938cc0c88caa7c113658f0))
+* **dataframes:** Transform column filter ([#575](https://github.com/ni/systemlink-grafana-plugins/issues/575)) ([9488094](https://github.com/ni/systemlink-grafana-plugins/commit/94880947f9350c006313ee1d21dfe89f64268311))
+
 ## [4.91.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.90.1...v4.91.0) (2025-12-05)
 
 ### Features
