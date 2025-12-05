@@ -483,4 +483,45 @@ describe('DataFrameDataSourceBase', () => {
             expect(() => ds.transformResultQuery(filter)).toThrow('replace failed');
         });
     });
+
+    describe('transformColumnQuery', () => {
+        let ds: TestDataFrameDataSource;
+
+        beforeEach(() => {
+            ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+        });
+
+        it('should return the replaced filter string', () => {
+            const filter = 'name = $Column';
+            (templateSrv.replace as jest.Mock).mockReturnValue('name = "Column1"');  
+            
+            const result = ds.transformColumnQuery(filter);
+            
+            expect(result).toBe('name = "Column1"');
+        });
+
+        it('should propagate errors thrown by templateSrv.replace', () => {
+            const filter = 'errorFilter';
+            
+            (templateSrv.replace as jest.Mock).mockImplementation(() => { throw new Error('replace failed'); });
+            
+            expect(() => ds.transformColumnQuery(filter)).toThrow('replace failed');
+        });
+    });
+
+    describe('parseColumnIdentifier', () => {
+        it('should return the empty column name and data type by default', () => {
+            const ds = new TestDataFrameDataSource(
+                instanceSettings,
+                backendSrv,
+                templateSrv
+            );
+
+            const parseResult = ds.parseColumnIdentifier('any-input');
+            expect(parseResult).toEqual({
+                columnName: '',
+                transformedDataType: ''
+            });
+        });
+    });
 });

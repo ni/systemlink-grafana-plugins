@@ -1,3 +1,34 @@
+## [4.91.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.90.1...v4.91.0) (2025-12-05)
+
+### Features
+
+* **dataframe:** Add variable support for columns and x column ([#582](https://github.com/ni/systemlink-grafana-plugins/issues/582)) ([a7049bf](https://github.com/ni/systemlink-grafana-plugins/commit/a7049bf5344c8f4992c0d32f793d3dbaeb7d5867))
+
+## [4.90.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.90.0...v4.90.1) (2025-12-05)
+
+### Bug Fixes
+
+* **alarms:** Add support for template variable workflow in alarm trend ([#581](https://github.com/ni/systemlink-grafana-plugins/issues/581)) ([50f1a68](https://github.com/ni/systemlink-grafana-plugins/commit/50f1a689c1291799c687e63971e97df810d3e386))
+
+## [4.90.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.89.0...v4.90.0) (2025-12-04)
+
+### Features
+
+* **data-frame:** validate selected columns against available options ([#561](https://github.com/ni/systemlink-grafana-plugins/issues/561)) ([ef589a7](https://github.com/ni/systemlink-grafana-plugins/commit/ef589a723e1c704c07f83c62e7d57d122701461b))
+
+## [4.89.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.88.0...v4.89.0) (2025-12-04)
+
+### Features
+
+* **dataframe:** Add validation for xColumn selection ([#577](https://github.com/ni/systemlink-grafana-plugins/issues/577)) ([0fee9a0](https://github.com/ni/systemlink-grafana-plugins/commit/0fee9a021243bfa9d011960b36b1a72d1b56eef3))
+* **dataframe:** Reset column limit exceeded error when the column options fetching failed with an error ([#578](https://github.com/ni/systemlink-grafana-plugins/issues/578)) ([1dcc816](https://github.com/ni/systemlink-grafana-plugins/commit/1dcc816f6065da8c99340ace9fa7147377c189ab))
+
+## [4.88.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.87.0...v4.88.0) (2025-12-03)
+
+### Features
+
+* **alarms:** Introduce error message for 401 unauthorized access ([#565](https://github.com/ni/systemlink-grafana-plugins/issues/565)) ([3c583e6](https://github.com/ni/systemlink-grafana-plugins/commit/3c583e668ab4317bf8834a0255be0e2dd61065da))
+
 ## [4.87.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.86.0...v4.87.0) (2025-12-03)
 
 ### Features

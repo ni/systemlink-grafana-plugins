@@ -100,6 +100,11 @@ describe('AlarmsQueryHandlerCore', () => {
 
       const testCases = [
         {
+          status: 401,
+          expectedErrorMessage:
+            'The query to fetch alarms failed due to unauthorized access. Please verify your credentials and try again.',
+        },
+        {
           status: 404,
           expectedErrorMessage:
             'The query to fetch alarms failed because the requested resource was not found. Please check the query parameters and try again.',
