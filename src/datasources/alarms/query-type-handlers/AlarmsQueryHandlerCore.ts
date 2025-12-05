@@ -1,6 +1,6 @@
 import { DataSourceBase } from 'core/DataSourceBase';
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars, DataSourceInstanceSettings } from '@grafana/data';
-import { Alarm, AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from '../types/types';
+import { Alarm, AlarmsQuery, AlarmTransitionSeverityLevel, QueryAlarmsRequest, QueryAlarmsResponse } from '../types/types';
 import { extractErrorInfo } from 'core/errors';
 import { QUERY_ALARMS_MAXIMUM_TAKE, QUERY_ALARMS_RELATIVE_PATH, QUERY_ALARMS_REQUEST_PER_SECOND } from '../constants/QueryAlarms.constants';
 import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
@@ -12,6 +12,7 @@ import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana
 import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from '../constants/AlarmProperties.constants';
 import { ALARMS_TIME_FIELDS } from '../constants/AlarmsQueryEditor.constants';
 import { AlarmsProperties } from '../types/ListAlarms.types';
+import { QueryBuilderOperations } from 'core/query-builder.constants';
 
 export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery> {
   public errorTitle?: string;
@@ -155,6 +156,10 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
         case AlarmsQueryBuilderFields.KEYWORD.dataField:
           callback = listFieldsQuery(dataField);
           break;
+        case AlarmsQueryBuilderFields.HIGHEST_SEVERITY.dataField:
+        case AlarmsQueryBuilderFields.CURRENT_SEVERITY.dataField:
+          callback = this.getSeverityLevelTransformation(dataField);
+          break;
         default:
           callback = this.isTimeField(dataField as AlarmsProperties)
             ? timeFieldsQuery(dataField)
@@ -164,6 +169,22 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
       return [dataField, callback];
     })
   );
+
+  private getSeverityLevelTransformation(dataField: string): ExpressionTransformFunction {
+    return (value: string, operation: string) => {
+      const criticalSeverityLevel = String(AlarmTransitionSeverityLevel.Critical);
+      let severityLevelOperator = operation;
+
+      if (value === criticalSeverityLevel) {
+        severityLevelOperator =
+          (operation === QueryBuilderOperations.EQUALS.name)
+            ? QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name
+            : QueryBuilderOperations.LESS_THAN.name;
+      }
+
+      return multipleValuesQuery(dataField)(value, severityLevelOperator);
+    };
+  }
 
   private getSourceTransformation(): ExpressionTransformFunction {
     return (value: string, operation: string) => {
