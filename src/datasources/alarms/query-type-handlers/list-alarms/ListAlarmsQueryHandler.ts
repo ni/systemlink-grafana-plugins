@@ -229,15 +229,25 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   private isBooleanField(field: AlarmsProperties): boolean {
-    return field === AlarmsSpecificProperties.clear || field === AlarmsSpecificProperties.acknowledged || field === AlarmsSpecificProperties.active;
+    return (
+      field === AlarmsSpecificProperties.acknowledged ||
+      field === AlarmsSpecificProperties.active ||
+      field === AlarmsSpecificProperties.clear
+    );
   }
 
   private isObjectField(field: AlarmsProperties): boolean {
-    return field === AlarmsSpecificProperties.properties || field === AlarmsTransitionProperties.transitionProperties;
+    return (
+      field === AlarmsSpecificProperties.properties ||
+      field === AlarmsTransitionProperties.transitionProperties
+    );
   }
 
   private isArrayField(field: AlarmsProperties): boolean {
-    return field === AlarmsSpecificProperties.keywords || field === AlarmsTransitionProperties.transitionKeywords;
+    return (
+      field === AlarmsSpecificProperties.keywords ||
+      field === AlarmsTransitionProperties.transitionKeywords
+    );
   }
 
   private hasTransitionProperties(properties: AlarmsProperties[]): boolean {
