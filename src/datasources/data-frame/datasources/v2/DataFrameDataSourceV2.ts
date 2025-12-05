@@ -8,7 +8,7 @@ import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
-import { catchError, combineLatestWith, concatMap, forkJoin, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap } from "rxjs";
+import { catchError, combineLatestWith, concatMap, from, isObservable, last, lastValueFrom, map, mergeMap, Observable, of, scan, Subject, switchMap, takeUntil, timer } from "rxjs";
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
@@ -293,26 +293,48 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             intervals
         );
         const batches = _.chunk(decimatedDataRequests, REQUESTS_PER_SECOND);
+        const stopSignal$ = new Subject<void>();
 
         return from(batches).pipe(
             mergeMap((batch, index) =>
                 timer(index * DELAY_BETWEEN_REQUESTS_MS).pipe(
-                    concatMap(() => forkJoin(
-                        batch.map(request =>
+                    concatMap(() => from(batch).pipe(
+                        mergeMap(request =>
                             this.getDecimatedTableData$(request).pipe(
+                                takeUntil(stopSignal$),
                                 map(tableDataRows => ({
                                     tableId: request.tableId,
                                     data: tableDataRows
                                 }))
                             )
                         )
-                    ))
+                    )),
+                    takeUntil(stopSignal$)
                 )
             ),
-            reduce((acc, results) => {
-                results.forEach(({ tableId, data }) => acc[tableId] = data);
+            scan((acc, result) => {
+                const retrievedDataFrame = result.data.frame
+                const rowsInRetrievedDataFrame = retrievedDataFrame.data.length;
+                const columnsInRetrievedDataFrame = retrievedDataFrame.columns.length;
+                const dataPointsToAdd = rowsInRetrievedDataFrame * columnsInRetrievedDataFrame;
+                acc.totalDataPoints += dataPointsToAdd;
+                
+                // Only accumulate data if within limit
+                if (acc.totalDataPoints <= TOTAL_ROWS_LIMIT) {
+                    acc.data[result.tableId] = result.data;
+                }
+
+                // Signal to stop if limit reached
+                if (acc.totalDataPoints >= TOTAL_ROWS_LIMIT) {
+                    stopSignal$.next();
+                    stopSignal$.complete();
+                }
+
                 return acc;
-            }, {} as Record<string, TableDataRows>)
+            }, { totalDataPoints: 0, data: {} as Record<string, TableDataRows> }),
+            takeUntil(stopSignal$),
+            map(acc => acc.data),
+            last(undefined, {} as Record<string, TableDataRows>)
         );
     }
 
