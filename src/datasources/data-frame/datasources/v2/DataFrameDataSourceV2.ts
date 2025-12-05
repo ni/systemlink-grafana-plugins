@@ -748,7 +748,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             ).pipe(
                                 map(decimatedDataMap => {
                                     const tableData = this.aggregateTableDataRows(decimatedDataMap);
-                            
                                     return {
                                         refId: processedQuery.refId,
                                         name: processedQuery.refId,
@@ -757,7 +756,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                 })
                             );
                         }
-                        
                         return of(this.buildEmptyDataFrame(processedQuery.refId));
                     })
                 );
@@ -777,11 +775,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 name: 'tableId',
                 type: FieldType.string,
                 values: rows[0] ?? [],
-            },
-            {
-                name: 'tableName',
-                type: FieldType.string,
-                values: rows[1] ?? [],
             },
         ];
 
@@ -804,7 +797,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         // Create data fields from unique columns
         const dataFields: FieldDTO[] = uniqueColumns.map((column, index) => {
             const [type, converter] = this.getFieldTypeAndConverter(column.dataType);
-            const dataIndex = index + 2; // Offset by 2 for tableId and tableName
+            const dataIndex = index + 1; // Offset by 1 for tableId
 
             const field: FieldDTO = {
                 name: column.name,
@@ -818,10 +811,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             if (column.name.toLowerCase() === 'value') {
                 field.config = { displayName: column.name };
             }
-
             return field;
         });
-
         return [...metadataFields, ...dataFields];
     }
 
@@ -845,18 +836,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         });
 
         const allColumnsArray = Array.from(allColumns);
-        const columnNames = ['tableId', 'tableName', ...allColumnsArray];
+        const columnNames = ['tableId', ...allColumnsArray];
 
         const tableIdColumn: any[] = [];
-        const tableNameColumn: any[] = [];
         const columnDataArrays: any[][] = allColumnsArray.map(() => []);
 
         Object.entries(decimatedDataMap).forEach(([tableId, tableData]) => {
             const numRows = tableData.frame.data.length > 0 ? tableData.frame.data.length : 0;
 
-            // Add tableId and tableName for each row in this table
+            // Add tableId for each row in this table
             tableIdColumn.push(...Array(numRows).fill(tableId));
-            tableNameColumn.push(...Array(numRows).fill(tableId));
 
             const columnIndexMap = new Map<string, number>();
             tableData.frame.columns.forEach((colName, index) => {
@@ -880,7 +869,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return {
             frame: {
                 columns: columnNames,
-                data: [tableIdColumn, tableNameColumn, ...columnDataArrays]
+                data: [tableIdColumn, ...columnDataArrays]
             }
         };
     }

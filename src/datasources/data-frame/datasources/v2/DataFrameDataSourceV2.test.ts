@@ -279,6 +279,12 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
+                    jest.spyOn(ds, 'post$').mockReturnValue(of({
+                        frame: {
+                            columns: ['col1'],
+                            data: [['1']]
+                        }
+                    }));
                     (coreUtils.replaceVariables as jest.Mock).mockReturnValue(['col1-Numeric']);
                     const query = {
                         refId: 'A',
@@ -605,6 +611,12 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
+                    jest.spyOn(ds, 'post$').mockReturnValue(of({
+                        frame: {
+                            columns: ['timestamp', 'value'],
+                            data: [['2024-01-01T00:00:00Z'], ['10.5']]
+                        }
+                    }));
                     templateSrv.replace.mockReturnValue('timestamp-Timestamp');
                     const query = {
                         refId: 'A',
@@ -1203,9 +1215,8 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await lastValueFrom(ds.runQuery(query, options));
 
                     expect(result.fields.length).toBeGreaterThan(0);
-                    // Should have tableId and tableName fields
+                    // Should have tableId fields
                     expect(result.fields.some(f => f.name === 'tableId')).toBe(true);
-                    expect(result.fields.some(f => f.name === 'tableName')).toBe(true);
                     // Should have time column (common to both tables)
                     expect(result.fields.some(f => f.name === 'time')).toBe(true);
                 });
@@ -1392,6 +1403,7 @@ describe('DataFrameDataSourceV2', () => {
                                 intervals: 500
                             })
                         }),
+                        expect.any(Object)
                     );
                 });
 
