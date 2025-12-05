@@ -77,7 +77,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             }
         },
         [
-            datasource,
+            datasource
         ]
     );
 
@@ -168,7 +168,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             migratedQuery.resultFilter,
             datasource.variablesCache,
             fetchAndSetColumnOptions,
-            datasource
+            datasource,
         ]
     );
 
@@ -226,6 +226,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
         (query as DataFrameQueryV2).dataTableFilter = dataTableFilter;
         handleQueryChange({ ...migratedQuery, dataTableFilter });
+
     };
 
     const onResultFilterChange = (event?: Event | React.FormEvent<Element>) => {
