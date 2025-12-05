@@ -455,7 +455,169 @@ describe('DataFrameDataSourceV2', () => {
                             ]
                         });
                     });
-                })
+                });
+
+                describe('include index columns', () => {
+                    describe('when includeIndexColumns is true', () => {
+                        it('should include index columns before each selected normal column', () => {
+                            const selectedColumns = ['ColumnA-String', 'ColumnB-Numeric'];
+                            const table = {
+                                id: 'table1',
+                                name: 'Table1',
+                                columns: [
+                                    { name: 'Index', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
+                                    { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
+                                    { name: 'ColumnB', dataType: 'INT32', columnType: ColumnType.Normal, properties: {} },
+                                ]
+                            };
+
+                            const result = (ds as any).getSelectedColumnsForTable(selectedColumns, table, true);
+
+                            expect(result).toEqual([
+                                { name: 'Index', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
+                                { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
+                                { name: 'Index', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
+                                { name: 'ColumnB', dataType: 'INT32', columnType: ColumnType.Normal, properties: {} },
+                            ]);
+                        });
+
+                        it('should include multiple index columns before each selected normal column', () => {
+                            const selectedColumns = ['ColumnA-String'];
+                            const table = {
+                                id: 'table1',
+                                name: 'Table1',
+                                columns: [
+                                    { name: 'Index1', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
+                                    { name: 'Index2', dataType: 'INT64', columnType: ColumnType.Index, properties: {} },
+                                    { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
+                                ]
+                            };
+
+                            const result = (ds as any).getSelectedColumnsForTable(selectedColumns, table, true);
+
+                            expect(result).toEqual([
+                                { name: 'Index1', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
+                                { name: 'Index2', dataType: 'INT64', columnType: ColumnType.Index, properties: {} },
+                                { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
+                            ]);
+                        });
+
+                        it('should not duplicate index columns when multiple normal columns are selected', () => {
+                            const selectedColumns = ['ColumnA-String', 'ColumnB-Numeric'];
+                            const table = {
+                                id: 'table1',
+                                name: 'Table1',
+                                columns: [
+                                    { name: 'Index', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
+                                    { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
+                                    { name: 'ColumnB', dataType: 'INT32', columnType: ColumnType.Normal, properties: {} },
+                                ]
+                            };
+
+                            const result = (ds as any).getSelectedColumnsForTable(selectedColumns, table, true);
+
+                            const indexColumns = result.filter((col: any) => col.columnType === ColumnType.Index);
+                            expect(indexColumns.length).toBe(2); // Index column should appear twice (once for each selected column)
+                        });
+
+                        it('should handle table with no index columns', () => {
+                            const selectedColumns = ['ColumnA-String'];
+                            const table = {
+                                id: 'table1',
+                                name: 'Table1',
+                                columns: [
+                                    { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
+                                    { name: 'ColumnB', dataType: 'INT32', columnType: ColumnType.Normal, properties: {} },
+                                ]
+                            };
+
+                            const result = (ds as any).getSelectedColumnsForTable(selectedColumns, table, true);
+
+                            expect(result).toEqual([
+                                { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
+                            ]);
+                        });
+
+                        it('should return empty array when no columns are selected', () => {
+                            const selectedColumns: string[] = [];
+                            const table = {
+                                id: 'table1',
+                                name: 'Table1',
+                                columns: [
+                                    { name: 'Index', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
+                                    { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
+                                ]
+                            };
+
+                            const result = (ds as any).getSelectedColumnsForTable(selectedColumns, table, true);
+
+                            expect(result).toEqual([]);
+                        });
+
+                        it('should only include index columns for columns that are actually selected', () => {
+                            const selectedColumns = ['ColumnA-String']; // Only selecting ColumnA
+                            const table = {
+                                id: 'table1',
+                                name: 'Table1',
+                                columns: [
+                                    { name: 'Index', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
+                                    { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
+                                    { name: 'ColumnB', dataType: 'INT32', columnType: ColumnType.Normal, properties: {} },
+                                ]
+                            };
+
+                            const result = (ds as any).getSelectedColumnsForTable(selectedColumns, table, true);
+
+                            expect(result).toEqual([
+                                { name: 'Index', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
+                                { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
+                            ]);
+                            expect(result).not.toContainEqual(expect.objectContaining({ name: 'ColumnB' }));
+                        });
+                    });
+
+                    describe('when includeIndexColumns is false', () => {
+                        it('should return only selected normal columns without index columns', () => {
+                            const selectedColumns = ['ColumnA-String', 'ColumnB-Numeric'];
+                            const table = {
+                                id: 'table1',
+                                name: 'Table1',
+                                columns: [
+                                    { name: 'Index', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
+                                    { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
+                                    { name: 'ColumnB', dataType: 'INT32', columnType: ColumnType.Normal, properties: {} },
+                                ]
+                            };
+
+                            const result = (ds as any).getSelectedColumnsForTable(selectedColumns, table, false);
+
+                            expect(result).toEqual([
+                                { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
+                                { name: 'ColumnB', dataType: 'INT32', columnType: ColumnType.Normal, properties: {} },
+                            ]);
+                        });
+
+                        it('should not include index columns even if they exist in the table', () => {
+                            const selectedColumns = ['ColumnA-String'];
+                            const table = {
+                                id: 'table1',
+                                name: 'Table1',
+                                columns: [
+                                    { name: 'Index1', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
+                                    { name: 'Index2', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
+                                    { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
+                                ]
+                            };
+
+                            const result = (ds as any).getSelectedColumnsForTable(selectedColumns, table, false);
+
+                            expect(result).toEqual([
+                                { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
+                            ]);
+                            expect(result).not.toContainEqual(expect.objectContaining({ columnType: ColumnType.Index }));
+                        });
+                    });
+                });
             });
         });
 
@@ -2776,5 +2938,9 @@ describe('DataFrameDataSourceV2', () => {
             
             expect(result).toBe('(Keywords.Contains("keyword1") || Keywords.Contains("keyword2"))');
         });
+    });
+
+    describe('getSelectedColumnsForTable', () => {
+        
     });
 });
