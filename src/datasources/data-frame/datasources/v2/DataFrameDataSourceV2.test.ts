@@ -356,13 +356,19 @@ describe('DataFrameDataSourceV2', () => {
                                 'colA-Numeric',
                                 'colB-Timestamp'
                             ],
+                            resultFilter: 'status = "Active"',
                             dataTableFilter: 'name = "Test"',
+                            columnFilter: 'name = "colA"'
                         } as DataFrameQueryV2;
 
                         const result = await lastValueFrom(ds.runQuery(query, options));
 
                         expect(queryTablesSpy).toHaveBeenCalledWith(
-                            {"dataTableFilter": "name = \"Test\""},
+                            {
+                                "resultFilter": "status = \"Active\"", 
+                                "dataTableFilter": "name = \"Test\"", 
+                                "columnFilter": "columns.any(it.name = \"colA\")"
+                            },
                             TAKE_LIMIT,
                             projections
                         );
@@ -386,13 +392,19 @@ describe('DataFrameDataSourceV2', () => {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
                             columns: of(['colX-Numeric']),
-                            dataTableFilter: 'name == "Test"',
+                            resultFilter: 'status = "Active"',
+                            dataTableFilter: 'name = "Test"',
+                            columnFilter: 'name = "colX"'
                         };
 
                         const result = await lastValueFrom(ds.runQuery(query, options));
 
                         expect(queryTablesSpy).toHaveBeenCalledWith(
-                            { "dataTableFilter": "name == \"Test\"" },
+                            { 
+                                "resultFilter": "status = \"Active\"",
+                                "dataTableFilter": "name = \"Test\"",
+                                "columnFilter": "columns.any(it.name = \"colX\")"
+                            },
                             TAKE_LIMIT,
                             projections
                         );

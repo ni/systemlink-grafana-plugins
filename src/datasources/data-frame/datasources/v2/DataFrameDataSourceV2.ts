@@ -700,7 +700,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
                 const tables$ = this.queryTables$(
                     {
-                        dataTableFilter: processedQuery.dataTableFilter
+                        resultFilter: processedQuery.resultFilter,
+                        dataTableFilter: processedQuery.dataTableFilter,
+                        columnFilter: processedQuery.columnFilter,
                     },
                     TAKE_LIMIT,
                     projections
