@@ -1,4 +1,4 @@
-import { AlarmsTrendQuery } from '../types/AlarmsTrend.types';
+import { AlarmTrendQuery } from '../types/AlarmTrend.types';
 import { AlarmsSpecificProperties, ListAlarmsQuery, OutputType } from '../types/ListAlarms.types';
 import { AlarmsVariableQuery, QueryType } from '../types/types';
 import { DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TAKE, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION } from './AlarmsQueryEditor.constants';
@@ -21,7 +21,7 @@ export const defaultListAlarmsQuery: Omit<ListAlarmsQuery, 'refId'> = {
   transitionInclusionOption: DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION,
 };
 
-export const defaultAlarmsTrendQuery: Omit<AlarmsTrendQuery, 'refId'> = {
+export const defaultAlarmTrendQuery: Omit<AlarmTrendQuery, 'refId'> = {
   filter: '',
   groupBySeverity: true
 };

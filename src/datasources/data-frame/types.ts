@@ -338,6 +338,11 @@ export interface DataFrameDataSourceOptions extends DataSourceJsonData {
   featureToggles: DataFrameFeatureToggles;
 }
 
+export interface ColumnOptions {
+  uniqueColumnsAcrossTables: Option[];
+  commonColumnsAcrossTables: Option[];
+}
+
 export interface Option {
   label: string;
   value: string;

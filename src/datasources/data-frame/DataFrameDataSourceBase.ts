@@ -15,9 +15,9 @@ import {
     ValidDataFrameVariableQuery,
     DataFrameDataQuery,
     DataFrameVariableQuery,
-    Option,
-    ColumnFilter,
-    CombinedFilters
+    CombinedFilters,
+    ColumnOptions,
+    ColumnFilter
 } from './types';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { extractErrorInfo } from 'core/errors';
@@ -91,8 +91,8 @@ export abstract class DataFrameDataSourceBase<
         }
     }
 
-    public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
-        return Promise.resolve([]);
+    public async getColumnOptionsWithVariables(filters: CombinedFilters): Promise<ColumnOptions> {
+        return Promise.resolve({ uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] });
     }
 
     public async loadPartNumbers(): Promise<string[]> {
@@ -115,12 +115,17 @@ export abstract class DataFrameDataSourceBase<
         return this.templateSrv.replace(query);
     }
 
-    public createColumnOptions(_columnTypeMap: Record<string, Set<string>>): Option[] {
-        return [];
+    public transformResultQuery(filter: string) {
+        return this.templateSrv.replace(filter);
     }
 
-    public transformColumnDataType(dataType: string): string {
-        return dataType;
+    public parseColumnIdentifier(
+        _columnIdentifier: string
+    ): { columnName: string, transformedDataType: string } {
+        return {
+            columnName: '',
+            transformedDataType: ''
+        };
     }
 
     protected constructNullFilters(columns: Column[]): ColumnFilter[] {

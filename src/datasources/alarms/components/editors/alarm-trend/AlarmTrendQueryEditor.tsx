@@ -1,20 +1,20 @@
-import { AlarmsTrendQuery } from 'datasources/alarms/types/AlarmsTrend.types';
+import { AlarmTrendQuery } from 'datasources/alarms/types/AlarmTrend.types';
 import React, { useEffect, useState } from 'react';
 import { InlineField } from 'core/components/InlineField';
 import { AlarmsQueryBuilder } from '../../query-builder/AlarmsQueryBuilder';
 import { ERROR_SEVERITY_WARNING, LABEL_WIDTH, labels, SECONDARY_LABEL_WIDTH, tooltips } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
-import { AlarmsTrendQueryHandler } from 'datasources/alarms/query-type-handlers/alarms-trend/AlarmsTrendQueryHandler';
+import { AlarmTrendQueryHandler } from 'datasources/alarms/query-type-handlers/alarm-trend/AlarmTrendQueryHandler';
 import { Workspace } from 'core/types';
 import { FloatingError } from 'core/errors';
 import { InlineSwitch, Stack } from '@grafana/ui';
 
 type Props = {
-  query: AlarmsTrendQuery;
-  handleQueryChange: (query: AlarmsTrendQuery, runQuery?: boolean) => void;
-  datasource: AlarmsTrendQueryHandler
+  query: AlarmTrendQuery;
+  handleQueryChange: (query: AlarmTrendQuery, runQuery?: boolean) => void;
+  datasource: AlarmTrendQueryHandler
 };
 
-export function AlarmsTrendQueryEditor({ query, handleQueryChange, datasource }: Props) {
+export function AlarmTrendQueryEditor({ query, handleQueryChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
 
   useEffect(() => {

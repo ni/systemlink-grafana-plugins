@@ -1,7 +1,7 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -37,6 +37,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             );
         }
 
+        if (processedQuery.resultFilter) {
+            processedQuery.resultFilter = this.transformResultQuery(
+                processedQuery.resultFilter,
+                options.scopedVars
+            );
+        }
+
         if (this.shouldQueryForData(processedQuery)) {
             return this.getFieldsForDataQuery$(
                 processedQuery,
@@ -64,15 +71,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         if (processedQuery.dataTableFilter) {
             processedQuery.dataTableFilter = this.transformDataTableQuery(
                 processedQuery.dataTableFilter,
-                options?.scopedVars! || ''
+                options?.scopedVars || {}
             );
         }
 
+        if (processedQuery.resultFilter) {
+            processedQuery.resultFilter = this.transformResultQuery(
+                processedQuery.resultFilter,
+                options?.scopedVars || {}
+            );
+        }
+
+        const filters = {
+            resultFilter: processedQuery.resultFilter,
+            dataTableFilter: processedQuery.dataTableFilter,
+        };
+
         if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
-            const filters = {
-                resultFilter: processedQuery.resultFilter,
-                dataTableFilter: processedQuery.dataTableFilter,
-            };
             const tables = await lastValueFrom(this.queryTables$(
                 filters,
                 TAKE_LIMIT,
@@ -84,8 +99,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             }));
         }
 
-        const columns = await this.getColumnOptions(processedQuery.dataTableFilter);
-        const limitedColumns = columns.splice(0, COLUMN_OPTIONS_LIMIT);
+        const columns = await this.getColumnOptions(filters, false);
+        const limitedColumns = columns.uniqueColumnsAcrossTables.splice(0, COLUMN_OPTIONS_LIMIT);
 
         return limitedColumns.map(column => ({
             text: column.label,
@@ -183,7 +198,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         take?: number,
         projections?: DataTableProjections[]
     ): Observable<TableProperties[]> {
-        const isQueryByResultFeatureEnabled = this.instanceSettings.jsonData?.featureToggles?.queryByResultAndColumnProperties
+        const isQueryByResultFeatureEnabled = this.instanceSettings.jsonData?.featureToggles?.queryByResultAndColumnProperties;
         if (filters.resultFilter && isQueryByResultFeatureEnabled) {
             return this.queryResultIds$(filters.resultFilter).pipe(
                 switchMap(resultIds => {
@@ -213,12 +228,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         projection?: DataTableProjections[],
         substitutions?: string[]
     ): Observable<TableProperties[]> {
-        const requestBody = { 
-            interactive: true, 
-            filter, 
-            take, 
-            projection, 
-            substitutions, 
+        const requestBody = {
+            interactive: true,
+            filter,
+            take,
+            projection,
+            substitutions,
         };
         const response = this.post$<TablePropertiesList>(
             `${this.baseUrl}/query-tables`,
@@ -247,54 +262,26 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return Promise.resolve([]);
     }
 
-    public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
-        const columnOptionsWithoutVariables = await this.getColumnOptions(
-            filter
-        );
-        const columnOptionsWithVariables = [
+    public async getColumnOptionsWithVariables(
+        filters: CombinedFilters
+    ): Promise<ColumnOptions> {
+        const columnOptions = await this.getColumnOptions(filters);
+        const uniqueColumnsAcrossTablesWithVariables = [
             ...this.getVariableOptions(),
-            ...columnOptionsWithoutVariables
+            ...columnOptions.uniqueColumnsAcrossTables
         ];
-        return columnOptionsWithVariables;
+        const commonColumnsAcrossTablesWithVariables = [
+            ...this.getVariableOptions(),
+            ...columnOptions.commonColumnsAcrossTables
+        ];
+        return {
+            uniqueColumnsAcrossTables: uniqueColumnsAcrossTablesWithVariables,
+            commonColumnsAcrossTables: commonColumnsAcrossTablesWithVariables
+        };
     }
 
-    public transformQuery(query: string, scopedVars: ScopedVars = this.scopedVars) {
-        return transformComputedFieldsQuery(
-            this.templateSrv.replace(query, scopedVars),
-            this.dataTableComputedDataFields,
-        );
-    }
-
-    public transformColumnDataType(dataType: string): string {
-        const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType)
-            ? 'Numeric'
-            : this.toSentenceCase(dataType);
-        return type;
-    }
-
-    public createColumnOptions(columnTypeMap: Record<string, Set<string>>): Option[] {
-        const options: Option[] = [];
-
-        Object.entries(columnTypeMap).forEach(([name, dataTypes]) => {
-            const columnDataType = Array.from(dataTypes);
-
-            if (columnDataType.length === 1) {
-                // Single type: show just the name as label and value as name with transformed type
-                options.push({ label: name, value: `${name}-${columnDataType[0]}` });
-            } else {
-                // Multiple types: show type in label and value
-                columnDataType.forEach(type => {
-                    options.push({ label: `${name} (${type})`, value: `${name}-${type}` });
-                });
-            }
-        });
-
-        return options;
-    }
-
-    // TODO(#3526598): Make this method private after implementing the runQuery method for data query type.
-    public getDecimatedTableDataInBatches$(
-        tableColumnsMap: Record<string, Column[]>,
+    private getDecimatedTableDataInBatches$(
+        tableColumnsMap: Record<string, { columns: Column[], selectedColumns: Column[] }>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
         intervals = 1000
@@ -313,9 +300,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     concatMap(() => forkJoin(
                         batch.map(request =>
                             this.getDecimatedTableData$(request).pipe(
-                                map(tableDataRows => ({ 
-                                    tableId: request.tableId, 
-                                    data: tableDataRows 
+                                map(tableDataRows => ({
+                                    tableId: request.tableId,
+                                    data: tableDataRows
                                 }))
                             )
                         )
@@ -330,28 +317,71 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private getDecimatedDataRequests(
-        tableColumnsMap: Record<string, Column[]>,
+        tableColumnsMap: Record<string, { columns: Column[], selectedColumns: Column[] }>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
         intervals = 1000
     ): DecimatedDataRequest[] {
-        return Object.entries(tableColumnsMap).map(([tableId, columns]) => {
-            const filters: ColumnFilter[] = query.filterNulls
-                ? this.constructNullFilters(columns)
+        return Object.entries(tableColumnsMap).map(([tableId, columnsMap]) => {
+            const nullFilters: ColumnFilter[] = query.filterNulls
+                ? this.constructNullFilters(columnsMap.selectedColumns)
                 : [];
+            const timeFilters: ColumnFilter[] = query.applyTimeFilters
+                ? this.constructTimeFilters(query.xColumn, columnsMap.columns, timeRange)
+                : [];
+            const filters: ColumnFilter[] = [
+                ...nullFilters,
+                ...timeFilters
+            ];
+            const yColumns = this.getNumericColumns(columnsMap.selectedColumns)
+                .map(column => column.name);
 
             return {
                 tableId,
-                columns: columns.map(column => column.name),
+                columns: columnsMap.selectedColumns.map(column => column.name),
                 filters,
                 decimation: {
                     method: query.decimationMethod,
                     xColumn: query.xColumn || undefined,
-                    yColumns: this.getNumericColumns(columns).map(column => column.name),
+                    yColumns,
                     intervals,
                 }
             };
         });
+    }
+
+    private constructTimeFilters(
+        xColumn: string | null,
+        columns: Column[],
+        timeRange: TimeRange
+    ): ColumnFilter[] {
+        let columnName: string | undefined;
+
+        if (xColumn) {
+            columnName = this.parseColumnIdentifier(xColumn).columnName;
+        } else {
+            const timeIndexColumn = columns.find(column =>
+                column.dataType === 'TIMESTAMP' && column.columnType === 'INDEX'
+            );
+            columnName = timeIndexColumn?.name;
+        }
+
+        if (!columnName) {
+            return [];
+        }
+
+        return [
+            {
+                column: columnName,
+                operation: 'GREATER_THAN_EQUALS',
+                value: timeRange.from.toISOString()
+            },
+            {
+                column: columnName,
+                operation: 'LESS_THAN_EQUALS',
+                value: timeRange.to.toISOString()
+            },
+        ];
     }
 
     private getDecimatedTableData$(request: DecimatedDataRequest): Observable<TableDataRows> {
@@ -366,24 +396,45 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
-    private async getColumnOptions(dataTableFilter: string): Promise<Option[]> {
+    private async getColumnOptions(
+        filters: CombinedFilters,
+        includeCommonColumnsAcrossTables = true
+    ): Promise<ColumnOptions> {
         const tables = await lastValueFrom(
-            this.queryTables$({ dataTableFilter }, TAKE_LIMIT, [
+            this.queryTables$(filters, TAKE_LIMIT, [
                 DataTableProjections.ColumnName,
                 DataTableProjections.ColumnDataType,
             ]));
+
+        if (!this.tablesContainsColumns(tables)) {
+            return { uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] };
+        }
 
         const hasColumns = tables.some(
             table => Array.isArray(table.columns)
                 && table.columns.length > 0
         );
         if (!hasColumns) {
-            return [];
+            return { uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] };
         }
 
-        const columnTypeMap = this.createColumnNameDataTypesMap(tables);
+        const columnNameDataTypesMap = this.createColumnNameDataTypesMap(tables);
+        const uniqueColumnsAcrossTables = this.getUniqueColumnsAcrossTables(columnNameDataTypesMap);
+        const commonColumnsAcrossTables = includeCommonColumnsAcrossTables
+            ? this.getCommonColumnsAcrossTables(tables)
+            : [];
 
-        return this.createColumnOptions(columnTypeMap);
+        return { uniqueColumnsAcrossTables, commonColumnsAcrossTables };
+    }
+
+    private tablesContainsColumns(tables: TableProperties[]): boolean {
+        return tables.length > 0 && tables[0].columns !== undefined;
+    }
+
+    private createColumnIdentifierSet(columns: Column[]): Set<string> {
+        return new Set(
+            columns.map(column => this.getColumnIdentifier(column.name, column.dataType))
+        );
     }
 
     private getMigratedColumns(
@@ -417,7 +468,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 tableColumn => tableColumn.name === selectedColumn
             );
             return matchingColumn
-                ? `${matchingColumn.name}-${this.transformColumnDataType(matchingColumn.dataType)}`
+                ? this.getColumnIdentifier(matchingColumn.name, matchingColumn.dataType)
                 : selectedColumn;
         });
     }
@@ -462,6 +513,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
     }
 
+    private transformColumnDataType(dataType: string): string {
+        const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType)
+            ? 'Numeric'
+            : this.toSentenceCase(dataType);
+        return type;
+    }
+
     private createColumnNameDataTypesMap(tables: TableProperties[]): Record<string, Set<string>> {
         const columnNameDataTypeMap: Record<string, Set<string>> = {};
         tables.forEach(table => {
@@ -474,6 +532,68 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         });
         return columnNameDataTypeMap;
     };
+
+    private getUniqueColumnsAcrossTables(columnNameDataTypesMap: Record<string, Set<string>>): Option[] {
+        const options: Option[] = [];
+
+        Object.entries(columnNameDataTypesMap).forEach(([columnName, dataTypes]) => {
+            const columnDataType = Array.from(dataTypes);
+
+            if (columnDataType.length === 1) {
+                // Single type: show just the name as label and value as name with type in sentence case
+                options.push({ label: columnName, value: `${columnName}-${columnDataType[0]}` });
+            } else {
+                // Multiple types: show type in label and value
+                columnDataType.forEach(dataType => {
+                    options.push({ label: `${columnName} (${dataType})`, value: `${columnName}-${dataType}` });
+                });
+            }
+        });
+
+        return options;
+    };
+
+    private getCommonColumnsAcrossTables(tables: TableProperties[]): Option[] {
+        if (!this.tablesContainsColumns(tables)) {
+            return [];
+        }
+
+        const numericColumns = this.getNumericColumns(tables[0].columns);
+        let commonColumns = this.createColumnIdentifierSet(numericColumns);
+
+        for (let i = 1; (i < tables.length) && (commonColumns.size > 0); i++) {
+            const tableColumnsSet = this.createColumnIdentifierSet(tables[i].columns);
+            commonColumns = new Set(
+                [...commonColumns].filter(column => tableColumnsSet.has(column))
+            );
+        }
+
+        return [...commonColumns].map(column => {
+            return {
+                label: this.parseColumnIdentifier(column).columnName,
+                value: column
+            }
+        });
+    }
+
+    private getColumnIdentifier(columnName: string, dataType: string): string {
+        const transformedDataType = this.transformColumnDataType(dataType);
+        return `${columnName}-${transformedDataType}`;
+    }
+
+    public parseColumnIdentifier(
+        columnIdentifier: string
+    ): { columnName: string, transformedDataType: string } {
+        const parts = columnIdentifier.split('-');
+        // Remove transformed column type
+        const transformedDataType = parts.pop() ?? '';
+        const columnName = parts.join('-');
+
+        return {
+            columnName,
+            transformedDataType
+        };
+    }
 
     /**
      * Converts a string to sentence case (e.g., 'TIMESTAMP' -> 'Timestamp').
@@ -532,8 +652,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 ];
 
                 const tables$ = this.queryTables$(
-                    { 
-                        dataTableFilter: processedQuery.dataTableFilter 
+                    {
+                        dataTableFilter: processedQuery.dataTableFilter
                     },
                     TAKE_LIMIT,
                     projections
@@ -550,11 +670,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             throw new Error(errorMessage);
                         }
 
+                        if (
+                            processedQuery.xColumn
+                            && !this.isSelectedXColumnValid(processedQuery.xColumn, tables)
+                        ) {
+                            const errorMessage = 'The selected X column is invalid. Please update your X column selection or refine your filters.';
+                            this.appEvents?.publish?.({
+                                type: AppEvents.alertError.name,
+                                payload: ['X Column selection error', errorMessage],
+                            });
+                            throw new Error(errorMessage);
+                        }
+
                         const selectedTableColumnMap = this.buildSelectedColumnsMap(
                             selectedColumns,
                             tables
                         );
-                        const columns = Object.values(selectedTableColumnMap).flat();
+                        const columns = Object.values(selectedTableColumnMap).flatMap(item => item.selectedColumns);
                         if (Object.keys(selectedTableColumnMap).length > 0) {
                             return this.getDecimatedTableDataInBatches$(
                                 selectedTableColumnMap,
@@ -705,12 +837,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         selectedColumns: string[],
         tables: TableProperties[]
     ): boolean {
-        const allTableColumns = new Set<string>(
-            tables.flatMap(table =>
-                table.columns?.map(column =>
-                    `${column.name}-${this.transformColumnDataType(column.dataType)}`
-                ) ?? []
-            )
+        const allTableColumns = this.createColumnIdentifierSet(
+            tables.flatMap(table => table.columns ?? [])
         );
 
         return selectedColumns.every(
@@ -718,16 +846,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
+    private isSelectedXColumnValid(
+        xColumn: string,
+        tables: TableProperties[]
+    ): boolean {
+        return tables.every(table => this.createColumnIdentifierSet(table.columns).has(xColumn));
+    }
+
     private buildSelectedColumnsMap(
         selectedColumns: string[],
         tables: TableProperties[]
-    ): Record<string, Column[]> {
-        const selectedTableColumnsMap: Record<string, Column[]> = {};
+    ): Record<string, { columns: Column[], selectedColumns: Column[] }> {
+        const selectedTableColumnsMap: Record<string, { columns: Column[], selectedColumns: Column[] }> = {};
         tables.forEach(table => {
             const selectedColumnsForTable = this.getSelectedColumnsForTable(
                 selectedColumns, table
             );
-            if (selectedColumnsForTable.length > 0) {
+            if (selectedColumnsForTable.selectedColumns.length > 0) {
                 selectedTableColumnsMap[table.id] = selectedColumnsForTable;
             }
         });
@@ -737,18 +872,20 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private getSelectedColumnsForTable(
         selectedColumns: string[],
         table: TableProperties
-    ): Column[] {
+    ): { columns: Column[], selectedColumns: Column[] } {
         if (!Array.isArray(table.columns) || table.columns.length === 0) {
-            return [];
+            return { columns: [], selectedColumns: [] };
         }
 
-        const selectedColumnDetails: Column[] = [];
+        const selectedColumnDetails: { columns: Column[], selectedColumns: Column[] } = {
+            columns: [],
+            selectedColumns: []
+        };
 
         table.columns.forEach(column => {
-            const transformedColumnType = this.transformColumnDataType(column.dataType);
-            const tableColumnId = `${column.name}-${transformedColumnType}`;
+            const tableColumnId = this.getColumnIdentifier(column.name, column.dataType);
             if (selectedColumns.includes(tableColumnId)) {
-                selectedColumnDetails.push({
+                selectedColumnDetails.selectedColumns.push({
                     name: column.name,
                     dataType: column.dataType,
                     columnType: column.columnType,
@@ -756,6 +893,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 });
             }
         });
+
+        if (selectedColumnDetails.selectedColumns.length > 0) {
+            selectedColumnDetails.columns = table.columns
+        }
         return selectedColumnDetails;
     }
 
@@ -789,21 +930,21 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     protected readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
         Object.values(ResultsQueryBuilderFieldNames).map(field => {
-          let callback;
-          
-          switch (field) {
-            case ResultsQueryBuilderFieldNames.UPDATED_AT:
-            case ResultsQueryBuilderFieldNames.STARTED_AT:
-              callback = timeFieldsQuery(field);
-              break;
-            case ResultsQueryBuilderFieldNames.KEYWORDS:
-              callback = listFieldsQuery(field);
-              break;
-            default:
-              callback = multipleValuesQuery(field);
-          }
-    
-          return [field, callback];
+            let callback;
+
+            switch (field) {
+                case ResultsQueryBuilderFieldNames.UPDATED_AT:
+                case ResultsQueryBuilderFieldNames.STARTED_AT:
+                    callback = timeFieldsQuery(field);
+                    break;
+                case ResultsQueryBuilderFieldNames.KEYWORDS:
+                    callback = listFieldsQuery(field);
+                    break;
+                default:
+                    callback = multipleValuesQuery(field);
+            }
+
+            return [field, callback];
         })
     );
 
@@ -916,7 +1057,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const filters = {
             resultFilter: processedQuery.resultFilter,
             dataTableFilter: processedQuery.dataTableFilter,
-        }
+        };
         const tables$ = this.queryTables$(
             filters,
             processedQuery.take,
@@ -996,14 +1137,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private buildCombinedFilter(filters: CombinedFilters): string {
         const combinedFilters: string[] = [];
-        
+
         if (filters.resultFilter) {
             combinedFilters.push(`(${filters.resultFilter})`);
         }
         if (filters.dataTableFilter) {
             combinedFilters.push(`(${filters.dataTableFilter})`);
         }
-        
+
         return combinedFilters.join(' && ');
     }
 }

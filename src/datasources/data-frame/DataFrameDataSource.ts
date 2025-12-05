@@ -2,7 +2,6 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetri
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import {
   Column,
-  Option,
   DataFrameDataQuery,
   DataFrameDataSourceOptions,
   DataFrameFeatureTogglesDefaults,
@@ -12,7 +11,8 @@ import {
   TableProperties,
   ValidDataFrameQuery,
   ValidDataFrameVariableQuery, DataFrameQuery,
-  CombinedFilters
+  CombinedFilters,
+  ColumnOptions
 } from "./types";
 import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
 import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
@@ -122,19 +122,21 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.processVariableQuery(query);
   }
 
-  public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
-    return this.datasource.getColumnOptionsWithVariables(filter);
+  public async getColumnOptionsWithVariables(filters: CombinedFilters): Promise<ColumnOptions> {
+    return this.datasource.getColumnOptionsWithVariables(filters);
   }
 
   public transformDataTableQuery(query: string) {
     return this.datasource.transformDataTableQuery(query);
   }
 
-  public createColumnOptions(columnTypeMap: Record<string, Set<string>>): Option[] {
-    return this.datasource.createColumnOptions(columnTypeMap);
+  public transformResultQuery(query: string): string {
+    return this.datasource.transformResultQuery(query);
   }
 
-  public transformColumnDataType(dataType: string): string {
-    return this.datasource.transformColumnDataType(dataType);
+  public parseColumnIdentifier(
+    columnIdentifier: string
+  ): { columnName: string, transformedDataType: string } {
+    return this.datasource.parseColumnIdentifier(columnIdentifier);
   }
 }

@@ -82,5 +82,7 @@ export const errorMessages = {
         lessOrEqualToTakeLimit: `The take value must be less than or equal to ${TAKE_LIMIT}.`
     },
     columnLimitExceeded: `The tables query returned too many columns. Only the first ${COLUMN_OPTIONS_LIMIT} columns are shown in the selection list.`,
+    xColumnLimitExceeded: `The tables query returned too many columns. Only the first ${COLUMN_OPTIONS_LIMIT} columns are shown in the x-column selection list.`,
+    xColumnSelectionInvalid: 'The selected x-column is not available in all the tables matching the query.',
     propertiesNotSelected: 'At least one data table property or column property must be selected.',
 };

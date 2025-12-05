@@ -147,9 +147,9 @@ describe('DataFrameDataSourceBase', () => {
     it('should return empty array for getColumnOptionsWithVariables', async () => {
         const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
 
-        const options = await ds.getColumnOptionsWithVariables('filter');
+        const options = await ds.getColumnOptionsWithVariables({dataTableFilter: 'filter'});
 
-        expect(options).toEqual([]);
+        expect(options).toEqual({ uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] });
     });
 
     it('should return query as it is for processVariableQuery', async () => {
@@ -459,27 +459,44 @@ describe('DataFrameDataSourceBase', () => {
         });
     });
 
-    describe('createColumnOptions', () => {
-        it('should return empty array by default', () => {
-            const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
-            const columnTypeMap = {
-                'Column1': new Set(['String']),
-                'Column2': new Set(['Numeric'])
-            };
+    describe('transformResultQuery', () => {
+        let ds: TestDataFrameDataSource;
 
-            const result = ds.createColumnOptions(columnTypeMap);
+        beforeEach(() => {
+            ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+        });
 
-            expect(result).toEqual([]);
+        it('should return the replaced filter string', () => {
+            const filter = 'status = $status';
+            (templateSrv.replace as jest.Mock).mockReturnValue('status = "Passed"');  
+            
+            const result = ds.transformResultQuery(filter);
+            
+            expect(result).toBe('status = "Passed"');
+        });
+
+        it('should propagate errors thrown by templateSrv.replace', () => {
+            const filter = 'errorFilter';
+            
+            (templateSrv.replace as jest.Mock).mockImplementation(() => { throw new Error('replace failed'); });
+            
+            expect(() => ds.transformResultQuery(filter)).toThrow('replace failed');
         });
     });
 
-    describe('transformColumnDataType', () => {
-        it('should return the same data type by default', () => {
-            const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+    describe('parseColumnIdentifier', () => {
+        it('should return the empty column name and data type by default', () => {
+            const ds = new TestDataFrameDataSource(
+                instanceSettings,
+                backendSrv,
+                templateSrv
+            );
 
-            expect(ds.transformColumnDataType('STRING')).toBe('STRING');
-            expect(ds.transformColumnDataType('INT32')).toBe('INT32');
-            expect(ds.transformColumnDataType('BOOLEAN')).toBe('BOOLEAN');
+            const parseResult = ds.parseColumnIdentifier('any-input');
+            expect(parseResult).toEqual({
+                columnName: '',
+                transformedDataType: ''
+            });
         });
     });
 });
