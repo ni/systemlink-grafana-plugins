@@ -744,16 +744,22 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         const selectedColumnDetails: Column[] = [];
-        let tableIndexColumn: Column[] = [];
+        let tableIndexColumn: Column = {
+            name: '',
+            dataType: 'INT32',
+            columnType: ColumnType.Index,
+            properties: {}
+        };
+        let tableColumns = table.columns;
 
         if(includeIndexColumns) {
             tableIndexColumn = table.columns
-                .filter(column => column.columnType === ColumnType.Index);
-            table.columns = table.columns
+                .filter(column => column.columnType === ColumnType.Index)[0];
+            tableColumns = table.columns
                 .filter(column => column.columnType !== ColumnType.Index);
         }
         
-        table.columns.forEach(column => {
+        tableColumns.forEach(column => {
             const tableColumnId = this.getColumnIdentifier(column.name, column.dataType);
             if (selectedColumns.includes(tableColumnId)) {
                 selectedColumnDetails.push({
@@ -765,17 +771,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             }
         });
 
-        if (includeIndexColumns && selectedColumnDetails.length > 0 && tableIndexColumn.length > 0) {
-            selectedColumnDetails.push(
-                ...tableIndexColumn.map(
-                    indexColumn => ({
-                        name: indexColumn.name,
-                        dataType: indexColumn.dataType,
-                        columnType: indexColumn.columnType,
-                        properties: {}
-                    })
-                )
-            );
+        if (
+            includeIndexColumns
+            && selectedColumnDetails.length > 0
+            && tableIndexColumn !== undefined
+        ) {
+            selectedColumnDetails.push(tableIndexColumn);
         }
 
         return selectedColumnDetails;

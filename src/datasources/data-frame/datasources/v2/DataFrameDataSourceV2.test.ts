@@ -501,8 +501,8 @@ describe('DataFrameDataSourceV2', () => {
                                 id: 'table1',
                                 name: 'Table1',
                                 columns: [
-                                    { name: 'Index', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
                                     { name: 'ColumnA', dataType: 'STRING', columnType: ColumnType.Normal, properties: {} },
+                                    { name: 'Index', dataType: 'INT32', columnType: ColumnType.Index, properties: {} },
                                 ]
                             };
 
