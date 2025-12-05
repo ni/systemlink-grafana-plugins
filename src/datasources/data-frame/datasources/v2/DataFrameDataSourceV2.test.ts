@@ -2456,10 +2456,11 @@ describe('DataFrameDataSourceV2', () => {
             expect(result).toBe(mockTables);
         });
 
-        it('should combine result filter and data table filter with AND when both are provided', async () => {
+        it('should combine result filter, data table filter and column filter with AND when provided', async () => {
             const filters = {
                 resultFilter: 'status = "Passed"',
-                dataTableFilter: 'name = "Table1"'
+                dataTableFilter: 'name = "Table1"',
+                columnFilter: 'columns.any(it.name = "Column1")'
             };
 
             await lastValueFrom(ds.queryTables$(filters, 10));
@@ -2479,10 +2480,32 @@ describe('DataFrameDataSourceV2', () => {
                 `${ds.baseUrl}/query-tables`,
                 {
                     interactive: true,
-                    filter: '(new[] {@0, @1}.Contains(testResultId)) && (name = "Table1")',
+                    filter: '(new[] {@0, @1}.Contains(testResultId)) && (name = "Table1") && (columns.any(it.name = "Column1"))',
                     take: 10,
                     projection: undefined,
                     substitutions: ['result-1', 'result-2']
+                },
+                { useApiIngress: true }
+            );
+        });
+
+        it('should not combine column filter when result filter is empty', async () => {
+            const filters = {
+                resultFilter: '',
+                dataTableFilter: 'name = "Table1"',
+                columnFilter: 'columns.any(it.name = "Column1")'
+            };
+
+            await lastValueFrom(ds.queryTables$(filters, 10));
+
+            expect(postMock$).toHaveBeenCalledWith(
+                `${ds.baseUrl}/query-tables`,
+                {
+                    interactive: true,
+                    filter: 'name = "Table1"',
+                    take: 10,
+                    projection: undefined,
+                    substitutions: undefined
                 },
                 { useApiIngress: true }
             );

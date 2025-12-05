@@ -149,7 +149,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
             lastFilterRef.current = transformedFilter;
 
-            if (transformedFilter.dataTableFilter || transformedFilter.resultFilter || transformedFilter.columnFilter) {
+            if (
+                transformedFilter.dataTableFilter || 
+                transformedFilter.resultFilter || 
+                transformedFilter.columnFilter
+            ) {
                 fetchAndSetColumnOptions(transformedFilter);
                 return;
             }

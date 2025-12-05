@@ -859,17 +859,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         ])
     );
 
-    /**
-     * Creates a transformation function that converts a field and value into a columns.any() expression.
-     * 
-     * @param field - The field name to be used in the expression
-     * @returns A transformation function that takes a value and operation and returns a columns.any() expression string
-     * 
-     * @example
-     * // Negated operation (DOES_NOT_CONTAIN)
-     * // Input: field = "name", value = "{column1,column2}", operation = "notcontains"
-     * // Output: !columns.any(it.name.contains("column1") || it.name.contains("column2"))
-     */
     private convertToColumnsAnyExpression (field: string): ExpressionTransformFunction {
         return (value: string, operation: string) => {
             const isNegatedOperation = this.isNegatedOperation(operation);
@@ -1110,7 +1099,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         if (filters.dataTableFilter) {
             combinedFilters.push(`(${filters.dataTableFilter})`);
         }
-        if (filters.columnFilter) {
+        if (filters.resultFilter && filters.columnFilter) {
             combinedFilters.push(`(${filters.columnFilter})`);
         }
 
