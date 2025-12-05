@@ -1,3 +1,9 @@
+## [4.93.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.92.0...v4.93.0) (2025-12-05)
+
+### Features
+
+* **dataframes:** Add result and column filter in query tables call from column selection ([#585](https://github.com/ni/systemlink-grafana-plugins/issues/585)) ([40970b4](https://github.com/ni/systemlink-grafana-plugins/commit/40970b4aac390ff0a3410d71eb0f989f4b621e9c))
+
 ## [4.92.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.91.0...v4.92.0) (2025-12-05)
 
 ### Features
