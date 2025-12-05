@@ -3343,6 +3343,59 @@ describe('DataFrameDataSourceV2', () => {
             expect(result).toBe('columns.any(it.name = "col1" || it.name = "col2")');
         });
 
+        it('should parse column name with hyphen correctly in single-value variable', () => {
+            const input = 'name = "$Column"';
+            templateSrv.replace.mockReturnValue('name = "{Column1-Numeric}"');
+            
+            const result = ds.transformColumnQuery(input);
+
+            expect(result).toBe('columns.any(it.name = "Column1")');
+        });
+
+        it('should parse column name with hyphen correctly in multi-value variable', () => {
+            const input = 'name = "$Column"';
+            templateSrv.replace.mockReturnValue('name = "{Column1-Numeric,Column2-String,Column3-Bool,Column4-Timestamp}"');
+            
+            const result = ds.transformColumnQuery(input);
+
+            expect(result).toBe('columns.any(it.name = "Column1" || it.name = "Column2" || it.name = "Column3" || it.name = "Column4")');
+        });
+
+        it('should not parse column name when value does not have hyphen', () => {
+            const input = 'name = "$Column"';
+            templateSrv.replace.mockReturnValue('name = "{ColumnWithoutDataType}"');
+            
+            const result = ds.transformColumnQuery(input);
+
+            expect(result).toBe('columns.any(it.name = "ColumnWithoutDataType")');
+        });
+
+        it('should not parse column name when value does not contain data type', () => {
+            const input = 'name = "$Column"';
+            templateSrv.replace.mockReturnValue('name = "{Column-Without-Data-Type}"');
+            
+            const result = ds.transformColumnQuery(input);
+
+            expect(result).toBe('columns.any(it.name = "Column-Without-Data-Type")');
+        });
+
+        it('should parse unique column names correctly', () => {
+            const input = 'name = "$Column"';
+            templateSrv.replace.mockReturnValue('name = "{Column1-Numeric,Column2-String,Column1-Bool}"');
+            
+            const result = ds.transformColumnQuery(input);
+
+            expect(result).toBe('columns.any(it.name = "Column1" || it.name = "Column2")');
+        });
+
+        it('should not parse column name when variable is not used in name field', () => {
+            const input = 'name = "Column-Numeric"';
+            
+            const result = ds.transformColumnQuery(input);
+
+            expect(result).toBe('columns.any(it.name = "Column-Numeric")');
+        });
+
         it('should transform EQUALS operation with column name field to columns.any expression', () => {
             const input = 'name = "Temperature"';
             
