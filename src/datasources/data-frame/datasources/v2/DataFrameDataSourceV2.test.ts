@@ -3104,6 +3104,126 @@ describe('DataFrameDataSourceV2', () => {
         });
     });
 
+    describe('transformColumnQuery', () => {
+        it('should transform with the new scopedVariables when passed in as parameter', () => {
+            const input = 'name = "${Column}" AND name != "abc"';
+            const scopedVars = {
+                Column: { text: 'Column1', value: 'Column1' }
+            };
+            
+            ds.transformColumnQuery(input, scopedVars);    
+            expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
+        });
+
+        it('should transform with saved scopedVariables when not passed in as parameter', async () => {
+            const scopedVars = {
+                column: { value: 'TestColumn' }
+            }
+            const query = {
+                type: DataFrameQueryType.Data,
+                dataTableFilter: '',
+            } as DataFrameQueryV2;
+            const options = {
+                scopedVars: scopedVars
+            } as unknown as DataQueryRequest<DataFrameQueryV2>;
+            await lastValueFrom(ds.runQuery(query, options));
+            const input = 'name = "$Column"';
+            
+            ds.transformColumnQuery(input);   
+ 
+            expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
+        });
+
+        it('should replace single-value variables', () => {
+            const input = 'name = "$Column" && name != "abc"';
+            templateSrv.replace.mockReturnValue('name = "{Column1}" && name != "abc"');
+            
+            const result = ds.transformColumnQuery(input);
+
+            expect(result).toBe('columns.any(it.name = "Column1") && !columns.any(it.name = "abc")');
+        });
+
+        it('should transform and expand multi-value variables', () => {
+            const input = 'name = "{col1,col2}"';
+            
+            const result = ds.transformColumnQuery(input);
+
+            expect(result).toBe('columns.any(it.name = "col1" || it.name = "col2")');
+        });
+
+        it('should transform EQUALS operation with column name field to columns.any expression', () => {
+            const input = 'name = "Temperature"';
+            
+            const result = ds.transformColumnQuery(input);
+
+            expect(result).toBe('columns.any(it.name = "Temperature")');
+        });
+
+        it('should transform DOES_NOT_EQUAL operation with column name field to negated columns.any expression', () => {
+            const input = 'name != "Temperature"';
+            
+            const result = ds.transformColumnQuery(input);
+
+            expect(result).toBe('!columns.any(it.name = "Temperature")');
+        });
+
+        it('should transform CONTAINS operation with column name field to columns.any expression', () => {
+            const input = 'name.Contains("Temp")';
+            
+            const result = ds.transformColumnQuery(input);
+
+            expect(result).toBe('columns.any(it.name.Contains("Temp"))');
+        });
+
+        it('should transform DOES_NOT_CONTAIN operation with column name field to negated columns.any expression', () => {
+            const input = '!(name.Contains("Temp"))';
+            
+            const result = ds.transformColumnQuery(input);
+
+            expect(result).toBe('!columns.any(it.name.Contains("Temp"))');
+        });
+
+        it('should handle multi-value equals operation correctly', () => {
+            const input = 'name = "{col1,col2}"';
+            
+            const result = ds.transformColumnQuery(input);
+
+            expect(result).toBe('columns.any(it.name = "col1" || it.name = "col2")');
+        });
+
+        it('should handle multi-value not equals operation correctly', () => {
+            const input = 'name != "{col1,col2}"';
+            
+            const result = ds.transformColumnQuery(input);
+
+            expect(result).toBe('!columns.any(it.name = "col1" || it.name = "col2")');
+        });
+
+        it('should handle multi-value contains operation correctly', () => {
+            const input = 'name.Contains("{temp,pressure}")';
+            
+            const result = ds.transformColumnQuery(input);
+
+            expect(result).toBe('columns.any(it.name.Contains("temp") || it.name.Contains("pressure"))');
+        });
+
+        it('should handle multi-value does not contain operation correctly', () => {
+            const input = '!(name.Contains("{temp,pressure}"))';
+            
+            const result = ds.transformColumnQuery(input);
+
+            expect(result).toBe('!columns.any(it.name.Contains("temp") || it.name.Contains("pressure"))');
+        });
+
+        it('should handle complex expressions with AND operator', () => {
+            const input = 'name = "Column1" && name != "Column2"';
+            
+            const result = ds.transformColumnQuery(input);
+
+            expect(result).toBe('columns.any(it.name = "Column1") && !columns.any(it.name = "Column2")');
+        });
+    });
+
     describe('parseColumnIdentifier', () => {
         it('should parse column identifier with hyphen correctly', () => {
             const identifier = 'column 1-Numeric';

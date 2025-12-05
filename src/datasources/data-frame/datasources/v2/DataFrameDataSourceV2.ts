@@ -11,6 +11,8 @@ import _ from "lodash";
 import { catchError, combineLatestWith, concatMap, forkJoin, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap } from "rxjs";
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
 import { replaceVariables } from "core/utils";
+import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
+import { QueryBuilderOperations } from "core/query-builder.constants";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
@@ -475,6 +477,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
+    public transformColumnQuery(query: string, scopedVars: ScopedVars = this.scopedVars) {
+        return transformComputedFieldsQuery(
+            this.templateSrv.replace(query, scopedVars),
+            this.columnComputedDataFields,
+        );
+    }
+
     private transformColumns(columns: string[]): string[] {
         return replaceVariables(columns, this.templateSrv);
     }
@@ -826,6 +835,56 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return [field, callback];
         })
     );
+
+    protected readonly columnComputedDataFields = new Map<string, ExpressionTransformFunction>(
+        [ColumnsQueryBuilderFieldNames.ColumnName].map(field => [
+            field,
+            this.convertToColumnsAnyExpression(field)
+        ])
+    );
+
+    private convertToColumnsAnyExpression (field: string): ExpressionTransformFunction {
+        return (value: string, operation: string) => {
+            const isNegatedOperation = this.isNegatedOperation(operation);
+            const positiveOperation = this.getPositiveOperation(operation);
+            const innerExpression = multipleValuesQuery(field)(value, positiveOperation);
+            const cleanedExpression = this.removeWrapper(innerExpression);
+            const transformedExpression = this.transformToIteratorExpression(cleanedExpression, field);
+
+            return isNegatedOperation
+                ? `!columns.any(${transformedExpression})`
+                : `columns.any(${transformedExpression})`;
+        };
+    }
+
+    private isNegatedOperation (operation: string): boolean {
+        return (
+            operation === '!=' ||
+            operation === QueryBuilderOperations.DOES_NOT_EQUAL.name ||
+            operation === QueryBuilderOperations.DOES_NOT_CONTAIN.name
+        );
+    }
+
+    private getPositiveOperation (operation: string): string {
+        if (operation === '!=' || operation === QueryBuilderOperations.DOES_NOT_EQUAL.name) {
+            return QueryBuilderOperations.EQUALS.name;
+        }
+        if (operation === QueryBuilderOperations.DOES_NOT_CONTAIN.name) {
+            return QueryBuilderOperations.CONTAINS.name;
+        }
+        return operation;
+    }
+
+    private removeWrapper (expression: string): string {
+        return expression.startsWith('(')
+            ? expression.slice(1, -1)
+            : expression;
+    }
+
+    private transformToIteratorExpression (expression: string, field: string): string {
+        const fieldPattern = new RegExp(`\\b${field}\\b`, 'g');
+        return expression.replace(fieldPattern, `it.${field}`);
+    }
 
     private isTimeField(field: DataTableProperties): boolean {
         const timeFields = [
