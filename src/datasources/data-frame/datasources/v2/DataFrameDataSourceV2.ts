@@ -744,7 +744,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     );
 
     protected readonly columnComputedDataFields = new Map<string, ExpressionTransformFunction>(
-        [ ColumnsQueryBuilderFieldNames.ColumnName ].map(field => [ field, this.convertToColumnsAnyExpression(field) ])
+        [ColumnsQueryBuilderFieldNames.ColumnName].map(field => [
+            field,
+            this.convertToColumnsAnyExpression(field)
+        ])
     );
 
     private convertToColumnsAnyExpression (field: string): ExpressionTransformFunction {
@@ -752,7 +755,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             const isNegatedOperation = this.isNegatedOperation(operation);
             const positiveOperation = this.getPositiveOperation(operation);
             const innerExpression = multipleValuesQuery(field)(value, positiveOperation);
-            const cleanedExpression = this.removeNegationWrapper(innerExpression);
+            const cleanedExpression = this.removeWrapper(innerExpression);
             const transformedExpression = this.transformToIteratorExpression(cleanedExpression, field);
 
             return isNegatedOperation
@@ -779,9 +782,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return operation;
     }
 
-    private removeNegationWrapper (expression: string): string {
-        return expression.startsWith('!(')
-            ? expression.slice(2, -1)
+    private removeWrapper (expression: string): string {
+        return expression.startsWith('(')
+            ? expression.slice(1, -1)
             : expression;
     }
 

@@ -2814,7 +2814,7 @@ describe('DataFrameDataSourceV2', () => {
             
             const result = ds.transformColumnQuery(input);
 
-            expect(result).toBe('columns.any((it.name = "Column1")) && !columns.any(it.name = "abc")');
+            expect(result).toBe('columns.any(it.name = "Column1") && !columns.any(it.name = "abc")');
         });
 
         it('should transform and expand multi-value variables', () => {
@@ -2822,7 +2822,7 @@ describe('DataFrameDataSourceV2', () => {
             
             const result = ds.transformColumnQuery(input);
 
-            expect(result).toBe('columns.any((it.name = "col1" || it.name = "col2"))');
+            expect(result).toBe('columns.any(it.name = "col1" || it.name = "col2")');
         });
 
         it('should transform EQUALS operation with column name field to columns.any expression', () => {
@@ -2862,7 +2862,7 @@ describe('DataFrameDataSourceV2', () => {
             
             const result = ds.transformColumnQuery(input);
 
-            expect(result).toBe('columns.any((it.name = "col1" || it.name = "col2"))');
+            expect(result).toBe('columns.any(it.name = "col1" || it.name = "col2")');
         });
 
         it('should handle multi-value not equals operation correctly', () => {
@@ -2870,7 +2870,7 @@ describe('DataFrameDataSourceV2', () => {
             
             const result = ds.transformColumnQuery(input);
 
-            expect(result).toBe('!columns.any((it.name = "col1" || it.name = "col2"))');
+            expect(result).toBe('!columns.any(it.name = "col1" || it.name = "col2")');
         });
 
         it('should handle multi-value contains operation correctly', () => {
@@ -2878,7 +2878,7 @@ describe('DataFrameDataSourceV2', () => {
             
             const result = ds.transformColumnQuery(input);
 
-            expect(result).toBe('columns.any((it.name.Contains("temp") || it.name.Contains("pressure")))');
+            expect(result).toBe('columns.any(it.name.Contains("temp") || it.name.Contains("pressure"))');
         });
 
         it('should handle multi-value does not contain operation correctly', () => {
@@ -2886,7 +2886,7 @@ describe('DataFrameDataSourceV2', () => {
             
             const result = ds.transformColumnQuery(input);
 
-            expect(result).toBe('!columns.any((it.name.Contains("temp") || it.name.Contains("pressure")))');
+            expect(result).toBe('!columns.any(it.name.Contains("temp") || it.name.Contains("pressure"))');
         });
 
         it('should handle complex expressions with AND operator', () => {
