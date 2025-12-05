@@ -34,13 +34,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const processedQuery = this.processQuery(query);
         const transformedQuery = this.transformQuery(processedQuery, options.scopedVars);
 
-        if (processedQuery.columnFilter) {
-            processedQuery.columnFilter = this.transformColumnQuery(
-                processedQuery.columnFilter,
-                options.scopedVars
-            );
-        }
-
         if (this.shouldQueryForData(transformedQuery)) {
             return this.getFieldsForDataQuery$(
                 transformedQuery
@@ -522,6 +515,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         if (query.resultFilter) {
             query.resultFilter = this.transformResultQuery(
                 query.resultFilter,
+                scopedVars
+            );
+        }
+
+        if (query.columnFilter) {
+            query.columnFilter = this.transformColumnQuery(
+                query.columnFilter,
                 scopedVars
             );
         }
