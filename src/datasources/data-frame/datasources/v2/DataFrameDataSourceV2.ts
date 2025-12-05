@@ -749,27 +749,27 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             table.columns = table.columns.filter(column => column.columnType !== ColumnType.Index);
         }
         
-        table.columns
-            .forEach(column => {
-                    const tableColumnId = this.getColumnIdentifier(column.name, column.dataType);
-
-                if (selectedColumns.includes(tableColumnId)) {
-                    if (includeIndexColumns && tableIndexColumn.length > 0) {
-                        selectedColumnDetails.push(...tableIndexColumn.map(indexColumn => ({
-                            name: indexColumn.name,
-                            dataType: indexColumn.dataType,
-                            columnType: indexColumn.columnType,
-                            properties: {}
-                        })));
-                    }
-                    selectedColumnDetails.push({
-                        name: column.name,
-                        dataType: column.dataType,
-                        columnType: column.columnType,
-                        properties: {}
-                    });
-                }
+        table.columns.forEach(column => {
+            const tableColumnId = this.getColumnIdentifier(column.name, column.dataType);
+            if (selectedColumns.includes(tableColumnId)) {
+                selectedColumnDetails.push({
+                    name: column.name,
+                    dataType: column.dataType,
+                    columnType: column.columnType,
+                    properties: {}
+                });
+            }
         });
+
+        if (includeIndexColumns && selectedColumnDetails.length > 0 && tableIndexColumn.length > 0) {
+            selectedColumnDetails.push(...tableIndexColumn.map(indexColumn => ({
+                name: indexColumn.name,
+                dataType: indexColumn.dataType,
+                columnType: indexColumn.columnType,
+                properties: {}
+            })));
+        }
+
         return selectedColumnDetails;
     }
 
