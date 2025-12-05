@@ -1,3 +1,9 @@
+## [4.91.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.90.1...v4.91.0) (2025-12-05)
+
+### Features
+
+* **dataframe:** Add variable support for columns and x column ([#582](https://github.com/ni/systemlink-grafana-plugins/issues/582)) ([a7049bf](https://github.com/ni/systemlink-grafana-plugins/commit/a7049bf5344c8f4992c0d32f793d3dbaeb7d5867))
+
 ## [4.90.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.90.0...v4.90.1) (2025-12-05)
 
 ### Bug Fixes
