@@ -1,3 +1,9 @@
+## [4.94.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.93.0...v4.94.0) (2025-12-05)
+
+### Features
+
+* **dataframes:** Parse column name from variable ([#586](https://github.com/ni/systemlink-grafana-plugins/issues/586)) ([c2ef703](https://github.com/ni/systemlink-grafana-plugins/commit/c2ef703972a42be679729eeb6b02e8cebd0b1281))
+
 ## [4.93.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.92.0...v4.93.0) (2025-12-05)
 
 ### Features
