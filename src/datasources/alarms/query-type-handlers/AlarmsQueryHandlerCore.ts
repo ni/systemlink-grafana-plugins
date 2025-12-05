@@ -170,6 +170,24 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
     })
   );
 
+  // approach -1 not working for multi value variables
+  // private getSeverityLevelTransformation(dataField: string): ExpressionTransformFunction {
+  //   return (value: string, operation: string) => {
+  //     const criticalSeverityLevel = String(AlarmTransitionSeverityLevel.Critical);
+  //     let severityLevelOperator = operation;
+
+  //     if (value >= criticalSeverityLevel) {
+  //       severityLevelOperator =
+  //         (operation === QueryBuilderOperations.EQUALS.name)
+  //           ? QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name
+  //           : QueryBuilderOperations.LESS_THAN.name;
+  //     }
+
+  //     return multipleValuesQuery(dataField)(value, severityLevelOperator);
+  //   };
+  // }
+
+  //approach - 2 working
   private buildSeverityExpression(dataField: string, val: string, operation: string): string {
     const criticalSeverityLevel = String(AlarmTransitionSeverityLevel.Critical);
     
