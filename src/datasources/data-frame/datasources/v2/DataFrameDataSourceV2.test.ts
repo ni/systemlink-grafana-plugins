@@ -7,6 +7,7 @@ import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
 import { Workspace } from 'core/types';
 import { isObservable, lastValueFrom, Observable, of, throwError } from 'rxjs';
+import * as coreUtils from 'core/utils';
 
 jest.mock('core/query-builder.utils', () => {
     const actualQueryBuilderUtils = jest.requireActual('core/query-builder.utils');
@@ -15,6 +16,14 @@ jest.mock('core/query-builder.utils', () => {
         transformComputedFieldsQuery: jest.fn(actualQueryBuilderUtils.transformComputedFieldsQuery),
         timeFieldsQuery: jest.fn(actualQueryBuilderUtils.timeFieldsQuery),
         multipleValuesQuery: jest.fn(actualQueryBuilderUtils.multipleValuesQuery),
+    };
+});
+
+jest.mock('core/utils', () => {
+    const actualCoreUtils = jest.requireActual('core/utils');
+    return {
+        ...actualCoreUtils,
+        replaceVariables: jest.fn(actualCoreUtils.replaceVariables),
     };
 });
 
@@ -31,6 +40,9 @@ describe('DataFrameDataSourceV2', () => {
         (queryBuilderUtils.timeFieldsQuery as jest.Mock).mockImplementation(actualQueryBuilderUtils.timeFieldsQuery);
         (queryBuilderUtils.multipleValuesQuery as jest.Mock).mockImplementation(actualQueryBuilderUtils.multipleValuesQuery);
 
+        const actualCoreUtils = jest.requireActual('core/utils');
+        (coreUtils.replaceVariables as jest.Mock).mockImplementation(actualCoreUtils.replaceVariables);
+
         instanceSettings = { 
             id: 1, 
             name: 'test', 
@@ -45,7 +57,8 @@ describe('DataFrameDataSourceV2', () => {
         backendSrv = {} as any;
         templateSrv = {
             replace: jest.fn((value: string) => value),
-            getVariables: jest.fn(() => [])
+            getVariables: jest.fn(() => []),
+            containsTemplate: jest.fn(() => false)
         } as any;
         ds = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
     });
@@ -205,6 +218,45 @@ describe('DataFrameDataSourceV2', () => {
                         scopedVars: {},
                     } as any;
                     queryTablesSpy = jest.spyOn(ds, 'queryTables$');
+                });
+
+                it('should properly replace variables in the columns array', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        columns: [
+                            {
+                                name: 'col1',
+                                dataType: 'INT32',
+                                columnType: ColumnType.Normal
+                            },
+                            {
+                                name: 'col2',
+                                dataType: 'STRING',
+                                columnType: ColumnType.Normal
+                            },
+                            {
+                                name: 'col3',
+                                dataType: 'FLOAT64',
+                                columnType: ColumnType.Normal
+                            }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+                    (coreUtils.replaceVariables as jest.Mock).mockReturnValue(['col1-Numeric']);
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['${colName1}', 'col2-String', '${colName2}'],
+                        dataTableFilter: 'name = "Test"',
+                    } as DataFrameQueryV2;
+
+                    const result = await lastValueFrom(ds.runQuery(query, options));
+
+                    expect(coreUtils.replaceVariables).toHaveBeenCalledWith(
+                        ['${colName1}', 'col2-String', '${colName2}'], templateSrv
+                    );
+                    // TODO: AB#3526598 - Update to check if the decimated data is returned properly for the selected columns.
+                    expect(result.refId).toBe('A');
                 });
 
                 describe('when columns are not selected', () => {
@@ -468,6 +520,41 @@ describe('DataFrameDataSourceV2', () => {
                     (ds as any).appEvents = { publish: publishMock };
                 });
 
+                it('should properly replace variable in the x-column', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        columns: [
+                            {
+                                name: 'timestamp',
+                                dataType: 'TIMESTAMP',
+                                columnType: ColumnType.Normal
+                            },
+                            {
+                                name: 'value',
+                                dataType: 'FLOAT64',
+                                columnType: ColumnType.Normal
+                            }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+                    templateSrv.replace.mockReturnValue('timestamp-Timestamp');
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['value-Numeric'],
+                        xColumn: '${xColName}',
+                        dataTableFilter: 'name = "Test"',
+                    } as DataFrameQueryV2;
+
+                    const result = await lastValueFrom(ds.runQuery(query, options));
+
+                    expect(templateSrv.replace).toHaveBeenCalledWith(
+                        '${xColName}', 
+                        options.scopedVars
+                    );
+                    // TODO: AB#3526598 - Update to check if the decimated data api is called with expected x-column.
+                    expect(result.refId).toBe('A');
+                });
                 describe('X column validation', () => {
                     const xColumnErrorMessage =
                         'The selected X column is invalid. Please update your X column selection or refine your filters.';
