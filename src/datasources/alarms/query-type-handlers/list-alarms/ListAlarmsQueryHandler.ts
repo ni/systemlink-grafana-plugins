@@ -158,7 +158,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       const field = AlarmsPropertiesOptions[property];
       const fieldName = field.label;
       const fieldValue = field.value;
-      const fieldType = this.isTimeField(fieldValue) ? FieldType.time : FieldType.string;
+      const fieldType = this.getFieldTypeForProperty(fieldValue);
 
       const fieldValues = flattenedAlarms.map(alarm => {
         const transition = alarm.transitions?.[0];
@@ -208,6 +208,48 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     return mappedFields;
   }
 
+  private getFieldTypeForProperty(field: AlarmsProperties): FieldType {
+    switch (true) {
+      case this.isTimeField(field):
+        return FieldType.time;
+      case this.isNumberField(field):
+        return FieldType.number;
+      case this.isBooleanField(field):
+        return FieldType.boolean;
+      case this.isObjectField(field):
+      case this.isArrayField(field):
+        return FieldType.other;
+      default:
+        return FieldType.string;
+    }
+  }
+
+  private isNumberField(field: AlarmsProperties): boolean {
+    return field === AlarmsSpecificProperties.transitionOverflowCount;
+  }
+
+  private isBooleanField(field: AlarmsProperties): boolean {
+    return (
+      field === AlarmsSpecificProperties.acknowledged ||
+      field === AlarmsSpecificProperties.active ||
+      field === AlarmsSpecificProperties.clear
+    );
+  }
+
+  private isObjectField(field: AlarmsProperties): boolean {
+    return (
+      field === AlarmsSpecificProperties.properties ||
+      field === AlarmsTransitionProperties.transitionProperties
+    );
+  }
+
+  private isArrayField(field: AlarmsProperties): boolean {
+    return (
+      field === AlarmsSpecificProperties.keywords ||
+      field === AlarmsTransitionProperties.transitionKeywords
+    );
+  }
+
   private hasTransitionProperties(properties: AlarmsProperties[]): boolean {
     return properties.some(prop => this.isAlarmTransitionProperty(prop));
   }
@@ -220,9 +262,9 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     );
   }
 
-  private getSortedCustomProperties(properties: { [key: string]: string }): string {
+  private getSortedCustomProperties(properties: { [key: string]: string }): { [key: string]: string } {
     if (Object.keys(properties).length <= 0) {
-      return '';
+      return {};
     }
 
     const filteredEntries = Object.entries(properties)
@@ -231,7 +273,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   
     const sortedProperties = Object.fromEntries(filteredEntries);
     
-    return JSON.stringify(sortedProperties);
+    return sortedProperties;
   }
 
   private getSeverityLabel(severityLevel: number): string {
