@@ -2,24 +2,28 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
-  DataSourceJsonData,
   MetricFindValue,
   TestDataSourceResponse
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
-import { DataSourceBase } from 'core/DataSourceBase';
-import { defaultOrderBy, defaultProjection, systemFields } from './constants';
+import { defaultOrderBy, defaultProjection, systemFields } from './constants/constants';
 import { NetworkUtils } from './network-utils';
 import { SystemQuery, SystemQueryType, SystemSummary, SystemVariableQuery, SystemQueryReturnType, SystemProperties } from './types';
 import { getWorkspaceName } from 'core/utils';
+import { SystemsDataSourceBase } from './components/SystemsDataSourceBase';
+import { transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { SystemFieldMapping } from './constants/SystemsQueryBuilder.constants';
 
-export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJsonData> {
+export class SystemDataSource extends SystemsDataSourceBase {
+  private dependenciesLoadedPromise: Promise<void>;
+
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.dependenciesLoadedPromise = this.loadDependencies();
   }
 
   baseUrl = this.instanceSettings.url + '/nisysmgmt/v1';
@@ -30,7 +34,47 @@ export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJson
     workspace: ''
   };
 
+  prepareQuery(query: SystemQuery): SystemQuery {
+    const prepared = { ...query };
+
+    if (!prepared.queryKind) {
+      prepared.queryKind = this.defaultQuery.queryKind;
+    }
+
+    if ((prepared.systemName || prepared.workspace) && prepared.queryKind === SystemQueryType.Properties) {
+      prepared.filter = this.backwardCompatibility(prepared);
+      prepared.systemName = '';
+      prepared.workspace = '';
+    }
+
+    return prepared;
+  }
+
+  private backwardCompatibility(query: SystemQuery): string {
+    const parts: string[] = [];
+
+    if (query.filter?.trim()) {
+      parts.push(query.filter);
+    }
+
+    if (query.systemName?.trim()) {
+      const systemPart = `(id = "${query.systemName}")`;
+      parts.push(systemPart);
+    }
+
+    if (query.workspace?.trim() && !query.systemName) {
+      const workspacePart = `workspace = "${query.workspace}"`;
+      if (!query.filter?.includes('workspace =')) {
+        parts.push(workspacePart);
+      }
+    }
+
+    return parts.join(' && ');
+  }
+
   async runQuery(query: SystemQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    await this.dependenciesLoadedPromise;
+
     if (query.queryKind === SystemQueryType.Summary) {
       const summary = await this.get<SystemSummary>(this.baseUrl + '/get-systems-summary');
       return {
@@ -41,12 +85,17 @@ export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJson
         ],
       };
     } else {
-      const properties = await this.getSystemProperties(
-        this.templateSrv.replace(query.systemName, options.scopedVars),
-        defaultProjection,
-        this.templateSrv.replace(query.workspace, options.scopedVars)
-      );
-      const workspaces = await this.getWorkspaces();
+      let processedFilter = '';
+      if (query.filter) {
+        let tempFilter = this.templateSrv.replace(query.filter, options.scopedVars);
+        tempFilter = this.mapUIFieldsToBackendFields(tempFilter);
+        processedFilter = transformComputedFieldsQuery(
+          tempFilter,
+          this.systemsComputedDataFields
+        );
+      }
+      const properties = await this.getSystemProperties(processedFilter, defaultProjection);
+      const workspaces = this.getCachedWorkspaces();
       return {
         refId: query.refId,
         fields: [
@@ -69,21 +118,35 @@ export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJson
     }
   }
 
-  async getSystemProperties(systemFilter: string, projection = defaultProjection, workspace?: string) {
-    const filters = [
-      systemFilter && `id = "${systemFilter}" || alias = "${systemFilter}"`,
-      workspace && !systemFilter && `workspace = "${workspace}"`,
-    ];
+  private mapUIFieldsToBackendFields(filter: string): string {
+    let mappedFilter = filter;
+    Object.entries(SystemFieldMapping).forEach(([uiField, backendField]) => {
+      const regex = new RegExp(`\\b${uiField}\\b`, 'g');
+      mappedFilter = mappedFilter.replace(regex, backendField);
+    });
+
+    return mappedFilter;
+  }
+
+  async getSystemProperties(filter?: string, projection = defaultProjection) {
     const response = await this.getSystems({
-      filter: filters.filter(Boolean).join(' '),
+      filter: filter || '',
       projection: `new(${projection.join()})`,
       orderBy: defaultOrderBy,
     });
     return response.data;
   }
 
-  async metricFindQuery({ workspace, queryReturnType }: SystemVariableQuery): Promise<MetricFindValue[]> {
-    const properties = await this.getSystemProperties('', [systemFields.ID, systemFields.ALIAS, systemFields.SCAN_CODE], this.templateSrv.replace(workspace));
+  async metricFindQuery({ queryReturnType, workspace }: SystemVariableQuery): Promise<MetricFindValue[]> {
+    await this.dependenciesLoadedPromise;
+
+    let filter = '';
+    if (workspace) {
+      const resolvedWorkspace = this.templateSrv.replace(workspace);
+      filter = `workspace = "${resolvedWorkspace}"`;
+    }
+
+    const properties = await this.getSystemProperties(filter, [systemFields.ID, systemFields.ALIAS, systemFields.SCAN_CODE]);
     return properties.map(system => this.getSystemNameForMetricQuery({ queryReturnType }, system));
   }
 
