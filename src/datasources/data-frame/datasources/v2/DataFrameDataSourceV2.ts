@@ -723,7 +723,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const selectedTableColumnsMap: Record<string, Column[]> = {};
         tables.forEach(table => {
             const selectedColumnsForTable = this.getSelectedColumnsForTable(
-                selectedColumns, table, includeIndexColumns
+                selectedColumns,
+                table,
+                includeIndexColumns
             );
             if (selectedColumnsForTable.length > 0) {
                 selectedTableColumnsMap[table.id] = selectedColumnsForTable;
@@ -745,8 +747,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         let tableIndexColumn: Column[] = [];
 
         if(includeIndexColumns) {
-            tableIndexColumn = table.columns.filter(column => column.columnType === ColumnType.Index);
-            table.columns = table.columns.filter(column => column.columnType !== ColumnType.Index);
+            tableIndexColumn = table.columns
+                .filter(column => column.columnType === ColumnType.Index);
+            table.columns = table.columns
+                .filter(column => column.columnType !== ColumnType.Index);
         }
         
         table.columns.forEach(column => {
@@ -762,12 +766,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         });
 
         if (includeIndexColumns && selectedColumnDetails.length > 0 && tableIndexColumn.length > 0) {
-            selectedColumnDetails.push(...tableIndexColumn.map(indexColumn => ({
-                name: indexColumn.name,
-                dataType: indexColumn.dataType,
-                columnType: indexColumn.columnType,
-                properties: {}
-            })));
+            selectedColumnDetails.push(
+                ...tableIndexColumn.map(
+                    indexColumn => ({
+                        name: indexColumn.name,
+                        dataType: indexColumn.dataType,
+                        columnType: indexColumn.columnType,
+                        properties: {}
+                    })
+                )
+            );
         }
 
         return selectedColumnDetails;
