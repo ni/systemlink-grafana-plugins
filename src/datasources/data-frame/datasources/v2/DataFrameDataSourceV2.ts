@@ -71,9 +71,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             );
         }
 
+        if (processedQuery.columnFilter) {
+            processedQuery.columnFilter = this.transformColumnQuery(
+                processedQuery.columnFilter,
+                options?.scopedVars || {}
+            );
+        }
+
         const filters = {
             resultFilter: processedQuery.resultFilter,
             dataTableFilter: processedQuery.dataTableFilter,
+            columnFilter: processedQuery.columnFilter
         };
 
         if (processedQuery.queryType === DataFrameVariableQueryType.ListDataTables) {
@@ -197,7 +205,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     const resultFilter = this.buildResultIdFilter(resultIds);
                     const combinedFilter = this.buildCombinedFilter({
                         resultFilter,
-                        dataTableFilter: filters.dataTableFilter
+                        dataTableFilter: filters.dataTableFilter,
+                        columnFilter: filters.columnFilter
                     });
                     return this.queryTablesInternal$(
                         combinedFilter,
@@ -506,6 +515,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         if (query.resultFilter) {
             query.resultFilter = this.transformResultQuery(
                 query.resultFilter,
+                scopedVars
+            );
+        }
+
+        if (query.columnFilter) {
+            query.columnFilter = this.transformColumnQuery(
+                query.columnFilter,
                 scopedVars
             );
         }
@@ -995,6 +1011,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const filters = {
             resultFilter: processedQuery.resultFilter,
             dataTableFilter: processedQuery.dataTableFilter,
+            columnFilter: processedQuery.columnFilter
         };
         const tables$ = this.queryTables$(
             filters,
@@ -1081,6 +1098,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
         if (filters.dataTableFilter) {
             combinedFilters.push(`(${filters.dataTableFilter})`);
+        }
+        if (filters.resultFilter && filters.columnFilter) {
+            combinedFilters.push(`(${filters.columnFilter})`);
         }
 
         return combinedFilters.join(' && ');

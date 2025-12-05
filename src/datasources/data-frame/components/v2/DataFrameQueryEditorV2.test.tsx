@@ -66,6 +66,7 @@ const renderComponent = (
         }),
         transformDataTableQuery: jest.fn((filter: string) => filter),
         transformResultQuery: jest.fn((filter: string) => filter),
+        transformColumnQuery: jest.fn((filter: string) => filter),
         variablesCache,
         parseColumnIdentifier: mockParseColumnIdentifier,
     } as unknown as DataFrameDataSource;
@@ -383,7 +384,8 @@ describe("DataFrameQueryEditorV2", () => {
 
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                             dataTableFilter: 'ExistingFilter',
-                            resultFilter: ''
+                            resultFilter: '',
+                            columnFilter: ''
                         });
 
                         // Column options should be fetched and available
@@ -512,7 +514,8 @@ describe("DataFrameQueryEditorV2", () => {
                         });
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                             dataTableFilter: 'UpdatedFilter',
-                            resultFilter: ''
+                            resultFilter: '',
+                            columnFilter: ''
                         });
                     });
 
@@ -542,7 +545,8 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                                 dataTableFilter: 'UpdatedFilter',
-                                resultFilter: ''
+                                resultFilter: '',
+                                columnFilter: ''
                             });
                         });
                     });
@@ -562,6 +566,7 @@ describe("DataFrameQueryEditorV2", () => {
                             }),
                             transformDataTableQuery: jest.fn(f => f),
                             transformResultQuery: jest.fn(f => f),
+                            transformColumnQuery: jest.fn(f => f),
                         } as any;
 
                             renderComponent({
@@ -569,12 +574,14 @@ describe("DataFrameQueryEditorV2", () => {
                                 refId: 'A',
                                 type: DataFrameQueryType.Data,
                                 dataTableFilter: 'InitialFilter',
+                                columnFilter: '',
                             }, '', '', [], [], processQuery, {}, datasource);
 
                         await waitFor(() => {
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                                 dataTableFilter: 'InitialFilter',
-                                resultFilter: ''
+                                resultFilter: '',
+                                columnFilter: ''
                             });
                         });
                     });
@@ -609,6 +616,7 @@ describe("DataFrameQueryEditorV2", () => {
                             }),
                             transformDataTableQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                             transformResultQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
+                            transformColumnQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                         } as any;
 
                         renderComponent(
@@ -618,6 +626,7 @@ describe("DataFrameQueryEditorV2", () => {
                                 type: DataFrameQueryType.Data,
                                 dataTableFilter: 'InitialDataTableFilter',
                                 resultFilter: 'InitialResultFilter',
+                                columnFilter: 'InitialColumnFilter',
                             },
                             '',
                             '',
@@ -631,9 +640,11 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('InitialDataTableFilter');
                             expect(datasource.transformResultQuery).toHaveBeenCalledWith('InitialResultFilter');
+                            expect(datasource.transformColumnQuery).toHaveBeenCalledWith('InitialColumnFilter');
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                                 dataTableFilter: 'TRANSFORMED_InitialDataTableFilter',
-                                resultFilter: 'TRANSFORMED_InitialResultFilter'
+                                resultFilter: 'TRANSFORMED_InitialResultFilter',
+                                columnFilter: 'TRANSFORMED_InitialColumnFilter'
                             });
                         });
                     });
@@ -647,6 +658,7 @@ describe("DataFrameQueryEditorV2", () => {
                             }),
                             transformDataTableQuery: jest.fn(f => f),
                             transformResultQuery: jest.fn(f => f),
+                            transformColumnQuery: jest.fn(f => f),
                         } as any;
                         renderComponent(
                             {
@@ -655,6 +667,7 @@ describe("DataFrameQueryEditorV2", () => {
                                 type: DataFrameQueryType.Data,
                                 dataTableFilter: 'FilterX',
                                 resultFilter: 'FilterY',
+                                columnFilter: 'FilterZ',
                             },
                             '',
                             '',
@@ -668,10 +681,12 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterX');
                             expect(datasource.transformResultQuery).toHaveBeenCalledWith('FilterY');
+                            expect(datasource.transformColumnQuery).toHaveBeenCalledWith('FilterZ');
                         });
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                             dataTableFilter: 'FilterX',
-                            resultFilter: 'FilterY'
+                            resultFilter: 'FilterY',
+                            columnFilter: 'FilterZ'
                         });
                     });
                 });
@@ -688,6 +703,7 @@ describe("DataFrameQueryEditorV2", () => {
                             }),
                             transformDataTableQuery: jest.fn(f => f),
                             transformResultQuery: jest.fn(f => f),
+                            transformColumnQuery: jest.fn(f => f),
                         } as any;
 
                         renderComponent(
@@ -697,6 +713,7 @@ describe("DataFrameQueryEditorV2", () => {
                                     type: DataFrameQueryType.Data,
                                     dataTableFilter: 'FilterWithVar',
                                     resultFilter: 'ResultWithVar',
+                                    columnFilter: 'ColumnWithVar',
                                 },
                             '',
                             '',
@@ -710,9 +727,11 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
                             expect(datasource.transformResultQuery).toHaveBeenCalledWith('ResultWithVar');
+                            expect(datasource.transformColumnQuery).toHaveBeenCalledWith('ColumnWithVar');
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                                 dataTableFilter: 'FilterWithVar',
-                                resultFilter: 'ResultWithVar'
+                                resultFilter: 'ResultWithVar',
+                                columnFilter: 'ColumnWithVar'
                             });
                         });
 
@@ -751,6 +770,7 @@ describe("DataFrameQueryEditorV2", () => {
                         }),
                         transformDataTableQuery: jest.fn((filter: string) => filter),
                         transformResultQuery: jest.fn((filter: string) => filter),
+                        transformColumnQuery: jest.fn((filter: string) => filter),
                     } as any;
 
                     const { onChange } = renderComponent(
@@ -760,6 +780,7 @@ describe("DataFrameQueryEditorV2", () => {
                             type: DataFrameQueryType.Data,
                             dataTableFilter: 'name = "Table1"',
                             resultFilter: 'status = "Passed"',
+                            columnFilter: '',
                         },
                         '',
                         '',
@@ -783,6 +804,7 @@ describe("DataFrameQueryEditorV2", () => {
                         type: DataFrameQueryType.Data,
                         dataTableFilter: 'name = "Table1"',
                         resultFilter: 'status = "Failed"',
+                        columnFilter: '',
                     });
 
                     await waitFor(() => {
@@ -790,6 +812,63 @@ describe("DataFrameQueryEditorV2", () => {
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                             dataTableFilter: 'name = "Table1"',
                             resultFilter: 'status = "Failed"',
+                            columnFilter: '',
+                        });
+                    });
+                });
+
+                it('should refetch column options when columnFilter changes', async () => {
+                    const datasource = {
+                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                            uniqueColumnsAcrossTables: [{ label: 'Col1', value: 'Col1' }],
+                            commonColumnsAcrossTables: []
+                        }),
+                        transformDataTableQuery: jest.fn((filter: string) => filter),
+                        transformResultQuery: jest.fn((filter: string) => filter),
+                        transformColumnQuery: jest.fn((filter: string) => filter),
+                    } as any;
+
+                    const { onChange } = renderComponent(
+                        {
+                            ...defaultQueryV2,
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: 'name = "Table1"',
+                            resultFilter: '',
+                            columnFilter: 'columnName = "Col1"',
+                        },
+                        '',
+                        '',
+                        [],
+                        [],
+                        undefined,
+                        {},
+                        datasource
+                    );
+
+                    await waitFor(() => {
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1);
+                    });
+
+                    datasource.getColumnOptionsWithVariables.mockClear();
+
+                    // Update columnFilter only
+                    onChange({
+                        ...defaultQueryV2,
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: 'name = "Table1"',
+                        resultFilter: '',
+                        columnFilter: 'columnName = "Col2"',
+                    });
+
+                    await waitFor(() => {
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1);
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
+                            dataTableFilter: 'name = "Table1"',
+                            resultFilter: '',
+                            columnFilter: 'columnName = "Col2"',
                         });
                     });
                 });
@@ -803,6 +882,7 @@ describe("DataFrameQueryEditorV2", () => {
                         }),
                         transformDataTableQuery: jest.fn(() => 'name = "Table1"'),
                         transformResultQuery: jest.fn(() => 'status = "Passed"'),
+                        transformColumnQuery: jest.fn(() => 'columnName = "Col1"'),
                     } as any;
 
                     const { onChange } = renderComponent(
@@ -812,6 +892,7 @@ describe("DataFrameQueryEditorV2", () => {
                             type: DataFrameQueryType.Data,
                             dataTableFilter: 'name = "$tableName"',
                             resultFilter: 'status = "$status"',
+                            columnFilter: 'columnName = "$columnName"',
                         },
                         '',
                         '',
@@ -835,6 +916,7 @@ describe("DataFrameQueryEditorV2", () => {
                         type: DataFrameQueryType.Data,
                         dataTableFilter: 'name = "$tableName"',
                         resultFilter: 'status = "$status"',
+                        columnFilter: 'columnName = "$columnName"',
                     });
 
                     // Should not refetch since transformed values are the same
@@ -1054,6 +1136,7 @@ describe("DataFrameQueryEditorV2", () => {
                         }),
                         transformDataTableQuery: jest.fn((filter: string) => filter),
                         transformResultQuery: jest.fn((filter: string) => filter),
+                        transformColumnQuery: jest.fn((filter: string) => filter),
                         parseColumnIdentifier: mockParseColumnIdentifier,
                     } as any;
 
@@ -1592,7 +1675,8 @@ describe("DataFrameQueryEditorV2", () => {
 
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                              dataTableFilter: 'ExistingFilter',
-                             resultFilter: ''
+                             resultFilter: '',
+                             columnFilter: ''
                         });
 
                         // X-column options should be fetched and available
@@ -1712,7 +1796,8 @@ describe("DataFrameQueryEditorV2", () => {
                         });
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                              dataTableFilter: 'UpdatedFilter' ,
-                             resultFilter: ''
+                             resultFilter: '',
+                             columnFilter: ''
                         });
                     });
 
@@ -1752,7 +1837,8 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                                 dataTableFilter: 'UpdatedFilter' ,
-                                resultFilter: ''
+                                resultFilter: '',
+                                columnFilter: ''
                             });
                         });
                     });
@@ -1775,7 +1861,8 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                                 dataTableFilter: 'InitialFilter',
-                                resultFilter: ''
+                                resultFilter: '',
+                                columnFilter: ''
                             });
                         });
                     });
@@ -1821,6 +1908,7 @@ describe("DataFrameQueryEditorV2", () => {
                             }),
                             transformResultQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                             transformDataTableQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
+                            transformColumnQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                         } as any;
 
                         renderComponent(
@@ -1843,9 +1931,11 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('InitialDataTableFilter');
                             expect(datasource.transformResultQuery).toHaveBeenCalledWith('InitialResultFilter');
+                            expect(datasource.transformColumnQuery).toHaveBeenCalledWith('');
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                                 dataTableFilter: 'TRANSFORMED_InitialDataTableFilter',
-                                resultFilter: 'TRANSFORMED_InitialResultFilter'
+                                resultFilter: 'TRANSFORMED_InitialResultFilter',
+                                columnFilter: 'TRANSFORMED_'
                             });
                         });
                     });
@@ -1859,6 +1949,7 @@ describe("DataFrameQueryEditorV2", () => {
                             }),
                             transformResultQuery: jest.fn(f => f),
                             transformDataTableQuery: jest.fn(f => f),
+                            transformColumnQuery: jest.fn(f => f),
                         } as any;
                         renderComponent(
                             {
@@ -1880,10 +1971,12 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterX');
                             expect(datasource.transformResultQuery).toHaveBeenCalledWith('FilterY');
+                            expect(datasource.transformColumnQuery).toHaveBeenCalledWith('');
                         });
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                             dataTableFilter: 'FilterX',
-                            resultFilter: 'FilterY'
+                            resultFilter: 'FilterY',
+                            columnFilter: ''
                         });
                     });
                 });
@@ -1900,6 +1993,7 @@ describe("DataFrameQueryEditorV2", () => {
                             }),
                             transformResultQuery: jest.fn(f => f),
                             transformDataTableQuery: jest.fn(f => f),
+                            transformColumnQuery: jest.fn(f => f),
                         } as any;
 
                         renderComponent(
@@ -1922,9 +2016,11 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
                             expect(datasource.transformResultQuery).toHaveBeenCalledWith('ResultWithVar');
+                            expect(datasource.transformColumnQuery).toHaveBeenCalledWith('');
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                                 dataTableFilter: 'FilterWithVar',
-                                resultFilter: 'ResultWithVar'
+                                resultFilter: 'ResultWithVar',
+                                columnFilter: ''
                             });
                         });
 
