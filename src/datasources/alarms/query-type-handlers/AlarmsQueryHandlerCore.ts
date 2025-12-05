@@ -170,19 +170,34 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
     })
   );
 
+  private buildSeverityExpression(dataField: string, val: string, operation: string): string {
+    const criticalSeverityLevel = String(AlarmTransitionSeverityLevel.Critical);
+    
+    if (val === criticalSeverityLevel) {
+      if (operation === QueryBuilderOperations.EQUALS.name) {
+        return `${dataField} >= "${val}"`;
+      } else if (operation === '!=') {
+        return `${dataField} < "${val}"`;
+      }
+    }
+    return `${dataField} ${operation} "${val}"`;
+  }
+
   private getSeverityLevelTransformation(dataField: string): ExpressionTransformFunction {
     return (value: string, operation: string) => {
-      const criticalSeverityLevel = String(AlarmTransitionSeverityLevel.Critical);
-      let severityLevelOperator = operation;
-
-      if (value === criticalSeverityLevel) {
-        severityLevelOperator =
-          (operation === QueryBuilderOperations.EQUALS.name)
-            ? QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name
-            : QueryBuilderOperations.LESS_THAN.name;
+      const isMultiSelect = value.startsWith('{') && value.endsWith('}');
+      if (isMultiSelect) {
+        const valuesArray = value.replace(/({|})/g, '').split(',');
+        const logicalOperator = getConcatOperatorForMultiExpression(operation);
+        
+        const expressions = valuesArray.map(val => 
+          this.buildSeverityExpression(dataField, val, operation)
+        );
+        
+        return `(${expressions.join(` ${logicalOperator} `)})`;
       }
-
-      return multipleValuesQuery(dataField)(value, severityLevelOperator);
+      
+      return this.buildSeverityExpression(dataField, value, operation);
     };
   }
 
