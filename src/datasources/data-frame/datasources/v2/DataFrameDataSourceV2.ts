@@ -641,7 +641,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             switchMap(selectedColumns => {
                 if (selectedColumns.length === 0) {
                     return of(
-                        this.buildDataFrame(processedQuery.refId)
+                        this.buildEmptyDataFrame(processedQuery.refId)
                     );
                 }
 
@@ -706,7 +706,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             );
                         }
                         
-                        return of(this.buildDataFrame(processedQuery.refId));
+                        return of(this.buildEmptyDataFrame(processedQuery.refId));
                     })
                 );
             })
@@ -722,14 +722,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         // Create table metadata fields (tableId and tableName)
         const metadataFields: FieldDTO[] = [
             {
-            name: 'tableId',
-            type: FieldType.string,
-            values: rows[0] ?? [],
+                name: 'tableId',
+                type: FieldType.string,
+                values: rows[0] ?? [],
             },
             {
-            name: 'tableName',
-            type: FieldType.string,
-            values: rows[1] ?? [],
+                name: 'tableName',
+                type: FieldType.string,
+                values: rows[1] ?? [],
             },
         ];
 
@@ -742,10 +742,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         // Deduplicate columns by name-dataType combination
         const uniqueColumns = Array.from(
             new Map(
-            normalizedColumns.map(col => [
-                `${col.name}-${col.dataType}`,
-                col
-            ])
+                normalizedColumns.map(col => [
+                    `${col.name}-${col.dataType}`,
+                    col
+                ])
             ).values()
         );
 
@@ -753,18 +753,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const dataFields: FieldDTO[] = uniqueColumns.map((column, index) => {
             const [type, converter] = this.getFieldTypeAndConverter(column.dataType);
             const dataIndex = index + 2; // Offset by 2 for tableId and tableName
-            
+
             const field: FieldDTO = {
-            name: column.name,
-            type,
-            values: rows[dataIndex]?.map(value => 
-                value !== null ? converter(value) : null
-            ) ?? [],
+                name: column.name,
+                type,
+                values: rows[dataIndex]?.map(value =>
+                    value !== null ? converter(value) : null
+                ) ?? [],
             };
 
             // Add display name config for 'value' columns
             if (column.name.toLowerCase() === 'value') {
-            field.config = { displayName: column.name };
+                field.config = { displayName: column.name };
             }
 
             return field;
@@ -782,7 +782,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             case 'TIMESTAMP':
                 return [FieldType.time, v => dateTime(v).valueOf()];
             default:
-                return [FieldType.number, v => Number(v)];
+                return [FieldType.number, v => { return v === '' ? null : Number(v) }];
         }
     }
 
@@ -794,27 +794,27 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         const allColumnsArray = Array.from(allColumns);
         const columnNames = ['tableId', 'tableName', ...allColumnsArray];
-        
+
         const tableIdColumn: any[] = [];
         const tableNameColumn: any[] = [];
         const columnDataArrays: any[][] = allColumnsArray.map(() => []);
 
         Object.entries(decimatedDataMap).forEach(([tableId, tableData]) => {
             const numRows = tableData.frame.data.length > 0 ? tableData.frame.data.length : 0;
-                        
+
             // Add tableId and tableName for each row in this table
             tableIdColumn.push(...Array(numRows).fill(tableId));
             tableNameColumn.push(...Array(numRows).fill(tableId));
-            
+
             const columnIndexMap = new Map<string, number>();
             tableData.frame.columns.forEach((colName, index) => {
                 columnIndexMap.set(colName, index);
             });
-            
+
             tableData.frame.data.forEach((data) => {
                 allColumnsArray.forEach((colName, colArrayIndex) => {
                     const dataIndex = columnIndexMap.get(colName);
-    
+
                     if (dataIndex !== undefined && tableData.frame.data[dataIndex]) {
                         // Column exists in this table - append all its data
                         columnDataArrays[colArrayIndex].push(data[dataIndex]);
@@ -900,7 +900,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return selectedColumnDetails;
     }
 
-    private buildDataFrame(refId: string): DataFrameDTO {
+    private buildEmptyDataFrame(refId: string): DataFrameDTO {
         return createDataFrame({
             refId,
             name: refId,
