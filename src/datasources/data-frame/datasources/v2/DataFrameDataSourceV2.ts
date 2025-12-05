@@ -696,6 +696,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 }
 
                 const projections: DataTableProjections[] = [
+                    DataTableProjections.Name,
                     DataTableProjections.ColumnName,
                     DataTableProjections.ColumnDataType,
                     DataTableProjections.ColumnType,
@@ -738,6 +739,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             selectedColumns,
                             tables
                         );
+                        const tableIdNamesMap = this.buildTableIdNamesMap(tables);
                         const columns = Object.values(selectedTableColumnMap).flatMap(item => item.selectedColumns);
                         if (Object.keys(selectedTableColumnMap).length > 0) {
                             return this.getDecimatedTableDataInBatches$(
@@ -747,7 +749,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                 options.maxDataPoints
                             ).pipe(
                                 map(decimatedDataMap => {
-                                    const tableData = this.aggregateTableDataRows(decimatedDataMap);
+                                    const tableData = this.aggregateTableDataRows(decimatedDataMap, tableIdNamesMap);
                                     return {
                                         refId: processedQuery.refId,
                                         name: processedQuery.refId,
@@ -763,18 +765,31 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
+    private buildTableIdNamesMap(tables: TableProperties[]) {
+        const tableIdNamesMap: Record<string, string> = {};
+        tables.forEach(table => {
+            tableIdNamesMap[table.id] = table.name;
+        });
+        return tableIdNamesMap;
+    }
+
 
     private isNumericDataType(dataType: string) {
         return ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType);
     }
 
     private dataFrameToFields(rows: string[][], columns: Column[]): FieldDTO[] {
-        // Create table metadata fields (tableId)
+        // Create table metadata fields (tableId and tableName)
         const metadataFields: FieldDTO[] = [
             {
                 name: 'tableId',
                 type: FieldType.string,
                 values: rows[0] ?? [],
+            },
+            {
+                name: 'tableName',
+                type: FieldType.string,
+                values: rows[1] ?? [],
             },
         ];
 
@@ -797,7 +812,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         // Create data fields from unique columns
         const dataFields: FieldDTO[] = uniqueColumns.map((column, index) => {
             const [type, converter] = this.getFieldTypeAndConverter(column.dataType);
-            const dataIndex = index + 1; // Offset by 1 for tableId
+            const dataIndex = index + 2; // Offset by 2 for tableId and tableName
 
             const field: FieldDTO = {
                 name: column.name,
@@ -829,23 +844,25 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
     }
 
-    private aggregateTableDataRows(decimatedDataMap: Record<string, TableDataRows>): TableDataRows {
+    private aggregateTableDataRows(decimatedDataMap: Record<string, TableDataRows>, tableIdNameMap: Record<string, string>): TableDataRows {
         const allColumns = new Set<string>();
         Object.values(decimatedDataMap).forEach(tableData => {
             tableData.frame.columns.forEach(col => allColumns.add(col));
         });
 
         const allColumnsArray = Array.from(allColumns);
-        const columnNames = ['tableId', ...allColumnsArray];
+        const columnNames = ['tableId', 'tableName', ...allColumnsArray];
 
         const tableIdColumn: any[] = [];
+        const tableNameColumn: any[] = [];
         const columnDataArrays: any[][] = allColumnsArray.map(() => []);
 
         Object.entries(decimatedDataMap).forEach(([tableId, tableData]) => {
             const numRows = tableData.frame.data.length > 0 ? tableData.frame.data.length : 0;
 
-            // Add tableId for each row in this table
+            // Add tableId and tableName for each row in this table
             tableIdColumn.push(...Array(numRows).fill(tableId));
+            tableNameColumn.push(...Array(numRows).fill(tableIdNameMap[tableId]));
 
             const columnIndexMap = new Map<string, number>();
             tableData.frame.columns.forEach((colName, index) => {
@@ -869,7 +886,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return {
             frame: {
                 columns: columnNames,
-                data: [tableIdColumn, ...columnDataArrays]
+                data: [tableIdColumn, tableNameColumn, ...columnDataArrays]
             }
         };
     }

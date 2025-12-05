@@ -245,6 +245,7 @@ describe('DataFrameDataSourceV2', () => {
                 let queryTablesSpy: jest.SpyInstance;
 
                 const projections = [
+                    DataTableProjections.Name,
                     DataTableProjections.ColumnName,
                     DataTableProjections.ColumnDataType,
                     DataTableProjections.ColumnType
@@ -1215,8 +1216,9 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await lastValueFrom(ds.runQuery(query, options));
 
                     expect(result.fields.length).toBeGreaterThan(0);
-                    // Should have tableId fields
+                    // Should have tableId and tableName fields
                     expect(result.fields.some(f => f.name === 'tableId')).toBe(true);
+                    expect(result.fields.some(f => f.name === 'tableName')).toBe(true);
                     // Should have time column (common to both tables)
                     expect(result.fields.some(f => f.name === 'time')).toBe(true);
                 });
