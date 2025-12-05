@@ -1134,6 +1134,218 @@ describe('DataFrameDataSourceV2', () => {
                     const yColumns = call[1].decimation.yColumns;
                     expect(yColumns).not.toContain('name');
                 });
+
+                describe('time filter behavior', () => {
+                    it('should use TIMESTAMP INDEX column fallback when xColumn is null', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            columns: [
+                                { name: 'timestamp', dataType: 'TIMESTAMP', columnType: 'INDEX' as any },
+                                { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        postSpy.mockReturnValue(of({ frame: { columns: ['timestamp', 'value'], data: [['2024-01-01T00:00:00Z'], ['10.5']] } }));
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['timestamp-Timestamp', 'value-Numeric'],
+                            xColumn: null,
+                            dataTableFilter: '',
+                            decimationMethod: 'LOSSY',
+                            filterNulls: false,
+                            applyTimeFilters: true
+                        } as DataFrameQueryV2;
+
+                        const optionsWithRange = {
+                            ...options,
+                            range: {
+                                from: { toISOString: () => '2024-01-01T00:00:00Z' },
+                                to: { toISOString: () => '2024-01-02T00:00:00Z' }
+                            }
+                        } as any;
+
+                        await lastValueFrom(ds.runQuery(query, optionsWithRange));
+
+                        expect(postSpy).toHaveBeenCalledWith(
+                            expect.any(String),
+                            expect.objectContaining({
+                                filters: [
+                                    expect.objectContaining({ column: 'timestamp', operation: 'GREATER_THAN_EQUALS' }),
+                                    expect.objectContaining({ column: 'timestamp', operation: 'LESS_THAN_EQUALS' })
+                                ]
+                            }),
+                            expect.any(Object)
+                        );
+                    });
+
+                    it('should not apply time filters when no INDEX column exists', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            columns: [
+                                { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                                { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        postSpy.mockReturnValue(of({ frame: { columns: ['time', 'value'], data: [['2024-01-01T00:00:00Z'], ['10.5']] } }));
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['time-Timestamp', 'value-Numeric'],
+                            xColumn: null,
+                            dataTableFilter: '',
+                            decimationMethod: 'LOSSY',
+                            filterNulls: false,
+                            applyTimeFilters: true
+                        } as DataFrameQueryV2;
+
+                        const optionsWithRange = {
+                            ...options,
+                            range: {
+                                from: { toISOString: () => '2024-01-01T00:00:00Z' },
+                                to: { toISOString: () => '2024-01-02T00:00:00Z' }
+                            }
+                        } as any;
+
+                        await lastValueFrom(ds.runQuery(query, optionsWithRange));
+
+                        expect(postSpy).toHaveBeenCalledWith(
+                            expect.any(String),
+                            expect.objectContaining({ filters: [] }),
+                            expect.any(Object)
+                        );
+                    });
+                });
+
+                it('should pass xColumn and intervals (maxDataPoints) in decimation request', async () => {
+                    const mockTables = [
+                        {
+                            id: 'table1',
+                            columns: [
+                                { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                                { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }
+                    ];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+                    postSpy.mockReturnValue(
+                        of(
+                            { 
+                                frame: { 
+                                    columns: ['time', 'value'],
+                                    data: [
+                                        ['2024-01-01T00:00:00Z'],
+                                        ['10.5']
+                                    ] 
+                                } 
+                            }
+                        )
+                    );
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['time-Timestamp', 'value-Numeric'],
+                        xColumn: 'time-Timestamp',
+                        dataTableFilter: '',
+                        decimationMethod: 'LOSSY',
+                        filterNulls: false,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
+
+                    await lastValueFrom(ds.runQuery(query, { ...options, maxDataPoints: 500 }));
+
+                    expect(postSpy).toHaveBeenCalledWith(
+                        expect.any(String),
+                        expect.objectContaining({
+                            decimation: expect.objectContaining({
+                                xColumn: 'time-Timestamp',
+                                intervals: 500
+                            })
+                        }),
+                    );
+                });
+
+                it('should include all numeric types in yColumns and exclude strings', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        columns: [
+                            { name: 'intValue', dataType: 'INT32', columnType: ColumnType.Normal },
+                            { name: 'longValue', dataType: 'INT64', columnType: ColumnType.Normal },
+                            { name: 'floatValue', dataType: 'FLOAT32', columnType: ColumnType.Normal },
+                            { name: 'doubleValue', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'timeValue', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                            { name: 'textValue', dataType: 'STRING', columnType: ColumnType.Normal }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+                    postSpy.mockReturnValue(of({ 
+                        frame: { 
+                            columns: ['intValue', 'longValue', 'floatValue', 'doubleValue', 'timeValue', 'textValue'], 
+                            data: [['1'], ['2'], ['3.5'], ['4.5'], ['2024-01-01T00:00:00Z'], ['text']] 
+                        } 
+                    }));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['intValue-Numeric', 'longValue-Numeric', 'floatValue-Numeric', 'doubleValue-Numeric', 'timeValue-Timestamp', 'textValue-String'],
+                        dataTableFilter: '',
+                        decimationMethod: 'LOSSY',
+                        filterNulls: false,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
+
+                    await lastValueFrom(ds.runQuery(query, options));
+
+                    const yColumns = postSpy.mock.calls[0][1].decimation.yColumns;
+                    expect(yColumns).toEqual(['intValue', 'longValue', 'floatValue', 'doubleValue', 'timeValue']);
+                    expect(yColumns).not.toContain('textValue');
+                });
+
+                it('should apply combined null and time filters when both enabled', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        columns: [
+                            { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                            { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+                    postSpy.mockReturnValue(of({ frame: { columns: ['time', 'value'], data: [['2024-01-01T00:00:00Z'], ['10.5']] } }));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['time-Timestamp', 'value-Numeric'],
+                        xColumn: 'time-Timestamp',
+                        dataTableFilter: '',
+                        decimationMethod: 'LOSSY',
+                        filterNulls: true,
+                        applyTimeFilters: true
+                    } as DataFrameQueryV2;
+
+                    const optionsWithRange = {
+                        ...options,
+                        range: {
+                            from: { toISOString: () => '2024-01-01T00:00:00Z' },
+                            to: { toISOString: () => '2024-01-02T00:00:00Z' }
+                        }
+                    } as any;
+
+                    await lastValueFrom(ds.runQuery(query, optionsWithRange));
+
+                    const filters = postSpy.mock.calls[0][1].filters;
+                    expect(filters.length).toBe(3);
+                    expect(filters).toEqual(expect.arrayContaining([
+                        expect.objectContaining({ column: 'value', operation: 'NOT_EQUALS', value: 'NaN' }),
+                        expect.objectContaining({ column: 'time', operation: 'GREATER_THAN_EQUALS' }),
+                        expect.objectContaining({ column: 'time', operation: 'LESS_THAN_EQUALS' })
+                    ]));
+                });
             });
         });
 
