@@ -508,4 +508,20 @@ describe('DataFrameDataSourceBase', () => {
             expect(() => ds.transformColumnQuery(filter)).toThrow('replace failed');
         });
     });
+
+    describe('parseColumnIdentifier', () => {
+        it('should return the empty column name and data type by default', () => {
+            const ds = new TestDataFrameDataSource(
+                instanceSettings,
+                backendSrv,
+                templateSrv
+            );
+
+            const parseResult = ds.parseColumnIdentifier('any-input');
+            expect(parseResult).toEqual({
+                columnName: '',
+                transformedDataType: ''
+            });
+        });
+    });
 });
