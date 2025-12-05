@@ -39,6 +39,7 @@ export function transformComputedFieldsQuery(
     query = transformBasedOnStartAndEndOperations(query, field, transformation, options);
   }
 
+  console.log('Transforming query:', query);
   return query;
 }
 
