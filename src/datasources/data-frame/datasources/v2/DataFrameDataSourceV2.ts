@@ -313,7 +313,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 )
             ),
             scan((acc, result) => {
-                const retrievedDataFrame = result.data.frame
+                const retrievedDataFrame = result.data.frame;
                 const rowsInRetrievedDataFrame = retrievedDataFrame.data.length;
                 const columnsInRetrievedDataFrame = retrievedDataFrame.columns.length;
                 const dataPointsToAdd = rowsInRetrievedDataFrame * columnsInRetrievedDataFrame;
