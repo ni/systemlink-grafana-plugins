@@ -865,7 +865,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return (value: string, operation: string) => {
             const isNegatedOperation = this.isNegatedOperation(operation);
             const positiveOperation = this.getPositiveOperation(operation);
-            const innerExpression = multipleValuesQuery(field)(value, positiveOperation);
+            const columnNameValue = this.parseColumnNameFromValue(value);
+            const innerExpression = multipleValuesQuery(field)(columnNameValue, positiveOperation);
             const cleanedExpression = this.removeWrapper(innerExpression);
             const transformedExpression = this.transformToIteratorExpression(cleanedExpression, field);
 
@@ -902,6 +903,25 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private transformToIteratorExpression (expression: string, field: string): string {
         const fieldPattern = new RegExp(`\\b${field}\\b`, 'g');
         return expression.replace(fieldPattern, `it.${field}`);
+    }
+
+    private parseColumnNameFromValue(filterValue: string): string {
+        const transformedDataTypes = ['Numeric', 'String', 'Bool', 'Timestamp'];
+        
+        if (filterValue.startsWith('{') && filterValue.endsWith('}')) {
+            const values = filterValue.slice(1, -1).split(',');
+            const extractedNames = values.map(value => {
+                const endsWithDataType = transformedDataTypes.some(dataType => value.endsWith(`-${dataType}`));
+                if (endsWithDataType) {
+                    return this.parseColumnIdentifier(value).columnName;
+                }
+                return value;
+            });
+            const uniqueNames = [...new Set(extractedNames)];
+            return `{${uniqueNames.join(',')}}`;
+        }
+        
+        return filterValue;
     }
 
     private isTimeField(field: DataTableProperties): boolean {
