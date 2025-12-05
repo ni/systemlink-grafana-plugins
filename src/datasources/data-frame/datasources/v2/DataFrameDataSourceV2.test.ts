@@ -54,7 +54,17 @@ describe('DataFrameDataSourceV2', () => {
                 } 
             } 
         } as any;
-        backendSrv = {} as any;
+        backendSrv = {
+            fetch: jest.fn().mockReturnValue(of({ 
+                data: {
+                    endpoint: 'test',
+                    sessionKey: {
+                        expiry: new Date(Date.now() + 3600000).toISOString(),
+                        secret: 'test-secret'
+                    }
+                }
+            }))
+        } as any;
         templateSrv = {
             replace: jest.fn((value: string) => value),
             getVariables: jest.fn(() => []),
@@ -235,6 +245,7 @@ describe('DataFrameDataSourceV2', () => {
                 let queryTablesSpy: jest.SpyInstance;
 
                 const projections = [
+                    DataTableProjections.Name,
                     DataTableProjections.ColumnName,
                     DataTableProjections.ColumnDataType,
                     DataTableProjections.ColumnType
@@ -269,6 +280,12 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
+                    jest.spyOn(ds, 'post$').mockReturnValue(of({
+                        frame: {
+                            columns: ['col1'],
+                            data: [['1']]
+                        }
+                    }));
                     (coreUtils.replaceVariables as jest.Mock).mockReturnValue(['col1-Numeric']);
                     const query = {
                         refId: 'A',
@@ -349,6 +366,17 @@ describe('DataFrameDataSourceV2', () => {
                         }];
                         queryTablesSpy.mockReturnValue(of(mockTables));
 
+                        const mockDecimatedData = {
+                            frame: {
+                                columns: ['colA', 'colB'],
+                                data: [
+                                    ['1', '2'],
+                                    ['2024-01-01T00:00:00Z', '2024-01-01T01:00:00Z']
+                                ]
+                            }
+                        };
+                        jest.spyOn(ds, 'post$').mockReturnValue(of(mockDecimatedData));
+
                         const query = {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
@@ -387,6 +415,14 @@ describe('DataFrameDataSourceV2', () => {
                             ]
                         }];
                         queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const mockDecimatedData = {
+                            frame: {
+                                columns: ['colX'],
+                                data: [['10.5', '20.3']]
+                            }
+                        };
+                        jest.spyOn(ds, 'post$').mockReturnValue(of(mockDecimatedData));
 
                         const query: any = {
                             refId: 'A',
@@ -576,6 +612,12 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
+                    jest.spyOn(ds, 'post$').mockReturnValue(of({
+                        frame: {
+                            columns: ['timestamp', 'value'],
+                            data: [['2024-01-01T00:00:00Z'], ['10.5']]
+                        }
+                    }));
                     templateSrv.replace.mockReturnValue('timestamp-Timestamp');
                     const query = {
                         refId: 'A',
@@ -627,6 +669,32 @@ describe('DataFrameDataSourceV2', () => {
                             }
                         ];
                         queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const mockDecimatedData1 = {
+                            frame: {
+                                columns: ['time', 'value'],
+                                data: [
+                                    ['2024-01-01T00:00:00Z', '2024-01-01T01:00:00Z'],
+                                    ['10.5', '20.3']
+                                ]
+                            }
+                        };
+                        const mockDecimatedData2 = {
+                            frame: {
+                                columns: ['time'],
+                                data: [['2024-01-01T00:00:00Z', '2024-01-01T01:00:00Z']]
+                            }
+                        };
+                        jest.spyOn(ds, 'post$').mockImplementation((url: string) => {
+                            if (url.includes('table1/query-decimated-data')) {
+                                return of(mockDecimatedData1);
+                            }
+                            if (url.includes('table2/query-decimated-data')) {
+                                return of(mockDecimatedData2);
+                            }
+                            return of({});
+                        });
+
                         const query = {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
@@ -670,6 +738,32 @@ describe('DataFrameDataSourceV2', () => {
                             }
                         ];
                         queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const mockDecimatedData1 = {
+                            frame: {
+                                columns: ['time', 'value'],
+                                data: [
+                                    ['2024-01-01T00:00:00Z', '2024-01-01T01:00:00Z'],
+                                    ['10.5', '20.3']
+                                ]
+                            }
+                        };
+                        const mockDecimatedData2 = {
+                            frame: {
+                                columns: ['time'],
+                                data: [['2024-01-01T00:00:00Z', '2024-01-01T01:00:00Z']]
+                            }
+                        };
+                        jest.spyOn(ds, 'post$').mockImplementation((url: string) => {
+                            if (url.includes('table1/query-decimated-data')) {
+                                return of(mockDecimatedData1);
+                            }
+                            if (url.includes('table2/query-decimated-data')) {
+                                return of(mockDecimatedData2);
+                            }
+                            return of({});
+                        });
+
                         const query = {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
@@ -820,6 +914,577 @@ describe('DataFrameDataSourceV2', () => {
                             ]
                         });
                     });
+                });
+            });
+
+            describe('fetch decimated data', () => {
+                let queryTablesSpy: jest.SpyInstance;
+                let postSpy: jest.SpyInstance;
+
+                beforeEach(() => {
+                    queryTablesSpy = jest.spyOn(ds, 'queryTables$');
+                    postSpy = jest.spyOn(ds, 'post$');
+                });
+
+                it('should fetch decimated data for selected columns across multiple tables', async () => {
+                    const mockTables = [
+                        {
+                            id: 'table1',
+                            columns: [
+                                { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                                { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        },
+                        {
+                            id: 'table2',
+                            columns: [
+                                { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                                { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }
+                    ];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+                    
+                    const mockDecimatedData1 = {
+                        frame: {
+                            columns: ['time', 'value'],
+                            data: [
+                                ['2024-01-01T00:00:00Z', '2024-01-01T01:00:00Z'],
+                                ['10.5', '20.3']
+                            ]
+                        }
+                    };
+                    const mockDecimatedData2 = {
+                        frame: {
+                            columns: ['time', 'value'],
+                            data: [
+                                ['2024-01-01T00:00:00Z', '2024-01-01T01:00:00Z'],
+                                ['15.2', '25.8']
+                            ]
+                        }
+                    };
+
+                    postSpy.mockImplementation((url: string) => {
+                        if (url.includes('table1/query-decimated-data')) {
+                            return of(mockDecimatedData1);
+                        }
+                        if (url.includes('table2/query-decimated-data')) {
+                            return of(mockDecimatedData2);
+                        }
+                        return of({});
+                    });
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['time-Timestamp', 'value-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'LOSSY',
+                        xColumn: 'time-Timestamp',
+                        filterNulls: false,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
+
+                    const result = await lastValueFrom(ds.runQuery(query, options));
+
+                    expect(result.refId).toBe('A');
+                    expect(result.fields.length).toBeGreaterThan(0);
+                    expect(postSpy).toHaveBeenCalledWith(
+                        expect.stringContaining('table1/query-decimated-data'),
+                        expect.objectContaining({
+                            columns: ['time', 'value'],
+                            decimation: expect.objectContaining({
+                                method: 'LOSSY'
+                            })
+                        }),
+                        expect.any(Object)
+                    );
+                    expect(postSpy).toHaveBeenCalledWith(
+                        expect.stringContaining('table2/query-decimated-data'),
+                        expect.objectContaining({
+                            columns: ['time', 'value'],
+                            decimation: expect.objectContaining({
+                                method: 'LOSSY'
+                            })
+                        }),
+                        expect.any(Object)
+                    );
+                });
+
+                it('should batch decimated data requests when there are many tables', async () => {
+                    // Create 15 tables to test batching (assuming 10 requests per batch)
+                    const mockTables = Array.from({ length: 15 }, (_, i) => ({
+                        id: `table${i + 1}`,
+                        columns: [
+                            { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }));
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+
+                    const mockDecimatedData = {
+                        frame: {
+                            columns: ['col1'],
+                            data: [['10.5']]
+                        }
+                    };
+                    postSpy.mockReturnValue(of(mockDecimatedData));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['col1-Numeric'],
+                        dataTableFilter: '',
+                        decimationMethod: 'Lossy',
+                        filterNulls: false,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
+
+                    await lastValueFrom(ds.runQuery(query, options));
+
+                    // Should have made requests for all 15 tables
+                    expect(postSpy).toHaveBeenCalledTimes(15);
+                });
+
+                it('should apply null filters when filterNulls is true', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        columns: [
+                            { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'value2', dataType: 'INT32', columnType: 'NULLABLE' as any }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+
+                    const mockDecimatedData = {
+                        frame: {
+                            columns: ['value1', 'value2'],
+                            data: [['10.5', '20'], ['15.3', '25']]
+                        }
+                    };
+                    postSpy.mockReturnValue(of(mockDecimatedData));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['value1-Numeric', 'value2-Numeric'],
+                        dataTableFilter: '',
+                        decimationMethod: 'LOSSY',
+                        filterNulls: true,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
+
+                    await lastValueFrom(ds.runQuery(query, options));
+
+                    // Verify that filters were applied for FLOAT64 (NaN filter) and NULLABLE (null filter)
+                    expect(postSpy).toHaveBeenCalledWith(
+                        expect.any(String),
+                        expect.objectContaining({
+                            filters: expect.arrayContaining([
+                                expect.objectContaining({
+                                    column: 'value1',
+                                    operation: 'NOT_EQUALS',
+                                    value: 'NaN'
+                                }),
+                                expect.objectContaining({
+                                    column: 'value2',
+                                    operation: 'NOT_EQUALS',
+                                    value: null
+                                })
+                            ])
+                        }),
+                        expect.any(Object)
+                    );
+                });
+
+                it('should apply time filters when applyTimeFilters is true', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        columns: [
+                            { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                            { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+
+                    const mockDecimatedData = {
+                        frame: {
+                            columns: ['time', 'value'],
+                            data: [['2024-01-01T00:00:00Z'], ['10.5']]
+                        }
+                    };
+                    postSpy.mockReturnValue(of(mockDecimatedData));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['time-Timestamp', 'value-Numeric'],
+                        xColumn: 'time-Timestamp',
+                        dataTableFilter: '',
+                        decimationMethod: 'LOSSY',
+                        filterNulls: false,
+                        applyTimeFilters: true
+                    } as DataFrameQueryV2;
+
+                    const optionsWithRange = {
+                        ...options,
+                        range: {
+                            from: { toISOString: () => '2024-01-01T00:00:00Z' },
+                            to: { toISOString: () => '2024-01-02T00:00:00Z' }
+                        }
+                    } as any;
+
+                    await lastValueFrom(ds.runQuery(query, optionsWithRange));
+
+                    expect(postSpy).toHaveBeenCalledWith(
+                        expect.any(String),
+                        expect.objectContaining({
+                            filters: [
+                                expect.objectContaining({
+                                    column: 'time',
+                                    operation: 'GREATER_THAN_EQUALS',
+                                    value: '2024-01-01T00:00:00Z'
+                                }),
+                                expect.objectContaining({
+                                    column: 'time',
+                                    operation: 'LESS_THAN_EQUALS',
+                                    value: '2024-01-02T00:00:00Z'
+                                })
+                            ]
+                        }),
+                        expect.any(Object)
+                    );
+                });
+
+                it('should aggregate decimated data from multiple tables', async () => {
+                    const mockTables = [
+                        {
+                            id: 'table1',
+                            columns: [
+                                { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                                { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        },
+                        {
+                            id: 'table2',
+                            columns: [
+                                { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                                { name: 'temperature', dataType: 'FLOAT32', columnType: ColumnType.Normal }
+                            ]
+                        }
+                    ];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+
+                    const mockDecimatedData1 = {
+                        frame: {
+                            columns: ['time', 'value'],
+                            data: [
+                                ['2024-01-01T00:00:00Z'],
+                                ['10.5']
+                            ]
+                        }
+                    };
+                    const mockDecimatedData2 = {
+                        frame: {
+                            columns: ['time', 'temperature'],
+                            data: [
+                                ['2024-01-01T00:00:00Z'],
+                                ['25.3']
+                            ]
+                        }
+                    };
+
+                    postSpy.mockImplementation((url: string) => {
+                        if (url.includes('table1/query-decimated-data')) {
+                            return of(mockDecimatedData1);
+                        }
+                        if (url.includes('table2/query-decimated-data')) {
+                            return of(mockDecimatedData2);
+                        }
+                        return of({});
+                    });
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['time-Timestamp', 'value-Numeric', 'temperature-Numeric'],
+                        dataTableFilter: '',
+                        decimationMethod: 'LOSSY',
+                        filterNulls: false,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
+
+                    const result = await lastValueFrom(ds.runQuery(query, options));
+
+                    expect(result.fields.length).toBeGreaterThan(0);
+                    // Should have tableId and tableName fields
+                    expect(result.fields.some(f => f.name === 'tableId')).toBe(true);
+                    expect(result.fields.some(f => f.name === 'tableName')).toBe(true);
+                    // Should have time column (common to both tables)
+                    expect(result.fields.some(f => f.name === 'time')).toBe(true);
+                });
+
+                it('should only include yColumns that are numeric', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        columns: [
+                            { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                            { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'name', dataType: 'STRING', columnType: ColumnType.Normal }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+
+                    const mockDecimatedData = {
+                        frame: {
+                            columns: ['time', 'value', 'name'],
+                            data: [
+                                ['2024-01-01T00:00:00Z'],
+                                ['10.5'],
+                                ['test']
+                            ]
+                        }
+                    };
+                    postSpy.mockReturnValue(of(mockDecimatedData));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['time-Timestamp', 'value-Numeric', 'name-String'],
+                        xColumn: 'time-Timestamp',
+                        dataTableFilter: '',
+                        decimationMethod: 'LOSSY',
+                        filterNulls: false,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
+
+                    await lastValueFrom(ds.runQuery(query, options));
+
+                    expect(postSpy).toHaveBeenCalledWith(
+                        expect.any(String),
+                        expect.objectContaining({
+                            decimation: expect.objectContaining({
+                                yColumns: expect.arrayContaining(['value']) // Should include numeric columns (not strings)
+                            })
+                        }),
+                        expect.any(Object)
+                    );
+                    // Verify string column is NOT in yColumns
+                    const call = postSpy.mock.calls[0];
+                    const yColumns = call[1].decimation.yColumns;
+                    expect(yColumns).not.toContain('name');
+                });
+
+                describe('time filter behavior', () => {
+                    it('should use TIMESTAMP INDEX column fallback when xColumn is null', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            columns: [
+                                { name: 'timestamp', dataType: 'TIMESTAMP', columnType: 'INDEX' as any },
+                                { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        postSpy.mockReturnValue(of({ frame: { columns: ['timestamp', 'value'], data: [['2024-01-01T00:00:00Z'], ['10.5']] } }));
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['timestamp-Timestamp', 'value-Numeric'],
+                            xColumn: null,
+                            dataTableFilter: '',
+                            decimationMethod: 'LOSSY',
+                            filterNulls: false,
+                            applyTimeFilters: true
+                        } as DataFrameQueryV2;
+
+                        const optionsWithRange = {
+                            ...options,
+                            range: {
+                                from: { toISOString: () => '2024-01-01T00:00:00Z' },
+                                to: { toISOString: () => '2024-01-02T00:00:00Z' }
+                            }
+                        } as any;
+
+                        await lastValueFrom(ds.runQuery(query, optionsWithRange));
+
+                        expect(postSpy).toHaveBeenCalledWith(
+                            expect.any(String),
+                            expect.objectContaining({
+                                filters: [
+                                    expect.objectContaining({ column: 'timestamp', operation: 'GREATER_THAN_EQUALS' }),
+                                    expect.objectContaining({ column: 'timestamp', operation: 'LESS_THAN_EQUALS' })
+                                ]
+                            }),
+                            expect.any(Object)
+                        );
+                    });
+
+                    it('should not apply time filters when no INDEX column exists', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            columns: [
+                                { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                                { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        postSpy.mockReturnValue(of({ frame: { columns: ['time', 'value'], data: [['2024-01-01T00:00:00Z'], ['10.5']] } }));
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['time-Timestamp', 'value-Numeric'],
+                            xColumn: null,
+                            dataTableFilter: '',
+                            decimationMethod: 'LOSSY',
+                            filterNulls: false,
+                            applyTimeFilters: true
+                        } as DataFrameQueryV2;
+
+                        const optionsWithRange = {
+                            ...options,
+                            range: {
+                                from: { toISOString: () => '2024-01-01T00:00:00Z' },
+                                to: { toISOString: () => '2024-01-02T00:00:00Z' }
+                            }
+                        } as any;
+
+                        await lastValueFrom(ds.runQuery(query, optionsWithRange));
+
+                        expect(postSpy).toHaveBeenCalledWith(
+                            expect.any(String),
+                            expect.objectContaining({ filters: [] }),
+                            expect.any(Object)
+                        );
+                    });
+                });
+
+                it('should pass xColumn and intervals (maxDataPoints) in decimation request', async () => {
+                    const mockTables = [
+                        {
+                            id: 'table1',
+                            columns: [
+                                { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                                { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }
+                    ];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+                    postSpy.mockReturnValue(
+                        of(
+                            { 
+                                frame: { 
+                                    columns: ['time', 'value'],
+                                    data: [
+                                        ['2024-01-01T00:00:00Z'],
+                                        ['10.5']
+                                    ] 
+                                } 
+                            }
+                        )
+                    );
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['time-Timestamp', 'value-Numeric'],
+                        xColumn: 'time-Timestamp',
+                        dataTableFilter: '',
+                        decimationMethod: 'LOSSY',
+                        filterNulls: false,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
+
+                    await lastValueFrom(ds.runQuery(query, { ...options, maxDataPoints: 500 }));
+
+                    expect(postSpy).toHaveBeenCalledWith(
+                        expect.any(String),
+                        expect.objectContaining({
+                            decimation: expect.objectContaining({
+                                xColumn: 'time-Timestamp',
+                                intervals: 500
+                            })
+                        }),
+                        expect.any(Object)
+                    );
+                });
+
+                it('should include all numeric types in yColumns and exclude strings', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        columns: [
+                            { name: 'intValue', dataType: 'INT32', columnType: ColumnType.Normal },
+                            { name: 'longValue', dataType: 'INT64', columnType: ColumnType.Normal },
+                            { name: 'floatValue', dataType: 'FLOAT32', columnType: ColumnType.Normal },
+                            { name: 'doubleValue', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'timeValue', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                            { name: 'textValue', dataType: 'STRING', columnType: ColumnType.Normal }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+                    postSpy.mockReturnValue(of({ 
+                        frame: { 
+                            columns: ['intValue', 'longValue', 'floatValue', 'doubleValue', 'timeValue', 'textValue'], 
+                            data: [['1'], ['2'], ['3.5'], ['4.5'], ['2024-01-01T00:00:00Z'], ['text']] 
+                        } 
+                    }));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['intValue-Numeric', 'longValue-Numeric', 'floatValue-Numeric', 'doubleValue-Numeric', 'timeValue-Timestamp', 'textValue-String'],
+                        dataTableFilter: '',
+                        decimationMethod: 'LOSSY',
+                        filterNulls: false,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
+
+                    await lastValueFrom(ds.runQuery(query, options));
+
+                    const yColumns = postSpy.mock.calls[0][1].decimation.yColumns;
+                    expect(yColumns).toEqual(['intValue', 'longValue', 'floatValue', 'doubleValue', 'timeValue']);
+                    expect(yColumns).not.toContain('textValue');
+                });
+
+                it('should apply combined null and time filters when both enabled', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        columns: [
+                            { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                            { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+                    postSpy.mockReturnValue(of({ frame: { columns: ['time', 'value'], data: [['2024-01-01T00:00:00Z'], ['10.5']] } }));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['time-Timestamp', 'value-Numeric'],
+                        xColumn: 'time-Timestamp',
+                        dataTableFilter: '',
+                        decimationMethod: 'LOSSY',
+                        filterNulls: true,
+                        applyTimeFilters: true
+                    } as DataFrameQueryV2;
+
+                    const optionsWithRange = {
+                        ...options,
+                        range: {
+                            from: { toISOString: () => '2024-01-01T00:00:00Z' },
+                            to: { toISOString: () => '2024-01-02T00:00:00Z' }
+                        }
+                    } as any;
+
+                    await lastValueFrom(ds.runQuery(query, optionsWithRange));
+
+                    const filters = postSpy.mock.calls[0][1].filters;
+                    expect(filters.length).toBe(3);
+                    expect(filters).toEqual(expect.arrayContaining([
+                        expect.objectContaining({ column: 'value', operation: 'NOT_EQUALS', value: 'NaN' }),
+                        expect.objectContaining({ column: 'time', operation: 'GREATER_THAN_EQUALS' }),
+                        expect.objectContaining({ column: 'time', operation: 'LESS_THAN_EQUALS' })
+                    ]));
                 });
             });
         });
