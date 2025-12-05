@@ -34,7 +34,12 @@ export class AlarmTrendQueryHandler extends AlarmsQueryHandlerCore {
     return { start, end, intervalMs };
   }
 
-  private getTrendQueryFilter(query: AlarmTrendQuery, start: Date, end: Date, scopedVars: ScopedVars): string {
+  private getTrendQueryFilter(
+    query: AlarmTrendQuery,
+    start: Date,
+    end: Date,
+    scopedVars: ScopedVars
+  ): string {
     const startIso = start.toISOString();
     const endIso = end.toISOString();
     const activeAndTransitionedBeforeStartFilter = `(active = "true" && mostRecentSetOccurredAt < "${startIso}")`;
