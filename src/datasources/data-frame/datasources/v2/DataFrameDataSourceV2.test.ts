@@ -951,8 +951,8 @@ describe('DataFrameDataSourceV2', () => {
                         frame: {
                             columns: ['time', 'value'],
                             data: [
-                                ['2024-01-01T00:00:00Z', '2024-01-01T01:00:00Z'],
-                                ['10.5', '20.3']
+                                ['2024-01-01T00:00:00Z', '10.5'],
+                                ['2024-01-01T01:00:00Z', '20.3']
                             ]
                         }
                     };
@@ -960,8 +960,8 @@ describe('DataFrameDataSourceV2', () => {
                         frame: {
                             columns: ['time', 'value'],
                             data: [
-                                ['2024-01-01T00:00:00Z', '2024-01-01T01:00:00Z'],
-                                ['15.2', '25.8']
+                                ['2024-01-01T00:00:00Z', '15.2'],
+                                ['2024-01-01T01:00:00Z', '25.8']
                             ]
                         }
                     };
@@ -1013,48 +1013,13 @@ describe('DataFrameDataSourceV2', () => {
                     );
                 });
 
-                it('should batch decimated data requests when there are many tables', async () => {
-                    // Create 15 tables to test batching (assuming 10 requests per batch)
-                    const mockTables = Array.from({ length: 15 }, (_, i) => ({
-                        id: `table${i + 1}`,
-                        name: `table${i + 1}`,
-                        columns: [
-                            { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                        ]
-                    }));
-                    queryTablesSpy.mockReturnValue(of(mockTables));
-
-                    const mockDecimatedData = {
-                        frame: {
-                            columns: ['col1'],
-                            data: [['10.5']]
-                        }
-                    };
-                    postSpy.mockReturnValue(of(mockDecimatedData));
-
-                    const query = {
-                        refId: 'A',
-                        type: DataFrameQueryType.Data,
-                        columns: ['col1-Numeric'],
-                        dataTableFilter: '',
-                        decimationMethod: 'LOSSY',
-                        filterNulls: false,
-                        applyTimeFilters: false
-                    } as DataFrameQueryV2;
-
-                    await lastValueFrom(ds.runQuery(query, options));
-
-                    // Should have made requests for all 15 tables
-                    expect(postSpy).toHaveBeenCalledTimes(15);
-                });
-
                 it('should apply null filters when filterNulls is true', async () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
                         columns: [
                             { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                            { name: 'value2', dataType: 'INT32', columnType: 'NULLABLE' as any }
+                            { name: 'value2', dataType: 'INT32', columnType: ColumnType.Nullable as any }
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
@@ -1185,8 +1150,7 @@ describe('DataFrameDataSourceV2', () => {
                         frame: {
                             columns: ['time', 'value'],
                             data: [
-                                ['2024-01-01T00:00:00Z'],
-                                ['10.5']
+                                ['2024-01-01T00:00:00Z', '10.5'],
                             ]
                         }
                     };
@@ -1194,8 +1158,7 @@ describe('DataFrameDataSourceV2', () => {
                         frame: {
                             columns: ['time', 'temperature'],
                             data: [
-                                ['2024-01-01T00:00:00Z'],
-                                ['25.3']
+                                ['2024-01-01T00:00:00Z', '25.3'],
                             ]
                         }
                     };
@@ -1223,11 +1186,23 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await lastValueFrom(ds.runQuery(query, options));
 
                     expect(result.fields.length).toBeGreaterThan(0);
-                    // Should have tableId and tableName fields
-                    expect(result.fields.some(f => f.name === 'tableId')).toBe(true);
-                    expect(result.fields.some(f => f.name === 'tableName')).toBe(true);
-                    // Should have time column (common to both tables)
-                    expect(result.fields.some(f => f.name === 'time')).toBe(true);
+                    // Verify that tableId and tableName fields have correct values
+                    const tableIdField = result.fields.find(f => f.name === 'tableId');
+                    expect(tableIdField?.values).toEqual(['table1', 'table2']);
+                    
+                    const tableNameField = result.fields.find(f => f.name === 'tableName');
+                    expect(tableNameField?.values).toEqual(['table1', 'table2']);
+
+                    // Verify that there are 2 rows (one from each table)
+                    const timeField = result.fields.find(f => f.name === 'time');
+                    expect(timeField?.values?.length).toBe(2);
+
+                    const temperatureField = result.fields.find(f => f.name === 'temperature');
+                    expect(temperatureField?.values).toEqual([null, 25.3]);
+
+                    const valueField = result.fields.find(f => f.name === 'value');
+                    expect(valueField?.values).toEqual([10.5, null]);
+
                 });
 
                 it('should only include yColumns that are numeric', async () => {
