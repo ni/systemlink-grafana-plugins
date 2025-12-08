@@ -219,7 +219,7 @@ describe('ListAlarmsQueryHandler', () => {
         });
       });
 
-      it('should handle alarms with no transitions when transition inclusion option is None', async () => {
+      it('should correctly map alarm properties when the API returns no transitions and the transition inclusion option is set to None', async () => {
         const query = buildAlarmsQuery({
           properties: Object.values(AlarmsSpecificProperties),
           transitionInclusionOption: TransitionInclusionOption.None,
