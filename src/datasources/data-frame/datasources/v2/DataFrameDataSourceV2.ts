@@ -1,7 +1,7 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -733,7 +733,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
                         const selectedTableColumnMap = this.buildSelectedColumnsMap(
                             selectedColumns,
-                            tables
+                            tables,
+                            processedQuery.includeIndexColumns
                         );
                         if (Object.keys(selectedTableColumnMap).length > 0) {
                             // TODO: Implement fetching decimated data for selected columns if needed.
@@ -768,12 +769,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private buildSelectedColumnsMap(
         selectedColumns: string[],
-        tables: TableProperties[]
+        tables: TableProperties[],
+        includeIndexColumns: boolean
     ): Record<string, Column[]> {
         const selectedTableColumnsMap: Record<string, Column[]> = {};
         tables.forEach(table => {
             const selectedColumnsForTable = this.getSelectedColumnsForTable(
-                selectedColumns, table
+                selectedColumns,
+                table,
+                includeIndexColumns
             );
             if (selectedColumnsForTable.length > 0) {
                 selectedTableColumnsMap[table.id] = selectedColumnsForTable;
@@ -784,7 +788,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private getSelectedColumnsForTable(
         selectedColumns: string[],
-        table: TableProperties
+        table: TableProperties,
+        includeIndexColumns: boolean
     ): Column[] {
         if (!Array.isArray(table.columns) || table.columns.length === 0) {
             return [];
@@ -803,6 +808,22 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 });
             }
         });
+
+        if (
+            includeIndexColumns
+            && selectedColumnDetails.length > 0
+        ) {
+            const tableIndexColumn = table.columns
+                .find(column => column.columnType === ColumnType.Index);
+            const tableIndexColumnId = this.getColumnIdentifier(
+                tableIndexColumn?.name || '',
+                tableIndexColumn?.dataType || ''
+            );
+            if (tableIndexColumn && !selectedColumns.includes(tableIndexColumnId)) {
+                selectedColumnDetails.push(tableIndexColumn);
+            }
+        }
+
         return selectedColumnDetails;
     }
 
