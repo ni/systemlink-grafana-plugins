@@ -1,3 +1,15 @@
+## [4.96.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.95.0...v4.96.0) (2025-12-08)
+
+### Features
+
+* **dataframe:** Add support for include index column ([#583](https://github.com/ni/systemlink-grafana-plugins/issues/583)) ([3743b18](https://github.com/ni/systemlink-grafana-plugins/commit/3743b18fa47136f6709be811ab4a758a9adf89af))
+
+## [4.95.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.94.0...v4.95.0) (2025-12-08)
+
+### Features
+
+* **dataframes:** Wrap the text in inline error field ([#591](https://github.com/ni/systemlink-grafana-plugins/issues/591)) ([3906148](https://github.com/ni/systemlink-grafana-plugins/commit/3906148eaf1ff2bbf0eb7eabd8b7efd7f97bba58))
+
 ## [4.94.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.93.0...v4.94.0) (2025-12-05)
 
 ### Features
