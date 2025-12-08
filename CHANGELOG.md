@@ -1,3 +1,9 @@
+## [4.96.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.95.0...v4.96.0) (2025-12-08)
+
+### Features
+
+* **dataframe:** Add support for include index column ([#583](https://github.com/ni/systemlink-grafana-plugins/issues/583)) ([3743b18](https://github.com/ni/systemlink-grafana-plugins/commit/3743b18fa47136f6709be811ab4a758a9adf89af))
+
 ## [4.95.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.94.0...v4.95.0) (2025-12-08)
 
 ### Features
