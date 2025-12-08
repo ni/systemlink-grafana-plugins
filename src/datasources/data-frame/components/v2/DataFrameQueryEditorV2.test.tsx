@@ -2068,7 +2068,7 @@ describe("DataFrameQueryEditorV2", () => {
                         });
                     });
 
-                    it("should show expected label when the the x-column is invalid", async () => {
+                    it("should show expected label when the x-column is invalid", async () => {
                         renderComponent({
                             type: DataFrameQueryType.Data,
                             dataTableFilter: 'name = "TestTable"',
