@@ -744,12 +744,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         const selectedColumnDetails: Column[] = [];
-        let tableIndexColumn: Column = {
-            name: '',
-            dataType: 'INT32',
-            columnType: ColumnType.Index,
-            properties: {}
-        };
+        let tableIndexColumn = undefined;
         let tableColumns = table.columns;
 
         if(includeIndexColumns) {
