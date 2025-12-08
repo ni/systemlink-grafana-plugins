@@ -1766,7 +1766,7 @@ describe('ListAlarmsQueryHandler', () => {
             fields: [
               {
                 name: 'Transition keywords',
-                type: 'string',
+                type: 'other',
                 values: [
                   ['temperature', 'high'],
                   [],
@@ -1823,12 +1823,12 @@ describe('ListAlarmsQueryHandler', () => {
             fields: [
               {
                 name: 'Transition properties',
-                type: 'string',
+                type: 'other',
                 values: [
-                  '{"sensorId":"SENSOR-12"}',
-                  '',
-                  '{"aProp":"value2","zProp":"value1"}',
-                  '{"aProp2":"value2"}',
+                  {"sensorId":"SENSOR-12"},
+                  {},
+                  {"aProp":"value2","zProp":"value1"},
+                  {"aProp2":"value2"},
                 ],
               },
             ],
