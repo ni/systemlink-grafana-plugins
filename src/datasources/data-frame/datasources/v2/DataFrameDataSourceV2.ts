@@ -678,7 +678,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return this.getDecimatedDataForSelectedColumns$(
             processedQuery,
             options
-        )
+        );
     }
 
     private getDecimatedDataForSelectedColumns$(
@@ -875,10 +875,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     const columnDataIndex = columnIndexMap.get(colName);
 
                     if (columnDataIndex !== undefined) {
-                        // Column exists in this table - append data
+                        // Column exists in this table - append data.
                         columnValueArrays[colArrayIndex].push(data[columnDataIndex]);
                     } else {
-                        // Column doesn't exist in this table - append null values
+                        // Column doesn't exist in this table - append null values.
                         columnValueArrays[colArrayIndex].push('');
                     }
                 });
