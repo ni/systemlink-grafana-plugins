@@ -212,7 +212,7 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
                 maxWidth={SECONDARY_CONTROL_WIDTH}
                 type="number"
                 value={query.take}
-                onChange={onTakeChange}
+                onBlur={onTakeChange}
                 placeholder={placeholders.take}
                 onKeyDown={event => {
                   validateNumericInput(event);

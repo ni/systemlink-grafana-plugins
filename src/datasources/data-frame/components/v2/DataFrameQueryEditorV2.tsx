@@ -383,7 +383,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                                 type="number"
                                 placeholder={placeholders.take}
                                 value={migratedQuery.take}
-                                onChange={onTakeChange}
+                                onBlur={onTakeChange}
                                 onKeyDown={(event) => { validateNumericInput(event); }}
                             />
                         </InlineField>

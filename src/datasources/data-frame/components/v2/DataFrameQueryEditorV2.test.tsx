@@ -2566,6 +2566,7 @@ describe("DataFrameQueryEditorV2", () => {
 
             it("should allow only numeric input in the take field", async () => {
                 await user.type(takeInput, "abc");
+                await user.tab();
 
                 expect(takeInput).toHaveValue(1000);
             });
@@ -2573,6 +2574,7 @@ describe("DataFrameQueryEditorV2", () => {
             it("should show an error message when the take value entered is less than or equal to 0", async () => {
                 await user.clear(takeInput);
                 await user.type(takeInput, "0");
+                await user.tab();
 
                 await waitFor(() => {
                     expect(screen.getByText("The take value must be greater than or equal to 0."))
@@ -2583,6 +2585,7 @@ describe("DataFrameQueryEditorV2", () => {
             it("should show an error message when the take value entered is greater than 1000", async () => {
                 await user.clear(takeInput);
                 await user.type(takeInput, "5000");
+                await user.tab();
 
                 await waitFor(() => {
                     expect(screen.getByText("The take value must be less than or equal to 1000."))
@@ -2593,6 +2596,7 @@ describe("DataFrameQueryEditorV2", () => {
             it("should not show an error message when a valid take value is entered", async () => {
                 await user.clear(takeInput);
                 await user.type(takeInput, "500");
+                await user.tab();
 
                 await waitFor(() => {
                     expect(screen.queryByText("The take value must be greater than or equal to 0."))
@@ -2605,6 +2609,7 @@ describe("DataFrameQueryEditorV2", () => {
             it("should call onChange when a valid take value is entered", async () => {
                 await user.clear(takeInput);
                 await user.type(takeInput, "500");
+                await user.tab();
 
                 await waitFor(() => {
                     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
@@ -2616,9 +2621,20 @@ describe("DataFrameQueryEditorV2", () => {
             it("should call onRunQuery when a valid take value is entered", async () => {
                 await user.clear(takeInput);
                 await user.type(takeInput, "500");
+                await user.tab();
 
                 await waitFor(() => {
                     expect(onRunQuery).toHaveBeenCalled();
+                });
+            });
+
+            it("should not call onChange and onRunQuery without blur", async () => {
+                await user.clear(takeInput);
+                await user.type(takeInput, "500");
+
+                await waitFor(() => {
+                    expect(onChange).not.toHaveBeenCalled();
+                    expect(onRunQuery).not.toHaveBeenCalled();
                 });
             });
         });
