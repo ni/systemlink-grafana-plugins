@@ -406,6 +406,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             label={labels.columns}
                             labelWidth={INLINE_LABEL_WIDTH}
                             tooltip={tooltips.columns}
+                            shrink={true}
                             invalid={!!invalidSelectedColumnsMessage}
                             error={invalidSelectedColumnsMessage}
                         >
