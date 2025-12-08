@@ -1,15 +1,12 @@
 import { AlarmsQueryHandlerCore } from './AlarmsQueryHandlerCore';
 import { DataFrameDTO, DataQueryRequest, ScopedVars } from '@grafana/data';
-import { AlarmsQuery, AlarmTransitionSeverityLevel, QueryAlarmsRequest, QueryType } from '../types/types';
+import { AlarmsQuery, QueryAlarmsRequest, QueryType } from '../types/types';
 import { MockProxy } from 'jest-mock-extended';
 import { BackendSrv } from '@grafana/runtime';
 import { createFetchError, createFetchResponse, requestMatching, setupDataSource } from 'test/fixtures';
 import { QUERY_ALARMS_RELATIVE_PATH } from '../constants/QueryAlarms.constants';
 import { Workspace } from 'core/types';
 import { queryInBatches, queryUntilComplete } from 'core/utils';
-import { AlarmsSpecificProperties } from '../types/ListAlarms.types';
-import { QueryBuilderOperations } from 'core/query-builder.constants';
-import exp from 'constants';
 
 jest.mock('core/utils', () => ({
   getVariableOptions: jest.fn(),
