@@ -2067,6 +2067,18 @@ describe("DataFrameQueryEditorV2", () => {
                             expect(screen.getByDisplayValue('ColumnA')).toBeInTheDocument();
                         });
                     });
+
+                    it("should show expected label when the the x-column is invalid", async () => {
+                        renderComponent({
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: 'name = "TestTable"',
+                            xColumn: 'InvalidColumn-Numeric'
+                        });
+
+                        await waitFor(() => {
+                            expect(screen.getByDisplayValue('InvalidColumn (Numeric)')).toBeInTheDocument();
+                        });
+                    });
                 });
 
                 describe('onXColumnChange', () => {

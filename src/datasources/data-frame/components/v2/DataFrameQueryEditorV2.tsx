@@ -103,16 +103,18 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             .map(columnId => columnOptionsMap.get(columnId)!);
     }, [columnOptionsMap, selectedColumnIds]);
 
+    const getSelectedColumnLabelForInvalidColumn = useCallback((columnId: string): string => {
+        const parsedColumnIdentifier = datasource.parseColumnIdentifier(columnId);
+        return `${parsedColumnIdentifier.columnName} (${parsedColumnIdentifier.transformedDataType})`;
+    }, [datasource]);
+
     const invalidColumnSelections = useMemo((): Array<ComboboxOption<string>> => {
         return selectedColumnIds
             .filter(columnId => !columnOptionsMap.has(columnId))
-            .map(columnId => {
-                const parsedColumnIdentifier = datasource.parseColumnIdentifier(columnId);
-                return { 
-                    label: `${parsedColumnIdentifier.columnName} (${parsedColumnIdentifier.transformedDataType})`, 
-                    value: columnId
-                };
-            });
+            .map(columnId => ({
+                label: getSelectedColumnLabelForInvalidColumn(columnId),
+                value: columnId
+            }));
     }, [datasource, columnOptionsMap, selectedColumnIds]);
 
     const selectedColumnOptions = useMemo((): Array<ComboboxOption<string>> => {
@@ -150,8 +152,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             lastFilterRef.current = transformedFilter;
 
             if (
-                transformedFilter.dataTableFilter || 
-                transformedFilter.resultFilter || 
+                transformedFilter.dataTableFilter ||
+                transformedFilter.resultFilter ||
                 transformedFilter.columnFilter
             ) {
                 fetchAndSetColumnOptions(transformedFilter);
@@ -180,12 +182,21 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         ]
     );
 
-    const isXColumnSelectionInvalid = useMemo((): boolean => {
+    const xColumnState = useMemo((): {
+        isInvalid: boolean;
+        value: ComboboxOption<string> | string | null;
+    } => {
         if (!migratedQuery.xColumn) {
-            return false;
+            return { isInvalid: false, value: migratedQuery.xColumn };
         }
         const found = xColumnOptions.find(option => option.value === migratedQuery.xColumn);
-        return !found;
+        const value = found
+            ? migratedQuery.xColumn
+            : {
+                label: getSelectedColumnLabelForInvalidColumn(migratedQuery.xColumn),
+                value: migratedQuery.xColumn
+            };
+        return { isInvalid: !found, value };
     }, [migratedQuery.xColumn, xColumnOptions]);
 
     const handleQueryChange = useCallback(
@@ -466,13 +477,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             label={labels.xColumn}
                             labelWidth={INLINE_LABEL_WIDTH}
                             tooltip={tooltips.xColumn}
-                            invalid={isXColumnSelectionInvalid}
-                            error={isXColumnSelectionInvalid ? errorMessages.xColumnSelectionInvalid : ''}
+                            invalid={xColumnState.isInvalid}
+                            error={xColumnState.isInvalid ? errorMessages.xColumnSelectionInvalid : ''}
                         >
                             <Combobox
                                 placeholder={placeholders.xColumn}
                                 width={INLINE_LABEL_WIDTH}
-                                value={migratedQuery.xColumn}
+                                value={xColumnState.value}
                                 onChange={onXColumnChange}
                                 options={xColumnOptions}
                                 createCustomValue={false}
