@@ -744,17 +744,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         const selectedColumnDetails: Column[] = [];
-        let tableIndexColumn = undefined;
-        let tableColumns = table.columns;
 
-        if(includeIndexColumns) {
-            tableIndexColumn = table.columns
-                .find(column => column.columnType === ColumnType.Index);
-            tableColumns = table.columns
-                .filter(column => column.columnType !== ColumnType.Index);
-        }
-        
-        tableColumns.forEach(column => {
+        table.columns.forEach(column => {
             const tableColumnId = this.getColumnIdentifier(column.name, column.dataType);
             if (selectedColumns.includes(tableColumnId)) {
                 selectedColumnDetails.push({
@@ -769,9 +760,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         if (
             includeIndexColumns
             && selectedColumnDetails.length > 0
-            && tableIndexColumn !== undefined
         ) {
-            selectedColumnDetails.push(tableIndexColumn);
+            const tableIndexColumn = table.columns
+                .find(column => column.columnType === ColumnType.Index);
+            const tableIndexColumnId = this.getColumnIdentifier(
+                tableIndexColumn?.name || '',
+                tableIndexColumn?.dataType || ''
+            );
+            if (tableIndexColumn && !selectedColumns.includes(tableIndexColumnId)) {
+                selectedColumnDetails.push(tableIndexColumn);
+            }
         }
 
         return selectedColumnDetails;
