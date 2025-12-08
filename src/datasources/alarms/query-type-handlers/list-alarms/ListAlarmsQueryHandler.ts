@@ -161,7 +161,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       const fieldType = this.getFieldTypeForProperty(fieldValue);
 
       const fieldValues = flattenedAlarms.map(alarm => {
-        const transition = alarm.transitions?.[0];
+        const transition = alarm.transitions[0];
 
         switch (property) {
           case AlarmsSpecificProperties.workspace:
@@ -181,15 +181,15 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
           case AlarmsSpecificProperties.source:
             return this.getSource(alarm.properties);
           case AlarmsTransitionProperties.transitionSeverityLevel:
-            return transition ? this.getSeverityLabel(transition.severityLevel) : '';
+            return this.getSeverityLabel(transition.severityLevel);
           case AlarmsTransitionProperties.transitionProperties:
-            return transition ? this.getSortedCustomProperties(transition.properties) : '';
+            return this.getSortedCustomProperties(transition.properties);
           default:
             let value;
 
             if (this.isAlarmTransitionProperty(property)) {
               const transitionKey = TransitionPropertyKeyMap[property];
-              value = transition?.[transitionKey];
+              value = transition[transitionKey];
             } else {
               const alarmKey = AlarmPropertyKeyMap[property];
               value = alarm[alarmKey];
