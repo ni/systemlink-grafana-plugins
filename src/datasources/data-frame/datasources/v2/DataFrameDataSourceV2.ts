@@ -868,12 +868,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 columnIndexMap.set(colName, index);
             });
 
-            tableData.frame.data.forEach((data, dataIndex) => {
+            tableData.frame.data.forEach((data) => {
                 allColumnsArray.forEach((colName, colArrayIndex) => {
                     const columnDataIndex = columnIndexMap.get(colName);
 
-                    if (columnDataIndex !== undefined && tableData.frame.data[dataIndex][columnDataIndex]) {
-                        // Column exists in this table - append all its data
+                    if (columnDataIndex !== undefined && data[columnDataIndex]) {
+                        // Column exists in this table - append  data
                         columnDataArrays[colArrayIndex].push(data[columnDataIndex]);
                     } else {
                         // Column doesn't exist in this table - append null values
