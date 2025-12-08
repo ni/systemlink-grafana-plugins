@@ -388,50 +388,67 @@ describe('AlarmsQueryHandlerCore', () => {
         describe('current severity level', () => {
           [
             {
-              name: 'equals clear',
+              operator: 'equals',
+              severityLevel: 'clear',
               input: 'currentSeverityLevel = "-1"',
               expected: 'currentSeverityLevel = "-1"'
             },
             {
-              name: 'not equals clear',
+              operator: 'not equals',
+              severityLevel: 'clear',
               input: 'currentSeverityLevel != "-1"',
               expected: 'currentSeverityLevel != "-1"'
             },
             {
-              name: 'equals low',
+              operator: 'equals',
+              severityLevel: 'low',
               input: 'currentSeverityLevel = "1"',
               expected: 'currentSeverityLevel = "1"'
-            }, {
-              name: 'not equals low',
+            },
+            {
+              operator: 'not equals',
+              severityLevel: 'low',
               input: 'currentSeverityLevel != "1"',
               expected: 'currentSeverityLevel != "1"'
-            }, {
-              name: 'equal moderate',
+            },
+            {
+              operator: 'equals',
+              severityLevel: 'moderate',
               input: 'currentSeverityLevel = "2"',
               expected: 'currentSeverityLevel = "2"'
-            }, {
-              name: 'not equals moderate',
+            },
+            {
+              operator: 'not equals',
+              severityLevel: 'moderate',
               input: 'currentSeverityLevel != "2"',
               expected: 'currentSeverityLevel != "2"'
-            }, {
-              name: 'equals high',
+            }, 
+            {
+              operator: 'equals',
+              severityLevel: 'high',
               input: 'currentSeverityLevel = "3"',
               expected: 'currentSeverityLevel = "3"'
-            }, {
-              name: 'not equals high',
+            },
+            {
+              operator: 'not equals',
+              severityLevel: 'high',
               input: 'currentSeverityLevel != "3"',
               expected: 'currentSeverityLevel != "3"'
-            }, {
-              name: 'equals critical',
+            },
+            {
+              operator: 'equals',
+              severityLevel: 'critical',
               input: 'currentSeverityLevel = "4"',
               expected: 'currentSeverityLevel >= "4"'
-            }, {
-              name: 'not equals critical',
+            },
+            {
+              operator: 'not equals',
+              severityLevel: 'critical',
               input: 'currentSeverityLevel != "4"',
               expected: 'currentSeverityLevel < "4"'
             }
-          ].forEach(({ name, input, expected }) => {
-            it(`should transform current severity level for ${name}`, () => {
+          ].forEach(({ operator, severityLevel, input, expected }) => {
+            it(`should transform current severity level when filtering for ${severityLevel} with ${operator}`, () => {
               const result = datastore.transformAlarmsQueryWrapper({}, input);
 
               expect(result).toBe(expected);
@@ -448,7 +465,7 @@ describe('AlarmsQueryHandlerCore', () => {
             expect(transformQuery).toBe('currentSeverityLevel < "4"');
           });
 
-          it('should handle transformation for multiple value variable in the current severity level filter with combination of severity levels', () => {
+          it('should handle transformation for multiple value variable in the current severity level filter', () => {
             const mockQueryBy = 'currentSeverityLevel = "${query0}"';
             jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('currentSeverityLevel = "{2,4}"');
 
@@ -462,50 +479,67 @@ describe('AlarmsQueryHandlerCore', () => {
         describe('highest severity level', () => {
           [
             {
-              name: 'equals clear',
+              operator: 'equals',
+              severityLevel: 'clear',
               input: 'highestSeverityLevel = "-1"',
               expected: 'highestSeverityLevel = "-1"'
             },
             {
-              name: 'not equals clear',
+              operator: 'not equals',
+              severityLevel: 'clear',
               input: 'highestSeverityLevel != "-1"',
               expected: 'highestSeverityLevel != "-1"'
             },
             {
-              name: 'equals low',
+              operator: 'equals',
+              severityLevel: 'low',
               input: 'highestSeverityLevel = "1"',
               expected: 'highestSeverityLevel = "1"'
-            }, {
-              name: 'not equals low',
+            },
+            {
+              operator: 'not equals',
+              severityLevel: 'low',
               input: 'highestSeverityLevel != "1"',
               expected: 'highestSeverityLevel != "1"'
-            }, {
-              name: 'equal moderate',
+            },
+            {
+              operator: 'equal',
+              severityLevel: 'moderate',
               input: 'highestSeverityLevel = "2"',
               expected: 'highestSeverityLevel = "2"'
-            }, {
-              name: 'not equals moderate',
+            },
+            {
+              operator: 'not equals',
+              severityLevel: 'moderate',
               input: 'highestSeverityLevel != "2"',
               expected: 'highestSeverityLevel != "2"'
-            }, {
-              name: 'equals high',
+            },
+            {
+              operator: 'equals',
+              severityLevel: 'high',
               input: 'highestSeverityLevel = "3"',
               expected: 'highestSeverityLevel = "3"'
-            }, {
-              name: 'not equals high',
+            },
+            {
+              operator: 'not equals',
+              severityLevel: 'high',
               input: 'highestSeverityLevel != "3"',
               expected: 'highestSeverityLevel != "3"'
-            }, {
-              name: 'equals critical',
+            },
+            {
+              operator: 'equals',
+              severityLevel: 'critical',
               input: 'highestSeverityLevel = "4"',
               expected: 'highestSeverityLevel >= "4"'
-            }, {
-              name: 'not equals critical',
+            },
+            {
+              operator: 'not equals',
+              severityLevel: 'critical',
               input: 'highestSeverityLevel != "4"',
               expected: 'highestSeverityLevel < "4"'
             }
-          ].forEach(({ name, input, expected }) => {
-            it(`should transform highest severity level for ${name}`, () => {
+          ].forEach(({ operator, severityLevel, input, expected }) => {
+            it(`should transform highest severity level when filtering for ${severityLevel} with ${operator}`, () => {
               const result = datastore.transformAlarmsQueryWrapper({}, input);
 
               expect(result).toBe(expected);
@@ -522,7 +556,7 @@ describe('AlarmsQueryHandlerCore', () => {
             expect(transformQuery).toBe('highestSeverityLevel < "4"');
           });
 
-          it('should handle transformation for multiple value variable in the highest severity level filter with combination of severity levels', () => {
+          it('should handle transformation for multiple value variable in the highest severity level filter', () => {
             const mockQueryBy = 'highestSeverityLevel = "${query0}"';
             jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('highestSeverityLevel = "{2,4}"');
 
