@@ -689,8 +689,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             ? processedQuery.columns
             : of(processedQuery.columns);
         return selectedColumns$.pipe(
-            switchMap(selectedColumns => {
-                if (selectedColumns.length === 0) {
+            switchMap(selectedColumnIdentifiers => {
+                if (selectedColumnIdentifiers.length === 0) {
                     return of(
                         this.buildEmptyDataFrame(processedQuery.refId)
                     );
@@ -715,7 +715,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
                 return tables$.pipe(
                     switchMap(tables => {
-                        if (!this.areSelectedColumnsValid(selectedColumns, tables)) {
+                        if (!this.areSelectedColumnsValid(selectedColumnIdentifiers, tables)) {
                             const errorMessage = 'One or more selected columns are invalid. Please update your column selection or refine your filters.';
                             this.appEvents?.publish?.({
                                 type: AppEvents.alertError.name,
@@ -736,16 +736,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             throw new Error(errorMessage);
                         }
 
-                        const selectedTableColumnMap = this.buildSelectedColumnsMap(
-                            selectedColumns,
+                        const tableColumnsMap = this.buildTableColumnsMap(
+                            selectedColumnIdentifiers,
                             tables,
                             processedQuery.includeIndexColumns
                         );
                         const tableIdNamesMap = this.buildTableIdNamesMap(tables);
-                        const flattenedSelectedColumns = Object.values(selectedTableColumnMap).flatMap(item => item.selectedColumns);
-                        if (Object.keys(selectedTableColumnMap).length > 0) {
+                        const outputColumns = Object.values(tableColumnsMap)
+                            .flatMap(columnsData => columnsData.selectedColumns);
+
+                        if (Object.keys(tableColumnsMap).length > 0) {
                             return this.getDecimatedTableDataInBatches$(
-                                selectedTableColumnMap,
+                                tableColumnsMap,
                                 processedQuery,
                                 options.range,
                                 options.maxDataPoints
@@ -755,7 +757,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                     return {
                                         refId: processedQuery.refId,
                                         name: processedQuery.refId,
-                                        fields: this.dataFrameToFields(tableData.frame.data, flattenedSelectedColumns),
+                                        fields: this.dataFrameToFields(
+                                            tableData.frame.data,
+                                            outputColumns
+                                        ),
                                     };
                                 })
                             );
@@ -779,7 +784,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return DataFrameDataSourceV2.NUMERIC_DATA_TYPES.includes(dataType as any);
     }
 
-    private dataFrameToFields(rows: string[][], columns: Column[]): FieldDTO[] {
+    private dataFrameToFields(rows: string[][], outputColumns: Column[]): FieldDTO[] {
         // Create table metadata fields (tableId and tableName)
         const metadataFields: FieldDTO[] = [
             {
@@ -795,7 +800,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         ];
 
         // Normalize column data types (combine numeric types)
-        const normalizedColumns = columns.map(column => ({
+        const normalizedColumns = outputColumns.map(column => ({
             ...column,
             dataType: this.isNumericDataType(column.dataType) ? 'NUMBER' : column.dataType
         }));
@@ -912,7 +917,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return tables.every(table => this.createColumnIdentifierSet(table.columns).has(xColumn));
     }
 
-    private buildSelectedColumnsMap(
+    private buildTableColumnsMap(
         selectedColumns: string[],
         tables: TableProperties[],
         includeIndexColumns: boolean
