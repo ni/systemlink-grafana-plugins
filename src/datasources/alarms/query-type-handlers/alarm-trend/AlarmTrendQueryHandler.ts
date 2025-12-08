@@ -1,18 +1,18 @@
-import { DataFrameDTO, DataQueryRequest, FieldType } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, FieldType, ScopedVars } from '@grafana/data';
 import { AlarmsQueryHandlerCore } from 'datasources/alarms/query-type-handlers/AlarmsQueryHandlerCore';
-import { defaultAlarmsTrendQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
+import { defaultAlarmTrendQuery } from 'datasources/alarms/constants/DefaultQueries.constants';
 import { Alarm, AlarmTransitionSeverityLevel, AlarmTransitionType, TransitionInclusionOption } from 'datasources/alarms/types/types';
-import { AlarmsTrendQuery, AlarmTransitionEvent, AlarmTrendSeverityLevelLabel, AlarmWithNumericTimeInTransitions } from 'datasources/alarms/types/AlarmsTrend.types';
+import { AlarmTrendQuery, AlarmTransitionEvent, AlarmTrendSeverityLevelLabel, AlarmWithNumericTimeInTransitions } from 'datasources/alarms/types/AlarmTrend.types';
 
-export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
-  public readonly defaultQuery = defaultAlarmsTrendQuery;
+export class AlarmTrendQueryHandler extends AlarmsQueryHandlerCore {
+  public readonly defaultQuery = defaultAlarmTrendQuery;
   private readonly countKey = 'Count';
 
-  public async runQuery(query: AlarmsTrendQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+  public async runQuery(query: AlarmTrendQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     const { start, end, intervalMs } = this.extractTimeParameters(options);
     const startTime = start.getTime();
     const endTime = end.getTime();
-    const filter = this.getTrendQueryFilter(query, start, end);
+    const filter = this.getTrendQueryFilter(query, start, end, options.scopedVars);
     const requestBody = { filter, transitionInclusionOption: TransitionInclusionOption.All };
     const alarms = await this.queryAlarmsUntilComplete(requestBody);
     const alarmsWithTimestamp = this.enrichTransitionsWithTimestamp(alarms);
@@ -34,7 +34,12 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
     return { start, end, intervalMs };
   }
 
-  private getTrendQueryFilter(query: AlarmsTrendQuery, start: Date, end: Date): string {
+  private getTrendQueryFilter(
+    query: AlarmTrendQuery,
+    start: Date,
+    end: Date,
+    scopedVars: ScopedVars
+  ): string {
     const startIso = start.toISOString();
     const endIso = end.toISOString();
     const activeAndTransitionedBeforeStartFilter = `(active = "true" && mostRecentSetOccurredAt < "${startIso}")`;
@@ -49,7 +54,8 @@ export class AlarmsTrendQueryHandler extends AlarmsQueryHandlerCore {
     ].join(' || ')})`;
 
     if (query.filter && query.filter.trim() !== '') {
-      return `${defaultTrendQueryFilter} && (${query.filter})`;
+      const transformedFilter = this.transformAlarmsQuery(scopedVars, query.filter);
+      return `${defaultTrendQueryFilter} && (${transformedFilter})`;
     }
 
     return defaultTrendQueryFilter;
