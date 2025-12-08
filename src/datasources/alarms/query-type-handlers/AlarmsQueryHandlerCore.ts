@@ -12,7 +12,6 @@ import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana
 import { MINION_ID_CUSTOM_PROPERTY, SYSTEM_CUSTOM_PROPERTY } from '../constants/AlarmProperties.constants';
 import { ALARMS_TIME_FIELDS } from '../constants/AlarmsQueryEditor.constants';
 import { AlarmsProperties } from '../types/ListAlarms.types';
-import { QueryBuilderOperations } from 'core/query-builder.constants';
 
 export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery> {
   public errorTitle?: string;
@@ -135,9 +134,12 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
   }
 
   protected transformAlarmsQuery(scopedVars: ScopedVars, query?: string): string | undefined {
-    return query
-      ? transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields)
-      : undefined;
+    if (!query) {
+      return undefined;
+    }
+
+    const transformedQuery = transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields)
+    return this.transformSeverityLevelFilters(transformedQuery);
   }
 
   protected isTimeField(field: AlarmsProperties): boolean {
@@ -156,10 +158,6 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
         case AlarmsQueryBuilderFields.KEYWORD.dataField:
           callback = listFieldsQuery(dataField);
           break;
-        case AlarmsQueryBuilderFields.HIGHEST_SEVERITY.dataField:
-        case AlarmsQueryBuilderFields.CURRENT_SEVERITY.dataField:
-          callback = this.getSeverityLevelTransformation(dataField);
-          break;
         default:
           callback = this.isTimeField(dataField as AlarmsProperties)
             ? timeFieldsQuery(dataField)
@@ -170,53 +168,21 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
     })
   );
 
-  // approach -1 not working for multi value variables
-  // private getSeverityLevelTransformation(dataField: string): ExpressionTransformFunction {
-  //   return (value: string, operation: string) => {
-  //     const criticalSeverityLevel = String(AlarmTransitionSeverityLevel.Critical);
-  //     let severityLevelOperator = operation;
+  private transformSeverityLevelFilters(query: string): string {
+    const criticalSeverityLevel = AlarmTransitionSeverityLevel.Critical;
+    const currentSeverityField = AlarmsQueryBuilderFields.CURRENT_SEVERITY.dataField;
+    const highestSeverityField = AlarmsQueryBuilderFields.HIGHEST_SEVERITY.dataField;
 
-  //     if (value >= criticalSeverityLevel) {
-  //       severityLevelOperator =
-  //         (operation === QueryBuilderOperations.EQUALS.name)
-  //           ? QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name
-  //           : QueryBuilderOperations.LESS_THAN.name;
-  //     }
+    const severityFieldRegex = new RegExp(`(${currentSeverityField}|${highestSeverityField})\\s*(!=|=)\\s*("${criticalSeverityLevel}")`, 'g');
 
-  //     return multipleValuesQuery(dataField)(value, severityLevelOperator);
-  //   };
-  // }
-
-  //approach - 2 working
-  private buildSeverityExpression(dataField: string, val: string, operation: string): string {
-    const criticalSeverityLevel = String(AlarmTransitionSeverityLevel.Critical);
-    
-    if (val === criticalSeverityLevel) {
-      if (operation === QueryBuilderOperations.EQUALS.name) {
-        return `${dataField} >= "${val}"`;
-      } else if (operation === '!=') {
-        return `${dataField} < "${val}"`;
+    return query.replace(severityFieldRegex, (match, field, operator, value) => {
+      if (operator === '=' && value === `"${criticalSeverityLevel}"`) {
+        return `${field} >= ${value}`;
+      } else if (operator === '!=' && value === `"${criticalSeverityLevel}"`) {
+        return `${field} < ${value}`;
       }
-    }
-    return `${dataField} ${operation} "${val}"`;
-  }
-
-  private getSeverityLevelTransformation(dataField: string): ExpressionTransformFunction {
-    return (value: string, operation: string) => {
-      const isMultiSelect = value.startsWith('{') && value.endsWith('}');
-      if (isMultiSelect) {
-        const valuesArray = value.replace(/({|})/g, '').split(',');
-        const logicalOperator = getConcatOperatorForMultiExpression(operation);
-        
-        const expressions = valuesArray.map(val => 
-          this.buildSeverityExpression(dataField, val, operation)
-        );
-        
-        return `(${expressions.join(` ${logicalOperator} `)})`;
-      }
-      
-      return this.buildSeverityExpression(dataField, value, operation);
-    };
+      return match;
+    });
   }
 
   private getSourceTransformation(): ExpressionTransformFunction {

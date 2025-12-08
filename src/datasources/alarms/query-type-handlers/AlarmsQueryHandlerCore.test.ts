@@ -387,7 +387,7 @@ describe('AlarmsQueryHandlerCore', () => {
         });
       });
 
-      describe('getSeverityLevelTransformation', () => {
+      describe('transformSeverityLevelFilters', () => {
         describe('current severity level', () => {
           [
             {
@@ -451,7 +451,7 @@ describe('AlarmsQueryHandlerCore', () => {
             expect(transformQuery).toBe('currentSeverityLevel < "4"');
           });
 
-          it('should handle transformation for multiple value variable in the current severity level filter', () => {
+          it('should handle transformation for multiple value variable in the current severity level filter with combination of severity levels', () => {
             const mockQueryBy = 'currentSeverityLevel = "${query0}"';
             jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('currentSeverityLevel = "{2,4}"');
 
@@ -459,6 +459,80 @@ describe('AlarmsQueryHandlerCore', () => {
 
             expect(datastore.templateSrv.replace).toHaveBeenCalledWith('currentSeverityLevel = "${query0}"', {});
             expect(transformQuery).toBe('(currentSeverityLevel = "2" || currentSeverityLevel >= "4")');
+          });
+        });
+
+        describe('highest severity level', () => {
+          [
+            {
+              name: 'equals clear',
+              input: 'highestSeverityLevel = "-1"',
+              expected: 'highestSeverityLevel = "-1"'
+            },
+            {
+              name: 'not equals clear',
+              input: 'highestSeverityLevel != "-1"',
+              expected: 'highestSeverityLevel != "-1"'
+            },
+            {
+              name: 'equals low',
+              input: 'highestSeverityLevel = "1"',
+              expected: 'highestSeverityLevel = "1"'
+            }, {
+              name: 'not equals low',
+              input: 'highestSeverityLevel != "1"',
+              expected: 'highestSeverityLevel != "1"'
+            }, {
+              name: 'equal moderate',
+              input: 'highestSeverityLevel = "2"',
+              expected: 'highestSeverityLevel = "2"'
+            }, {
+              name: 'not equals moderate',
+              input: 'highestSeverityLevel != "2"',
+              expected: 'highestSeverityLevel != "2"'
+            }, {
+              name: 'equals high',
+              input: 'highestSeverityLevel = "3"',
+              expected: 'highestSeverityLevel = "3"'
+            }, {
+              name: 'not equals high',
+              input: 'highestSeverityLevel != "3"',
+              expected: 'highestSeverityLevel != "3"'
+            }, {
+              name: 'equals critical',
+              input: 'highestSeverityLevel = "4"',
+              expected: 'highestSeverityLevel >= "4"'
+            }, {
+              name: 'not equals critical',
+              input: 'highestSeverityLevel != "4"',
+              expected: 'highestSeverityLevel < "4"'
+            }
+          ].forEach(({ name, input, expected }) => {
+            it(`should transform highest severity level for ${name}`, () => {
+              const result = datastore.transformAlarmsQueryWrapper({}, input);
+
+              expect(result).toBe(expected);
+            });
+          });
+
+          it('should replace single value variable in the highest severity level filter', () => {
+            const mockQueryBy = 'highestSeverityLevel != "${query0}"';
+            jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('highestSeverityLevel != "4"');
+
+            const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockQueryBy);
+
+            expect(datastore.templateSrv.replace).toHaveBeenCalledWith('highestSeverityLevel != "${query0}"', {});
+            expect(transformQuery).toBe('highestSeverityLevel < "4"');
+          });
+
+          it('should handle transformation for multiple value variable in the highest severity level filter with combination of severity levels', () => {
+            const mockQueryBy = 'highestSeverityLevel = "${query0}"';
+            jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('highestSeverityLevel = "{2,4}"');
+
+            const transformQuery = datastore.transformAlarmsQueryWrapper({}, mockQueryBy);
+
+            expect(datastore.templateSrv.replace).toHaveBeenCalledWith('highestSeverityLevel = "${query0}"', {});
+            expect(transformQuery).toBe('(highestSeverityLevel = "2" || highestSeverityLevel >= "4")');
           });
         });
       });
