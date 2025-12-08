@@ -115,7 +115,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                 label: getSelectedColumnLabelForInvalidColumn(columnId),
                 value: columnId
             }));
-    }, [datasource, columnOptionsMap, selectedColumnIds, getSelectedColumnLabelForInvalidColumn]);
+    }, [columnOptionsMap, selectedColumnIds, getSelectedColumnLabelForInvalidColumn]);
 
     const selectedColumnOptions = useMemo((): Array<ComboboxOption<string>> => {
         return [...validColumnSelections, ...invalidColumnSelections];
