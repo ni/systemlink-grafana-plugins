@@ -1490,6 +1490,289 @@ describe('ListAlarmsQueryHandler', () => {
             ],
           });
         });
+
+        it('should map string based transition properties correctly when transition inclusion option is most recent only', async () => {
+          const query = buildAlarmsQuery({
+            properties: [
+              AlarmsTransitionProperties.transitionCondition,
+              AlarmsTransitionProperties.transitionDetailText,
+              AlarmsTransitionProperties.transitionShortText,
+              AlarmsTransitionProperties.transitionValue,
+              AlarmsTransitionProperties.transitionType,
+            ],
+            transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
+            take: 500,
+          });
+          jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+            buildAlarmsResponse([
+              {
+                transitions: [mockTransition1],
+              },
+              {
+                transitions: [
+                  {
+                    ...mockTransition2,
+                    condition: '',
+                    detailText: '',
+                    shortText: '',
+                    value: '',
+                    transitionType: AlarmTransitionType.Clear,
+                  },
+                ],
+              }
+            ])
+          );
+
+          const response = await datastore.runQuery(query, options);
+
+          expect(response).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'Transition condition',
+                type: 'string',
+                values: ['Temperature', ''],
+              },
+              {
+                name: 'Transition detail',
+                type: 'string',
+                values: ['Temperature exceeded threshold', ''],
+              },
+              {
+                name: 'Transition short text',
+                type: 'string',
+                values: ['Temp High', ''],
+              },
+              {
+                name: 'Transition value',
+                type: 'string',
+                values: ['High', ''],
+              },
+              {
+                name: 'Transition type',
+                type: 'string',
+                values: ['SET', 'CLEAR'],
+              }
+            ],
+          });
+        });
+
+        it('should map transition severity level property correctly when transition inclusion option is most recent only', async () => {
+          const query = buildAlarmsQuery({
+            properties: [AlarmsTransitionProperties.transitionSeverityLevel],
+            transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
+            take: 500,
+          });
+          jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+            buildAlarmsResponse([
+              {
+                transitions: [mockTransition1],
+              },
+              {
+                transitions: [
+                  {
+                    ...mockTransition2,
+                    severityLevel: -1,
+                  },
+                ],
+              },
+              {
+                transitions: [
+                  {
+                    ...mockTransition2,
+                    severityLevel: 0,
+                  },
+                ],
+              },
+              {
+                transitions: [
+                  {
+                    ...mockTransition2,
+                    severityLevel: 1,
+                  },
+                ],
+              },
+              {
+                transitions: [
+                  {
+                    ...mockTransition2,
+                    severityLevel: 2,
+                  },
+                ],
+              },
+              {
+                transitions: [
+                  {
+                    ...mockTransition2,
+                    severityLevel: 4,
+                  },
+                ],
+              },
+              {
+                transitions: [
+                  {
+                    ...mockTransition2,
+                    severityLevel: 5,
+                  },
+                ],
+              },
+            ])
+          );
+
+          const result = await datastore.runQuery(query, options);
+
+          expect(result).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'Transition severity',
+                type: 'string',
+                values: [
+                  "High (3)",
+                  "Clear",
+                  "",
+                  "Low (1)",
+                  "Moderate (2)",
+                  "Critical (4)",
+                  "Critical (5)",
+                ]
+              },
+            ],
+          });
+        });
+
+        it('should map time based transition properties correctly when transition inclusion option is most recent only', async () => {
+          const query = buildAlarmsQuery({
+            properties: [AlarmsTransitionProperties.transitionOccurredAt],
+            transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
+            take: 500,
+          });
+
+          const result = await datastore.runQuery(query, options);
+
+          expect(result).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'Transition occurred at',
+                type: 'time',
+                values: [
+                  '2025-09-16T09:00:00Z',
+                ],
+              },
+            ],
+          });
+        });
+
+        it('should map transition keywords field correctly when transition inclusion options is most recent only', async () => {
+          const query = buildAlarmsQuery({
+            properties: [AlarmsTransitionProperties.transitionKeywords],
+            transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
+            take: 500,
+          });
+          jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+            buildAlarmsResponse([
+              {
+                transitions: [mockTransition1],
+              },
+              {
+                transitions: [
+                  {
+                    ...mockTransition2,
+                    keywords: [],
+                  },
+                ],
+              },
+              {
+                transitions: [
+                  {
+                    ...mockTransition2,
+                    keywords: ['single keyword'],
+                  },
+                ],
+              },
+            ])
+          );
+
+          const result = await datastore.runQuery(query, options);
+
+          expect(result).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'Transition keywords',
+                type: 'string',
+                values: [
+                  ['temperature', 'high'],
+                  [],
+                  ['single keyword'],
+                ],
+              },
+            ],
+          });
+        });
+
+        it('should map transition properties field correctly when transition inclusion option is most recent only', async () => {
+          const query = buildAlarmsQuery({
+            properties: [AlarmsTransitionProperties.transitionProperties],
+            transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
+            take: 500,
+          });
+          jest.spyOn(datastore as any, 'queryAlarmsInBatches').mockResolvedValueOnce(
+            buildAlarmsResponse([
+              {
+                transitions: [mockTransition1],
+              },
+              {
+                transitions: [
+                  {
+                    ...mockTransition2,
+                    properties: {},
+                  },
+                ],
+              },
+              {
+                transitions: [
+                  {
+                    ...mockTransition2,
+                    properties: { zProp: 'value1', aProp: 'value2' },
+                  },
+                ],
+              },
+              {
+                transitions: [
+                  {
+                    ...mockTransition2,
+                    properties: { nitagProp1: 'value1', aProp2: 'value2' },
+                  },
+                ],
+              },
+            ])
+          );
+
+          const result = await datastore.runQuery(query, options);
+
+          expect(result).toEqual({
+            refId: 'A',
+            name: 'A',
+            fields: [
+              {
+                name: 'Transition properties',
+                type: 'string',
+                values: [
+                  '{"sensorId":"SENSOR-12"}',
+                  '',
+                  '{"aProp":"value2","zProp":"value1"}',
+                  '{"aProp2":"value2"}',
+                ],
+              },
+            ],
+          });
+        });
       });
     });
 
