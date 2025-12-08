@@ -219,6 +219,147 @@ describe('ListAlarmsQueryHandler', () => {
         });
       });
 
+      it('should handle alarms with no transitions when transition inclusion option is None', async () => {
+        const query = buildAlarmsQuery({
+          properties: Object.values(AlarmsSpecificProperties),
+          transitionInclusionOption: TransitionInclusionOption.None,
+        });
+
+        const response = await datastore.runQuery(query, options);
+
+        expect(response).toEqual({
+          refId: 'A',
+          name: 'A',
+          fields: [
+            {
+              name: 'Acknowledged',
+              type: 'boolean',
+              values: [true],
+            },
+            {
+              name: 'Acknowledged on',
+              type: 'time',
+              values: ['2025-09-16T10:30:00Z'],
+            },
+            {
+              name: 'Acknowledged by',
+              type: 'string',
+              values: ['user123'],
+            },
+            {
+              name: 'Active',
+              type: 'boolean',
+              values: [true],
+            },
+            {
+              name: 'Alarm ID',
+              type: 'string',
+              values: ['ALARM-001'],
+            },
+            {
+              name: 'Channel',
+              type: 'string',
+              values: ['Main'],
+            },
+            {
+              name: 'Clear',
+              type: 'boolean',
+              values: [false],
+            },
+            {
+              name: 'Condition',
+              type: 'string',
+              values: ['Temperature'],
+            },
+            {
+              name: 'Created by',
+              type: 'string',
+              values: ['admin'],
+            },
+            {
+              name: 'Current severity',
+              type: 'string',
+              values: ['High (3)'],
+            },
+            {
+              name: 'Description',
+              type: 'string',
+              values: ['Alarm triggered when temperature exceeds safe limit.'],
+            },
+            {
+              name: 'Alarm name',
+              type: 'string',
+              values: ['High Temperature Alarm'],
+            },
+            {
+              name: 'Highest severity',
+              type: 'string',
+              values: ['High (3)'],
+            },
+            {
+              name: 'Instance ID',
+              type: 'string',
+              values: ['INST-001'],
+            },
+            {
+              name: 'Keywords',
+              type: 'other',
+              values: [['temperature']],
+            },
+            {
+              name: 'Last occurrence',
+              type: 'time',
+              values: ['2025-09-16T09:00:00Z'],
+            },
+            {
+              name: 'Last transition occurrence',
+              type: 'time',
+              values: ['2025-09-16T10:00:00Z'],
+            },
+            {
+              name: 'First occurrence',
+              type: 'time',
+              values: ['2025-09-16T09:00:00Z'],
+            },
+            {
+              name: 'Properties',
+              type: 'other',
+              values: [{ location: 'Lab-1' }],
+            },
+            {
+              name: 'Resource type',
+              type: 'string',
+              values: [''],
+            },
+            {
+              name: 'Source',
+              type: 'string',
+              values: [''],
+            },
+            {
+              name: 'State',
+              type: 'string',
+              values: ['Acknowledged'],
+            },
+            {
+              name: 'Transition overflow count',
+              type: 'number',
+              values: [0],
+            },
+            {
+              name: 'Updated',
+              type: 'time',
+              values: ['2025-09-16T10:29:00Z'],
+            },
+            {
+              name: 'Workspace',
+              type: 'string',
+              values: ['Lab-1'],
+            },
+          ],
+        });
+      });
+
       it('should convert workspaceIds to workspace names for workspace field', async () => {
         const query = buildAlarmsQuery({
           properties: [AlarmsSpecificProperties.workspace]
@@ -326,7 +467,7 @@ describe('ListAlarmsQueryHandler', () => {
         });
       });
 
-      it('should return empty strings for properties field when no custom properties exist on the alarms', async () => {
+      it('should return empty object for properties field when no custom properties exist on the alarms', async () => {
         const query = buildAlarmsQuery({
           refId: 'A',
           properties: [AlarmsSpecificProperties.properties],
