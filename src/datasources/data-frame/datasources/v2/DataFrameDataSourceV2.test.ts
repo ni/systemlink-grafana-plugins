@@ -930,6 +930,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [
                         {
                             id: 'table1',
+                            name: 'table1',
                             columns: [
                                 { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
                                 { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -937,6 +938,7 @@ describe('DataFrameDataSourceV2', () => {
                         },
                         {
                             id: 'table2',
+                            name: 'table2',
                             columns: [
                                 { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
                                 { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -1015,6 +1017,7 @@ describe('DataFrameDataSourceV2', () => {
                     // Create 15 tables to test batching (assuming 10 requests per batch)
                     const mockTables = Array.from({ length: 15 }, (_, i) => ({
                         id: `table${i + 1}`,
+                        name: `table${i + 1}`,
                         columns: [
                             { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
                         ]
@@ -1048,6 +1051,7 @@ describe('DataFrameDataSourceV2', () => {
                 it('should apply null filters when filterNulls is true', async () => {
                     const mockTables = [{
                         id: 'table1',
+                        name: 'table1',
                         columns: [
                             { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
                             { name: 'value2', dataType: 'INT32', columnType: 'NULLABLE' as any }
@@ -1099,6 +1103,7 @@ describe('DataFrameDataSourceV2', () => {
                 it('should apply time filters when applyTimeFilters is true', async () => {
                     const mockTables = [{
                         id: 'table1',
+                        name: 'table1',
                         columns: [
                             { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
                             { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -1159,6 +1164,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [
                         {
                             id: 'table1',
+                            name: 'table1',
                             columns: [
                                 { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
                                 { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -1166,6 +1172,7 @@ describe('DataFrameDataSourceV2', () => {
                         },
                         {
                             id: 'table2',
+                            name: 'table2',
                             columns: [
                                 { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
                                 { name: 'temperature', dataType: 'FLOAT32', columnType: ColumnType.Normal }
@@ -1226,6 +1233,7 @@ describe('DataFrameDataSourceV2', () => {
                 it('should only include yColumns that are numeric', async () => {
                     const mockTables = [{
                         id: 'table1',
+                        name: 'table1',
                         columns: [
                             { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
                             { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal },
@@ -1278,6 +1286,7 @@ describe('DataFrameDataSourceV2', () => {
                     it('should use TIMESTAMP INDEX column fallback when xColumn is null', async () => {
                         const mockTables = [{
                             id: 'table1',
+                            name: 'table1',
                             columns: [
                                 { name: 'timestamp', dataType: 'TIMESTAMP', columnType: 'INDEX' as any },
                                 { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -1322,6 +1331,7 @@ describe('DataFrameDataSourceV2', () => {
                     it('should not apply time filters when no INDEX column exists', async () => {
                         const mockTables = [{
                             id: 'table1',
+                            name: 'table1',
                             columns: [
                                 { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
                                 { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -1363,6 +1373,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [
                         {
                             id: 'table1',
+                            name: 'table1',
                             columns: [
                                 { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
                                 { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -1412,6 +1423,7 @@ describe('DataFrameDataSourceV2', () => {
                 it('should include all numeric types in yColumns and exclude strings', async () => {
                     const mockTables = [{
                         id: 'table1',
+                        name: 'table1',
                         columns: [
                             { name: 'intValue', dataType: 'INT32', columnType: ColumnType.Normal },
                             { name: 'longValue', dataType: 'INT64', columnType: ColumnType.Normal },
@@ -1449,6 +1461,7 @@ describe('DataFrameDataSourceV2', () => {
                 it('should apply combined null and time filters when both enabled', async () => {
                     const mockTables = [{
                         id: 'table1',
+                        name: 'table1',
                         columns: [
                             { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
                             { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -1491,6 +1504,7 @@ describe('DataFrameDataSourceV2', () => {
                     it('should convert field types correctly and handle empty values as null', async () => {
                         const mockTables = [{
                             id: 'table1',
+                            name: 'table1',
                             columns: [
                                 { name: 'boolValue', dataType: 'BOOL', columnType: ColumnType.Normal },
                                 { name: 'stringValue', dataType: 'STRING', columnType: ColumnType.Normal },
@@ -1547,6 +1561,7 @@ describe('DataFrameDataSourceV2', () => {
                     it('should convert empty strings to null for all types except STRING', async () => {
                         const mockTables = [{
                             id: 'table1',
+                            name: 'table1',
                             columns: [
                                 { name: 'boolValue', dataType: 'BOOL', columnType: ColumnType.Normal },
                                 { name: 'stringValue', dataType: 'STRING', columnType: ColumnType.Normal },
@@ -1591,6 +1606,7 @@ describe('DataFrameDataSourceV2', () => {
                     it('should handle numeric types (INT32, INT64, FLOAT32, FLOAT64) consistently', async () => {
                         const mockTables = [{
                             id: 'table1',
+                            name: 'table1',
                             columns: [
                                 { name: 'int32Value', dataType: 'INT32', columnType: ColumnType.Normal },
                                 { name: 'int64Value', dataType: 'INT64', columnType: ColumnType.Normal },
@@ -1638,6 +1654,7 @@ describe('DataFrameDataSourceV2', () => {
                     it('should handle boolean string values correctly', async () => {
                         const mockTables = [{
                             id: 'table1',
+                            name: 'table1',
                             columns: [
                                 { name: 'boolValue', dataType: 'BOOL', columnType: ColumnType.Normal }
                             ]

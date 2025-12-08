@@ -753,7 +753,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                     return {
                                         refId: processedQuery.refId,
                                         name: processedQuery.refId,
-                                        fields: this.dataFrameToFields(tableData.frame.data, flattenedSelectedColumns ),
+                                        fields: this.dataFrameToFields(tableData.frame.data, flattenedSelectedColumns),
                                     };
                                 })
                             );
@@ -872,8 +872,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 allColumnsArray.forEach((colName, colArrayIndex) => {
                     const columnDataIndex = columnIndexMap.get(colName);
 
-                    if (columnDataIndex !== undefined && data[columnDataIndex]) {
-                        // Column exists in this table - append  data
+                    if (columnDataIndex !== undefined) {
+                        // Column exists in this table - append data
                         columnDataArrays[colArrayIndex].push(data[columnDataIndex]);
                     } else {
                         // Column doesn't exist in this table - append null values
