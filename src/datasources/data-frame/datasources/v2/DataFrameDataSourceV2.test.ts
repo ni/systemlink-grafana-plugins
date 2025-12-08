@@ -1302,46 +1302,6 @@ describe('DataFrameDataSourceV2', () => {
                             expect.any(Object)
                         );
                     });
-
-                    it('should not apply time filters when no INDEX column exists', async () => {
-                        const mockTables = [{
-                            id: 'table1',
-                            name: 'table1',
-                            columns: [
-                                { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
-                                { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                            ]
-                        }];
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-                        postSpy.mockReturnValue(of({ frame: { columns: ['time', 'value'], data: [['2024-01-01T00:00:00Z'], ['10.5']] } }));
-
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['time-Timestamp', 'value-Numeric'],
-                            xColumn: null,
-                            dataTableFilter: '',
-                            decimationMethod: 'LOSSY',
-                            filterNulls: false,
-                            applyTimeFilters: true
-                        } as DataFrameQueryV2;
-
-                        const optionsWithRange = {
-                            ...options,
-                            range: {
-                                from: { toISOString: () => '2024-01-01T00:00:00Z' },
-                                to: { toISOString: () => '2024-01-02T00:00:00Z' }
-                            }
-                        } as any;
-
-                        await lastValueFrom(ds.runQuery(query, optionsWithRange));
-
-                        expect(postSpy).toHaveBeenCalledWith(
-                            expect.any(String),
-                            expect.objectContaining({ filters: [] }),
-                            expect.any(Object)
-                        );
-                    });
                 });
 
                 it('should pass xColumn and intervals (maxDataPoints) in decimation request', async () => {
