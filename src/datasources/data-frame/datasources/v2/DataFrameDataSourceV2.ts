@@ -740,7 +740,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             tables
                         );
                         const tableIdNamesMap = this.buildTableIdNamesMap(tables);
-                        const columns = Object.values(selectedTableColumnMap).flatMap(item => item.selectedColumns);
+                        const flattenedSelectedColumns = Object.values(selectedTableColumnMap).flatMap(item => item.selectedColumns);
                         if (Object.keys(selectedTableColumnMap).length > 0) {
                             return this.getDecimatedTableDataInBatches$(
                                 selectedTableColumnMap,
@@ -753,7 +753,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                     return {
                                         refId: processedQuery.refId,
                                         name: processedQuery.refId,
-                                        fields: this.dataFrameToFields(tableData.frame.data, columns ),
+                                        fields: this.dataFrameToFields(tableData.frame.data, flattenedSelectedColumns ),
                                     };
                                 })
                             );
@@ -772,7 +772,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         });
         return tableIdNamesMap;
     }
-
 
     private isNumericDataType(dataType: string) {
         return ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType);
@@ -802,9 +801,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         // Deduplicate columns by name-dataType combination
         const uniqueColumns = Array.from(
             new Map(
-                normalizedColumns.map(col => [
-                    `${col.name}-${col.dataType}`,
-                    col
+                normalizedColumns.map(column => [
+                    `${column.name}-${column.dataType}`,
+                    column
                 ])
             ).values()
         );
@@ -831,23 +830,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return [...metadataFields, ...dataFields];
     }
 
-    private getFieldTypeAndConverter(dataType: string): [FieldType, (v: string) => any] {
+    private getFieldTypeAndConverter(dataType: string): [FieldType, (value: string) => any] {
         switch (dataType) {
             case 'BOOL':
-                return [FieldType.boolean, v => v.toLowerCase() === 'true'];
+                return [FieldType.boolean, value => value === '' ? null : value.toLowerCase() === 'true'];
             case 'STRING':
-                return [FieldType.string, v => v];
+                return [FieldType.string, value => value];
             case 'TIMESTAMP':
-                return [FieldType.time, v => dateTime(v).valueOf()];
+                return [FieldType.time, value => value === '' ? null : dateTime(value).valueOf()];
             default:
-                return [FieldType.number, v => { return v === '' ? null : Number(v) }];
+                return [FieldType.number, value => value === '' ? null : Number(value)];
         }
     }
 
     private aggregateTableDataRows(decimatedDataMap: Record<string, TableDataRows>, tableIdNameMap: Record<string, string>): TableDataRows {
         const allColumns = new Set<string>();
         Object.values(decimatedDataMap).forEach(tableData => {
-            tableData.frame.columns.forEach(col => allColumns.add(col));
+            tableData.frame.columns.forEach(column => allColumns.add(column));
         });
 
         const allColumnsArray = Array.from(allColumns);
@@ -869,13 +868,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 columnIndexMap.set(colName, index);
             });
 
-            tableData.frame.data.forEach((data) => {
+            tableData.frame.data.forEach((data, dataIndex) => {
                 allColumnsArray.forEach((colName, colArrayIndex) => {
-                    const dataIndex = columnIndexMap.get(colName);
+                    const columnDataIndex = columnIndexMap.get(colName);
 
-                    if (dataIndex !== undefined && tableData.frame.data[dataIndex]) {
+                    if (columnDataIndex !== undefined && tableData.frame.data[dataIndex][columnDataIndex]) {
                         // Column exists in this table - append all its data
-                        columnDataArrays[colArrayIndex].push(data[dataIndex]);
+                        columnDataArrays[colArrayIndex].push(data[columnDataIndex]);
                     } else {
                         // Column doesn't exist in this table - append null values
                         columnDataArrays[colArrayIndex].push('');

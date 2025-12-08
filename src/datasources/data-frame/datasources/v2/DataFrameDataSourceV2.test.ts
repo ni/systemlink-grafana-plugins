@@ -1034,7 +1034,7 @@ describe('DataFrameDataSourceV2', () => {
                         type: DataFrameQueryType.Data,
                         columns: ['col1-Numeric'],
                         dataTableFilter: '',
-                        decimationMethod: 'Lossy',
+                        decimationMethod: 'LOSSY',
                         filterNulls: false,
                         applyTimeFilters: false
                     } as DataFrameQueryV2;
@@ -1485,6 +1485,190 @@ describe('DataFrameDataSourceV2', () => {
                         expect.objectContaining({ column: 'time', operation: 'GREATER_THAN_EQUALS' }),
                         expect.objectContaining({ column: 'time', operation: 'LESS_THAN_EQUALS' })
                     ]));
+                });
+
+                describe('field type conversion and null handling', () => {
+                    it('should convert field types correctly and handle empty values as null', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            columns: [
+                                { name: 'boolValue', dataType: 'BOOL', columnType: ColumnType.Normal },
+                                { name: 'stringValue', dataType: 'STRING', columnType: ColumnType.Normal },
+                                { name: 'timestampValue', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                                { name: 'intValue', dataType: 'INT32', columnType: ColumnType.Normal },
+                                { name: 'floatValue', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const mockDecimatedData = {
+                            frame: {
+                                columns: ['boolValue', 'stringValue', 'timestampValue', 'intValue', 'floatValue'],
+                                data: [
+                                    ['true', 'test', '2024-01-01T00:00:00Z', '42', '3.14']  // Single row
+                                ]
+                            }
+                        };
+                        postSpy.mockReturnValue(of(mockDecimatedData));
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['boolValue-Bool', 'stringValue-String', 'timestampValue-Timestamp', 'intValue-Numeric', 'floatValue-Numeric'],
+                            dataTableFilter: '',
+                            decimationMethod: 'LOSSY',
+                            filterNulls: false,
+                            applyTimeFilters: false
+                        } as DataFrameQueryV2;
+
+                        const result = await lastValueFrom(ds.runQuery(query, options));
+
+                        // Verify field types
+                        expect(result.fields[2].type).toBe('boolean');  // boolValue
+                        expect(result.fields[3].type).toBe('string');   // stringValue
+                        expect(result.fields[4].type).toBe('time');     // timestampValue
+                        expect(result.fields[5].type).toBe('number');   // intValue
+                        expect(result.fields[6].type).toBe('number');   // floatValue
+
+                        // Verify boolean conversion
+                        expect(result.fields[2].values).toEqual([true]);
+
+                        // Verify string handling (not converted)
+                        expect(result.fields[3].values).toEqual(['test']);
+
+                        // Verify timestamp conversion
+                        expect(result.fields[4].values?.[0]).toBeGreaterThan(0); // Valid timestamp
+
+                        // Verify numeric conversions
+                        expect(result.fields[5].values).toEqual([42]);
+                        expect(result.fields[6].values).toEqual([3.14]);
+                    });
+
+                    it('should convert empty strings to null for all types except STRING', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            columns: [
+                                { name: 'boolValue', dataType: 'BOOL', columnType: ColumnType.Normal },
+                                { name: 'stringValue', dataType: 'STRING', columnType: ColumnType.Normal },
+                                { name: 'timestampValue', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                                { name: 'intValue', dataType: 'INT32', columnType: ColumnType.Normal }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const mockDecimatedData = {
+                            frame: {
+                                columns: ['boolValue', 'stringValue', 'timestampValue', 'intValue'],
+                                data: [
+                                    ['', '', '', '']  // Single row with empty values
+                                ]
+                            }
+                        };
+                        postSpy.mockReturnValue(of(mockDecimatedData));
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['boolValue-Bool', 'stringValue-String', 'timestampValue-Timestamp', 'intValue-Numeric'],
+                            dataTableFilter: '',
+                            decimationMethod: 'LOSSY',
+                            filterNulls: false,
+                            applyTimeFilters: false
+                        } as DataFrameQueryV2;
+
+                        const result = await lastValueFrom(ds.runQuery(query, options));
+
+                        // Boolean: empty → null
+                        expect(result.fields[2].values).toEqual([null]);
+                        // String: empty remains empty
+                        expect(result.fields[3].values).toEqual(['']);
+                        // Timestamp: empty → null
+                        expect(result.fields[4].values).toEqual([null]);
+                        // Numeric: empty → null
+                        expect(result.fields[5].values).toEqual([null]);
+                    });
+
+                    it('should handle numeric types (INT32, INT64, FLOAT32, FLOAT64) consistently', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            columns: [
+                                { name: 'int32Value', dataType: 'INT32', columnType: ColumnType.Normal },
+                                { name: 'int64Value', dataType: 'INT64', columnType: ColumnType.Normal },
+                                { name: 'float32Value', dataType: 'FLOAT32', columnType: ColumnType.Normal },
+                                { name: 'float64Value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const mockDecimatedData = {
+                            frame: {
+                                columns: ['int32Value', 'int64Value', 'float32Value', 'float64Value'],
+                                data: [
+                                    ['10', '20', '1.5', '2.5']  // Single row
+                                ]
+                            }
+                        };
+                        postSpy.mockReturnValue(of(mockDecimatedData));
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['int32Value-Numeric', 'int64Value-Numeric', 'float32Value-Numeric', 'float64Value-Numeric'],
+                            dataTableFilter: '',
+                            decimationMethod: 'LOSSY',
+                            filterNulls: false,
+                            applyTimeFilters: false
+                        } as DataFrameQueryV2;
+
+                        const result = await lastValueFrom(ds.runQuery(query, options));
+
+                        // All numeric types should be FieldType.number
+                        expect(result.fields[2].type).toBe('number');
+                        expect(result.fields[3].type).toBe('number');
+                        expect(result.fields[4].type).toBe('number');
+                        expect(result.fields[5].type).toBe('number');
+
+                        // All should convert correctly
+                        expect(result.fields[2].values).toEqual([10]);
+                        expect(result.fields[3].values).toEqual([20]);
+                        expect(result.fields[4].values).toEqual([1.5]);
+                        expect(result.fields[5].values).toEqual([2.5]);
+                    });
+
+                    it('should handle boolean string values correctly', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            columns: [
+                                { name: 'boolValue', dataType: 'BOOL', columnType: ColumnType.Normal }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const mockDecimatedData = {
+                            frame: {
+                                columns: ['boolValue'],
+                                data: [
+                                    ['true']  // Single row with one column
+                                ]
+                            }
+                        };
+                        postSpy.mockReturnValue(of(mockDecimatedData));
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['boolValue-Bool'],
+                            dataTableFilter: '',
+                            decimationMethod: 'LOSSY',
+                            filterNulls: false,
+                            applyTimeFilters: false
+                        } as DataFrameQueryV2;
+
+                        const result = await lastValueFrom(ds.runQuery(query, options));
+
+                        expect(result.fields[2].type).toBe('boolean');
+                        expect(result.fields[2].values).toEqual([true]);  // Case-insensitive 'true' → true
+                    });
                 });
             });
         });
