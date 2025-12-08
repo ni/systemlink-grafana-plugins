@@ -416,7 +416,7 @@ describe('ListAlarmsQueryEditor', () => {
   describe('Transition Inclusion', () => {
     it('should display transition inclusion options in the correct order', async () => {
       const container = await renderElement();
-      const transitionInclusionCombobox = container.getByRole('combobox', { name: 'Include Transition' });
+      const transitionInclusionCombobox = container.getByRole('combobox', { name: 'Transitions' });
 
       await userEvent.click(transitionInclusionCombobox);
 
@@ -531,7 +531,7 @@ describe('ListAlarmsQueryEditor', () => {
     });
 
     [TransitionInclusionOption.All, TransitionInclusionOption.MostRecentOnly].forEach((option) => {
-      it(`should display error if transition inclusion ${option} is selected and it is updated to None`, async () => {
+      it(`should display error when only transition property is selected and transition inclusion ${option} is changed to None`, async () => {
         await renderElement({
           refId: 'A',
           queryType: QueryType.ListAlarms,
