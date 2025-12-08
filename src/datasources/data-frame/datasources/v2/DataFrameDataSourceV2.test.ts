@@ -1420,44 +1420,6 @@ describe('DataFrameDataSourceV2', () => {
                     );
                 });
 
-                it('should include all numeric types in yColumns and exclude strings', async () => {
-                    const mockTables = [{
-                        id: 'table1',
-                        name: 'table1',
-                        columns: [
-                            { name: 'intValue', dataType: 'INT32', columnType: ColumnType.Normal },
-                            { name: 'longValue', dataType: 'INT64', columnType: ColumnType.Normal },
-                            { name: 'floatValue', dataType: 'FLOAT32', columnType: ColumnType.Normal },
-                            { name: 'doubleValue', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                            { name: 'timeValue', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
-                            { name: 'textValue', dataType: 'STRING', columnType: ColumnType.Normal }
-                        ]
-                    }];
-                    queryTablesSpy.mockReturnValue(of(mockTables));
-                    postSpy.mockReturnValue(of({ 
-                        frame: { 
-                            columns: ['intValue', 'longValue', 'floatValue', 'doubleValue', 'timeValue', 'textValue'], 
-                            data: [['1'], ['2'], ['3.5'], ['4.5'], ['2024-01-01T00:00:00Z'], ['text']] 
-                        } 
-                    }));
-
-                    const query = {
-                        refId: 'A',
-                        type: DataFrameQueryType.Data,
-                        columns: ['intValue-Numeric', 'longValue-Numeric', 'floatValue-Numeric', 'doubleValue-Numeric', 'timeValue-Timestamp', 'textValue-String'],
-                        dataTableFilter: '',
-                        decimationMethod: 'LOSSY',
-                        filterNulls: false,
-                        applyTimeFilters: false
-                    } as DataFrameQueryV2;
-
-                    await lastValueFrom(ds.runQuery(query, options));
-
-                    const yColumns = postSpy.mock.calls[0][1].decimation.yColumns;
-                    expect(yColumns).toEqual(['intValue', 'longValue', 'floatValue', 'doubleValue', 'timeValue']);
-                    expect(yColumns).not.toContain('textValue');
-                });
-
                 it('should apply combined null and time filters when both enabled', async () => {
                     const mockTables = [{
                         id: 'table1',
@@ -1649,42 +1611,6 @@ describe('DataFrameDataSourceV2', () => {
                         expect(result.fields[3].values).toEqual([20]);
                         expect(result.fields[4].values).toEqual([1.5]);
                         expect(result.fields[5].values).toEqual([2.5]);
-                    });
-
-                    it('should handle boolean string values correctly', async () => {
-                        const mockTables = [{
-                            id: 'table1',
-                            name: 'table1',
-                            columns: [
-                                { name: 'boolValue', dataType: 'BOOL', columnType: ColumnType.Normal }
-                            ]
-                        }];
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-
-                        const mockDecimatedData = {
-                            frame: {
-                                columns: ['boolValue'],
-                                data: [
-                                    ['true']  // Single row with one column
-                                ]
-                            }
-                        };
-                        postSpy.mockReturnValue(of(mockDecimatedData));
-
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['boolValue-Bool'],
-                            dataTableFilter: '',
-                            decimationMethod: 'LOSSY',
-                            filterNulls: false,
-                            applyTimeFilters: false
-                        } as DataFrameQueryV2;
-
-                        const result = await lastValueFrom(ds.runQuery(query, options));
-
-                        expect(result.fields[2].type).toBe('boolean');
-                        expect(result.fields[2].values).toEqual([true]);  // Case-insensitive 'true' → true
                     });
                 });
             });

@@ -17,6 +17,7 @@ import { QueryBuilderOperations } from "core/query-builder.constants";
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
     private scopedVars: ScopedVars = {};
+    private static readonly NUMERIC_DATA_TYPES = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'] as const;
 
     public constructor(
         public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
@@ -774,7 +775,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private isNumericDataType(dataType: string) {
-        return ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType);
+        return DataFrameDataSourceV2.NUMERIC_DATA_TYPES.includes(dataType as any);
     }
 
     private dataFrameToFields(rows: string[][], columns: Column[]): FieldDTO[] {
@@ -811,8 +812,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         // Create data fields from unique columns
         const dataFields: FieldDTO[] = uniqueColumns.map((column, index) => {
             const [type, converter] = this.getFieldTypeAndConverter(column.dataType);
-            const dataIndex = index + 2; // Offset by 2 for tableId and tableName
-
+            const METADATA_FIELDS_COUNT = 2; // tableId and tableName
+            const dataIndex = index + METADATA_FIELDS_COUNT;                            
             const field: FieldDTO = {
                 name: column.name,
                 type,
@@ -849,12 +850,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             tableData.frame.columns.forEach(column => allColumns.add(column));
         });
 
-        const allColumnsArray = Array.from(allColumns);
-        const columnNames = ['tableId', 'tableName', ...allColumnsArray];
+        const uniqueColumnNames = Array.from(allColumns);
+        const columnNames = ['tableId', 'tableName', ...uniqueColumnNames];
 
-        const tableIdColumn: any[] = [];
-        const tableNameColumn: any[] = [];
-        const columnDataArrays: any[][] = allColumnsArray.map(() => []);
+        const tableIdColumn: string[] = [];
+        const tableNameColumn: string[] = [];
+        const columnValueArrays: string[][] = uniqueColumnNames.map(() => []);
 
         Object.entries(decimatedDataMap).forEach(([tableId, tableData]) => {
             const numRows = tableData.frame.data.length > 0 ? tableData.frame.data.length : 0;
@@ -869,15 +870,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             });
 
             tableData.frame.data.forEach((data) => {
-                allColumnsArray.forEach((colName, colArrayIndex) => {
+                uniqueColumnNames.forEach((colName, colArrayIndex) => {
                     const columnDataIndex = columnIndexMap.get(colName);
 
                     if (columnDataIndex !== undefined) {
                         // Column exists in this table - append data
-                        columnDataArrays[colArrayIndex].push(data[columnDataIndex]);
+                        columnValueArrays[colArrayIndex].push(data[columnDataIndex]);
                     } else {
                         // Column doesn't exist in this table - append null values
-                        columnDataArrays[colArrayIndex].push('');
+                        columnValueArrays[colArrayIndex].push('');
                     }
                 });
             });
@@ -885,7 +886,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return {
             frame: {
                 columns: columnNames,
-                data: [tableIdColumn, tableNameColumn, ...columnDataArrays]
+                data: [tableIdColumn, tableNameColumn, ...columnValueArrays]
             }
         };
     }
