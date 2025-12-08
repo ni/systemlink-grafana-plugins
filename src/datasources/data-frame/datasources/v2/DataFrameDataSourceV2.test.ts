@@ -511,7 +511,7 @@ describe('DataFrameDataSourceV2', () => {
                             expect(result).toEqual([]);
                         });
 
-                        it('should only include index columns for columns that are actually selected', () => {
+                        it('should only include index columns along with columns that are actually selected', () => {
                             const selectedColumns = ['ColumnA-String']; // Only selecting ColumnA
                             const table = {
                                 id: 'table1',
