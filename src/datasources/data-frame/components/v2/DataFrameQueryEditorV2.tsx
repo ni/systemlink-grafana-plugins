@@ -115,7 +115,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                 label: getSelectedColumnLabelForInvalidColumn(columnId),
                 value: columnId
             }));
-    }, [datasource, columnOptionsMap, selectedColumnIds]);
+    }, [datasource, columnOptionsMap, selectedColumnIds, getSelectedColumnLabelForInvalidColumn]);
 
     const selectedColumnOptions = useMemo((): Array<ComboboxOption<string>> => {
         return [...validColumnSelections, ...invalidColumnSelections];
@@ -197,7 +197,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                 value: migratedQuery.xColumn
             };
         return { isInvalid: !found, value };
-    }, [migratedQuery.xColumn, xColumnOptions]);
+    }, [migratedQuery.xColumn, xColumnOptions, getSelectedColumnLabelForInvalidColumn]);
 
     const handleQueryChange = useCallback(
         (query: DataFrameQueryV2, runQuery = true): void => {
