@@ -15,6 +15,7 @@ import {
   DataFrameQueryType,
   DataFrameDataSourceOptions,
   DataTableProjections,
+  CombinedFilters,
 } from '../../types';
 import { propertiesCacheTTL } from '../../constants';
 import _ from 'lodash';
@@ -105,7 +106,7 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase {
   }
 
   queryTables$(
-    query: string,
+    filters: CombinedFilters,
     take = 5,
     projection?: DataTableProjections[]
   ): Observable<TableProperties[]> {
@@ -188,36 +189,5 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase {
       { column: timeIndex.name, operation: 'GREATER_THAN_EQUALS', value: timeRange.from.toISOString() },
       { column: timeIndex.name, operation: 'LESS_THAN_EQUALS', value: timeRange.to.toISOString() },
     ];
-  }
-
-  private constructNullFilters(columns: Column[]): ColumnFilter[] {
-    return columns.flatMap(({ name, columnType, dataType }) => {
-      const filters: ColumnFilter[] = [];
-
-      if (columnType === 'NULLABLE') {
-        filters.push({ column: name, operation: 'NOT_EQUALS', value: null });
-      }
-      if (dataType === 'FLOAT32' || dataType === 'FLOAT64') {
-        filters.push({ column: name, operation: 'NOT_EQUALS', value: 'NaN' });
-      }
-      return filters;
-    });
-  }
-
-  private getNumericColumns(columns: Column[]): Column[] {
-    return columns.filter(this.isColumnNumeric);
-  }
-
-  private isColumnNumeric(column: Column): boolean {
-    switch (column.dataType) {
-      case 'FLOAT32':
-      case 'FLOAT64':
-      case 'INT32':
-      case 'INT64':
-      case 'TIMESTAMP':
-        return true;
-      default:
-        return false;
-    }
   }
 }

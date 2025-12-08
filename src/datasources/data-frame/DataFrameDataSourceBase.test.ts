@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TimeRange } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { DataFrameDataSourceBase } from './DataFrameDataSourceBase';
-import { DataFrameQuery, DataFrameDataSourceOptions, TableProperties, TableDataRows, Column, DataFrameVariableQuery, ValidDataFrameVariableQuery, DataFrameDataQuery } from './types';
+import { DataFrameQuery, DataFrameDataSourceOptions, TableProperties, TableDataRows, Column, DataFrameVariableQuery, ValidDataFrameVariableQuery, DataFrameDataQuery, CombinedFilters, ColumnType, ColumnFilter } from './types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { Workspace } from 'core/types';
 import { lastValueFrom, Observable, of } from 'rxjs';
@@ -77,12 +77,20 @@ describe('DataFrameDataSourceBase', () => {
             return Promise.resolve([] as unknown as TableDataRows);
         }
 
-        public queryTables$(_query: string): Observable<TableProperties[]> {
+        public queryTables$(_filters: CombinedFilters): Observable<TableProperties[]> {
             return of([]);
         }
 
         public queryTables(_query: string): Promise<TableProperties[]> {
             return Promise.resolve([]);
+        }
+
+        public constructNullFiltersWrapper(columns: Column[]): ColumnFilter[] {
+            return this.constructNullFilters(columns);
+        }
+
+        public getNumericColumnsWrapper(columns: Column[]): Column[] {
+            return this.getNumericColumns(columns);
         }
     }
 
@@ -122,7 +130,7 @@ describe('DataFrameDataSourceBase', () => {
         expect(ds.processVariableQuery({} as DataFrameVariableQuery)).toEqual({});
         await expect(ds.getTableProperties()).resolves.toEqual({});
         await expect(ds.getDecimatedTableData({} as DataFrameDataQuery, [], {} as TimeRange)).resolves.toEqual([]);
-        await expect(lastValueFrom(ds.queryTables$(''))).resolves.toEqual([]);
+        await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: '' }))).resolves.toEqual([]);
         await expect(ds.queryTables('')).resolves.toEqual([]);
     });
 
@@ -139,9 +147,9 @@ describe('DataFrameDataSourceBase', () => {
     it('should return empty array for getColumnOptionsWithVariables', async () => {
         const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
 
-        const options = await ds.getColumnOptionsWithVariables('filter');
+        const options = await ds.getColumnOptionsWithVariables({dataTableFilter: 'filter'});
 
-        expect(options).toEqual([]);
+        expect(options).toEqual({ uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] });
     });
 
     it('should return query as it is for processVariableQuery', async () => {
@@ -151,6 +159,82 @@ describe('DataFrameDataSourceBase', () => {
         const result = ds.processVariableQuery(query);
 
         expect(result).toBe(query);
+    });
+
+    it('should construct null filters for nullable and float columns for constructNullFilters', () => {
+        const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+        const columns: Column[] = [
+            {
+                name: 'col1',
+                columnType: ColumnType.Nullable,
+                dataType: 'STRING',
+                properties: {}
+            },
+            {
+                name: 'col2',
+                columnType: ColumnType.Normal,
+                dataType: 'FLOAT32',
+                properties: {}
+            },
+            {
+                name: 'col3',
+                columnType: ColumnType.Normal,
+                dataType: 'INT32',
+                properties: {}
+            },
+            {
+                name: 'col4',
+                columnType: ColumnType.Nullable,
+                dataType: 'INT32',
+                properties: {}
+            },
+        ];
+
+        const result = ds.constructNullFiltersWrapper(columns);
+
+        expect(result).toEqual([
+            { column: 'col1', operation: 'NOT_EQUALS', value: null },
+            { column: 'col2', operation: 'NOT_EQUALS', value: 'NaN' },
+            { column: 'col4', operation: 'NOT_EQUALS', value: null },
+        ]);
+    });
+
+    it('should return only numeric columns for getNumericColumns', () => {
+        const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+        const columns: Column[] = [
+            {
+                name: 'col1',
+                columnType: ColumnType.Normal,
+                dataType: 'FLOAT32',
+                properties: {}
+            },
+            {
+                name: 'col2',
+                columnType: ColumnType.Normal,
+                dataType: 'STRING',
+                properties: {}
+            },
+            {
+                name: 'col3',
+                columnType: ColumnType.Normal,
+                dataType: 'INT32',
+                properties: {}
+            },
+            {
+                name: 'col4',
+                columnType: ColumnType.Normal,
+                dataType: 'TIMESTAMP',
+                properties: {}
+            },
+        ];
+
+        const result = ds.getNumericColumnsWrapper(columns);
+
+        expect(result).toEqual([
+            columns[0],
+            columns[2],
+            columns[3]
+        ]);
     });
 
     describe('loadWorkspaces', () => {
@@ -350,7 +434,7 @@ describe('DataFrameDataSourceBase', () => {
         });
     });
 
-    describe('transformQuery', () => {
+    describe('transformDataTableQuery', () => {
         let ds: TestDataFrameDataSource;
 
         beforeEach(() => {
@@ -361,7 +445,7 @@ describe('DataFrameDataSourceBase', () => {
             const query = 'id = $var';
             (templateSrv.replace as jest.Mock).mockReturnValue('id = <valid-id-value>');  
             
-            const result = ds.transformQuery(query);
+            const result = ds.transformDataTableQuery(query);
             
             expect(result).toBe('id = <valid-id-value>');
         });
@@ -371,7 +455,73 @@ describe('DataFrameDataSourceBase', () => {
             
             (templateSrv.replace as jest.Mock).mockImplementation(() => { throw new Error('replace failed'); });
             
-            expect(() => ds.transformQuery(query)).toThrow('replace failed');
+            expect(() => ds.transformDataTableQuery(query)).toThrow('replace failed');
+        });
+    });
+
+    describe('transformResultQuery', () => {
+        let ds: TestDataFrameDataSource;
+
+        beforeEach(() => {
+            ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+        });
+
+        it('should return the replaced filter string', () => {
+            const filter = 'status = $status';
+            (templateSrv.replace as jest.Mock).mockReturnValue('status = "Passed"');  
+            
+            const result = ds.transformResultQuery(filter);
+            
+            expect(result).toBe('status = "Passed"');
+        });
+
+        it('should propagate errors thrown by templateSrv.replace', () => {
+            const filter = 'errorFilter';
+            
+            (templateSrv.replace as jest.Mock).mockImplementation(() => { throw new Error('replace failed'); });
+            
+            expect(() => ds.transformResultQuery(filter)).toThrow('replace failed');
+        });
+    });
+
+    describe('transformColumnQuery', () => {
+        let ds: TestDataFrameDataSource;
+
+        beforeEach(() => {
+            ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+        });
+
+        it('should return the replaced filter string', () => {
+            const filter = 'name = $Column';
+            (templateSrv.replace as jest.Mock).mockReturnValue('name = "Column1"');  
+            
+            const result = ds.transformColumnQuery(filter);
+            
+            expect(result).toBe('name = "Column1"');
+        });
+
+        it('should propagate errors thrown by templateSrv.replace', () => {
+            const filter = 'errorFilter';
+            
+            (templateSrv.replace as jest.Mock).mockImplementation(() => { throw new Error('replace failed'); });
+            
+            expect(() => ds.transformColumnQuery(filter)).toThrow('replace failed');
+        });
+    });
+
+    describe('parseColumnIdentifier', () => {
+        it('should return the empty column name and data type by default', () => {
+            const ds = new TestDataFrameDataSource(
+                instanceSettings,
+                backendSrv,
+                templateSrv
+            );
+
+            const parseResult = ds.parseColumnIdentifier('any-input');
+            expect(parseResult).toEqual({
+                columnName: '',
+                transformedDataType: ''
+            });
         });
     });
 });

@@ -31,7 +31,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       return undefined;
     }
 
-    const timeRangeFilter = `(${useTimeRangeFor} > "${this.fromDateString}" && ${useTimeRangeFor} < "${this.toDateString}")`;
+    const timeRangeFilter = `(${useTimeRangeFor} >= "${this.fromDateString}" && ${useTimeRangeFor} <= "${this.toDateString}")`;
 
     return this.templateSrv.replace(timeRangeFilter, options.scopedVars);
   }

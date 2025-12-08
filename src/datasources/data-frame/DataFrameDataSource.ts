@@ -1,6 +1,19 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetricFindQueryOptions, MetricFindValue, TimeRange } from "@grafana/data";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameFeatureTogglesDefaults, DataFrameVariableQuery, DataTableProjections, TableDataRows, TableProperties, ValidDataFrameQuery, ValidDataFrameVariableQuery, DataFrameQuery } from "./types";
+import {
+  Column,
+  DataFrameDataQuery,
+  DataFrameDataSourceOptions,
+  DataFrameFeatureTogglesDefaults,
+  DataFrameVariableQuery,
+  DataTableProjections,
+  TableDataRows,
+  TableProperties,
+  ValidDataFrameQuery,
+  ValidDataFrameVariableQuery, DataFrameQuery,
+  CombinedFilters,
+  ColumnOptions
+} from "./types";
 import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
 import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
 import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
@@ -86,11 +99,11 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
   }
 
   public queryTables$(
-    query: string,
+    filters: CombinedFilters,
     take?: number,
     projection?: DataTableProjections[]
   ): Observable<TableProperties[]> {
-    return this.datasource.queryTables$(query, take, projection);
+    return this.datasource.queryTables$(filters, take, projection);
   }
 
   public queryTables(
@@ -109,11 +122,25 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.processVariableQuery(query);
   }
 
-  public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
-    return this.datasource.getColumnOptionsWithVariables(filter);
+  public async getColumnOptionsWithVariables(filters: CombinedFilters): Promise<ColumnOptions> {
+    return this.datasource.getColumnOptionsWithVariables(filters);
   }
 
-  public transformQuery(query: string) {
-    return this.datasource.transformQuery(query);
+  public transformDataTableQuery(query: string) {
+    return this.datasource.transformDataTableQuery(query);
+  }
+
+  public transformResultQuery(query: string): string {
+    return this.datasource.transformResultQuery(query);
+  }
+
+  public transformColumnQuery(query: string): string {
+    return this.datasource.transformColumnQuery(query);
+  }
+
+  public parseColumnIdentifier(
+    columnIdentifier: string
+  ): { columnName: string, transformedDataType: string } {
+    return this.datasource.parseColumnIdentifier(columnIdentifier);
   }
 }

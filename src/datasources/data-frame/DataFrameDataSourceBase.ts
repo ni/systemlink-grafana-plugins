@@ -15,7 +15,9 @@ import {
     ValidDataFrameVariableQuery,
     DataFrameDataQuery,
     DataFrameVariableQuery,
-    Option
+    CombinedFilters,
+    ColumnOptions,
+    ColumnFilter
 } from './types';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { extractErrorInfo } from 'core/errors';
@@ -62,7 +64,7 @@ export abstract class DataFrameDataSourceBase<
     ): Promise<TableDataRows>;
 
     public abstract queryTables$(
-        query: string,
+        filters: CombinedFilters,
         take?: number,
         projection?: DataTableProjections[]
     ): Observable<TableProperties[]>;
@@ -89,8 +91,8 @@ export abstract class DataFrameDataSourceBase<
         }
     }
 
-    public async getColumnOptionsWithVariables(filter: string): Promise<Option[]> {
-        return Promise.resolve([]);
+    public async getColumnOptionsWithVariables(filters: CombinedFilters): Promise<ColumnOptions> {
+        return Promise.resolve({ uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] });
     }
 
     public async loadPartNumbers(): Promise<string[]> {
@@ -109,8 +111,56 @@ export abstract class DataFrameDataSourceBase<
         return DataFrameDataSourceBase._partNumbersCache;
     }
 
-    public transformQuery(query: string) {
+    public transformDataTableQuery(query: string) {
         return this.templateSrv.replace(query);
+    }
+
+    public transformResultQuery(filter: string) {
+        return this.templateSrv.replace(filter);
+    }
+
+    public transformColumnQuery(filter: string) {
+        return this.templateSrv.replace(filter);
+    }
+
+    public parseColumnIdentifier(
+        _columnIdentifier: string
+    ): { columnName: string, transformedDataType: string } {
+        return {
+            columnName: '',
+            transformedDataType: ''
+        };
+    }
+
+    protected constructNullFilters(columns: Column[]): ColumnFilter[] {
+        return columns.flatMap(({ name, columnType, dataType }) => {
+            const filters: ColumnFilter[] = [];
+
+            if (columnType === 'NULLABLE') {
+                filters.push({ column: name, operation: 'NOT_EQUALS', value: null });
+            }
+            if (dataType === 'FLOAT32' || dataType === 'FLOAT64') {
+                filters.push({ column: name, operation: 'NOT_EQUALS', value: 'NaN' });
+            }
+            return filters;
+        });
+    }
+
+    protected getNumericColumns(columns: Column[]): Column[] {
+        return columns.filter(this.isColumnNumeric);
+    }
+
+    private isColumnNumeric(column: Column): boolean {
+        switch (column.dataType) {
+            case 'FLOAT32':
+            case 'FLOAT64':
+            case 'INT32':
+            case 'INT64':
+            case 'TIMESTAMP':
+                return true;
+            default:
+                return false;
+        }
     }
 
     private async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {

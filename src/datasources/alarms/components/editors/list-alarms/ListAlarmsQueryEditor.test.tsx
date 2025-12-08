@@ -154,17 +154,17 @@ describe('ListAlarmsQueryEditor', () => {
       );
     });
 
-    it('should show properties, include transition, descending and take controls when output type is Properties', async () => {
+    it('should show properties, transitions, descending and take controls when output type is Properties', async () => {
       const container = await renderElement({ refId: 'A', outputType: OutputType.Properties });
       
       expect(container.getAllByRole('combobox').length).toBe(2);
       expect(container.getByPlaceholderText('Select the properties to query')).toBeInTheDocument();
-      expect(container.getByRole('combobox', { name: 'Include Transition' })).toBeInTheDocument();
+      expect(container.getByRole('combobox', { name: 'Transitions' })).toBeInTheDocument();
       expect(container.getByRole('switch', { name: 'Descending' })).toBeInTheDocument();
       expect(container.getByRole('spinbutton', { name: 'Take' })).toBeInTheDocument();
     });
 
-    it('should hide properties, include transition, descending and take controls when output type is TotalCount', async () => {
+    it('should hide properties, transitions, descending and take controls when output type is TotalCount', async () => {
       const container = await renderElement({ refId: 'A', outputType: OutputType.TotalCount });
 
       expect(container.queryAllByRole('combobox').length).toBe(0);
@@ -356,7 +356,7 @@ describe('ListAlarmsQueryEditor', () => {
     it('should display error message when transition inclusion is changed from None to All and take exceeds the limit', async () => {
       await renderElement({ refId: 'A', take: 2000, transitionInclusionOption: TransitionInclusionOption.None });
 
-      const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });
+      const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Transitions' });
       await userEvent.click(transitionInclusionCombobox);
       await select(
         transitionInclusionCombobox,
@@ -437,7 +437,7 @@ describe('ListAlarmsQueryEditor', () => {
         queryType: QueryType.ListAlarms,
         transitionInclusionOption: TransitionInclusionOption.MostRecentOnly,
       });
-      const transitionInclusionCombobox = container.getByRole('combobox', { name: 'Include Transition' });
+      const transitionInclusionCombobox = container.getByRole('combobox', { name: 'Transitions' });
 
       expect(transitionInclusionCombobox).toBeInTheDocument();
       expect(transitionInclusionCombobox).toHaveValue(
@@ -447,7 +447,7 @@ describe('ListAlarmsQueryEditor', () => {
 
     it('should call handleQueryChange with selected transition inclusion option when it is updated in the UI', async () => {
       const container = await renderElement();
-      const transitionInclusionCombobox = container.getByRole('combobox', { name: 'Include Transition' });
+      const transitionInclusionCombobox = container.getByRole('combobox', { name: 'Transitions' });
 
       await userEvent.click(transitionInclusionCombobox);
       await select(
@@ -508,7 +508,7 @@ describe('ListAlarmsQueryEditor', () => {
         properties: [ AlarmsSpecificProperties.acknowledged, AlarmsTransitionProperties.transitionCondition ],
       });
 
-      const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });
+      const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Transitions' });
 
       await userEvent.click(transitionInclusionCombobox);
       await select(
@@ -539,7 +539,7 @@ describe('ListAlarmsQueryEditor', () => {
           properties: [ AlarmsTransitionProperties.transitionCondition ],
         });
 
-        const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Include Transition' });
+      const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Transitions' });
 
         await userEvent.click(transitionInclusionCombobox);
         await select(
