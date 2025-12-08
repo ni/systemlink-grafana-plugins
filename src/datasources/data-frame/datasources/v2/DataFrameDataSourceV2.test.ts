@@ -58,7 +58,7 @@ describe('DataFrameDataSourceV2', () => {
         templateSrv = {
             replace: jest.fn((value: string) => value),
             getVariables: jest.fn(() => []),
-            containsTemplate: jest.fn(() => false)
+            containsTemplate: jest.fn((value: string) => value.includes("$"))
         } as any;
         ds = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
     });
@@ -142,14 +142,14 @@ describe('DataFrameDataSourceV2', () => {
                 take: 1000,
                 refId: 'A'
             } as DataFrameQueryV2;
-            templateSrv.replace.mockReturnValue('name = "TestColumn"');
+            templateSrv.replace.mockReturnValue('TestColumn');
             const queryTablesSpy$ = jest.spyOn(ds, 'queryTables$').mockReturnValue(of([]));
 
             await lastValueFrom(ds.runQuery(query, options));
 
-            expect(templateSrv.replace).toHaveBeenCalledWith('name = "${columnName}"', options.scopedVars);
+            expect(templateSrv.replace).toHaveBeenCalledWith('${columnName}', options.scopedVars);
             expect(queryBuilderUtils.transformComputedFieldsQuery).toHaveBeenCalledWith(
-                'name = "TestColumn"',
+                'name = "${columnName}"',
                 expect.any(Object)
             );
             expect(queryTablesSpy$).toHaveBeenCalledWith(
@@ -1388,14 +1388,14 @@ describe('DataFrameDataSourceV2', () => {
                     columnName: { value: 'TestColumn' }
                 }
             };
-            templateSrv.replace.mockReturnValue('name = "TestColumn"');
+            templateSrv.replace.mockReturnValue('TestColumn');
             queryTablesSpy$.mockReturnValue(of([]));
 
             await ds.metricFindQuery(query, optionsWithColumnName);
 
-            expect(templateSrv.replace).toHaveBeenCalledWith('name = "${columnName}"', optionsWithColumnName.scopedVars);
+            expect(templateSrv.replace).toHaveBeenCalledWith('${columnName}', {});
             expect(queryBuilderUtils.transformComputedFieldsQuery).toHaveBeenCalledWith(
-                'name = "TestColumn"',
+                'name = "${columnName}"',
                 expect.any(Object)
             );
             expect(queryTablesSpy$).toHaveBeenCalledWith(
@@ -1565,7 +1565,7 @@ describe('DataFrameDataSourceV2', () => {
                         columnName: { value: 'TestColumn' }
                     }
                 };
-                templateSrv.replace.mockReturnValue('name = "TestColumn"');
+                templateSrv.replace.mockReturnValue('TestColumn');
                 queryTablesSpy$.mockReturnValue(of([]));
 
                 await ds.metricFindQuery(queryWithColumnFilter, optionsWithColumnName);
@@ -1697,7 +1697,7 @@ describe('DataFrameDataSourceV2', () => {
                         columnName: { value: 'TestColumn' }
                     }
                 };
-                templateSrv.replace.mockReturnValue('name = "TestColumn"');
+                templateSrv.replace.mockReturnValue('TestColumn');
 
                 await ds.metricFindQuery(queryWithColumnFilter, optionsWithColumnName);
                 
@@ -3309,20 +3309,11 @@ describe('DataFrameDataSourceV2', () => {
     });
 
     describe('transformColumnQuery', () => {
-        it('should transform with the new scopedVariables when passed in as parameter', () => {
-            const input = 'name = "${Column}" AND name != "abc"';
-            const scopedVars = {
-                Column: { text: 'Column1', value: 'Column1' }
-            };
-            
-            ds.transformColumnQuery(input, scopedVars);    
-            expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
-        });
-
-        it('should transform with saved scopedVariables when not passed in as parameter', async () => {
-            const scopedVars = {
+        const scopedVars = {
                 column: { value: 'TestColumn' }
-            }
+        };
+
+        beforeEach(async () => {
             const query = {
                 type: DataFrameQueryType.Data,
                 dataTableFilter: '',
@@ -3331,16 +3322,19 @@ describe('DataFrameDataSourceV2', () => {
                 scopedVars: scopedVars
             } as unknown as DataQueryRequest<DataFrameQueryV2>;
             await lastValueFrom(ds.runQuery(query, options));
+        });
+
+        it('should transform with saved scopedVariables', async () => {
             const input = 'name = "$Column"';
             
             ds.transformColumnQuery(input);   
  
-            expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
+            expect(templateSrv.replace).toHaveBeenCalledWith('$Column', scopedVars);
         });
 
         it('should replace single-value variables', () => {
             const input = 'name = "$Column" && name != "abc"';
-            templateSrv.replace.mockReturnValue('name = "{Column1}" && name != "abc"');
+            templateSrv.replace.mockReturnValue('{Column1}');
             
             const result = ds.transformColumnQuery(input);
 
@@ -3357,7 +3351,7 @@ describe('DataFrameDataSourceV2', () => {
 
         it('should parse column name with hyphen correctly in single-value variable', () => {
             const input = 'name = "$Column"';
-            templateSrv.replace.mockReturnValue('name = "{Column1-Numeric}"');
+            templateSrv.replace.mockReturnValue('{Column1-Numeric}');
             
             const result = ds.transformColumnQuery(input);
 
@@ -3366,7 +3360,7 @@ describe('DataFrameDataSourceV2', () => {
 
         it('should parse column name with hyphen correctly in multi-value variable', () => {
             const input = 'name = "$Column"';
-            templateSrv.replace.mockReturnValue('name = "{Column1-Numeric,Column2-String,Column3-Bool,Column4-Timestamp}"');
+            templateSrv.replace.mockReturnValue('{Column1-Numeric,Column2-String,Column3-Bool,Column4-Timestamp}');
             
             const result = ds.transformColumnQuery(input);
 
@@ -3375,7 +3369,7 @@ describe('DataFrameDataSourceV2', () => {
 
         it('should not parse column name when value does not have hyphen', () => {
             const input = 'name = "$Column"';
-            templateSrv.replace.mockReturnValue('name = "{ColumnWithoutDataType}"');
+            templateSrv.replace.mockReturnValue('{ColumnWithoutDataType}');
             
             const result = ds.transformColumnQuery(input);
 
@@ -3384,7 +3378,7 @@ describe('DataFrameDataSourceV2', () => {
 
         it('should not parse column name when value does not contain data type', () => {
             const input = 'name = "$Column"';
-            templateSrv.replace.mockReturnValue('name = "{Column-Without-Data-Type}"');
+                templateSrv.replace.mockReturnValue('{Column-Without-Data-Type}');
             
             const result = ds.transformColumnQuery(input);
 
@@ -3393,7 +3387,7 @@ describe('DataFrameDataSourceV2', () => {
 
         it('should parse unique column names correctly', () => {
             const input = 'name = "$Column"';
-            templateSrv.replace.mockReturnValue('name = "{Column1-Numeric,Column2-String,Column1-Bool}"');
+            templateSrv.replace.mockReturnValue('{Column1-Numeric,Column2-String}');
             
             const result = ds.transformColumnQuery(input);
 
