@@ -2543,7 +2543,7 @@ describe('DataFrameDataSourceV2', () => {
                 `${ds.baseUrl}/query-tables`,
                 {
                     interactive: true,
-                    filter: '(new[] {@0, @1}.Contains(testResultId))',
+                    filter: '(new[]{@0,@1}.Contains(testResultId))',
                     take: TAKE_LIMIT,
                     projection: undefined,
                     substitutions: ['result-1', 'result-2']
@@ -2644,7 +2644,7 @@ describe('DataFrameDataSourceV2', () => {
                 `${ds.baseUrl}/query-tables`,
                 {
                     interactive: true,
-                    filter: '(new[] {@0, @1}.Contains(testResultId)) && (name = "Table1") && (columns.any(it.name = "Column1"))',
+                    filter: '(new[]{@0,@1}.Contains(testResultId))&&(name = "Table1")&&(columns.any(it.name = "Column1"))',
                     take: 10,
                     projection: undefined,
                     substitutions: ['result-1', 'result-2']
@@ -2687,7 +2687,7 @@ describe('DataFrameDataSourceV2', () => {
                 `${ds.baseUrl}/query-tables`,
                 {
                     interactive: true,
-                    filter: '(new[] {@0, @1}.Contains(testResultId))',
+                    filter: '(new[]{@0,@1}.Contains(testResultId))',
                     take: 10,
                     projection: undefined,
                     substitutions: ['result-1', 'result-2']
@@ -3491,12 +3491,12 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should replace single-value variables', () => {
-            const input = 'name = "$Column" && name != "abc"';
-            templateSrv.replace.mockReturnValue('name = "{Column1}" && name != "abc"');
+            const input = 'name = "$Column"&&name != "abc"';
+            templateSrv.replace.mockReturnValue('name = "{Column1}"&&name != "abc"');
             
             const result = ds.transformColumnQuery(input);
 
-            expect(result).toBe('columns.any(it.name = "Column1") && !columns.any(it.name = "abc")');
+            expect(result).toBe('columns.any(it.name = "Column1")&&!columns.any(it.name = "abc")');
         });
 
         it('should transform and expand multi-value variables', () => {
@@ -3625,11 +3625,11 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         it('should handle complex expressions with AND operator', () => {
-            const input = 'name = "Column1" && name != "Column2"';
+            const input = 'name = "Column1"&&name != "Column2"';
             
             const result = ds.transformColumnQuery(input);
 
-            expect(result).toBe('columns.any(it.name = "Column1") && !columns.any(it.name = "Column2")');
+            expect(result).toBe('columns.any(it.name = "Column1")&&!columns.any(it.name = "Column2")');
         });
     });
 

@@ -1128,8 +1128,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         if (resultIds.length === 0) {
             return '';
         }
-        const placeholders = resultIds.map((_, index) => `@${index}`).join(', ');
-        const resultFilter = `new[] {${placeholders}}.Contains(testResultId)`;
+        const placeholders = resultIds.map((_, index) => `@${index}`).join(',');
+        const resultFilter = `new[]{${placeholders}}.Contains(testResultId)`;
         return resultFilter;
     }
 
@@ -1146,6 +1146,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             combinedFilters.push(`(${filters.columnFilter})`);
         }
 
-        return combinedFilters.join(' && ');
+        return combinedFilters.join('&&');
     }
 }
