@@ -688,7 +688,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             switchMap(selectedColumns => {
                 if (selectedColumns.length === 0) {
                     return of(
-                        this.buildDataFrame(processedQuery.refId)
+                        this.buildEmptyDataFrame(processedQuery.refId)
                     );
                 }
 
@@ -740,7 +740,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             // TODO: Implement fetching decimated data for selected columns if needed.
                         }
 
-                        return this.buildDataFrame(processedQuery.refId);
+                        return this.buildEmptyDataFrame(processedQuery.refId);
                     })
                 );
             })
@@ -827,7 +827,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return selectedColumnDetails;
     }
 
-    private buildDataFrame(refId: string): DataFrameDTO {
+    private buildEmptyDataFrame(refId: string): DataFrameDTO {
         return createDataFrame({
             refId,
             name: refId,
