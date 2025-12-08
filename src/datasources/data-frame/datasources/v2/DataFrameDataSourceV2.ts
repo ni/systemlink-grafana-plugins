@@ -749,7 +749,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         if(includeIndexColumns) {
             tableIndexColumn = table.columns
-                .filter(column => column.columnType === ColumnType.Index)[0];
+                .find(column => column.columnType === ColumnType.Index);
             tableColumns = table.columns
                 .filter(column => column.columnType !== ColumnType.Index);
         }
