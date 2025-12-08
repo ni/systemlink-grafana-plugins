@@ -1,3 +1,9 @@
+## [4.95.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.94.0...v4.95.0) (2025-12-08)
+
+### Features
+
+* **dataframes:** Wrap the text in inline error field ([#591](https://github.com/ni/systemlink-grafana-plugins/issues/591)) ([3906148](https://github.com/ni/systemlink-grafana-plugins/commit/3906148eaf1ff2bbf0eb7eabd8b7efd7f97bba58))
+
 ## [4.94.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.93.0...v4.94.0) (2025-12-05)
 
 ### Features
