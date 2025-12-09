@@ -1422,14 +1422,14 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(filterNullsCheckbox).not.toBeChecked();
                 });
 
-                it("should call onChange when the filter nulls checkbox is checked", async () => {
+                it("should call onChange and onRunQuery when the filter nulls checkbox is checked", async () => {
                     await user.click(filterNullsCheckbox);
 
                     await waitFor(() => {
                         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
                             filterNulls: true
                         }));
-                        expect(onRunQuery).not.toHaveBeenCalled();
+                        expect(onRunQuery).toHaveBeenCalled();
                     });
                 });
             });
@@ -1460,7 +1460,7 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(decimationMethodField).toHaveDisplayValue('Lossy');
                 });
 
-                it("should call onChange when a decimation method is selected", async () => {
+                it("should call onChange and onRunQuery when a decimation method is selected", async () => {
                     await user.click(decimationMethodField);
                     await user.keyboard('{ArrowDown}');
                     await user.keyboard('{Enter}');
@@ -1469,7 +1469,7 @@ describe("DataFrameQueryEditorV2", () => {
                         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
                             decimationMethod: 'MAX_MIN'
                         }));
-                        expect(onRunQuery).not.toHaveBeenCalled();
+                        expect(onRunQuery).toHaveBeenCalled();
                     });
                 });
             });
@@ -2323,14 +2323,14 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(useTimeRangeCheckbox).not.toBeChecked();
                 });
 
-                it("should call onChange when the use time range checkbox is checked", async () => {
+                it("should call onChange and onRunQuery when the use time range checkbox is checked", async () => {
                     await user.click(useTimeRangeCheckbox);
 
                     await waitFor(() => {
                         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
                             applyTimeFilters: true
                         }));
-                        expect(onRunQuery).not.toHaveBeenCalled();
+                        expect(onRunQuery).toHaveBeenCalled();
                     });
                 });
             });

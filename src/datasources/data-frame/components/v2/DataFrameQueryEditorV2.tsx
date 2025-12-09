@@ -309,11 +309,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     const onFilterNullsChange = (event: React.FormEvent<HTMLInputElement>) => {
         const filterNulls = event.currentTarget.checked;
-        handleQueryChange({ ...migratedQuery, filterNulls }, false);
+        handleQueryChange({ ...migratedQuery, filterNulls });
     };
 
     const onDecimationMethodChange = (option: ComboboxOption<string>) => {
-        handleQueryChange({ ...migratedQuery, decimationMethod: option.value }, false);
+        handleQueryChange({ ...migratedQuery, decimationMethod: option.value });
     };
 
     const onXColumnChange = (option: ComboboxOption<string> | null) => {
@@ -323,7 +323,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     const onUseTimeRangeChange = (event: React.FormEvent<HTMLInputElement>) => {
         const applyTimeFilters = event.currentTarget.checked;
-        handleQueryChange({ ...migratedQuery, applyTimeFilters }, false);
+        handleQueryChange({ ...migratedQuery, applyTimeFilters });
     };
 
     function validateTakeValue(value: number, TAKE_LIMIT: number) {
