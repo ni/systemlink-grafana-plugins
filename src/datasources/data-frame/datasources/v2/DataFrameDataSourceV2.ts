@@ -742,7 +742,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         );
                         const tableNamesMap = this.buildTableNamesMap(tables);
                         const outputColumns = this.getUniqueColumnsWithTransformedDataType(
-                            Object.values(tableColumnsMap).flatMap(columnsData => columnsData.selectedColumns)
+                            Object.values(tableColumnsMap)
+                                .flatMap(columnsData => columnsData.selectedColumns)
                         );
 
                         if (Object.keys(tableColumnsMap).length > 0) {
@@ -821,7 +822,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return [...metadataFields, ...dataFields];
     }
 
-    private getUniqueColumnsWithTransformedDataType(columns: Column[]): ColumnWithTransformedDataType[] {
+    private getUniqueColumnsWithTransformedDataType(
+        columns: Column[]
+    ): ColumnWithTransformedDataType[] {
         const uniqueColumnsMap: Map<string, ColumnWithTransformedDataType> = new Map();
         columns.forEach(column => {
             const key = this.getColumnIdentifier(column.name, column.dataType);
