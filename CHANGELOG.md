@@ -1,3 +1,25 @@
+## [4.99.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.98.3...v4.99.0) (2025-12-09)
+
+### Features
+
+* **dataframe:** merge and get decimated data for selected columns ([#571](https://github.com/ni/systemlink-grafana-plugins/issues/571)) ([2a11bea](https://github.com/ni/systemlink-grafana-plugins/commit/2a11bea5fb10b55097e9a195b6ef52fef11d86cd))
+
+### Bug Fixes
+
+* **dataframes:** Fix column filter with single-value variable ([#594](https://github.com/ni/systemlink-grafana-plugins/issues/594)) ([aabad36](https://github.com/ni/systemlink-grafana-plugins/commit/aabad36c7f49374a3469a272bbe27e03aae8ce6c))
+
+## [4.98.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.98.2...v4.98.3) (2025-12-09)
+
+### Bug Fixes
+
+* **alarms:** Update transformation logic for critical severity levels ([#592](https://github.com/ni/systemlink-grafana-plugins/issues/592)) ([a2388b8](https://github.com/ni/systemlink-grafana-plugins/commit/a2388b81721126b1ad73b9a25df476ab1e7aa627))
+
+## [4.98.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.98.1...v4.98.2) (2025-12-09)
+
+### Bug Fixes
+
+* **alarms:** Trigger take input changes on blur instead of onChange ([#593](https://github.com/ni/systemlink-grafana-plugins/issues/593)) ([0926549](https://github.com/ni/systemlink-grafana-plugins/commit/092654990f535b2b51f873f888c9ee9ef5941b8b))
+
 ## [4.98.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.98.0...v4.98.1) (2025-12-09)
 
 ### Bug Fixes

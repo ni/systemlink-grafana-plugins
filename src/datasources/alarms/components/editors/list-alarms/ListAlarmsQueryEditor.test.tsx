@@ -222,6 +222,15 @@ describe('ListAlarmsQueryEditor', () => {
       expect(takeInput).toHaveValue(customTake);
     });
 
+    it('should not call handleQueryChange until take input loses focus', async () => {
+      await renderElement({ refId: 'A' });
+      const takeInput = screen.getByRole('spinbutton');
+
+      fireEvent.change(takeInput, { target: { value: '250' } });
+
+      expect(mockHandleQueryChange).not.toHaveBeenCalled();
+    });
+
     it('should call onChange when take value is changed', async () => {
       await renderElement({ refId: 'A' });
 
