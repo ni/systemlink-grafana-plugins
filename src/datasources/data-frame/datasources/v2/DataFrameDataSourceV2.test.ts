@@ -54,7 +54,17 @@ describe('DataFrameDataSourceV2', () => {
                 } 
             } 
         } as any;
-        backendSrv = {} as any;
+        backendSrv = {
+            fetch: jest.fn().mockReturnValue(of({ 
+                data: {
+                    endpoint: 'test',
+                    sessionKey: {
+                        expiry: new Date(Date.now() + 3600000).toISOString(),
+                        secret: 'test-secret'
+                    }
+                }
+            }))
+        } as any;
         templateSrv = {
             replace: jest.fn((value: string) => value),
             getVariables: jest.fn(() => []),
@@ -235,6 +245,7 @@ describe('DataFrameDataSourceV2', () => {
                 let queryTablesSpy: jest.SpyInstance;
 
                 const projections = [
+                    DataTableProjections.Name,
                     DataTableProjections.ColumnName,
                     DataTableProjections.ColumnDataType,
                     DataTableProjections.ColumnType
@@ -269,6 +280,12 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
+                    jest.spyOn(ds, 'post$').mockReturnValue(of({
+                        frame: {
+                            columns: ['col1'],
+                            data: [['1']]
+                        }
+                    }));
                     (coreUtils.replaceVariables as jest.Mock).mockReturnValue(['col1-Numeric']);
                     const query = {
                         refId: 'A',
@@ -349,6 +366,17 @@ describe('DataFrameDataSourceV2', () => {
                         }];
                         queryTablesSpy.mockReturnValue(of(mockTables));
 
+                        const mockDecimatedData = {
+                            frame: {
+                                columns: ['colA', 'colB'],
+                                data: [
+                                    ['2024-01-01T00:00:00Z', '1'],
+                                    ['2024-01-01T01:00:00Z', '2']
+                                ]
+                            }
+                        };
+                        jest.spyOn(ds, 'post$').mockReturnValue(of(mockDecimatedData));
+
                         const query = {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
@@ -387,6 +415,14 @@ describe('DataFrameDataSourceV2', () => {
                             ]
                         }];
                         queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const mockDecimatedData = {
+                            frame: {
+                                columns: ['colX'],
+                                data: [['10.5', '20.3']]
+                            }
+                        };
+                        jest.spyOn(ds, 'post$').mockReturnValue(of(mockDecimatedData));
 
                         const query: any = {
                             refId: 'A',
@@ -728,6 +764,12 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
+                    jest.spyOn(ds, 'post$').mockReturnValue(of({
+                        frame: {
+                            columns: ['timestamp', 'value'],
+                            data: [['2024-01-01T00:00:00Z'], ['10.5']]
+                        }
+                    }));
                     templateSrv.replace.mockReturnValue('timestamp-Timestamp');
                     const query = {
                         refId: 'A',
@@ -779,6 +821,32 @@ describe('DataFrameDataSourceV2', () => {
                             }
                         ];
                         queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const mockDecimatedData1 = {
+                            frame: {
+                                columns: ['time', 'value'],
+                                data: [
+                                    ['2024-01-01T00:00:00Z', '10.5'],
+                                    ['2024-01-01T01:00:00Z', '20.3']
+                                ]
+                            }
+                        };
+                        const mockDecimatedData2 = {
+                            frame: {
+                                columns: ['time'],
+                                data: [['2024-01-01T00:00:00Z', '2024-01-01T01:00:00Z']]
+                            }
+                        };
+                        jest.spyOn(ds, 'post$').mockImplementation((url: string) => {
+                            if (url.includes('table1/query-decimated-data')) {
+                                return of(mockDecimatedData1);
+                            }
+                            if (url.includes('table2/query-decimated-data')) {
+                                return of(mockDecimatedData2);
+                            }
+                            return of({});
+                        });
+
                         const query = {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
@@ -822,6 +890,32 @@ describe('DataFrameDataSourceV2', () => {
                             }
                         ];
                         queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const mockDecimatedData1 = {
+                            frame: {
+                                columns: ['time', 'value'],
+                                data: [
+                                    ['2024-01-01T00:00:00Z', '10.5'],
+                                    ['2024-01-01T01:00:00Z', '20.3']
+                                ]
+                            }
+                        };
+                        const mockDecimatedData2 = {
+                            frame: {
+                                columns: ['time'],
+                                data: [['2024-01-01T00:00:00Z', '2024-01-01T01:00:00Z']]
+                            }
+                        };
+                        jest.spyOn(ds, 'post$').mockImplementation((url: string) => {
+                            if (url.includes('table1/query-decimated-data')) {
+                                return of(mockDecimatedData1);
+                            }
+                            if (url.includes('table2/query-decimated-data')) {
+                                return of(mockDecimatedData2);
+                            }
+                            return of({});
+                        });
+
                         const query = {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
