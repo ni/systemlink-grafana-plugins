@@ -138,7 +138,10 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
       return undefined;
     }
 
-    const transformedQuery = transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields);
+    const transformedQuery = transformComputedFieldsQuery(
+      this.templateSrv.replace(query, scopedVars),
+      this.computedDataFields
+    );
     return this.transformSeverityLevelFilters(transformedQuery);
   }
 
