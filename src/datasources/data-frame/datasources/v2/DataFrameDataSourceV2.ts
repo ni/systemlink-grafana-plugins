@@ -793,11 +793,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const columnValueArrays: string[][] = uniqueColumnNames.map(() => []);
 
         Object.entries(decimatedDataMap).forEach(([tableId, tableData]) => {
-            const numRows = tableData.frame.data.length > 0 ? tableData.frame.data.length : 0;
-
-            // Add tableId and tableName for each row in this table
-            tableIdColumn.push(...Array(numRows).fill(tableId));
-            tableNameColumn.push(...Array(numRows).fill(tableNamesMap[tableId]));
+            const rowCount = tableData.frame.data.length > 0 ? tableData.frame.data.length : 0;
+            const tableIdColumnValues = Array(rowCount).fill(tableId);
+            const tableNameColumnValues = Array(rowCount).fill(tableNamesMap[tableId]);
+            tableIdColumn.push(...tableIdColumnValues);
+            tableNameColumn.push(...tableNameColumnValues);
 
             const columnIndexMap = new Map<string, number>();
             tableData.frame.columns.forEach((colName, index) => {
