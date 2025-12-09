@@ -361,7 +361,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 filters,
                 decimation: {
                     method: query.decimationMethod,
-                    xColumn: query.xColumn || undefined,
+                    xColumn: query.xColumn 
+                        ? this.parseColumnIdentifier(query.xColumn).columnName
+                        : undefined,
                     yColumns,
                     intervals,
                 }
