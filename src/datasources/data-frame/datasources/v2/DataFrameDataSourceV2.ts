@@ -740,7 +740,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             tables,
                             processedQuery.includeIndexColumns
                         );
-                        const tableIdNamesMap = this.buildTableIdNamesMap(tables);
+                        const tableNamesMap = this.buildTableNamesMap(tables);
                         const outputColumns = Object.values(tableColumnsMap)
                             .flatMap(columnsData => columnsData.selectedColumns);
 
@@ -752,7 +752,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                 options.maxDataPoints
                             ).pipe(
                                 map(decimatedDataMap => {
-                                    const tableData = this.aggregateTableDataRows(decimatedDataMap, tableIdNamesMap);
+                                    const tableData = this.aggregateTableDataRows(decimatedDataMap, tableNamesMap);
                                     return {
                                         refId: processedQuery.refId,
                                         name: processedQuery.refId,
@@ -771,7 +771,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
-    private buildTableIdNamesMap(tables: TableProperties[]) {
+    private buildTableNamesMap(tables: TableProperties[]) {
         const tableIdNamesMap: Record<string, string> = {};
         tables.forEach(table => {
             tableIdNamesMap[table.id] = table.name;
@@ -780,7 +780,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private isNumericDataType(dataType: string) {
-        return NUMERIC_DATA_TYPES.includes(dataType as any);
+        return NUMERIC_DATA_TYPES.includes(dataType);
     }
 
     private dataFrameToFields(rows: string[][], outputColumns: Column[]): FieldDTO[] {
