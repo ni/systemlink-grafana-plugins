@@ -222,7 +222,7 @@ describe('ListAlarmsQueryEditor', () => {
       expect(takeInput).toHaveValue(customTake);
     });
 
-    it('should not update query when take input changes without blur', async () => {
+    it('should not call handleQueryChange until take input loses focus', async () => {
       await renderElement({ refId: 'A' });
       const takeInput = screen.getByRole('spinbutton');
 

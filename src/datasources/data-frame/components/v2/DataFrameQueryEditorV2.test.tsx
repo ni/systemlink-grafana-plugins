@@ -2628,7 +2628,7 @@ describe("DataFrameQueryEditorV2", () => {
                 });
             });
 
-            it("should not call onChange and onRunQuery without blur", async () => {
+            it("should not call onChange and onRunQuery until take input loses focus", async () => {
                 await user.clear(takeInput);
                 await user.type(takeInput, "500");
 

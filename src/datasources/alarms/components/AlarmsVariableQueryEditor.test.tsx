@@ -264,7 +264,7 @@ describe('AlarmsVariableQueryEditor', () => {
       });
     });
 
-    it('should not call mockOnChange when take input changes without blur', async () => {
+    it('should not call onChange until take input loses focus', async () => {
       await renderElement({ refId: 'A' });
       const takeInput = screen.getByRole('spinbutton');
 
