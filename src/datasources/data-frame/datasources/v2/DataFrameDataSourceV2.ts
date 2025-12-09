@@ -564,7 +564,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private transformColumnDataType(dataType: string): string {
-        const type = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'].includes(dataType)
+        const type = NUMERIC_DATA_TYPES.includes(dataType)
             ? 'Numeric'
             : this.toSentenceCase(dataType);
         return type;

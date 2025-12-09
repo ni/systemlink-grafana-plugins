@@ -24,7 +24,7 @@ import { extractErrorInfo } from 'core/errors';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { Observable } from 'rxjs';
-import { PART_NUMBER_FIELD } from './constants';
+import { NUMERIC_DATA_TYPES, PART_NUMBER_FIELD } from './constants';
 
 export abstract class DataFrameDataSourceBase<
     TQuery extends DataFrameQuery = DataFrameQuery,
@@ -151,16 +151,13 @@ export abstract class DataFrameDataSourceBase<
     }
 
     private isColumnNumeric(column: Column): boolean {
-        switch (column.dataType) {
-            case 'FLOAT32':
-            case 'FLOAT64':
-            case 'INT32':
-            case 'INT64':
-            case 'TIMESTAMP':
-                return true;
-            default:
-                return false;
+        if (
+            NUMERIC_DATA_TYPES.includes(column.dataType)
+            || column.dataType === 'TIMESTAMP'
+        ) {
+            return true;
         }
+        return false;
     }
 
     private async queryResultsValues(fieldName: string, filter?: string): Promise<string[]> {
