@@ -917,19 +917,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private buildTableColumnsMap(
-        selectedColumns: string[],
+        selectedColumnIdentifiers: string[],
         tables: TableProperties[],
         includeIndexColumns: boolean
     ): Record<string, TableColumnsData> {
         const selectedTableColumnsMap: Record<string, TableColumnsData> = {};
         tables.forEach(table => {
-            const selectedColumnsForTable = this.getSelectedColumnsForTable(
-                selectedColumns,
+            const selectedColumns = this.getSelectedColumnsForTable(
+                selectedColumnIdentifiers,
                 table,
                 includeIndexColumns
             );
-            if (selectedColumnsForTable.selectedColumns.length > 0) {
-                selectedTableColumnsMap[table.id] = selectedColumnsForTable;
+            if (selectedColumns.length > 0) {
+                selectedTableColumnsMap[table.id] = {
+                    selectedColumns,
+                    columns: table.columns
+
+                };
             }
         });
         return selectedTableColumnsMap;
@@ -939,20 +943,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         selectedColumns: string[],
         table: TableProperties,
         includeIndexColumns: boolean
-    ): TableColumnsData {
+    ): Column[] {
         if (!Array.isArray(table.columns) || table.columns.length === 0) {
-            return { columns: [], selectedColumns: [] };
+            return [];
         }
 
-        const selectedColumnDetails: TableColumnsData = {
-            columns: [],
-            selectedColumns: []
-        };
+        const selectedColumnDetails: Column[] = [];
 
         table.columns.forEach(column => {
             const tableColumnId = this.getColumnIdentifier(column.name, column.dataType);
             if (selectedColumns.includes(tableColumnId)) {
-                selectedColumnDetails.selectedColumns.push({
+                selectedColumnDetails.push({
                     name: column.name,
                     dataType: column.dataType,
                     columnType: column.columnType,
@@ -961,13 +962,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             }
         });
 
-        if (selectedColumnDetails.selectedColumns.length > 0) {
-            selectedColumnDetails.columns = table.columns
-        }
-
         if (
             includeIndexColumns
-            && selectedColumnDetails.selectedColumns.length > 0
+            && selectedColumnDetails.length > 0
         ) {
             const tableIndexColumn = table.columns
                 .find(column => column.columnType === ColumnType.Index);
@@ -976,7 +973,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 tableIndexColumn?.dataType || ''
             );
             if (tableIndexColumn && !selectedColumns.includes(tableIndexColumnId)) {
-                selectedColumnDetails.selectedColumns.push(tableIndexColumn);
+                selectedColumnDetails.push(tableIndexColumn);
             }
         }
 
