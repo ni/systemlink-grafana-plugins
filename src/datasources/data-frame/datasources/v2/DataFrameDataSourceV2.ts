@@ -417,8 +417,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return { uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] };
         }
 
-        const columnNameDataTypesMap = this.createColumnNameDataTypesMap(tables);
-        const uniqueColumnsAcrossTables = this.getUniqueColumnsAcrossTables(columnNameDataTypesMap);
+        const uniqueColumnsAcrossTables = this.getUniqueColumnsAcrossTables(tables);
         const commonColumnsAcrossTables = includeCommonColumnsAcrossTables
             ? this.getCommonColumnsAcrossTables(tables)
             : [];
@@ -583,7 +582,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return columnNameDataTypeMap;
     };
 
-    private getUniqueColumnsAcrossTables(columnNameDataTypesMap: Record<string, Set<string>>): Option[] {
+    private getUniqueColumnsAcrossTables(tables: TableProperties[]): Option[] {
+        const columnNameDataTypesMap = this.createColumnNameDataTypesMap(tables);
         const options: Option[] = [];
 
         Object.entries(columnNameDataTypesMap).forEach(([columnName, dataTypes]) => {
