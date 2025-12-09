@@ -1,3 +1,9 @@
+## [4.98.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.98.0...v4.98.1) (2025-12-09)
+
+### Bug Fixes
+
+* **alarms:** Enhance property field typing ([#570](https://github.com/ni/systemlink-grafana-plugins/issues/570)) ([ad00464](https://github.com/ni/systemlink-grafana-plugins/commit/ad00464b4561879ade98de81b916ae7f458c06be))
+
 ## [4.98.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.97.0...v4.98.0) (2025-12-09)
 
 ### Features
