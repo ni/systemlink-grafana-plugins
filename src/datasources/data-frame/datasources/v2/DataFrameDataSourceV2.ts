@@ -741,8 +741,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             processedQuery.includeIndexColumns
                         );
                         const tableNamesMap = this.buildTableNamesMap(tables);
-                        const outputColumns = Object.values(tableColumnsMap)
-                            .flatMap(columnsData => columnsData.selectedColumns);
+                        const outputColumns = this.getUniqueColumnsWithTransformedDataType(
+                            Object.values(tableColumnsMap).flatMap(columnsData => columnsData.selectedColumns)
+                        );
 
                         if (Object.keys(tableColumnsMap).length > 0) {
                             return this.getDecimatedTableDataInBatches$(
@@ -783,8 +784,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return NUMERIC_DATA_TYPES.includes(dataType);
     }
 
-    private dataFrameToFields(rows: string[][], outputColumns: Column[]): FieldDTO[] {
-        // Create table metadata fields (tableId and tableName)
+    private dataFrameToFields(
+        rows: string[][],
+        outputColumns: ColumnWithTransformedDataType[]
+    ): FieldDTO[] {
         const metadataFields: FieldDTO[] = [
             {
                 name: 'tableId',
@@ -798,27 +801,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             },
         ];
 
-        // Normalize column data types (combine numeric types)
-        const normalizedColumns: ColumnWithTransformedDataType[] = outputColumns.map(column => ({
-            ...column,
-            dataType: this.isNumericDataType(column.dataType) ? 'NUMBER' : column.dataType
-        }));
-
-        // Deduplicate columns by name-dataType combination
-        const uniqueColumns = Array.from(
-            new Map(
-                normalizedColumns.map(column => [
-                    `${column.name}-${column.dataType}`,
-                    column
-                ])
-            ).values()
-        );
-
-        // Create data fields from unique columns
-        const dataFields: FieldDTO[] = uniqueColumns.map((column, index) => {
+        const dataFields: FieldDTO[] = outputColumns.map((column, index) => {
             const [type, converter] = this.getFieldTypeAndConverter(column.dataType);
-            const METADATA_FIELDS_COUNT = 2; // tableId and tableName
-            const dataIndex = index + METADATA_FIELDS_COUNT;
+            const dataIndex = index + metadataFields.length;
             const field: FieldDTO = {
                 name: column.name,
                 type,
@@ -834,6 +819,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return field;
         });
         return [...metadataFields, ...dataFields];
+    }
+
+    private getUniqueColumnsWithTransformedDataType(columns: Column[]): ColumnWithTransformedDataType[] {
+        const uniqueColumnsMap: Map<string, ColumnWithTransformedDataType> = new Map();
+        columns.forEach(column => {
+            const key = this.getColumnIdentifier(column.name, column.dataType);
+            if (!uniqueColumnsMap.has(key)) {
+                const transformedDataType = this.isNumericDataType(column.dataType)
+                    ? 'NUMBER'
+                    : column.dataType;
+                uniqueColumnsMap.set(key, {
+                    ...column,
+                    dataType: transformedDataType
+                });
+            }
+        });
+        return Array.from(uniqueColumnsMap.values());
     }
 
     private getFieldTypeAndConverter(dataType: TransformedDataType): [
