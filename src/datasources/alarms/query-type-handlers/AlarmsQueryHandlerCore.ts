@@ -1,6 +1,6 @@
 import { DataSourceBase } from 'core/DataSourceBase';
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars, DataSourceInstanceSettings } from '@grafana/data';
-import { Alarm, AlarmsQuery, QueryAlarmsRequest, QueryAlarmsResponse } from '../types/types';
+import { Alarm, AlarmsQuery, AlarmTransitionSeverityLevel, QueryAlarmsRequest, QueryAlarmsResponse } from '../types/types';
 import { extractErrorInfo } from 'core/errors';
 import { QUERY_ALARMS_MAXIMUM_TAKE, QUERY_ALARMS_RELATIVE_PATH, QUERY_ALARMS_REQUEST_PER_SECOND } from '../constants/QueryAlarms.constants';
 import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
@@ -134,9 +134,15 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
   }
 
   protected transformAlarmsQuery(scopedVars: ScopedVars, query?: string): string | undefined {
-    return query
-      ? transformComputedFieldsQuery(this.templateSrv.replace(query, scopedVars), this.computedDataFields)
-      : undefined;
+    if (!query) {
+      return undefined;
+    }
+
+    const transformedQuery = transformComputedFieldsQuery(
+      this.templateSrv.replace(query, scopedVars),
+      this.computedDataFields
+    );
+    return this.transformSeverityLevelFilters(transformedQuery);
   }
 
   protected isTimeField(field: AlarmsProperties): boolean {
@@ -164,6 +170,23 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
       return [dataField, callback];
     })
   );
+
+  private transformSeverityLevelFilters(query: string): string {
+    const criticalSeverityLevel = AlarmTransitionSeverityLevel.Critical;
+    const currentSeverityField = AlarmsQueryBuilderFields.CURRENT_SEVERITY.dataField;
+    const highestSeverityField = AlarmsQueryBuilderFields.HIGHEST_SEVERITY.dataField;
+
+    const severityFieldRegex = new RegExp(`(${currentSeverityField}|${highestSeverityField})\\s*(!=|=)\\s*("${criticalSeverityLevel}")`, 'g');
+
+    return query.replace(severityFieldRegex, (match, field, operator, value) => {
+      if (operator === '=' && value === `"${criticalSeverityLevel}"`) {
+        return `${field} >= ${value}`;
+      } else if (operator === '!=' && value === `"${criticalSeverityLevel}"`) {
+        return `${field} < ${value}`;
+      }
+      return match;
+    });
+  }
 
   private getSourceTransformation(): ExpressionTransformFunction {
     return (value: string, operation: string) => {
