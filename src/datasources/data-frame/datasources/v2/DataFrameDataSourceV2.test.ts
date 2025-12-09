@@ -613,7 +613,7 @@ describe('DataFrameDataSourceV2', () => {
                                 true
                             );
 
-                            expect(result.selectedColumns).toEqual([]);
+                            expect(result).toEqual([]);
                         });
 
                         it('should only include index columns along with columns that are actually selected', () => {
@@ -661,7 +661,7 @@ describe('DataFrameDataSourceV2', () => {
                                 true
                             );
 
-                            expect(result.selectedColumns).toEqual([
+                            expect(result).toEqual([
                                 {
                                     name: 'ColumnA',
                                     dataType: 'STRING',
@@ -718,7 +718,7 @@ describe('DataFrameDataSourceV2', () => {
                                 false
                             );
 
-                            expect(result.selectedColumns).toEqual([
+                            expect(result).toEqual([
                                 {
                                     name: 'ColumnA',
                                     dataType: 'STRING',
