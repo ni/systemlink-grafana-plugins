@@ -264,6 +264,15 @@ describe('AlarmsVariableQueryEditor', () => {
       });
     });
 
+    it('should not call onChange until take input loses focus', async () => {
+      await renderElement({ refId: 'A' });
+      const takeInput = screen.getByRole('spinbutton');
+
+      fireEvent.change(takeInput, { target: { value: '250' } });
+
+      expect(mockOnChange).not.toHaveBeenCalled();
+    });
+
     it('should call onChange when take value is invalid', async () => {
       await renderElement({ refId: 'A' });
 
