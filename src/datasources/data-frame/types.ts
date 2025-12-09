@@ -258,7 +258,7 @@ export type ValidDataFrameQueryV2 = DataFrameQueryV2 & Required<Omit<DataFrameQu
 
 export type NumericDataType = 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64';
 
-export type ColumnDataType = 'BOOL' | NumericDataType | 'STRING' | 'TIMESTAMP';
+export type ColumnDataType = NumericDataType | 'TIMESTAMP' | 'BOOL' | 'STRING';
 
 export type TransformedDataType = Omit<ColumnDataType, NumericDataType> | 'NUMBER';
 
