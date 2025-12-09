@@ -169,6 +169,96 @@ describe('DataFrameVariableQueryEditorV2', () => {
 
             expect(props.dataTableFilter).toBe('InitialFilter');
         });
+
+        it("should pass columnFilter to the query builder wrapper", () => {
+            renderComponent(
+                {
+                    queryType: DataFrameVariableQueryType.ListDataTables,
+                    columnFilter: 'InitialColumnFilter',
+                    refId: 'A'
+                }
+            );
+
+            expect(DataFrameQueryBuilderWrapper).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    columnFilter: 'InitialColumnFilter',
+                    onColumnFilterChange: expect.any(Function),
+                }),
+                expect.anything() // React context
+            );
+        });
+
+        it("should call onChange with updated columnFilter when columns filter changes", async () => {
+            const { onChange } = renderComponent(
+                {
+                    queryType: DataFrameVariableQueryType.ListDataTables,
+                    columnFilter: 'InitialColumnFilter',
+                    refId: 'A'
+                }
+            );
+
+            // Get the onColumnFilterChange callback from the mock
+            const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+            const { onColumnFilterChange } = props;
+
+            // Simulate the filter change event
+            const mockEvent = {
+                detail: { linq: "NewColumnFilter" }
+            } as Event & { detail: { linq: string; }; };
+
+            onColumnFilterChange(mockEvent);
+
+            await waitFor(() => {
+                expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                    columnFilter: 'NewColumnFilter'
+                }));
+            });
+        });
+
+        it("should pass resultFilter to the query builder wrapper", () => {
+            renderComponent(
+                {
+                    queryType: DataFrameVariableQueryType.ListDataTables,
+                    resultFilter: 'InitialResultFilter',
+                    refId: 'A'
+                }
+            );
+
+            expect(DataFrameQueryBuilderWrapper).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    resultFilter: 'InitialResultFilter',
+                    onResultFilterChange: expect.any(Function),
+                }),
+                expect.anything() // React context
+            );
+        });
+
+        it("should call onChange with updated resultFilter when results filter changes", async () => {
+            const { onChange } = renderComponent(
+                {
+                    queryType: DataFrameVariableQueryType.ListDataTables,
+                    resultFilter: 'InitialResultFilter',
+                    refId: 'A'
+                }
+            );
+
+            // Get the onResultFilterChange callback from the mock
+            const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+            const { onResultFilterChange } = props;
+
+            // Simulate the filter change event
+            const mockEvent = {
+                detail: { linq: "NewResultFilter" }
+            } as Event & { detail: { linq: string; }; };
+
+            onResultFilterChange(mockEvent);
+
+            await waitFor(() => {
+                expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                    resultFilter: 'NewResultFilter'
+                }));
+            });
+        });
     });
 
     it('should display FloatingError when there is an error', () => {

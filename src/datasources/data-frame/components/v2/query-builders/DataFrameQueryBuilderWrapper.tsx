@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { InlineLabel } from '@grafana/ui';
 import { DataFrameDataSource } from 'datasources/data-frame/DataFrameDataSource';
 import { DataTableQueryBuilder } from 'datasources/data-frame/components/v2/query-builders/data-table-query-builder/DataTableQueryBuilder';
@@ -13,23 +13,39 @@ import {
     getValuesInPixels,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { ColumnsQueryBuilder } from './columns-query-builder/ColumnsQueryBuilder';
+import { lastValueFrom } from 'rxjs';
+import { ResultsQueryBuilder } from 'shared/components/ResultsQueryBuilder/ResultsQueryBuilder';
+import { enumToOptions } from 'core/utils';
+import { TestMeasurementStatus } from '../constants/ResultsQueryBuilder.constants';
 
 interface DataFrameQueryBuilderWrapperProps {
     datasource: DataFrameDataSource;
+    resultFilter?: string;
     dataTableFilter?: string;
-    columnsFilter?: string;
+    columnFilter?: string;
+    onResultFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
     onDataTableFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
-    onColumnsFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
+    onColumnFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
 }
 
 export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapperProps> = ({
     datasource,
+    resultFilter,
     dataTableFilter,
-    columnsFilter,
+    columnFilter,
+    onResultFilterChange,
     onDataTableFilterChange,
-    onColumnsFilterChange,
+    onColumnFilterChange,
 }) => {
+    const isQueryByResultAndColumnPropertiesEnabled = 
+    datasource.instanceSettings.jsonData.featureToggles.queryByResultAndColumnProperties;
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+    const [partNumbers, setPartNumbers] = useState<string[] | null>(null);
+
+    const statusOptions = useMemo(
+        () => enumToOptions(TestMeasurementStatus).map(option => option.value as string),
+        []
+    );
 
     useEffect(() => {
         const loadWorkspaces = async () => {
@@ -40,20 +56,71 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
         loadWorkspaces();
     }, [datasource]);
 
-    const dataTableNameLookupCallback = useCallback(async (query: string) => {
-        const filter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;
-        const response = await datasource.queryTables(filter, 5, [DataTableProjections.Name]);
+    useEffect(() => {
+        const loadPartNumbers = async () => {
+            const partNumbers = await datasource.loadPartNumbers();
+            setPartNumbers(partNumbers);
+        };
 
-        if (response.length === 0) {
+        loadPartNumbers();
+    }, [datasource]);
+
+    const dataTableNameLookupCallback = useCallback(async (query: string) => {
+        const dataTableFilter = `${DataTableQueryBuilderFieldNames.Name}.Contains("${query}")`;
+        try {
+            const transformedResultFilter = resultFilter
+                ? datasource.transformResultQuery(resultFilter)
+                : '';
+            const response = await lastValueFrom(
+                datasource.queryTables$(  
+                    { 
+                        resultFilter: transformedResultFilter, 
+                        dataTableFilter
+                    },  
+                    5,  
+                    [DataTableProjections.Name]  
+                )
+            );
+
+            if (response.length === 0) {
+                return [];
+            }
+
+            const uniqueNames = new Set(response.map(table => table.name));
+            return Array.from(uniqueNames).map(name => ({ label: name, value: name }));
+        }
+        catch {
             return [];
         }
-
-        const uniqueNames = new Set(response.map(table => table.name));
-        return Array.from(uniqueNames).map(name => ({ label: name, value: name }));
-    }, [datasource]);
+    }, [datasource, resultFilter]);
 
     return (
         <>
+            {isQueryByResultAndColumnPropertiesEnabled && (
+                <>
+                    <InlineLabel
+                        width={VALUE_FIELD_WIDTH}
+                        tooltip={tooltips.queryByResultProperties}
+                    >
+                        {labels.queryByResultProperties}
+                    </InlineLabel>
+                    <div
+                        style={{
+                            width: getValuesInPixels(VALUE_FIELD_WIDTH),
+                            marginBottom: getValuesInPixels(DEFAULT_MARGIN_BOTTOM),
+                        }}
+                    >
+                        <ResultsQueryBuilder
+                            filter={resultFilter}
+                            workspaces={workspaces}
+                            partNumbers={partNumbers}
+                            status={statusOptions}
+                            globalVariableOptions={datasource.globalVariableOptions()}
+                            onChange={onResultFilterChange}
+                        />
+                    </div>
+                </>
+            )}
             <InlineLabel
                 width={VALUE_FIELD_WIDTH}
                 tooltip={tooltips.queryByDataTableProperties}
@@ -74,7 +141,7 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                     dataTableNameLookupCallback={dataTableNameLookupCallback}
                 />
             </div>
-            {datasource.instanceSettings.jsonData.featureToggles.queryByResultAndColumnProperties && (
+            {isQueryByResultAndColumnPropertiesEnabled && (
                 <>
                     <InlineLabel
                         width={VALUE_FIELD_WIDTH}
@@ -89,8 +156,9 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                         }}
                     >
                         <ColumnsQueryBuilder
-                            filter={columnsFilter}
-                            onChange={onColumnsFilterChange}
+                            filter={columnFilter}
+                            onChange={onColumnFilterChange}
+                            disabled={!resultFilter || resultFilter.trim() === ''}
                         />
                     </div>
                 </>

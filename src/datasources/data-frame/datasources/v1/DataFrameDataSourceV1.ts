@@ -15,16 +15,16 @@ import {
   DataFrameQueryType,
   DataFrameDataSourceOptions,
   DataTableProjections,
-  DataFrameVariableQuery,
-  ValidDataFrameVariableQuery,
+  CombinedFilters,
 } from '../../types';
 import { propertiesCacheTTL } from '../../constants';
 import _ from 'lodash';
 import { DataFrameDataSourceBase } from '../../DataFrameDataSourceBase';
 import { replaceVariables } from 'core/utils';
 import { LEGACY_METADATA_TYPE } from 'core/types';
+import { Observable, of } from 'rxjs';
 
-export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQueryV1> {
+export class DataFrameDataSourceV1 extends DataFrameDataSourceBase {
   private readonly propertiesCache: TTLCache<string, TableProperties> = new TTLCache({ ttl: propertiesCacheTTL });
   defaultQuery = defaultQueryV1;
 
@@ -75,7 +75,12 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     return properties;
   }
 
-  async getDecimatedTableData(query: DataFrameQueryV1, columns: Column[], timeRange: TimeRange, intervals = 1000): Promise<TableDataRows> {
+  async getDecimatedTableData(
+    query: DataFrameQueryV1,
+    columns: Column[],
+    timeRange: TimeRange,
+    intervals = 1000
+  ): Promise<TableDataRows> {
     const filters: ColumnFilter[] = [];
 
     if (query.applyTimeFilters) {
@@ -86,15 +91,26 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
       filters.push(...this.constructNullFilters(columns));
     }
 
-    return await this.post<TableDataRows>(`${this.baseUrl}/tables/${query.tableId}/query-decimated-data`, {
-      columns: query.columns,
-      filters,
-      decimation: {
-        intervals,
-        method: query.decimationMethod,
-        yColumns: this.getNumericColumns(columns).map(c => c.name),
-      },
-    });
+    return await this.post<TableDataRows>(
+      `${this.baseUrl}/tables/${query.tableId}/query-decimated-data`,
+      {
+        columns: query.columns,
+        filters,
+        decimation: {
+          intervals,
+          method: query.decimationMethod,
+          yColumns: this.getNumericColumns(columns).map(c => c.name),
+        },
+      }
+    );
+  }
+
+  queryTables$(
+    filters: CombinedFilters,
+    take = 5,
+    projection?: DataTableProjections[]
+  ): Observable<TableProperties[]> {
+    return of([]);
   }
 
   async queryTables(query: string, take = 5, projection?: DataTableProjections[]): Promise<TableProperties[]> {
@@ -120,13 +136,9 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
     return deepEqual(migratedQuery, query) ? (query as ValidDataFrameQueryV1) : migratedQuery;
   }
 
-  async metricFindQuery(tableQuery: DataFrameVariableQuery): Promise<MetricFindValue[]> {
+  async metricFindQuery(tableQuery: DataFrameQueryV1): Promise<MetricFindValue[]> {
     const tableProperties = await this.getTableProperties((tableQuery as DataFrameQueryV1).tableId);
     return tableProperties.columns.map(col => ({ text: col.name, value: col.name }));
-  }
-
-  public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
-    return query as ValidDataFrameVariableQuery;
   }
 
   private getColumnTypes(columnNames: string[], tableProperties: Column[]): Column[] {
@@ -177,36 +189,5 @@ export class DataFrameDataSourceV1 extends DataFrameDataSourceBase<DataFrameQuer
       { column: timeIndex.name, operation: 'GREATER_THAN_EQUALS', value: timeRange.from.toISOString() },
       { column: timeIndex.name, operation: 'LESS_THAN_EQUALS', value: timeRange.to.toISOString() },
     ];
-  }
-
-  private constructNullFilters(columns: Column[]): ColumnFilter[] {
-    return columns.flatMap(({ name, columnType, dataType }) => {
-      const filters: ColumnFilter[] = [];
-
-      if (columnType === 'NULLABLE') {
-        filters.push({ column: name, operation: 'NOT_EQUALS', value: null });
-      }
-      if (dataType === 'FLOAT32' || dataType === 'FLOAT64') {
-        filters.push({ column: name, operation: 'NOT_EQUALS', value: 'NaN' });
-      }
-      return filters;
-    });
-  }
-
-  private getNumericColumns(columns: Column[]): Column[] {
-    return columns.filter(this.isColumnNumeric);
-  }
-
-  private isColumnNumeric(column: Column): boolean {
-    switch (column.dataType) {
-      case 'FLOAT32':
-      case 'FLOAT64':
-      case 'INT32':
-      case 'INT64':
-      case 'TIMESTAMP':
-        return true;
-      default:
-        return false;
-    }
   }
 }

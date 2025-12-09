@@ -9,11 +9,13 @@ import { ColumnsQueryBuilderStaticFields } from "../../constants/ColumnsQueryBui
 
 type ColumnsQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
     filter?: string;
+    disabled?: boolean;
 };
 
 export const ColumnsQueryBuilder: React.FC<ColumnsQueryBuilderProps> = ({
     filter,
-    onChange
+    onChange,
+    disabled
 }) => {
     const [fields, setFields] = useState<QBField[]>([]);
     const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
@@ -72,6 +74,7 @@ export const ColumnsQueryBuilder: React.FC<ColumnsQueryBuilderProps> = ({
             messages={queryBuilderMessages}
             onChange={onChange}
             value={filter}
+            disabled={disabled}
         />
     );
 };

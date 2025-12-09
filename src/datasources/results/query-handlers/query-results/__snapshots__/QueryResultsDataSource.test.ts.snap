@@ -36,9 +36,9 @@ exports[`QueryResultsDataSource query returns data for valid data-output-type qu
       },
       {
         "name": "Total time (s)",
-        "type": "string",
+        "type": "number",
         "values": [
-          "29.9",
+          29.9,
         ],
       },
       {
@@ -105,9 +105,9 @@ exports[`QueryResultsDataSource query should convert properties to Grafana field
   },
   {
     "name": "Total time (s)",
-    "type": "string",
+    "type": "number",
     "values": [
-      "29.9",
+      29.9,
     ],
   },
   {

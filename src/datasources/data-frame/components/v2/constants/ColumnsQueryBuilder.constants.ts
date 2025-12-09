@@ -2,7 +2,7 @@ import { QueryBuilderOperations } from "core/query-builder.constants";
 import { QBField } from "core/types";
 
 export enum ColumnsQueryBuilderFieldNames {
-    ColumnName = 'columnName'
+    ColumnName = 'name'
 }
 
 export const ColumnsQueryBuilderFields: Record<string, QBField> = {

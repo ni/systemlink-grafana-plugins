@@ -4,6 +4,8 @@ import { ProductProperties, QueryProductResponse, ResultsQuery } from "./types/t
 import { QueryBuilderOption, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { ResultsPropertiesOptions } from "./types/QueryResults.types";
+import { ExpressionTransformFunction, timeFieldsQuery, listFieldsQuery, multipleValuesQuery } from "core/query-builder.utils";
+import { ResultsQueryBuilderFieldNames } from "shared/components/ResultsQueryBuilder/ResultsQueryBuilder.constants";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
   errorTitle = '';
@@ -29,7 +31,7 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
       return undefined;
     }
 
-    const timeRangeFilter = `(${useTimeRangeFor} > "${this.fromDateString}" && ${useTimeRangeFor} < "${this.toDateString}")`;
+    const timeRangeFilter = `(${useTimeRangeFor} >= "${this.fromDateString}" && ${useTimeRangeFor} <= "${this.toDateString}")`;
 
     return this.templateSrv.replace(timeRangeFilter, options.scopedVars);
   }
@@ -158,6 +160,30 @@ export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery>
     }
     return values.map(item => `${fieldName} = "${item}"`).join(' || ');
   };
+
+  /**
+   * A map linking each field name to its corresponding query transformation function.
+   * It dynamically processes and formats query expressions based on the field type.
+   */
+  protected readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(ResultsQueryBuilderFieldNames).map(field => {
+      let callback;
+      
+      switch (field) {
+        case ResultsQueryBuilderFieldNames.UPDATED_AT:
+        case ResultsQueryBuilderFieldNames.STARTED_AT:
+          callback = timeFieldsQuery(field);
+          break;
+        case ResultsQueryBuilderFieldNames.KEYWORDS:
+          callback = listFieldsQuery(field);
+          break;
+        default:
+          callback = multipleValuesQuery(field);
+      }
+
+      return [field, callback];
+    })
+  );
 
   testDatasource(): Promise<TestDataSourceResponse> {
     throw new Error("Method not implemented.");

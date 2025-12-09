@@ -2,18 +2,16 @@ import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TestDataSou
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { AlarmsQuery, AlarmsVariableQuery, QueryType } from './types/types';
-import { AlarmsCountQueryHandler } from './query-type-handlers/alarms-count/AlarmsCountQueryHandler';
 import { QUERY_ALARMS_RELATIVE_PATH } from './constants/QueryAlarms.constants';
 import { ListAlarmsQueryHandler } from './query-type-handlers/list-alarms/ListAlarmsQueryHandler';
 import { DEFAULT_QUERY_TYPE, defaultListAlarmsVariableQuery } from './constants/DefaultQueries.constants';
-import { AlarmsTrendQueryHandler } from './query-type-handlers/alarms-trend/AlarmsTrendQueryHandler';
+import { AlarmTrendQueryHandler } from './query-type-handlers/alarm-trend/AlarmTrendQueryHandler';
 
 export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
   public readonly defaultQuery: Omit<AlarmsQuery, 'refId'>;
 
-  private readonly _alarmsCountQueryHandler: AlarmsCountQueryHandler;
   private readonly _listAlarmsQueryHandler: ListAlarmsQueryHandler;
-  private readonly _alarmsTrendQueryHandler: AlarmsTrendQueryHandler;
+  private readonly _alarmTrendQueryHandler: AlarmTrendQueryHandler;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
@@ -21,21 +19,18 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
-    this._alarmsCountQueryHandler = new AlarmsCountQueryHandler(instanceSettings, backendSrv, templateSrv);
     this._listAlarmsQueryHandler = new ListAlarmsQueryHandler(instanceSettings, backendSrv, templateSrv);
-    this._alarmsTrendQueryHandler = new AlarmsTrendQueryHandler(instanceSettings, backendSrv, templateSrv);
+    this._alarmTrendQueryHandler = new AlarmTrendQueryHandler(instanceSettings, backendSrv, templateSrv);
 
     this.defaultQuery = this.getDefaultQueryBasedOnQueryType();
   }
 
   public async runQuery(query: AlarmsQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     switch (query.queryType) {
-      case QueryType.AlarmsCount:
-        return this.alarmsCountQueryHandler.runQuery(query, options);
       case QueryType.ListAlarms:
         return this.listAlarmsQueryHandler.runQuery(query, options);
-      case QueryType.AlarmsTrend:
-        return this.alarmsTrendQueryHandler.runQuery(query, options);
+      case QueryType.AlarmTrend:
+        return this.alarmTrendQueryHandler.runQuery(query, options);
       default:
         throw new Error('Invalid query type');
     }
@@ -43,27 +38,21 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
 
   public shouldRunQuery(query: AlarmsQuery): boolean {
     switch (query.queryType) {
-      case QueryType.AlarmsCount:
-        return this.alarmsCountQueryHandler.shouldRunQuery(query);
       case QueryType.ListAlarms:
         return this.listAlarmsQueryHandler.shouldRunQuery(query);
-      case QueryType.AlarmsTrend:
-        return this.alarmsTrendQueryHandler.shouldRunQuery(query);
+      case QueryType.AlarmTrend:
+        return this.alarmTrendQueryHandler.shouldRunQuery(query);
       default:
         return false;
     }
-  }
-
-  public get alarmsCountQueryHandler(): AlarmsCountQueryHandler {
-    return this._alarmsCountQueryHandler;
   }
 
   public get listAlarmsQueryHandler(): ListAlarmsQueryHandler {
     return this._listAlarmsQueryHandler;
   }
 
-  public get alarmsTrendQueryHandler(): AlarmsTrendQueryHandler {
-    return this._alarmsTrendQueryHandler;
+  public get alarmTrendQueryHandler(): AlarmTrendQueryHandler {
+    return this._alarmTrendQueryHandler;
   }
 
   public async metricFindQuery(query: AlarmsVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
@@ -87,10 +76,8 @@ export class AlarmsDataSource extends DataSourceBase<AlarmsQuery> {
     switch (DEFAULT_QUERY_TYPE) {
       case QueryType.ListAlarms:
         return this.listAlarmsQueryHandler.defaultQuery;
-      case QueryType.AlarmsCount:
-        return this.alarmsCountQueryHandler.defaultQuery;
-      case QueryType.AlarmsTrend:
-        return this.alarmsTrendQueryHandler.defaultQuery;
+      case QueryType.AlarmTrend:
+        return this.alarmTrendQueryHandler.defaultQuery;
       default:
         throw new Error('Invalid query type');
     }

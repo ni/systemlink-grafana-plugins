@@ -11,9 +11,8 @@ export interface AlarmsVariableQuery extends AlarmsQuery {
 }
 
 export enum QueryType {
-  AlarmsCount = 'Alarms Count',
   ListAlarms = 'List Alarms',
-  AlarmsTrend = 'Alarms Trend'
+  AlarmTrend = 'Alarm Trend'
 }
 
 export interface QueryAlarmsRequest {

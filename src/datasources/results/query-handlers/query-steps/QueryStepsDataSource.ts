@@ -29,8 +29,8 @@ import {
   TAKE_LIMIT,
 } from 'datasources/results/constants/QuerySteps.constants';
 import { StepsQueryBuilderFieldNames } from 'datasources/results/constants/StepsQueryBuilder.constants';
-import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
-import { ResultsQueryBuilderFieldNames } from 'datasources/results/constants/ResultsQueryBuilder.constants';
+import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { ResultsQueryBuilderFieldNames } from 'shared/components/ResultsQueryBuilder/ResultsQueryBuilder.constants';
 import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types';
 import { QueryResponse, Workspace } from 'core/types';
 import { getWorkspaceName, queryInBatches } from 'core/utils';
@@ -49,7 +49,7 @@ import {
 } from 'datasources/results/constants/stepMeasurements.constants';
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from '@grafana/runtime';
 
-type GrafanaColumns = Array<{ name: string; values: string[]; type: FieldType }>;
+type GrafanaColumns = Array<{ name: string; values: Array<string | number>; type: FieldType }>;
 export class QueryStepsDataSource extends ResultsDataSourceBase {
   queryStepsUrl = this.baseUrl + '/v2/query-steps';
 
@@ -211,11 +211,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
     query.resultsQuery =
       this.transformQuery(query.resultsQuery, this.resultsComputedDataFields, options.scopedVars) || '';
 
-    const transformStepsQuery = query.stepsQuery
-      ? this.transformQuery(query.stepsQuery, this.stepsComputedDataFields, options.scopedVars)
-      : undefined;
     const useTimeRangeFilter = this.getTimeRangeFilter(options, query.useTimeRange, defaultStepsQuery.useTimeRangeFor);
-    query.stepsQuery = this.buildQueryFilter(transformStepsQuery, useTimeRangeFilter);
+    query.stepsQuery = this.buildQueryFilter(query.stepsQuery, useTimeRangeFilter);
 
     const projection = query.showMeasurements
       ? [...new Set([...(query.properties || []), StepsPropertiesOptions.DATA])]
@@ -475,7 +472,8 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
         this.normalizeColumns(columns, relativeLengthToNormalize);
       }
     }
-    column.values.push(value);
+    const convertedValue = type === FieldType.number ? Number(value) : value;
+    column.values.push(convertedValue);
   }
 
   /**
@@ -484,14 +482,15 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
    * @param relativeLength Additional length to add to the maximum column length.
    */
   private normalizeColumns(
-    columns: Array<{ name: string; values: string[]; type: FieldType }>,
+    columns: GrafanaColumns,
     relativeLength = 0
   ): void {
     const targetLength = Math.max(0, ...columns.map(c => c.values.length)) + relativeLength;
     columns.forEach(col => {
       const missing = targetLength - col.values.length;
       if (missing > 0) {
-        col.values.push(...Array(missing).fill(''));
+        const defaultValue = col.type === FieldType.number ? 0 : '';
+        col.values.push(...Array(missing).fill(defaultValue));
       }
     });
   }
@@ -576,22 +575,22 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
    * A map linking each steps field name to its corresponding query transformation function.
    */
   private readonly stepsComputedDataFields = new Map<string, ExpressionTransformFunction>(
-    Object.values(StepsQueryBuilderFieldNames).map(field => [
-      field,
-      field === StepsQueryBuilderFieldNames.UPDATED_AT ? timeFieldsQuery(field) : multipleValuesQuery(field),
-    ])
-  );
+    Object.values(StepsQueryBuilderFieldNames).map(field => {
+      let callback;
+      
+      switch (field) {
+        case StepsQueryBuilderFieldNames.UPDATED_AT:
+          callback = timeFieldsQuery(field);
+          break;
+        case StepsQueryBuilderFieldNames.KEYWORDS:
+          callback = listFieldsQuery(field);
+          break;
+        default:
+          callback = multipleValuesQuery(field);
+      }
 
-  /**
-   * A map linking each results field name to its corresponding query transformation function.
-   */
-  private readonly resultsComputedDataFields = new Map<string, ExpressionTransformFunction>(
-    Object.values(ResultsQueryBuilderFieldNames).map(field => [
-      field,
-      field === ResultsQueryBuilderFieldNames.UPDATED_AT || field === ResultsQueryBuilderFieldNames.STARTED_AT
-        ? timeFieldsQuery(field)
-        : multipleValuesQuery(field),
-    ])
+      return [field, callback];
+    })
   );
 
   /**

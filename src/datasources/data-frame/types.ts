@@ -4,6 +4,7 @@ import { DataSourceJsonData, QueryEditorProps } from '@grafana/data';
 import { DataFrameDataSource } from './DataFrameDataSource';
 import { TAKE_LIMIT } from './constants';
 import { QueryBuilderField } from 'smart-webcomponents-react';
+import { Observable } from 'rxjs';
 
 export enum DataFrameQueryType {
   Data = 'Data',
@@ -31,10 +32,12 @@ export interface DataFrameQueryV1 extends DataQuery {
 
 export interface DataFrameQueryV2 extends DataQuery {
   type: DataFrameQueryType;
+  resultFilter?: string;
   dataTableFilter?: string;
+  columnFilter?: string;
   dataTableProperties?: DataTableProperties[];
   columnProperties?: DataTableProperties[];
-  columns?: string[];
+  columns?: string[] | Observable<string[]>;
   includeIndexColumns?: boolean;
   filterNulls?: boolean;
   decimationMethod?: string;
@@ -45,12 +48,16 @@ export interface DataFrameQueryV2 extends DataQuery {
 
 export interface DataFrameVariableQueryV2 extends DataQuery {
   queryType: DataFrameVariableQueryType;
+  resultFilter?: string;
   dataTableFilter?: string;
+  columnFilter?: string;
 }
 
-export const defaultVariableQueryV2: Omit<DataFrameVariableQueryV2, 'refId'> = {
+export const defaultVariableQueryV2: Omit<ValidDataFrameVariableQuery, 'refId'> = {
   queryType: DataFrameVariableQueryType.ListDataTables,
-  dataTableFilter: ''
+  resultFilter: '',
+  dataTableFilter: '',
+  columnFilter: ''
 };
 
 export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
@@ -103,6 +110,12 @@ export enum DataTableProjections {
   Properties = 'PROPERTIES'
 }
 
+export interface CombinedFilters {
+  resultFilter?: string;
+  dataTableFilter?: string;
+  columnFilter?: string;
+}
+
 export enum DataTableProjectionType {
   DataTable = 'dataTable',
   Column = 'column'
@@ -119,7 +132,9 @@ export const defaultDatatableProperties: DataTableProperties[] = [
 
 export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   type: DataFrameQueryType.Data,
+  resultFilter: '',
   dataTableFilter: '',
+  columnFilter: '',
   dataTableProperties: defaultDatatableProperties,
   columnProperties: [],
   columns: [],
@@ -130,6 +145,10 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   applyTimeFilters: false,
   take: TAKE_LIMIT
 };
+
+export interface QueryResultsResponse {
+  results: Array<{id: string}>;
+}
 
 export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
   label: string,
@@ -319,9 +338,28 @@ export interface DataFrameDataSourceOptions extends DataSourceJsonData {
   featureToggles: DataFrameFeatureToggles;
 }
 
+export interface ColumnOptions {
+  uniqueColumnsAcrossTables: Option[];
+  commonColumnsAcrossTables: Option[];
+}
+
 export interface Option {
   label: string;
   value: string;
+}
+
+export interface DecimationOptions {
+  method?: string;
+  xColumn?: string;
+  yColumns?: string[];
+  intervals?: number;
+}
+
+export interface DecimatedDataRequest {
+  tableId: string;
+  columns: string[];
+  filters: ColumnFilter[];
+  decimation: DecimationOptions;
 }
 
 export function isSystemLinkError(error: any): error is SystemLinkError {

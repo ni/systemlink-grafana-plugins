@@ -1,7 +1,9 @@
+import { from, lastValueFrom, of } from 'rxjs';
 import { DataFrameDataSource } from './DataFrameDataSource';
 import { DataFrameDataSourceV1 } from './datasources/v1/DataFrameDataSourceV1';
 import { DataFrameDataSourceV2 } from './datasources/v2/DataFrameDataSourceV2';
 import { DataSourceInstanceSettings, TimeRange } from '@grafana/data';
+import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 
 jest.mock('./datasources/v1/DataFrameDataSourceV1');
 jest.mock('./datasources/v2/DataFrameDataSourceV2');
@@ -21,31 +23,55 @@ const mockInstanceSettings = (featureToggle = false): DataSourceInstanceSettings
 describe('DataFrameDataSource', () => {
     let v1Mock: jest.Mocked<DataFrameDataSourceV1>;
     let v2Mock: jest.Mocked<DataFrameDataSourceV2>;
+    let templateSrv: TemplateSrv;
+    let backendSrv: BackendSrv;
+    const mockFilter = {
+        dataTableFilter: 'dataTableQuery',
+        resultFilter: 'resultQuery',
+        columnFilter: 'columnQuery'
+    };
 
     beforeEach(() => {
         (DataFrameDataSourceV1 as unknown as jest.Mock).mockClear();
         (DataFrameDataSourceV2 as unknown as jest.Mock).mockClear();
+        backendSrv = {} as BackendSrv;
+        templateSrv = {
+            getVariables: jest.fn(() => []),
+            replace: jest.fn((input: string) => input),
+        } as unknown as TemplateSrv;
 
         v1Mock = {
+            defaultQuery: { value: 'v1-default' } as any,
             runQuery: jest.fn().mockResolvedValue('v1-runQuery'),
             shouldRunQuery: jest.fn().mockReturnValue(true),
             metricFindQuery: jest.fn().mockResolvedValue(['v1-metric']),
             getTableProperties: jest.fn().mockResolvedValue('v1-tableProps'),
             getDecimatedTableData: jest.fn().mockResolvedValue('v1-decimated'),
+            queryTables$: jest.fn().mockReturnValue(of(['v1-tables'])),
             queryTables: jest.fn().mockResolvedValue(['v1-tables']),
             processQuery: jest.fn().mockReturnValue('v1-processed'),
+            prepareQuery: jest.fn().mockReturnValue('v1-prepared'),
             processVariableQuery: jest.fn().mockReturnValue('v1-processed'),
+            transformDataTableQuery: jest.fn((query: string) => `v1-${query}`),
+            transformResultQuery: jest.fn((query: string) => `v1-${query}`),
+            transformColumnQuery: jest.fn((query: string) => `v1-${query}`),
         } as any;
 
         v2Mock = {
-            runQuery: jest.fn().mockResolvedValue('v2-runQuery'),
+            defaultQuery: { value: 'v2-default' } as any,
+            runQuery: jest.fn().mockReturnValue(of('v2-runQuery')),
             shouldRunQuery: jest.fn().mockReturnValue(false),
             metricFindQuery: jest.fn().mockResolvedValue(['v2-metric']),
             getTableProperties: jest.fn().mockResolvedValue('v2-tableProps'),
             getDecimatedTableData: jest.fn().mockResolvedValue('v2-decimated'),
+            queryTables$: jest.fn().mockReturnValue(of(['v2-tables'])),
             queryTables: jest.fn().mockResolvedValue(['v2-tables']),
             processQuery: jest.fn().mockReturnValue('v2-processed'),
+            prepareQuery: jest.fn().mockReturnValue('v2-prepared'),
             processVariableQuery: jest.fn().mockReturnValue('v2-processed'),
+            transformDataTableQuery: jest.fn((query: string) => `v2-${query}`),
+            transformResultQuery: jest.fn((query: string) => `v2-${query}`),
+            transformColumnQuery: jest.fn((query: string) => `v2-${query}`),
         } as any;
 
         (DataFrameDataSourceV1 as unknown as jest.Mock).mockImplementation(() => v1Mock);
@@ -53,7 +79,7 @@ describe('DataFrameDataSource', () => {
     });
 
     it('should use DataFrameDataSourceV1 if feature toggle is false', async () => {
-        const ds = new DataFrameDataSource(mockInstanceSettings(false));
+        const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
         expect(DataFrameDataSourceV1).toHaveBeenCalled();
         expect(DataFrameDataSourceV2).not.toHaveBeenCalled();
 
@@ -72,6 +98,9 @@ describe('DataFrameDataSource', () => {
         await expect(ds.getDecimatedTableData({} as any, [], {} as TimeRange, 10)).resolves.toBe('v1-decimated');
         expect(v1Mock.getDecimatedTableData).toHaveBeenCalled();
 
+        await expect(lastValueFrom(ds.queryTables$(mockFilter))).resolves.toEqual(['v1-tables']);
+        expect(v1Mock.queryTables$).toHaveBeenCalledWith(mockFilter, undefined, undefined);
+
         await expect(ds.queryTables('query')).resolves.toEqual(['v1-tables']);
         expect(v1Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined);
 
@@ -80,14 +109,21 @@ describe('DataFrameDataSource', () => {
 
         expect(ds.processVariableQuery({} as any)).toBe('v1-processed');
         expect(v1Mock.processVariableQuery).toHaveBeenCalled();
+
+        expect(ds.prepareQuery({} as any)).toBe('v1-prepared');
+        expect(v1Mock.prepareQuery).toHaveBeenCalled();
+
+        expect(ds.defaultQuery).toEqual({ ...v1Mock.defaultQuery });
     });
 
     it('should use DataFrameDataSourceV2 if feature toggle is true', async () => {
-        const ds = new DataFrameDataSource(mockInstanceSettings(true));
+        const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
         expect(DataFrameDataSourceV2).toHaveBeenCalled();
         expect(DataFrameDataSourceV1).not.toHaveBeenCalled();
 
-        await expect(ds.runQuery({} as any, {} as any)).resolves.toBe('v2-runQuery');
+        await expect(
+            lastValueFrom(from(ds.runQuery({} as any, {} as any)))
+        ).resolves.toBe('v2-runQuery');
         expect(v2Mock.runQuery).toHaveBeenCalled();
 
         expect(ds.shouldRunQuery({} as any)).toBe(false);
@@ -102,6 +138,9 @@ describe('DataFrameDataSource', () => {
         await expect(ds.getDecimatedTableData({} as any, [], {} as TimeRange, 10)).resolves.toBe('v2-decimated');
         expect(v2Mock.getDecimatedTableData).toHaveBeenCalled();
 
+        await expect(lastValueFrom(ds.queryTables$(mockFilter))).resolves.toEqual(['v2-tables']);
+        expect(v2Mock.queryTables$).toHaveBeenCalledWith(mockFilter, undefined, undefined);
+
         await expect(ds.queryTables('query')).resolves.toEqual(['v2-tables']);
         expect(v2Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined);
 
@@ -110,43 +149,277 @@ describe('DataFrameDataSource', () => {
 
         expect(ds.processVariableQuery({} as any)).toBe('v2-processed');
         expect(v2Mock.processVariableQuery).toHaveBeenCalled();
+
+        expect(ds.prepareQuery({} as any)).toBe('v2-prepared');
+        expect(v2Mock.prepareQuery).toHaveBeenCalled();
+
+        expect(ds.defaultQuery).toEqual({ ...v2Mock.defaultQuery });
     });
 
-    it('should set defaultQuery to defaultQueryV1 when datasource is DataFrameDataSourceV1 with refId "A"', () => {
-        const dsV1 = new DataFrameDataSource(mockInstanceSettings(false));
-        expect(dsV1.defaultQuery).toBeDefined();
-        expect(dsV1.defaultQuery.refId).toBe('A');
-        const expectedV1Default = v1Mock.defaultQuery ? { ...v1Mock.defaultQuery, refId: 'A' } : { refId: 'A' };
-        expect(dsV1.defaultQuery).toEqual(expectedV1Default);
+    describe('getColumnOptionsWithVariables', () => {
+        it('should call getColumnOptionsWithVariables on DataFrameDataSourceV1 when feature toggle is false', async () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(false));
+            const mockColumnOptions = {
+                uniqueColumnsAcrossTables: ['v1-column-options'],
+                commonColumnsAcrossTables: ['v1-xcolumn-options']
+            };
+            v1Mock.getColumnOptionsWithVariables = jest.fn().mockResolvedValue(mockColumnOptions);
+
+            const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'filter' });
+
+            expect(v1Mock.getColumnOptionsWithVariables).toHaveBeenCalledWith({ dataTableFilter: 'filter' });
+            expect(result).toEqual(mockColumnOptions);
+        });
+
+        it('should call getColumnOptionsWithVariables on DataFrameDataSourceV2 when feature toggle is true', async () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(true));
+            const mockColumnOptions = {
+                uniqueColumnsAcrossTables: ['v2-column-options'],
+                commonColumnsAcrossTables: ['v2-xcolumn-options']
+            };
+            v2Mock.getColumnOptionsWithVariables = jest.fn().mockResolvedValue(mockColumnOptions);
+
+            const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'filter' });
+
+            expect(v2Mock.getColumnOptionsWithVariables).toHaveBeenCalledWith({ dataTableFilter: 'filter' });
+            expect(result).toEqual(mockColumnOptions);
+        });
     });
 
-    it('should set defaultQuery to defaultQueryV2 when datasource is DataFrameDataSourceV2 with refId "A"', () => {
-        const dsV2 = new DataFrameDataSource(mockInstanceSettings(true));
-        expect(dsV2.defaultQuery).toBeDefined();
-        expect(dsV2.defaultQuery.refId).toBe('A');
-        const expectedV2Default = v2Mock.defaultQuery ? { ...v2Mock.defaultQuery, refId: 'A' } : { refId: 'A' };
-        expect(dsV2.defaultQuery).toEqual(expectedV2Default);
+    describe('dashboard variables caching', () => {
+        const backendSrv = {} as BackendSrv;
+        const createTemplateSrv = (variables: Array<{ name: string; value: string }>): TemplateSrv => {
+            return {
+                getVariables: () => variables,
+                replace: (input: string) => {
+                    const match = input.match(/^\$(.+)$/);
+                    if (match) {
+                        const variable = variables.find(variable => variable.name === match[1]);
+                        return variable ? variable.value : input;
+                    }
+                    return input;
+                },
+            } as unknown as TemplateSrv;
+        };
+
+        const query: any = { refId: 'A' };
+        const options: any = { range: { from: new Date(), to: new Date() } };
+
+        it('should cache variables on first runQuery', async () => {
+            const templateSrv = createTemplateSrv([{ name: 'varA', value: '1' }]);
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
+
+            await ds.runQuery(query, options);
+
+            expect(ds.variablesCache).toEqual({ varA: '1' });
+        });
+
+        it('should not replace variablesCache reference when variables unchanged', async () => {
+            const initialVars = [{ name: 'varA', value: '1' }];
+            const templateSrv = createTemplateSrv(initialVars);
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
+
+            await ds.runQuery(query, options);
+
+            const firstRef = ds.variablesCache;
+            (ds as any).templateSrv = createTemplateSrv([{ name: 'varA', value: '1' }]);
+
+            await ds.runQuery(query, options);
+
+            expect(ds.variablesCache).toBe(firstRef);
+        });
+
+        it('should replace variablesCache when variable value changes', async () => {
+            const templateSrv = createTemplateSrv([{ name: 'varA', value: '1' }]);
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
+            await ds.runQuery(query, options);
+            const firstRef = ds.variablesCache;
+
+            (ds as any).templateSrv = createTemplateSrv([{ name: 'varA', value: '2' }]);
+            await ds.runQuery(query, options);
+
+            expect(ds.variablesCache).not.toBe(firstRef);
+            expect(ds.variablesCache).toEqual({ varA: '2' });
+        });
+
+        it('should replace variablesCache when variable name changes', async () => {
+            const templateSrv = createTemplateSrv([{ name: 'varA', value: '1' }]);
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
+            await ds.runQuery(query, options);
+            const firstRef = ds.variablesCache;
+
+            (ds as any).templateSrv = createTemplateSrv([{ name: 'varB', value: '1' }]);
+            await ds.runQuery(query, options);
+
+            expect(ds.variablesCache).not.toBe(firstRef);
+            expect(ds.variablesCache).toEqual({ varB: '1' });
+        });
+
+        it('should not replace variablesCache when only variable order changes', async () => {
+            const templateSrv = createTemplateSrv([
+                { name: 'varA', value: '1' },
+                { name: 'varB', value: '2' }
+            ]);
+            const ds = new DataFrameDataSource(
+                mockInstanceSettings(false),
+                backendSrv,
+                templateSrv
+            );
+            await ds.runQuery(query, options);
+            const firstRef = ds.variablesCache;
+
+            (ds as any).templateSrv = createTemplateSrv([
+                { name: 'varB', value: '2' },
+                { name: 'varA', value: '1' },
+            ]);
+            await ds.runQuery(query, options);
+
+            expect(ds.variablesCache).toBe(firstRef);
+        });
+
+        it('should replace variablesCache when variable added', async () => {
+            const templateSrv = createTemplateSrv([{ name: 'varA', value: '1' }]);
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
+            await ds.runQuery(query, options);
+            const firstRef = ds.variablesCache;
+
+            (ds as any).templateSrv = createTemplateSrv([
+                { name: 'varA', value: '1' },
+                { name: 'varB', value: '2' },
+            ]);
+            await ds.runQuery(query, options);
+
+            expect(ds.variablesCache).not.toBe(firstRef);
+            expect(ds.variablesCache).toEqual({
+                varA: '1',
+                varB: '2',
+            });
+        });
+
+        it('should replace variablesCache when variable removed', async () => {
+            const templateSrv = createTemplateSrv([
+                { name: 'varA', value: '1' },
+                { name: 'varB', value: '2' }
+            ]);
+            const ds = new DataFrameDataSource(
+                mockInstanceSettings(false),
+                backendSrv,
+                templateSrv
+            );
+            await ds.runQuery(query, options);
+            const firstRef = ds.variablesCache;
+
+            (ds as any).templateSrv = createTemplateSrv([
+                { name: 'varA', value: '1' },
+            ]);
+            await ds.runQuery(query, options);
+
+            expect(ds.variablesCache).not.toBe(firstRef);
+            expect(ds.variablesCache).toEqual({ varA: '1' });
+        });
     });
 
-   describe('getColumnOptions', () => {
-       it('should call getColumnOptions on DataFrameDataSourceV1 when feature toggle is false', async () => {
-           const ds = new DataFrameDataSource(mockInstanceSettings(false));
-           v1Mock.getColumnOptions = jest.fn().mockResolvedValue(['v1-column-options']);
+    describe('transformDataTableQuery', () => {
+        it('should delegate to v2 transformDataTableQuery when feature toggle is true', () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
+            v2Mock.transformDataTableQuery.mockClear();
 
-           const result = await ds.getColumnOptions('filter');
-           
-           expect(v1Mock.getColumnOptions).toHaveBeenCalledWith('filter');
-           expect(result).toEqual(['v1-column-options']);
-       });
+            const result = ds.transformDataTableQuery('filter');
 
-       it('should call getColumnOptions on DataFrameDataSourceV2 when feature toggle is true', async () => {
-           const ds = new DataFrameDataSource(mockInstanceSettings(true));
-           v2Mock.getColumnOptions = jest.fn().mockResolvedValue(['v2-column-options']);
+            expect(v2Mock.transformDataTableQuery).toHaveBeenCalledWith('filter');
+            expect(result).toBe('v2-filter');
+        });
 
-           const result = await ds.getColumnOptions('filter');
-           
-           expect(v2Mock.getColumnOptions).toHaveBeenCalledWith('filter');
-           expect(result).toEqual(['v2-column-options']);
-       });
-   });
+        it('should delegate to v1 base transformDataTableQuery when feature toggle is false', () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
+            v1Mock.transformDataTableQuery.mockClear();
+
+            const result = ds.transformDataTableQuery('filter');
+
+            expect(v1Mock.transformDataTableQuery).toHaveBeenCalledWith('filter');
+            expect(result).toBe('v1-filter');
+        });
+    });
+
+    describe('transformResultQuery', () => {
+        it('should delegate to v2 transformResultQuery when feature toggle is true', () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
+            v2Mock.transformResultQuery.mockClear();
+
+            const result = ds.transformResultQuery('filter');
+
+            expect(v2Mock.transformResultQuery).toHaveBeenCalledWith('filter');
+            expect(result).toBe('v2-filter');
+        });
+
+        it('should delegate to v1 base transformResultQuery when feature toggle is false', () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
+            v1Mock.transformResultQuery.mockClear();
+
+            const result = ds.transformResultQuery('filter');
+
+            expect(v1Mock.transformResultQuery).toHaveBeenCalledWith('filter');
+            expect(result).toBe('v1-filter');
+        });
+    });
+
+    describe('transformColumnQuery', () => {
+        it('should delegate to v2 transformColumnQuery when feature toggle is true', () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(true), backendSrv, templateSrv);
+            v2Mock.transformColumnQuery.mockClear();
+            
+            const result = ds.transformColumnQuery('filter');
+            
+            expect(v2Mock.transformColumnQuery).toHaveBeenCalledWith('filter');
+            expect(result).toBe('v2-filter');
+        });
+
+        it('should delegate to v1 base transformColumnQuery when feature toggle is false', () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings(false), backendSrv, templateSrv);
+            v1Mock.transformColumnQuery.mockClear();
+            
+            const result = ds.transformColumnQuery('filter');
+            
+            expect(v1Mock.transformColumnQuery).toHaveBeenCalledWith('filter');
+            expect(result).toBe('v1-filter');
+        });
+    });
+
+    describe('parseColumnIdentifier', () => {
+        it('should delegate to v2 parseColumnIdentifier when feature toggle is true', () => {
+            const ds = new DataFrameDataSource(
+                mockInstanceSettings(true),
+                backendSrv,
+                templateSrv
+            );
+            const parsedColumnIdentifier = {
+                columnName: 'column1',
+                transformedDataType: 'Numeric'
+            };
+            v2Mock.parseColumnIdentifier = jest.fn().mockReturnValue(parsedColumnIdentifier);
+            
+            const result = ds.parseColumnIdentifier('column1-Numeric');
+            
+            expect(v2Mock.parseColumnIdentifier).toHaveBeenCalledWith('column1-Numeric');
+            expect(result).toBe(parsedColumnIdentifier);
+        });
+
+        it('should delegate to v1 parseColumnIdentifier when feature toggle is false', () => {
+            const ds = new DataFrameDataSource(
+                mockInstanceSettings(false),
+                backendSrv,
+                templateSrv
+            );
+            const parsedColumnIdentifier = {
+                columnName: 'column1',
+                transformedDataType: 'Numeric'
+            };
+            v1Mock.parseColumnIdentifier = jest.fn().mockReturnValue(parsedColumnIdentifier);
+            
+            const result = ds.parseColumnIdentifier('column1-Numeric');
+            
+            expect(v1Mock.parseColumnIdentifier).toHaveBeenCalledWith('column1-Numeric');
+            expect(result).toBe(parsedColumnIdentifier);
+        });
+    });
 });

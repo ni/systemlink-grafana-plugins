@@ -2,12 +2,12 @@ import { Combobox, ComboboxOption } from "@grafana/ui";
 import { InlineField } from "core/components/InlineField";
 import { FloatingError } from "core/errors";
 import { INLINE_LABEL_WIDTH } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
-import { DataFrameVariableQueryType, Props } from "datasources/data-frame/types";
+import { DataFrameVariableQuery, DataFrameVariableQueryType, Props } from "datasources/data-frame/types";
 import React from "react";
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 
 export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChange, datasource }: Props) => {
-    const migratedQuery = datasource.processVariableQuery(query);
+    const migratedQuery = datasource.processVariableQuery(query as DataFrameVariableQuery);
     const queryTypeOptions = [
         { label: 'List data tables', value: DataFrameVariableQueryType.ListDataTables },
         { label: 'List data table columns', value: DataFrameVariableQueryType.ListColumns },
@@ -23,6 +23,20 @@ export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChang
             onChange({ ...migratedQuery, dataTableFilter });
         }
     };
+
+    const onResultFilterChange = (event?: Event | React.FormEvent<Element>) => {
+        if (event) {
+            const resultFilter = (event as CustomEvent).detail.linq;
+            onChange({ ...migratedQuery, resultFilter });
+        }
+    }
+
+    const onColumnFilterChange = (event?: Event | React.FormEvent<Element>) => {
+        if (event) {
+            const columnFilter = (event as CustomEvent).detail.linq;
+            onChange({ ...migratedQuery, columnFilter });
+        }
+    }
 
     return (
         <>
@@ -40,8 +54,12 @@ export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChang
             </InlineField>
             <DataFrameQueryBuilderWrapper
                 datasource={datasource}
+                resultFilter={migratedQuery.resultFilter}
                 dataTableFilter={migratedQuery.dataTableFilter}
+                columnFilter={migratedQuery.columnFilter}
+                onResultFilterChange={onResultFilterChange}
                 onDataTableFilterChange={onDataTableFilterChange}
+                onColumnFilterChange={onColumnFilterChange}
             />
             <FloatingError
                 message={datasource.errorTitle}

@@ -178,6 +178,23 @@ for Visual Studio Code is recommended to simplify development.
 To create a new data source, run `npm run generate` in the root directory and
 follow the instructions.
 
+### Considerations updating to a new Grafana version
+
+- Update the `@grafana` scoped npm package dependency versions to align with the [`ni/grafana`](https://github.com/ni/grafana) upgrade version.
+- Follow the validation instructions in the [`Skyline/Grafana README.md`](https://dev.azure.com/ni/DevCentral/_git/Skyline?path=/Grafana/README.MD&_a=preview).
+
+### Security scanning with Snyk
+
+This repository uses [Snyk](https://snyk.io/) for security scanning to identify and fix vulnerabilities in code before they reach production. Snyk provides Static Application Security Testing (SAST) that scans your code for security issues as you develop.
+
+- **IDE integration**: Install the Snyk extension for [Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=snyk-security.snyk-vulnerability-scanner) or [Visual Studio](https://marketplace.visualstudio.com/items?itemName=snyk-security.snyk-vulnerability-scanner-vs-2022) to get real-time security feedback while writing code. To suggest the Snyk extension to contributors, add `.vscode/extensions.json` or `.vsconfig` files to your project root. The VSCode Snyk extension has a richer feature set and is the preferred IDE for working with Snyk.
+- **Pull request scanning**: Snyk automatically scans PRs and posts comments for high/critical vulnerabilities.
+- **Post-merge monitoring**: Automated bugs are created for unresolved issues after code is merged.
+
+**Contributors within NI/Emerson**: For detailed guidance on working with Snyk, including how to address security issues and create ignore records, see the [Snyk reference](https://dev.azure.com/ni/DevCentral/_wiki/wikis/Stratus/146862/Snyk-reference).
+
+**Contributors outside of NI/Emerson**: If you are having issues resolving a vulnerability Snyk identifies on your PR, consult with a code owner to understand your options for resolution.
+
 ### Helpful links
 
 - [Grafana plugin developer's

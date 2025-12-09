@@ -144,5 +144,13 @@ describe('AssetQueryBuilder', () => {
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain("AssetIdentifier_123");
     })
+
+    it('should select scan code in query builder', () => {
+      const { conditionsContainer } = renderElement([workspace], [system], [], 'ScanCode = "c44750b7-1f22-4fec-b475-73b10e966217"');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("Scan Code");
+      expect(conditionsContainer.item(0)?.textContent).toContain("c44750b7-1f22-4fec-b475-73b10e966217");
+    });
   });
 });
