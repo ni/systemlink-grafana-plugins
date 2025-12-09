@@ -769,9 +769,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             tables,
                             processedQuery.includeIndexColumns
                         );
-                        const tableNamesMap = this.buildTableNamesMap(tables);
 
                         if (Object.keys(tableColumnsMap).length > 0) {
+                            const tableNamesMap = this.buildTableNamesMap(tables);
                             return this.getDecimatedTableDataInBatches$(
                                 tableColumnsMap,
                                 processedQuery,
@@ -779,13 +779,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                 options.maxDataPoints   
                             ).pipe(
                                 map(decimatedDataMap => {
+                                    const aggregatedTableDataRows = this.aggregateTableDataRows(
+                                        tableColumnsMap,
+                                        tableNamesMap,
+                                        decimatedDataMap,
+                                    );
                                     const dataFrame = this.buildDataFrame(
                                         processedQuery.refId,
-                                        this.aggregateTableDataRows(
-                                            tableColumnsMap,
-                                            tableNamesMap,
-                                            decimatedDataMap,
-                                        )
+                                        aggregatedTableDataRows
                                     );
                                     return dataFrame;
                                 })
