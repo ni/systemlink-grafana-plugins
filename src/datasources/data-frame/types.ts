@@ -260,8 +260,6 @@ export type NumericDataType = 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64';
 
 export type ColumnDataType = NumericDataType | 'TIMESTAMP' | 'BOOL' | 'STRING';
 
-export type TransformedDataType = Omit<ColumnDataType, NumericDataType> | 'NUMBER';
-
 export type Props = QueryEditorProps<DataFrameDataSource, DataFrameQuery, DataFrameDataSourceOptions>;
 
 export type DataSourceQBLookupCallback = (query: string) => Promise<QueryBuilderOption[]>;
@@ -290,10 +288,6 @@ export interface Column {
 
 export interface ColumnWithDisplayName extends Column {
   displayName: string;
-}
-
-export interface ColumnWithTransformedDataType extends Omit<ColumnWithDisplayName, 'dataType'> {
-  dataType: TransformedDataType;
 }
 
 export interface ColumnFilter {

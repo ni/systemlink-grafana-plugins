@@ -1,7 +1,7 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithTransformedDataType, TransformedDataType, ColumnWithDisplayName } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -774,7 +774,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tableNamesMap: Record<string, string>,
         decimatedDataMap: Record<string, TableDataRows>,
     ): FieldDTO[] {
-        let outputColumns = this.getUniqueColumnsWithTransformedDataType(
+        let outputColumns = this.getUniqueColumns(
             Object.values(tableColumnsMap)
                 .flatMap(columnsData => columnsData.selectedColumns)
         );
@@ -842,12 +842,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return fields;
     }
 
-    private transformValue(dataType: TransformedDataType, value: string): any
-    {
+    private transformValue(dataType: ColumnDataType, value: string): any {
         switch (dataType) {
             case 'BOOL':
                 return value === ''? null  : value.toLowerCase() === 'true';
-            case 'NUMBER':
+            case 'INT32':
+            case 'INT64':
+            case 'FLOAT32':
+            case 'FLOAT64':
                 return value === ''? null : Number(value)
             case 'TIMESTAMP':
                 return value === '' ? null : dateTime(value).valueOf()
@@ -856,11 +858,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
     }
 
-    private getFieldTypeForDataType(dataType: TransformedDataType): FieldType {
+    private getFieldTypeForDataType(dataType: ColumnDataType): FieldType {
         switch (dataType) {
             case 'BOOL':
                 return FieldType.boolean;
-            case 'NUMBER':
+            case 'INT32':
+            case 'INT64':
+            case 'FLOAT32':
+            case 'FLOAT64':
                 return FieldType.number;
             case 'TIMESTAMP':
                 return FieldType.time;
@@ -869,20 +874,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
     }
 
-    private getUniqueColumnsWithTransformedDataType(
-        columns: ColumnWithDisplayName[]
-    ): ColumnWithTransformedDataType[] {
-        const uniqueColumnsMap: Map<string, ColumnWithTransformedDataType> = new Map();
+    private getUniqueColumns(columns: ColumnWithDisplayName[]): ColumnWithDisplayName[] {
+        const uniqueColumnsMap: Map<string, ColumnWithDisplayName> = new Map();
         columns.forEach(column => {
             const key = this.getColumnIdentifier(column.name, column.dataType);
             if (!uniqueColumnsMap.has(key)) {
-                const transformedDataType = this.isNumericDataType(column.dataType)
-                    ? 'NUMBER'
-                    : column.dataType;
-                uniqueColumnsMap.set(key, {
-                    ...column,
-                    dataType: transformedDataType
-                });
+                uniqueColumnsMap.set(key, column);
             }
         });
         return Array.from(uniqueColumnsMap.values());
@@ -894,10 +891,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             tableIdNamesMap[table.id] = table.name;
         });
         return tableIdNamesMap;
-    }
-
-    private isNumericDataType(dataType: string) {
-        return NUMERIC_DATA_TYPES.includes(dataType);
     }
 
     private areSelectedColumnsValid(
@@ -993,8 +986,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private sortColumnsByType(
-        columns: ColumnWithTransformedDataType[]
-    ): ColumnWithTransformedDataType[] {
+        columns: ColumnWithDisplayName[]
+    ): ColumnWithDisplayName[] {
         const columnTypeOrder = {
             [ColumnType.Index]: 0,
             [ColumnType.Normal]: 1,
