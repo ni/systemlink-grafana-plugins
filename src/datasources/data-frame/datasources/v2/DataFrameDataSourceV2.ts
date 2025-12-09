@@ -8,7 +8,7 @@ import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
-import { catchError, combineLatestWith, concatMap, from, isObservable, last, lastValueFrom, map, mergeMap, Observable, of, scan, Subject, switchMap, takeUntil, timer } from "rxjs";
+import { catchError, combineLatestWith, concatMap, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, Subject, switchMap, takeUntil, timer } from "rxjs";
 import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
@@ -298,6 +298,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return from(batches).pipe(
             mergeMap((batch, index) =>
                 timer(index * DELAY_BETWEEN_REQUESTS_MS).pipe(
+                    takeUntil(stopSignal$),
                     concatMap(() => from(batch).pipe(
                         mergeMap(request =>
                             this.getDecimatedTableData$(request).pipe(
@@ -308,17 +309,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                 }))
                             )
                         )
-                    )),
-                    takeUntil(stopSignal$)
+                    ))
                 )
             ),
-            scan((acc, result) => {
+            reduce((acc, result) => {
                 const retrievedDataFrame = result.data.frame;
                 const rowsInRetrievedDataFrame = retrievedDataFrame.data.length;
                 const columnsInRetrievedDataFrame = retrievedDataFrame.columns.length;
                 const dataPointsToAdd = rowsInRetrievedDataFrame * columnsInRetrievedDataFrame;
                 acc.totalDataPoints += dataPointsToAdd;
-                
+
                 // Only accumulate data if within limit
                 if (acc.totalDataPoints <= TOTAL_ROWS_LIMIT) {
                     acc.data[result.tableId] = result.data;
@@ -332,9 +332,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
                 return acc;
             }, { totalDataPoints: 0, data: {} as Record<string, TableDataRows> }),
-            takeUntil(stopSignal$),
-            map(acc => acc.data),
-            last(undefined, {} as Record<string, TableDataRows>)
+            map(acc => acc.data)
         );
     }
 
