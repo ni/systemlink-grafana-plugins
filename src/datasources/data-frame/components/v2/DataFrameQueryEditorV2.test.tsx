@@ -1396,14 +1396,14 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(includeIndexColumnsCheckbox).not.toBeChecked();
                 });
 
-                it("should call onChange when the include index columns checkbox is checked", async () => {
+                it("should call onChange and onRunQuery when the include index columns checkbox is checked", async () => {
                     await user.click(includeIndexColumnsCheckbox);
 
                     await waitFor(() => {
                         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
                             includeIndexColumns: true
                         }));
-                        expect(onRunQuery).not.toHaveBeenCalled();
+                        expect(onRunQuery).toHaveBeenCalled();
                     });
                 });
             });
@@ -2065,6 +2065,18 @@ describe("DataFrameQueryEditorV2", () => {
 
                         await waitFor(() => {
                             expect(screen.getByDisplayValue('ColumnA')).toBeInTheDocument();
+                        });
+                    });
+
+                    it("should show expected label when the x-column is invalid", async () => {
+                        renderComponent({
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: 'name = "TestTable"',
+                            xColumn: 'InvalidColumn-Numeric'
+                        });
+
+                        await waitFor(() => {
+                            expect(screen.getByDisplayValue('InvalidColumn (Numeric)')).toBeInTheDocument();
                         });
                     });
                 });
