@@ -1,3 +1,9 @@
+## [4.98.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.97.0...v4.98.0) (2025-12-09)
+
+### Features
+
+* **dataframe:** Provide label for invalid x-column selection ([#589](https://github.com/ni/systemlink-grafana-plugins/issues/589)) ([da11a7d](https://github.com/ni/systemlink-grafana-plugins/commit/da11a7da634f63bb58cfbfed5df7525b996dcd09))
+
 ## [4.97.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.96.0...v4.97.0) (2025-12-09)
 
 ### Features
