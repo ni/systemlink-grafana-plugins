@@ -414,6 +414,23 @@ describe('ListAlarmsQueryEditor', () => {
   });
 
   describe('Transition Inclusion', () => {
+    it('should display transition inclusion options in the correct order', async () => {
+      const container = await renderElement();
+      const transitionInclusionCombobox = container.getByRole('combobox', { name: 'Transitions' });
+
+      await userEvent.click(transitionInclusionCombobox);
+
+      const optionElements = screen.getAllByRole('option');
+      const actualOrder = optionElements.map(option => option.textContent);
+      const expectedOrder = [
+        AlarmsTransitionInclusionOptions[TransitionInclusionOption.None].label,
+        AlarmsTransitionInclusionOptions[TransitionInclusionOption.MostRecentOnly].label,
+        AlarmsTransitionInclusionOptions[TransitionInclusionOption.All].label,
+      ];
+
+      expect(actualOrder).toEqual(expectedOrder);
+    });
+
     it('should render the selected transition inclusion option in the UI', async () => {
       const container = await renderElement({
         refId: 'A',
@@ -513,26 +530,28 @@ describe('ListAlarmsQueryEditor', () => {
       });
     });
 
-    it('should display error if transition property is selected and transition inclusion option is updated to None', async () => {
-      await renderElement({
-        refId: 'A',
-        queryType: QueryType.ListAlarms,
-        transitionInclusionOption: TransitionInclusionOption.All,
-        properties: [ AlarmsTransitionProperties.transitionCondition ],
-      });
+    [TransitionInclusionOption.All, TransitionInclusionOption.MostRecentOnly].forEach((option) => {
+      it(`should display error when only transition property is selected and transition inclusion ${option} is changed to None`, async () => {
+        await renderElement({
+          refId: 'A',
+          queryType: QueryType.ListAlarms,
+          transitionInclusionOption: option,
+          properties: [ AlarmsTransitionProperties.transitionCondition ],
+        });
 
       const transitionInclusionCombobox = screen.getByRole('combobox', { name: 'Transitions' });
 
-      await userEvent.click(transitionInclusionCombobox);
-      await select(
-        transitionInclusionCombobox,
-        AlarmsTransitionInclusionOptions[TransitionInclusionOption.None].label,
-        {
-          container: document.body,
-        }
-      );
+        await userEvent.click(transitionInclusionCombobox);
+        await select(
+          transitionInclusionCombobox,
+          AlarmsTransitionInclusionOptions[TransitionInclusionOption.None].label,
+          {
+            container: document.body,
+          }
+        );
 
-      expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
+        expect(screen.getByText('You must select at least one property.')).toBeInTheDocument();
+      });
     });
   });
 });

@@ -19,6 +19,18 @@ jest.mock("./query-builders/DataFrameQueryBuilderWrapper", () => ({
     DataFrameQueryBuilderWrapper: jest.fn(() => <div data-testid="mock-data-frame-query-builder-wrapper" />)
 }));
 
+const mockParseColumnIdentifier = (columnIdentifier: string) => {
+  const parts = columnIdentifier.split('-');
+  // Remove transformed column type
+  const transformedDataType = parts.pop() ?? '';
+  const columnName = parts.join('-');
+
+  return {
+    columnName,
+    transformedDataType,
+  };
+};
+
 const renderComponent = (
     queryOverrides: Partial<DataFrameDataQuery> = {},
     errorTitle = '',
@@ -40,11 +52,11 @@ const renderComponent = (
         processQuery,
         getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
             uniqueColumnsAcrossTables: [
-                { label: 'ColumnA', value: 'ColumnA' },
+                { label: 'ColumnA', value: 'ColumnA-String' },
                 { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
                 { label: 'ColumnB (String)', value: 'ColumnB-String' },
-                { label: 'ColumnD (String)', value: 'ColumnD-String' },
-                { label: 'ColumnE', value: 'ColumnE' },
+                { label: 'ColumnD', value: 'ColumnD-String' },
+                { label: 'ColumnE', value: 'ColumnE-String' },
                 ...columnOptions
             ],
             commonColumnsAcrossTables: [
@@ -54,7 +66,9 @@ const renderComponent = (
         }),
         transformDataTableQuery: jest.fn((filter: string) => filter),
         transformResultQuery: jest.fn((filter: string) => filter),
-        variablesCache
+        transformColumnQuery: jest.fn((filter: string) => filter),
+        variablesCache,
+        parseColumnIdentifier: mockParseColumnIdentifier,
     } as unknown as DataFrameDataSource;
 
     const initialQuery = {
@@ -228,7 +242,7 @@ describe("DataFrameQueryEditorV2", () => {
                             'ColumnA',
                             'ColumnB (Numeric)',
                             'ColumnB (String)',
-                            'ColumnD (String)',
+                            'ColumnD',
                             'ColumnE'
                         ]
                     ));
@@ -370,7 +384,8 @@ describe("DataFrameQueryEditorV2", () => {
 
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                             dataTableFilter: 'ExistingFilter',
-                            resultFilter: ''
+                            resultFilter: '',
+                            columnFilter: ''
                         });
 
                         // Column options should be fetched and available
@@ -382,7 +397,7 @@ describe("DataFrameQueryEditorV2", () => {
                                     'ColumnA',
                                     'ColumnB (Numeric)',
                                     'ColumnB (String)',
-                                    'ColumnD (String)',
+                                    'ColumnD',
                                     'ColumnE',
                                 ])
                             );
@@ -492,14 +507,15 @@ describe("DataFrameQueryEditorV2", () => {
                                     'ColumnA',
                                     'ColumnB (Numeric)',
                                     'ColumnB (String)',
-                                    'ColumnD (String)',
+                                    'ColumnD',
                                     'ColumnE',
                                 ])
                             );
                         });
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                             dataTableFilter: 'UpdatedFilter',
-                            resultFilter: ''
+                            resultFilter: '',
+                            columnFilter: ''
                         });
                     });
 
@@ -529,7 +545,8 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                                 dataTableFilter: 'UpdatedFilter',
-                                resultFilter: ''
+                                resultFilter: '',
+                                columnFilter: ''
                             });
                         });
                     });
@@ -549,6 +566,7 @@ describe("DataFrameQueryEditorV2", () => {
                             }),
                             transformDataTableQuery: jest.fn(f => f),
                             transformResultQuery: jest.fn(f => f),
+                            transformColumnQuery: jest.fn(f => f),
                         } as any;
 
                             renderComponent({
@@ -556,12 +574,14 @@ describe("DataFrameQueryEditorV2", () => {
                                 refId: 'A',
                                 type: DataFrameQueryType.Data,
                                 dataTableFilter: 'InitialFilter',
+                                columnFilter: '',
                             }, '', '', [], [], processQuery, {}, datasource);
 
                         await waitFor(() => {
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                                 dataTableFilter: 'InitialFilter',
-                                resultFilter: ''
+                                resultFilter: '',
+                                columnFilter: ''
                             });
                         });
                     });
@@ -596,6 +616,7 @@ describe("DataFrameQueryEditorV2", () => {
                             }),
                             transformDataTableQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                             transformResultQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
+                            transformColumnQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                         } as any;
 
                         renderComponent(
@@ -605,6 +626,7 @@ describe("DataFrameQueryEditorV2", () => {
                                 type: DataFrameQueryType.Data,
                                 dataTableFilter: 'InitialDataTableFilter',
                                 resultFilter: 'InitialResultFilter',
+                                columnFilter: 'InitialColumnFilter',
                             },
                             '',
                             '',
@@ -618,9 +640,11 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('InitialDataTableFilter');
                             expect(datasource.transformResultQuery).toHaveBeenCalledWith('InitialResultFilter');
+                            expect(datasource.transformColumnQuery).toHaveBeenCalledWith('InitialColumnFilter');
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                                 dataTableFilter: 'TRANSFORMED_InitialDataTableFilter',
-                                resultFilter: 'TRANSFORMED_InitialResultFilter'
+                                resultFilter: 'TRANSFORMED_InitialResultFilter',
+                                columnFilter: 'TRANSFORMED_InitialColumnFilter'
                             });
                         });
                     });
@@ -634,6 +658,7 @@ describe("DataFrameQueryEditorV2", () => {
                             }),
                             transformDataTableQuery: jest.fn(f => f),
                             transformResultQuery: jest.fn(f => f),
+                            transformColumnQuery: jest.fn(f => f),
                         } as any;
                         renderComponent(
                             {
@@ -642,6 +667,7 @@ describe("DataFrameQueryEditorV2", () => {
                                 type: DataFrameQueryType.Data,
                                 dataTableFilter: 'FilterX',
                                 resultFilter: 'FilterY',
+                                columnFilter: 'FilterZ',
                             },
                             '',
                             '',
@@ -655,10 +681,12 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterX');
                             expect(datasource.transformResultQuery).toHaveBeenCalledWith('FilterY');
+                            expect(datasource.transformColumnQuery).toHaveBeenCalledWith('FilterZ');
                         });
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                             dataTableFilter: 'FilterX',
-                            resultFilter: 'FilterY'
+                            resultFilter: 'FilterY',
+                            columnFilter: 'FilterZ'
                         });
                     });
                 });
@@ -675,6 +703,7 @@ describe("DataFrameQueryEditorV2", () => {
                             }),
                             transformDataTableQuery: jest.fn(f => f),
                             transformResultQuery: jest.fn(f => f),
+                            transformColumnQuery: jest.fn(f => f),
                         } as any;
 
                         renderComponent(
@@ -684,6 +713,7 @@ describe("DataFrameQueryEditorV2", () => {
                                     type: DataFrameQueryType.Data,
                                     dataTableFilter: 'FilterWithVar',
                                     resultFilter: 'ResultWithVar',
+                                    columnFilter: 'ColumnWithVar',
                                 },
                             '',
                             '',
@@ -697,9 +727,11 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
                             expect(datasource.transformResultQuery).toHaveBeenCalledWith('ResultWithVar');
+                            expect(datasource.transformColumnQuery).toHaveBeenCalledWith('ColumnWithVar');
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                                 dataTableFilter: 'FilterWithVar',
-                                resultFilter: 'ResultWithVar'
+                                resultFilter: 'ResultWithVar',
+                                columnFilter: 'ColumnWithVar'
                             });
                         });
 
@@ -738,6 +770,7 @@ describe("DataFrameQueryEditorV2", () => {
                         }),
                         transformDataTableQuery: jest.fn((filter: string) => filter),
                         transformResultQuery: jest.fn((filter: string) => filter),
+                        transformColumnQuery: jest.fn((filter: string) => filter),
                     } as any;
 
                     const { onChange } = renderComponent(
@@ -747,6 +780,7 @@ describe("DataFrameQueryEditorV2", () => {
                             type: DataFrameQueryType.Data,
                             dataTableFilter: 'name = "Table1"',
                             resultFilter: 'status = "Passed"',
+                            columnFilter: '',
                         },
                         '',
                         '',
@@ -770,6 +804,7 @@ describe("DataFrameQueryEditorV2", () => {
                         type: DataFrameQueryType.Data,
                         dataTableFilter: 'name = "Table1"',
                         resultFilter: 'status = "Failed"',
+                        columnFilter: '',
                     });
 
                     await waitFor(() => {
@@ -777,6 +812,63 @@ describe("DataFrameQueryEditorV2", () => {
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                             dataTableFilter: 'name = "Table1"',
                             resultFilter: 'status = "Failed"',
+                            columnFilter: '',
+                        });
+                    });
+                });
+
+                it('should refetch column options when columnFilter changes', async () => {
+                    const datasource = {
+                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                            uniqueColumnsAcrossTables: [{ label: 'Col1', value: 'Col1' }],
+                            commonColumnsAcrossTables: []
+                        }),
+                        transformDataTableQuery: jest.fn((filter: string) => filter),
+                        transformResultQuery: jest.fn((filter: string) => filter),
+                        transformColumnQuery: jest.fn((filter: string) => filter),
+                    } as any;
+
+                    const { onChange } = renderComponent(
+                        {
+                            ...defaultQueryV2,
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: 'name = "Table1"',
+                            resultFilter: '',
+                            columnFilter: 'columnName = "Col1"',
+                        },
+                        '',
+                        '',
+                        [],
+                        [],
+                        undefined,
+                        {},
+                        datasource
+                    );
+
+                    await waitFor(() => {
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1);
+                    });
+
+                    datasource.getColumnOptionsWithVariables.mockClear();
+
+                    // Update columnFilter only
+                    onChange({
+                        ...defaultQueryV2,
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: 'name = "Table1"',
+                        resultFilter: '',
+                        columnFilter: 'columnName = "Col2"',
+                    });
+
+                    await waitFor(() => {
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledTimes(1);
+                        expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
+                            dataTableFilter: 'name = "Table1"',
+                            resultFilter: '',
+                            columnFilter: 'columnName = "Col2"',
                         });
                     });
                 });
@@ -790,6 +882,7 @@ describe("DataFrameQueryEditorV2", () => {
                         }),
                         transformDataTableQuery: jest.fn(() => 'name = "Table1"'),
                         transformResultQuery: jest.fn(() => 'status = "Passed"'),
+                        transformColumnQuery: jest.fn(() => 'columnName = "Col1"'),
                     } as any;
 
                     const { onChange } = renderComponent(
@@ -799,6 +892,7 @@ describe("DataFrameQueryEditorV2", () => {
                             type: DataFrameQueryType.Data,
                             dataTableFilter: 'name = "$tableName"',
                             resultFilter: 'status = "$status"',
+                            columnFilter: 'columnName = "$columnName"',
                         },
                         '',
                         '',
@@ -822,6 +916,7 @@ describe("DataFrameQueryEditorV2", () => {
                         type: DataFrameQueryType.Data,
                         dataTableFilter: 'name = "$tableName"',
                         resultFilter: 'status = "$status"',
+                        columnFilter: 'columnName = "$columnName"',
                     });
 
                     // Should not refetch since transformed values are the same
@@ -844,7 +939,7 @@ describe("DataFrameQueryEditorV2", () => {
                         });
 
                         await waitFor(() => {
-                            expect(document.body).toHaveTextContent('ColumnD (String)');
+                            expect(document.body).toHaveTextContent('ColumnD');
                         });
                     });
 
@@ -943,7 +1038,7 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(onChange).toHaveBeenCalledWith(
                                 expect.objectContaining({
-                                    columns: ['ColumnA'],
+                                    columns: ['ColumnA-String'],
                                 })
                             );
                             expect(onRunQuery).toHaveBeenCalled();
@@ -959,7 +1054,7 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(onChange).toHaveBeenCalledWith(
                                 expect.objectContaining({
-                                    columns: ['ColumnA'],
+                                    columns: ['ColumnA-String'],
                                 })
                             );
                         });
@@ -976,7 +1071,7 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(onChange).toHaveBeenCalledWith(
                                 expect.objectContaining({
-                                    columns: ['ColumnA', 'ColumnB-Numeric'],
+                                    columns: ['ColumnA-String', 'ColumnB-Numeric'],
                                 })
                             );
                         });
@@ -987,7 +1082,7 @@ describe("DataFrameQueryEditorV2", () => {
                         const { onChange, onRunQuery } = renderComponent({
                             type: DataFrameQueryType.Data,
                             dataTableFilter: 'TestFilter',
-                            columns: ['ColumnA', 'ColumnB-Numeric'],
+                            columns: ['ColumnA-String', 'ColumnB-Numeric'],
                         });
 
                         const removeButton = screen.getAllByLabelText(/remove/i)[0];
@@ -1007,7 +1102,7 @@ describe("DataFrameQueryEditorV2", () => {
                         const { onChange, onRunQuery } = renderComponent({
                             type: DataFrameQueryType.Data,
                             dataTableFilter: 'TestFilter',
-                            columns: ['ColumnA'],
+                            columns: ['ColumnA-String'],
                         });
 
                         const removeButton = screen.getByLabelText(/remove/i);
@@ -1020,6 +1115,268 @@ describe("DataFrameQueryEditorV2", () => {
                                 })
                             );
                             expect(onRunQuery).toHaveBeenCalled();
+                        });
+                    });
+                });
+
+                describe('column validation and error handling', () => {
+                    const mockDatasource = {
+                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                            uniqueColumnsAcrossTables: [
+                                { label: 'ColumnA', value: 'ColumnA-String' },
+                                { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
+                                { label: 'ColumnB (String)', value: 'ColumnB-String' },
+                            ],
+                            commonColumnsAcrossTables: [
+                                { label: 'ColumnA', value: 'ColumnA-String' },
+                                { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
+                                { label: 'ColumnB (String)', value: 'ColumnB-String' },
+                            ]
+                        }),
+                        transformDataTableQuery: jest.fn((filter: string) => filter),
+                        transformResultQuery: jest.fn((filter: string) => filter),
+                        transformColumnQuery: jest.fn((filter: string) => filter),
+                        parseColumnIdentifier: mockParseColumnIdentifier,
+                    } as any;
+
+                    beforeAll(() => {
+                        jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
+                    });
+
+                    beforeEach(() => {
+                        cleanup();
+                        jest.clearAllMocks();
+                    });
+
+                    describe('when existing columns are valid', () => {
+                        beforeEach(async () => {
+                            renderComponent(
+                                {
+                                    type: DataFrameQueryType.Data,
+                                    dataTableFilter: 'name = "TestTable"',
+                                    columns: ['ColumnA-String', 'ColumnB-Numeric'],
+                                },
+                                '',
+                                '',
+                                [],
+                                [],
+                                undefined,
+                                {},
+                                mockDatasource
+                            );
+                        
+                        }); 
+
+                        it('should not show an error message when selected columns exist in column options', async () => {
+                            await waitFor(() => {
+                                expect(mockDatasource.getColumnOptionsWithVariables).toHaveBeenCalled();
+                            });
+
+                            // No error message should be displayed
+                            await waitFor(() => {
+                                expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+                            });
+                        });
+                    });
+
+                    describe('when existing columns are invalid', () => {
+                        it('should show an error message when a single selected column does not exist in column options', async () => {
+                            renderComponent(
+                                {
+                                    type: DataFrameQueryType.Data,
+                                    dataTableFilter: 'name = "TestTable"',
+                                    columns: ['InvalidColumn-String'],
+                                },
+                                '',
+                                '',
+                                [],
+                                [],
+                                undefined,
+                                {},
+                                mockDatasource
+                            );
+
+                            await waitFor(() => {
+                                expect(
+                                    screen.getByText("The selected column 'InvalidColumn (String)' is not valid.")
+                                ).toBeInTheDocument();
+                            });
+                        });
+
+                        it('should show an error message when multiple selected columns do not exist in column options', async () => {
+                            renderComponent(
+                                {
+                                    type: DataFrameQueryType.Data,
+                                    dataTableFilter: 'name = "TestTable"',
+                                    columns: ['InvalidColumn1-String', 'InvalidColumn2-Numeric'],
+                                },
+                                '',
+                                '',
+                                [],
+                                [],
+                                undefined,
+                                {},
+                                mockDatasource
+                            );
+
+                            await waitFor(() => {
+                                expect(
+                                    screen.getByText(
+                                        "The selected columns 'InvalidColumn1 (String), InvalidColumn2 (Numeric)' are not valid."
+                                    )
+                                ).toBeInTheDocument();
+                            });
+                        });
+                    });
+
+                    describe('when some columns are valid and some are invalid', () => {
+                        it('should only show error for invalid columns', async () => {
+                            renderComponent(
+                                {
+                                    type: DataFrameQueryType.Data,
+                                    dataTableFilter: 'name = "TestTable"',
+                                    columns: ['ColumnA-String', 'InvalidColumn-String'],
+                                },
+                                '',
+                                '',
+                                [],
+                                [],
+                                undefined,
+                                {},
+                                mockDatasource
+                            );
+
+                            await waitFor(() => {
+                                expect(
+                                    screen.getByText("The selected column 'InvalidColumn (String)' is not valid.")
+                                ).toBeInTheDocument();
+                            });
+                        });
+
+                        it('should display both valid and invalid columns in the combobox', async () => {
+                            renderComponent(
+                                {
+                                    type: DataFrameQueryType.Data,
+                                    dataTableFilter: 'name = "TestTable"',
+                                    columns: ['ColumnA-String', 'InvalidColumn-String'],
+                                },
+                                '',
+                                '',
+                                [],
+                                [],
+                                undefined,
+                                {},
+                                mockDatasource
+                            );
+
+                            await waitFor(() => {
+                                expect(mockDatasource.getColumnOptionsWithVariables).toHaveBeenCalled();
+                            });
+
+                            // Verify both valid and invalid columns are displayed
+                            await waitFor(() => {
+                                expect(document.body).toHaveTextContent('ColumnA');
+                                expect(document.body).toHaveTextContent('InvalidColumn');
+                            });
+                        });
+
+                        it('should clear error message when invalid columns become valid', async () => {
+                            // Initial filter - column is valid
+                            mockDatasource.getColumnOptionsWithVariables.mockResolvedValue({
+                                uniqueColumnsAcrossTables: [
+                                    { label: 'ColumnA', value: 'ColumnA-String' },
+                                    { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
+                                ],
+                                commonColumnsAcrossTables: [
+                                    { label: 'ColumnA', value: 'ColumnA-String' },
+                                ]
+                            });
+
+                            const { renderResult } = renderComponent(
+                                {
+                                    type: DataFrameQueryType.Data,
+                                    dataTableFilter: 'name = "Table1"',
+                                    columns: ['ColumnA-String'],
+                                },
+                                '',
+                                '',
+                                [],
+                                [],
+                                undefined,
+                                {},
+                                mockDatasource
+                            );
+
+                            // Wait for initial options to load
+                            await waitFor(() => {
+                                expect(mockDatasource.getColumnOptionsWithVariables).toHaveBeenCalled();
+                            });
+
+                            // Verify no error is shown
+                            expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+
+                            // Change filter to a table that doesn't have ColumnA
+                            mockDatasource.getColumnOptionsWithVariables.mockResolvedValue({
+                                uniqueColumnsAcrossTables: [
+                                    { label: 'ColumnX', value: 'ColumnX-String' },
+                                    { label: 'ColumnY (Numeric)', value: 'ColumnY-Numeric' },
+                                ],
+                                commonColumnsAcrossTables: [
+                                    { label: 'ColumnX', value: 'ColumnX-String' },
+                                ]
+                            });
+
+                            renderResult.rerender(
+                                <DataFrameQueryEditorV2
+                                    query={{
+                                        refId: 'A',
+                                        type: DataFrameQueryType.Data,
+                                        dataTableFilter: 'name = "Table2"',
+                                        columns: ['ColumnA-String'],
+                                    }}
+                                    onChange={jest.fn()}
+                                    onRunQuery={jest.fn()}
+                                    datasource={mockDatasource}
+                                />
+                            );
+
+                            // Wait for error to appear
+                            await waitFor(() => {
+                                expect(
+                                    screen.getByText("The selected column 'ColumnA (String)' is not valid.")
+                                ).toBeInTheDocument();
+                            });
+
+                            // Change filter back to original table that has ColumnA
+                            mockDatasource.getColumnOptionsWithVariables.mockResolvedValue({
+                                uniqueColumnsAcrossTables: [
+                                    { label: 'ColumnA', value: 'ColumnA-String' },
+                                    { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
+                                ],
+                                commonColumnsAcrossTables: [
+                                    { label: 'ColumnA', value: 'ColumnA-String' },
+                                ]
+                            });
+
+                            renderResult.rerender(
+                                <DataFrameQueryEditorV2
+                                    query={{
+                                        refId: 'A',
+                                        type: DataFrameQueryType.Data,
+                                        dataTableFilter: 'name = "Table1"',
+                                        columns: ['ColumnA-String'],
+                                    }}
+                                    onChange={jest.fn()}
+                                    onRunQuery={jest.fn()}
+                                    datasource={mockDatasource}
+                                />
+                            );
+
+                            // Wait for error to disappear
+                            await waitFor(() => {
+                                expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+                            });
                         });
                     });
                 });
@@ -1039,14 +1396,14 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(includeIndexColumnsCheckbox).not.toBeChecked();
                 });
 
-                it("should call onChange when the include index columns checkbox is checked", async () => {
+                it("should call onChange and onRunQuery when the include index columns checkbox is checked", async () => {
                     await user.click(includeIndexColumnsCheckbox);
 
                     await waitFor(() => {
                         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
                             includeIndexColumns: true
                         }));
-                        expect(onRunQuery).not.toHaveBeenCalled();
+                        expect(onRunQuery).toHaveBeenCalled();
                     });
                 });
             });
@@ -1318,7 +1675,8 @@ describe("DataFrameQueryEditorV2", () => {
 
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                              dataTableFilter: 'ExistingFilter',
-                             resultFilter: ''
+                             resultFilter: '',
+                             columnFilter: ''
                         });
 
                         // X-column options should be fetched and available
@@ -1438,7 +1796,8 @@ describe("DataFrameQueryEditorV2", () => {
                         });
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                              dataTableFilter: 'UpdatedFilter' ,
-                             resultFilter: ''
+                             resultFilter: '',
+                             columnFilter: ''
                         });
                     });
 
@@ -1478,7 +1837,8 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                                 dataTableFilter: 'UpdatedFilter' ,
-                                resultFilter: ''
+                                resultFilter: '',
+                                columnFilter: ''
                             });
                         });
                     });
@@ -1501,7 +1861,8 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                                 dataTableFilter: 'InitialFilter',
-                                resultFilter: ''
+                                resultFilter: '',
+                                columnFilter: ''
                             });
                         });
                     });
@@ -1547,6 +1908,7 @@ describe("DataFrameQueryEditorV2", () => {
                             }),
                             transformResultQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                             transformDataTableQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
+                            transformColumnQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                         } as any;
 
                         renderComponent(
@@ -1569,9 +1931,11 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('InitialDataTableFilter');
                             expect(datasource.transformResultQuery).toHaveBeenCalledWith('InitialResultFilter');
+                            expect(datasource.transformColumnQuery).toHaveBeenCalledWith('');
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                                 dataTableFilter: 'TRANSFORMED_InitialDataTableFilter',
-                                resultFilter: 'TRANSFORMED_InitialResultFilter'
+                                resultFilter: 'TRANSFORMED_InitialResultFilter',
+                                columnFilter: 'TRANSFORMED_'
                             });
                         });
                     });
@@ -1585,6 +1949,7 @@ describe("DataFrameQueryEditorV2", () => {
                             }),
                             transformResultQuery: jest.fn(f => f),
                             transformDataTableQuery: jest.fn(f => f),
+                            transformColumnQuery: jest.fn(f => f),
                         } as any;
                         renderComponent(
                             {
@@ -1606,10 +1971,12 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterX');
                             expect(datasource.transformResultQuery).toHaveBeenCalledWith('FilterY');
+                            expect(datasource.transformColumnQuery).toHaveBeenCalledWith('');
                         });
                         expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                             dataTableFilter: 'FilterX',
-                            resultFilter: 'FilterY'
+                            resultFilter: 'FilterY',
+                            columnFilter: ''
                         });
                     });
                 });
@@ -1626,6 +1993,7 @@ describe("DataFrameQueryEditorV2", () => {
                             }),
                             transformResultQuery: jest.fn(f => f),
                             transformDataTableQuery: jest.fn(f => f),
+                            transformColumnQuery: jest.fn(f => f),
                         } as any;
 
                         renderComponent(
@@ -1648,9 +2016,11 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
                             expect(datasource.transformResultQuery).toHaveBeenCalledWith('ResultWithVar');
+                            expect(datasource.transformColumnQuery).toHaveBeenCalledWith('');
                             expect(datasource.getColumnOptionsWithVariables).toHaveBeenCalledWith({
                                 dataTableFilter: 'FilterWithVar',
-                                resultFilter: 'ResultWithVar'
+                                resultFilter: 'ResultWithVar',
+                                columnFilter: ''
                             });
                         });
 
@@ -1695,6 +2065,18 @@ describe("DataFrameQueryEditorV2", () => {
 
                         await waitFor(() => {
                             expect(screen.getByDisplayValue('ColumnA')).toBeInTheDocument();
+                        });
+                    });
+
+                    it("should show expected label when the x-column is invalid", async () => {
+                        renderComponent({
+                            type: DataFrameQueryType.Data,
+                            dataTableFilter: 'name = "TestTable"',
+                            xColumn: 'InvalidColumn-Numeric'
+                        });
+
+                        await waitFor(() => {
+                            expect(screen.getByDisplayValue('InvalidColumn (Numeric)')).toBeInTheDocument();
                         });
                     });
                 });

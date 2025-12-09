@@ -1,3 +1,64 @@
+## [4.98.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.97.0...v4.98.0) (2025-12-09)
+
+### Features
+
+* **dataframe:** Provide label for invalid x-column selection ([#589](https://github.com/ni/systemlink-grafana-plugins/issues/589)) ([da11a7d](https://github.com/ni/systemlink-grafana-plugins/commit/da11a7da634f63bb58cfbfed5df7525b996dcd09))
+
+## [4.97.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.96.0...v4.97.0) (2025-12-09)
+
+### Features
+
+* **dataframes:** Remove whitespace from filter string ([#590](https://github.com/ni/systemlink-grafana-plugins/issues/590)) ([3a60a3f](https://github.com/ni/systemlink-grafana-plugins/commit/3a60a3fa739bd9205806e060e38611cf2799af79))
+
+## [4.96.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.95.0...v4.96.0) (2025-12-08)
+
+### Features
+
+* **dataframe:** Add support for include index column ([#583](https://github.com/ni/systemlink-grafana-plugins/issues/583)) ([3743b18](https://github.com/ni/systemlink-grafana-plugins/commit/3743b18fa47136f6709be811ab4a758a9adf89af))
+
+## [4.95.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.94.0...v4.95.0) (2025-12-08)
+
+### Features
+
+* **dataframes:** Wrap the text in inline error field ([#591](https://github.com/ni/systemlink-grafana-plugins/issues/591)) ([3906148](https://github.com/ni/systemlink-grafana-plugins/commit/3906148eaf1ff2bbf0eb7eabd8b7efd7f97bba58))
+
+## [4.94.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.93.0...v4.94.0) (2025-12-05)
+
+### Features
+
+* **dataframes:** Parse column name from variable ([#586](https://github.com/ni/systemlink-grafana-plugins/issues/586)) ([c2ef703](https://github.com/ni/systemlink-grafana-plugins/commit/c2ef703972a42be679729eeb6b02e8cebd0b1281))
+
+## [4.93.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.92.0...v4.93.0) (2025-12-05)
+
+### Features
+
+* **dataframes:** Add result and column filter in query tables call from column selection ([#585](https://github.com/ni/systemlink-grafana-plugins/issues/585)) ([40970b4](https://github.com/ni/systemlink-grafana-plugins/commit/40970b4aac390ff0a3410d71eb0f989f4b621e9c))
+
+## [4.92.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.91.0...v4.92.0) (2025-12-05)
+
+### Features
+
+* **dataframes:** Add support to query with column filter ([#576](https://github.com/ni/systemlink-grafana-plugins/issues/576)) ([9de0e4e](https://github.com/ni/systemlink-grafana-plugins/commit/9de0e4ee5ae9250db1938cc0c88caa7c113658f0))
+* **dataframes:** Transform column filter ([#575](https://github.com/ni/systemlink-grafana-plugins/issues/575)) ([9488094](https://github.com/ni/systemlink-grafana-plugins/commit/94880947f9350c006313ee1d21dfe89f64268311))
+
+## [4.91.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.90.1...v4.91.0) (2025-12-05)
+
+### Features
+
+* **dataframe:** Add variable support for columns and x column ([#582](https://github.com/ni/systemlink-grafana-plugins/issues/582)) ([a7049bf](https://github.com/ni/systemlink-grafana-plugins/commit/a7049bf5344c8f4992c0d32f793d3dbaeb7d5867))
+
+## [4.90.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.90.0...v4.90.1) (2025-12-05)
+
+### Bug Fixes
+
+* **alarms:** Add support for template variable workflow in alarm trend ([#581](https://github.com/ni/systemlink-grafana-plugins/issues/581)) ([50f1a68](https://github.com/ni/systemlink-grafana-plugins/commit/50f1a689c1291799c687e63971e97df810d3e386))
+
+## [4.90.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.89.0...v4.90.0) (2025-12-04)
+
+### Features
+
+* **data-frame:** validate selected columns against available options ([#561](https://github.com/ni/systemlink-grafana-plugins/issues/561)) ([ef589a7](https://github.com/ni/systemlink-grafana-plugins/commit/ef589a723e1c704c07f83c62e7d57d122701461b))
+
 ## [4.89.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.88.0...v4.89.0) (2025-12-04)
 
 ### Features

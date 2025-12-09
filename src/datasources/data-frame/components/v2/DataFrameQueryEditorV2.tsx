@@ -17,6 +17,7 @@ import {
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { isObservable, lastValueFrom } from 'rxjs';
 import _ from 'lodash';
+
 export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRunQuery, datasource }: Props) => {
     const migratedQuery = datasource.processQuery(query as DataFrameDataQuery) as ValidDataFrameQueryV2;
 
@@ -45,12 +46,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     const lastFilterRef = useRef<CombinedFilters>({
         resultFilter: '',
-        dataTableFilter: ''
+        dataTableFilter: '',
+        columnFilter: '',
     });
 
     const fetchAndSetColumnOptions = useCallback(
         async (filters: CombinedFilters) => {
-            if (!filters.dataTableFilter && !filters.resultFilter) {
+            if (!filters.dataTableFilter && !filters.resultFilter && !filters.columnFilter) {
                 return;
             }
 
@@ -80,13 +82,65 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         ]
     );
 
+    const columnOptionsMap = useMemo(() => {
+        return new Map(columnOptions.map(option => [option.value, option]));
+    }, [columnOptions]);
+
+    const selectedColumnIds = useMemo(() => {
+        if (
+            !migratedQuery.columns
+            || isObservable(migratedQuery.columns)
+        ) {
+            return [];
+        }
+
+        return migratedQuery.columns;
+    }, [migratedQuery.columns]);
+
+    const validColumnSelections = useMemo((): Array<ComboboxOption<string>> => {
+        return selectedColumnIds
+            .filter(columnId => columnOptionsMap.has(columnId))
+            .map(columnId => columnOptionsMap.get(columnId)!);
+    }, [columnOptionsMap, selectedColumnIds]);
+
+    const getSelectedColumnLabelForInvalidColumn = useCallback((columnId: string): string => {
+        const parsedColumnIdentifier = datasource.parseColumnIdentifier(columnId);
+        return `${parsedColumnIdentifier.columnName} (${parsedColumnIdentifier.transformedDataType})`;
+    }, [datasource]);
+
+    const invalidColumnSelections = useMemo((): Array<ComboboxOption<string>> => {
+        return selectedColumnIds
+            .filter(columnId => !columnOptionsMap.has(columnId))
+            .map(columnId => ({
+                label: getSelectedColumnLabelForInvalidColumn(columnId),
+                value: columnId
+            }));
+    }, [columnOptionsMap, selectedColumnIds, getSelectedColumnLabelForInvalidColumn]);
+
+    const selectedColumnOptions = useMemo((): Array<ComboboxOption<string>> => {
+        return [...validColumnSelections, ...invalidColumnSelections];
+    }, [validColumnSelections, invalidColumnSelections]);
+
+    const invalidSelectedColumnsMessage = useMemo(() => {
+        if (invalidColumnSelections.length === 0) {
+            return '';
+        }
+
+        const invalidColumnNames = invalidColumnSelections.map(column => column.label).join(', ');
+        return invalidColumnSelections.length === 1
+            ? `The selected column '${invalidColumnNames}' is not valid.`
+            : `The selected columns '${invalidColumnNames}' are not valid.`;
+    }, [invalidColumnSelections]);
+
     useEffect(
         () => {
             const dataTableFilter = migratedQuery.dataTableFilter;
             const resultFilter = migratedQuery.resultFilter;
+            const columnFilter = migratedQuery.columnFilter;
             const transformedFilter = {
                 resultFilter: datasource.transformResultQuery(resultFilter),
                 dataTableFilter: datasource.transformDataTableQuery(dataTableFilter),
+                columnFilter: datasource.transformColumnQuery(columnFilter)
             };
 
             const filterChanged = !_.isEqual(lastFilterRef.current, transformedFilter);
@@ -97,7 +151,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
             lastFilterRef.current = transformedFilter;
 
-            if (transformedFilter.dataTableFilter || transformedFilter.resultFilter) {
+            if (
+                transformedFilter.dataTableFilter ||
+                transformedFilter.resultFilter ||
+                transformedFilter.columnFilter
+            ) {
                 fetchAndSetColumnOptions(transformedFilter);
                 return;
             }
@@ -117,19 +175,29 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             migratedQuery.type,
             migratedQuery.dataTableFilter,
             migratedQuery.resultFilter,
+            migratedQuery.columnFilter,
             datasource.variablesCache,
             fetchAndSetColumnOptions,
             datasource,
         ]
     );
 
-    const isXColumnSelectionInvalid = useMemo((): boolean => {
+    const xColumnSelection = useMemo((): {
+        isInvalid: boolean;
+        value: ComboboxOption<string> | string | null;
+    } => {
         if (!migratedQuery.xColumn) {
-            return false;
+            return { isInvalid: false, value: migratedQuery.xColumn };
         }
-        const found = xColumnOptions.find(option => option.value === migratedQuery.xColumn);
-        return !found;
-    }, [migratedQuery.xColumn, xColumnOptions]);
+        const validXColumn = xColumnOptions.find(option => option.value === migratedQuery.xColumn);
+        const value = validXColumn
+            ? migratedQuery.xColumn
+            : {
+                label: getSelectedColumnLabelForInvalidColumn(migratedQuery.xColumn),
+                value: migratedQuery.xColumn
+            };
+        return { isInvalid: !validXColumn, value };
+    }, [migratedQuery.xColumn, xColumnOptions, getSelectedColumnLabelForInvalidColumn]);
 
     const handleQueryChange = useCallback(
         (query: DataFrameQueryV2, runQuery = true): void => {
@@ -236,7 +304,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     const onIncludeIndexColumnsChange = (event: React.FormEvent<HTMLInputElement>) => {
         const includeIndexColumns = event.currentTarget.checked;
-        handleQueryChange({ ...migratedQuery, includeIndexColumns }, false);
+        handleQueryChange({ ...migratedQuery, includeIndexColumns });
     };
 
     const onFilterNullsChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -349,15 +417,16 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             label={labels.columns}
                             labelWidth={INLINE_LABEL_WIDTH}
                             tooltip={tooltips.columns}
+                            shrink={true}
+                            invalid={!!invalidSelectedColumnsMessage}
+                            error={invalidSelectedColumnsMessage}
                         >
                             <MultiCombobox
                                 placeholder={placeholders.columns}
                                 width='auto'
                                 minWidth={40}
                                 maxWidth={40}
-                                value={
-                                    isObservable(migratedQuery.columns) ? [] : migratedQuery.columns
-                                }
+                                value={selectedColumnOptions}
                                 onChange={onColumnsChange}
                                 options={columnOptions}
                                 createCustomValue={false}
@@ -409,13 +478,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             label={labels.xColumn}
                             labelWidth={INLINE_LABEL_WIDTH}
                             tooltip={tooltips.xColumn}
-                            invalid={isXColumnSelectionInvalid}
-                            error={isXColumnSelectionInvalid ? errorMessages.xColumnSelectionInvalid : ''}
+                            invalid={xColumnSelection.isInvalid}
+                            error={xColumnSelection.isInvalid ? errorMessages.xColumnSelectionInvalid : ''}
                         >
                             <Combobox
                                 placeholder={placeholders.xColumn}
                                 width={INLINE_LABEL_WIDTH}
-                                value={migratedQuery.xColumn}
+                                value={xColumnSelection.value}
                                 onChange={onXColumnChange}
                                 options={xColumnOptions}
                                 createCustomValue={false}
