@@ -182,21 +182,21 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         ]
     );
 
-    const xColumnState = useMemo((): {
+    const xColumnSelection = useMemo((): {
         isInvalid: boolean;
         value: ComboboxOption<string> | string | null;
     } => {
         if (!migratedQuery.xColumn) {
             return { isInvalid: false, value: migratedQuery.xColumn };
         }
-        const found = xColumnOptions.find(option => option.value === migratedQuery.xColumn);
-        const value = found
+        const validXColumn = xColumnOptions.find(option => option.value === migratedQuery.xColumn);
+        const value = validXColumn
             ? migratedQuery.xColumn
             : {
                 label: getSelectedColumnLabelForInvalidColumn(migratedQuery.xColumn),
                 value: migratedQuery.xColumn
             };
-        return { isInvalid: !found, value };
+        return { isInvalid: !validXColumn, value };
     }, [migratedQuery.xColumn, xColumnOptions, getSelectedColumnLabelForInvalidColumn]);
 
     const handleQueryChange = useCallback(
@@ -477,13 +477,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             label={labels.xColumn}
                             labelWidth={INLINE_LABEL_WIDTH}
                             tooltip={tooltips.xColumn}
-                            invalid={xColumnState.isInvalid}
-                            error={xColumnState.isInvalid ? errorMessages.xColumnSelectionInvalid : ''}
+                            invalid={xColumnSelection.isInvalid}
+                            error={xColumnSelection.isInvalid ? errorMessages.xColumnSelectionInvalid : ''}
                         >
                             <Combobox
                                 placeholder={placeholders.xColumn}
                                 width={INLINE_LABEL_WIDTH}
-                                value={xColumnState.value}
+                                value={xColumnSelection.value}
                                 onChange={onXColumnChange}
                                 options={xColumnOptions}
                                 createCustomValue={false}
