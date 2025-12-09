@@ -684,10 +684,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         processedQuery: ValidDataFrameQueryV2,
         options: DataQueryRequest<DataFrameQueryV2>
     ): Observable<DataFrameDTO> {
-        const selectedColumns$ = isObservable(processedQuery.columns)
+        const selectedColumnIdentifiers$ = isObservable(processedQuery.columns)
             ? processedQuery.columns
             : of(processedQuery.columns);
-        return selectedColumns$.pipe(
+        return selectedColumnIdentifiers$.pipe(
             switchMap(selectedColumnIdentifiers => {
                 if (selectedColumnIdentifiers.length === 0) {
                     return of(
