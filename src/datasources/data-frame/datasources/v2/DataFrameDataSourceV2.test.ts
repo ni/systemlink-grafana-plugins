@@ -3486,7 +3486,7 @@ describe('DataFrameDataSourceV2', () => {
 
         it('should replace single-value variables', () => {
             const input = 'name = "$Column"&&name != "abc"';
-            templateSrv.replace.mockReturnValue('name = "{Column1}"&&name != "abc"');
+            templateSrv.replace.mockReturnValue('Column1');
             
             const result = ds.transformColumnQuery(input);
 
