@@ -516,9 +516,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
-    public transformColumnQuery(query: string, scopedVars: ScopedVars = this.scopedVars) {
+    public transformColumnQuery(query: string, _scopedVars: ScopedVars = this.scopedVars) {
+        // Column filter queries require custom variable replacement logic to parse column names from 
+        // template variable values (e.g., "Column1-Numeric" -> "Column1"). Variable replacement 
+        // is handled within the expression transform function rather than on the entire query string.
         return transformComputedFieldsQuery(
-            this.templateSrv.replace(query, scopedVars),
+            query,
             this.columnComputedDataFields,
         );
     }
@@ -1095,7 +1098,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return (value: string, operation: string) => {
             const isNegatedOperation = this.isNegatedOperation(operation);
             const positiveOperation = this.getPositiveOperation(operation);
-            const columnNameValue = this.parseColumnNameFromValue(value);
+            let columnNameValue = value;
+            if (this.templateSrv.containsTemplate(value)) {
+                const replacedValue = this.templateSrv.replace(value, this.scopedVars);
+                columnNameValue = this.parseColumnNameFromValue(replacedValue);
+            }
             const innerExpression = multipleValuesQuery(field)(columnNameValue, positiveOperation);
             const cleanedExpression = this.removeWrapper(innerExpression);
             const transformedExpression = this.transformToIteratorExpression(cleanedExpression, field);
@@ -1136,22 +1143,29 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private parseColumnNameFromValue(filterValue: string): string {
-        const transformedDataTypes = ['Numeric', 'String', 'Bool', 'Timestamp'];
+        const isMultiValue = filterValue.startsWith('{') && filterValue.endsWith('}');
         
-        if (filterValue.startsWith('{') && filterValue.endsWith('}')) {
+        if (isMultiValue) {
             const values = filterValue.slice(1, -1).split(',');
-            const extractedNames = values.map(value => {
-                const endsWithDataType = transformedDataTypes.some(dataType => value.endsWith(`-${dataType}`));
-                if (endsWithDataType) {
-                    return this.parseColumnIdentifier(value).columnName;
-                }
-                return value;
-            });
+            const extractedNames = values.map(value => 
+                this.extractColumnName(value)
+            );
             const uniqueNames = [...new Set(extractedNames)];
             return `{${uniqueNames.join(',')}}`;
         }
         
-        return filterValue;
+        return this.extractColumnName(filterValue);
+    }
+    
+    private extractColumnName(value: string): string {
+        const transformedDataTypes = ['Numeric', 'String', 'Bool', 'Timestamp'];
+        const hasDataTypeSuffix = transformedDataTypes.some(dataType => 
+            value.endsWith(`-${dataType}`)
+        );
+        
+        return hasDataTypeSuffix 
+            ? this.parseColumnIdentifier(value).columnName 
+            : value;
     }
 
     private isTimeField(field: DataTableProperties): boolean {
