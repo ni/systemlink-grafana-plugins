@@ -1,3 +1,9 @@
+## [4.98.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.98.1...v4.98.2) (2025-12-09)
+
+### Bug Fixes
+
+* **alarms:** Trigger take input changes on blur instead of onChange ([#593](https://github.com/ni/systemlink-grafana-plugins/issues/593)) ([0926549](https://github.com/ni/systemlink-grafana-plugins/commit/092654990f535b2b51f873f888c9ee9ef5941b8b))
+
 ## [4.98.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.98.0...v4.98.1) (2025-12-09)
 
 ### Bug Fixes
