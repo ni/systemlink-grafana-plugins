@@ -1942,46 +1942,130 @@ describe('DataFrameDataSourceV2', () => {
     });
 
     describe('shouldRunQuery', () => {
-        it('should return true when query type is Properties', () => {
-            const query = {
-                type: DataFrameQueryType.Properties,
-            } as ValidDataFrameQueryV2;
+        describe('when query type is valid', () => {
+            it('should return true when query type is Properties', () => {
+                const query = {
+                    type: DataFrameQueryType.Properties,
+                } as ValidDataFrameQueryV2;
 
-            const result = ds.shouldRunQuery(query);
+                const result = ds.shouldRunQuery(query);
 
-            expect(result).toBe(true);
+                expect(result).toBe(true);
+            });
+
+            it('should return true when query type is Data', () => {
+                const query = {
+                    type: DataFrameQueryType.Data,
+                } as ValidDataFrameQueryV2;
+
+                const result = ds.shouldRunQuery(query);
+
+                expect(result).toBe(true);
+            });
         });
 
-        it('should return true when query type is Data', () => {
-            const query = {
-                type: DataFrameQueryType.Data,
-            } as ValidDataFrameQueryV2;
+        describe('when hide query property is set', () => {
+            it('should return false when hide is true', () => {
+                const query = {
+                    type: DataFrameQueryType.Properties,
+                    hide: true
+                } as ValidDataFrameQueryV2;
 
-            const result = ds.shouldRunQuery(query);
+                const result = ds.shouldRunQuery(query);
 
-            expect(result).toBe(true);
+                expect(result).toBe(false);
+            });
+
+            it('should return true when hide is false', () => {
+                const query = {
+                    type: DataFrameQueryType.Properties,
+                    hide: false
+                } as ValidDataFrameQueryV2;
+
+                const result = ds.shouldRunQuery(query);
+
+                expect(result).toBe(true);
+            });
         });
 
-        it('should return false when hide is true', () => {
-            const query = {
-                type: DataFrameQueryType.Properties,
-                hide: true
-            } as ValidDataFrameQueryV2;
+        describe('when query has filters', () => {
+            let baseQuery: DataFrameQueryV2;
 
-            const result = ds.shouldRunQuery(query);
+            beforeEach(() => {
+                baseQuery = {
+                    hide: false,
+                    resultFilter: '',
+                    dataTableFilter: '',
+                    columnFilter: ''
+                } as DataFrameQueryV2;
+            });
 
-            expect(result).toBe(false);
+            it('should return true when query has resultFilter', () => {
+                const query = {
+                    ...baseQuery,
+                    resultFilter: 'status = "Passed"'
+                };
+
+                const result = ds.shouldRunQuery(query);
+
+                expect(result).toBe(true);
+            });
+
+            it('should return true when query has dataTableFilter', () => {
+                const query = {
+                    ...baseQuery,
+                    dataTableFilter: 'name = "Test"'
+                };
+
+                const result = ds.shouldRunQuery(query);
+
+                expect(result).toBe(true);
+            });
+
+            it('should return true when query has columnFilter', () => {
+                const query = {
+                    ...baseQuery,
+                    columnFilter: 'name = "Column1"'
+                };
+
+                const result = ds.shouldRunQuery(query);
+
+                expect(result).toBe(true);
+            });
+
+            it('should return true when query has multiple filters', () => {
+                const query = {
+                    ...baseQuery,
+                    resultFilter: 'status = "Passed"',
+                    dataTableFilter: 'name = "Test"',
+                    columnFilter: 'name = "Column1"'
+                };
+
+                const result = ds.shouldRunQuery(query);
+
+                expect(result).toBe(true);
+            });
+
+            it('should return false when all filters are empty strings', () => {
+                const result = ds.shouldRunQuery(baseQuery);
+
+                expect(result).toBe(false);
+            });
         });
 
-        it('should return true when hide is false', () => {
-            const query = {
-                type: DataFrameQueryType.Properties,
-                hide: false
-            } as ValidDataFrameQueryV2;
+        describe('when query is hidden', () => {
+            it('should return false regardless of filters', () => {
+                const query = {
+                    hide: true,
+                    resultFilter: 'status = "Passed"',
+                    dataTableFilter: 'name = "Test"',
+                    columnFilter: 'name = "Column1"'
+                } as DataFrameQueryV2;
 
-            const result = ds.shouldRunQuery(query);
+                const result = ds.shouldRunQuery(query);
 
-            expect(result).toBe(true);
+                expect(result).toBe(false);
+            });
         });
     });
 
