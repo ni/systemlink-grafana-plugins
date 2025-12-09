@@ -258,6 +258,10 @@ export type ValidDataFrameQueryV2 = DataFrameQueryV2 & Required<Omit<DataFrameQu
 
 export type ColumnDataType = 'BOOL' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' | 'STRING' | 'TIMESTAMP';
 
+export type NumericDataType = 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64';
+
+export type TransformedDataType = Omit<ColumnDataType, NumericDataType> | 'NUMBER';
+
 export type Props = QueryEditorProps<DataFrameDataSource, DataFrameQuery, DataFrameDataSourceOptions>;
 
 export type DataSourceQBLookupCallback = (query: string) => Promise<QueryBuilderOption[]>;
@@ -282,6 +286,10 @@ export interface Column {
   dataType: ColumnDataType;
   columnType: ColumnType;
   properties: Record<string, string>;
+}
+
+export interface ColumnWithTransformedDataType extends Omit<Column, 'dataType'> {
+  dataType: TransformedDataType;
 }
 
 export interface ColumnFilter {

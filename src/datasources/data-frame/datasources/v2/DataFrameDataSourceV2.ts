@@ -1,7 +1,7 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithTransformedDataType, TransformedDataType } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -799,7 +799,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         ];
 
         // Normalize column data types (combine numeric types)
-        const normalizedColumns = outputColumns.map(column => ({
+        const normalizedColumns: ColumnWithTransformedDataType[] = outputColumns.map(column => ({
             ...column,
             dataType: this.isNumericDataType(column.dataType) ? 'NUMBER' : column.dataType
         }));
@@ -818,7 +818,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const dataFields: FieldDTO[] = uniqueColumns.map((column, index) => {
             const [type, converter] = this.getFieldTypeAndConverter(column.dataType);
             const METADATA_FIELDS_COUNT = 2; // tableId and tableName
-            const dataIndex = index + METADATA_FIELDS_COUNT;                            
+            const dataIndex = index + METADATA_FIELDS_COUNT;
             const field: FieldDTO = {
                 name: column.name,
                 type,
@@ -836,16 +836,37 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return [...metadataFields, ...dataFields];
     }
 
-    private getFieldTypeAndConverter(dataType: string): [FieldType, (value: string) => any] {
+    private getFieldTypeAndConverter(dataType: TransformedDataType): [
+        FieldType,
+        (value: string) => any
+    ] {
         switch (dataType) {
             case 'BOOL':
-                return [FieldType.boolean, value => value === '' ? null : value.toLowerCase() === 'true'];
-            case 'STRING':
-                return [FieldType.string, value => value];
+                return [
+                    FieldType.boolean, 
+                    value => value === ''
+                        ? null 
+                        : value.toLowerCase() === 'true'
+                ];
+            case 'NUMBER':
+                return [
+                    FieldType.number,
+                    value => value === ''
+                        ? null :
+                        Number(value)
+                ];
             case 'TIMESTAMP':
-                return [FieldType.time, value => value === '' ? null : dateTime(value).valueOf()];
+                return [
+                    FieldType.time,
+                    value => value === ''
+                        ? null
+                        : dateTime(value).valueOf()
+                ];
             default:
-                return [FieldType.number, value => value === '' ? null : Number(value)];
+                return [
+                    FieldType.string,
+                    value => value
+                ];
         }
     }
 
