@@ -1,7 +1,7 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithTransformedDataType, TransformedDataType } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithTransformedDataType, TransformedDataType, ColumnWithDisplayName } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -691,7 +691,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             switchMap(selectedColumnIdentifiers => {
                 if (selectedColumnIdentifiers.length === 0) {
                     return of(
-                        this.buildEmptyDataFrame(processedQuery.refId)
+                        this.buildDataFrame(processedQuery.refId)
                     );
                 }
 
@@ -750,17 +750,19 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                 options.maxDataPoints   
                             ).pipe(
                                 map(decimatedDataMap => {
-                                    const dataFrame = this.buildEmptyDataFrame(processedQuery.refId);
-                                    dataFrame.fields = this.aggregateTableDataRows(
-                                        tableColumnsMap,
-                                        tableNamesMap,
-                                        decimatedDataMap,
+                                    const dataFrame = this.buildDataFrame(
+                                        processedQuery.refId,
+                                        this.aggregateTableDataRows(
+                                            tableColumnsMap,
+                                            tableNamesMap,
+                                            decimatedDataMap,
+                                        )
                                     );
                                     return dataFrame;
                                 })
                             );
                         }
-                        return of(this.buildEmptyDataFrame(processedQuery.refId));
+                        return of(this.buildDataFrame(processedQuery.refId));
                     })
                 );
             })
@@ -772,134 +774,103 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tableNamesMap: Record<string, string>,
         decimatedDataMap: Record<string, TableDataRows>,
     ): FieldDTO[] {
-        const allColumns = new Set<string>();
-        Object.values(decimatedDataMap).forEach(tableData => {
-            tableData.frame.columns.forEach(column => allColumns.add(column));
-        });
-
-        const uniqueColumnNames = Array.from(allColumns);
-        const columnNames = ['tableId', 'tableName', ...uniqueColumnNames];
-
-        const tableIdColumn: string[] = [];
-        const tableNameColumn: string[] = [];
-        const columnValueArrays: string[][] = uniqueColumnNames.map(() => []);
-
-        Object.entries(decimatedDataMap).forEach(([tableId, tableData]) => {
-            const rowCount = tableData.frame.data.length > 0 ? tableData.frame.data.length : 0;
-            const tableIdColumnValues = Array(rowCount).fill(tableId);
-            const tableNameColumnValues = Array(rowCount).fill(tableNamesMap[tableId]);
-            tableIdColumn.push(...tableIdColumnValues);
-            tableNameColumn.push(...tableNameColumnValues);
-
-            const columnIndexMap = new Map<string, number>();
-            tableData.frame.columns.forEach((colName, index) => {
-                columnIndexMap.set(colName, index);
-            });
-
-            tableData.frame.data.forEach((data) => {
-                uniqueColumnNames.forEach((colName, colArrayIndex) => {
-                    const columnDataIndex = columnIndexMap.get(colName);
-
-                    if (columnDataIndex !== undefined) {
-                        // Column exists in this table - append data.
-                        columnValueArrays[colArrayIndex].push(data[columnDataIndex]);
-                    } else {
-                        // Column doesn't exist in this table - append null values.
-                        columnValueArrays[colArrayIndex].push('');
-                    }
-                });
-            });
-        });
-        const aggregatedTableData: TableDataRows = {
-            frame: {
-                columns: columnNames,
-                data: [tableIdColumn, tableNameColumn, ...columnValueArrays]
-            }
-        };
-
-        const outputColumns = this.getUniqueColumnsWithTransformedDataType(
+        let outputColumns = this.getUniqueColumnsWithTransformedDataType(
             Object.values(tableColumnsMap)
                 .flatMap(columnsData => columnsData.selectedColumns)
         );
-        return this.dataFrameToFields(
-            aggregatedTableData.frame.data,
-            outputColumns
-        );
-    }
+        outputColumns = this.sortColumnsByType(outputColumns);
 
-    private dataFrameToFields(
-        rows: string[][],
-        outputColumns: ColumnWithTransformedDataType[]
-    ): FieldDTO[] {
-        const metadataFields: FieldDTO[] = [
+        const dataTableNameFieldLabel = 'Data table name';
+        const dataTableIdFieldLabel = 'Data table ID';
+
+        const fields: FieldDTO[] = [
             {
-                name: 'tableId',
+                name: dataTableIdFieldLabel,
                 type: FieldType.string,
-                values: rows[0] ?? [],
+                values: [],
             },
             {
-                name: 'tableName',
+                name: dataTableNameFieldLabel,
                 type: FieldType.string,
-                values: rows[1] ?? [],
+                values: [],
             },
+            ...outputColumns.map(column => ({
+                name: column.displayName,
+                type: this.getFieldTypeForDataType(column.dataType),
+                values: [],
+            })),
         ];
 
-        const dataFields: FieldDTO[] = outputColumns.map((column, index) => {
-            const [type, converter] = this.getFieldTypeAndConverter(column.dataType);
-            const dataIndex = index + metadataFields.length;
-            const field: FieldDTO = {
-                name: column.name,
-                type,
-                values: rows[dataIndex]?.map(value =>
-                    value !== null ? converter(value) : null
-                ) ?? [],
-            };
+        Object.entries(decimatedDataMap).forEach(([tableId, tableDataRows]) => {
+            const tableName = tableNamesMap[tableId] || '';
+            const rowCount = tableDataRows.frame.data.length;
+            const columnsData = tableColumnsMap[tableId];
 
-            // Add display name config for 'value' columns
-            if (column.name.toLowerCase() === 'value') {
-                field.config = { displayName: column.name };
-            }
-            return field;
+            fields.forEach(field => {
+                switch (field.name) {
+                    case dataTableIdFieldLabel:
+                        const tableIdColumnValues = Array(rowCount).fill(tableId);
+                        field.values!.push(...tableIdColumnValues);
+                        break;
+                    case dataTableNameFieldLabel:
+                        const tableNameColumnValues = Array(rowCount).fill(tableName);
+                        field.values!.push(...tableNameColumnValues);
+                        break;
+                    default:
+                        const columnInfo = columnsData.selectedColumns.find(
+                            column => column.displayName === field.name
+                        );
+                        if (!columnInfo?.name) {
+                            const emptyValues = Array(rowCount).fill(null);
+                            field.values!.push(...emptyValues);
+                            break;
+                        }
+
+                        const columnIndex = tableDataRows.frame.columns.findIndex(
+                            columnName => columnName === columnInfo?.name
+                        );
+                        const decimatedData = tableDataRows.frame.data.map(row => {
+                            return this.transformValue(columnInfo.dataType, row[columnIndex]);
+                        });
+                        field.values!.push(...decimatedData);
+                        break;
+                }
+            });
+
         });
-        return [...metadataFields, ...dataFields];
+
+        return fields;
     }
 
-    private getFieldTypeAndConverter(dataType: TransformedDataType): [
-        FieldType,
-        (value: string) => any
-    ] {
+    private transformValue(dataType: TransformedDataType, value: string): any
+    {
         switch (dataType) {
             case 'BOOL':
-                return [
-                    FieldType.boolean, 
-                    value => value === ''
-                        ? null 
-                        : value.toLowerCase() === 'true'
-                ];
+                return value === ''? null  : value.toLowerCase() === 'true';
             case 'NUMBER':
-                return [
-                    FieldType.number,
-                    value => value === ''
-                        ? null :
-                        Number(value)
-                ];
+                return value === ''? null : Number(value)
             case 'TIMESTAMP':
-                return [
-                    FieldType.time,
-                    value => value === ''
-                        ? null
-                        : dateTime(value).valueOf()
-                ];
+                return value === '' ? null : dateTime(value).valueOf()
             default:
-                return [
-                    FieldType.string,
-                    value => value
-                ];
+                return value
+        }
+    }
+
+    private getFieldTypeForDataType(dataType: TransformedDataType): FieldType {
+        switch (dataType) {
+            case 'BOOL':
+                return FieldType.boolean;
+            case 'NUMBER':
+                return FieldType.number;
+            case 'TIMESTAMP':
+                return FieldType.time;
+            default:
+                return FieldType.string;
         }
     }
 
     private getUniqueColumnsWithTransformedDataType(
-        columns: Column[]
+        columns: ColumnWithDisplayName[]
     ): ColumnWithTransformedDataType[] {
         const uniqueColumnsMap: Map<string, ColumnWithTransformedDataType> = new Map();
         columns.forEach(column => {
@@ -955,12 +926,21 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         includeIndexColumns: boolean
     ): Record<string, TableColumnsData> {
         const selectedTableColumnsMap: Record<string, TableColumnsData> = {};
+        const uniqueColumnsAcrossTables = this.getUniqueColumnsAcrossTables(tables);
         tables.forEach(table => {
             const selectedColumns = this.getSelectedColumnsForTable(
                 selectedColumnIdentifiers,
                 table,
                 includeIndexColumns
-            );
+            ).map(column => {
+                const displayName = uniqueColumnsAcrossTables.find(
+                    uniqueColumn => uniqueColumn.value === this.getColumnIdentifier(column.name, column.dataType)
+                )?.label || '';
+                return {
+                    ...column,
+                    displayName
+                };
+            });
             if (selectedColumns.length > 0) {
                 selectedTableColumnsMap[table.id] = {
                     selectedColumns,
@@ -1012,11 +992,30 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return selectedColumnDetails;
     }
 
-    private buildEmptyDataFrame(refId: string): DataFrameDTO {
+    private sortColumnsByType(
+        columns: ColumnWithTransformedDataType[]
+    ): ColumnWithTransformedDataType[] {
+        const columnTypeOrder = {
+            [ColumnType.Index]: 0,
+            [ColumnType.Normal]: 1,
+            [ColumnType.Nullable]: 2,
+        };
+
+        return columns.sort((a, b) => {
+            const orderA = columnTypeOrder[a.columnType];
+            const orderB = columnTypeOrder[b.columnType];
+            return orderA - orderB;
+        });
+    }
+
+    private buildDataFrame(
+        refId: string,
+        fields: FieldDTO[] = []
+    ): DataFrameDTO {
         return createDataFrame({
             refId,
             name: refId,
-            fields: [],
+            fields,
         });
     }
 

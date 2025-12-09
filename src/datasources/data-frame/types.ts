@@ -288,7 +288,11 @@ export interface Column {
   properties: Record<string, string>;
 }
 
-export interface ColumnWithTransformedDataType extends Omit<Column, 'dataType'> {
+export interface ColumnWithDisplayName extends Column {
+  displayName: string;
+}
+
+export interface ColumnWithTransformedDataType extends Omit<ColumnWithDisplayName, 'dataType'> {
   dataType: TransformedDataType;
 }
 
@@ -372,7 +376,7 @@ export interface DecimatedDataRequest {
 
 export interface TableColumnsData {
   columns: Column[],
-  selectedColumns: Column[]
+  selectedColumns: ColumnWithDisplayName[]
 }
 
 export function isSystemLinkError(error: any): error is SystemLinkError {
