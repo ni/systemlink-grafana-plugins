@@ -1,3 +1,21 @@
+## [4.98.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.98.0...v4.98.1) (2025-12-09)
+
+### Bug Fixes
+
+* **alarms:** Enhance property field typing ([#570](https://github.com/ni/systemlink-grafana-plugins/issues/570)) ([ad00464](https://github.com/ni/systemlink-grafana-plugins/commit/ad00464b4561879ade98de81b916ae7f458c06be))
+
+## [4.98.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.97.0...v4.98.0) (2025-12-09)
+
+### Features
+
+* **dataframe:** Provide label for invalid x-column selection ([#589](https://github.com/ni/systemlink-grafana-plugins/issues/589)) ([da11a7d](https://github.com/ni/systemlink-grafana-plugins/commit/da11a7da634f63bb58cfbfed5df7525b996dcd09))
+
+## [4.97.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.96.0...v4.97.0) (2025-12-09)
+
+### Features
+
+* **dataframes:** Remove whitespace from filter string ([#590](https://github.com/ni/systemlink-grafana-plugins/issues/590)) ([3a60a3f](https://github.com/ni/systemlink-grafana-plugins/commit/3a60a3fa739bd9205806e060e38611cf2799af79))
+
 ## [4.96.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.95.0...v4.96.0) (2025-12-08)
 
 ### Features

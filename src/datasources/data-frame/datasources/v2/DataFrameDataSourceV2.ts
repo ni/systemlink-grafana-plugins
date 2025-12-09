@@ -8,8 +8,8 @@ import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
-import { catchError, combineLatestWith, concatMap, forkJoin, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap } from "rxjs";
-import { ResultsQueryBuilderFieldNames } from "datasources/results/constants/ResultsQueryBuilder.constants";
+import { catchError, combineLatestWith, concatMap, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap, takeUntil, Subject } from "rxjs";
+import { ResultsQueryBuilderFieldNames } from "shared/components/ResultsQueryBuilder/ResultsQueryBuilder.constants";
 import { replaceVariables } from "core/utils";
 import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
 import { QueryBuilderOperations } from "core/query-builder.constants";
@@ -292,13 +292,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             intervals
         );
         const batches = _.chunk(decimatedDataRequests, REQUESTS_PER_SECOND);
+        const stopSignal$ = new Subject<void>();
 
         return from(batches).pipe(
             mergeMap((batch, index) =>
                 timer(index * DELAY_BETWEEN_REQUESTS_MS).pipe(
-                    concatMap(() => forkJoin(
-                        batch.map(request =>
+                    takeUntil(stopSignal$),
+                    concatMap(() => from(batch).pipe(
+                        mergeMap(request =>
                             this.getDecimatedTableData$(request).pipe(
+                                takeUntil(stopSignal$),
                                 map(tableDataRows => ({
                                     tableId: request.tableId,
                                     data: tableDataRows
@@ -308,10 +311,27 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     ))
                 )
             ),
-            reduce((acc, results) => {
-                results.forEach(({ tableId, data }) => acc[tableId] = data);
+            reduce((acc, result) => {
+                const retrievedDataFrame = result.data.frame;
+                const rowsInRetrievedDataFrame = retrievedDataFrame.data.length;
+                const columnsInRetrievedDataFrame = retrievedDataFrame.columns.length;
+                const dataPointsToAdd = rowsInRetrievedDataFrame * columnsInRetrievedDataFrame;
+                acc.totalDataPoints += dataPointsToAdd;
+
+                // Only accumulate data if within limit
+                if (acc.totalDataPoints <= TOTAL_ROWS_LIMIT) {
+                    acc.data[result.tableId] = result.data;
+                }
+
+                // Signal to stop if limit reached
+                if (acc.totalDataPoints >= TOTAL_ROWS_LIMIT) {
+                    stopSignal$.next();
+                    stopSignal$.complete();
+                }
+
                 return acc;
-            }, {} as Record<string, TableDataRows>)
+            }, { totalDataPoints: 0, data: {} as Record<string, TableDataRows> }),
+            map(acc => acc.data)
         );
     }
 
@@ -392,6 +412,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 decimation: request.decimation,
             },
             { useApiIngress: true }
+        ).pipe(
+            catchError(error => {
+                const errorMessage = this.getErrorMessage(error, 'decimated table data');
+                this.appEvents?.publish?.({
+                    type: AppEvents.alertError.name,
+                    payload: ['Error during fetching decimated table data', errorMessage],
+                });
+                return of({frame: {columns: [], data: []}});
+            })
         );
     }
 
@@ -1305,8 +1334,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         if (resultIds.length === 0) {
             return '';
         }
-        const placeholders = resultIds.map((_, index) => `@${index}`).join(', ');
-        const resultFilter = `new[] {${placeholders}}.Contains(testResultId)`;
+        const placeholders = resultIds.map((_, index) => `@${index}`).join(',');
+        const resultFilter = `new[]{${placeholders}}.Contains(testResultId)`;
         return resultFilter;
     }
 
@@ -1323,6 +1352,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             combinedFilters.push(`(${filters.columnFilter})`);
         }
 
-        return combinedFilters.join(' && ');
+        return combinedFilters.join('&&');
     }
 }
