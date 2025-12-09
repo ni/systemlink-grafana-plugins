@@ -741,31 +741,22 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             processedQuery.includeIndexColumns
                         );
                         const tableNamesMap = this.buildTableNamesMap(tables);
-                        const outputColumns = this.getUniqueColumnsWithTransformedDataType(
-                            Object.values(tableColumnsMap)
-                                .flatMap(columnsData => columnsData.selectedColumns)
-                        );
 
                         if (Object.keys(tableColumnsMap).length > 0) {
                             return this.getDecimatedTableDataInBatches$(
                                 tableColumnsMap,
                                 processedQuery,
                                 options.range,
-                                options.maxDataPoints
+                                options.maxDataPoints   
                             ).pipe(
                                 map(decimatedDataMap => {
-                                    const tableData = this.aggregateTableDataRows(
+                                    const dataFrame = this.buildEmptyDataFrame(processedQuery.refId);
+                                    dataFrame.fields = this.aggregateTableDataRows(
+                                        tableColumnsMap,
+                                        tableNamesMap,
                                         decimatedDataMap,
-                                        tableNamesMap
                                     );
-                                    return {
-                                        refId: processedQuery.refId,
-                                        name: processedQuery.refId,
-                                        fields: this.dataFrameToFields(
-                                            tableData.frame.data,
-                                            outputColumns
-                                        ),
-                                    };
+                                    return dataFrame;
                                 })
                             );
                         }
@@ -777,9 +768,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private aggregateTableDataRows(
+        tableColumnsMap: Record<string, TableColumnsData>,
+        tableNamesMap: Record<string, string>,
         decimatedDataMap: Record<string, TableDataRows>,
-        tableNamesMap: Record<string, string>
-    ): TableDataRows {
+    ): FieldDTO[] {
         const allColumns = new Set<string>();
         Object.values(decimatedDataMap).forEach(tableData => {
             tableData.frame.columns.forEach(column => allColumns.add(column));
@@ -818,12 +810,21 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 });
             });
         });
-        return {
+        const aggregatedTableData: TableDataRows = {
             frame: {
                 columns: columnNames,
                 data: [tableIdColumn, tableNameColumn, ...columnValueArrays]
             }
         };
+
+        const outputColumns = this.getUniqueColumnsWithTransformedDataType(
+            Object.values(tableColumnsMap)
+                .flatMap(columnsData => columnsData.selectedColumns)
+        );
+        return this.dataFrameToFields(
+            aggregatedTableData.frame.data,
+            outputColumns
+        );
     }
 
     private dataFrameToFields(
