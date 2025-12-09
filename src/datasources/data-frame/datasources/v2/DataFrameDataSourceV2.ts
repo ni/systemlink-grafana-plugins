@@ -106,7 +106,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     shouldRunQuery(query: DataFrameDataQuery): boolean {
-        return !query.hide;
+        const processedQuery = this.processQuery(query);
+        return !query.hide && !this.areAllFiltersEmpty(processedQuery);
     }
 
     processQuery(query: DataFrameDataQuery): ValidDataFrameQueryV2 {
@@ -333,6 +334,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             }, { totalDataPoints: 0, data: {} as Record<string, TableDataRows> }),
             map(acc => acc.data)
         );
+    }
+
+    private areAllFiltersEmpty(query: DataFrameQueryV2): boolean {
+        return (
+            query.resultFilter === '' 
+            && query.dataTableFilter === '' 
+            && query.columnFilter === ''
+        )
     }
 
     private getDecimatedDataRequests(
