@@ -755,7 +755,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             ).pipe(
                                 map(decimatedDataMap => {
                                     const tableData = this.aggregateTableDataRows(
-                                        decimatedDataMap, tableNamesMap
+                                        decimatedDataMap,
+                                        tableNamesMap
                                     );
                                     return {
                                         refId: processedQuery.refId,
@@ -877,7 +878,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
     }
 
-    private aggregateTableDataRows(decimatedDataMap: Record<string, TableDataRows>, tableIdNameMap: Record<string, string>): TableDataRows {
+    private aggregateTableDataRows(
+        decimatedDataMap: Record<string, TableDataRows>,
+        tableNamesMap: Record<string, string>
+    ): TableDataRows {
         const allColumns = new Set<string>();
         Object.values(decimatedDataMap).forEach(tableData => {
             tableData.frame.columns.forEach(column => allColumns.add(column));
@@ -895,7 +899,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
             // Add tableId and tableName for each row in this table
             tableIdColumn.push(...Array(numRows).fill(tableId));
-            tableNameColumn.push(...Array(numRows).fill(tableIdNameMap[tableId]));
+            tableNameColumn.push(...Array(numRows).fill(tableNamesMap[tableId]));
 
             const columnIndexMap = new Map<string, number>();
             tableData.frame.columns.forEach((colName, index) => {
