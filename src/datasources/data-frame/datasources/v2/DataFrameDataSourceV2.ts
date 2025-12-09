@@ -776,108 +776,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
-    private buildTableNamesMap(tables: TableProperties[]) {
-        const tableIdNamesMap: Record<string, string> = {};
-        tables.forEach(table => {
-            tableIdNamesMap[table.id] = table.name;
-        });
-        return tableIdNamesMap;
-    }
-
-    private isNumericDataType(dataType: string) {
-        return NUMERIC_DATA_TYPES.includes(dataType);
-    }
-
-    private dataFrameToFields(
-        rows: string[][],
-        outputColumns: ColumnWithTransformedDataType[]
-    ): FieldDTO[] {
-        const metadataFields: FieldDTO[] = [
-            {
-                name: 'tableId',
-                type: FieldType.string,
-                values: rows[0] ?? [],
-            },
-            {
-                name: 'tableName',
-                type: FieldType.string,
-                values: rows[1] ?? [],
-            },
-        ];
-
-        const dataFields: FieldDTO[] = outputColumns.map((column, index) => {
-            const [type, converter] = this.getFieldTypeAndConverter(column.dataType);
-            const dataIndex = index + metadataFields.length;
-            const field: FieldDTO = {
-                name: column.name,
-                type,
-                values: rows[dataIndex]?.map(value =>
-                    value !== null ? converter(value) : null
-                ) ?? [],
-            };
-
-            // Add display name config for 'value' columns
-            if (column.name.toLowerCase() === 'value') {
-                field.config = { displayName: column.name };
-            }
-            return field;
-        });
-        return [...metadataFields, ...dataFields];
-    }
-
-    private getUniqueColumnsWithTransformedDataType(
-        columns: Column[]
-    ): ColumnWithTransformedDataType[] {
-        const uniqueColumnsMap: Map<string, ColumnWithTransformedDataType> = new Map();
-        columns.forEach(column => {
-            const key = this.getColumnIdentifier(column.name, column.dataType);
-            if (!uniqueColumnsMap.has(key)) {
-                const transformedDataType = this.isNumericDataType(column.dataType)
-                    ? 'NUMBER'
-                    : column.dataType;
-                uniqueColumnsMap.set(key, {
-                    ...column,
-                    dataType: transformedDataType
-                });
-            }
-        });
-        return Array.from(uniqueColumnsMap.values());
-    }
-
-    private getFieldTypeAndConverter(dataType: TransformedDataType): [
-        FieldType,
-        (value: string) => any
-    ] {
-        switch (dataType) {
-            case 'BOOL':
-                return [
-                    FieldType.boolean, 
-                    value => value === ''
-                        ? null 
-                        : value.toLowerCase() === 'true'
-                ];
-            case 'NUMBER':
-                return [
-                    FieldType.number,
-                    value => value === ''
-                        ? null :
-                        Number(value)
-                ];
-            case 'TIMESTAMP':
-                return [
-                    FieldType.time,
-                    value => value === ''
-                        ? null
-                        : dateTime(value).valueOf()
-                ];
-            default:
-                return [
-                    FieldType.string,
-                    value => value
-                ];
-        }
-    }
-
     private aggregateTableDataRows(
         decimatedDataMap: Record<string, TableDataRows>,
         tableNamesMap: Record<string, string>
@@ -926,6 +824,108 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 data: [tableIdColumn, tableNameColumn, ...columnValueArrays]
             }
         };
+    }
+
+    private dataFrameToFields(
+        rows: string[][],
+        outputColumns: ColumnWithTransformedDataType[]
+    ): FieldDTO[] {
+        const metadataFields: FieldDTO[] = [
+            {
+                name: 'tableId',
+                type: FieldType.string,
+                values: rows[0] ?? [],
+            },
+            {
+                name: 'tableName',
+                type: FieldType.string,
+                values: rows[1] ?? [],
+            },
+        ];
+
+        const dataFields: FieldDTO[] = outputColumns.map((column, index) => {
+            const [type, converter] = this.getFieldTypeAndConverter(column.dataType);
+            const dataIndex = index + metadataFields.length;
+            const field: FieldDTO = {
+                name: column.name,
+                type,
+                values: rows[dataIndex]?.map(value =>
+                    value !== null ? converter(value) : null
+                ) ?? [],
+            };
+
+            // Add display name config for 'value' columns
+            if (column.name.toLowerCase() === 'value') {
+                field.config = { displayName: column.name };
+            }
+            return field;
+        });
+        return [...metadataFields, ...dataFields];
+    }
+
+    private getFieldTypeAndConverter(dataType: TransformedDataType): [
+        FieldType,
+        (value: string) => any
+    ] {
+        switch (dataType) {
+            case 'BOOL':
+                return [
+                    FieldType.boolean, 
+                    value => value === ''
+                        ? null 
+                        : value.toLowerCase() === 'true'
+                ];
+            case 'NUMBER':
+                return [
+                    FieldType.number,
+                    value => value === ''
+                        ? null :
+                        Number(value)
+                ];
+            case 'TIMESTAMP':
+                return [
+                    FieldType.time,
+                    value => value === ''
+                        ? null
+                        : dateTime(value).valueOf()
+                ];
+            default:
+                return [
+                    FieldType.string,
+                    value => value
+                ];
+        }
+    }
+
+    private getUniqueColumnsWithTransformedDataType(
+        columns: Column[]
+    ): ColumnWithTransformedDataType[] {
+        const uniqueColumnsMap: Map<string, ColumnWithTransformedDataType> = new Map();
+        columns.forEach(column => {
+            const key = this.getColumnIdentifier(column.name, column.dataType);
+            if (!uniqueColumnsMap.has(key)) {
+                const transformedDataType = this.isNumericDataType(column.dataType)
+                    ? 'NUMBER'
+                    : column.dataType;
+                uniqueColumnsMap.set(key, {
+                    ...column,
+                    dataType: transformedDataType
+                });
+            }
+        });
+        return Array.from(uniqueColumnsMap.values());
+    }
+
+    private buildTableNamesMap(tables: TableProperties[]) {
+        const tableIdNamesMap: Record<string, string> = {};
+        tables.forEach(table => {
+            tableIdNamesMap[table.id] = table.name;
+        });
+        return tableIdNamesMap;
+    }
+
+    private isNumericDataType(dataType: string) {
+        return NUMERIC_DATA_TYPES.includes(dataType);
     }
 
     private areSelectedColumnsValid(
