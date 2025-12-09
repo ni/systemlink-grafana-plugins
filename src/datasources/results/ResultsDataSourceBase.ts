@@ -5,7 +5,7 @@ import { QueryBuilderOption, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { ResultsPropertiesOptions } from "./types/QueryResults.types";
 import { ExpressionTransformFunction, timeFieldsQuery, listFieldsQuery, multipleValuesQuery } from "core/query-builder.utils";
-import { ResultsQueryBuilderFieldNames } from "./constants/ResultsQueryBuilder.constants";
+import { ResultsQueryBuilderFieldNames } from "shared/components/ResultsQueryBuilder/ResultsQueryBuilder.constants";
 
 export abstract class ResultsDataSourceBase extends DataSourceBase<ResultsQuery> {
   errorTitle = '';
