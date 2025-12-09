@@ -932,7 +932,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 selectedTableColumnsMap[table.id] = {
                     selectedColumns,
                     columns: table.columns
-
                 };
             }
         });
