@@ -1,3 +1,9 @@
+## [4.98.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.98.2...v4.98.3) (2025-12-09)
+
+### Bug Fixes
+
+* **alarms:** Update transformation logic for critical severity levels ([#592](https://github.com/ni/systemlink-grafana-plugins/issues/592)) ([a2388b8](https://github.com/ni/systemlink-grafana-plugins/commit/a2388b81721126b1ad73b9a25df476ab1e7aa627))
+
 ## [4.98.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.98.1...v4.98.2) (2025-12-09)
 
 ### Bug Fixes
