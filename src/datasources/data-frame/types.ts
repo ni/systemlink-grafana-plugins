@@ -369,8 +369,8 @@ export interface DecimatedDataRequest {
 }
 
 export interface TableColumnsData {
-  columns: Column[],
-  selectedColumns: ColumnWithDisplayName[]
+  columns: Column[];
+  selectedColumns: ColumnWithDisplayName[];
 }
 
 export function isSystemLinkError(error: any): error is SystemLinkError {
