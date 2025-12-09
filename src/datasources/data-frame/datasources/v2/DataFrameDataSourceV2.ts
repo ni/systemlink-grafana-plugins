@@ -754,7 +754,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                 options.maxDataPoints
                             ).pipe(
                                 map(decimatedDataMap => {
-                                    const tableData = this.aggregateTableDataRows(decimatedDataMap, tableNamesMap);
+                                    const tableData = this.aggregateTableDataRows(
+                                        decimatedDataMap, tableNamesMap
+                                    );
                                     return {
                                         refId: processedQuery.refId,
                                         name: processedQuery.refId,
