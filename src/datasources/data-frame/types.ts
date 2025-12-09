@@ -362,6 +362,11 @@ export interface DecimatedDataRequest {
   decimation: DecimationOptions;
 }
 
+export interface TableColumnsData {
+  columns: Column[],
+  selectedColumns: Column[]
+}
+
 export function isSystemLinkError(error: any): error is SystemLinkError {
   return Boolean(error?.error?.code) && Boolean(error?.error?.name);
 }

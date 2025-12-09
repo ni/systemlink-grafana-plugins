@@ -1,7 +1,7 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -280,7 +280,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private getDecimatedTableDataInBatches$(
-        tableColumnsMap: Record<string, { columns: Column[], selectedColumns: Column[] }>,
+        tableColumnsMap: Record<string, TableColumnsData>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
         intervals = 1000
@@ -316,7 +316,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private getDecimatedDataRequests(
-        tableColumnsMap: Record<string, { columns: Column[], selectedColumns: Column[] }>,
+        tableColumnsMap: Record<string, TableColumnsData>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
         intervals = 1000
@@ -920,8 +920,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         selectedColumns: string[],
         tables: TableProperties[],
         includeIndexColumns: boolean
-    ): Record<string, { columns: Column[], selectedColumns: Column[] }> {
-        const selectedTableColumnsMap: Record<string, { columns: Column[], selectedColumns: Column[] }> = {};
+    ): Record<string, TableColumnsData> {
+        const selectedTableColumnsMap: Record<string, TableColumnsData> = {};
         tables.forEach(table => {
             const selectedColumnsForTable = this.getSelectedColumnsForTable(
                 selectedColumns,
@@ -939,12 +939,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         selectedColumns: string[],
         table: TableProperties,
         includeIndexColumns: boolean
-    ): { columns: Column[], selectedColumns: Column[] } {
+    ): TableColumnsData {
         if (!Array.isArray(table.columns) || table.columns.length === 0) {
             return { columns: [], selectedColumns: [] };
         }
 
-        const selectedColumnDetails: { columns: Column[], selectedColumns: Column[] } = {
+        const selectedColumnDetails: TableColumnsData = {
             columns: [],
             selectedColumns: []
         };
