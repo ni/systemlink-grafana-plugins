@@ -392,6 +392,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 decimation: request.decimation,
             },
             { useApiIngress: true }
+        ).pipe(
+            catchError(error => {
+                const errorMessage = this.getErrorMessage(error, 'decimated table data');
+                this.appEvents?.publish?.({
+                    type: AppEvents.alertError.name,
+                    payload: ['Error during fetching decimated table data', errorMessage],
+                });
+                return of({frame: {columns: [], data: []}});
+            })
         );
     }
 
