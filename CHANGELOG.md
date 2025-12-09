@@ -1,3 +1,9 @@
+## [4.97.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.96.0...v4.97.0) (2025-12-09)
+
+### Features
+
+* **dataframes:** Remove whitespace from filter string ([#590](https://github.com/ni/systemlink-grafana-plugins/issues/590)) ([3a60a3f](https://github.com/ni/systemlink-grafana-plugins/commit/3a60a3fa739bd9205806e060e38611cf2799af79))
+
 ## [4.96.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.95.0...v4.96.0) (2025-12-08)
 
 ### Features
