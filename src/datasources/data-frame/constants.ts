@@ -34,3 +34,10 @@ export const REQUESTS_PER_SECOND = 6;
 export const DELAY_BETWEEN_REQUESTS_MS = 1000;
 
 export const PART_NUMBER_FIELD = 'partNumber';
+
+export const NUMERIC_DATA_TYPES = [
+    'INT32',
+    'INT64',
+    'FLOAT32',
+    'FLOAT64'
+];
