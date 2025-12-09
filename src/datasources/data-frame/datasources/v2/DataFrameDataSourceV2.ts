@@ -17,7 +17,12 @@ import { QueryBuilderOperations } from "core/query-builder.constants";
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
     private scopedVars: ScopedVars = {};
-    private static readonly NUMERIC_DATA_TYPES = ['INT32', 'INT64', 'FLOAT32', 'FLOAT64'] as const;
+    private static readonly NUMERIC_DATA_TYPES = [
+        'INT32',
+        'INT64',
+        'FLOAT32',
+        'FLOAT64'
+    ] as const;
 
     public constructor(
         public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
