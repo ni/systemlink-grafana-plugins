@@ -1943,9 +1943,10 @@ describe('DataFrameDataSourceV2', () => {
 
     describe('shouldRunQuery', () => {
         describe('when query type is valid', () => {
-            it('should return true when query type is Properties', () => {
+            it('should return true when query type is Properties and has filters', () => {
                 const query = {
                     type: DataFrameQueryType.Properties,
+                    dataTableFilter: 'name = "test"'
                 } as ValidDataFrameQueryV2;
 
                 const result = ds.shouldRunQuery(query);
@@ -1953,9 +1954,10 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result).toBe(true);
             });
 
-            it('should return true when query type is Data', () => {
+            it('should return true when query type is Data and has filters', () => {
                 const query = {
                     type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "test"'
                 } as ValidDataFrameQueryV2;
 
                 const result = ds.shouldRunQuery(query);
@@ -1964,11 +1966,12 @@ describe('DataFrameDataSourceV2', () => {
             });
         });
 
-        describe('when hide query property is set', () => {
+        describe('when hide property is set', () => {
             it('should return false when hide is true', () => {
                 const query = {
                     type: DataFrameQueryType.Properties,
-                    hide: true
+                    hide: true,
+                    dataTableFilter: 'name = "test"'
                 } as ValidDataFrameQueryV2;
 
                 const result = ds.shouldRunQuery(query);
@@ -1976,10 +1979,11 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result).toBe(false);
             });
 
-            it('should return true when hide is false', () => {
+            it('should return true when hide is false and has filters', () => {
                 const query = {
                     type: DataFrameQueryType.Properties,
-                    hide: false
+                    hide: false,
+                    dataTableFilter: 'name = "test"'
                 } as ValidDataFrameQueryV2;
 
                 const result = ds.shouldRunQuery(query);
