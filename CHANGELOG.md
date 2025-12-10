@@ -1,3 +1,9 @@
+## [4.102.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.102.0...v4.102.1) (2025-12-10)
+
+### Bug Fixes
+
+* **dataframe:** Block query execution when filters are empty ([#596](https://github.com/ni/systemlink-grafana-plugins/issues/596)) ([2db5efb](https://github.com/ni/systemlink-grafana-plugins/commit/2db5efbe15d756ff2ed6fc06628b9790e279f452))
+
 ## [4.102.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.101.0...v4.102.0) (2025-12-10)
 
 ### Features
