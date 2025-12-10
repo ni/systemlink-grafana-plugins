@@ -73,6 +73,6 @@ export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChang
 
 const label = 'Query type';
 const tooltip = 'This field specifies the type for the query that searches the data tables. '
-    + `The query can retrieve list of data tables upto ${TAKE_LIMIT.toLocaleString()} `
-    + `or list of data table columns upto ${COLUMN_OPTIONS_LIMIT.toLocaleString()}.`;
+    + `The query can retrieve list of data tables up to ${TAKE_LIMIT.toLocaleString()} `
+    + `or list of data table columns up to ${COLUMN_OPTIONS_LIMIT.toLocaleString()}.`;
 const placeholder = 'Select query type';

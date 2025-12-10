@@ -2589,7 +2589,7 @@ describe("DataFrameQueryEditorV2", () => {
                 await user.tab();
 
                 await waitFor(() => {
-                    expect(screen.getByText("Enter a value greater than or equal to 1"))
+                    expect(screen.getByText("Enter a value greater than or equal to 1."))
                         .toBeInTheDocument();
                 });
             });
@@ -2611,7 +2611,7 @@ describe("DataFrameQueryEditorV2", () => {
                 await user.tab();
 
                 await waitFor(() => {
-                    expect(screen.queryByText("Enter a value greater than or equal to 1"))
+                    expect(screen.queryByText("Enter a value greater than or equal to 1."))
                         .not.toBeInTheDocument();
                     expect(screen.queryByText("Enter a value less than or equal to 1000."))
                         .not.toBeInTheDocument();
