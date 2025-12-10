@@ -1048,12 +1048,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const xColumnName = xColumn ? this.parseColumnIdentifier(xColumn).columnName : null;
 
         return columns.sort((a, b) => {
-            if (xColumnName) {
-                const aIsXColumn = a.name === xColumnName;
-                const bIsXColumn = b.name === xColumnName;
-                if (aIsXColumn !== bIsXColumn) {
-                    return aIsXColumn ? -1 : 1;
-                }
+            const aIsXColumn = a.name === xColumnName;
+            const bIsXColumn = b.name === xColumnName;
+
+            if (aIsXColumn || bIsXColumn) {
+                return aIsXColumn ? -1 : 1;
             }
 
             const orderA = columnTypeOrder[a.columnType];
