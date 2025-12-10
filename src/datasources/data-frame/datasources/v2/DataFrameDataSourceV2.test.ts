@@ -203,110 +203,6 @@ describe('DataFrameDataSourceV2', () => {
             ]);
         });
 
-        describe('when filters are empty', () => {
-            it('should return empty DataFrame and skip table query for Data query type', async () => {
-                const emptyFilterQuery = {
-                    type: DataFrameQueryType.Data,
-                    dataTableFilter: '',
-                    columnFilter: '',
-                    resultFilter: '',
-                    refId: 'A'
-                } as DataFrameQueryV2;
-                const queryTablesSpy = jest.spyOn(ds, 'queryTables$');
-                const result = await lastValueFrom(ds.runQuery(emptyFilterQuery, options));
-
-                expect(result).toEqual(
-                    expect.objectContaining({
-                        refId: 'A',
-                        name: 'A',
-                        fields: []
-                    })
-                );
-                expect(queryTablesSpy).not.toHaveBeenCalled();
-            });
-
-            it('should return empty DataFrame and skip table query for Properties query type', async () => {
-                const emptyFilterQuery = {
-                    type: DataFrameQueryType.Properties,
-                    dataTableFilter: '',
-                    columnFilter: '',
-                    resultFilter: '',
-                    dataTableProperties: [DataTableProperties.Name],
-                    take: 1000,
-                    refId: 'B'
-                } as DataFrameQueryV2;
-                const queryTablesSpy = jest.spyOn(ds, 'queryTables$');
-                const result = await lastValueFrom(ds.runQuery(emptyFilterQuery, options));
-
-                expect(result).toEqual(
-                    expect.objectContaining({
-                        refId: 'B',
-                        name: 'B',
-                        fields: []
-                    })
-                );
-                expect(queryTablesSpy).not.toHaveBeenCalled();
-            });
-        });
-
-        describe('when some filters are present', () => {
-            it('should proceed with query when dataTableFilter has value', async () => {
-                const queryWithDataTableFilter = {
-                    type: DataFrameQueryType.Properties,
-                    dataTableFilter: 'name = "test"',
-                    columnFilter: '',
-                    resultFilter: '',
-                    dataTableProperties: [DataTableProperties.Name],
-                    take: 1000,
-                    refId: 'C'
-                } as DataFrameQueryV2;
-                const queryTablesSpy = jest.spyOn(ds, 'queryTables$').mockReturnValue(of([]));
-
-                await lastValueFrom(ds.runQuery(queryWithDataTableFilter, options));
-
-                expect(queryTablesSpy).toHaveBeenCalled();
-            });
-
-            it('should proceed with query when resultFilter has value', async () => {
-                const queryWithResultFilter = {
-                    type: DataFrameQueryType.Properties,
-                    dataTableFilter: '',
-                    columnFilter: '',
-                    resultFilter: 'status = "Passed"',
-                    dataTableProperties: [DataTableProperties.Name],
-                    take: 1000,
-                    refId: 'D'
-                } as DataFrameQueryV2;
-                const postMock$ = jest.spyOn(ds, 'post$').mockImplementation((url) => {
-                    if (url.includes('nitestmonitor/v2/query-results')) {
-                        return of({ results: [], continuation: null });
-                    }
-                    return of({ tables: [] });
-                });
-
-                await lastValueFrom(ds.runQuery(queryWithResultFilter, options));
-
-                expect(postMock$).toHaveBeenCalled();
-            });
-
-            it('should proceed with query when columnFilter has value', async () => {
-                const queryWithColumnFilter = {
-                    type: DataFrameQueryType.Properties,
-                    dataTableFilter: '',
-                    columnFilter: 'name = "Temperature"',
-                    resultFilter: '',
-                    dataTableProperties: [DataTableProperties.Name],
-                    take: 1000,
-                    refId: 'E'
-                } as DataFrameQueryV2;
-                const queryTablesSpy = jest.spyOn(ds, 'queryTables$').mockReturnValue(of([]));
-
-                await lastValueFrom(ds.runQuery(queryWithColumnFilter, options));
-
-                expect(queryTablesSpy).toHaveBeenCalled();
-            });
-        })
-
         describe("when query type is data", () => {
             const dataQuery = {
                 type: DataFrameQueryType.Data,
@@ -342,6 +238,111 @@ describe('DataFrameDataSourceV2', () => {
                 await lastValueFrom(ds.runQuery(dataQuery, options));
 
                 expect(queryTablesSpy$).not.toHaveBeenCalled();
+            });
+
+            describe('when filters are empty', () => {
+                it('should return empty DataFrame without querying tables', async () => {
+                    const emptyFilterQuery = {
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: '',
+                        columnFilter: '',
+                        resultFilter: '',
+                        refId: 'A'
+                    } as DataFrameQueryV2;
+                    
+                    const result = await lastValueFrom(ds.runQuery(emptyFilterQuery, options));
+                    
+                    expect(result).toEqual(
+                        expect.objectContaining({
+                            refId: 'A',
+                            name: 'A',
+                            fields: []
+                        })
+                    );
+                    expect(queryTablesSpy$).not.toHaveBeenCalled();
+                });
+
+                it('should proceed with query when dataTableFilter is provided', async () => {
+                    const queryWithFilter = {
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: 'name = "test"',
+                        columnFilter: '',
+                        resultFilter: '',
+                        columns: ['col1-Numeric'],
+                        refId: 'B'
+                    } as DataFrameQueryV2;
+                    queryTablesSpy$.mockReturnValue(of([{
+                        id: 'table1',
+                        columns: [{
+                            name: 'col1',
+                            dataType: 'INT32',
+                            columnType: ColumnType.Normal
+                        }]
+                    }]));
+                    jest.spyOn(ds, 'post$').mockReturnValue(of({ frame: { columns: [], data: [] } }));
+                    
+                    await lastValueFrom(ds.runQuery(queryWithFilter, options));
+                    
+                    expect(queryTablesSpy$).toHaveBeenCalled();
+                });
+
+                it('should proceed with query when resultFilter is provided', async () => {
+                    const queryWithResultFilter = {
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: '',
+                        columnFilter: '',
+                        resultFilter: 'status = "Passed"',
+                        columns: ['col1-Numeric'],
+                        refId: 'C'
+                    } as DataFrameQueryV2;
+                    const postMock$ = jest.spyOn(ds, 'post$').mockImplementation((url) => {
+                        if (url.includes('nitestmonitor/v2/query-results')) {
+                            return of({ results: [{ id: 'result1' }], continuation: null });
+                        }
+                        if (url.includes('query-decimated-data')) {
+                            return of({ frame: { columns: ['col1'], data: [] } });
+                        }
+                        return of({ 
+                            tables: [{
+                                id: 'table1',
+                                name: 'table1',
+                                columns: [{
+                                    name: 'col1',
+                                    dataType: 'INT32',
+                                    columnType: ColumnType.Normal
+                                }]
+                            }]
+                        });
+                    });
+                    
+                    await lastValueFrom(ds.runQuery(queryWithResultFilter, options));
+                    
+                    expect(postMock$).toHaveBeenCalled();
+                });
+
+                it('should proceed with query when columnFilter is provided', async () => {
+                    const queryWithColumnFilter = {
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: '',
+                        columnFilter: 'name = "Temperature"',
+                        resultFilter: '',
+                        columns: ['Temperature-Numeric'],
+                        refId: 'D'
+                    } as DataFrameQueryV2;
+                    queryTablesSpy$.mockReturnValue(of([{
+                        id: 'table1',
+                        columns: [{
+                            name: 'Temperature',
+                            dataType: 'FLOAT64',
+                            columnType: ColumnType.Normal
+                        }]
+                    }]));
+                    jest.spyOn(ds, 'post$').mockReturnValue(of({ frame: { columns: [], data: [] } }));
+                    
+                    await lastValueFrom(ds.runQuery(queryWithColumnFilter, options));
+                    
+                    expect(queryTablesSpy$).toHaveBeenCalled();
+                });
             });
 
             describe('column handling', () => {
@@ -579,7 +580,7 @@ describe('DataFrameDataSourceV2', () => {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
                             columns: ['col1-Numeric'],
-                            dataTableFilter: '',
+                            dataTableFilter: 'name = "test"',
                         } as DataFrameQueryV2;
 
                         await expect(
@@ -601,7 +602,7 @@ describe('DataFrameDataSourceV2', () => {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
                             columns: ['col1-Numeric'],
-                            dataTableFilter: '',
+                            dataTableFilter: 'name = "test"',
                         } as DataFrameQueryV2;
 
                         await expect(
@@ -671,7 +672,7 @@ describe('DataFrameDataSourceV2', () => {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
                             columns: of(['colY-Numeric']),
-                            dataTableFilter: '',
+                            dataTableFilter: 'name = \"test\"',
                         };
 
                         await expect(

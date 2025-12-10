@@ -34,14 +34,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const processedQuery = this.processQuery(query);
         const transformedQuery = this.transformQuery(processedQuery, options.scopedVars);
 
-        if (this.areAllFiltersEmpty(processedQuery)) {
-            return of({
-                refId: transformedQuery.refId,
-                name: transformedQuery.refId,
-                fields: []
-            });
-        }
-
         if (this.shouldQueryForData(transformedQuery)) {
             return this.getFieldsForDataQuery$(
                 transformedQuery,
@@ -717,7 +709,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private shouldQueryForData(query: ValidDataFrameQueryV2): boolean {
-        return query.type === DataFrameQueryType.Data;
+        return query.type === DataFrameQueryType.Data
+            && !this.areAllFiltersEmpty(query);
     }
 
     private getFieldsForDataQuery$(
