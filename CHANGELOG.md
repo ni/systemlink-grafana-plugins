@@ -1,3 +1,9 @@
+## [4.100.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.99.0...v4.100.0) (2025-12-10)
+
+### Features
+
+* **dataframe:** Call onRunQuery when decimation method, filter nulls or use time range changes ([#597](https://github.com/ni/systemlink-grafana-plugins/issues/597)) ([42380d6](https://github.com/ni/systemlink-grafana-plugins/commit/42380d6a12332947b99e7d729aea212e40f57682))
+
 ## [4.99.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.98.3...v4.99.0) (2025-12-09)
 
 ### Features
