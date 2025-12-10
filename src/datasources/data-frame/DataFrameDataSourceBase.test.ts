@@ -529,15 +529,11 @@ describe('DataFrameDataSourceBase', () => {
         let ds: TestDataFrameDataSource;
 
         beforeEach(() => {
-            ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
-        });
-
-        it('should return false by default', () => {
-            const query = {} as ValidDataFrameQuery;
-            
-            const result = ds.hasRequiredFilters(query);
-            
-            expect(result).toBe(false);
+            ds = new TestDataFrameDataSource(
+                instanceSettings,
+                backendSrv,
+                templateSrv
+            );
         });
 
         it('should return false for any query object', () => {

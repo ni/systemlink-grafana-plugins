@@ -434,13 +434,13 @@ describe('DataFrameDataSource', () => {
             const mockQuery = {
                 test: 'query-v2'
             } as any;
-
+            
             const result = ds.hasRequiredFilters(mockQuery);
-
+            
             expect(v2Mock.hasRequiredFilters).toHaveBeenCalledWith(mockQuery);
             expect(result).toBe(true);
         });
-
+        
         it('should delegate to v1 hasRequiredFilters when feature toggle is false', () => {
             const ds = new DataFrameDataSource(
                 mockInstanceSettings(false),
@@ -451,9 +451,8 @@ describe('DataFrameDataSource', () => {
             const mockQuery = {
                 test: 'query-v1'
             } as any;
-
             const result = ds.hasRequiredFilters(mockQuery);
-
+            
             expect(v1Mock.hasRequiredFilters).toHaveBeenCalledWith(mockQuery);
             expect(result).toBe(false);
         });
