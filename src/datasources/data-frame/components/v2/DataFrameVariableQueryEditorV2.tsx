@@ -1,7 +1,7 @@
-import { Combobox, ComboboxOption } from "@grafana/ui";
+import { Alert, Combobox, ComboboxOption } from "@grafana/ui";
 import { InlineField } from "core/components/InlineField";
 import { FloatingError } from "core/errors";
-import { INLINE_LABEL_WIDTH } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
+import { errorMessages, INLINE_LABEL_WIDTH } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
 import { DataFrameVariableQuery, DataFrameVariableQueryType, Props } from "datasources/data-frame/types";
 import React from "react";
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
@@ -53,6 +53,20 @@ export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChang
                     placeholder={placeholder}
                     width={40} />
             </InlineField>
+            <div style={{ width: '525px' }}>
+                <Alert
+                    severity='info'
+                    title='Query optimization'
+                    >
+                    {errorMessages.queryOptimization}{' '}
+                    <a 
+                        href="https://www.ni.com/r/dfs-db-query-performance" 
+                        style={{ textDecoration: 'underline' }}
+                        >
+                        Click here to learn more about optimizing data frame queries.
+                    </a>
+                </Alert>
+            </div>
             <DataFrameQueryBuilderWrapper
                 datasource={datasource}
                 resultFilter={migratedQuery.resultFilter}
