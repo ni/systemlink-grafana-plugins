@@ -132,6 +132,13 @@ export abstract class DataFrameDataSourceBase<
         };
     }
 
+    public hasRequiredFilters(resultFilter: string, dataTableFilter: string): boolean {
+        return (
+            resultFilter !== ''
+            || dataTableFilter !== ''
+        );
+    }
+
     protected constructNullFilters(columns: Column[]): ColumnFilter[] {
         return columns.flatMap(({ name, columnType, dataType }) => {
             const filters: ColumnFilter[] = [];

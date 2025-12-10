@@ -524,4 +524,31 @@ describe('DataFrameDataSourceBase', () => {
             });
         });
     });
+    describe('hasRequiredFilters', () => {
+        let ds: TestDataFrameDataSource;
+
+        beforeEach(() => {
+            ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+        });
+
+        it('should return true when resultFilter is not empty', () => {
+            const result = ds.hasRequiredFilters('some filter', '');
+            expect(result).toBe(true);
+        });
+
+        it('should return true when dataTableFilter is not empty', () => {
+            const result = ds.hasRequiredFilters('', 'some filter');
+            expect(result).toBe(true);
+        });
+
+        it('should return true when both filters are not empty', () => {
+            const result = ds.hasRequiredFilters('result filter', 'data table filter');
+            expect(result).toBe(true);
+        });
+
+        it('should return false when both filters are empty', () => {
+            const result = ds.hasRequiredFilters('', '');
+            expect(result).toBe(false);
+        });
+    });
 });

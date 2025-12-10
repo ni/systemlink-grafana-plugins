@@ -702,14 +702,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private shouldQueryForData(query: ValidDataFrameQueryV2): boolean {
         return query.type === DataFrameQueryType.Data
-            && !this.areRequiredFiltersEmpty(query);
-    }
-    
-    private areRequiredFiltersEmpty(query: DataFrameQueryV2): boolean {
-        return (
-            query.resultFilter === ''
-            && query.dataTableFilter === ''
-        );
+            && this.hasRequiredFilters(
+                query.resultFilter,
+                query.dataTableFilter
+            );
     }
 
     private getFieldsForDataQuery$(
