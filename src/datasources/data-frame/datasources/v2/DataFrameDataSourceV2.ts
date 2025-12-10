@@ -812,17 +812,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         decimatedDataMap: Record<string, TableDataRows>,
         xColumn: string | null,
     ): FieldDTO[] {
-        let outputColumns = this.getUniqueColumns(
+        let uniqueOutputColumns = this.getUniqueColumns(
             Object.values(tableColumnsMap)
                 .flatMap(columnsData => columnsData.selectedColumns)
         );
-        outputColumns = this.sortColumnsByType(outputColumns, xColumn);
+        uniqueOutputColumns = this.sortColumnsByType(uniqueOutputColumns, xColumn);
 
         const dataTableNameFieldLabel = 'Data table name';
         const dataTableIdFieldLabel = 'Data table ID';
 
         const fields: FieldDTO[] = [
-            ...outputColumns.map(column => ({
+            ...uniqueOutputColumns.map(column => ({
                 name: column.displayName,
                 type: this.getFieldTypeForDataType(column.dataType),
                 values: [],
@@ -1037,7 +1037,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private sortColumnsByType(
-        columns: ColumnWithDisplayName[],
+        uniqueColumns: ColumnWithDisplayName[],
         xColumn?: string | null
     ): ColumnWithDisplayName[] {
         const columnTypeOrder = {
@@ -1047,7 +1047,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         };
         const xColumnName = xColumn ? this.parseColumnIdentifier(xColumn).columnName : null;
 
-        return columns.sort((a, b) => {
+        return uniqueColumns.sort((a, b) => {
             const aIsXColumn = a.name === xColumnName;
             const bIsXColumn = b.name === xColumnName;
 
