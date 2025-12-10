@@ -821,6 +821,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const dataTableIdFieldLabel = 'Data table ID';
 
         const fields: FieldDTO[] = [
+            ...outputColumns.map(column => ({
+                name: column.displayName,
+                type: this.getFieldTypeForDataType(column.dataType),
+                values: [],
+            })),
             {
                 name: dataTableIdFieldLabel,
                 type: FieldType.string,
@@ -831,11 +836,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 type: FieldType.string,
                 values: [],
             },
-            ...outputColumns.map(column => ({
-                name: column.displayName,
-                type: this.getFieldTypeForDataType(column.dataType),
-                values: [],
-            })),
         ];
 
         Object.entries(decimatedDataMap).forEach(([tableId, tableDataRows]) => {
