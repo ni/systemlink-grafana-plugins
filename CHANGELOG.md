@@ -1,3 +1,9 @@
+## [4.102.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.102.2...v4.102.3) (2025-12-10)
+
+### Bug Fixes
+
+* **dataframe:** Update time filter implementation to apply only when the x column is of type timestamp ([#605](https://github.com/ni/systemlink-grafana-plugins/issues/605)) ([59f935b](https://github.com/ni/systemlink-grafana-plugins/commit/59f935bf9ba0c997c98bef8d7f2cc5b3ab47db52))
+
 ## [4.102.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.102.1...v4.102.2) (2025-12-10)
 
 ### Bug Fixes
