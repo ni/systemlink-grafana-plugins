@@ -240,6 +240,106 @@ describe('DataFrameDataSourceV2', () => {
                 expect(queryTablesSpy$).not.toHaveBeenCalled();
             });
 
+            it('should return empty DataFrame without querying tables when all filters are empty', async () => {
+                const emptyFilterQuery = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: '',
+                    columnFilter: '',
+                    resultFilter: '',
+                    refId: 'A'
+                } as DataFrameQueryV2;
+
+                const result = await lastValueFrom(ds.runQuery(emptyFilterQuery, options));
+
+                expect(result).toEqual(
+                    expect.objectContaining({
+                        refId: 'A',
+                        name: 'A',
+                        fields: []
+                    })
+                );
+                expect(queryTablesSpy$).not.toHaveBeenCalled();
+            });
+
+            it('should return empty DataFrame without querying tables when only column filter is provided', async () => {
+                const emptyFilterQuery = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: '',
+                    columnFilter: 'column = "test"',
+                    resultFilter: '',
+                    refId: 'A'
+                } as DataFrameQueryV2;
+
+                const result = await lastValueFrom(ds.runQuery(emptyFilterQuery, options));
+
+                expect(result).toEqual(
+                    expect.objectContaining({
+                        refId: 'A',
+                        name: 'A',
+                        fields: []
+                    })
+                );
+                expect(queryTablesSpy$).not.toHaveBeenCalled();
+            });
+
+            it('should proceed with query when dataTableFilter is provided', async () => {
+                const queryWithFilter = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "test"',
+                    columnFilter: '',
+                    resultFilter: '',
+                    columns: ['col1-Numeric'],
+                    refId: 'B'
+                } as DataFrameQueryV2;
+                queryTablesSpy$.mockReturnValue(of([{
+                    id: 'table1',
+                    columns: [{
+                        name: 'col1',
+                        dataType: 'INT32',
+                        columnType: ColumnType.Normal
+                    }]
+                }]));
+                jest.spyOn(ds, 'post$').mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+                await lastValueFrom(ds.runQuery(queryWithFilter, options));
+
+                expect(queryTablesSpy$).toHaveBeenCalled();
+            });
+
+            it('should proceed with query when resultFilter is provided', async () => {
+                const queryWithResultFilter = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: '',
+                    columnFilter: '',
+                    resultFilter: 'status = "Passed"',
+                    columns: ['col1-Numeric'],
+                    refId: 'C'
+                } as DataFrameQueryV2;
+                const postMock$ = jest.spyOn(ds, 'post$').mockImplementation((url) => {
+                    if (url.includes('nitestmonitor/v2/query-results')) {
+                        return of({ results: [{ id: 'result1' }], continuation: null });
+                    }
+                    if (url.includes('query-decimated-data')) {
+                        return of({ frame: { columns: ['col1'], data: [] } });
+                    }
+                    return of({
+                        tables: [{
+                            id: 'table1',
+                            name: 'table1',
+                            columns: [{
+                                name: 'col1',
+                                dataType: 'INT32',
+                                columnType: ColumnType.Normal
+                            }]
+                        }]
+                    });
+                });
+
+                await lastValueFrom(ds.runQuery(queryWithResultFilter, options));
+
+                expect(postMock$).toHaveBeenCalled();
+            });
+
             describe('column handling', () => {
                 let options: DataQueryRequest<DataFrameQueryV2>;
                 let queryTablesSpy: jest.SpyInstance;
@@ -475,7 +575,7 @@ describe('DataFrameDataSourceV2', () => {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
                             columns: ['col1-Numeric'],
-                            dataTableFilter: '',
+                            dataTableFilter: 'name = "test"',
                         } as DataFrameQueryV2;
 
                         await expect(
@@ -497,7 +597,7 @@ describe('DataFrameDataSourceV2', () => {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
                             columns: ['col1-Numeric'],
-                            dataTableFilter: '',
+                            dataTableFilter: 'name = "test"',
                         } as DataFrameQueryV2;
 
                         await expect(
@@ -567,7 +667,7 @@ describe('DataFrameDataSourceV2', () => {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
                             columns: of(['colY-Numeric']),
-                            dataTableFilter: '',
+                            dataTableFilter: 'name = \"test\"',
                         };
 
                         await expect(
@@ -3755,6 +3855,38 @@ describe('DataFrameDataSourceV2', () => {
             const result = ds.parseColumnIdentifier(identifier);
 
             expect(result).toEqual({ columnName: 'column-2', transformedDataType: 'Timestamp' });
+        });
+    });
+
+    describe('hasRequiredFilters', () => {
+        it('should return true when at least one filter is non-empty', () => {
+            const query1 = {
+                resultFilter: 'status = "Passed"',
+                dataTableFilter: ''
+            } as ValidDataFrameQueryV2;
+
+            const query2 = {
+                resultFilter: '',
+                dataTableFilter: 'name = "Table1"'
+            } as ValidDataFrameQueryV2;
+
+            const query3 = {
+                resultFilter: 'status = "Passed"',
+                dataTableFilter: 'name = "Table1"'
+            } as ValidDataFrameQueryV2;
+            
+            expect(ds.hasRequiredFilters(query1)).toBe(true);
+            expect(ds.hasRequiredFilters(query2)).toBe(true);
+            expect(ds.hasRequiredFilters(query3)).toBe(true);
+        });
+
+        it('should return false when both filters are empty', () => {
+            const query = {
+                resultFilter: '',
+                dataTableFilter: ''
+            } as ValidDataFrameQueryV2;
+
+            expect(ds.hasRequiredFilters(query)).toBe(false);
         });
     });
 });

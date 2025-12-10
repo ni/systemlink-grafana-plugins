@@ -422,4 +422,39 @@ describe('DataFrameDataSource', () => {
             expect(result).toBe(parsedColumnIdentifier);
         });
     });
+
+    describe('hasRequiredFilters', () => {
+        it('should delegate to v2 hasRequiredFilters when feature toggle is true', () => {
+            const ds = new DataFrameDataSource(
+                mockInstanceSettings(true),
+                backendSrv,
+                templateSrv
+            );
+            v2Mock.hasRequiredFilters = jest.fn().mockReturnValue(true);
+            const mockQuery = {
+                test: 'query-v2'
+            } as any;
+            
+            const result = ds.hasRequiredFilters(mockQuery);
+            
+            expect(v2Mock.hasRequiredFilters).toHaveBeenCalledWith(mockQuery);
+            expect(result).toBe(true);
+        });
+        
+        it('should delegate to v1 hasRequiredFilters when feature toggle is false', () => {
+            const ds = new DataFrameDataSource(
+                mockInstanceSettings(false),
+                backendSrv,
+                templateSrv
+            );
+            v1Mock.hasRequiredFilters = jest.fn().mockReturnValue(false);
+            const mockQuery = {
+                test: 'query-v1'
+            } as any;
+            const result = ds.hasRequiredFilters(mockQuery);
+            
+            expect(v1Mock.hasRequiredFilters).toHaveBeenCalledWith(mockQuery);
+            expect(result).toBe(false);
+        });
+    });
 });
