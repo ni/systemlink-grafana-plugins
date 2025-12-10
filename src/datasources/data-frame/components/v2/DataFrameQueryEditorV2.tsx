@@ -151,12 +151,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
             lastFilterRef.current = transformedFilter;
 
-            if (
-                datasource.hasRequiredFilters(
-                    transformedFilter.resultFilter,
-                    transformedFilter.dataTableFilter
-                )
-            ) {
+            if (datasource.hasRequiredFilters(migratedQuery)) {
                 fetchAndSetColumnOptions(transformedFilter);
                 return;
             }
