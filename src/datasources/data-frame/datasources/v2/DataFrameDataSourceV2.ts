@@ -13,6 +13,7 @@ import { ResultsQueryBuilderFieldNames } from "shared/components/ResultsQueryBui
 import { replaceVariables } from "core/utils";
 import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
 import { QueryBuilderOperations } from "core/query-builder.constants";
+import def from "ajv/dist/vocabularies/discriminator";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
@@ -839,8 +840,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         Object.entries(decimatedDataMap).forEach(([tableId, tableDataRows]) => {
             const tableName = tableNamesMap[tableId] || '';
-            const rowCount = tableDataRows.frame.data.length;
             const columnsData = tableColumnsMap[tableId];
+            const decimatedTableColumns = tableDataRows.frame.columns;
+            const decimatedTableData = tableDataRows.frame.data;
+            const rowCount = decimatedTableData.length;
+
+            const columnInfoByDisplayName = new Map(
+                columnsData.selectedColumns.map(column => [column.displayName, column])
+            );
+            const columnIndexByName = new Map(
+                decimatedTableColumns.map((columnName, index) => [columnName, index])
+            );
 
             fields.forEach(field => {
                 switch (field.name) {
@@ -853,26 +863,28 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         field.values!.push(...tableNameColumnValues);
                         break;
                     default:
-                        const columnInfo = columnsData.selectedColumns.find(
-                            column => column.displayName === field.name
-                        );
-                        if (!columnInfo?.name) {
+                        const { 
+                            name: actualColumnName,
+                            dataType: columnDataType
+                        } = columnInfoByDisplayName.get(field.name) || {};
+                        const columnIndex = columnIndexByName.get(actualColumnName ?? '');
+                        if (
+                            actualColumnName === undefined
+                            || columnDataType === undefined
+                            || columnIndex === undefined
+                        ) {
                             const emptyValues = Array(rowCount).fill(null);
                             field.values!.push(...emptyValues);
                             break;
                         }
 
-                        const columnIndex = tableDataRows.frame.columns.findIndex(
-                            columnName => columnName === columnInfo?.name
-                        );
-                        const decimatedData = tableDataRows.frame.data.map(row => {
-                            return this.transformValue(columnInfo.dataType, row[columnIndex]);
+                        const decimatedData = decimatedTableData.map(row => {
+                            return this.transformValue(columnDataType, row[columnIndex]);
                         });
                         field.values!.push(...decimatedData);
                         break;
                 }
             });
-
         });
 
         return fields;
