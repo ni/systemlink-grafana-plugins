@@ -5,6 +5,7 @@ import { INLINE_LABEL_WIDTH } from "datasources/data-frame/constants/v2/DataFram
 import { DataFrameVariableQuery, DataFrameVariableQueryType, Props } from "datasources/data-frame/types";
 import React from "react";
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
+import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT } from "datasources/data-frame/constants";
 
 export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChange, datasource }: Props) => {
     const migratedQuery = datasource.processVariableQuery(query as DataFrameVariableQuery);
@@ -71,6 +72,7 @@ export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChang
 };
 
 const label = 'Query type';
-const tooltip = 'This field specifies the type for the query that searches the data tables. ' +
-    'The query can retrieve list of data tables or list of data table columns.';
+const tooltip = 'This field specifies the type for the query that searches the data tables. '
+    + `The query can retrieve list of data tables up to ${TAKE_LIMIT.toLocaleString()} `
+    + `or list of data table columns up to ${COLUMN_OPTIONS_LIMIT.toLocaleString()}.`;
 const placeholder = 'Select query type';
