@@ -1,3 +1,9 @@
+## [4.101.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.100.1...v4.101.0) (2025-12-10)
+
+### Features
+
+* **dataframe:** Update take error message and query type tooltip ([#599](https://github.com/ni/systemlink-grafana-plugins/issues/599)) ([b61a965](https://github.com/ni/systemlink-grafana-plugins/commit/b61a9652c4cd6e39adc55d1ca6aa21d5fb5e84b9))
+
 ## [4.100.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.100.0...v4.100.1) (2025-12-10)
 
 ### Bug Fixes
