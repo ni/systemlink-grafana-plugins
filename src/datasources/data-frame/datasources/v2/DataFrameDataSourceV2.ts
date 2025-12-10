@@ -13,7 +13,6 @@ import { ResultsQueryBuilderFieldNames } from "shared/components/ResultsQueryBui
 import { replaceVariables } from "core/utils";
 import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
 import { QueryBuilderOperations } from "core/query-builder.constants";
-import def from "ajv/dist/vocabularies/discriminator";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
