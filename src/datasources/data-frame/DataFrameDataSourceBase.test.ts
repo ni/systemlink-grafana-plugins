@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TimeRange } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { DataFrameDataSourceBase } from './DataFrameDataSourceBase';
-import { DataFrameQuery, DataFrameDataSourceOptions, TableProperties, TableDataRows, Column, DataFrameVariableQuery, ValidDataFrameVariableQuery, DataFrameDataQuery, CombinedFilters, ColumnType, ColumnFilter } from './types';
+import { DataFrameQuery, DataFrameDataSourceOptions, TableProperties, TableDataRows, Column, DataFrameVariableQuery, ValidDataFrameVariableQuery, DataFrameDataQuery, CombinedFilters, ColumnType, ColumnFilter, ValidDataFrameQuery } from './types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { Workspace } from 'core/types';
 import { lastValueFrom, Observable, of } from 'rxjs';
@@ -524,6 +524,7 @@ describe('DataFrameDataSourceBase', () => {
             });
         });
     });
+
     describe('hasRequiredFilters', () => {
         let ds: TestDataFrameDataSource;
 
@@ -531,23 +532,22 @@ describe('DataFrameDataSourceBase', () => {
             ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
         });
 
-        it('should return true when resultFilter is not empty', () => {
-            const result = ds.hasRequiredFilters('some filter', '');
-            expect(result).toBe(true);
+        it('should return false by default', () => {
+            const query = {} as ValidDataFrameQuery;
+            
+            const result = ds.hasRequiredFilters(query);
+            
+            expect(result).toBe(false);
         });
 
-        it('should return true when dataTableFilter is not empty', () => {
-            const result = ds.hasRequiredFilters('', 'some filter');
-            expect(result).toBe(true);
-        });
-
-        it('should return true when both filters are not empty', () => {
-            const result = ds.hasRequiredFilters('result filter', 'data table filter');
-            expect(result).toBe(true);
-        });
-
-        it('should return false when both filters are empty', () => {
-            const result = ds.hasRequiredFilters('', '');
+        it('should return false for any query object', () => {
+            const query = {
+                refId: 'A',
+                dataTableFilter: 'name = "TestTable"',
+            } as ValidDataFrameQuery;
+            
+            const result = ds.hasRequiredFilters(query);
+            
             expect(result).toBe(false);
         });
     });

@@ -279,7 +279,7 @@ describe('DataFrameDataSourceV2', () => {
                         fields: []
                     })
                 );
-                expect(queryTablesSpy$).not.toHaveBeenCalled(); 
+                expect(queryTablesSpy$).not.toHaveBeenCalled();
             });
 
             it('should proceed with query when dataTableFilter is provided', async () => {
@@ -3836,6 +3836,36 @@ describe('DataFrameDataSourceV2', () => {
             const result = ds.parseColumnIdentifier(identifier);
 
             expect(result).toEqual({ columnName: 'column-2', transformedDataType: 'Timestamp' });
+        });
+    });
+
+    describe('hasRequiredFilters', () => {
+        it('should return true when at least one filter is non-empty', () => {
+            const query1 = {
+                resultFilter: 'status = "Passed"',
+                dataTableFilter: ''
+            } as ValidDataFrameQueryV2;
+            const query2 = {
+                resultFilter: '',
+                dataTableFilter: 'name = "Table1"'
+            } as ValidDataFrameQueryV2;
+            const query3 = {
+                resultFilter: 'status = "Passed"',
+                dataTableFilter: 'name = "Table1"'
+            } as ValidDataFrameQueryV2;
+
+            expect(ds.hasRequiredFilters(query1)).toBe(true);
+            expect(ds.hasRequiredFilters(query2)).toBe(true);
+            expect(ds.hasRequiredFilters(query3)).toBe(true);
+        });
+
+        it('should return false when both filters are empty', () => {
+            const query = {
+                resultFilter: '',
+                dataTableFilter: ''
+            } as ValidDataFrameQueryV2;
+
+            expect(ds.hasRequiredFilters(query)).toBe(false);
         });
     });
 });
