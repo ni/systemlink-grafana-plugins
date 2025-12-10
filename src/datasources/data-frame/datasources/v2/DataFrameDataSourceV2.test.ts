@@ -2361,7 +2361,9 @@ describe('DataFrameDataSourceV2', () => {
                 });
 
                 it('should publish the error when get table call failed', async () => {
-                    getSpy$.mockReturnValue(throwError(() => new Error('Table not found')));
+                    getSpy$.mockReturnValue(throwError(() => new Error(
+                        `Request failed with status code: 404. Error message: "The requested resource was not found."`
+                    )));
                     const publishMock = jest.fn();
                     (ds as any).appEvents = { publish: publishMock };
                     const v1Query = {
@@ -2378,7 +2380,7 @@ describe('DataFrameDataSourceV2', () => {
                         type: 'alert-error',
                         payload: [
                             'Error during fetching columns for migration',
-                            'The query failed due to an unknown error.'
+                            'The query to fetch data table columns failed because the requested resource was not found. Please check the query parameters and try again.'
                         ],
                     });
                 });

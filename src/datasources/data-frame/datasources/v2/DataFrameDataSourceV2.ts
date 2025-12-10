@@ -588,6 +588,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         switch (errorDetails.statusCode) {
             case '':
                 return 'The query failed due to an unknown error.';
+            case '404':
+                return `The query to fetch ${context} failed because the requested resource was not found. Please check the query parameters and try again.`;
             case '429':
                 return `The query to fetch ${context} failed due to too many requests. Please try again later.`;
             case '504':
