@@ -1,3 +1,9 @@
+## [4.102.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.101.0...v4.102.0) (2025-12-10)
+
+### Features
+
+* **dataframe:** Handle 404 errors and provide a user friendly message ([#603](https://github.com/ni/systemlink-grafana-plugins/issues/603)) ([01a282e](https://github.com/ni/systemlink-grafana-plugins/commit/01a282e58813e664cad06054c06a2f068acf6148))
+
 ## [4.101.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.100.1...v4.101.0) (2025-12-10)
 
 ### Features
