@@ -1,3 +1,9 @@
+## [4.100.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.100.0...v4.100.1) (2025-12-10)
+
+### Bug Fixes
+
+* **dataframe:** Replace variable with value when calling getTable API during migration ([#598](https://github.com/ni/systemlink-grafana-plugins/issues/598)) ([dc3eb22](https://github.com/ni/systemlink-grafana-plugins/commit/dc3eb2208563b43b9919642e3ce0a7ad2e8cad85))
+
 ## [4.100.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.99.0...v4.100.0) (2025-12-10)
 
 ### Features
