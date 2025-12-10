@@ -70,7 +70,7 @@ export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
 };
 
 export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
-  queryByDataTableProperties: false,
+  queryByDataTableProperties: true,
   queryByResultAndColumnProperties: false,
 };
 

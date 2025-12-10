@@ -36,7 +36,7 @@ Retrieves row data from the columns you select across all data tables matching y
 | **Columns**                         | Select up to 20 columns to retrieve from filtered tables. Format: "Column name" or "Column name (Data type)" |
 | **Include index columns**           | Automatically include the index column from each data table in the results                                   |
 | **X-column**                        | Select the column to use as the X-axis for decimation (must be present in all filtered tables)               |
-| **Decimation method**               | Choose how data is aggregated: Lossy, Lossless, or None                                                      |
+| **Decimation method**               | Choose how data is aggregated: Lossy, Entry-Exit, or Min-Max                                                      |
 | **Use time range**                  | Apply the dashboard's time range filter to timestamp columns                                                 |
 | **Filter nulls**                    | Exclude null values from the results                                                                         |
 
@@ -50,10 +50,10 @@ Retrieves metadata about data tables matching your filters.
 
 | Control                             | Description                                                                                |
 | ----------------------------------- | ------------------------------------------------------------------------------------------ |
-| **Query by data table properties**  | Filter data tables using various properties                                                |
+| **Query by data table properties**  | Filter data tables using various data table properties                                                |
 | **Query by test result properties** | Filter by associated test result properties                                                |
 | **Query by column properties**      | Filter by column-level properties                                                          |
-| **Properties**                      | Select which metadata properties to return (e.g., name, ID, row count, column information) |
+| **Properties**                      | Select which metadata properties to return (e.g., name, ID, row count, column properties) |
 | **Take**                            | Specify the maximum number of records to return (range: 1-1000, default: 1000)             |
 
 ---
