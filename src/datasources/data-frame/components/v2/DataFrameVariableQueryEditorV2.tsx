@@ -53,7 +53,7 @@ export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChang
                     placeholder={placeholder}
                     width={40} />
             </InlineField>
-            <div style={{ width: '525px' }}>
+            <div style={{ width: '525px', marginTop: '16px'}}>
                 <Alert
                     severity='info'
                     title='Query optimization'
