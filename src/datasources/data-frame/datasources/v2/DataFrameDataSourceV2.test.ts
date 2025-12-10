@@ -2319,7 +2319,7 @@ describe('DataFrameDataSourceV2', () => {
                     expect(result.columns).toEqual([]);
                 });
 
-                it('should return an observable with original columns in expected format when columns are not found in table metadata', async () => {
+                it('should return an observable with original columns and datatype set to unknown when columns are not found in table metadata', async () => {
                     getSpy$.mockReturnValue(of({
                         columns: [
                             {
