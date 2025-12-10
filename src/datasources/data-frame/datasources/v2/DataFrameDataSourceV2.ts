@@ -335,14 +335,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
-    private areAllFiltersEmpty(query: DataFrameQueryV2): boolean {
-        return (
-            query.resultFilter === '' 
-            && query.dataTableFilter === '' 
-            && query.columnFilter === ''
-        );
-    }
-
     private getDecimatedDataRequests(
         tableColumnsMap: Record<string, TableColumnsData>,
         query: ValidDataFrameQueryV2,
@@ -711,6 +703,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private shouldQueryForData(query: ValidDataFrameQueryV2): boolean {
         return query.type === DataFrameQueryType.Data
             && !this.areAllFiltersEmpty(query);
+    }
+    
+    private areAllFiltersEmpty(query: DataFrameQueryV2): boolean {
+        return (
+            query.resultFilter === ''
+            && query.dataTableFilter === ''
+            && query.columnFilter === ''
+        );
     }
 
     private getFieldsForDataQuery$(
