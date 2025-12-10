@@ -2,7 +2,7 @@ import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceI
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -743,6 +743,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     return of(
                         this.buildDataFrame(processedQuery.refId)
                     );
+                }
+
+                if (selectedColumnIdentifiers.length > COLUMN_SELECTION_LIMIT) {
+                    const errorMessage = `The number of selected columns (${(selectedColumnIdentifiers.length).toLocaleString()}) exceeds the limit of ${COLUMN_SELECTION_LIMIT.toLocaleString()}. Please select fewer columns and try again.`;
+                    this.appEvents?.publish?.({
+                        type: AppEvents.alertError.name,
+                        payload: ['Column selection error', errorMessage],
+                    });
+                    throw new Error(errorMessage);
                 }
 
                 const projections: DataTableProjections[] = [
