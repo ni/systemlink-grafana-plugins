@@ -129,5 +129,6 @@ View data from data tables associated with passing test results:
 ## Additional Resources
 
 - **Query Optimization:** [Optimizing Data Frame Queries](https://www.ni.com/r/dfs-db-query-performance)
+- **Visualizing Data Tables:** [Visualizing Data Tables in a Dashboard](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/visualizing-data-tables-in-a-dashboard.html)
 - **Test Data Analysis:** [Analyzing and Interacting with Test Results](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/analyzing-test-data-jupyter.html)
 
