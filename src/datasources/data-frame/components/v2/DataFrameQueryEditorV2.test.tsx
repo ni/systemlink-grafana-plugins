@@ -31,8 +31,8 @@ const mockParseColumnIdentifier = (columnIdentifier: string) => {
   };
 };
 
-const mockHasRequiredFilters = jest.fn((resultFilter: string, dataTableFilter: string) => {
-    return (resultFilter !== '' || dataTableFilter !== '');
+const mockHasRequiredFilters = jest.fn((query: ValidDataFrameQueryV2) => {
+    return (query.resultFilter !== '' || query.dataTableFilter !== '');
 });
 
 const renderComponent = (
