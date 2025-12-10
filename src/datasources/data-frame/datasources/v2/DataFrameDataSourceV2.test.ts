@@ -2274,6 +2274,23 @@ describe('DataFrameDataSourceV2', () => {
                     );
                 });
 
+                it('should call get$ with transformed tableId when template variables are used', async () => {
+                    templateSrv.replace.mockReturnValue('table-789');
+                    const v1Query = {
+                        type: DataFrameQueryType.Data,
+                        tableId: '$table',
+                        columns: ['col1', 'col2'],
+                        refId: 'E'
+                    } as DataFrameQueryV1;
+
+                    ds.processQuery(v1Query);
+
+                    expect(templateSrv.replace).toHaveBeenCalledWith('$table', {});
+                    expect(getSpy$).toHaveBeenCalledWith(
+                        expect.stringContaining('tables/table-789')
+                    );
+                });
+
                 it('should not call get$ and should return an empty array when no columns are provided', () => {
                     const v1Query = {
                         type: DataFrameQueryType.Data,
