@@ -379,7 +379,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         let columnName: string | undefined;
 
         if (xColumn) {
-            columnName = this.parseColumnIdentifier(xColumn).columnName;
+            const parsedColumnIdentifier = this.parseColumnIdentifier(xColumn);
+            columnName = parsedColumnIdentifier.transformedDataType === 'Timestamp'
+                ? parsedColumnIdentifier.columnName
+                : undefined;
         } else {
             const timeIndexColumn = columns.find(column =>
                 column.dataType === 'TIMESTAMP' && column.columnType === 'INDEX'
