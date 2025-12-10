@@ -801,6 +801,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                         tableColumnsMap,
                                         tableNamesMap,
                                         decimatedDataMap,
+                                        processedQuery.xColumn,
                                     );
                                     const dataFrame = this.buildDataFrame(
                                         processedQuery.refId,
@@ -821,17 +822,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tableColumnsMap: Record<string, TableColumnsData>,
         tableNamesMap: Record<string, string>,
         decimatedDataMap: Record<string, TableDataRows>,
+        xColumn: string | null,
     ): FieldDTO[] {
-        let outputColumns = this.getUniqueColumns(
+        let uniqueOutputColumns = this.getUniqueColumns(
             Object.values(tableColumnsMap)
                 .flatMap(columnsData => columnsData.selectedColumns)
         );
-        outputColumns = this.sortColumnsByType(outputColumns);
+        uniqueOutputColumns = this.sortColumnsByType(uniqueOutputColumns, xColumn);
 
         const dataTableNameFieldLabel = 'Data table name';
         const dataTableIdFieldLabel = 'Data table ID';
 
         const fields: FieldDTO[] = [
+            ...uniqueOutputColumns.map(column => ({
+                name: column.displayName,
+                type: this.getFieldTypeForDataType(column.dataType),
+                values: [],
+            })),
             {
                 name: dataTableIdFieldLabel,
                 type: FieldType.string,
@@ -842,17 +849,21 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 type: FieldType.string,
                 values: [],
             },
-            ...outputColumns.map(column => ({
-                name: column.displayName,
-                type: this.getFieldTypeForDataType(column.dataType),
-                values: [],
-            })),
         ];
 
         Object.entries(decimatedDataMap).forEach(([tableId, tableDataRows]) => {
             const tableName = tableNamesMap[tableId] || '';
-            const rowCount = tableDataRows.frame.data.length;
             const columnsData = tableColumnsMap[tableId];
+            const decimatedTableColumns = tableDataRows.frame.columns;
+            const decimatedTableData = tableDataRows.frame.data;
+            const rowCount = decimatedTableData.length;
+
+            const columnInfoByDisplayName = new Map(
+                columnsData.selectedColumns.map(column => [column.displayName, column])
+            );
+            const columnIndexByName = new Map(
+                decimatedTableColumns.map((columnName, index) => [columnName, index])
+            );
 
             fields.forEach(field => {
                 switch (field.name) {
@@ -865,26 +876,30 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         field.values!.push(...tableNameColumnValues);
                         break;
                     default:
-                        const columnInfo = columnsData.selectedColumns.find(
-                            column => column.displayName === field.name
-                        );
-                        if (!columnInfo?.name) {
+                        const { 
+                            name: actualColumnName,
+                            dataType: columnDataType
+                        } = columnInfoByDisplayName.get(field.name) || {};
+                        const columnIndex = actualColumnName !== undefined
+                            ? columnIndexByName.get(actualColumnName)
+                            : undefined;
+                        if (
+                            actualColumnName === undefined
+                            || columnDataType === undefined
+                            || columnIndex === undefined
+                        ) {
                             const emptyValues = Array(rowCount).fill(null);
                             field.values!.push(...emptyValues);
                             break;
                         }
 
-                        const columnIndex = tableDataRows.frame.columns.findIndex(
-                            columnName => columnName === columnInfo?.name
-                        );
-                        const decimatedData = tableDataRows.frame.data.map(row => {
-                            return this.transformValue(columnInfo.dataType, row[columnIndex]);
+                        const decimatedData = decimatedTableData.map(row => {
+                            return this.transformValue(columnDataType, row[columnIndex]);
                         });
                         field.values!.push(...decimatedData);
                         break;
                 }
             });
-
         });
 
         return fields;
@@ -1034,15 +1049,24 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private sortColumnsByType(
-        columns: ColumnWithDisplayName[]
+        uniqueColumns: ColumnWithDisplayName[],
+        xColumn?: string | null
     ): ColumnWithDisplayName[] {
         const columnTypeOrder = {
             [ColumnType.Index]: 0,
             [ColumnType.Normal]: 1,
             [ColumnType.Nullable]: 2,
         };
+        const xColumnName = xColumn ? this.parseColumnIdentifier(xColumn).columnName : null;
 
-        return columns.sort((a, b) => {
+        return uniqueColumns.sort((a, b) => {
+            const aIsXColumn = a.name === xColumnName;
+            const bIsXColumn = b.name === xColumnName;
+
+            if (aIsXColumn || bIsXColumn) {
+                return aIsXColumn ? -1 : 1;
+            }
+
             const orderA = columnTypeOrder[a.columnType];
             const orderB = columnTypeOrder[b.columnType];
             return orderA - orderB;
