@@ -31,6 +31,10 @@ const mockParseColumnIdentifier = (columnIdentifier: string) => {
   };
 };
 
+const mockHasRequiredFilters = jest.fn((resultFilter: string, dataTableFilter: string) => {
+    return (resultFilter !== '' || dataTableFilter !== '');
+});
+
 const renderComponent = (
     queryOverrides: Partial<DataFrameDataQuery> = {},
     errorTitle = '',
@@ -67,6 +71,7 @@ const renderComponent = (
         transformDataTableQuery: jest.fn((filter: string) => filter),
         transformResultQuery: jest.fn((filter: string) => filter),
         transformColumnQuery: jest.fn((filter: string) => filter),
+        hasRequiredFilters: mockHasRequiredFilters,
         variablesCache,
         parseColumnIdentifier: mockParseColumnIdentifier,
     } as unknown as DataFrameDataSource;
@@ -567,6 +572,7 @@ describe("DataFrameQueryEditorV2", () => {
                             transformDataTableQuery: jest.fn(f => f),
                             transformResultQuery: jest.fn(f => f),
                             transformColumnQuery: jest.fn(f => f),
+                            hasRequiredFilters: mockHasRequiredFilters,
                         } as any;
 
                             renderComponent({
@@ -617,6 +623,7 @@ describe("DataFrameQueryEditorV2", () => {
                             transformDataTableQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                             transformResultQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                             transformColumnQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
+                            hasRequiredFilters: mockHasRequiredFilters,
                         } as any;
 
                         renderComponent(
@@ -659,6 +666,7 @@ describe("DataFrameQueryEditorV2", () => {
                             transformDataTableQuery: jest.fn(f => f),
                             transformResultQuery: jest.fn(f => f),
                             transformColumnQuery: jest.fn(f => f),
+                            hasRequiredFilters: mockHasRequiredFilters,
                         } as any;
                         renderComponent(
                             {
@@ -704,6 +712,7 @@ describe("DataFrameQueryEditorV2", () => {
                             transformDataTableQuery: jest.fn(f => f),
                             transformResultQuery: jest.fn(f => f),
                             transformColumnQuery: jest.fn(f => f),
+                            hasRequiredFilters: mockHasRequiredFilters,
                         } as any;
 
                         renderComponent(
@@ -771,6 +780,7 @@ describe("DataFrameQueryEditorV2", () => {
                         transformDataTableQuery: jest.fn((filter: string) => filter),
                         transformResultQuery: jest.fn((filter: string) => filter),
                         transformColumnQuery: jest.fn((filter: string) => filter),
+                        hasRequiredFilters: mockHasRequiredFilters,
                     } as any;
 
                     const { onChange } = renderComponent(
@@ -827,6 +837,7 @@ describe("DataFrameQueryEditorV2", () => {
                         transformDataTableQuery: jest.fn((filter: string) => filter),
                         transformResultQuery: jest.fn((filter: string) => filter),
                         transformColumnQuery: jest.fn((filter: string) => filter),
+                        hasRequiredFilters: mockHasRequiredFilters,
                     } as any;
 
                     const { onChange } = renderComponent(
@@ -883,6 +894,7 @@ describe("DataFrameQueryEditorV2", () => {
                         transformDataTableQuery: jest.fn(() => 'name = "Table1"'),
                         transformResultQuery: jest.fn(() => 'status = "Passed"'),
                         transformColumnQuery: jest.fn(() => 'columnName = "Col1"'),
+                        hasRequiredFilters: mockHasRequiredFilters,
                     } as any;
 
                     const { onChange } = renderComponent(
@@ -1137,6 +1149,7 @@ describe("DataFrameQueryEditorV2", () => {
                         transformDataTableQuery: jest.fn((filter: string) => filter),
                         transformResultQuery: jest.fn((filter: string) => filter),
                         transformColumnQuery: jest.fn((filter: string) => filter),
+                        hasRequiredFilters: mockHasRequiredFilters,
                         parseColumnIdentifier: mockParseColumnIdentifier,
                     } as any;
 
@@ -1909,6 +1922,7 @@ describe("DataFrameQueryEditorV2", () => {
                             transformResultQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                             transformDataTableQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                             transformColumnQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
+                            hasRequiredFilters: mockHasRequiredFilters,
                         } as any;
 
                         renderComponent(
@@ -1950,6 +1964,7 @@ describe("DataFrameQueryEditorV2", () => {
                             transformResultQuery: jest.fn(f => f),
                             transformDataTableQuery: jest.fn(f => f),
                             transformColumnQuery: jest.fn(f => f),
+                            hasRequiredFilters: mockHasRequiredFilters,
                         } as any;
                         renderComponent(
                             {
@@ -1994,6 +2009,7 @@ describe("DataFrameQueryEditorV2", () => {
                             transformResultQuery: jest.fn(f => f),
                             transformDataTableQuery: jest.fn(f => f),
                             transformColumnQuery: jest.fn(f => f),
+                            hasRequiredFilters: mockHasRequiredFilters,
                         } as any;
 
                         renderComponent(
