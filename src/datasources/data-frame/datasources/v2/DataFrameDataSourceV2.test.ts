@@ -203,6 +203,110 @@ describe('DataFrameDataSourceV2', () => {
             ]);
         });
 
+        describe('when filters are empty', () => {
+            it('should return empty DataFrame and skip table query for Data query type', async () => {
+                const emptyFilterQuery = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: '',
+                    columnFilter: '',
+                    resultFilter: '',
+                    refId: 'A'
+                } as DataFrameQueryV2;
+                const queryTablesSpy = jest.spyOn(ds, 'queryTables$');
+                const result = await lastValueFrom(ds.runQuery(emptyFilterQuery, options));
+
+                expect(result).toEqual(
+                    expect.objectContaining({
+                        refId: 'A',
+                        name: 'A',
+                        fields: []
+                    })
+                );
+                expect(queryTablesSpy).not.toHaveBeenCalled();
+            });
+
+            it('should return empty DataFrame and skip table query for Properties query type', async () => {
+                const emptyFilterQuery = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableFilter: '',
+                    columnFilter: '',
+                    resultFilter: '',
+                    dataTableProperties: [DataTableProperties.Name],
+                    take: 1000,
+                    refId: 'B'
+                } as DataFrameQueryV2;
+                const queryTablesSpy = jest.spyOn(ds, 'queryTables$');
+                const result = await lastValueFrom(ds.runQuery(emptyFilterQuery, options));
+
+                expect(result).toEqual(
+                    expect.objectContaining({
+                        refId: 'B',
+                        name: 'B',
+                        fields: []
+                    })
+                );
+                expect(queryTablesSpy).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('when some filters are present', () => {
+            it('should proceed with query when dataTableFilter has value', async () => {
+                const queryWithDataTableFilter = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableFilter: 'name = "test"',
+                    columnFilter: '',
+                    resultFilter: '',
+                    dataTableProperties: [DataTableProperties.Name],
+                    take: 1000,
+                    refId: 'C'
+                } as DataFrameQueryV2;
+                const queryTablesSpy = jest.spyOn(ds, 'queryTables$').mockReturnValue(of([]));
+
+                await lastValueFrom(ds.runQuery(queryWithDataTableFilter, options));
+
+                expect(queryTablesSpy).toHaveBeenCalled();
+            });
+
+            it('should proceed with query when resultFilter has value', async () => {
+                const queryWithResultFilter = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableFilter: '',
+                    columnFilter: '',
+                    resultFilter: 'status = "Passed"',
+                    dataTableProperties: [DataTableProperties.Name],
+                    take: 1000,
+                    refId: 'D'
+                } as DataFrameQueryV2;
+                const postMock$ = jest.spyOn(ds, 'post$').mockImplementation((url) => {
+                    if (url.includes('nitestmonitor/v2/query-results')) {
+                        return of({ results: [], continuation: null });
+                    }
+                    return of({ tables: [] });
+                });
+
+                await lastValueFrom(ds.runQuery(queryWithResultFilter, options));
+
+                expect(postMock$).toHaveBeenCalled();
+            });
+
+            it('should proceed with query when columnFilter has value', async () => {
+                const queryWithColumnFilter = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableFilter: '',
+                    columnFilter: 'name = "Temperature"',
+                    resultFilter: '',
+                    dataTableProperties: [DataTableProperties.Name],
+                    take: 1000,
+                    refId: 'E'
+                } as DataFrameQueryV2;
+                const queryTablesSpy = jest.spyOn(ds, 'queryTables$').mockReturnValue(of([]));
+
+                await lastValueFrom(ds.runQuery(queryWithColumnFilter, options));
+
+                expect(queryTablesSpy).toHaveBeenCalled();
+            });
+        })
+
         describe("when query type is data", () => {
             const dataQuery = {
                 type: DataFrameQueryType.Data,
@@ -2036,134 +2140,46 @@ describe('DataFrameDataSourceV2', () => {
     });
 
     describe('shouldRunQuery', () => {
-        describe('when query type is valid', () => {
-            it('should return true when query type is Properties and has filters', () => {
-                const query = {
-                    type: DataFrameQueryType.Properties,
-                    dataTableFilter: 'name = "test"'
-                } as ValidDataFrameQueryV2;
+        it('should return true when query type is Properties', () => {
+            const query = {
+                type: DataFrameQueryType.Properties,
+            } as ValidDataFrameQueryV2;
 
-                const result = ds.shouldRunQuery(query);
+            const result = ds.shouldRunQuery(query);
 
-                expect(result).toBe(true);
-            });
-
-            it('should return true when query type is Data and has filters', () => {
-                const query = {
-                    type: DataFrameQueryType.Data,
-                    dataTableFilter: 'name = "test"'
-                } as ValidDataFrameQueryV2;
-
-                const result = ds.shouldRunQuery(query);
-
-                expect(result).toBe(true);
-            });
+            expect(result).toBe(true);
         });
 
-        describe('when hide property is set', () => {
-            it('should return false when hide is true', () => {
-                const query = {
-                    type: DataFrameQueryType.Properties,
-                    hide: true,
-                    dataTableFilter: 'name = "test"'
-                } as ValidDataFrameQueryV2;
+        it('should return true when query type is Data', () => {
+            const query = {
+                type: DataFrameQueryType.Data,
+            } as ValidDataFrameQueryV2;
 
-                const result = ds.shouldRunQuery(query);
+            const result = ds.shouldRunQuery(query);
 
-                expect(result).toBe(false);
-            });
-
-            it('should return true when hide is false and has filters', () => {
-                const query = {
-                    type: DataFrameQueryType.Properties,
-                    hide: false,
-                    dataTableFilter: 'name = "test"'
-                } as ValidDataFrameQueryV2;
-
-                const result = ds.shouldRunQuery(query);
-
-                expect(result).toBe(true);
-            });
+            expect(result).toBe(true);
         });
 
-        describe('when query has filters', () => {
-            let baseQuery: DataFrameQueryV2;
+        it('should return false when hide is true', () => {
+            const query = {
+                type: DataFrameQueryType.Properties,
+                hide: true
+            } as ValidDataFrameQueryV2;
 
-            beforeEach(() => {
-                baseQuery = {
-                    hide: false,
-                    resultFilter: '',
-                    dataTableFilter: '',
-                    columnFilter: ''
-                } as DataFrameQueryV2;
-            });
+            const result = ds.shouldRunQuery(query);
 
-            it('should return true when query has resultFilter', () => {
-                const query = {
-                    ...baseQuery,
-                    resultFilter: 'status = "Passed"'
-                };
-
-                const result = ds.shouldRunQuery(query);
-
-                expect(result).toBe(true);
-            });
-
-            it('should return true when query has dataTableFilter', () => {
-                const query = {
-                    ...baseQuery,
-                    dataTableFilter: 'name = "Test"'
-                };
-
-                const result = ds.shouldRunQuery(query);
-
-                expect(result).toBe(true);
-            });
-
-            it('should return true when query has columnFilter', () => {
-                const query = {
-                    ...baseQuery,
-                    columnFilter: 'name = "Column1"'
-                };
-
-                const result = ds.shouldRunQuery(query);
-
-                expect(result).toBe(true);
-            });
-
-            it('should return true when query has multiple filters', () => {
-                const query = {
-                    ...baseQuery,
-                    resultFilter: 'status = "Passed"',
-                    dataTableFilter: 'name = "Test"',
-                    columnFilter: 'name = "Column1"'
-                };
-
-                const result = ds.shouldRunQuery(query);
-
-                expect(result).toBe(true);
-            });
-
-            it('should return false when all filters are empty strings', () => {
-                const result = ds.shouldRunQuery(baseQuery);
-
-                expect(result).toBe(false);
-            });
+            expect(result).toBe(false);
         });
 
-        describe('when query is hidden', () => {
-            it('should return false regardless of filters', () => {
-                const query = {
-                    hide: true,
-                    resultFilter: 'status = "Passed"',
-                    dataTableFilter: 'name = "Test"',
-                    columnFilter: 'name = "Column1"'
-                } as DataFrameQueryV2;
+        it('should return true when hide is false', () => {
+            const query = {
+                type: DataFrameQueryType.Properties,
+                hide: false
+            } as ValidDataFrameQueryV2;
 
-                const result = ds.shouldRunQuery(query);
+            const result = ds.shouldRunQuery(query);
 
-                expect(result).toBe(false);
-            });
+            expect(result).toBe(true);
         });
     });
 
