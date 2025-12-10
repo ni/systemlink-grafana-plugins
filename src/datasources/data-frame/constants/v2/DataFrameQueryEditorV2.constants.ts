@@ -57,9 +57,9 @@ export const tooltips = {
     dataTableProperties: 'This field specifies the data table properties to be queried.',
     columnProperties: 'This field specifies the column properties to be queried.',
     decimationMethod: 'Specifies the method used to decimate the data.',
-    xColumn: 'Specifies the column to use for the x-axis when decimating the data.',
-    useTimeRange: `Specifies whether to query only for data within the dashboard time range if the
-                table index is a timestamp. Enable when interacting with your data on a graph.`,
+    xColumn: `Specifies the column to use for the x-axis when decimating the data. Table's INDEX column will be used if not selected.`,
+    useTimeRange: `Applies the dashboard time range to the selected x-column if it's a timestamp; 
+        otherwise, applies it to the table's INDEX column when that column is a timestamp. Enable when interacting with your data on a graph.`,
 };
 
 /**
