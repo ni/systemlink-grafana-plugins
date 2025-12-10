@@ -132,11 +132,8 @@ export abstract class DataFrameDataSourceBase<
         };
     }
 
-    public hasRequiredFilters(resultFilter: string, dataTableFilter: string): boolean {
-        return (
-            resultFilter !== ''
-            || dataTableFilter !== ''
-        );
+    public hasRequiredFilters(_query: ValidDataFrameQuery): boolean {
+        return false;
     }
 
     protected constructNullFilters(columns: Column[]): ColumnFilter[] {
