@@ -868,7 +868,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             name: actualColumnName,
                             dataType: columnDataType
                         } = columnInfoByDisplayName.get(field.name) || {};
-                        const columnIndex = columnIndexByName.get(actualColumnName ?? '');
+                        const columnIndex = actualColumnName !== undefined
+                            ? columnIndexByName.get(actualColumnName)
+                            : undefined;
                         if (
                             actualColumnName === undefined
                             || columnDataType === undefined
