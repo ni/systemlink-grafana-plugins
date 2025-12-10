@@ -348,7 +348,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             query.resultFilter === '' 
             && query.dataTableFilter === '' 
             && query.columnFilter === ''
-        )
+        );
     }
 
     private getDecimatedDataRequests(
