@@ -1,3 +1,9 @@
+## [4.102.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.102.1...v4.102.2) (2025-12-10)
+
+### Bug Fixes
+
+* **dataframe:** Add unknown as datatype when the migration failed ([#604](https://github.com/ni/systemlink-grafana-plugins/issues/604)) ([3cc84ff](https://github.com/ni/systemlink-grafana-plugins/commit/3cc84ff7b9fb160b9fc27ced27b8d6ac3aeca307))
+
 ## [4.102.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.102.0...v4.102.1) (2025-12-10)
 
 ### Bug Fixes
