@@ -9,8 +9,9 @@ The **SystemLink Data Frames** data source enables you to query and visualize da
 ## Key Features
 
 - **Two Query Types Available:**
-    - **Data Query** — Retrieve and display row data from selected columns across one or multiple filtered data tables
-    - **Properties Query** — Retrieve and display data table metadata properties such as name, ID, row count, column information, and workspace
+
+  - **Data Query** — Retrieve and display row data from selected columns across one or multiple filtered data tables
+  - **Properties Query** — Retrieve and display data table metadata properties such as name, ID, row count, column information, and workspace
 
 - **Flexible Filtering** — Filter data tables by properties including name, ID, workspace, creation date, row count, and custom properties
 
@@ -36,7 +37,7 @@ Retrieves row data from the columns you select across all data tables matching y
 | **Columns**                         | Select up to 20 columns to retrieve from filtered tables. Format: "Column name" or "Column name (Data type)" |
 | **Include index columns**           | Automatically include the index column from each data table in the results                                   |
 | **X-column**                        | Select the column to use as the X-axis for decimation (must be present in all filtered tables)               |
-| **Decimation method**               | Choose how data is aggregated: Lossy, Entry-Exit, or Min-Max                                                      |
+| **Decimation method**               | Choose how data is aggregated: Lossy, Entry-Exit, or Min-Max                                                 |
 | **Use time range**                  | Apply the dashboard's time range filter to timestamp columns                                                 |
 | **Filter nulls**                    | Exclude null values from the results                                                                         |
 
@@ -48,13 +49,13 @@ Retrieves metadata about data tables matching your filters.
 
 **Configuration Options:**
 
-| Control                             | Description                                                                                |
-| ----------------------------------- | ------------------------------------------------------------------------------------------ |
-| **Query by data table properties**  | Filter data tables using various data table properties                                                |
-| **Query by test result properties** | Filter by associated test result properties                                                |
-| **Query by column properties**      | Filter by column-level properties                                                          |
+| Control                             | Description                                                                               |
+| ----------------------------------- | ----------------------------------------------------------------------------------------- |
+| **Query by data table properties**  | Filter data tables using various data table properties                                    |
+| **Query by test result properties** | Filter by associated test result properties                                               |
+| **Query by column properties**      | Filter by column-level properties                                                         |
 | **Properties**                      | Select which metadata properties to return (e.g., name, ID, row count, column properties) |
-| **Take**                            | Specify the maximum number of records to return (range: 1-1000, default: 1000)             |
+| **Take**                            | Specify the maximum number of records to return (range: 1-1000, default: 1000)            |
 
 ---
 
@@ -65,6 +66,7 @@ Retrieves metadata about data tables matching your filters.
 **Indexed Properties (Recommended for Optimal Performance):**
 
 Always include filters on indexed properties such as:
+
 - Test Result ID (when using test result filters)
 - Data table ID
 - Data table name
@@ -131,4 +133,3 @@ View data from data tables associated with passing test results:
 - **Query Optimization:** [Optimizing Data Frame Queries](https://www.ni.com/r/dfs-db-query-performance)
 - **Visualizing Data Tables:** [Visualizing Data Tables in a Dashboard](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/visualizing-data-tables-in-a-dashboard.html)
 - **Test Data Analysis:** [Analyzing and Interacting with Test Results](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/analyzing-test-data-jupyter.html)
-
