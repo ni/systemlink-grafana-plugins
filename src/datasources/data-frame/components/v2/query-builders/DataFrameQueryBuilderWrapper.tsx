@@ -38,7 +38,7 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
     onColumnFilterChange,
 }) => {
     const isQueryByResultAndColumnPropertiesEnabled = 
-    datasource.instanceSettings.jsonData?.featureToggles?.queryByResultAndColumnProperties ?? true;
+    datasource.instanceSettings.jsonData.featureToggles.queryByResultAndColumnProperties;
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
     const [partNumbers, setPartNumbers] = useState<string[] | null>(null);
 
