@@ -261,6 +261,27 @@ describe('DataFrameDataSourceV2', () => {
                 expect(queryTablesSpy$).not.toHaveBeenCalled();
             });
 
+            it('should return empty DataFrame without querying tables when only column filter is provided', async () => {
+                const emptyFilterQuery = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: '',
+                    columnFilter: 'column = "test"',
+                    resultFilter: '',
+                    refId: 'A'
+                } as DataFrameQueryV2;
+
+                const result = await lastValueFrom(ds.runQuery(emptyFilterQuery, options));
+
+                expect(result).toEqual(
+                    expect.objectContaining({
+                        refId: 'A',
+                        name: 'A',
+                        fields: []
+                    })
+                );
+                expect(queryTablesSpy$).not.toHaveBeenCalled(); 
+            });
+
             it('should proceed with query when dataTableFilter is provided', async () => {
                 const queryWithFilter = {
                     type: DataFrameQueryType.Data,
@@ -317,30 +338,6 @@ describe('DataFrameDataSourceV2', () => {
                 await lastValueFrom(ds.runQuery(queryWithResultFilter, options));
 
                 expect(postMock$).toHaveBeenCalled();
-            });
-
-            it('should proceed with query when columnFilter is provided', async () => {
-                const queryWithColumnFilter = {
-                    type: DataFrameQueryType.Data,
-                    dataTableFilter: '',
-                    columnFilter: 'name = "Temperature"',
-                    resultFilter: '',
-                    columns: ['Temperature-Numeric'],
-                    refId: 'D'
-                } as DataFrameQueryV2;
-                queryTablesSpy$.mockReturnValue(of([{
-                    id: 'table1',
-                    columns: [{
-                        name: 'Temperature',
-                        dataType: 'FLOAT64',
-                        columnType: ColumnType.Normal
-                    }]
-                }]));
-                jest.spyOn(ds, 'post$').mockReturnValue(of({ frame: { columns: [], data: [] } }));
-
-                await lastValueFrom(ds.runQuery(queryWithColumnFilter, options));
-
-                expect(queryTablesSpy$).toHaveBeenCalled();
             });
 
             describe('column handling', () => {

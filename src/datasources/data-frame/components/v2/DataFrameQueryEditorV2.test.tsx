@@ -249,7 +249,7 @@ describe("DataFrameQueryEditorV2", () => {
                 });
 
                 it('should not load column options when filter is empty', async () => {
-                    renderComponent({ dataTableFilter: '' });
+                    renderComponent({ dataTableFilter: '', resultFilter: ''});
 
                     await clickColumnOptions();
 
