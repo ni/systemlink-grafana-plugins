@@ -474,7 +474,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return [];
         }
 
-        return this.getTable(tableId).pipe(
+        const transformedTableId = this.templateSrv.replace(tableId, this.scopedVars);
+        return this.getTable(transformedTableId).pipe(
             map(table => this.migrateColumnsFromV1ToV2(currentColumns, table)),
             catchError(error => {
                 const errorMessage = this.getErrorMessage(error, 'data table columns');
