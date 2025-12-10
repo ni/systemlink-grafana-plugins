@@ -790,6 +790,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                         tableColumnsMap,
                                         tableNamesMap,
                                         decimatedDataMap,
+                                        processedQuery.xColumn,
                                     );
                                     const dataFrame = this.buildDataFrame(
                                         processedQuery.refId,
@@ -810,12 +811,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tableColumnsMap: Record<string, TableColumnsData>,
         tableNamesMap: Record<string, string>,
         decimatedDataMap: Record<string, TableDataRows>,
+        xColumn: string | null,
     ): FieldDTO[] {
         let outputColumns = this.getUniqueColumns(
             Object.values(tableColumnsMap)
                 .flatMap(columnsData => columnsData.selectedColumns)
         );
-        outputColumns = this.sortColumnsByType(outputColumns);
+        outputColumns = this.sortColumnsByType(outputColumns, xColumn);
 
         const dataTableNameFieldLabel = 'Data table name';
         const dataTableIdFieldLabel = 'Data table ID';
@@ -1034,15 +1036,25 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private sortColumnsByType(
-        columns: ColumnWithDisplayName[]
+        columns: ColumnWithDisplayName[],
+        xColumn?: string | null
     ): ColumnWithDisplayName[] {
         const columnTypeOrder = {
             [ColumnType.Index]: 0,
             [ColumnType.Normal]: 1,
             [ColumnType.Nullable]: 2,
         };
+        const xColumnName = xColumn ? this.parseColumnIdentifier(xColumn).columnName : null;
 
         return columns.sort((a, b) => {
+            if (xColumnName) {
+                const aIsXColumn = a.name === xColumnName;
+                const bIsXColumn = b.name === xColumnName;
+                if (aIsXColumn !== bIsXColumn) {
+                    return aIsXColumn ? -1 : 1;
+                }
+            }
+
             const orderA = columnTypeOrder[a.columnType];
             const orderB = columnTypeOrder[b.columnType];
             return orderA - orderB;
