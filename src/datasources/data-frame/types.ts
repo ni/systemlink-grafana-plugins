@@ -256,7 +256,9 @@ export type ValidDataFrameQueryV1 = DataFrameQueryV1 & Required<Omit<DataFrameQu
 
 export type ValidDataFrameQueryV2 = DataFrameQueryV2 & Required<Omit<DataFrameQueryV2, keyof DataQuery>>;
 
-export type ColumnDataType = 'BOOL' | 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64' | 'STRING' | 'TIMESTAMP';
+export type NumericDataType = 'INT32' | 'INT64' | 'FLOAT32' | 'FLOAT64';
+
+export type ColumnDataType = NumericDataType | 'TIMESTAMP' | 'BOOL' | 'STRING';
 
 export type Props = QueryEditorProps<DataFrameDataSource, DataFrameQuery, DataFrameDataSourceOptions>;
 
@@ -282,6 +284,10 @@ export interface Column {
   dataType: ColumnDataType;
   columnType: ColumnType;
   properties: Record<string, string>;
+}
+
+export interface ColumnWithDisplayName extends Column {
+  displayName: string;
 }
 
 export interface ColumnFilter {
@@ -360,6 +366,11 @@ export interface DecimatedDataRequest {
   columns: string[];
   filters: ColumnFilter[];
   decimation: DecimationOptions;
+}
+
+export interface TableColumnsData {
+  columns: Column[];
+  selectedColumns: ColumnWithDisplayName[];
 }
 
 export function isSystemLinkError(error: any): error is SystemLinkError {

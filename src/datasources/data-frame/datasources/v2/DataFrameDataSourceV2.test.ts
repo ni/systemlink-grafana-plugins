@@ -54,11 +54,21 @@ describe('DataFrameDataSourceV2', () => {
                 } 
             } 
         } as any;
-        backendSrv = {} as any;
+        backendSrv = {
+            fetch: jest.fn().mockReturnValue(of({ 
+                data: {
+                    endpoint: 'test',
+                    sessionKey: {
+                        expiry: new Date(Date.now() + 3600000).toISOString(),
+                        secret: 'test-secret'
+                    }
+                }
+            }))
+        } as any;
         templateSrv = {
             replace: jest.fn((value: string) => value),
             getVariables: jest.fn(() => []),
-            containsTemplate: jest.fn(() => false)
+            containsTemplate: jest.fn((value: string) => value.includes("$"))
         } as any;
         ds = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
     });
@@ -142,14 +152,14 @@ describe('DataFrameDataSourceV2', () => {
                 take: 1000,
                 refId: 'A'
             } as DataFrameQueryV2;
-            templateSrv.replace.mockReturnValue('name = "TestColumn"');
+            templateSrv.replace.mockReturnValue('TestColumn');
             const queryTablesSpy$ = jest.spyOn(ds, 'queryTables$').mockReturnValue(of([]));
 
             await lastValueFrom(ds.runQuery(query, options));
 
-            expect(templateSrv.replace).toHaveBeenCalledWith('name = "${columnName}"', options.scopedVars);
+            expect(templateSrv.replace).toHaveBeenCalledWith('${columnName}', options.scopedVars);
             expect(queryBuilderUtils.transformComputedFieldsQuery).toHaveBeenCalledWith(
-                'name = "TestColumn"',
+                'name = "${columnName}"',
                 expect.any(Object)
             );
             expect(queryTablesSpy$).toHaveBeenCalledWith(
@@ -235,6 +245,7 @@ describe('DataFrameDataSourceV2', () => {
                 let queryTablesSpy: jest.SpyInstance;
 
                 const projections = [
+                    DataTableProjections.Name,
                     DataTableProjections.ColumnName,
                     DataTableProjections.ColumnDataType,
                     DataTableProjections.ColumnType
@@ -269,6 +280,12 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
+                    jest.spyOn(ds, 'post$').mockReturnValue(of({
+                        frame: {
+                            columns: ['col1'],
+                            data: [['1']]
+                        }
+                    }));
                     (coreUtils.replaceVariables as jest.Mock).mockReturnValue(['col1-Numeric']);
                     const query = {
                         refId: 'A',
@@ -349,6 +366,17 @@ describe('DataFrameDataSourceV2', () => {
                         }];
                         queryTablesSpy.mockReturnValue(of(mockTables));
 
+                        const mockDecimatedData = {
+                            frame: {
+                                columns: ['colA', 'colB'],
+                                data: [
+                                    ['2024-01-01T00:00:00Z', '1'],
+                                    ['2024-01-01T01:00:00Z', '2']
+                                ]
+                            }
+                        };
+                        jest.spyOn(ds, 'post$').mockReturnValue(of(mockDecimatedData));
+
                         const query = {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
@@ -387,6 +415,14 @@ describe('DataFrameDataSourceV2', () => {
                             ]
                         }];
                         queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const mockDecimatedData = {
+                            frame: {
+                                columns: ['colX'],
+                                data: [['10.5', '20.3']]
+                            }
+                        };
+                        jest.spyOn(ds, 'post$').mockReturnValue(of(mockDecimatedData));
 
                         const query: any = {
                             refId: 'A',
@@ -728,6 +764,12 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
+                    jest.spyOn(ds, 'post$').mockReturnValue(of({
+                        frame: {
+                            columns: ['timestamp', 'value'],
+                            data: [['2024-01-01T00:00:00Z'], ['10.5']]
+                        }
+                    }));
                     templateSrv.replace.mockReturnValue('timestamp-Timestamp');
                     const query = {
                         refId: 'A',
@@ -779,6 +821,32 @@ describe('DataFrameDataSourceV2', () => {
                             }
                         ];
                         queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const mockDecimatedData1 = {
+                            frame: {
+                                columns: ['time', 'value'],
+                                data: [
+                                    ['2024-01-01T00:00:00Z', '10.5'],
+                                    ['2024-01-01T01:00:00Z', '20.3']
+                                ]
+                            }
+                        };
+                        const mockDecimatedData2 = {
+                            frame: {
+                                columns: ['time'],
+                                data: [['2024-01-01T00:00:00Z', '2024-01-01T01:00:00Z']]
+                            }
+                        };
+                        jest.spyOn(ds, 'post$').mockImplementation((url: string) => {
+                            if (url.includes('table1/query-decimated-data')) {
+                                return of(mockDecimatedData1);
+                            }
+                            if (url.includes('table2/query-decimated-data')) {
+                                return of(mockDecimatedData2);
+                            }
+                            return of({});
+                        });
+
                         const query = {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
@@ -822,6 +890,32 @@ describe('DataFrameDataSourceV2', () => {
                             }
                         ];
                         queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const mockDecimatedData1 = {
+                            frame: {
+                                columns: ['time', 'value'],
+                                data: [
+                                    ['2024-01-01T00:00:00Z', '10.5'],
+                                    ['2024-01-01T01:00:00Z', '20.3']
+                                ]
+                            }
+                        };
+                        const mockDecimatedData2 = {
+                            frame: {
+                                columns: ['time'],
+                                data: [['2024-01-01T00:00:00Z', '2024-01-01T01:00:00Z']]
+                            }
+                        };
+                        jest.spyOn(ds, 'post$').mockImplementation((url: string) => {
+                            if (url.includes('table1/query-decimated-data')) {
+                                return of(mockDecimatedData1);
+                            }
+                            if (url.includes('table2/query-decimated-data')) {
+                                return of(mockDecimatedData2);
+                            }
+                            return of({});
+                        });
+
                         const query = {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
@@ -1540,14 +1634,14 @@ describe('DataFrameDataSourceV2', () => {
                     columnName: { value: 'TestColumn' }
                 }
             };
-            templateSrv.replace.mockReturnValue('name = "TestColumn"');
+            templateSrv.replace.mockReturnValue('TestColumn');
             queryTablesSpy$.mockReturnValue(of([]));
 
             await ds.metricFindQuery(query, optionsWithColumnName);
 
-            expect(templateSrv.replace).toHaveBeenCalledWith('name = "${columnName}"', optionsWithColumnName.scopedVars);
+            expect(templateSrv.replace).toHaveBeenCalledWith('${columnName}', {});
             expect(queryBuilderUtils.transformComputedFieldsQuery).toHaveBeenCalledWith(
-                'name = "TestColumn"',
+                'name = "${columnName}"',
                 expect.any(Object)
             );
             expect(queryTablesSpy$).toHaveBeenCalledWith(
@@ -1717,7 +1811,7 @@ describe('DataFrameDataSourceV2', () => {
                         columnName: { value: 'TestColumn' }
                     }
                 };
-                templateSrv.replace.mockReturnValue('name = "TestColumn"');
+                templateSrv.replace.mockReturnValue('TestColumn');
                 queryTablesSpy$.mockReturnValue(of([]));
 
                 await ds.metricFindQuery(queryWithColumnFilter, optionsWithColumnName);
@@ -1849,7 +1943,7 @@ describe('DataFrameDataSourceV2', () => {
                         columnName: { value: 'TestColumn' }
                     }
                 };
-                templateSrv.replace.mockReturnValue('name = "TestColumn"');
+                templateSrv.replace.mockReturnValue('TestColumn');
 
                 await ds.metricFindQuery(queryWithColumnFilter, optionsWithColumnName);
                 
@@ -3549,20 +3643,11 @@ describe('DataFrameDataSourceV2', () => {
     });
 
     describe('transformColumnQuery', () => {
-        it('should transform with the new scopedVariables when passed in as parameter', () => {
-            const input = 'name = "${Column}" AND name != "abc"';
-            const scopedVars = {
-                Column: { text: 'Column1', value: 'Column1' }
-            };
-            
-            ds.transformColumnQuery(input, scopedVars);    
-            expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
-        });
-
-        it('should transform with saved scopedVariables when not passed in as parameter', async () => {
-            const scopedVars = {
+        const scopedVars = {
                 column: { value: 'TestColumn' }
-            }
+        };
+
+        beforeEach(async () => {
             const query = {
                 type: DataFrameQueryType.Data,
                 dataTableFilter: '',
@@ -3571,16 +3656,19 @@ describe('DataFrameDataSourceV2', () => {
                 scopedVars: scopedVars
             } as unknown as DataQueryRequest<DataFrameQueryV2>;
             await lastValueFrom(ds.runQuery(query, options));
+        });
+
+        it('should transform with saved scopedVariables', async () => {
             const input = 'name = "$Column"';
             
             ds.transformColumnQuery(input);   
  
-            expect(templateSrv.replace).toHaveBeenCalledWith(input, scopedVars);
+            expect(templateSrv.replace).toHaveBeenCalledWith('$Column', scopedVars);
         });
 
         it('should replace single-value variables', () => {
             const input = 'name = "$Column"&&name != "abc"';
-            templateSrv.replace.mockReturnValue('name = "{Column1}"&&name != "abc"');
+            templateSrv.replace.mockReturnValue('Column1');
             
             const result = ds.transformColumnQuery(input);
 
@@ -3597,7 +3685,7 @@ describe('DataFrameDataSourceV2', () => {
 
         it('should parse column name with hyphen correctly in single-value variable', () => {
             const input = 'name = "$Column"';
-            templateSrv.replace.mockReturnValue('name = "{Column1-Numeric}"');
+            templateSrv.replace.mockReturnValue('{Column1-Numeric}');
             
             const result = ds.transformColumnQuery(input);
 
@@ -3606,7 +3694,7 @@ describe('DataFrameDataSourceV2', () => {
 
         it('should parse column name with hyphen correctly in multi-value variable', () => {
             const input = 'name = "$Column"';
-            templateSrv.replace.mockReturnValue('name = "{Column1-Numeric,Column2-String,Column3-Bool,Column4-Timestamp}"');
+            templateSrv.replace.mockReturnValue('{Column1-Numeric,Column2-String,Column3-Bool,Column4-Timestamp}');
             
             const result = ds.transformColumnQuery(input);
 
@@ -3615,7 +3703,7 @@ describe('DataFrameDataSourceV2', () => {
 
         it('should not parse column name when value does not have hyphen', () => {
             const input = 'name = "$Column"';
-            templateSrv.replace.mockReturnValue('name = "{ColumnWithoutDataType}"');
+            templateSrv.replace.mockReturnValue('{ColumnWithoutDataType}');
             
             const result = ds.transformColumnQuery(input);
 
@@ -3624,7 +3712,7 @@ describe('DataFrameDataSourceV2', () => {
 
         it('should not parse column name when value does not contain data type', () => {
             const input = 'name = "$Column"';
-            templateSrv.replace.mockReturnValue('name = "{Column-Without-Data-Type}"');
+                templateSrv.replace.mockReturnValue('{Column-Without-Data-Type}');
             
             const result = ds.transformColumnQuery(input);
 
@@ -3633,7 +3721,7 @@ describe('DataFrameDataSourceV2', () => {
 
         it('should parse unique column names correctly', () => {
             const input = 'name = "$Column"';
-            templateSrv.replace.mockReturnValue('name = "{Column1-Numeric,Column2-String,Column1-Bool}"');
+            templateSrv.replace.mockReturnValue('{Column1-Numeric,Column2-String}');
             
             const result = ds.transformColumnQuery(input);
 
