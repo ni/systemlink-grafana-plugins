@@ -2419,7 +2419,7 @@ describe('DataFrameDataSourceV2', () => {
                     expect(result.columns).toEqual([]);
                 });
 
-                it('should return an observable with original columns when columns are not found in table metadata', async () => {
+                it('should return an observable with original columns and datatype set to unknown when columns are not found in table metadata', async () => {
                     getSpy$.mockReturnValue(of({
                         columns: [
                             {
@@ -2439,7 +2439,7 @@ describe('DataFrameDataSourceV2', () => {
 
                     expect(isObservable(result.columns)).toBe(true);
                     expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
-                        ['col1', 'col2-String']
+                        ['col1-Unknown', 'col2-String']
                     );
                 });
 
@@ -2456,7 +2456,7 @@ describe('DataFrameDataSourceV2', () => {
 
                     expect(isObservable(result.columns)).toBe(true);
                     expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
-                        ['col1', 'col2']
+                        ['col1-Unknown', 'col2-Unknown']
                     );
                 });
 
