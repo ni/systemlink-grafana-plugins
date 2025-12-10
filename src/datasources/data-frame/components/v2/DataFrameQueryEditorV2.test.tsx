@@ -262,6 +262,15 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(within(document.body).queryAllByRole('option').length).toBe(0);
                 });
 
+                it('should not load column options when only column filter is set', async () => {
+                    renderComponent({ columnFilter: 'ColumnB' });
+                    
+                    await clickColumnOptions();
+
+                    // Assert that no options are shown
+                    expect(within(document.body).queryAllByRole('option').length).toBe(0);
+                });
+
                 it('should not load column options when filter is unchanged', async () => {
                     //Make initial filter change
                     await changeFilterValue();
