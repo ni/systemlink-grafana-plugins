@@ -81,6 +81,7 @@ export const errorMessages = {
         greaterOrEqualToZero: 'Enter a value greater than or equal to 1.',
         lessOrEqualToTakeLimit: `Enter a value less than or equal to ${TAKE_LIMIT}.`
     },
+    queryOptimization: `Queries may have a significant impact on resource utilization.`,
     columnLimitExceeded: `The tables query returned too many columns. Only the first ${COLUMN_OPTIONS_LIMIT} columns are shown in the selection list.`,
     xColumnLimitExceeded: `The tables query returned too many columns. Only the first ${COLUMN_OPTIONS_LIMIT} columns are shown in the x-column selection list.`,
     xColumnSelectionInvalid: 'The selected x-column is not available in all the tables matching the query.',

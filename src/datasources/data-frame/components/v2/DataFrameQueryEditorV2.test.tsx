@@ -152,6 +152,15 @@ describe("DataFrameQueryEditorV2", () => {
 
         expect(onRunQuery).toHaveBeenCalled();
     });
+    
+    it('should show info banner always regarding query optimization', async () => {
+        renderComponent({ type: DataFrameQueryType.Data });
+        await waitFor(() => {
+            const infoAlert = screen.getByLabelText('Query optimization');
+            expect(infoAlert).toBeInTheDocument();
+            expect(within(infoAlert).getByText('Query optimization')).toBeInTheDocument();
+        });
+    });
 
     describe("when the query type is data", () => {
         let onChange: jest.Mock;
