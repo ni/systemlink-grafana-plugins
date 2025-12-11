@@ -265,14 +265,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         filters: CombinedFilters
     ): Promise<ColumnOptions> {
         const columnOptions = await this.getColumnOptions(filters);
-        const uniqueColumnsAcrossTablesWithVariables = [
-            ...this.getVariableOptions(),
-            ...columnOptions.uniqueColumnsAcrossTables
-        ];
-        const commonColumnsAcrossTablesWithVariables = [
-            ...this.getVariableOptions(),
-            ...columnOptions.commonColumnsAcrossTables
-        ];
+        const variableOptions = this.getVariableOptions();
+        const uniqueColumnsAcrossTablesWithVariables = columnOptions.uniqueColumnsAcrossTables.length
+            ? [...variableOptions, ...columnOptions.uniqueColumnsAcrossTables]
+            : [];
+        const commonColumnsAcrossTablesWithVariables = columnOptions.commonColumnsAcrossTables.length
+            ? [...variableOptions, ...columnOptions.commonColumnsAcrossTables]
+            : [];
         return {
             uniqueColumnsAcrossTables: uniqueColumnsAcrossTablesWithVariables,
             commonColumnsAcrossTables: commonColumnsAcrossTablesWithVariables
@@ -353,7 +352,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 ...timeFilters
             ];
             const yColumns = this.getNumericColumns(columnsMap.selectedColumns)
-                .map(column => column.name);
+                .filter(column => {
+                    const parsedXColumnIdentifier = query.xColumn 
+                        ? this.parseColumnIdentifier(query.xColumn) 
+                        : undefined;
+                    return !parsedXColumnIdentifier || column.name !== parsedXColumnIdentifier?.columnName;
+                })
+                .map(column => column.name)
 
             return {
                 tableId,
