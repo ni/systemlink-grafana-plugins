@@ -1,93 +1,34 @@
-# SystemLink Data Frames Data Source
+# SystemLink Data Frames data source
 
 ## Overview
 
-The **SystemLink Data Frames** data source enables you to query and visualize data from multiple data tables in dashboards.
+The **SystemLink Data Frames** data source allows you to display data table properties and visualize data from multiple data tables in dashboards.
 
 ---
 
 ## Key Features
 
-- **Two Query Types Available:**
-
-  - **Data Query** — Retrieve and display row data from selected columns across one or multiple filtered data tables
-  - **Properties Query** — Retrieve and display data table metadata properties such as name, ID, row count, column information, and workspace
-
-- **Flexible Filtering** — Filter data tables by properties including name, ID, workspace, creation date, row count, and custom properties
-
-- **Multi-Table Aggregation** — Aggregate data from multiple data tables that match your filter criteria in a single query
-
-- **Column Selection** — Select specific columns from filtered data tables (up to 20 columns per query)
+* **Flexible Filtering**: Filter data tables by result, data table, and column properties.  
+* **Display Table Metadata**: Retrieve and display metadata properties such as name, ID, row count, column information, and workspace.  
+* **Display Data Table Rows**: Retrieve and display row data from selected columns across one or more filtered data tables.  
 
 ---
 
-## Query Types
+## Limitations
 
-### Data Query
+### Query Requirements and Limits
 
-Retrieves row data from the columns you select across all data tables matching your filters.
+#### Required Filters
+At least one filter (data table, test result, or column filter) must be specified. Queries without any filters will return no results.
 
-**Configuration Options:**
+### Data Limits
 
-| Control                             | Description                                                                                                  |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Query by data table properties**  | Filter data tables using properties like name, ID, workspace, or custom properties                           |
-| **Query by test result properties** | Filter data tables associated with specific test results                                                     |
-| **Query by column properties**      | Filter data tables by column characteristics like name or data type                                          |
-| **Columns**                         | Select up to 20 columns to retrieve from filtered tables. Format: "Column name" or "Column name (Data type)" |
-| **Include index columns**           | Automatically include the index column from each data table in the results                                   |
-| **X-column**                        | Select the column to use as the X-axis for decimation (must be present in all filtered tables)               |
-| **Decimation method**               | Choose how data is aggregated: Lossy, Entry-Exit, or Min-Max                                                 |
-| **Use time range**                  | Apply the dashboard's time range filter to timestamp columns                                                 |
-| **Filter nulls**                    | Exclude null values from the results                                                                         |
-
----
-
-### Properties Query
-
-Retrieves metadata about data tables matching your filters.
-
-**Configuration Options:**
-
-| Control                             | Description                                                                               |
-| ----------------------------------- | ----------------------------------------------------------------------------------------- |
-| **Query by data table properties**  | Filter data tables using various data table properties                                    |
-| **Query by test result properties** | Filter by associated test result properties                                               |
-| **Query by column properties**      | Filter by column-level properties                                                         |
-| **Properties**                      | Select which metadata properties to return (e.g., name, ID, row count, column properties) |
-| **Take**                            | Specify the maximum number of records to return (range: 1-1000, default: 1000)            |
-
----
-
-## Important Limitations and Restrictions
-
-### ⚡ Performance Considerations
-
-**Indexed Properties (Recommended for Optimal Performance):**
-
-Always include filters on indexed properties such as:
-
-- Test Result ID (when using test result filters)
-- Data table ID
-- Data table name
-- Workspace
-
-> **Note:** Queries using only non-indexed properties (like custom properties) may experience slower performance. An information banner will notify you about potential performance impacts.
-
-**Empty Filters:**
-
-At least one filter (data table, test result, or column filter) must be specified. Queries with all filters empty will return no results.
-
----
-
-### 📊 Data Limits
-
-| Limit Type            | Maximum               | Behavior                                                                                                            |
-| --------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **Data Tables**       | 1,000 tables          | If your filters match more than 1,000 tables, only the first 1,000 will be processed. A warning banner will appear. |
-| **Columns (Display)** | 10,000 unique columns | If more columns exist, only the first 10,000 are shown in the dropdown. A warning banner will notify you.           |
-| **Column Selection**  | 20 columns per query  | Hard limit on the number of columns you can select in a data query.                                                 |
-| **Data Points**       | 1 million points      | Results capped at 1 million data points (rows × columns). Data retrieval stops at this limit with a warning banner. |
+| Limit Type           | Maximum               | Behavior                                                                                   |
+| -------------------- | --------------------- | ------------------------------------------------------------------------------------------ |
+| **Data Tables**      | 1,000 tables          | If your filters match more than 1,000 tables, only the first 1,000 will be processed.      |
+| **Columns options**  | 10,000 unique columns | If more columns exist, only the first 10,000 are shown in the dropdown.                    |
+| **Column Selection** | 20 columns per query  | If more columns are selected, the datasource will return an error and will not query data. |
+| **Data Points**      | 1 million points      | Results capped at 1 million data points (rows × columns).                                  |
 
 ---
 
