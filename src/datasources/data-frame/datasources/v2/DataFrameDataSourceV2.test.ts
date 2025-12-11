@@ -2826,12 +2826,14 @@ describe('DataFrameDataSourceV2', () => {
                 `${ds.baseUrl}/query-tables`,
                 {
                     interactive: true,
+                    orderBy: 'ROWS_MODIFIED_AT',
+                    orderByDescending: true,
                     filter: '(new[]{@0,@1}.Contains(testResultId))',
                     take: TAKE_LIMIT,
-                    projection: undefined,
+                    projection: [DataTableProjections.RowsModifiedAt],
                     substitutions: ['result-1', 'result-2']
                 },
-                { useApiIngress: true }
+                { useApiIngress: true, showErrorAlert: false }
             );
         });
 
@@ -2863,12 +2865,14 @@ describe('DataFrameDataSourceV2', () => {
                 `${ds.baseUrl}/query-tables`,
                 {
                     interactive: true,
+                    orderBy: 'ROWS_MODIFIED_AT',
+                    orderByDescending: true,
                     filter: 'name = "Table1"',
                     take: 10,
-                    projection: undefined,
+                    projection: [DataTableProjections.RowsModifiedAt],
                     substitutions: undefined
                 },
-                { useApiIngress: true }
+                { useApiIngress: true, showErrorAlert: false }
             );
             expect(result).toBe(mockTables);
         });
@@ -2893,12 +2897,14 @@ describe('DataFrameDataSourceV2', () => {
                 expect.stringContaining('query-tables'),
                 {
                     interactive: true,
+                    orderBy: 'ROWS_MODIFIED_AT',
+                    orderByDescending: true,
                     filter: 'name = "Table1"',
                     take: 10,
-                    projection: undefined,
+                    projection: [DataTableProjections.RowsModifiedAt],
                     substitutions: undefined
                 },
-                { useApiIngress: true }
+                { useApiIngress: true, showErrorAlert: false }
             );
             expect(result).toBe(mockTables);
         });
@@ -2927,12 +2933,14 @@ describe('DataFrameDataSourceV2', () => {
                 `${ds.baseUrl}/query-tables`,
                 {
                     interactive: true,
+                    orderBy: 'ROWS_MODIFIED_AT',
+                    orderByDescending: true,
                     filter: '(new[]{@0,@1}.Contains(testResultId))&&(name = "Table1")&&(columns.any(it.name = "Column1"))',
                     take: 10,
-                    projection: undefined,
+                    projection: [DataTableProjections.RowsModifiedAt],
                     substitutions: ['result-1', 'result-2']
                 },
-                { useApiIngress: true }
+                { useApiIngress: true, showErrorAlert: false }
             );
         });
 
@@ -2949,12 +2957,14 @@ describe('DataFrameDataSourceV2', () => {
                 `${ds.baseUrl}/query-tables`,
                 {
                     interactive: true,
+                    orderBy: 'ROWS_MODIFIED_AT',
+                    orderByDescending: true,
                     filter: 'name = "Table1"',
                     take: 10,
-                    projection: undefined,
+                    projection: [DataTableProjections.RowsModifiedAt],
                     substitutions: undefined
                 },
-                { useApiIngress: true }
+                { useApiIngress: true, showErrorAlert: false }
             );
         });
 
@@ -2970,12 +2980,14 @@ describe('DataFrameDataSourceV2', () => {
                 `${ds.baseUrl}/query-tables`,
                 {
                     interactive: true,
+                    orderBy: 'ROWS_MODIFIED_AT',
+                    orderByDescending: true,
                     filter: '(new[]{@0,@1}.Contains(testResultId))',
                     take: 10,
-                    projection: undefined,
+                    projection: [DataTableProjections.RowsModifiedAt],
                     substitutions: ['result-1', 'result-2']
                 },
-                { useApiIngress: true }
+                { useApiIngress: true, showErrorAlert: false }
             );
         });
 
@@ -3067,12 +3079,14 @@ describe('DataFrameDataSourceV2', () => {
               `${ds.baseUrl}/query-tables`,
               {
                 interactive: true,
+                orderBy: 'ROWS_MODIFIED_AT',
+                orderByDescending: true,
                 filter: filter.dataTableFilter,
                 take,
-                projection,
+                projection: [...projection, DataTableProjections.RowsModifiedAt],
                 substitutions: undefined
               },
-              { useApiIngress: true }
+              { useApiIngress: true, showErrorAlert: false }
             );
             expect(result).toBe(mockTables);
         });
@@ -3085,17 +3099,19 @@ describe('DataFrameDataSourceV2', () => {
               `${ds.baseUrl}/query-tables`,
               {
                 interactive: true,
+                orderBy: 'ROWS_MODIFIED_AT',
+                orderByDescending: true,
                 filter: filter.dataTableFilter,
                 take: TAKE_LIMIT,
-                projection: undefined,
+                projection: [DataTableProjections.RowsModifiedAt],
                 substitutions: undefined
               },
-              { useApiIngress: true }
+              { useApiIngress: true, showErrorAlert: false }
             );
             expect(result).toBe(mockTables);
         });
 
-        it('should use undefined as default projection value when not provided', async () => {
+        it('should use ROWS_MODIFIED_AT as default projection value when not provided', async () => {
             const filter = { dataTableFilter: 'test-filter' };
             const take = 15;
             const result = await lastValueFrom(ds.queryTables$(filter, take));
@@ -3104,12 +3120,36 @@ describe('DataFrameDataSourceV2', () => {
               `${ds.baseUrl}/query-tables`,
               {
                 interactive: true,
+                orderBy: 'ROWS_MODIFIED_AT',
+                orderByDescending: true,
                 filter: filter.dataTableFilter,
                 take,
-                projection: undefined,
+                projection: [DataTableProjections.RowsModifiedAt],
                 substitutions: undefined
               },
-              { useApiIngress: true }
+              { useApiIngress: true, showErrorAlert: false }
+            );
+            expect(result).toBe(mockTables);
+        });
+
+        it('should not duplicate ROWS_MODIFIED_AT when already present in projection', async () => {
+            const filter = { dataTableFilter: 'test-filter' };
+            const take = 10;
+            const projection = [DataTableProjections.Name, DataTableProjections.RowsModifiedAt, DataTableProjections.Id];
+            const result = await lastValueFrom(ds.queryTables$(filter, take, projection));
+
+            expect(postMock$).toHaveBeenCalledWith(
+              `${ds.baseUrl}/query-tables`,
+              {
+                interactive: true,
+                orderBy: 'ROWS_MODIFIED_AT',
+                orderByDescending: true,
+                filter: filter.dataTableFilter,
+                take,
+                projection: [DataTableProjections.Name, DataTableProjections.RowsModifiedAt, DataTableProjections.Id],
+                substitutions: undefined
+              },
+              { useApiIngress: true, showErrorAlert: false }
             );
             expect(result).toBe(mockTables);
         });

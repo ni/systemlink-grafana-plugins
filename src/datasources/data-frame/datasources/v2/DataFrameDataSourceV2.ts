@@ -227,17 +227,24 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         projection?: DataTableProjections[],
         substitutions?: string[]
     ): Observable<TableProperties[]> {
+        const projectionArray = projection || [];
+        const finalProjection = projectionArray.includes(DataTableProjections.RowsModifiedAt)
+            ? projectionArray
+            : [...projectionArray, DataTableProjections.RowsModifiedAt];
+        
         const requestBody = {
             interactive: true,
+            orderBy: 'ROWS_MODIFIED_AT',
+            orderByDescending: true,
             filter,
             take,
-            projection,
+            projection: finalProjection,
             substitutions,
         };
         const response = this.post$<TablePropertiesList>(
             `${this.baseUrl}/query-tables`,
             requestBody,
-            { useApiIngress: true }
+            { useApiIngress: true, showErrorAlert: false }
         );
 
         return response.pipe(
@@ -416,7 +423,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 filters: request.filters,
                 decimation: request.decimation,
             },
-            { useApiIngress: true }
+            { useApiIngress: true, showErrorAlert: false }
         ).pipe(
             catchError(error => {
                 const errorMessage = this.getErrorMessage(error, 'decimated table data');
