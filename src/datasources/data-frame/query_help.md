@@ -16,9 +16,7 @@ The **SystemLink Data Frames** data source allows you to display data table prop
 
 ## Limitations
 
-### Query Requirements and Limits
-
-#### Required Filters
+### Required Filters
 At least one filter (data table, test result, or column filter) must be specified. Queries without any filters will return no results.
 
 ### Data Limits
