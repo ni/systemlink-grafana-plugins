@@ -3296,18 +3296,6 @@ describe('DataFrameDataSourceV2', () => {
                 ]);
             });
 
-            it('should not include variables when uniqueColumnsAcrossTables is empty', async () => {
-                queryTablesMock$.mockReturnValue(of([]));
-                templateSrv.getVariables.mockReturnValue([
-                    { name: 'var1' },
-                    { name: 'var2' }
-                ] as any);
-
-                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
-
-                expect(result.uniqueColumnsAcrossTables).toEqual([]);
-            });
-
             describe('when column names do not repeat', () => {
                 it('should show only the name in the labels', async () => {
                     queryTablesMock$.mockReturnValue(of([
@@ -3628,37 +3616,6 @@ describe('DataFrameDataSourceV2', () => {
                     { label: 'column-1', value: 'column-1-Numeric' },
                     { label: 'column-2', value: 'column-2-Numeric' }
                 ]);
-            });
-
-            it('should not include variables when commonColumnsAcrossTables is empty', async () => {
-                queryTablesMock$.mockReturnValue(of([
-                    {
-                        id: '1',
-                        name: 'Table 1',
-                        columns: [
-                            { name: 'Column 1', dataType: 'INT32' },
-                            { name: 'Column 2', dataType: 'STRING' }
-                        ]
-                    },
-                    {
-                        id: '2',
-                        name: 'Table 2',
-                        columns: [
-                            { name: 'Column 3', dataType: 'BOOLEAN' },
-                            { name: 'Column 4', dataType: 'TIMESTAMP' }
-                        ]
-                    }
-                ]));
-                templateSrv.getVariables.mockReturnValue([
-                    { name: 'var1' },
-                    { name: 'var2' }
-                ] as any);
-
-                const result = await ds.getColumnOptionsWithVariables({
-                     dataTableFilter: 'some-filter' 
-                });
-
-                expect(result.commonColumnsAcrossTables).toEqual([]);
             });
         });
     });

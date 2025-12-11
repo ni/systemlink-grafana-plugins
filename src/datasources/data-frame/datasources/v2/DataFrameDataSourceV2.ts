@@ -265,13 +265,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         filters: CombinedFilters
     ): Promise<ColumnOptions> {
         const columnOptions = await this.getColumnOptions(filters);
-        const variableOptions = this.getVariableOptions();
-        const uniqueColumnsAcrossTablesWithVariables = columnOptions.uniqueColumnsAcrossTables.length
-            ? [...variableOptions, ...columnOptions.uniqueColumnsAcrossTables]
-            : [];
-        const commonColumnsAcrossTablesWithVariables = columnOptions.commonColumnsAcrossTables.length
-            ? [...variableOptions, ...columnOptions.commonColumnsAcrossTables]
-            : [];
+        const uniqueColumnsAcrossTablesWithVariables = [
+            ...this.getVariableOptions(),
+            ...columnOptions.uniqueColumnsAcrossTables
+        ];
+        const commonColumnsAcrossTablesWithVariables = [
+            ...this.getVariableOptions(),
+            ...columnOptions.commonColumnsAcrossTables
+        ];
         return {
             uniqueColumnsAcrossTables: uniqueColumnsAcrossTablesWithVariables,
             commonColumnsAcrossTables: commonColumnsAcrossTablesWithVariables
