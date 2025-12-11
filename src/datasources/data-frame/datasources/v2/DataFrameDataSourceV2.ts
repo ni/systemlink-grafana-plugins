@@ -351,13 +351,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 ...nullFilters,
                 ...timeFilters
             ];
+
+            const xColumn = query.xColumn 
+                    ? this.parseColumnIdentifier(query.xColumn).columnName
+                    : undefined;
             const yColumns = this.getNumericColumns(columnsMap.selectedColumns)
-                .filter(column => {
-                    const parsedXColumnIdentifier = query.xColumn 
-                        ? this.parseColumnIdentifier(query.xColumn) 
-                        : undefined;
-                    return !parsedXColumnIdentifier || column.name !== parsedXColumnIdentifier?.columnName;
-                })
+                .filter(column =>  !xColumn || column.name !== xColumn)
                 .map(column => column.name)
 
             return {
@@ -366,9 +365,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 filters,
                 decimation: {
                     method: query.decimationMethod,
-                    xColumn: query.xColumn 
-                        ? this.parseColumnIdentifier(query.xColumn).columnName
-                        : undefined,
+                    xColumn: xColumn,
                     yColumns,
                     intervals,
                 }
