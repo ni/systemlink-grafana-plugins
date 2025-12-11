@@ -11,7 +11,7 @@ import { BackendSrv, BackendSrvRequest, TemplateSrv, getAppEvents } from '@grafa
 import { DataQuery } from '@grafana/schema';
 import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { get, get$, post, post$ } from './utils';
-import { forkJoin, from, map, Observable, of, switchMap } from 'rxjs';
+import { firstValueFrom, forkJoin, from, map, Observable, of, switchMap } from 'rxjs';
 import { ApiSessionUtils } from '../shared/api-session.utils';
 
 /**
@@ -153,15 +153,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
   private static Workspaces: Workspace[];
 
   public async getWorkspaces(): Promise<Workspace[]> {
-    if (DataSourceBase.Workspaces) {
-      return DataSourceBase.Workspaces;
-    }
-
-    const response = await this.backendSrv.get<{ workspaces: Workspace[] }>(
-      this.instanceSettings.url + '/niauth/v1/user'
-    );
-
-    return (DataSourceBase.Workspaces = response.workspaces);
+    return await firstValueFrom(this.getWorkspaces$());
   }
 
   public getWorkspaces$(): Observable<Workspace[]> {

@@ -12,7 +12,7 @@ import { defaultOrderBy, defaultProjection, systemFields } from './constants';
 import { NetworkUtils } from './network-utils';
 import { SystemQuery, SystemQueryType, SystemSummary, SystemVariableQuery, SystemQueryReturnType, SystemProperties } from './types';
 import { getWorkspaceName } from 'core/utils';
-import { catchError, forkJoin, map, Observable, throwError } from 'rxjs';
+import { firstValueFrom, forkJoin, map, Observable } from 'rxjs';
 
 export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJsonData> {
   constructor(
@@ -74,16 +74,7 @@ export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJson
   }
 
   async getSystemProperties(systemFilter: string, projection = defaultProjection, workspace?: string) {
-    const filters = [
-      systemFilter && `id = "${systemFilter}" || alias = "${systemFilter}"`,
-      workspace && !systemFilter && `workspace = "${workspace}"`,
-    ];
-    const response = await this.getSystems({
-      filter: filters.filter(Boolean).join(' '),
-      projection: `new(${projection.join()})`,
-      orderBy: defaultOrderBy,
-    });
-    return response.data;
+    return await firstValueFrom(this.getSystemProperties$(systemFilter, projection, workspace));
   }
 
   getSystemProperties$(systemFilter: string, projection = defaultProjection, workspace?: string): Observable<any[]> {
@@ -100,11 +91,7 @@ export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJson
         orderBy: defaultOrderBy,
       }
     ).pipe(
-      map(response => response.data),
-      catchError(error => {
-        console.error('Error querying systems:', error);
-        return throwError(() => error);
-      })
+      map(response => response.data)
     );
   }
 
