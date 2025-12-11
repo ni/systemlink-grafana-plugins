@@ -1189,6 +1189,46 @@ describe('DataFrameDataSourceV2', () => {
                             ]
                         });
                     });
+
+                    it('should throw error and should publish alert when X column is not numeric or timestamp', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                columns: [
+                                    {
+                                        name: 'time',
+                                        dataType: 'STRING',
+                                        columnType: ColumnType.Normal
+                                    },
+                                    {
+                                        name: 'value',
+                                        dataType: 'FLOAT64',
+                                        columnType: ColumnType.Normal
+                                    }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['value-Numeric'],
+                            xColumn: 'time-String',
+                            dataTableFilter: 'name = "Test"',
+                        } as DataFrameQueryV2;
+
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(xColumnErrorMessage);
+
+                        expect(publishMock).toHaveBeenCalledWith({
+                            type: 'alert-error',
+                            payload: [
+                                'X Column selection error',
+                                xColumnErrorMessage
+                            ]
+                        });
+                    });
                 });
             });
         });
