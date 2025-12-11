@@ -119,7 +119,7 @@ describe('queries', () => {
         ]);
     });
 
-    test('should replace template variables in systemName', async () => {
+    test('should replace template variables in system name', async () => {
       templateSrv.replace.calledWith('$system_id').mockReturnValue('system-1');
       backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
 
