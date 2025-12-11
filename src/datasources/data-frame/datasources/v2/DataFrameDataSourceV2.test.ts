@@ -2443,6 +2443,33 @@ describe('DataFrameDataSourceV2', () => {
                     );
                 });
 
+                it('should return an observable with original columns without datatype when using variables for columns', async () => {
+                    getSpy$.mockReturnValue(of({
+                        columns: [
+                            {
+                                name: 'col2',
+                                dataType: 'STRING'
+                            }
+                        ]
+                    }));
+                    templateSrv.containsTemplate.mockImplementation(
+                        (target?: string) => target ? target.startsWith('$') : false
+                    );
+                    const v1Query = {
+                        type: DataFrameQueryType.Data,
+                        tableId: 'table-789',
+                        columns: ['$col1', 'col2', 'col3'],
+                        refId: 'E'
+                    } as DataFrameQueryV1;
+                    
+                    const result = ds.processQuery(v1Query);
+
+                    expect(isObservable(result.columns)).toBe(true);
+                    expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
+                        ['$col1', 'col2-String', 'col3-Unknown']
+                    );
+                });
+
                 it('should return an observable with original columns when get table call failed', async () => {
                     getSpy$.mockReturnValue(throwError(() => new Error('Table not found')));
                     const v1Query = {
@@ -2457,6 +2484,26 @@ describe('DataFrameDataSourceV2', () => {
                     expect(isObservable(result.columns)).toBe(true);
                     expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
                         ['col1-Unknown', 'col2-Unknown']
+                    );
+                });
+
+                it('should return an observable with original columns preserving variables when get table call failed', async () => {
+                    getSpy$.mockReturnValue(throwError(() => new Error('Table not found')));
+                    templateSrv.containsTemplate.mockImplementation(
+                        (target?: string) => target ? target.startsWith('$') : false
+                    );
+                    const v1Query = {
+                        type: DataFrameQueryType.Data,
+                        tableId: 'table-789',
+                        columns: ['$col1', 'col2'],
+                        refId: 'E'
+                    } as DataFrameQueryV1;
+
+                    const result = ds.processQuery(v1Query);
+
+                    expect(isObservable(result.columns)).toBe(true);
+                    expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
+                        ['$col1', 'col2-Unknown']
                     );
                 });
 

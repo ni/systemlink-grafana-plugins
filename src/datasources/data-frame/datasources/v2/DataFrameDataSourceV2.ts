@@ -486,7 +486,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     type: AppEvents.alertError.name,
                     payload: ['Error during fetching columns for migration', errorMessage],
                 });
-                return of(currentColumns.map(column => this.getColumnIdentifier(column, 'unknown')));
+                return of(currentColumns.map(column => {
+                    if (this.templateSrv.containsTemplate(column)) {
+                        return column;
+                    }
+
+                    return this.getColumnIdentifier(column, 'unknown')}
+                ));
             })
         );
     }
@@ -497,6 +503,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private migrateColumnsFromV1ToV2(columns: string[], table: TableProperties): string[] {
         return columns.map(selectedColumn => {
+            if (this.templateSrv.containsTemplate(selectedColumn)) {
+                return selectedColumn;
+            }
+
             const matchingColumn = table.columns.find(
                 tableColumn => tableColumn.name === selectedColumn
             );
