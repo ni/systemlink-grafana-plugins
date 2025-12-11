@@ -82,6 +82,7 @@ export const errorMessages = {
         lessOrEqualToTakeLimit: `Enter a value less than or equal to ${TAKE_LIMIT}.`
     },
     queryOptimization: `Queries may have a significant impact on resource utilization.`,
+    referHelpDoc: 'Please refer to the datasource help documentation for more information.',
     columnLimitExceeded: `The tables query returned too many columns. Only the first ${COLUMN_OPTIONS_LIMIT} columns are shown in the selection list.`,
     xColumnLimitExceeded: `The tables query returned too many columns. Only the first ${COLUMN_OPTIONS_LIMIT} columns are shown in the x-column selection list.`,
     xColumnSelectionInvalid: 'The selected x-column is not available in all the tables matching the query.',

@@ -356,18 +356,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                     collapsible={true}
                     onToggle={() => setIsQueryConfigurationSectionOpen(!isQueryConfigurationSectionOpen)}
                 >
-                    <Alert
-                        severity='info'
-                        title='Query optimization'
-                    >
-                        {errorMessages.queryOptimization}{' '}
-                        <a 
-                            href="https://www.ni.com/r/dfs-db-query-performance" 
-                            style={{ textDecoration: 'underline' }}
-                            >
-                            Click here to learn more about optimizing data frame queries.
-                        </a>
-                    </Alert>
                     {migratedQuery.type === DataFrameQueryType.Data && (
                         <>
                             {isColumnLimitExceeded && (
@@ -383,6 +371,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                         resultFilter={migratedQuery.resultFilter}
                         dataTableFilter={migratedQuery.dataTableFilter}
                         columnFilter={migratedQuery.columnFilter}
+                        infoMessage={errorMessages.referHelpDoc}
                         onResultFilterChange={onResultFilterChange}
                         onDataTableFilterChange={onDataTableFilterChange}
                         onColumnFilterChange={onColumnFilterChange}

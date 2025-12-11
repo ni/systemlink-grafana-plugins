@@ -270,13 +270,4 @@ describe('DataFrameVariableQueryEditorV2', () => {
         expect(screen.getByText(errorTitle)).toBeInTheDocument();
         expect(screen.getByText(errorDescription)).toBeInTheDocument();
     });
-
-    it('should show info banner to the user regarding query optimization', async () => {
-        renderComponent();
-        await waitFor(() => {
-            const infoAlert = screen.getByLabelText('Query optimization');
-            expect(infoAlert).toBeInTheDocument();
-            expect(within(infoAlert).getByText('Query optimization')).toBeInTheDocument();
-        });
-    });
 });

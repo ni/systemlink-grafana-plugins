@@ -71,7 +71,8 @@ const renderComponent = (
     dataTableFilter = '',
     columnFilter = '',
     queryByResultAndColumnProperties = true,
-    throwErrorFromQueryTables = false
+    throwErrorFromQueryTables = false,
+    infoMessage = '',
 ) => {
     const onResultFilterChange = jest.fn();
     const onDataTableFilterChange = jest.fn();
@@ -110,6 +111,7 @@ const renderComponent = (
             resultFilter={resultFilter}
             dataTableFilter={dataTableFilter}
             columnFilter={columnFilter}
+            infoMessage={infoMessage}
             onResultFilterChange={onResultFilterChange}
             onDataTableFilterChange={onDataTableFilterChange}
             onColumnFilterChange={onColumnFilterChange}
@@ -154,6 +156,17 @@ const renderComponent = (
 };
 
 describe('DataFrameQueryBuilderWrapper', () => {
+        
+    it('should show info banner always regarding query optimization', async () => {
+        renderComponent('', '', '', true, true, 'Some info message');
+        await waitFor(() => {
+            const infoAlert = screen.getByLabelText('Query optimization');
+            expect(infoAlert).toBeInTheDocument();
+            expect(within(infoAlert).getByText('Query optimization')).toBeInTheDocument();
+            expect(within(infoAlert).getByText(/Some info message/)).toBeInTheDocument();
+        });
+    });
+
     describe('DataTableQueryBuilder', () => {
         it('should show the DataTableQueryBuilder component', async () => {
             renderComponent();

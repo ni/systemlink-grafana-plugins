@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
-import { InlineLabel } from '@grafana/ui';
+import { Alert, InlineLabel } from '@grafana/ui';
 import { DataFrameDataSource } from 'datasources/data-frame/DataFrameDataSource';
 import { DataTableQueryBuilder } from 'datasources/data-frame/components/v2/query-builders/data-table-query-builder/DataTableQueryBuilder';
 import { Workspace } from 'core/types';
@@ -11,6 +11,7 @@ import {
     tooltips,
     DEFAULT_MARGIN_BOTTOM,
     getValuesInPixels,
+    errorMessages,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { ColumnsQueryBuilder } from './columns-query-builder/ColumnsQueryBuilder';
 import { lastValueFrom } from 'rxjs';
@@ -23,6 +24,7 @@ interface DataFrameQueryBuilderWrapperProps {
     resultFilter?: string;
     dataTableFilter?: string;
     columnFilter?: string;
+    infoMessage?: string;
     onResultFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
     onDataTableFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
     onColumnFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
@@ -33,6 +35,7 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
     resultFilter,
     dataTableFilter,
     columnFilter,
+    infoMessage,
     onResultFilterChange,
     onDataTableFilterChange,
     onColumnFilterChange,
@@ -96,6 +99,21 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
 
     return (
         <>
+            <div style={{ width: getValuesInPixels(VALUE_FIELD_WIDTH), marginTop: getValuesInPixels(DEFAULT_MARGIN_BOTTOM) }}>
+                <Alert
+                    severity='info'
+                    title='Query optimization'
+                >
+                    {errorMessages.queryOptimization}{' '}
+                    <a 
+                        href="https://www.ni.com/r/dfs-db-query-performance" 
+                        style={{ textDecoration: 'underline' }}
+                        >
+                        Click here to learn more about optimizing data frame queries.
+                    </a>
+                    {infoMessage}
+                </Alert>
+            </div>
             {isQueryByResultAndColumnPropertiesEnabled && (
                 <>
                     <InlineLabel
