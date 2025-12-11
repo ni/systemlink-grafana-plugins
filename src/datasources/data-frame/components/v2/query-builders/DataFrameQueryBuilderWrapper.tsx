@@ -12,6 +12,7 @@ import {
     DEFAULT_MARGIN_BOTTOM,
     getValuesInPixels,
     infoMessages,
+    DEFAULT_MARGIN_TOP,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { ColumnsQueryBuilder } from './columns-query-builder/ColumnsQueryBuilder';
 import { lastValueFrom } from 'rxjs';
@@ -99,7 +100,14 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
 
     return (
         <>
-            <div style={{ width: getValuesInPixels(VALUE_FIELD_WIDTH), marginTop: getValuesInPixels(DEFAULT_MARGIN_BOTTOM) }}>
+            <div 
+                style={
+                    { 
+                        width: getValuesInPixels(VALUE_FIELD_WIDTH),
+                        marginTop: getValuesInPixels(DEFAULT_MARGIN_TOP) 
+                    }
+                }
+            >
                 <Alert
                     severity='info'
                     title='Query optimization'

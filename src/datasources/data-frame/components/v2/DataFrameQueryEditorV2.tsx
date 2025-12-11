@@ -506,7 +506,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             {migratedQuery.type === DataFrameQueryType.Properties && (
                 <>
                     {isPropertiesNotSelected && (
-                        <Alert title='Error' severity='error'>
+                        <Alert 
+                            title='Error' 
+                            severity='error' 
+                            style={{ width: getValuesInPixels(VALUE_FIELD_WIDTH) }}
+                        >
                             {errorMessages.propertiesNotSelected}
                         </Alert>
                     )}
@@ -523,6 +527,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             value={migratedQuery.dataTableProperties}
                             onChange={onDataTablePropertiesChange}
                             options={dataTablePropertiesOptions}
+                            isClearable={true}
                         />
                     </InlineField>
                     <InlineField
@@ -538,6 +543,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             value={migratedQuery.columnProperties}
                             onChange={onColumnPropertiesChange}
                             options={columnPropertiesOptions}
+                            isClearable={true}
                         />
                     </InlineField>
                 </>
