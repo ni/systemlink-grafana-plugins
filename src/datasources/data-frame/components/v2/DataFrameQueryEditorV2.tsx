@@ -30,6 +30,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
     const [xColumnOptions, setXColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isXColumnLimitExceeded, setIsXColumnLimitExceeded] = useState<boolean>(false);
+    const isColumnOptionsInitialized = useRef<boolean>(false);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -75,6 +76,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                 setXColumnOptions([]);
                 setIsColumnLimitExceeded(false);
                 setIsXColumnLimitExceeded(false);
+            } finally {
+                isColumnOptionsInitialized.current = true;
             }
         },
         [
@@ -122,7 +125,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     }, [validColumnSelections, invalidColumnSelections]);
 
     const invalidSelectedColumnsMessage = useMemo(() => {
-        if (invalidColumnSelections.length === 0) {
+        if (invalidColumnSelections.length === 0 || !isColumnOptionsInitialized.current) {
             return '';
         }
 
@@ -161,9 +164,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             setIsXColumnLimitExceeded(false);
             if (columnOptions.length > 0) {
                 setColumnOptions([]);
+                isColumnOptionsInitialized.current = true;
             }
             if (xColumnOptions.length > 0) {
                 setXColumnOptions([]);
+                isColumnOptionsInitialized.current = true;
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -192,7 +197,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                 label: getSelectedColumnLabelForInvalidColumn(migratedQuery.xColumn),
                 value: migratedQuery.xColumn
             };
-        return { isInvalid: !validXColumn, value };
+        return { isInvalid: !validXColumn && isColumnOptionsInitialized.current, value };
     }, [migratedQuery.xColumn, xColumnOptions, getSelectedColumnLabelForInvalidColumn]);
 
     const handleQueryChange = useCallback(
