@@ -491,8 +491,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         return column;
                     }
 
-                    return this.getColumnIdentifier(column, 'unknown')}
-                ));
+                    return this.getColumnIdentifier(column, 'unknown');
+                }));
             })
         );
     }
