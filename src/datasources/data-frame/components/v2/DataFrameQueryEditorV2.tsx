@@ -14,6 +14,7 @@ import {
     labels,
     placeholders,
     tooltips,
+    infoMessages,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { isObservable, lastValueFrom } from 'rxjs';
 import _ from 'lodash';
@@ -371,7 +372,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                         resultFilter={migratedQuery.resultFilter}
                         dataTableFilter={migratedQuery.dataTableFilter}
                         columnFilter={migratedQuery.columnFilter}
-                        infoMessage={errorMessages.referHelpDoc}
+                        additionalInfoMessage={infoMessages.datasourceHelp}
                         onResultFilterChange={onResultFilterChange}
                         onDataTableFilterChange={onDataTableFilterChange}
                         onColumnFilterChange={onColumnFilterChange}

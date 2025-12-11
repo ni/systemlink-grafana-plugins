@@ -58,7 +58,6 @@ export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChang
                 resultFilter={migratedQuery.resultFilter}
                 dataTableFilter={migratedQuery.dataTableFilter}
                 columnFilter={migratedQuery.columnFilter}
-                infoMessage=""
                 onResultFilterChange={onResultFilterChange}
                 onDataTableFilterChange={onDataTableFilterChange}
                 onColumnFilterChange={onColumnFilterChange}

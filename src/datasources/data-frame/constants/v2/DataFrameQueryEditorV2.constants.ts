@@ -81,10 +81,16 @@ export const errorMessages = {
         greaterOrEqualToZero: 'Enter a value greater than or equal to 1.',
         lessOrEqualToTakeLimit: `Enter a value less than or equal to ${TAKE_LIMIT}.`
     },
-    queryOptimization: `Queries may have a significant impact on resource utilization.`,
-    referHelpDoc: 'Please refer to the datasource help documentation for more information.',
     columnLimitExceeded: `The tables query returned too many columns. Only the first ${COLUMN_OPTIONS_LIMIT} columns are shown in the selection list.`,
     xColumnLimitExceeded: `The tables query returned too many columns. Only the first ${COLUMN_OPTIONS_LIMIT} columns are shown in the x-column selection list.`,
     xColumnSelectionInvalid: 'The selected x-column is not available in all the tables matching the query.',
     propertiesNotSelected: 'At least one data table property or column property must be selected.',
 };
+
+/**
+ * Informational messages for the DataFrameQueryEditorV2 component
+ */
+export const infoMessages = {
+    queryOptimization: `Queries may have a significant impact on resource utilization.`,
+    datasourceHelp: 'Please refer to the datasource help documentation for more information.',
+}

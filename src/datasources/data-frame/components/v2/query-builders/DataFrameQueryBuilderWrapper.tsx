@@ -11,7 +11,7 @@ import {
     tooltips,
     DEFAULT_MARGIN_BOTTOM,
     getValuesInPixels,
-    errorMessages,
+    infoMessages,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { ColumnsQueryBuilder } from './columns-query-builder/ColumnsQueryBuilder';
 import { lastValueFrom } from 'rxjs';
@@ -24,7 +24,7 @@ interface DataFrameQueryBuilderWrapperProps {
     resultFilter?: string;
     dataTableFilter?: string;
     columnFilter?: string;
-    infoMessage?: string;
+    additionalInfoMessage?: string;
     onResultFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
     onDataTableFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
     onColumnFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
@@ -35,7 +35,7 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
     resultFilter,
     dataTableFilter,
     columnFilter,
-    infoMessage,
+    additionalInfoMessage = '' ,
     onResultFilterChange,
     onDataTableFilterChange,
     onColumnFilterChange,
@@ -104,14 +104,14 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                     severity='info'
                     title='Query optimization'
                 >
-                    {errorMessages.queryOptimization}{' '}
+                    {infoMessages.queryOptimization}{' '}
                     <a 
                         href="https://www.ni.com/r/dfs-db-query-performance" 
                         style={{ textDecoration: 'underline' }}
                         >
                         Click here to learn more about optimizing data frame queries.
                     </a>
-                    {infoMessage}
+                    {additionalInfoMessage}
                 </Alert>
             </div>
             {isQueryByResultAndColumnPropertiesEnabled && (
