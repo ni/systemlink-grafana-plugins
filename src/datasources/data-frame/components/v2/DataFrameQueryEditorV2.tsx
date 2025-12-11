@@ -148,6 +148,10 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
             const filterChanged = !_.isEqual(lastFilterRef.current, transformedFilter);
 
+            if (!filterChanged && !isColumnOptionsInitialized.current) {
+                isColumnOptionsInitialized.current = true;
+            }
+
             if (migratedQuery.type !== DataFrameQueryType.Data || !filterChanged) {
                 return;
             }
