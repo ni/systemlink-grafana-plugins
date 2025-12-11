@@ -2001,6 +2001,34 @@ describe('DataFrameDataSourceV2', () => {
                 ]);
             });
 
+            it('should return expected columns in sorted order', async () => {
+                templateSrv.replace.mockReturnValue('name = "Test Table"');
+                const query = {
+                    queryType: DataFrameVariableQueryType.ListColumns,
+                    dataTableFilter: 'name = "${name}"',
+                    refId: 'A'
+                } as DataFrameVariableQuery;
+                queryTablesSpy$.mockReturnValue(of([
+                    {
+                        id: '1',
+                        name: 'Table 1',
+                        columns: [
+                            { name: 'Zeta', dataType: 'STRING' },
+                            { name: 'Alpha', dataType: 'INT32' },
+                            { name: 'Gamma', dataType: 'FLOAT32' }
+                        ]
+                    }
+                ]));
+
+                const result = await ds.metricFindQuery(query, options);
+
+                expect(result).toEqual([
+                    { text: 'Alpha', value: 'Alpha-Numeric' },
+                    { text: 'Gamma', value: 'Gamma-Numeric' },
+                    { text: 'Zeta', value: 'Zeta-String' }
+                ]);
+            });
+
             it('should pass resultFilter to queryTables$ when provided', async () => {
                 const queryWithResultFilter = {
                     queryType: DataFrameVariableQueryType.ListColumns,
@@ -3254,6 +3282,36 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.uniqueColumnsAcrossTables).toEqual([]);
             });
 
+            it('should return columns in sorted order by label', async () => {
+                queryTablesMock$.mockReturnValue(of([
+                    {
+                        id: '1',
+                        name: 'Table 1',
+                        columns: [
+                            { name: 'Banana', dataType: 'STRING' },
+                            { name: 'Apple', dataType: 'INT32' },
+                        ]
+                    },
+                    {
+                        id: '2',
+                        name: 'Table 2',
+                        columns: [
+                            { name: 'Date', dataType: 'TIMESTAMP' },
+                            { name: 'Cherry', dataType: 'BOOLEAN' },
+                        ]
+                    }
+                ]));
+
+                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
+
+                expect(result.uniqueColumnsAcrossTables).toEqual([
+                    { label: 'Apple', value: 'Apple-Numeric' },
+                    { label: 'Banana', value: 'Banana-String' },
+                    { label: 'Cherry', value: 'Cherry-Boolean' },
+                    { label: 'Date', value: 'Date-Timestamp' },
+                ]);
+            });
+
             it('should treat all numeric types as one data type -`Numeric`', async () => {
                 queryTablesMock$.mockReturnValue(of([
                     {
@@ -3392,8 +3450,8 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                     expect(result.uniqueColumnsAcrossTables).toEqual([
-                        { label: 'Column A (String)', value: 'Column A-String' },
                         { label: 'Column A (Boolean)', value: 'Column A-Boolean' },
+                        { label: 'Column A (String)', value: 'Column A-String' },
                         { label: 'Column B (Numeric)', value: 'Column B-Numeric' },
                         { label: 'Column B (Timestamp)', value: 'Column B-Timestamp' },
                         { label: 'Column C (Boolean)', value: 'Column C-Boolean' },
@@ -3522,6 +3580,38 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result.commonColumnsAcrossTables).toEqual([
                     { label: 'Column 1', value: 'Column 1-Numeric' }
+                ]);
+            });
+
+            it('should return columns in sorted order by label', async () => {
+                queryTablesMock$.mockReturnValue(of([
+                    {
+                        id: '1',
+                        name: 'Table 1',
+                        columns: [
+                            { name: 'Banana', dataType: 'STRING' },
+                            { name: 'Apple', dataType: 'INT32' },
+                            { name: 'Date', dataType: 'TIMESTAMP' }
+                        ]
+                    },
+                    {
+                        id: '2',
+                        name: 'Table 2',
+                        columns: [
+                            { name: 'Date', dataType: 'TIMESTAMP' },
+                            { name: 'Cherry', dataType: 'BOOLEAN' },
+                            { name: 'Apple', dataType: 'INT64' }
+                        ]
+                    }
+                ]));
+
+                const result = await ds.getColumnOptionsWithVariables({
+                     dataTableFilter: 'some-filter' 
+                });
+
+                expect(result.commonColumnsAcrossTables).toEqual([
+                    { label: 'Apple', value: 'Apple-Numeric' },
+                    { label: 'Date', value: 'Date-Timestamp' }
                 ]);
             });
 
