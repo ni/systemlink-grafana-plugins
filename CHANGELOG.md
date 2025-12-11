@@ -1,3 +1,9 @@
+## [4.103.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.103.0...v4.103.1) (2025-12-11)
+
+### Bug Fixes
+
+* **dataframe:** Prevent validation error messages from appearing before column options have been fetched from the server ([#609](https://github.com/ni/systemlink-grafana-plugins/issues/609)) ([075bd87](https://github.com/ni/systemlink-grafana-plugins/commit/075bd87621953f6b171de8a884c62e6616ace018))
+
 ## [4.103.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.102.4...v4.103.0) (2025-12-11)
 
 ### Features
