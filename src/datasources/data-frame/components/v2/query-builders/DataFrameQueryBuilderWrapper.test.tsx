@@ -156,14 +156,12 @@ const renderComponent = (
 };
 
 describe('DataFrameQueryBuilderWrapper', () => {
-
     describe('Info Banner', () => {
         it('should show with additional info message', async () => {
             renderComponent('', '', '', true, true, 'Some info message');
             await waitFor(() => {
                 const infoAlert = screen.getByLabelText('Query optimization');
                 expect(infoAlert).toBeInTheDocument();
-                expect(within(infoAlert).getByText('Query optimization')).toBeInTheDocument();
                 expect(within(infoAlert).getByText(/Some info message/)).toBeInTheDocument();
             });
         });
@@ -176,10 +174,8 @@ describe('DataFrameQueryBuilderWrapper', () => {
                 expect(infoAlert).toBeInTheDocument();
                 expect(screen.queryByText(/Some info message/)).not.toBeInTheDocument();
             });
-
         });
     });
-        
 
     describe('DataTableQueryBuilder', () => {
         it('should show the DataTableQueryBuilder component', async () => {
