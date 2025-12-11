@@ -50,6 +50,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         columnFilter: '',
     });
 
+    useEffect(() => {
+        if (migratedQuery.type === DataFrameQueryType.Data) {
+          handleQueryChange({ ...query, type: DataFrameQueryType.Data});
+        }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, []);
+
     const fetchAndSetColumnOptions = useCallback(
         async (filters: CombinedFilters) => {
             if (!filters.dataTableFilter && !filters.resultFilter && !filters.columnFilter) {
