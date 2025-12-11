@@ -12,7 +12,7 @@ import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource"
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { COLUMN_OPTIONS_LIMIT } from "datasources/data-frame/constants";
 import { ComboboxOption } from "@grafana/ui";
-import { errorMessages } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
+import { errorMessages, infoMessages } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
 import { of } from "rxjs";
 
 jest.mock("./query-builders/DataFrameQueryBuilderWrapper", () => ({
@@ -2763,6 +2763,14 @@ describe("DataFrameQueryEditorV2", () => {
             const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
 
             expect(props.dataTableFilter).toBe('TestFilter');
+        });
+
+        it('should pass datasourceHelp message as additionalInfoMessage to the wrapper', () => {
+          renderComponent({ type: DataFrameQueryType.Data, dataTableFilter: 'TestFilter' });
+
+          const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+
+          expect(props.additionalInfoMessage).toBe(infoMessages.datasourceHelp);
         });
 
         it("should pass columnFilter to the query builder wrapper", () => {

@@ -14,6 +14,7 @@ import {
     labels,
     placeholders,
     tooltips,
+    infoMessages,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { isObservable, lastValueFrom } from 'rxjs';
 import _ from 'lodash';
@@ -371,6 +372,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                         resultFilter={migratedQuery.resultFilter}
                         dataTableFilter={migratedQuery.dataTableFilter}
                         columnFilter={migratedQuery.columnFilter}
+                        additionalInfoMessage={infoMessages.datasourceHelp}
                         onResultFilterChange={onResultFilterChange}
                         onDataTableFilterChange={onDataTableFilterChange}
                         onColumnFilterChange={onColumnFilterChange}
@@ -504,7 +506,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             {migratedQuery.type === DataFrameQueryType.Properties && (
                 <>
                     {isPropertiesNotSelected && (
-                        <Alert title='Error' severity='error'>
+                        <Alert 
+                            title='Error' 
+                            severity='error' 
+                            style={{ width: getValuesInPixels(VALUE_FIELD_WIDTH) }}
+                        >
                             {errorMessages.propertiesNotSelected}
                         </Alert>
                     )}
@@ -521,6 +527,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             value={migratedQuery.dataTableProperties}
                             onChange={onDataTablePropertiesChange}
                             options={dataTablePropertiesOptions}
+                            isClearable={true}
                         />
                     </InlineField>
                     <InlineField
@@ -536,6 +543,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             value={migratedQuery.columnProperties}
                             onChange={onColumnPropertiesChange}
                             options={columnPropertiesOptions}
+                            isClearable={true}
                         />
                     </InlineField>
                 </>

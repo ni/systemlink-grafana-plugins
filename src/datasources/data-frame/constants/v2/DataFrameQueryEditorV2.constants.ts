@@ -86,3 +86,16 @@ export const errorMessages = {
     xColumnSelectionInvalid: 'The selected x-column is not available in all the tables matching the query.',
     propertiesNotSelected: 'At least one data table property or column property must be selected.',
 };
+
+/**
+ * Informational messages for the DataFrameQueryEditorV2 component
+ */
+export const infoMessages = {
+    queryOptimization: {
+        title: 'Query optimization',
+        message: `Queries may have a significant impact on resource utilization.`,
+        linkText: 'Click here to learn more about optimizing data frame queries.',
+        linkUrl: 'https://www.ni.com/r/dfs-db-query-performance',
+    },
+    datasourceHelp: 'Please refer to the datasource help documentation for more information.',
+}
