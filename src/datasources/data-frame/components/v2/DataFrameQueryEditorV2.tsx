@@ -164,11 +164,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             setIsXColumnLimitExceeded(false);
             if (columnOptions.length > 0) {
                 setColumnOptions([]);
-                isColumnOptionsInitialized.current = true;
             }
             if (xColumnOptions.length > 0) {
                 setXColumnOptions([]);
-                isColumnOptionsInitialized.current = true;
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
