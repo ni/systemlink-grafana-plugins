@@ -996,8 +996,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tables: TableProperties[]
     ): boolean {
         const transformedDataType = this.parseColumnIdentifier(xColumn).transformedDataType;
-        const isNumeric = transformedDataType === 'Numeric' || transformedDataType === 'Timestamp';
-        if (!isNumeric) {
+        const isValidXColumnType = transformedDataType === 'Numeric' 
+            || transformedDataType === 'Timestamp';
+        if (!isValidXColumnType) {
             return false;
         }
 
