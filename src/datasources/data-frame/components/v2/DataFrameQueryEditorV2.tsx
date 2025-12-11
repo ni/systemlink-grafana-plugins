@@ -26,10 +26,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [isDecimationSettingsSectionOpen, setIsDecimationSettingsSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
-    const [isColumnLimitExceeded, setIsColumnLimitExceeded] = useState<boolean>(false);
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
     const [xColumnOptions, setXColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
-    const [isXColumnLimitExceeded, setIsXColumnLimitExceeded] = useState<boolean>(false);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -62,19 +60,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                     .slice(0, COLUMN_OPTIONS_LIMIT);
                 const limitedXColumnOptions = columnOptions.commonColumnsAcrossTables
                     .slice(0, COLUMN_OPTIONS_LIMIT);
-                setIsColumnLimitExceeded(
-                    columnOptions.uniqueColumnsAcrossTables.length > COLUMN_OPTIONS_LIMIT
-                );
-                setIsXColumnLimitExceeded(
-                    columnOptions.commonColumnsAcrossTables.length > COLUMN_OPTIONS_LIMIT
-                );
                 setColumnOptions(limitedColumnOptions);
                 setXColumnOptions(limitedXColumnOptions);
             } catch (error) {
                 setColumnOptions([]);
                 setXColumnOptions([]);
-                setIsColumnLimitExceeded(false);
-                setIsXColumnLimitExceeded(false);
             }
         },
         [
@@ -157,8 +147,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             }
 
             // Clear column options if filter is empty
-            setIsColumnLimitExceeded(false);
-            setIsXColumnLimitExceeded(false);
             if (columnOptions.length > 0) {
                 setColumnOptions([]);
             }
@@ -356,16 +344,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                     collapsible={true}
                     onToggle={() => setIsQueryConfigurationSectionOpen(!isQueryConfigurationSectionOpen)}
                 >
-                    {migratedQuery.type === DataFrameQueryType.Data && (
-                        <>
-                            {isColumnLimitExceeded && (
-                                <Alert title='Warning' severity='warning'>{errorMessages.columnLimitExceeded}</Alert>
-                            )}
-                            {isXColumnLimitExceeded && (
-                                <Alert title='Warning' severity='warning'>{errorMessages.xColumnLimitExceeded}</Alert>
-                            )}
-                        </>
-                    )}
                     <DataFrameQueryBuilderWrapper
                         datasource={datasource}
                         resultFilter={migratedQuery.resultFilter}
