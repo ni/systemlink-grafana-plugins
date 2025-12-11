@@ -10,7 +10,7 @@ The **SystemLink Data Frames** data source allows you to display data table prop
 
 * **Flexible Filtering**: Filter data tables by result, data table, and column properties.  
 * **Display Table Metadata**: Retrieve and display metadata properties such as name, ID, row count, column information, and workspace.  
-* **Display Data Table Rows**: Retrieve and display row data from selected columns across one or more filtered data tables.  
+* **Display Data Table Data**: Retrieve and display row data from selected columns across one or more filtered data tables.  
 
 ---
 
