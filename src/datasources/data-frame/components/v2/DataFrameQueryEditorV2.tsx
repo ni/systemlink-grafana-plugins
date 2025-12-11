@@ -147,8 +147,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             };
 
             const filterChanged = !_.isEqual(lastFilterRef.current, transformedFilter);
+            const hasRequiredFilters = datasource.hasRequiredFilters(migratedQuery);
 
-            if (!filterChanged && !isColumnOptionsInitialized) {
+            if (
+                !isColumnOptionsInitialized
+                && (!filterChanged || !hasRequiredFilters)
+            ) {
                 setIsColumnOptionsInitialized(true);
             }
 
@@ -158,7 +162,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
             lastFilterRef.current = transformedFilter;
 
-            if (datasource.hasRequiredFilters(migratedQuery)) {
+            if (hasRequiredFilters) {
                 fetchAndSetColumnOptions(transformedFilter);
                 return;
             }
