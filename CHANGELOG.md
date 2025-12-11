@@ -1,3 +1,16 @@
+## [4.103.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.102.4...v4.103.0) (2025-12-11)
+
+### Features
+
+* **dataframe:** Add column selection limit  ([#607](https://github.com/ni/systemlink-grafana-plugins/issues/607)) ([c147ebf](https://github.com/ni/systemlink-grafana-plugins/commit/c147ebf6b81a9bb985a82595fb0df0ef8e65d138))
+* **dataframe:** Add info banner for query optimization  ([#606](https://github.com/ni/systemlink-grafana-plugins/issues/606)) ([9419f74](https://github.com/ni/systemlink-grafana-plugins/commit/9419f74edd0ee0294cee6613292774f99c21fee8))
+
+## [4.102.4](https://github.com/ni/systemlink-grafana-plugins/compare/v4.102.3...v4.102.4) (2025-12-11)
+
+### Bug Fixes
+
+* **dataframe:** Unknown datatype appending with variables when migrating columns from v1 to v2 ([#608](https://github.com/ni/systemlink-grafana-plugins/issues/608)) ([f7f76aa](https://github.com/ni/systemlink-grafana-plugins/commit/f7f76aa896e3c487b58d660e00c2cd8a43d4f795))
+
 ## [4.102.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.102.2...v4.102.3) (2025-12-10)
 
 ### Bug Fixes

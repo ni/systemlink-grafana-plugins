@@ -71,7 +71,8 @@ const renderComponent = (
     dataTableFilter = '',
     columnFilter = '',
     queryByResultAndColumnProperties = true,
-    throwErrorFromQueryTables = false
+    throwErrorFromQueryTables = false,
+    additionalInfoMessage = '',
 ) => {
     const onResultFilterChange = jest.fn();
     const onDataTableFilterChange = jest.fn();
@@ -110,6 +111,7 @@ const renderComponent = (
             resultFilter={resultFilter}
             dataTableFilter={dataTableFilter}
             columnFilter={columnFilter}
+            additionalInfoMessage={additionalInfoMessage}
             onResultFilterChange={onResultFilterChange}
             onDataTableFilterChange={onDataTableFilterChange}
             onColumnFilterChange={onColumnFilterChange}
@@ -154,6 +156,27 @@ const renderComponent = (
 };
 
 describe('DataFrameQueryBuilderWrapper', () => {
+    describe('Info Banner', () => {
+        it('should show with additional info message', async () => {
+            renderComponent('', '', '', true, true, 'Some info message');
+            await waitFor(() => {
+                const infoAlert = screen.getByLabelText('Query optimization');
+                expect(infoAlert).toBeInTheDocument();
+                expect(within(infoAlert).getByText(/Some info message/)).toBeInTheDocument();
+            });
+        });
+
+        it('should show without additional info message by default', async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                const infoAlert = screen.queryByLabelText('Query optimization');
+                expect(infoAlert).toBeInTheDocument();
+                expect(screen.queryByText(/Some info message/)).not.toBeInTheDocument();
+            });
+        });
+    });
+
     describe('DataTableQueryBuilder', () => {
         it('should show the DataTableQueryBuilder component', async () => {
             renderComponent();

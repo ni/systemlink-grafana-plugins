@@ -2,7 +2,7 @@ import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { ColumnType, DataFrameDataQuery, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
-import { TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_SELECTION_LIMIT, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
 import { Workspace } from 'core/types';
@@ -448,6 +448,29 @@ describe('DataFrameDataSourceV2', () => {
                 });
 
                 describe('when columns are selected', () => {
+                    it(`should throw error when user selects column is more than ${COLUMN_SELECTION_LIMIT}`, async () => {
+                        const selectedColumns = Array.from(
+                            { 
+                                length: COLUMN_SELECTION_LIMIT + 1 
+                            }, 
+                            (_, i) => `col${i}-Numeric`
+                        );
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: selectedColumns,
+                            resultFilter: 'status = "Active"',
+                            dataTableFilter: 'name = "Test"',
+                            columnFilter: 'name = "colA"'
+                        } as DataFrameQueryV2;
+
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(
+                            `The number of selected columns (${(COLUMN_SELECTION_LIMIT + 1).toLocaleString()}) exceeds the limit of ${COLUMN_SELECTION_LIMIT.toLocaleString()}. Please select fewer columns and try again.`
+                        );
+                    })
+
                     it('should query tables and return results when columns are provided as array', async () => {
                         const mockTables = [{
                             id: 'table1',
@@ -2443,6 +2466,33 @@ describe('DataFrameDataSourceV2', () => {
                     );
                 });
 
+                it('should return an observable with original columns without datatype when using variables for columns', async () => {
+                    getSpy$.mockReturnValue(of({
+                        columns: [
+                            {
+                                name: 'col2',
+                                dataType: 'STRING'
+                            }
+                        ]
+                    }));
+                    templateSrv.containsTemplate.mockImplementation(
+                        (target?: string) => target ? target.startsWith('$') : false
+                    );
+                    const v1Query = {
+                        type: DataFrameQueryType.Data,
+                        tableId: 'table-789',
+                        columns: ['$col1', 'col2', 'col3'],
+                        refId: 'E'
+                    } as DataFrameQueryV1;
+                    
+                    const result = ds.processQuery(v1Query);
+
+                    expect(isObservable(result.columns)).toBe(true);
+                    expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
+                        ['$col1', 'col2-String', 'col3-Unknown']
+                    );
+                });
+
                 it('should return an observable with original columns when get table call failed', async () => {
                     getSpy$.mockReturnValue(throwError(() => new Error('Table not found')));
                     const v1Query = {
@@ -2457,6 +2507,26 @@ describe('DataFrameDataSourceV2', () => {
                     expect(isObservable(result.columns)).toBe(true);
                     expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
                         ['col1-Unknown', 'col2-Unknown']
+                    );
+                });
+
+                it('should return an observable with original columns preserving variables when get table call failed', async () => {
+                    getSpy$.mockReturnValue(throwError(() => new Error('Table not found')));
+                    templateSrv.containsTemplate.mockImplementation(
+                        (target?: string) => target ? target.startsWith('$') : false
+                    );
+                    const v1Query = {
+                        type: DataFrameQueryType.Data,
+                        tableId: 'table-789',
+                        columns: ['$col1', 'col2'],
+                        refId: 'E'
+                    } as DataFrameQueryV1;
+
+                    const result = ds.processQuery(v1Query);
+
+                    expect(isObservable(result.columns)).toBe(true);
+                    expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
+                        ['$col1', 'col2-Unknown']
                     );
                 });
 
