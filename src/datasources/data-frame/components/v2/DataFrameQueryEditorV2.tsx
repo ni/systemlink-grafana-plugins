@@ -52,7 +52,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     useEffect(() => {
         if (migratedQuery.type === DataFrameQueryType.Data) {
-          handleQueryChange({ ...query, type: DataFrameQueryType.Data});
+          handleQueryChange({ ...migratedQuery, type: DataFrameQueryType.Data});
         }
       // eslint-disable-next-line react-hooks/exhaustive-deps
       }, []);
