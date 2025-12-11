@@ -18,7 +18,6 @@ export const INLINE_LABEL_WIDTH = 25;
 export const VALUE_FIELD_WIDTH = 65.5;
 export const INLINE_MARGIN_BETWEEN_LABEL_AND_FIELD = 0.5;
 export const DEFAULT_MARGIN_BOTTOM = 1;
-export const DEFAULT_MARGIN_TOP = 2;
 export const SECTION_WIDTH = INLINE_LABEL_WIDTH + VALUE_FIELD_WIDTH + INLINE_MARGIN_BETWEEN_LABEL_AND_FIELD;
 
 /**
@@ -92,6 +91,11 @@ export const errorMessages = {
  * Informational messages for the DataFrameQueryEditorV2 component
  */
 export const infoMessages = {
-    queryOptimization: `Queries may have a significant impact on resource utilization.`,
+    queryOptimization: {
+        title: 'Query optimization',
+        message: `Queries may have a significant impact on resource utilization.`,
+        linkText: 'Click here to learn more about optimizing data frame queries.',
+        linkUrl: 'https://www.ni.com/r/dfs-db-query-performance',
+    },
     datasourceHelp: 'Please refer to the datasource help documentation for more information.',
 }

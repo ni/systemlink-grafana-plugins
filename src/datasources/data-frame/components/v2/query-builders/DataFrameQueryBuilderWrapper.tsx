@@ -12,7 +12,6 @@ import {
     DEFAULT_MARGIN_BOTTOM,
     getValuesInPixels,
     infoMessages,
-    DEFAULT_MARGIN_TOP,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { ColumnsQueryBuilder } from './columns-query-builder/ColumnsQueryBuilder';
 import { lastValueFrom } from 'rxjs';
@@ -104,22 +103,21 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                 style={
                     { 
                         width: getValuesInPixels(VALUE_FIELD_WIDTH),
-                        marginTop: getValuesInPixels(DEFAULT_MARGIN_TOP) 
                     }
                 }
             >
                 <Alert
                     severity='info'
-                    title='Query optimization'
+                    title={infoMessages.queryOptimization.title}
                 >
-                    {infoMessages.queryOptimization}{' '}
+                    {infoMessages.queryOptimization.message}{' '}
                     <a 
-                        href="https://www.ni.com/r/dfs-db-query-performance" 
+                        href={infoMessages.queryOptimization.linkUrl}
                         style={{ textDecoration: 'underline' }}
-                        >
-                        Click here to learn more about optimizing data frame queries.
+                    >
+                            {infoMessages.queryOptimization.linkText}
                     </a>
-                    {additionalInfoMessage}
+                    {' '}{additionalInfoMessage}
                 </Alert>
             </div>
             {isQueryByResultAndColumnPropertiesEnabled && (

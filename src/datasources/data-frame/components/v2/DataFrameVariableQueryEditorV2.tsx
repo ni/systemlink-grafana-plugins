@@ -1,4 +1,4 @@
-import { Combobox, ComboboxOption } from "@grafana/ui";
+import { Combobox, ComboboxOption, Space } from "@grafana/ui";
 import { InlineField } from "core/components/InlineField";
 import { FloatingError } from "core/errors";
 import { INLINE_LABEL_WIDTH } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
@@ -53,6 +53,7 @@ export const DataFrameVariableQueryEditorV2: React.FC<Props> = ({ query, onChang
                     placeholder={placeholder}
                     width={40} />
             </InlineField>
+            <Space v={1} />
             <DataFrameQueryBuilderWrapper
                 datasource={datasource}
                 resultFilter={migratedQuery.resultFilter}
