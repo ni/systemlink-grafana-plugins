@@ -1,12 +1,12 @@
 # SystemLink Data Frames data source
 
-## Overview
+## 📊 Overview
 
 The **SystemLink Data Frames** data source allows you to display data table properties and visualize data from multiple data tables in dashboards.
 
 ---
 
-## Key Features
+## 🎯 Key Features
 
 * **Flexible Filtering**: Filter data tables by result, data table, and column properties.  
 * **Display Table Metadata**: Retrieve and display metadata properties such as name, ID, row count, column information, and workspace.  
@@ -14,7 +14,7 @@ The **SystemLink Data Frames** data source allows you to display data table prop
 
 ---
 
-## Limitations
+## ⚠️ Limitations
 
 ### Required Filters
 At least one filter (data table, test result, or column filter) must be specified. Queries without any filters will return no results.
