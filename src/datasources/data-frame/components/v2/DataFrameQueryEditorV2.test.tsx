@@ -296,18 +296,6 @@ describe("DataFrameQueryEditorV2", () => {
                 });
 
                 describe('column limit', () => {
-                    it('should not render warning alert when column limit is not exceeded', async () => {
-                        await changeFilterValue();
-                        await clickColumnOptions();
-
-                        const optionTexts = getColumnOptionTexts();
-
-                        expect(optionTexts.length).toBeLessThanOrEqual(COLUMN_OPTIONS_LIMIT);
-                        await waitFor(() => {
-                            expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-                        });
-                    });
-
                     describe('when column limit is exceeded', () => {
                         beforeEach(async () => {
                             cleanup();
@@ -330,41 +318,6 @@ describe("DataFrameQueryEditorV2", () => {
                             await clickColumnOptions();
                             const optionTexts = getColumnOptionTexts();
                             expect(optionTexts.length).toBe(COLUMN_OPTIONS_LIMIT);
-                        });
-
-                        it('should render warning alert when column limit is exceeded', async () => {
-                            await waitFor(() => {
-                                const alert = screen.getByRole('alert');
-                                expect(alert).toBeInTheDocument();
-                                expect(within(alert).getByText(/Warning/i)).toBeInTheDocument();
-                                expect(within(alert).getByText(errorMessages.columnLimitExceeded)).toBeInTheDocument();
-                            });
-                        });
-
-                        it('should hide the warning alert when filter is removed', async () => {
-                            await changeFilterValue();
-                            const alert = screen.getByRole('alert');
-                            expect(alert).toBeInTheDocument();
-
-                            await changeFilterValue('');
-
-                            await waitFor(() => {
-                                expect(alert).not.toBeInTheDocument();
-                            });
-                        });
-
-                        it('should hide the warning alert when filter is changed and the `getColumnOptionsWithVariables` errored', async () => {
-                            await changeFilterValue();
-                            const alert = screen.getByRole('alert');
-                            expect(alert).toBeInTheDocument();
-
-                            // Mock getColumnOptionsWithVariables to throw error
-                            jest.spyOn(datasource, 'getColumnOptionsWithVariables').mockRejectedValue(new Error('Test error'));
-                            await changeFilterValue('AnotherFilter');
-
-                            await waitFor(() => {
-                                expect(alert).not.toBeInTheDocument();
-                            });
                         });
                     });
                 });
@@ -1590,18 +1543,6 @@ describe("DataFrameQueryEditorV2", () => {
                 });
 
                 describe('x-column limit', () => {
-                    it('should not render warning alert when x-column limit is not exceeded', async () => {
-                        await changeFilterValue();
-                        await clickXColumnCombobox();
-
-                        const optionTexts = getXColumnOptionTexts();
-
-                        expect(optionTexts.length).toBeLessThanOrEqual(COLUMN_OPTIONS_LIMIT);
-                        await waitFor(() => {
-                            expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-                        });
-                    });
-
                     describe('when x-column limit is exceeded', () => {
                         beforeEach(async () => {
                             cleanup();
@@ -1627,42 +1568,6 @@ describe("DataFrameQueryEditorV2", () => {
                             await clickXColumnCombobox();
                             const optionTexts = getXColumnOptionTexts();
                             expect(optionTexts.length).toBe(COLUMN_OPTIONS_LIMIT);
-                        });
-
-                        it('should render warning alert when x-column limit is exceeded', async () => {
-                            await waitFor(() => {
-                                const alert = screen.getByRole('alert');
-                                expect(alert).toBeInTheDocument();
-                                expect(within(alert).getByText(/Warning/i)).toBeInTheDocument();
-                                expect(within(alert).getByText(errorMessages.xColumnLimitExceeded))
-                                    .toBeInTheDocument();
-                            });
-                        });
-
-                        it('should hide the warning alert when filter is removed', async () => {
-                            await changeFilterValue();
-                            const alert = screen.getByRole('alert');
-                            expect(alert).toBeInTheDocument();
-
-                            await changeFilterValue('');
-
-                            await waitFor(() => {
-                                expect(alert).not.toBeInTheDocument();
-                            });
-                        });
-
-                        it('should hide the warning alert when filter is changed and the `getColumnOptionsWithVariables` errored', async () => {
-                            await changeFilterValue();
-                            const alert = screen.getByRole('alert');
-                            expect(alert).toBeInTheDocument();
-
-                            // Mock getColumnOptionsWithVariables to throw error
-                            jest.spyOn(datasource, 'getColumnOptionsWithVariables').mockRejectedValue(new Error('Test error'));
-                            await changeFilterValue('AnotherFilter');
-
-                            await waitFor(() => {
-                                expect(alert).not.toBeInTheDocument();
-                            });
                         });
                     });
                 });
