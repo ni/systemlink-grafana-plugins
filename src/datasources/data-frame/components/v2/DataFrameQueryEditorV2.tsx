@@ -29,6 +29,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
     const [xColumnOptions, setXColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
+    const [isColumnOptionsInitialized, setIsColumnOptionsInitialized] = useState<boolean>(false);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -66,6 +67,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             } catch (error) {
                 setColumnOptions([]);
                 setXColumnOptions([]);
+            } finally {
+                setIsColumnOptionsInitialized(true);
             }
         },
         [
@@ -113,7 +116,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     }, [validColumnSelections, invalidColumnSelections]);
 
     const invalidSelectedColumnsMessage = useMemo(() => {
-        if (invalidColumnSelections.length === 0) {
+        if (invalidColumnSelections.length === 0 || !isColumnOptionsInitialized) {
             return '';
         }
 
@@ -121,7 +124,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         return invalidColumnSelections.length === 1
             ? `The selected column '${invalidColumnNames}' is not valid.`
             : `The selected columns '${invalidColumnNames}' are not valid.`;
-    }, [invalidColumnSelections]);
+    }, [invalidColumnSelections, isColumnOptionsInitialized]);
 
     useEffect(
         () => {
@@ -135,6 +138,14 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             };
 
             const filterChanged = !_.isEqual(lastFilterRef.current, transformedFilter);
+            const hasRequiredFilters = datasource.hasRequiredFilters(migratedQuery);
+
+            if (
+                !isColumnOptionsInitialized
+                && (!filterChanged || !hasRequiredFilters)
+            ) {
+                setIsColumnOptionsInitialized(true);
+            }
 
             if (migratedQuery.type !== DataFrameQueryType.Data || !filterChanged) {
                 return;
@@ -142,7 +153,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
             lastFilterRef.current = transformedFilter;
 
-            if (datasource.hasRequiredFilters(migratedQuery)) {
+            if (hasRequiredFilters) {
                 fetchAndSetColumnOptions(transformedFilter);
                 return;
             }
@@ -181,8 +192,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                 label: getSelectedColumnLabelForInvalidColumn(migratedQuery.xColumn),
                 value: migratedQuery.xColumn
             };
-        return { isInvalid: !validXColumn, value };
-    }, [migratedQuery.xColumn, xColumnOptions, getSelectedColumnLabelForInvalidColumn]);
+        return { isInvalid: !validXColumn && isColumnOptionsInitialized, value };
+    }, [
+        migratedQuery.xColumn, 
+        xColumnOptions, 
+        getSelectedColumnLabelForInvalidColumn, 
+        isColumnOptionsInitialized
+    ]);
 
     const handleQueryChange = useCallback(
         (query: DataFrameQueryV2, runQuery = true): void => {

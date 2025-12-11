@@ -1094,26 +1094,7 @@ describe("DataFrameQueryEditorV2", () => {
                 });
 
                 describe('column validation and error handling', () => {
-                    const mockDatasource = {
-                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
-                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
-                            uniqueColumnsAcrossTables: [
-                                { label: 'ColumnA', value: 'ColumnA-String' },
-                                { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
-                                { label: 'ColumnB (String)', value: 'ColumnB-String' },
-                            ],
-                            commonColumnsAcrossTables: [
-                                { label: 'ColumnA', value: 'ColumnA-String' },
-                                { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
-                                { label: 'ColumnB (String)', value: 'ColumnB-String' },
-                            ]
-                        }),
-                        transformDataTableQuery: jest.fn((filter: string) => filter),
-                        transformResultQuery: jest.fn((filter: string) => filter),
-                        transformColumnQuery: jest.fn((filter: string) => filter),
-                        hasRequiredFilters: mockHasRequiredFilters,
-                        parseColumnIdentifier: mockParseColumnIdentifier,
-                    } as any;
+                    let mockDatasource: any;
 
                     beforeAll(() => {
                         jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
@@ -1122,6 +1103,27 @@ describe("DataFrameQueryEditorV2", () => {
                     beforeEach(() => {
                         cleanup();
                         jest.clearAllMocks();
+
+                        mockDatasource = {
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                            getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                                uniqueColumnsAcrossTables: [
+                                    { label: 'ColumnA', value: 'ColumnA-String' },
+                                    { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
+                                    { label: 'ColumnB (String)', value: 'ColumnB-String' },
+                                ],
+                                commonColumnsAcrossTables: [
+                                    { label: 'ColumnA', value: 'ColumnA-String' },
+                                    { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
+                                    { label: 'ColumnB (String)', value: 'ColumnB-String' },
+                                ]
+                            }),
+                            transformDataTableQuery: jest.fn((filter: string) => filter),
+                            transformResultQuery: jest.fn((filter: string) => filter),
+                            transformColumnQuery: jest.fn((filter: string) => filter),
+                            hasRequiredFilters: mockHasRequiredFilters,
+                            parseColumnIdentifier: mockParseColumnIdentifier,
+                        } as any;
                     });
 
                     describe('when existing columns are valid', () => {
@@ -1353,6 +1355,74 @@ describe("DataFrameQueryEditorV2", () => {
                                 expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
                             });
                         });
+                    });
+
+                    it('should not show error before fetching column options', () => {
+                        mockDatasource.getColumnOptionsWithVariables = jest.fn().mockReturnValue(
+                            new Promise(() => {})
+                        );
+
+                        renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                dataTableFilter: 'name = "TestTable"',
+                                columns: ['ColumnA-String'],
+                            },
+                            '',
+                            '',
+                            [],
+                            [],
+                            undefined,
+                            {},
+                            mockDatasource
+                        );
+
+                        // No error message should be displayed
+                        expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+                    });
+
+                    it('should show error when columns selected and required filters are not provided', async () => {
+                        mockDatasource.hasRequiredFilters = jest.fn().mockReturnValue(false);
+                        renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                columnFilter: 'name = "TestTable"',
+                                columns: ['ColumnA-String'],
+                            },
+                            '',
+                            '',
+                            [],
+                            [],
+                            undefined,
+                            {},
+                            mockDatasource
+                        );
+
+                        // Error message should be displayed
+                        expect(screen.getByText(
+                            'The selected column \'ColumnA (String)\' is not valid.'
+                        )).toBeInTheDocument();
+                    });
+
+                    it('should show error when columns selected and all filters are not provided', async () => {
+                        renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                columns: ['ColumnA-String'],
+                            },
+                            '',
+                            '',
+                            [],
+                            [],
+                            undefined,
+                            {},
+                            mockDatasource
+                        );
+
+                        // Error message should be displayed
+                        expect(screen.getByText(
+                            'The selected column \'ColumnA (String)\' is not valid.'
+                        )).toBeInTheDocument();
                     });
                 });
             });
@@ -2111,6 +2181,7 @@ describe("DataFrameQueryEditorV2", () => {
                 });
 
                 describe('x-column validation', () => {
+                    let mockDatasource: any;
                     beforeAll(() => {
                         jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
                             .mockReturnValue(300);
@@ -2119,6 +2190,26 @@ describe("DataFrameQueryEditorV2", () => {
                     beforeEach(() => {
                         cleanup();
                         jest.clearAllMocks();
+                        mockDatasource = {
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                            getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                                uniqueColumnsAcrossTables: [
+                                    { label: 'ColumnA', value: 'ColumnA-String' },
+                                    { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
+                                    { label: 'ColumnB (String)', value: 'ColumnB-String' },
+                                ],
+                                commonColumnsAcrossTables: [
+                                    { label: 'ColumnA', value: 'ColumnA-String' },
+                                    { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
+                                    { label: 'ColumnB (String)', value: 'ColumnB-String' },
+                                ]
+                            }),
+                            transformDataTableQuery: jest.fn((filter: string) => filter),
+                            transformResultQuery: jest.fn((filter: string) => filter),
+                            transformColumnQuery: jest.fn((filter: string) => filter),
+                            hasRequiredFilters: mockHasRequiredFilters,
+                            parseColumnIdentifier: mockParseColumnIdentifier,
+                        } as any;
                     });
 
                     it('should not show validation error when selected x-column is in the options list', async () => {
@@ -2235,6 +2326,79 @@ describe("DataFrameQueryEditorV2", () => {
                             expect(screen.getByText(errorMessages.xColumnSelectionInvalid))
                                 .toBeInTheDocument();
                         });
+                    });
+
+                    it('should not show error before fetching column options', () => {
+                        mockDatasource.getColumnOptionsWithVariables = jest.fn().mockReturnValue(
+                            new Promise(() => {})
+                        );
+
+                        renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                dataTableFilter: 'name = "TestTable"',
+                                columns: ['ColumnA-String'],
+                                xColumn: 'ColumnA-String',
+                            },
+                            '',
+                            '',
+                            [],
+                            [],
+                            undefined,
+                            {},
+                            mockDatasource
+                        );
+
+                        // No error message should be displayed
+                        expect(screen.queryByText(
+                            'The selected x-column is not available in all the tables matching the query.'
+                        )).not.toBeInTheDocument();
+                    });
+
+                    it('should show error when x-column selected and required filters are not provided', async () => {
+                        mockDatasource.hasRequiredFilters = jest.fn().mockReturnValue(false);
+                        renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                columnFilter: 'name = "TestTable"',
+                                columns: ['ColumnA-String'],
+                                xColumn: 'ColumnA-String',
+                            },
+                            '',
+                            '',
+                            [],
+                            [],
+                            undefined,
+                            {},
+                            mockDatasource
+                        );
+
+                        // Error message should be displayed
+                        expect(screen.getByText(
+                            'The selected x-column is not available in all the tables matching the query.'
+                        )).toBeInTheDocument();
+                    });
+
+                    it('should show error when x-column selected and all filters are not provided', async () => {
+                        renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                columns: ['ColumnA-String'],
+                                xColumn: 'ColumnA-String',
+                            },
+                            '',
+                            '',
+                            [],
+                            [],
+                            undefined,
+                            {},
+                            mockDatasource
+                        );
+
+                        // Error message should be displayed
+                        expect(screen.getByText(
+                            'The selected x-column is not available in all the tables matching the query.'
+                        )).toBeInTheDocument();
                     });
                 });
             });
