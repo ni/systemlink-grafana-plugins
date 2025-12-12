@@ -9,7 +9,7 @@ services:
         grafana_version: ${GRAFANA_VERSION:-11.6.4}
         grafana_image: ${GRAFANA_IMAGE:-grafana}
     environment:
-      - GF_USERS_DEFAULT_THEME=light
+      - GF_USERS_DEFAULT_THEME=system
     ports:
       - 3000:3000/tcp
     volumes:
