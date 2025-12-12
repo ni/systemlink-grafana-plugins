@@ -1,3 +1,9 @@
+## [4.104.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.104.0...v4.104.1) (2025-12-12)
+
+### Bug Fixes
+
+* **dataframe:** Restrict string columns in x-column selection ([#617](https://github.com/ni/systemlink-grafana-plugins/issues/617)) ([be9f975](https://github.com/ni/systemlink-grafana-plugins/commit/be9f975f17535b92ba9dd3ea3753656961369c0b))
+
 ## [4.104.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.103.1...v4.104.0) (2025-12-12)
 
 ### Features
