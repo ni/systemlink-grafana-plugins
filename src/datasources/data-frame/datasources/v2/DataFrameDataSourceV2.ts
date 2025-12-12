@@ -224,20 +224,27 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private queryTablesInternal$(
         filter: string,
         take = TAKE_LIMIT,
-        projection?: DataTableProjections[],
+        projection: DataTableProjections[] = [],
         substitutions?: string[]
     ): Observable<TableProperties[]> {
+        const updatedProjections = [...projection];
+        if(!updatedProjections.includes(DataTableProjections.RowsModifiedAt)) {
+            updatedProjections.push(DataTableProjections.RowsModifiedAt);
+        }
+        
         const requestBody = {
             interactive: true,
+            orderBy: DataTableProjections.RowsModifiedAt,
+            orderByDescending: true,
             filter,
             take,
-            projection,
+            projection: updatedProjections,
             substitutions,
         };
         const response = this.post$<TablePropertiesList>(
             `${this.baseUrl}/query-tables`,
             requestBody,
-            { useApiIngress: true }
+            { useApiIngress: true, showErrorAlert: false }
         );
 
         return response.pipe(
@@ -419,7 +426,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 filters: request.filters,
                 decimation: request.decimation,
             },
-            { useApiIngress: true }
+            { useApiIngress: true, showErrorAlert: false }
         ).pipe(
             catchError(error => {
                 const errorMessage = this.getErrorMessage(error, 'decimated table data');
