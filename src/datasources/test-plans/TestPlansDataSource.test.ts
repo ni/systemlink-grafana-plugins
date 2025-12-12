@@ -671,7 +671,7 @@ describe('runQuery', () => {
       refId: 'C',
       outputType: OutputType.Properties,
       queryBy: 'dutId = "${dutIds}"',
-      properties: [ Properties.ID ],
+      properties: [Properties.ID],
       recordCount: 1000,
     };
     const options = { scopedVars: { dutIds: { value: '{dutId1,dutId2}' } } };
@@ -1692,7 +1692,6 @@ describe('metricFindQuery', () => {
       refId: 'C',
       outputType: OutputType.Properties,
       queryBy: 'dutId = "${dutIds}"',
-      properties: [ Properties.ID ],
       recordCount: 1000,
     };
     const options = { scopedVars: { dutIds: { value: '{dutId1,dutId2}' } } };
