@@ -2822,6 +2822,10 @@ describe("DataFrameQueryEditorV2", () => {
                 dataTableFilter: 'SameFilter'
             });
 
+            // Clear mocks after initial render (useEffect calls onChange on mount)
+            onChange.mockClear();
+            onRunQuery.mockClear();
+
             // Get the onDataTableFilterChange callback from the mock
             const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
             const { onDataTableFilterChange } = props;
@@ -2914,6 +2918,10 @@ describe("DataFrameQueryEditorV2", () => {
                 columnFilter: 'SameColumnFilter'
             });
 
+            // Clear mocks after initial render (useEffect calls onChange on mount)
+            onChange.mockClear();
+            onRunQuery.mockClear();
+
             // Get the onColumnFilterChange callback from the mock
             const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
             const { onColumnFilterChange } = props;
@@ -2989,6 +2997,10 @@ describe("DataFrameQueryEditorV2", () => {
                 type: DataFrameQueryType.Data,
                 resultFilter: 'SameResultFilter'
             });
+
+            // Clear mocks after initial render (useEffect calls onChange on mount)
+            onChange.mockClear();
+            onRunQuery.mockClear();
 
             // Get the onResultFilterChange callback from the mock
             const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
