@@ -50,6 +50,6 @@ You can view all data from the data tables that are associated with passing test
 
 ## Additional Resources
 
-- **Query Optimization:** [Optimizing Data Frame Queries](https://www.ni.com/r/dfs-db-query-performance)
-- **Visualizing Data Tables:** [Visualizing Data Tables in a Dashboard](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/visualizing-data-tables-in-a-dashboard.html)
-- **DataFrame Datasource:** [Create dashboards using the Data Frames data source](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/data-frames-data-source.html)
+- **Query Optimization:** <a href="https://www.ni.com/r/dfs-db-query-performance" target="_blank" rel="noopener noreferrer">Optimizing Data Frame Queries</a>
+- **Visualizing Data Tables:** <a href="https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/visualizing-data-tables-in-a-dashboard.html" target="_blank" rel="noopener noreferrer">Visualizing Data Tables in a Dashboard</a>
+- **DataFrame Datasource:** <a href="https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/data-frames-data-source.html" target="_blank" rel="noopener noreferrer">Create dashboards using the Data Frames data source</a>
