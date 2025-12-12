@@ -1,3 +1,9 @@
+## [4.104.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.104.2...v4.104.3) (2025-12-12)
+
+### Bug Fixes
+
+* **alarms,products,results,workorders,testplans:** Open links in help documentation as a new tab ([#616](https://github.com/ni/systemlink-grafana-plugins/issues/616)) ([125ca5c](https://github.com/ni/systemlink-grafana-plugins/commit/125ca5c98885fce27a62c8834433e34606a96fab))
+
 ## [4.104.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.104.1...v4.104.2) (2025-12-12)
 
 ### Bug Fixes
