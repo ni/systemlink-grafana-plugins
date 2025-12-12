@@ -1,3 +1,13 @@
+## [4.105.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.104.3...v4.105.0) (2025-12-12)
+
+### Features
+
+* **dataframes:** Add order by and order by descending in query tables request ([#613](https://github.com/ni/systemlink-grafana-plugins/issues/613)) ([c020edd](https://github.com/ni/systemlink-grafana-plugins/commit/c020edd3a2aabc035172e96077749761da849452))
+
+### Bug Fixes
+
+* **dataframe:** Fix datasource initialize on datasource switch ([#620](https://github.com/ni/systemlink-grafana-plugins/issues/620)) ([0f4cb05](https://github.com/ni/systemlink-grafana-plugins/commit/0f4cb05ca373f40269aadc95cec8f934d2530d14))
+
 ## [4.104.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.104.2...v4.104.3) (2025-12-12)
 
 ### Bug Fixes
