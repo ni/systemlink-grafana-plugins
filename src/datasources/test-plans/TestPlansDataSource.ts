@@ -69,10 +69,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     const products = await this.loadProductNamesAndPartNumbers();
 
     if (query.queryBy) {
-      // TestPlansQueryBuilderFieldNames uses 'DUTId' but PropertiesProjectionMap uses 'dutId'
-      // testPlansComputedDataFields is built from PropertiesProjectionMap, so it only has 'dutId' as a key
-      // We convert DUTId → dutId before transformation to ensure the Map lookup succeeds
-      let queryBy = query.queryBy.replace(/\bDUTId\b/g, 'dutId');
+      let queryBy = this.normalizeDUTIdFieldName(query.queryBy);
       query.queryBy = transformComputedFieldsQuery(
         this.templateSrv.replace(queryBy, options.scopedVars),
         this.testPlansComputedDataFields
@@ -302,10 +299,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
     let filter;
     if (variableQuery.queryBy) {
-      // TestPlansQueryBuilderFieldNames uses 'DUTId' but PropertiesProjectionMap uses 'dutId'
-      // testPlansComputedDataFields is built from PropertiesProjectionMap, so it only has 'dutId' as a key
-      // We convert DUTId → dutId before transformation to ensure the Map lookup succeeds
-      let queryBy = variableQuery.queryBy.replace(/\bDUTId\b/g, 'dutId');
+      let queryBy = this.normalizeDUTIdFieldName(variableQuery.queryBy);
       filter = transformComputedFieldsQuery(
         this.templateSrv.replace(queryBy, options.scopedVars),
         this.testPlansComputedDataFields
@@ -501,5 +495,15 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
   private isPropertiesValid(query: TestPlansQuery): boolean {
     return !!query.properties && query.properties.length > 0;
+  }
+
+  /**
+   * Normalizes the DUT identifier field name in queries.
+   * TestPlansQueryBuilderFieldNames uses 'DUTId' but PropertiesProjectionMap uses 'dutId'.
+   * testPlansComputedDataFields is built from PropertiesProjectionMap, so it only has 'dutId' as a key.
+   * This converts DUTId → dutId before transformation to ensure the Map lookup succeeds.
+   */
+  private normalizeDUTIdFieldName(query: string): string {
+    return query.replace(/\bDUTId\b/g, 'dutId');
   }
 }
