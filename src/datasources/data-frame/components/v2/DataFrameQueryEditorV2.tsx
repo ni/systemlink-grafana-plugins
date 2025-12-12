@@ -50,6 +50,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         columnFilter: '',
     });
 
+    // Auto-run query on initial render
+    // if it is default query
     useEffect(() => {
         const isDefaultQuery = _.isMatch(migratedQuery, defaultQueryV2);
         if (isDefaultQuery) {
