@@ -1,3 +1,11 @@
+## [4.104.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.104.1...v4.104.2) (2025-12-12)
+
+### Bug Fixes
+
+* **dataframe:** Exclude xColumn from yColumns  ([#611](https://github.com/ni/systemlink-grafana-plugins/issues/611)) ([1ee8586](https://github.com/ni/systemlink-grafana-plugins/commit/1ee8586b23b3cd4aa7a477729e51be836e02d650))
+* **dataframe:** Include table ID in the display name for  variable options ([#614](https://github.com/ni/systemlink-grafana-plugins/issues/614)) ([08bfc28](https://github.com/ni/systemlink-grafana-plugins/commit/08bfc28f67dfbd8a538ae8c5a27482407e0cd95c))
+* **dataframe:** Open link in a new tab  ([#612](https://github.com/ni/systemlink-grafana-plugins/issues/612)) ([88fc5c6](https://github.com/ni/systemlink-grafana-plugins/commit/88fc5c6adb89263a6d9caffa69314da7ea877ef7))
+
 ## [4.104.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.104.0...v4.104.1) (2025-12-12)
 
 ### Bug Fixes
