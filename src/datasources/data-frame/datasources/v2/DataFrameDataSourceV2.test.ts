@@ -3999,4 +3999,236 @@ describe('DataFrameDataSourceV2', () => {
             expect(ds.hasRequiredFilters(query)).toBe(false);
         });
     });
+
+    describe('yColumns handling', () => {
+        let queryTablesSpy: jest.SpyInstance;
+        let postSpy: jest.SpyInstance;
+        let options: DataQueryRequest<DataFrameQueryV2>;
+
+        beforeEach(() => {
+            queryTablesSpy = jest.spyOn(ds, 'queryTables$');
+            postSpy = jest.spyOn(ds, 'post$');
+            options = {
+                scopedVars: {}
+            } as any;
+        });
+
+        it('should exclude xColumn from yColumns when xColumn is numeric', async () => {
+            const mockTables = [{
+                id: 'table1',
+                columns: [
+                    { name: 'timestamp', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
+                    { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                    { name: 'value2', dataType: 'INT32', columnType: ColumnType.Normal }
+                ]
+            }];
+            queryTablesSpy.mockReturnValue(of(mockTables));
+            postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+            const query = {
+                refId: 'A',
+                type: DataFrameQueryType.Data,
+                columns: ['value1-Numeric', 'value2-Numeric'],
+                xColumn: 'value1-Numeric',
+                dataTableFilter: 'name = "test"',
+                decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
+                filterNulls: false,
+                applyTimeFilters: false
+            } as DataFrameQueryV2;
+
+            await lastValueFrom(ds.runQuery(query, options));
+
+            expect(postSpy).toHaveBeenCalledWith(
+                expect.stringContaining('query-decimated-data'),
+                expect.objectContaining({
+                    decimation: expect.objectContaining({
+                        xColumn: 'value1',
+                        yColumns: ['value2']
+                    })
+                }),
+                expect.any(Object)
+            );
+        });
+
+        it('should exclude xColumn from yColumns when xColumn is timestamp', async () => {
+            const mockTables = [{
+                id: 'table1',
+                columns: [
+                    { name: 'timestamp', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
+                    { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                    { name: 'value2', dataType: 'INT32', columnType: ColumnType.Normal }
+                ]
+            }];
+            queryTablesSpy.mockReturnValue(of(mockTables));
+            postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+            const query = {
+                refId: 'A',
+                type: DataFrameQueryType.Data,
+                columns: ['timestamp-Timestamp', 'value1-Numeric', 'value2-Numeric'],
+                xColumn: 'timestamp-Timestamp',
+                dataTableFilter: 'name = "test"',
+                decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
+                filterNulls: false,
+                applyTimeFilters: false
+            } as DataFrameQueryV2;
+
+            await lastValueFrom(ds.runQuery(query, options));
+
+            expect(postSpy).toHaveBeenCalledWith(
+                expect.stringContaining('query-decimated-data'),
+                expect.objectContaining({
+                    decimation: expect.objectContaining({
+                        xColumn: 'timestamp',
+                        yColumns: ['value1', 'value2']
+                    })
+                }),
+                expect.any(Object)
+            );
+        });
+
+        it('should include all numeric columns in yColumns when xColumn is null', async () => {
+            const mockTables = [{
+                id: 'table1',
+                columns: [
+                    { name: 'timestamp', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
+                    { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                    { name: 'value2', dataType: 'INT32', columnType: ColumnType.Normal }
+                ]
+            }];
+            queryTablesSpy.mockReturnValue(of(mockTables));
+            postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+            const query = {
+                refId: 'A',
+                type: DataFrameQueryType.Data,
+                columns: ['value1-Numeric', 'value2-Numeric'],
+                xColumn: null,
+                dataTableFilter: 'name = "test"',
+                decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
+                filterNulls: false,
+                applyTimeFilters: false
+            } as DataFrameQueryV2;
+
+            await lastValueFrom(ds.runQuery(query, options));
+
+            expect(postSpy).toHaveBeenCalledWith(
+                expect.stringContaining('query-decimated-data'),
+                expect.objectContaining({
+                    decimation: expect.objectContaining({
+                        xColumn: undefined,
+                        yColumns: ['value1', 'value2']
+                    })
+                }),
+                expect.any(Object)
+            );
+        });
+
+        it('should exclude non-numeric columns from yColumns', async () => {
+            const mockTables = [{
+                id: 'table1',
+                columns: [
+                    { name: 'name', dataType: 'STRING', columnType: ColumnType.Normal },
+                    { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                    { name: 'flag', dataType: 'BOOL', columnType: ColumnType.Normal }
+                ]
+            }];
+            queryTablesSpy.mockReturnValue(of(mockTables));
+            postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+            const query = {
+                refId: 'A',
+                type: DataFrameQueryType.Data,
+                columns: ['name-String', 'value1-Numeric', 'flag-Bool'],
+                xColumn: null,
+                dataTableFilter: 'name = "test"',
+                decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
+                filterNulls: false,
+                applyTimeFilters: false
+            } as DataFrameQueryV2;
+
+            await lastValueFrom(ds.runQuery(query, options));
+
+            expect(postSpy).toHaveBeenCalledWith(
+                expect.stringContaining('query-decimated-data'),
+                expect.objectContaining({
+                    decimation: expect.objectContaining({
+                        yColumns: ['value1']
+                    })
+                }),
+                expect.any(Object)
+            );
+        });
+
+        it('should handle empty yColumns when only non-numeric columns are selected', async () => {
+            const mockTables = [{
+                id: 'table1',
+                columns: [
+                    { name: 'name', dataType: 'STRING', columnType: ColumnType.Normal },
+                    { name: 'flag', dataType: 'BOOL', columnType: ColumnType.Normal }
+                ]
+            }];
+            queryTablesSpy.mockReturnValue(of(mockTables));
+            postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+            const query = {
+                refId: 'A',
+                type: DataFrameQueryType.Data,
+                columns: ['name-String', 'flag-Bool'],
+                xColumn: null,
+                dataTableFilter: 'name = "test"',
+                decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
+                filterNulls: false,
+                applyTimeFilters: false
+            } as DataFrameQueryV2;
+
+            await lastValueFrom(ds.runQuery(query, options));
+
+            expect(postSpy).toHaveBeenCalledWith(
+                expect.stringContaining('query-decimated-data'),
+                expect.objectContaining({
+                    decimation: expect.objectContaining({
+                        yColumns: []
+                    })
+                }),
+                expect.any(Object)
+            );
+        });
+
+        it('should handle yColumns when xColumn is the only numeric column', async () => {
+            const mockTables = [{
+                id: 'table1',
+                columns: [
+                    { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                    { name: 'name', dataType: 'STRING', columnType: ColumnType.Normal }
+                ]
+            }];
+            queryTablesSpy.mockReturnValue(of(mockTables));
+            postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+            const query = {
+                refId: 'A',
+                type: DataFrameQueryType.Data,
+                columns: ['value1-Numeric', 'name-String'],
+                xColumn: 'value1-Numeric',
+                dataTableFilter: 'name = "test"',
+                decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
+                filterNulls: false,
+                applyTimeFilters: false
+            } as DataFrameQueryV2;
+
+            await lastValueFrom(ds.runQuery(query, options));
+
+            expect(postSpy).toHaveBeenCalledWith(
+                expect.stringContaining('query-decimated-data'),
+                expect.objectContaining({
+                    decimation: expect.objectContaining({
+                        xColumn: 'value1',
+                        yColumns: []
+                    })
+                }),
+                expect.any(Object)
+            );
+        });
+    });
 });
