@@ -1,3 +1,9 @@
+## [4.104.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.103.1...v4.104.0) (2025-12-12)
+
+### Features
+
+* **dataframe:** Update Query builder tooltip ([#615](https://github.com/ni/systemlink-grafana-plugins/issues/615)) ([5e36923](https://github.com/ni/systemlink-grafana-plugins/commit/5e36923ddec48a3b65e227c7c4cead72f5bccc43))
+
 ## [4.103.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.103.0...v4.103.1) (2025-12-11)
 
 ### Bug Fixes
