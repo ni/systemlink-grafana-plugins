@@ -4010,7 +4010,7 @@ describe('DataFrameDataSourceV2', () => {
             );
         });
 
-        it('should include all numeric columns in yColumns when xColumn is not numeric', async () => {
+        it('should exclude xColumn from yColumns when xColumn is timestamp', async () => {
             const mockTables = [{
                 id: 'table1',
                 columns: [
