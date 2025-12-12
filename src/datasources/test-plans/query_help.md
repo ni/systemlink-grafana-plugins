@@ -16,4 +16,4 @@ For queries that use the _SystemLink Test Plans_ data source, refer to the follo
   
 ### Additional Resources
 
-For more information on managing test plans using SystemLink Enterprise, refer to [Creating a Test Plan - SystemLink Enterprise](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/creating-a-test-plan.html).
+For more information on managing test plans using SystemLink Enterprise, refer to <a href="https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/creating-a-test-plan.html" target="_blank" rel="noopener noreferrer">Creating a Test Plan - SystemLink Enterprise</a>.

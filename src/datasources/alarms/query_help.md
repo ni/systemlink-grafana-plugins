@@ -21,5 +21,5 @@ You can use the _SystemLink Alarms_ data source for scenarios such as:
 
 For more information on monitoring alarms and system health using SystemLink Enterprise, refer to the following resources:
 
-- [Monitoring alarms - SystemLink Enterprise](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/monitoring-alarms.html)
-- [Monitoring system health - SystemLink Enterprise](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/monitoring-system-health.html)
+- <a href="https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/monitoring-alarms.html" target="_blank" rel="noopener noreferrer">Monitoring alarms - SystemLink Enterprise</a>
+- <a href="https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/monitoring-system-health.html" target="_blank" rel="noopener noreferrer">Monitoring system health - SystemLink Enterprise</a>
