@@ -357,7 +357,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     ? this.parseColumnIdentifier(query.xColumn).columnName
                     : undefined;
             const yColumns = this.getNumericColumns(columnsMap.selectedColumns)
-                .filter(column =>  !xColumn || column.name !== xColumn)
+                .filter(column => column.name !== xColumn)
                 .map(column => column.name)
 
             return {
