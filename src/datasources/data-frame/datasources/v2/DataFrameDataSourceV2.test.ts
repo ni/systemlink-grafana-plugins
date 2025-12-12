@@ -1862,8 +1862,8 @@ describe('DataFrameDataSourceV2', () => {
                     [DataTableProjections.Name]
                 );
                 expect(result).toEqual([
-                    { text: 'Table 1(table-1)', value: 'table-1' },
-                    { text: 'Table 2(table-2)', value: 'table-2' }
+                    { text: 'Table 1 (table-1)', value: 'table-1' },
+                    { text: 'Table 2 (table-2)', value: 'table-2' }
                 ]);
             });
 
