@@ -153,6 +153,19 @@ describe("DataFrameQueryEditorV2", () => {
         expect(onRunQuery).toHaveBeenCalled();
     });
 
+    it("should call onChange and onRunQuery on first render when query type is Data", async () => {
+        const { onChange, onRunQuery } = renderComponent({
+            type: DataFrameQueryType.Data,
+        });
+
+        await waitFor(() => {
+            expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                type: DataFrameQueryType.Data,
+            }));
+            expect(onRunQuery).toHaveBeenCalled();
+        });
+    });
+
     describe("when the query type is data", () => {
         let onChange: jest.Mock;
         let onRunQuery: jest.Mock;
