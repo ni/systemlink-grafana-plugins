@@ -92,7 +92,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 [DataTableProjections.Name]
             ));
             return tables.map(table => ({
-                text: `${table.name}(${table.id})`,
+                text: `${table.name} (${table.id})`,
                 value: table.id,
             }));
         }
