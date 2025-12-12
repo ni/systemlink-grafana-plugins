@@ -930,14 +930,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return fields;
     }
 
-    private transformValue(dataType: ColumnDataType, value: string): any {
-        if (!value) {
+    private transformValue(dataType: ColumnDataType, value: string | null): any {
+        if (dataType !== 'STRING' && !value) {
             return null;
         }
 
         switch (dataType) {
             case 'BOOL':
-                return value.toLowerCase() === 'true';
+                return value!.toLowerCase() === 'true';
             case 'INT32':
             case 'INT64':
             case 'FLOAT32':
