@@ -3150,7 +3150,11 @@ describe('DataFrameDataSourceV2', () => {
                 orderByDescending: true,
                 filter: filter.dataTableFilter,
                 take,
-                projection: [DataTableProjections.Name, DataTableProjections.RowsModifiedAt, DataTableProjections.Id],
+                projection: [
+                    DataTableProjections.Name, 
+                    DataTableProjections.RowsModifiedAt, 
+                    DataTableProjections.Id
+                ],
                 substitutions: undefined
               },
               { useApiIngress: true, showErrorAlert: false }
