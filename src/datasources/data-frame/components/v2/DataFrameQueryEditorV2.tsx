@@ -51,9 +51,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     });
 
     useEffect(() => {
-        const isDefaultQuery = Object.keys(defaultQueryV2).every(key =>
-          _.isEqual((migratedQuery as any)[key], (defaultQueryV2 as any)[key])
-        );
+        const isDefaultQuery = _.isMatch(migratedQuery, defaultQueryV2);
         if (isDefaultQuery) {
           onRunQuery();
         }
