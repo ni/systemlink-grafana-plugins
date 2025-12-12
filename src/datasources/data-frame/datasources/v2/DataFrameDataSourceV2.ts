@@ -943,17 +943,21 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return fields;
     }
 
-    private transformValue(dataType: ColumnDataType, value: string): any {
+    private transformValue(dataType: ColumnDataType, value: string | null): any {
+        if (dataType !== 'STRING' && !value) {
+            return null;
+        }
+
         switch (dataType) {
             case 'BOOL':
-                return value === '' ? null  : value.toLowerCase() === 'true';
+                return value!.toLowerCase() === 'true';
             case 'INT32':
             case 'INT64':
             case 'FLOAT32':
             case 'FLOAT64':
-                return value === '' ? null : Number(value);
+                return Number(value);
             case 'TIMESTAMP':
-                return value === '' ? null : dateTime(value).valueOf();
+                return dateTime(value).valueOf();
             default:
                 return value;
         }
