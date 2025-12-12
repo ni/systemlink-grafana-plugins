@@ -227,7 +227,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         projection: DataTableProjections[] = [],
         substitutions?: string[]
     ): Observable<TableProperties[]> {
-        const updatedProjections = projection;
+        const updatedProjections = [...projection];
         if(!updatedProjections.includes(DataTableProjections.RowsModifiedAt)) {
             updatedProjections.push(DataTableProjections.RowsModifiedAt);
         }
