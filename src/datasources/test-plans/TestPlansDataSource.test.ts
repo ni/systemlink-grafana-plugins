@@ -666,6 +666,29 @@ describe('runQuery', () => {
     );
   });
 
+  test('should transform DUT Id field with multiple values', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: 'dutId = "${dutIds}"',
+      properties: [ Properties.ID ],
+      recordCount: 1000,
+    };
+    const options = { scopedVars: { dutIds: { value: '{dutId1,dutId2}' } } };
+    jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('dutId = "{dutId1,dutId2}"');
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.runQuery(mockQuery, options as unknown as DataQueryRequest);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      '(dutId = "dutId1" || dutId = "dutId2")',
+      undefined,
+      ["ID"],
+      1000,
+      undefined,
+    );
+  });
+
   test('should transform fields with is blank operation', async () => {
     const mockQuery = {
       refId: 'C',
@@ -1661,6 +1684,29 @@ describe('metricFindQuery', () => {
       ["ID", "NAME"],
       1000,
       true
+    );
+  });
+
+  test('should transform DUT Id field with multiple values', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: 'dutId = "${dutIds}"',
+      properties: [ Properties.ID ],
+      recordCount: 1000,
+    };
+    const options = { scopedVars: { dutIds: { value: '{dutId1,dutId2}' } } };
+    jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('dutId = "{dutId1,dutId2}"');
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.metricFindQuery(mockQuery, options);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      '(dutId = "dutId1" || dutId = "dutId2")',
+      "UPDATED_AT",
+      ["ID","NAME"],
+      1000,
+      true,
     );
   });
 

@@ -69,8 +69,12 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
     const products = await this.loadProductNamesAndPartNumbers();
 
     if (query.queryBy) {
+      // TestPlansQueryBuilderFieldNames uses 'DUTId' but PropertiesProjectionMap uses 'dutId'
+      // testPlansComputedDataFields is built from PropertiesProjectionMap, so it only has 'dutId' as a key
+      // We convert DUTId → dutId before transformation to ensure the Map lookup succeeds
+      let queryBy = query.queryBy.replace(/\bDUTId\b/g, 'dutId');
       query.queryBy = transformComputedFieldsQuery(
-        this.templateSrv.replace(query.queryBy, options.scopedVars),
+        this.templateSrv.replace(queryBy, options.scopedVars),
         this.testPlansComputedDataFields
       );
       query.queryBy = this.transformDurationFilters(query.queryBy);
@@ -298,8 +302,12 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
     let filter;
     if (variableQuery.queryBy) {
+      // TestPlansQueryBuilderFieldNames uses 'DUTId' but PropertiesProjectionMap uses 'dutId'
+      // testPlansComputedDataFields is built from PropertiesProjectionMap, so it only has 'dutId' as a key
+      // We convert DUTId → dutId before transformation to ensure the Map lookup succeeds
+      let queryBy = variableQuery.queryBy.replace(/\bDUTId\b/g, 'dutId');
       filter = transformComputedFieldsQuery(
-        this.templateSrv.replace(variableQuery.queryBy, options.scopedVars),
+        this.templateSrv.replace(queryBy, options.scopedVars),
         this.testPlansComputedDataFields
       );
       filter = this.transformDurationFilters(filter);
