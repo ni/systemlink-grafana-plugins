@@ -14,56 +14,37 @@ The **SystemLink Data Frames** data source allows you to display data table prop
 
 ---
 
-## ⚠️ Limitations
-
-### Required Filters
-At least one filter (data table, test result, or column filter) must be specified. Queries without any filters will return no results.
-
-### Data Limits
-
-| Limit Type           | Maximum               | Behavior                                                                                   |
-| -------------------- | --------------------- | ------------------------------------------------------------------------------------------ |
-| **Data Tables**      | 1,000 tables          | If your filters match more than 1,000 tables, only the first 1,000 will be processed.      |
-| **Columns options**  | 10,000 unique columns | If more columns exist, only the first 10,000 are shown in the dropdown.                    |
-| **Column Selection** | 20 columns per query  | If more columns are selected, the datasource will return an error and will not query data. |
-| **Data Points**      | 1 million points      | Results capped at 1 million data points (rows × columns).                                  |
-
----
-
 ## Example Queries
 
-### 📈 Example 1: View Data from Multiple Data Tables
+### 📋 Example 1: Monitor Data Table Metadata
 
-Query row data from all data tables containing temperature readings:
-
-1. Set query type to **Data**
-2. Add filter: "Data table name" **contains** "Temperature"
-3. Select columns: "Timestamp", "Temperature", "Location"
-4. Set X-column to "Timestamp"
-5. Enable "Use time range" to filter by dashboard time
+You can track metadata for recently modified data tables.
+1. Set the query type to **Properties**.
+2. Add the following filter: "Rows modified" **is after** "now-7d"
+3. Select the following properties: "Data table name", "Rows", "Rows modified", "Workspace"
+4. Set the **Take** to **100**.
 
 ---
 
-### 📋 Example 2: Monitor Data Table Metadata
+### 🧪 Example 2: Aggregate Data from Multiple Data Tables
 
-Track metadata for recently modified data tables:
-
-1. Set query type to **Properties**
-2. Add filter: "Rows modified" **is after** "now-7d"
-3. Select properties: "Data table name", "Rows", "Rows modified", "Workspace"
-4. Set Take to **100**
-
+You can view all data from the data tables that are associated with passing test results.
+1. Set the query type to **Data**.
+2. Add the following test result filter: "Status" **equals** "Passed"
+3. Add the following data table filter: "Data table name" **equals** "Test Data table"
+4. Select the following columns: "Timestamp", "Temperature", "Location"
+5. Set the x-column to "Timestamp".
+6. Enable the "Use time range" property to filter by dashboard time.
 ---
 
-### 🧪 Example 3: Aggregate Data from Test Results
+## ℹ️ Data Limits
 
-View data from data tables associated with passing test results:
-
-1. Enable the **"Query by test result properties"** in data source settings
-2. Set query type to **Data**
-3. Add test result filter: "Status" **equals** "Passed"
-4. Add data table filter: "Data table name" **contains** "Measurement"
-5. Select desired columns from the dropdown
+| Configuration        | Max limit             | Behavior                                                                                                                |
+| -------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Data Tables**      | 1,000 tables          | If a filter matches more than 1,000 tables, the data source only processes the first 1,000 tables.                      |
+| **Columns options**  | 10,000 unique columns | If more than 10,000 unique columns exist, the data source only displays the first 10,000 columns in the drop-down menu. |
+| **Column Selection** | 20 columns per query  | If you select more than 20 columns, the data source will not query the data and instead return an error.                |
+| **Data Points**      | 1 million points      | The data source caps all results at 1 million data points (rows × columns).                                             |
 
 ---
 
@@ -71,4 +52,4 @@ View data from data tables associated with passing test results:
 
 - **Query Optimization:** [Optimizing Data Frame Queries](https://www.ni.com/r/dfs-db-query-performance)
 - **Visualizing Data Tables:** [Visualizing Data Tables in a Dashboard](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/visualizing-data-tables-in-a-dashboard.html)
-- **Test Data Analysis:** [Analyzing and Interacting with Test Results](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/analyzing-test-data-jupyter.html)
+- **DataFrame Datasource:** [Create dashboards using the Data Frames data source](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/data-frames-data-source.html)
