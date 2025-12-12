@@ -3135,7 +3135,11 @@ describe('DataFrameDataSourceV2', () => {
         it('should not duplicate ROWS_MODIFIED_AT when already present in projection', async () => {
             const filter = { dataTableFilter: 'test-filter' };
             const take = 10;
-            const projection = [DataTableProjections.Name, DataTableProjections.RowsModifiedAt, DataTableProjections.Id];
+            const projection = [
+                DataTableProjections.Name, 
+                DataTableProjections.RowsModifiedAt, 
+                DataTableProjections.Id
+            ];
             const result = await lastValueFrom(ds.queryTables$(filter, take, projection));
 
             expect(postMock$).toHaveBeenCalledWith(

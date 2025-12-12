@@ -224,21 +224,21 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private queryTablesInternal$(
         filter: string,
         take = TAKE_LIMIT,
-        projection?: DataTableProjections[],
+        projection: DataTableProjections[] = [],
         substitutions?: string[]
     ): Observable<TableProperties[]> {
-        const projectionArray = projection || [];
-        const finalProjection = projectionArray.includes(DataTableProjections.RowsModifiedAt)
-            ? projectionArray
-            : [...projectionArray, DataTableProjections.RowsModifiedAt];
+        const updatedProjections = projection;
+        if(!updatedProjections.includes(DataTableProjections.RowsModifiedAt)) {
+            updatedProjections.push(DataTableProjections.RowsModifiedAt);
+        }
         
         const requestBody = {
             interactive: true,
-            orderBy: 'ROWS_MODIFIED_AT',
+            orderBy: DataTableProjections.RowsModifiedAt,
             orderByDescending: true,
             filter,
             take,
-            projection: finalProjection,
+            projection: updatedProjections,
             substitutions,
         };
         const response = this.post$<TablePropertiesList>(
