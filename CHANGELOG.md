@@ -1,3 +1,39 @@
+## [4.105.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.104.3...v4.105.0) (2025-12-12)
+
+### Features
+
+* **dataframes:** Add order by and order by descending in query tables request ([#613](https://github.com/ni/systemlink-grafana-plugins/issues/613)) ([c020edd](https://github.com/ni/systemlink-grafana-plugins/commit/c020edd3a2aabc035172e96077749761da849452))
+
+### Bug Fixes
+
+* **dataframe:** Fix datasource initialize on datasource switch ([#620](https://github.com/ni/systemlink-grafana-plugins/issues/620)) ([0f4cb05](https://github.com/ni/systemlink-grafana-plugins/commit/0f4cb05ca373f40269aadc95cec8f934d2530d14))
+
+## [4.104.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.104.2...v4.104.3) (2025-12-12)
+
+### Bug Fixes
+
+* **alarms,products,results,workorders,testplans:** Open links in help documentation as a new tab ([#616](https://github.com/ni/systemlink-grafana-plugins/issues/616)) ([125ca5c](https://github.com/ni/systemlink-grafana-plugins/commit/125ca5c98885fce27a62c8834433e34606a96fab))
+
+## [4.104.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.104.1...v4.104.2) (2025-12-12)
+
+### Bug Fixes
+
+* **dataframe:** Exclude xColumn from yColumns  ([#611](https://github.com/ni/systemlink-grafana-plugins/issues/611)) ([1ee8586](https://github.com/ni/systemlink-grafana-plugins/commit/1ee8586b23b3cd4aa7a477729e51be836e02d650))
+* **dataframe:** Include table ID in the display name for  variable options ([#614](https://github.com/ni/systemlink-grafana-plugins/issues/614)) ([08bfc28](https://github.com/ni/systemlink-grafana-plugins/commit/08bfc28f67dfbd8a538ae8c5a27482407e0cd95c))
+* **dataframe:** Open link in a new tab  ([#612](https://github.com/ni/systemlink-grafana-plugins/issues/612)) ([88fc5c6](https://github.com/ni/systemlink-grafana-plugins/commit/88fc5c6adb89263a6d9caffa69314da7ea877ef7))
+
+## [4.104.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.104.0...v4.104.1) (2025-12-12)
+
+### Bug Fixes
+
+* **dataframe:** Restrict string columns in x-column selection ([#617](https://github.com/ni/systemlink-grafana-plugins/issues/617)) ([be9f975](https://github.com/ni/systemlink-grafana-plugins/commit/be9f975f17535b92ba9dd3ea3753656961369c0b))
+
+## [4.104.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.103.1...v4.104.0) (2025-12-12)
+
+### Features
+
+* **dataframe:** Update Query builder tooltip ([#615](https://github.com/ni/systemlink-grafana-plugins/issues/615)) ([5e36923](https://github.com/ni/systemlink-grafana-plugins/commit/5e36923ddec48a3b65e227c7c4cead72f5bccc43))
+
 ## [4.103.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.103.0...v4.103.1) (2025-12-11)
 
 ### Bug Fixes

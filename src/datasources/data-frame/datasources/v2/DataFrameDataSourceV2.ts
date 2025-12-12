@@ -92,7 +92,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 [DataTableProjections.Name]
             ));
             return tables.map(table => ({
-                text: table.name,
+                text: `${table.name} (${table.id})`,
                 value: table.id,
             }));
         }
@@ -224,20 +224,27 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private queryTablesInternal$(
         filter: string,
         take = TAKE_LIMIT,
-        projection?: DataTableProjections[],
+        projection: DataTableProjections[] = [],
         substitutions?: string[]
     ): Observable<TableProperties[]> {
+        const updatedProjections = [...projection];
+        if(!updatedProjections.includes(DataTableProjections.RowsModifiedAt)) {
+            updatedProjections.push(DataTableProjections.RowsModifiedAt);
+        }
+        
         const requestBody = {
             interactive: true,
+            orderBy: DataTableProjections.RowsModifiedAt,
+            orderByDescending: true,
             filter,
             take,
-            projection,
+            projection: updatedProjections,
             substitutions,
         };
         const response = this.post$<TablePropertiesList>(
             `${this.baseUrl}/query-tables`,
             requestBody,
-            { useApiIngress: true }
+            { useApiIngress: true, showErrorAlert: false }
         );
 
         return response.pipe(
@@ -352,8 +359,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 ...nullFilters,
                 ...timeFilters
             ];
+
+            const xColumn = query.xColumn 
+                    ? this.parseColumnIdentifier(query.xColumn).columnName
+                    : undefined;
             const yColumns = this.getNumericColumns(columnsMap.selectedColumns)
-                .map(column => column.name);
+                .filter(column => column.name !== xColumn)
+                .map(column => column.name)
 
             return {
                 tableId,
@@ -361,9 +373,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 filters,
                 decimation: {
                     method: query.decimationMethod,
-                    xColumn: query.xColumn 
-                        ? this.parseColumnIdentifier(query.xColumn).columnName
-                        : undefined,
+                    xColumn: xColumn,
                     yColumns,
                     intervals,
                 }
@@ -416,7 +426,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 filters: request.filters,
                 decimation: request.decimation,
             },
-            { useApiIngress: true }
+            { useApiIngress: true, showErrorAlert: false }
         ).pipe(
             catchError(error => {
                 const errorMessage = this.getErrorMessage(error, 'decimated table data');
@@ -1001,6 +1011,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         xColumn: string,
         tables: TableProperties[]
     ): boolean {
+        const transformedDataType = this.parseColumnIdentifier(xColumn).transformedDataType;
+        const isXColumnDataTypeValid = transformedDataType === 'Numeric' 
+            || transformedDataType === 'Timestamp';
+        if (!isXColumnDataTypeValid) {
+            return false;
+        }
+
         return tables.every(table => this.createColumnIdentifierSet(table.columns).has(xColumn));
     }
 

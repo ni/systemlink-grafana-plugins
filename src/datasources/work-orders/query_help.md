@@ -16,4 +16,4 @@ For queries that use the _SystemLink Work Orders_ data source, refer to the foll
 
 ### Additional Resources
 
-For more information on managing workorders using SystemLink Enterprise, refer to [Creating and managing workorders - SystemLink Enterprise](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/creating-and-managing-work-orders.html).
+For more information on managing workorders using SystemLink Enterprise, refer to <a href="https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/creating-and-managing-work-orders.html" target="_blank" rel="noopener noreferrer">Creating and managing workorders - SystemLink Enterprise</a>.

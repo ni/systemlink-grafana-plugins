@@ -114,8 +114,10 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                     <a 
                         href={infoMessages.queryOptimization.linkUrl}
                         style={{ textDecoration: 'underline' }}
+                        target='_blank'
+                        rel='noreferrer noopener'
                     >
-                            {infoMessages.queryOptimization.linkText}
+                        {infoMessages.queryOptimization.linkText}
                     </a>
                     {' '}{additionalInfoMessage}
                 </Alert>

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery, CombinedFilters } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2 } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
@@ -49,6 +49,16 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         dataTableFilter: '',
         columnFilter: '',
     });
+
+    // Auto-run query on initial render
+    // if it is default query
+    useEffect(() => {
+        const isDefaultQuery = _.isMatch(migratedQuery, defaultQueryV2);
+        if (isDefaultQuery) {
+          onRunQuery();
+        }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, []);
 
     const fetchAndSetColumnOptions = useCallback(
         async (filters: CombinedFilters) => {

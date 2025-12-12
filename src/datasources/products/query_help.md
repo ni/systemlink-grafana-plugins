@@ -18,4 +18,4 @@ Here are some example queries you can create using the _SystemLink Products_ dat
 
 For more information, refer to the following resources:
 
-- [Analyzing and Interacting with Test Results - SystemLink Enterprise](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/analyzing-test-data-jupyter.html): Learn more about analyzing test data using SystemLink Enterprise.
+- <a href="https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/analyzing-test-data-jupyter.html" target="_blank" rel="noopener noreferrer">Analyzing and Interacting with Test Results - SystemLink Enterprise</a>: Learn more about analyzing test data using SystemLink Enterprise.

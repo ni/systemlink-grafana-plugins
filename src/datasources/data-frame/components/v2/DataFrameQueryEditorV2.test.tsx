@@ -153,6 +153,27 @@ describe("DataFrameQueryEditorV2", () => {
         expect(onRunQuery).toHaveBeenCalled();
     });
 
+    it("should call onRunQuery on first render when query matches default query", async () => {
+        const { onChange, onRunQuery } = renderComponent({});
+
+        await waitFor(() => {
+            expect(onRunQuery).toHaveBeenCalled();
+            expect(onChange).not.toHaveBeenCalled();
+        });
+    });
+
+    it("should not call onRunQuery on first render when query is not default", async () => {
+        const { onChange, onRunQuery } = renderComponent({
+            type: DataFrameQueryType.Data,
+            dataTableFilter: 'SomeFilter',
+        });
+
+        await waitFor(() => {
+            expect(onRunQuery).not.toHaveBeenCalled();
+            expect(onChange).not.toHaveBeenCalled();
+        });
+    });
+
     describe("when the query type is data", () => {
         let onChange: jest.Mock;
         let onRunQuery: jest.Mock;

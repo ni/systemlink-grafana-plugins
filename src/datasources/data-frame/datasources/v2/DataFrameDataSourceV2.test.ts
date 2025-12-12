@@ -1189,6 +1189,46 @@ describe('DataFrameDataSourceV2', () => {
                             ]
                         });
                     });
+
+                    it('should throw error and should publish alert when X column is not numeric or timestamp', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                columns: [
+                                    {
+                                        name: 'time',
+                                        dataType: 'STRING',
+                                        columnType: ColumnType.Normal
+                                    },
+                                    {
+                                        name: 'value',
+                                        dataType: 'FLOAT64',
+                                        columnType: ColumnType.Normal
+                                    }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['value-Numeric'],
+                            xColumn: 'time-String',
+                            dataTableFilter: 'name = "Test"',
+                        } as DataFrameQueryV2;
+
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(xColumnErrorMessage);
+
+                        expect(publishMock).toHaveBeenCalledWith({
+                            type: 'alert-error',
+                            payload: [
+                                'X Column selection error',
+                                xColumnErrorMessage
+                            ]
+                        });
+                    });
                 });
             });
         });
@@ -1862,8 +1902,8 @@ describe('DataFrameDataSourceV2', () => {
                     [DataTableProjections.Name]
                 );
                 expect(result).toEqual([
-                    { text: 'Table 1', value: 'table-1' },
-                    { text: 'Table 2', value: 'table-2' }
+                    { text: 'Table 1 (table-1)', value: 'table-1' },
+                    { text: 'Table 2 (table-2)', value: 'table-2' }
                 ]);
             });
 
@@ -2860,12 +2900,14 @@ describe('DataFrameDataSourceV2', () => {
                 `${ds.baseUrl}/query-tables`,
                 {
                     interactive: true,
+                    orderBy: 'ROWS_MODIFIED_AT',
+                    orderByDescending: true,
                     filter: '(new[]{@0,@1}.Contains(testResultId))',
                     take: TAKE_LIMIT,
-                    projection: undefined,
+                    projection: [DataTableProjections.RowsModifiedAt],
                     substitutions: ['result-1', 'result-2']
                 },
-                { useApiIngress: true }
+                { useApiIngress: true, showErrorAlert: false }
             );
         });
 
@@ -2897,12 +2939,14 @@ describe('DataFrameDataSourceV2', () => {
                 `${ds.baseUrl}/query-tables`,
                 {
                     interactive: true,
+                    orderBy: 'ROWS_MODIFIED_AT',
+                    orderByDescending: true,
                     filter: 'name = "Table1"',
                     take: 10,
-                    projection: undefined,
+                    projection: [DataTableProjections.RowsModifiedAt],
                     substitutions: undefined
                 },
-                { useApiIngress: true }
+                { useApiIngress: true, showErrorAlert: false }
             );
             expect(result).toBe(mockTables);
         });
@@ -2927,12 +2971,14 @@ describe('DataFrameDataSourceV2', () => {
                 expect.stringContaining('query-tables'),
                 {
                     interactive: true,
+                    orderBy: 'ROWS_MODIFIED_AT',
+                    orderByDescending: true,
                     filter: 'name = "Table1"',
                     take: 10,
-                    projection: undefined,
+                    projection: [DataTableProjections.RowsModifiedAt],
                     substitutions: undefined
                 },
-                { useApiIngress: true }
+                { useApiIngress: true, showErrorAlert: false }
             );
             expect(result).toBe(mockTables);
         });
@@ -2961,12 +3007,14 @@ describe('DataFrameDataSourceV2', () => {
                 `${ds.baseUrl}/query-tables`,
                 {
                     interactive: true,
+                    orderBy: 'ROWS_MODIFIED_AT',
+                    orderByDescending: true,
                     filter: '(new[]{@0,@1}.Contains(testResultId))&&(name = "Table1")&&(columns.any(it.name = "Column1"))',
                     take: 10,
-                    projection: undefined,
+                    projection: [DataTableProjections.RowsModifiedAt],
                     substitutions: ['result-1', 'result-2']
                 },
-                { useApiIngress: true }
+                { useApiIngress: true, showErrorAlert: false }
             );
         });
 
@@ -2983,12 +3031,14 @@ describe('DataFrameDataSourceV2', () => {
                 `${ds.baseUrl}/query-tables`,
                 {
                     interactive: true,
+                    orderBy: 'ROWS_MODIFIED_AT',
+                    orderByDescending: true,
                     filter: 'name = "Table1"',
                     take: 10,
-                    projection: undefined,
+                    projection: [DataTableProjections.RowsModifiedAt],
                     substitutions: undefined
                 },
-                { useApiIngress: true }
+                { useApiIngress: true, showErrorAlert: false }
             );
         });
 
@@ -3004,12 +3054,14 @@ describe('DataFrameDataSourceV2', () => {
                 `${ds.baseUrl}/query-tables`,
                 {
                     interactive: true,
+                    orderBy: 'ROWS_MODIFIED_AT',
+                    orderByDescending: true,
                     filter: '(new[]{@0,@1}.Contains(testResultId))',
                     take: 10,
-                    projection: undefined,
+                    projection: [DataTableProjections.RowsModifiedAt],
                     substitutions: ['result-1', 'result-2']
                 },
-                { useApiIngress: true }
+                { useApiIngress: true, showErrorAlert: false }
             );
         });
 
@@ -3098,15 +3150,17 @@ describe('DataFrameDataSourceV2', () => {
             const projection = [DataTableProjections.Name, DataTableProjections.Id];
             const result = await lastValueFrom(ds.queryTables$(filter, take, projection));
             expect(postMock$).toHaveBeenCalledWith(
-                `${ds.baseUrl}/query-tables`,
-                {
-                    interactive: true,
-                    filter: filter.dataTableFilter,
-                    take,
-                    projection,
-                    substitutions: undefined
-                },
-                { useApiIngress: true }
+              `${ds.baseUrl}/query-tables`,
+              {
+                interactive: true,
+                orderBy: 'ROWS_MODIFIED_AT',
+                orderByDescending: true,
+                filter: filter.dataTableFilter,
+                take,
+                projection: [...projection, DataTableProjections.RowsModifiedAt],
+                substitutions: undefined
+              },
+              { useApiIngress: true, showErrorAlert: false }
             );
             expect(result).toBe(mockTables);
         });
@@ -3116,34 +3170,68 @@ describe('DataFrameDataSourceV2', () => {
             const result = await lastValueFrom(ds.queryTables$(filter));
 
             expect(postMock$).toHaveBeenCalledWith(
-                `${ds.baseUrl}/query-tables`,
-                {
-                    interactive: true,
-                    filter: filter.dataTableFilter,
-                    take: TAKE_LIMIT,
-                    projection: undefined,
-                    substitutions: undefined
-                },
-                { useApiIngress: true }
+              `${ds.baseUrl}/query-tables`,
+              {
+                interactive: true,
+                orderBy: 'ROWS_MODIFIED_AT',
+                orderByDescending: true,
+                filter: filter.dataTableFilter,
+                take: TAKE_LIMIT,
+                projection: [DataTableProjections.RowsModifiedAt],
+                substitutions: undefined
+              },
+              { useApiIngress: true, showErrorAlert: false }
             );
             expect(result).toBe(mockTables);
         });
 
-        it('should use undefined as default projection value when not provided', async () => {
+        it('should use ROWS_MODIFIED_AT as default projection value when not provided', async () => {
             const filter = { dataTableFilter: 'test-filter' };
             const take = 15;
             const result = await lastValueFrom(ds.queryTables$(filter, take));
 
             expect(postMock$).toHaveBeenCalledWith(
-                `${ds.baseUrl}/query-tables`,
-                {
-                    interactive: true,
-                    filter: filter.dataTableFilter,
-                    take,
-                    projection: undefined,
-                    substitutions: undefined
-                },
-                { useApiIngress: true }
+              `${ds.baseUrl}/query-tables`,
+              {
+                interactive: true,
+                orderBy: 'ROWS_MODIFIED_AT',
+                orderByDescending: true,
+                filter: filter.dataTableFilter,
+                take,
+                projection: [DataTableProjections.RowsModifiedAt],
+                substitutions: undefined
+              },
+              { useApiIngress: true, showErrorAlert: false }
+            );
+            expect(result).toBe(mockTables);
+        });
+
+        it('should not duplicate ROWS_MODIFIED_AT when already present in projection', async () => {
+            const filter = { dataTableFilter: 'test-filter' };
+            const take = 10;
+            const projection = [
+                DataTableProjections.Name, 
+                DataTableProjections.RowsModifiedAt, 
+                DataTableProjections.Id
+            ];
+            const result = await lastValueFrom(ds.queryTables$(filter, take, projection));
+
+            expect(postMock$).toHaveBeenCalledWith(
+              `${ds.baseUrl}/query-tables`,
+              {
+                interactive: true,
+                orderBy: 'ROWS_MODIFIED_AT',
+                orderByDescending: true,
+                filter: filter.dataTableFilter,
+                take,
+                projection: [
+                    DataTableProjections.Name, 
+                    DataTableProjections.RowsModifiedAt, 
+                    DataTableProjections.Id
+                ],
+                substitutions: undefined
+              },
+              { useApiIngress: true, showErrorAlert: false }
             );
             expect(result).toBe(mockTables);
         });
@@ -4064,6 +4152,238 @@ describe('DataFrameDataSourceV2', () => {
             } as ValidDataFrameQueryV2;
 
             expect(ds.hasRequiredFilters(query)).toBe(false);
+        });
+    });
+
+    describe('yColumns handling', () => {
+        let queryTablesSpy: jest.SpyInstance;
+        let postSpy: jest.SpyInstance;
+        let options: DataQueryRequest<DataFrameQueryV2>;
+
+        beforeEach(() => {
+            queryTablesSpy = jest.spyOn(ds, 'queryTables$');
+            postSpy = jest.spyOn(ds, 'post$');
+            options = {
+                scopedVars: {}
+            } as any;
+        });
+
+        it('should exclude xColumn from yColumns when xColumn is numeric', async () => {
+            const mockTables = [{
+                id: 'table1',
+                columns: [
+                    { name: 'timestamp', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
+                    { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                    { name: 'value2', dataType: 'INT32', columnType: ColumnType.Normal }
+                ]
+            }];
+            queryTablesSpy.mockReturnValue(of(mockTables));
+            postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+            const query = {
+                refId: 'A',
+                type: DataFrameQueryType.Data,
+                columns: ['value1-Numeric', 'value2-Numeric'],
+                xColumn: 'value1-Numeric',
+                dataTableFilter: 'name = "test"',
+                decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
+                filterNulls: false,
+                applyTimeFilters: false
+            } as DataFrameQueryV2;
+
+            await lastValueFrom(ds.runQuery(query, options));
+
+            expect(postSpy).toHaveBeenCalledWith(
+                expect.stringContaining('query-decimated-data'),
+                expect.objectContaining({
+                    decimation: expect.objectContaining({
+                        xColumn: 'value1',
+                        yColumns: ['value2']
+                    })
+                }),
+                expect.any(Object)
+            );
+        });
+
+        it('should exclude xColumn from yColumns when xColumn is timestamp', async () => {
+            const mockTables = [{
+                id: 'table1',
+                columns: [
+                    { name: 'timestamp', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
+                    { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                    { name: 'value2', dataType: 'INT32', columnType: ColumnType.Normal }
+                ]
+            }];
+            queryTablesSpy.mockReturnValue(of(mockTables));
+            postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+            const query = {
+                refId: 'A',
+                type: DataFrameQueryType.Data,
+                columns: ['timestamp-Timestamp', 'value1-Numeric', 'value2-Numeric'],
+                xColumn: 'timestamp-Timestamp',
+                dataTableFilter: 'name = "test"',
+                decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
+                filterNulls: false,
+                applyTimeFilters: false
+            } as DataFrameQueryV2;
+
+            await lastValueFrom(ds.runQuery(query, options));
+
+            expect(postSpy).toHaveBeenCalledWith(
+                expect.stringContaining('query-decimated-data'),
+                expect.objectContaining({
+                    decimation: expect.objectContaining({
+                        xColumn: 'timestamp',
+                        yColumns: ['value1', 'value2']
+                    })
+                }),
+                expect.any(Object)
+            );
+        });
+
+        it('should include all numeric columns in yColumns when xColumn is null', async () => {
+            const mockTables = [{
+                id: 'table1',
+                columns: [
+                    { name: 'timestamp', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
+                    { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                    { name: 'value2', dataType: 'INT32', columnType: ColumnType.Normal }
+                ]
+            }];
+            queryTablesSpy.mockReturnValue(of(mockTables));
+            postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+            const query = {
+                refId: 'A',
+                type: DataFrameQueryType.Data,
+                columns: ['value1-Numeric', 'value2-Numeric'],
+                xColumn: null,
+                dataTableFilter: 'name = "test"',
+                decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
+                filterNulls: false,
+                applyTimeFilters: false
+            } as DataFrameQueryV2;
+
+            await lastValueFrom(ds.runQuery(query, options));
+
+            expect(postSpy).toHaveBeenCalledWith(
+                expect.stringContaining('query-decimated-data'),
+                expect.objectContaining({
+                    decimation: expect.objectContaining({
+                        xColumn: undefined,
+                        yColumns: ['value1', 'value2']
+                    })
+                }),
+                expect.any(Object)
+            );
+        });
+
+        it('should exclude non-numeric columns from yColumns', async () => {
+            const mockTables = [{
+                id: 'table1',
+                columns: [
+                    { name: 'name', dataType: 'STRING', columnType: ColumnType.Normal },
+                    { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                    { name: 'flag', dataType: 'BOOL', columnType: ColumnType.Normal }
+                ]
+            }];
+            queryTablesSpy.mockReturnValue(of(mockTables));
+            postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+            const query = {
+                refId: 'A',
+                type: DataFrameQueryType.Data,
+                columns: ['name-String', 'value1-Numeric', 'flag-Bool'],
+                xColumn: null,
+                dataTableFilter: 'name = "test"',
+                decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
+                filterNulls: false,
+                applyTimeFilters: false
+            } as DataFrameQueryV2;
+
+            await lastValueFrom(ds.runQuery(query, options));
+
+            expect(postSpy).toHaveBeenCalledWith(
+                expect.stringContaining('query-decimated-data'),
+                expect.objectContaining({
+                    decimation: expect.objectContaining({
+                        yColumns: ['value1']
+                    })
+                }),
+                expect.any(Object)
+            );
+        });
+
+        it('should handle empty yColumns when only non-numeric columns are selected', async () => {
+            const mockTables = [{
+                id: 'table1',
+                columns: [
+                    { name: 'name', dataType: 'STRING', columnType: ColumnType.Normal },
+                    { name: 'flag', dataType: 'BOOL', columnType: ColumnType.Normal }
+                ]
+            }];
+            queryTablesSpy.mockReturnValue(of(mockTables));
+            postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+            const query = {
+                refId: 'A',
+                type: DataFrameQueryType.Data,
+                columns: ['name-String', 'flag-Bool'],
+                xColumn: null,
+                dataTableFilter: 'name = "test"',
+                decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
+                filterNulls: false,
+                applyTimeFilters: false
+            } as DataFrameQueryV2;
+
+            await lastValueFrom(ds.runQuery(query, options));
+
+            expect(postSpy).toHaveBeenCalledWith(
+                expect.stringContaining('query-decimated-data'),
+                expect.objectContaining({
+                    decimation: expect.objectContaining({
+                        yColumns: []
+                    })
+                }),
+                expect.any(Object)
+            );
+        });
+
+        it('should handle yColumns when xColumn is the only numeric column', async () => {
+            const mockTables = [{
+                id: 'table1',
+                columns: [
+                    { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                    { name: 'name', dataType: 'STRING', columnType: ColumnType.Normal }
+                ]
+            }];
+            queryTablesSpy.mockReturnValue(of(mockTables));
+            postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+            const query = {
+                refId: 'A',
+                type: DataFrameQueryType.Data,
+                columns: ['value1-Numeric', 'name-String'],
+                xColumn: 'value1-Numeric',
+                dataTableFilter: 'name = "test"',
+                decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
+                filterNulls: false,
+                applyTimeFilters: false
+            } as DataFrameQueryV2;
+
+            await lastValueFrom(ds.runQuery(query, options));
+
+            expect(postSpy).toHaveBeenCalledWith(
+                expect.stringContaining('query-decimated-data'),
+                expect.objectContaining({
+                    decimation: expect.objectContaining({
+                        xColumn: 'value1',
+                        yColumns: []
+                    })
+                }),
+                expect.any(Object)
+            );
         });
     });
 });

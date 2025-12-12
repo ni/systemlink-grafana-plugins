@@ -47,9 +47,9 @@ export const labels = {
  */
 export const tooltips = {
     queryType: 'This field specifies the type for the query that searches the data tables. The query can retrieve row data or metadata.',
-    queryByDataTableProperties: 'This optional field applies a filter to a query while searching the data tables.',
-    queryByResultProperties: 'This optional field applies a filter to a results query while searching the data tables.',
-    queryByColumnProperties: 'This optional field applies a filter to a columns query while searching the data tables.',
+    queryByDataTableProperties: 'This field applies a filter to a query while searching the data tables.',
+    queryByResultProperties: 'This field applies a filter to a results query while searching the data tables.',
+    queryByColumnProperties: 'This field applies a filter to a columns query while searching the data tables.',
     take: 'This field sets the maximum number of records to return from the query.',
     columns: 'Specifies the columns to include in the response data.',
     filterNulls: `Specifies whether to filter out null and NaN values before decimating the data.`,
