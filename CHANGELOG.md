@@ -1,3 +1,13 @@
+## [4.106.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.105.0...v4.106.0) (2025-12-12)
+
+### Features
+
+* **dataframe:** Sort columns options by label ([#622](https://github.com/ni/systemlink-grafana-plugins/issues/622)) ([8a4efe0](https://github.com/ni/systemlink-grafana-plugins/commit/8a4efe04d509a5974a4e7f1b76a1311065aae5fa))
+
+### Bug Fixes
+
+* **dataframe:** Handle null values when transforming values for grafana fields ([#621](https://github.com/ni/systemlink-grafana-plugins/issues/621)) ([29a5c7c](https://github.com/ni/systemlink-grafana-plugins/commit/29a5c7ce173ab3c9c64d79f964afc62ddef00e50))
+
 ## [4.105.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.104.3...v4.105.0) (2025-12-12)
 
 ### Features
