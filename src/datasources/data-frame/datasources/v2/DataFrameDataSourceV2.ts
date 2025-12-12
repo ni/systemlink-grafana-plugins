@@ -461,12 +461,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return { uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] };
         }
 
-        const uniqueColumnsAcrossTables = this.getUniqueColumnsAcrossTables(tables);
+        const uniqueColumnsAcrossTables = this.sortOptionsByLabel(
+            this.getUniqueColumnsAcrossTables(tables)
+        );
         const commonColumnsAcrossTables = includeCommonColumnsAcrossTables
-            ? this.getCommonColumnsAcrossTables(tables)
+            ? this.sortOptionsByLabel(this.getCommonColumnsAcrossTables(tables))
             : [];
 
         return { uniqueColumnsAcrossTables, commonColumnsAcrossTables };
+    }
+
+    private sortOptionsByLabel(options: Option[]): Option[] {
+        return options.sort((option1, option2) => option1.label.localeCompare(option2.label));
     }
 
     private tablesContainsColumns(tables: TableProperties[]): boolean {
