@@ -3606,7 +3606,7 @@ describe('DataFrameDataSourceV2', () => {
                 ]));
 
                 const result = await ds.getColumnOptionsWithVariables({
-                     dataTableFilter: 'some-filter' 
+                     dataTableFilter: 'some-filter'
                 });
 
                 expect(result.commonColumnsAcrossTables).toEqual([
