@@ -153,16 +153,24 @@ describe("DataFrameQueryEditorV2", () => {
         expect(onRunQuery).toHaveBeenCalled();
     });
 
-    it("should call onChange and onRunQuery on first render when query type is Data", async () => {
+    it("should call onRunQuery on first render when query matches default query", async () => {
+        const { onChange, onRunQuery } = renderComponent({});
+
+        await waitFor(() => {
+            expect(onRunQuery).toHaveBeenCalled();
+            expect(onChange).not.toHaveBeenCalled();
+        });
+    });
+
+    it("should not call onRunQuery on first render when query is not default", async () => {
         const { onChange, onRunQuery } = renderComponent({
             type: DataFrameQueryType.Data,
+            dataTableFilter: 'SomeFilter',
         });
 
         await waitFor(() => {
-            expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                type: DataFrameQueryType.Data,
-            }));
-            expect(onRunQuery).toHaveBeenCalled();
+            expect(onRunQuery).not.toHaveBeenCalled();
+            expect(onChange).not.toHaveBeenCalled();
         });
     });
 
@@ -2822,10 +2830,6 @@ describe("DataFrameQueryEditorV2", () => {
                 dataTableFilter: 'SameFilter'
             });
 
-            // Clear mocks after initial render (useEffect calls onChange on mount)
-            onChange.mockClear();
-            onRunQuery.mockClear();
-
             // Get the onDataTableFilterChange callback from the mock
             const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
             const { onDataTableFilterChange } = props;
@@ -2918,10 +2922,6 @@ describe("DataFrameQueryEditorV2", () => {
                 columnFilter: 'SameColumnFilter'
             });
 
-            // Clear mocks after initial render (useEffect calls onChange on mount)
-            onChange.mockClear();
-            onRunQuery.mockClear();
-
             // Get the onColumnFilterChange callback from the mock
             const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
             const { onColumnFilterChange } = props;
@@ -2997,10 +2997,6 @@ describe("DataFrameQueryEditorV2", () => {
                 type: DataFrameQueryType.Data,
                 resultFilter: 'SameResultFilter'
             });
-
-            // Clear mocks after initial render (useEffect calls onChange on mount)
-            onChange.mockClear();
-            onRunQuery.mockClear();
 
             // Get the onResultFilterChange callback from the mock
             const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
