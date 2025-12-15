@@ -1,3 +1,9 @@
+## [4.107.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.106.1...v4.107.0) (2025-12-15)
+
+### Features
+
+* **dataframe:** Add help documentation for Dataframe Datasource ([#600](https://github.com/ni/systemlink-grafana-plugins/issues/600)) ([6c8f540](https://github.com/ni/systemlink-grafana-plugins/commit/6c8f5404c44a503a8a4725806512e574516283e1))
+
 ## [4.106.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.106.0...v4.106.1) (2025-12-15)
 
 ### Bug Fixes
