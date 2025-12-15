@@ -432,7 +432,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 const errorMessage = this.getErrorMessage(error, 'decimated table data');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
-                    payload: ['Error during fetching decimated table data', errorMessage],
+                    payload: ['Error fetching decimated table data', errorMessage],
                 });
                 return of({frame: {columns: [], data: []}});
             })
@@ -500,7 +500,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 const errorMessage = this.getErrorMessage(error, 'data table columns');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
-                    payload: ['Error during fetching columns for migration', errorMessage],
+                    payload: ['Error fetching columns for migration', errorMessage],
                 });
                 return of(currentColumns.map(column => {
                     if (this.templateSrv.containsTemplate(column)) {
@@ -772,7 +772,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 }
 
                 if (selectedColumnIdentifiers.length > COLUMN_SELECTION_LIMIT) {
-                    const errorMessage = `The number of selected columns (${selectedColumnIdentifiers.length.toLocaleString()}) exceeds the limit of ${COLUMN_SELECTION_LIMIT.toLocaleString()}. Please select fewer columns and try again.`;
+                    const errorMessage = `The number of columns you selected (${selectedColumnIdentifiers.length.toLocaleString()}) exceeds the column limit (${COLUMN_SELECTION_LIMIT.toLocaleString()}). Reduce your number of selected columns and try again.`;
                     this.appEvents?.publish?.({
                         type: AppEvents.alertError.name,
                         payload: ['Column selection error', errorMessage],

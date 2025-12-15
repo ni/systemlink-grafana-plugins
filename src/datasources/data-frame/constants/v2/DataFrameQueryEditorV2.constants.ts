@@ -46,10 +46,10 @@ export const labels = {
  * Tooltips for the DataFrameQueryEditorV2 component
  */
 export const tooltips = {
-    queryType: 'This field specifies the type for the query that searches the data tables. The query can retrieve row data or metadata.',
-    queryByDataTableProperties: 'This field applies a filter to a query while searching the data tables.',
-    queryByResultProperties: 'This field applies a filter to a results query while searching the data tables.',
-    queryByColumnProperties: 'This field applies a filter to a columns query while searching the data tables.',
+    queryType: 'This field specifies the type of query that searches the data tables. The query can retrieve row data or metadata.',
+    queryByDataTableProperties: 'This field applies a datatable properties filter while searching data tables.',
+    queryByResultProperties: 'This field applies a results filter while searching data tables.',
+    queryByColumnProperties: 'This field applies a column filter while searching data tables.',
     take: 'This field sets the maximum number of records to return from the query.',
     columns: 'Specifies the columns to include in the response data.',
     filterNulls: `Specifies whether to filter out null and NaN values before decimating the data.`,
@@ -57,9 +57,8 @@ export const tooltips = {
     dataTableProperties: 'This field specifies the data table properties to be queried.',
     columnProperties: 'This field specifies the column properties to be queried.',
     decimationMethod: 'Specifies the method used to decimate the data.',
-    xColumn: `Specifies the column to use for the x-axis when decimating the data. Table's INDEX column will be used if not selected.`,
-    useTimeRange: `Applies the dashboard time range to the selected x-column if it's a timestamp; 
-        otherwise, applies it to the table's INDEX column when that column is a timestamp. Enable when interacting with your data on a graph.`,
+    xColumn: `Specifies the column to use as the x-axis when decimating the data. If this field is left blank, INDEX column will be used.`,
+    useTimeRange: `Applies the dashboard time range to the selected x-column or alternatively to INDEX column (if either is a timestamp). Enable when interacting with your data on a graph.`,
 };
 
 /**
