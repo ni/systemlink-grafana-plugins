@@ -39,7 +39,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             .map(([key, value]) => ({
                 label: value.label,
                 value: key as DataTableProperties
-            }));
+            }))
+            .sort((a, b) => a.label.localeCompare(b.label));
 
     const dataTablePropertiesOptions = getPropertiesOptions(DataTableProjectionType.DataTable);
     const columnPropertiesOptions = getPropertiesOptions(DataTableProjectionType.Column);
