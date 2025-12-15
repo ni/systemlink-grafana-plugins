@@ -227,26 +227,26 @@ const getXFields = (frames: DataFrame[], selectedField?: string) => {
     return getFieldsByName(frames, timeField.name);
   }
 
-  // Matching string fields
-  const stringField = _.find(fieldsByType[0].string,
-    f => fieldsByType.every(fields => _.some(fields.string, ['name', f.name])));
-
-  if (stringField) {
-    return getFieldsByName(frames, stringField.name);
-  }
-
   // Try to find a time field in every frame, even if the names don't match
   const timeFields = fieldsByType.map(fields => _.first(fields.time)).filter(notEmpty);
   if (timeFields.length === frames.length) {
     return timeFields;
   }
 
-  // Lastly, try matching numeric fields
+  // Matching numeric fields
   const numberField = _.find(fieldsByType[0].number,
       f => fieldsByType.every(fields => _.some(fields.number, ['name', f.name])));
 
   if (numberField) {
     return getFieldsByName(frames, numberField.name);
+  }
+
+  // Lastly, try matching string fields
+  const stringField = _.find(fieldsByType[0].string,
+    f => fieldsByType.every(fields => _.some(fields.string, ['name', f.name])));
+
+  if (stringField) {
+    return getFieldsByName(frames, stringField.name);
   }
 
   throw Error('The X field could not be automatically configured.');
