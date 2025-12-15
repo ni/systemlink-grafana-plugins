@@ -1,3 +1,9 @@
+## [4.108.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.107.0...v4.108.0) (2025-12-15)
+
+### Features
+
+* **dataframe:** Sort the properties selector options ([#624](https://github.com/ni/systemlink-grafana-plugins/issues/624)) ([4c8395b](https://github.com/ni/systemlink-grafana-plugins/commit/4c8395bb6569cbd997d05df94613ab6898303d6e))
+
 ## [4.107.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.106.1...v4.107.0) (2025-12-15)
 
 ### Features
