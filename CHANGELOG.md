@@ -1,3 +1,9 @@
+## [4.106.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.106.0...v4.106.1) (2025-12-15)
+
+### Bug Fixes
+
+* **plotly:** reorder logic in getXFields to prioritize numeric fields before string fields ([#618](https://github.com/ni/systemlink-grafana-plugins/issues/618)) ([5f5493c](https://github.com/ni/systemlink-grafana-plugins/commit/5f5493cdfb74dd8f11ae6cba2f68d7d6b28b9fcd))
+
 ## [4.106.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.105.0...v4.106.0) (2025-12-12)
 
 ### Features
