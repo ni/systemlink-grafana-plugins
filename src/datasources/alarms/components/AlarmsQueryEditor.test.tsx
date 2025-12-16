@@ -168,10 +168,11 @@ describe('AlarmsQueryEditor', () => {
   });
 
   describe('ListAlarmsQueryEditor', () => {
-    it('should display description text for List Alarms query type', () => {
-      const query = buildQuery({ queryType: QueryType.ListAlarms });
+    it('should display description text for List Alarms query type', async () => {
+      buildQuery({ queryType: QueryType.ListAlarms });
 
-      renderElement(query);
+      const queryTypeControl = screen.getAllByRole('combobox')[0];
+      await userEvent.click(queryTypeControl);
 
       expect(screen.getByText('List alarms allows you to search for alarms based on various filters.')).toBeInTheDocument();
     });
