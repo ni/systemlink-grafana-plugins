@@ -907,11 +907,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 switch (field.name) {
                     case dataTableIdFieldLabel:
                         const tableIdColumnValues = Array(rowCount).fill(tableId);
-                        field.values!.push(...tableIdColumnValues);
+                        field.values = field.values!.concat(tableIdColumnValues);
                         break;
                     case dataTableNameFieldLabel:
                         const tableNameColumnValues = Array(rowCount).fill(tableName);
-                        field.values!.push(...tableNameColumnValues);
+                        field.values = field.values!.concat(tableNameColumnValues);
                         break;
                     default:
                         const { 
@@ -927,14 +927,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             || columnIndex === undefined
                         ) {
                             const emptyValues = Array(rowCount).fill(null);
-                            field.values!.push(...emptyValues);
+                            field.values = field.values!.concat(emptyValues);
                             break;
                         }
 
                         const decimatedData = decimatedTableData.map(row => {
                             return this.transformValue(columnDataType, row[columnIndex]);
                         });
-                        field.values!.push(...decimatedData);
+                        field.values = field.values!.concat(decimatedData);
                         break;
                 }
             });
