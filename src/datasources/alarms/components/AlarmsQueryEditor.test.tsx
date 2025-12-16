@@ -47,7 +47,7 @@ async function clickQueryTypeOption(option: QueryType) {
   const queryTypeControl = screen.getAllByRole('combobox')[0];
   await userEvent.click(queryTypeControl);
 
-  const queryTypeOptionControl = await screen.findByRole('option', { name: option });
+  const queryTypeOptionControl = screen.getByText(option);
   await userEvent.click(queryTypeOptionControl);
 }
 
@@ -169,11 +169,16 @@ describe('AlarmsQueryEditor', () => {
 
   describe('ListAlarmsQueryEditor', () => {
     it('should display description text for List Alarms query type', async () => {
-      buildQuery({ queryType: QueryType.ListAlarms });
+      const query = buildQuery({ queryType: QueryType.ListAlarms });
 
+      renderElement(query);
       const queryTypeControl = screen.getAllByRole('combobox')[0];
       await userEvent.click(queryTypeControl);
 
+      // const descriptionElement = document.querySelectorAll('[class*="combobox-option-description"]')[0];
+      // expect(descriptionElement).toBeInTheDocument();
+      // console.log(descriptionElement);
+      // expect(descriptionElement).toHaveTextContent('List alarms allows you to search alarms based on various filters.');
       expect(screen.getByText('List alarms allows you to search for alarms based on various filters.')).toBeInTheDocument();
     });
 

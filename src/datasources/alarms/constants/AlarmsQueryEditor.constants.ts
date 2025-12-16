@@ -49,7 +49,7 @@ export const queryTypeOptions: ComboboxOption[] = [
   {
     label: QueryType.ListAlarms,
     value: QueryType.ListAlarms,
-    description: 'List alarms allows you to search alarms based on various filters.'
+    description: 'List alarms allows you to search for alarms based on various filters.'
   },
   {
     label: QueryType.AlarmTrend,
