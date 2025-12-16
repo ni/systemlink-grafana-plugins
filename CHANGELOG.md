@@ -1,3 +1,9 @@
+## [4.109.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.108.0...v4.109.0) (2025-12-16)
+
+### Features
+
+* **dataframe:** Update user visible strings based tech writers review ([#625](https://github.com/ni/systemlink-grafana-plugins/issues/625)) ([4349959](https://github.com/ni/systemlink-grafana-plugins/commit/4349959f63cc5e8eeb83c9b714286705d1b6ddb6))
+
 ## [4.108.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.107.0...v4.108.0) (2025-12-15)
 
 ### Features
