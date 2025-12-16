@@ -1417,7 +1417,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const uniquePropertyKeys = this.getUniqueCustomPropertyKeys(tables);
         const limitedPropertyKeys = Array.from(uniquePropertyKeys)
             .slice(0, CUSTOM_PROPERTY_COLUMNS_LIMIT);
-        const sortedPropertyKeys = limitedPropertyKeys.sort();
+        const sortedPropertyKeys = limitedPropertyKeys.sort((propertyKey1, propertyKey2) => {
+            return propertyKey1.localeCompare(propertyKey2);
+        });
         const firstClassPropertyLabels = new Set(
             Object.values(DataTableProjectionLabelLookup).map(lookup => lookup.label)
         );
