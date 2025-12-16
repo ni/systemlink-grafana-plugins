@@ -47,7 +47,7 @@ async function clickQueryTypeOption(option: QueryType) {
   const queryTypeControl = screen.getAllByRole('combobox')[0];
   await userEvent.click(queryTypeControl);
 
-  const queryTypeOptionControl = screen.getByText(option);
+  const queryTypeOptionControl = await screen.findByText(option);
   await userEvent.click(queryTypeOptionControl);
 }
 
