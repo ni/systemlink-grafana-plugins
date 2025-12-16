@@ -467,7 +467,7 @@ describe('DataFrameDataSourceV2', () => {
                         await expect(
                             lastValueFrom(ds.runQuery(query, options))
                         ).rejects.toThrow(
-                            `The number of selected columns (${(COLUMN_SELECTION_LIMIT + 1).toLocaleString()}) exceeds the limit of ${COLUMN_SELECTION_LIMIT.toLocaleString()}. Please select fewer columns and try again.`
+                            `The number of columns you selected (${(COLUMN_SELECTION_LIMIT + 1).toLocaleString()}) exceeds the column limit (${COLUMN_SELECTION_LIMIT.toLocaleString()}). Reduce your number of selected columns and try again.`
                         );
                     });
 
@@ -2623,7 +2623,7 @@ describe('DataFrameDataSourceV2', () => {
                     expect(publishMock).toHaveBeenCalledWith({
                         type: 'alert-error',
                         payload: [
-                            'Error during fetching columns for migration',
+                            'Error fetching columns for migration',
                             'The query to fetch data table columns failed because the requested resource was not found. Please check the query parameters and try again.'
                         ],
                     });

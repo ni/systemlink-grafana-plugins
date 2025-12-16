@@ -1197,7 +1197,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                             await waitFor(() => {
                                 expect(
-                                    screen.getByText("The selected column 'InvalidColumn (String)' is not valid.")
+                                    screen.getByText("The following selected column is not valid: 'InvalidColumn (String)'")
                                 ).toBeInTheDocument();
                             });
                         });
@@ -1221,7 +1221,7 @@ describe("DataFrameQueryEditorV2", () => {
                             await waitFor(() => {
                                 expect(
                                     screen.getByText(
-                                        "The selected columns 'InvalidColumn1 (String), InvalidColumn2 (Numeric)' are not valid."
+                                        "The following selected columns are not valid: 'InvalidColumn1 (String), InvalidColumn2 (Numeric)'"
                                     )
                                 ).toBeInTheDocument();
                             });
@@ -1247,7 +1247,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                             await waitFor(() => {
                                 expect(
-                                    screen.getByText("The selected column 'InvalidColumn (String)' is not valid.")
+                                    screen.getByText("The following selected column is not valid: 'InvalidColumn (String)'")
                                 ).toBeInTheDocument();
                             });
                         });
@@ -1342,7 +1342,7 @@ describe("DataFrameQueryEditorV2", () => {
                             // Wait for error to appear
                             await waitFor(() => {
                                 expect(
-                                    screen.getByText("The selected column 'ColumnA (String)' is not valid.")
+                                    screen.getByText("The following selected column is not valid: 'ColumnA (String)'")
                                 ).toBeInTheDocument();
                             });
 
@@ -1421,7 +1421,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                         // Error message should be displayed
                         expect(screen.getByText(
-                            'The selected column \'ColumnA (String)\' is not valid.'
+                            "The following selected column is not valid: 'ColumnA (String)'"
                         )).toBeInTheDocument();
                     });
 
@@ -1442,7 +1442,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                         // Error message should be displayed
                         expect(screen.getByText(
-                            'The selected column \'ColumnA (String)\' is not valid.'
+                            "The following selected column is not valid: 'ColumnA (String)'"
                         )).toBeInTheDocument();
                     });
                 });
