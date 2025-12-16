@@ -1,6 +1,6 @@
-import { AlertVariant } from '@grafana/ui';
+import { AlertVariant, ComboboxOption } from '@grafana/ui';
 import { AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ComputedAlarmProperty } from '../types/ListAlarms.types';
-import { Alarm, AlarmTransition, TransitionInclusionOption } from '../types/types';
+import { Alarm, AlarmTransition, QueryType, TransitionInclusionOption } from '../types/types';
 
 export const LABEL_WIDTH = 26;
 export const CONTROL_WIDTH = 65;
@@ -44,6 +44,19 @@ export const tooltips = {
   groupBySeverity: 'This toggle groups alarm trends by severity.',
   transitionInclusion: 'This field specifies whether to include no transitions, only the most recent transitions, or all transitions in the alarm query.',
 };
+
+export const queryTypeOptions: ComboboxOption[] = [
+  {
+    label: QueryType.ListAlarms,
+    value: QueryType.ListAlarms,
+    description: 'List alarms allows you to search alarms based on various filters.'
+  },
+  {
+    label: QueryType.AlarmTrend,
+    value: QueryType.AlarmTrend,
+    description: 'Alarm trend allows you to visualize active alarm trends over time.'
+  },
+];
 
 export const takeErrorMessages = {
   minErrorMsg: `Enter a value greater than or equal to ${QUERY_EDITOR_MIN_TAKE.toLocaleString()}.`,
