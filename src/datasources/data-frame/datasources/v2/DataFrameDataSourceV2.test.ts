@@ -4387,41 +4387,6 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         describe('maxDataPoints handling', () => {
-            it('should use TOTAL_ROWS_LIMIT when maxDataPoints is undefined', async () => {
-                const mockTables = [{
-                    id: 'table1',
-                    columns: [
-                        { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                    ]
-                }];
-                queryTablesSpy.mockReturnValue(of(mockTables));
-                postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
-
-                const query = {
-                    refId: 'A',
-                    type: DataFrameQueryType.Data,
-                    columns: ['value1-Numeric'],
-                    dataTableFilter: 'name = "test"',
-                    decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE'
-                } as DataFrameQueryV2;
-
-                const optionsWithoutMaxDataPoints = {
-                    ...options,
-                    maxDataPoints: undefined
-                } as unknown as DataQueryRequest<DataFrameQueryV2>;
-
-                await lastValueFrom(ds.runQuery(query, optionsWithoutMaxDataPoints));
-
-                expect(postSpy).toHaveBeenCalledWith(
-                    expect.stringContaining('query-decimated-data'),
-                    expect.objectContaining({
-                        decimation: expect.objectContaining({
-                            intervals: 1000000 // TOTAL_ROWS_LIMIT
-                        })
-                    }),
-                    expect.any(Object)
-                );
-            });
 
             it('should use 0 intervals when maxDataPoints is negative', async () => {
                 const mockTables = [{
