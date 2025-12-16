@@ -4385,5 +4385,151 @@ describe('DataFrameDataSourceV2', () => {
                 expect.any(Object)
             );
         });
+
+        describe('maxDataPoints handling', () => {
+            it('should use TOTAL_ROWS_LIMIT when maxDataPoints is undefined', async () => {
+                const mockTables = [{
+                    id: 'table1',
+                    columns: [
+                        { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                    ]
+                }];
+                queryTablesSpy.mockReturnValue(of(mockTables));
+                postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+                const query = {
+                    refId: 'A',
+                    type: DataFrameQueryType.Data,
+                    columns: ['value1-Numeric'],
+                    dataTableFilter: 'name = "test"',
+                    decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE'
+                } as DataFrameQueryV2;
+
+                const optionsWithoutMaxDataPoints = {
+                    ...options,
+                    maxDataPoints: undefined
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+
+                await lastValueFrom(ds.runQuery(query, optionsWithoutMaxDataPoints));
+
+                expect(postSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('query-decimated-data'),
+                    expect.objectContaining({
+                        decimation: expect.objectContaining({
+                            intervals: 1000000 // TOTAL_ROWS_LIMIT
+                        })
+                    }),
+                    expect.any(Object)
+                );
+            });
+
+            it('should use 0 intervals when maxDataPoints is negative', async () => {
+                const mockTables = [{
+                    id: 'table1',
+                    columns: [
+                        { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                    ]
+                }];
+                queryTablesSpy.mockReturnValue(of(mockTables));
+                postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+                const query = {
+                    refId: 'A',
+                    type: DataFrameQueryType.Data,
+                    columns: ['value1-Numeric'],
+                    dataTableFilter: 'name = "test"',
+                    decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE'
+                } as DataFrameQueryV2;
+
+                const optionsWithNegativeMaxDataPoints = {
+                    ...options,
+                    maxDataPoints: -100
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+
+                await lastValueFrom(ds.runQuery(query, optionsWithNegativeMaxDataPoints));
+
+                expect(postSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('query-decimated-data'),
+                    expect.objectContaining({
+                        decimation: expect.objectContaining({
+                            intervals: 0
+                        })
+                    }),
+                    expect.any(Object)
+                );
+            });
+
+            it('should cap maxDataPoints at TOTAL_ROWS_LIMIT when it exceeds the limit', async () => {
+                const mockTables = [{
+                    id: 'table1',
+                    columns: [
+                        { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                    ]
+                }];
+                queryTablesSpy.mockReturnValue(of(mockTables));
+                postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+                const query = {
+                    refId: 'A',
+                    type: DataFrameQueryType.Data,
+                    columns: ['value1-Numeric'],
+                    dataTableFilter: 'name = "test"',
+                    decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE'
+                } as DataFrameQueryV2;
+
+                const optionsWithLargeMaxDataPoints = {
+                    ...options,
+                    maxDataPoints: 2000000 // Greater than TOTAL_ROWS_LIMIT
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+
+                await lastValueFrom(ds.runQuery(query, optionsWithLargeMaxDataPoints));
+
+                expect(postSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('query-decimated-data'),
+                    expect.objectContaining({
+                        decimation: expect.objectContaining({
+                            intervals: 1000000 // TOTAL_ROWS_LIMIT
+                        })
+                    }),
+                    expect.any(Object)
+                );
+            });
+
+            it('should use maxDataPoints when it is valid and within limit', async () => {
+                const mockTables = [{
+                    id: 'table1',
+                    columns: [
+                        { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                    ]
+                }];
+                queryTablesSpy.mockReturnValue(of(mockTables));
+                postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+                const query = {
+                    refId: 'A',
+                    type: DataFrameQueryType.Data,
+                    columns: ['value1-Numeric'],
+                    dataTableFilter: 'name = "test"',
+                    decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE'
+                } as DataFrameQueryV2;
+
+                const optionsWithValidMaxDataPoints = {
+                    ...options,
+                    maxDataPoints: 5000
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+
+                await lastValueFrom(ds.runQuery(query, optionsWithValidMaxDataPoints));
+
+                expect(postSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('query-decimated-data'),
+                    expect.objectContaining({
+                        decimation: expect.objectContaining({
+                            intervals: 5000
+                        })
+                    }),
+                    expect.any(Object)
+                );
+            });
+        });
     });
 });

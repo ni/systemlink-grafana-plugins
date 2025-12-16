@@ -290,8 +290,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tableColumnsMap: Record<string, TableColumnsData>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
-        intervals = 1000
+        maxDataPoints = 1000
     ): Observable<Record<string, TableDataRows>> {
+        const intervals = maxDataPoints < 0 
+            ? 0 
+            : Math.min(maxDataPoints, TOTAL_ROWS_LIMIT);
         const decimatedDataRequests = this.getDecimatedDataRequests(
             tableColumnsMap,
             query,
@@ -832,7 +835,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                 tableColumnsMap,
                                 processedQuery,
                                 options.range,
-                                options.maxDataPoints   
+                                options.maxDataPoints
                             ).pipe(
                                 map(decimatedDataMap => {
                                     const aggregatedTableDataRows = this.aggregateTableDataRows(
