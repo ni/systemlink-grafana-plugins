@@ -2,7 +2,7 @@ import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceI
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -1377,18 +1377,30 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const dataFrame$ = flattenedTablesWithColumns$.pipe(
             combineLatestWith(workspaces$),
             map(([flattenedTablesWithColumns, workspaces]) => {
-                const fields = propertiesToQuery.map(property => {
+                const fields: FieldDTO[] = [];
+                const includeProperties = propertiesToQuery.includes(DataTableProperties.Properties);
+                const propertiesToQueryWithoutCustomProperties = propertiesToQuery.filter(
+                    property => property !== DataTableProperties.Properties
+                );
+
+                propertiesToQueryWithoutCustomProperties.forEach(property => {
                     const values = this.getFieldValues(
                         flattenedTablesWithColumns,
                         property,
                         workspaces
                     );
-                    return {
+                    fields.push({
                         name: DataTableProjectionLabelLookup[property].label,
                         type: this.getFieldType(property),
                         values
-                    };
+                    });
                 });
+
+                // If Properties is requested, flatten it into separate columns
+                if (includeProperties) {
+                    const propertyFields = this.createFieldsFromTableProperties(flattenedTablesWithColumns);
+                    fields.push(...propertyFields);
+                }
 
                 return {
                     refId: processedQuery.refId,
@@ -1399,6 +1411,43 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
 
         return dataFrame$;
+    }
+
+    private createFieldsFromTableProperties(tables: FlattenedTableProperties[]): FieldDTO[] {
+        const uniquePropertyKeys = this.getUniqueCustomPropertyKeys(tables);
+        const limitedPropertyKeys = Array.from(uniquePropertyKeys)
+            .slice(0, CUSTOM_PROPERTY_COLUMNS_LIMIT);
+        const sortedPropertyKeys = limitedPropertyKeys.sort();
+        const firstClassPropertyLabels = new Set(
+            Object.values(DataTableProjectionLabelLookup).map(lookup => lookup.label)
+        );
+
+        return sortedPropertyKeys.map(propertyKey => ({
+            name: this.getCustomPropertyFieldName(propertyKey, firstClassPropertyLabels),
+            type: FieldType.string,
+            values: tables.map(table => table.properties?.[propertyKey])
+        }));
+    }
+
+    private getCustomPropertyFieldName(
+        propertyKey: string, 
+        firstClassPropertyLabels: Set<string>
+    ): string {
+        return firstClassPropertyLabels.has(propertyKey)
+            ? `${propertyKey} (datatable)`
+            : propertyKey;
+    }
+
+    private getUniqueCustomPropertyKeys(tables: FlattenedTableProperties[]): Set<string> {
+        const propertyKeysSet = new Set<string>();
+        tables.forEach(table => {
+            if (table.properties) {
+                Object.keys(table.properties).forEach(key => {
+                    propertyKeysSet.add(key);
+                });
+            }
+        });
+        return propertyKeysSet;
     }
 
     private queryResultIds$(resultFilter: string): Observable<string[]> {
