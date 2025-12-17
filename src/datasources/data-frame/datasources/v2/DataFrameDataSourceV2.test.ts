@@ -1,5 +1,5 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
-import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
+import { DataQueryRequest, DataSourceInstanceSettings, Field, FieldDTO } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { ColumnType, DataFrameDataQuery, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { COLUMN_SELECTION_LIMIT, TAKE_LIMIT } from 'datasources/data-frame/constants';
@@ -1716,7 +1716,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 describe('when DataTableProperties.Properties is selected', () => {
                     function findField(fields: FieldDTO[], name: string): FieldDTO | undefined {
-                        return fields.find((f) => f.name === name);
+                        return fields.find(field => field.name === name);
                     }
 
                     it('should return properties flattened into fields', async () => {
@@ -1812,7 +1812,7 @@ describe('DataFrameDataSourceV2', () => {
 
                         const result = await lastValueFrom(ds.runQuery(queryWithProperties, options));
 
-                        const fieldNames = result.fields.map((f: any) => f.name);
+                        const fieldNames = result.fields.map((field: FieldDTO) => field.name);
                         expect(fieldNames).toEqual(['alpha', 'beta', 'charlie', 'zebra']);
                     });
 
@@ -1839,7 +1839,7 @@ describe('DataFrameDataSourceV2', () => {
 
                         const result = await lastValueFrom(ds.runQuery(queryWithProperties, options));
 
-                        expect(result.fields.every((f: any) => f.type === 'string')).toBe(true);
+                        expect(result.fields.every((field: FieldDTO) => field.type === 'string')).toBe(true);
                     });
 
                     it('should work with flattened columns tables', async () => {

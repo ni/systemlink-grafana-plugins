@@ -1,7 +1,7 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, FirstClassPropertyLabels } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -1378,12 +1378,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             combineLatestWith(workspaces$),
             map(([flattenedTablesWithColumns, workspaces]) => {
                 const fields: FieldDTO[] = [];
-                const includeProperties = propertiesToQuery.includes(DataTableProperties.Properties);
-                const propertiesToQueryWithoutCustomProperties = propertiesToQuery.filter(
+                const includeDataTableCustomProperties = propertiesToQuery.includes(
+                    DataTableProperties.Properties
+                );
+                const propertiesToQueryWithoutDataTableCustomProperties = propertiesToQuery.filter(
                     property => property !== DataTableProperties.Properties
                 );
 
-                propertiesToQueryWithoutCustomProperties.forEach(property => {
+                propertiesToQueryWithoutDataTableCustomProperties.forEach(property => {
                     const values = this.getFieldValues(
                         flattenedTablesWithColumns,
                         property,
@@ -1396,8 +1398,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     });
                 });
 
-                // If Properties is requested, flatten it into separate columns
-                if (includeProperties) {
+                // If "Properties" is selected, flatten it into separate fields in the data frame output
+                if (includeDataTableCustomProperties) {
                     const propertyFields = this.createFieldsFromTableProperties(flattenedTablesWithColumns);
                     fields.push(...propertyFields);
                 }
@@ -1415,40 +1417,34 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private createFieldsFromTableProperties(tables: FlattenedTableProperties[]): FieldDTO[] {
         const uniquePropertyKeys = this.getUniqueCustomPropertyKeys(tables);
-        const limitedPropertyKeys = Array.from(uniquePropertyKeys)
-            .slice(0, CUSTOM_PROPERTY_COLUMNS_LIMIT);
-        const sortedPropertyKeys = limitedPropertyKeys.sort((propertyKey1, propertyKey2) => {
-            return propertyKey1.localeCompare(propertyKey2);
-        });
-        const firstClassPropertyLabels = new Set(
-            Object.values(DataTableProjectionLabelLookup).map(lookup => lookup.label)
-        );
+        const sortedPropertyKeys = Array.from(uniquePropertyKeys)
+            .sort((propertyKey1, propertyKey2) => propertyKey1.localeCompare(propertyKey2));
 
         return sortedPropertyKeys.map(propertyKey => ({
-            name: this.getCustomPropertyFieldName(propertyKey, firstClassPropertyLabels),
+            name: this.getCustomPropertyFieldName(propertyKey),
             type: FieldType.string,
             values: tables.map(table => table.properties?.[propertyKey])
         }));
     }
 
-    private getCustomPropertyFieldName(
-        propertyKey: string, 
-        firstClassPropertyLabels: Set<string>
-    ): string {
-        return firstClassPropertyLabels.has(propertyKey)
+    private getCustomPropertyFieldName(propertyKey: string): string {
+        return FirstClassPropertyLabels.has(propertyKey)
             ? `${propertyKey} (datatable)`
             : propertyKey;
     }
 
     private getUniqueCustomPropertyKeys(tables: FlattenedTableProperties[]): Set<string> {
         const propertyKeysSet = new Set<string>();
-        tables.forEach(table => {
+        for (const table of tables) {
             if (table.properties) {
-                Object.keys(table.properties).forEach(key => {
+                for (const key of Object.keys(table.properties)) {
                     propertyKeysSet.add(key);
-                });
+                    if (propertyKeysSet.size >= CUSTOM_PROPERTY_COLUMNS_LIMIT) {
+                        return propertyKeysSet;
+                    }
+                }
             }
-        });
+        }
         return propertyKeysSet;
     }
 
