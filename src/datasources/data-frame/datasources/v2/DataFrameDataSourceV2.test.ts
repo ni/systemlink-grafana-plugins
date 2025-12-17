@@ -4387,17 +4387,26 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         describe('data truncation warning', () => {
-            it('should show warning notice when data exceeds TOTAL_ROWS_LIMIT', async () => {
-                const mockTables = [{
-                    id: 'table1',
-                    columns: [
-                        { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                        { name: 'value2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                    ]
-                }];
+            it('should show warning notice when data exceeds TOTAL_ROWS_LIMIT and tables remain unprocessed', async () => {
+                const mockTables = [
+                    {
+                        id: 'table1',
+                        columns: [
+                            { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'value2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    },
+                    {
+                        id: 'table2',
+                        columns: [
+                            { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'value2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }
+                ];
                 queryTablesSpy.mockReturnValue(of(mockTables));
 
-                // Mock response that exceeds the limit
+                // Mock response that exceeds the limit for first table
                 // Create a large data set: 500,001 rows x 2 columns = 1,000,002 data points (exceeds 1,000,000)
                 const largeDataSet = Array.from({ length: 500001 }, (_, i) => [i, i * 2]);
                 postSpy.mockReturnValue(of({ 
@@ -4413,7 +4422,7 @@ describe('DataFrameDataSourceV2', () => {
                     columns: ['value1-Numeric', 'value2-Numeric'],
                     xColumn: null,
                     dataTableFilter: 'name = "test"',
-                    decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
+                    decimationMethod: 'LOSSY',
                     filterNulls: false,
                     applyTimeFilters: false
                 } as DataFrameQueryV2;
@@ -4452,7 +4461,141 @@ describe('DataFrameDataSourceV2', () => {
                     columns: ['value1-Numeric', 'value2-Numeric'],
                     xColumn: null,
                     dataTableFilter: 'name = "test"',
-                    decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
+                    decimationMethod: 'LOSSY',
+                    filterNulls: false,
+                    applyTimeFilters: false
+                } as DataFrameQueryV2;
+
+                const result = await lastValueFrom(ds.runQuery(query, options));
+
+                expect(result.meta?.notices).toBeUndefined();
+            });
+
+            it('should not show warning when limit is reached but all tables are processed', async () => {
+                const mockTables = [{
+                    id: 'table1',
+                    columns: [
+                        { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                        { name: 'value2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                    ]
+                }];
+                queryTablesSpy.mockReturnValue(of(mockTables));
+
+                // Mock response that exactly hits the limit: 500,000 rows x 2 columns = 1,000,000 data points
+                const exactLimitDataSet = Array.from({ length: 500000 }, (_, i) => [i, i * 2]);
+                postSpy.mockReturnValue(of({ 
+                    frame: { 
+                        columns: [{ name: 'value1' }, { name: 'value2' }], 
+                        data: exactLimitDataSet 
+                    } 
+                }));
+
+                const query = {
+                    refId: 'A',
+                    type: DataFrameQueryType.Data,
+                    columns: ['value1-Numeric', 'value2-Numeric'],
+                    xColumn: null,
+                    dataTableFilter: 'name = "test"',
+                    decimationMethod: 'LOSSY',
+                    filterNulls: false,
+                    applyTimeFilters: false
+                } as DataFrameQueryV2;
+
+                const result = await lastValueFrom(ds.runQuery(query, options));
+
+                expect(result.meta?.notices).toBeUndefined();
+            });
+
+            it('should show warning when multiple tables and some are not processed due to limit', async () => {
+                const mockTables = [
+                    {
+                        id: 'table1',
+                        columns: [
+                            { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    },
+                    {
+                        id: 'table2',
+                        columns: [
+                            { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    },
+                    {
+                        id: 'table3',
+                        columns: [
+                            { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }
+                ];
+                queryTablesSpy.mockReturnValue(of(mockTables));
+
+                // Mock response where first two tables fit but third would exceed limit
+                // Table 1: 600,000 rows x 1 column = 600,000 data points
+                // Table 2: 400,000 rows x 1 column = 400,000 data points (total = 1,000,000)
+                // Table 3 would exceed the limit
+                let callCount = 0;
+                postSpy.mockImplementation(() => {
+                    callCount++;
+                    if (callCount === 1) {
+                        return of({ frame: { columns: [{ name: 'value1' }], data: Array.from({ length: 600000 }, (_, i) => [i]) } });
+                    } else if (callCount === 2) {
+                        return of({ frame: { columns: [{ name: 'value1' }], data: Array.from({ length: 400000 }, (_, i) => [i]) } });
+                    }
+                    return of({ frame: { columns: [{ name: 'value1' }], data: Array.from({ length: 100000 }, (_, i) => [i]) } });
+                });
+
+                const query = {
+                    refId: 'A',
+                    type: DataFrameQueryType.Data,
+                    columns: ['value1-Numeric'],
+                    xColumn: null,
+                    dataTableFilter: 'name = "test"',
+                    decimationMethod: 'LOSSY',
+                    filterNulls: false,
+                    applyTimeFilters: false
+                } as DataFrameQueryV2;
+
+                const result = await lastValueFrom(ds.runQuery(query, options));
+
+                expect(result.meta?.notices).toBeDefined();
+                expect(result.meta?.notices?.length).toBeGreaterThan(0);
+                expect(result.meta?.notices?.[0].severity).toBe('warning');
+                expect(result.meta?.notices?.[0].text).toContain('1,000,000');
+            });
+
+            it('should not show warning when all tables fit exactly at the limit', async () => {
+                const mockTables = [
+                    {
+                        id: 'table1',
+                        columns: [
+                            { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    },
+                    {
+                        id: 'table2',
+                        columns: [
+                            { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }
+                ];
+                queryTablesSpy.mockReturnValue(of(mockTables));
+
+                // Mock response where both tables fit exactly at limit
+                // Table 1: 500,000 rows x 1 column = 500,000 data points
+                // Table 2: 500,000 rows x 1 column = 500,000 data points (total = 1,000,000)
+                let callCount = 0;
+                postSpy.mockImplementation(() => {
+                    callCount++;
+                    return of({ frame: { columns: [{ name: 'value1' }], data: Array.from({ length: 500000 }, (_, i) => [i]) } });
+                });
+
+                const query = {
+                    refId: 'A',
+                    type: DataFrameQueryType.Data,
+                    columns: ['value1-Numeric'],
+                    xColumn: null,
+                    dataTableFilter: 'name = "test"',
+                    decimationMethod: 'LOSSY',
                     filterNulls: false,
                     applyTimeFilters: false
                 } as DataFrameQueryV2;

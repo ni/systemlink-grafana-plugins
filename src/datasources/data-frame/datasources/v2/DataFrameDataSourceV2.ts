@@ -301,6 +301,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             timeRange,
             intervals
         );
+        const totalRequests = decimatedDataRequests.length;
         const batches = _.chunk(decimatedDataRequests, REQUESTS_PER_SECOND);
         const stopSignal$ = new Subject<void>();
 
@@ -326,24 +327,33 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 const rowsInRetrievedDataFrame = retrievedDataFrame.data.length;
                 const columnsInRetrievedDataFrame = retrievedDataFrame.columns.length;
                 const dataPointsToAdd = rowsInRetrievedDataFrame * columnsInRetrievedDataFrame;
+                
+                acc.processedTables++;
                 acc.totalDataPoints += dataPointsToAdd;
 
                 // Only accumulate data if within limit
                 if (acc.totalDataPoints <= TOTAL_ROWS_LIMIT) {
                     acc.data[result.tableId] = result.data;
-                } else if (!acc.isLimitExceeded) {
-                    // Mark as truncated when we first exceed the limit
-                    acc.isLimitExceeded = true;
                 }
 
                 // Signal to stop if limit reached
                 if (acc.totalDataPoints >= TOTAL_ROWS_LIMIT) {
+                    // Mark as exceeded if there are more tables to process
+                    if (acc.processedTables < totalRequests) {
+                        acc.isLimitExceeded = true;
+                    }
                     stopSignal$.next();
                     stopSignal$.complete();
                 }
 
                 return acc;
-            }, { totalDataPoints: 0, data: {} as Record<string, TableDataRows>, isLimitExceeded: false }),
+            }, 
+            { 
+                totalDataPoints: 0, 
+                data: {} as Record<string, TableDataRows>, 
+                processedTables: 0, 
+                isLimitExceeded: false 
+            }),
             map(acc => ({ data: acc.data, isLimitExceeded: acc.isLimitExceeded }))
         );
     }
