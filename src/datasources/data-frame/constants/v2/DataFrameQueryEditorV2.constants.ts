@@ -89,7 +89,7 @@ export const errorMessages = {
 /**
  * Informational messages for the DataFrameQueryEditorV2 component
  */
-export const infoMessages = {
+export const infoMessage = {
     queryOptimization: {
         title: 'Query optimization',
         message: `Queries may significantly impact resource utilization.`,
