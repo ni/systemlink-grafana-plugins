@@ -4583,9 +4583,7 @@ describe('DataFrameDataSourceV2', () => {
                 // Mock response where both tables fit exactly at limit
                 // Table 1: 500,000 rows x 1 column = 500,000 data points
                 // Table 2: 500,000 rows x 1 column = 500,000 data points (total = 1,000,000)
-                let callCount = 0;
                 postSpy.mockImplementation(() => {
-                    callCount++;
                     return of({ frame: { columns: [{ name: 'value1' }], data: Array.from({ length: 500000 }, (_, i) => [i]) } });
                 });
 
