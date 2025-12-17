@@ -1914,6 +1914,193 @@ describe('DataFrameDataSourceV2', () => {
                         expect(float64Field?.values).toEqual([2.5]);
                     });
                 });
+
+                describe('batching decimated data requests', () => {
+                    beforeEach(() => {
+                        jest.useFakeTimers();
+                    });
+
+                    afterEach(() => {
+                        jest.useRealTimers();
+                    });
+
+                    it('should batch requests into groups of REQUESTS_PER_SECOND (6)', async () => {
+                        // Create 10 tables to test batching (should create 2 batches: 6 + 4)
+                        const mockTables = Array.from({ length: 10 }, (_, i) => ({
+                            id: `table${i}`,
+                            name: `table${i}`,
+                            columns: [
+                                { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }));
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        postSpy.mockImplementation((url) => {
+                            return of({
+                                frame: {
+                                    columns: ['col1'],
+                                    data: [['1.0']]
+                                }
+                            });
+                        });
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'LOSSY',
+                            filterNulls: false,
+                            applyTimeFilters: false
+                        } as DataFrameQueryV2;
+
+                        const queryPromise = lastValueFrom(ds.runQuery(query, options));
+                        
+                        // Fast-forward through all timers
+                        await jest.runAllTimersAsync();
+                        
+                        await queryPromise;
+
+                        // Should have made 10 requests (one per table)
+                        expect(postSpy).toHaveBeenCalledTimes(10);
+                    });
+
+                    it('should delay batches by DELAY_BETWEEN_REQUESTS_MS (1000ms)', async () => {
+                        // Create 8 tables to test delays (2 batches: 6 + 2)
+                        const mockTables = Array.from({ length: 8 }, (_, i) => ({
+                            id: `table${i}`,
+                            name: `table${i}`,
+                            columns: [
+                                { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }));
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const callTimestamps: number[] = [];
+                        postSpy.mockImplementation((url) => {
+                            callTimestamps.push(Date.now());
+                            return of({
+                                frame: {
+                                    columns: ['col1'],
+                                    data: [['1.0']]
+                                }
+                            });
+                        });
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'LOSSY',
+                            filterNulls: false,
+                            applyTimeFilters: false
+                        } as DataFrameQueryV2;
+
+                        const queryPromise = lastValueFrom(ds.runQuery(query, options));
+                        
+                        // Advance timers step by step to verify delays
+                        await jest.advanceTimersByTimeAsync(0);  // First batch (6 requests)
+                        expect(postSpy).toHaveBeenCalledTimes(6);
+                        
+                        await jest.advanceTimersByTimeAsync(1000);  // Second batch (2 requests) after 1000ms delay
+                        expect(postSpy).toHaveBeenCalledTimes(8);
+                        
+                        await queryPromise;
+                    });
+
+                    it('should stop fetching when TOTAL_ROWS_LIMIT is reached', async () => {
+                        // Create 10 tables but have them return enough data to exceed the limit
+                        const mockTables = Array.from({ length: 10 }, (_, i) => ({
+                            id: `table${i}`,
+                            name: `table${i}`,
+                            columns: [
+                                { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }));
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        let callCount = 0;
+                        postSpy.mockImplementation((url) => {
+                            callCount++;
+                            // Each table returns 300k rows with 1 column = 300k data points
+                            // After 4 tables, we'll have 1.2M data points (exceeds TOTAL_ROWS_LIMIT of 1M)
+                            const largeDataArray = Array.from({ length: 300000 }, () => ['1.0']);
+                            return of({
+                                frame: {
+                                    columns: ['col1'],
+                                    data: largeDataArray
+                                }
+                            });
+                        });
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'LOSSY',
+                            filterNulls: false,
+                            applyTimeFilters: false
+                        } as DataFrameQueryV2;
+
+                        const queryPromise = lastValueFrom(ds.runQuery(query, options));
+                        
+                        await jest.runAllTimersAsync();
+                        
+                        const result = await queryPromise;
+
+                        // Should stop after fetching enough to reach the limit
+                        // With 300k rows per table, we need 4 tables to exceed 1M limit
+                        expect(callCount).toBeLessThan(10);
+                        expect(result.refId).toBe('A');
+                    });
+
+                    it('should handle requests within a batch concurrently', async () => {
+                        // Create 6 tables (one batch)
+                        const mockTables = Array.from({ length: 6 }, (_, i) => ({
+                            id: `table${i}`,
+                            name: `table${i}`,
+                            columns: [
+                                { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }));
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const callOrder: number[] = [];
+                        postSpy.mockImplementation((url) => {
+                            const tableIdMatch = url.match(/table(\d+)/);
+                            const tableIndex = tableIdMatch ? parseInt(tableIdMatch[1], 10) : 0;
+                            callOrder.push(tableIndex);
+                            return of({
+                                frame: {
+                                    columns: ['col1'],
+                                    data: [['1.0']]
+                                }
+                            });
+                        });
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'LOSSY',
+                            filterNulls: false,
+                            applyTimeFilters: false
+                        } as DataFrameQueryV2;
+
+                        const queryPromise = lastValueFrom(ds.runQuery(query, options));
+                        
+                        await jest.runAllTimersAsync();
+                        
+                        await queryPromise;
+
+                        // All 6 requests in the batch should be made
+                        expect(callOrder.length).toBe(6);
+                        expect(callOrder).toEqual(expect.arrayContaining([0, 1, 2, 3, 4, 5]));
+                    });
+                });
             });
         });
 
