@@ -175,6 +175,54 @@ describe('DataFrameQueryBuilderWrapper', () => {
                 expect(screen.queryByText(/Some info message/)).not.toBeInTheDocument();
             });
         });
+
+        it('should set width to default VALUE_FIELD_WIDTH when infoMessageWidth is not provided', async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                const infoAlert = screen.getByLabelText('Query optimization');
+                const parentDiv = infoAlert.parentElement;
+                // VALUE_FIELD_WIDTH (65.5) * 8 = 524px
+                expect(parentDiv).toHaveStyle('width: 524px');
+            });
+        });
+
+        it('should set width to custom value when infoMessageWidth is provided', async () => {
+            const customWidth = 80;
+            const onResultFilterChange = jest.fn();
+            const onDataTableFilterChange = jest.fn();
+            const onColumnFilterChange = jest.fn();
+            const datasource = {
+                loadWorkspaces: jest.fn().mockResolvedValue(new Map()),
+                loadPartNumbers: jest.fn().mockResolvedValue([]),
+                globalVariableOptions: jest.fn().mockReturnValue([]),
+                queryTables$: jest.fn().mockReturnValue(of([])),
+                transformResultQuery: jest.fn((filter: string) => filter),
+                instanceSettings: {
+                    jsonData: { featureToggles: { queryByResultAndColumnProperties: true } },
+                },
+            } as unknown as DataFrameDataSource;
+
+            render(
+                <DataFrameQueryBuilderWrapper
+                    datasource={datasource}
+                    resultFilter=""
+                    dataTableFilter=""
+                    columnFilter=""
+                    infoMessageWidth={customWidth}
+                    onResultFilterChange={onResultFilterChange}
+                    onDataTableFilterChange={onDataTableFilterChange}
+                    onColumnFilterChange={onColumnFilterChange}
+                />
+            );
+
+            await waitFor(() => {
+                const infoAlert = screen.getByLabelText('Query optimization');
+                const parentDiv = infoAlert.parentElement;
+                // customWidth (80) * 8 = 640px
+                expect(parentDiv).toHaveStyle('width: 640px');
+            });
+        });
     });
 
     describe('DataTableQueryBuilder', () => {
