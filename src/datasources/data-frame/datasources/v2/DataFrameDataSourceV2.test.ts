@@ -2053,7 +2053,48 @@ describe('DataFrameDataSourceV2', () => {
                         // Should stop after fetching enough to reach the limit
                         // With 300k rows per table, we need 4 tables to exceed 1M limit
                         expect(callCount).toBeLessThan(10);
+                        expect(callCount).toBeGreaterThanOrEqual(3); // At least 3 tables should be fetched
                         expect(result.refId).toBe('A');
+                    });
+
+                    it('should handle exactly REQUESTS_PER_SECOND (6) tables without creating empty batch', async () => {
+                        // Create exactly 6 tables (one full batch, no second batch)
+                        const mockTables = Array.from({ length: 6 }, (_, i) => ({
+                            id: `table${i}`,
+                            name: `table${i}`,
+                            columns: [
+                                { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }));
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        postSpy.mockImplementation(() => {
+                            return of({
+                                frame: {
+                                    columns: ['col1'],
+                                    data: [['1.0']]
+                                }
+                            });
+                        });
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'LOSSY',
+                            filterNulls: false,
+                            applyTimeFilters: false
+                        } as DataFrameQueryV2;
+
+                        const queryPromise = lastValueFrom(ds.runQuery(query, options));
+                        
+                        await jest.runAllTimersAsync();
+                        
+                        await queryPromise;
+
+                        // Should make exactly 6 requests (one complete batch)
+                        expect(postSpy).toHaveBeenCalledTimes(6);
                     });
 
                     it('should handle requests within a batch concurrently', async () => {
