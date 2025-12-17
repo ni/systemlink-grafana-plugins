@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   PanelProps,
   DataFrame,
@@ -8,11 +8,12 @@ import {
   GrafanaTheme2,
   hasLinks,
   dateTimeParse,
-  FieldColorModeId
+  FieldColorModeId,
+  PanelEvents
 } from '@grafana/data';
 import { AxisLabels, PanelOptions } from './types';
 import { useTheme2, ContextMenu, MenuItemsGroup, linkModelToContextMenuItems } from '@grafana/ui';
-import { getTemplateSrv, PanelDataErrorView } from '@grafana/runtime';
+import { getTemplateSrv, PanelDataErrorView, locationService, getAppEvents } from '@grafana/runtime';
 import { getFieldsByName, notEmpty, Plot, renderMenuItems, useTraceColors } from './utils';
 import { AxisType, Legend, PlotData, PlotType, toImage, Icons, PlotlyHTMLElement } from 'plotly.js-basic-dist-min';
 import { saveAs } from 'file-saver';
@@ -33,6 +34,23 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const theme = useTheme2();
 
   const traceColors = useTraceColors(theme);
+
+  const debouncedSyncXAxis = useMemo(
+    () =>
+      _.debounce((xAxisMin: number, xAxisMax: number, xAxisField: string) => {
+        locationService.partial(
+          {
+            [`nisl-${xAxisField}-min`]: Math.floor(xAxisMin),
+            [`nisl-${xAxisField}-max`]: Math.ceil(xAxisMax),
+          },
+          true,
+        );
+        // getAppEvents().publish({
+        //   type: PanelEvents.refresh.name,
+        // });
+      }, 300),
+    []
+  );
 
   const plotData: Array<Partial<PlotData>> = [];
   const axisLabels: AxisLabels = {
@@ -154,6 +172,15 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       }
     } else {
       props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
+      
+      const location = locationService.getLocation();
+      const searchParams = new URLSearchParams(location.search);
+      const syncTargets = searchParams.get('nisl-syncXAxisRangeTargets');
+      const panelIds = syncTargets ? syncTargets.split(',') : [];
+      
+      if (panelIds.includes(String(props.id)) && options.xAxis.field) {
+        debouncedSyncXAxis(xAxisMin, xAxisMax, options.xAxis.field);
+      }
     }
   };
 
