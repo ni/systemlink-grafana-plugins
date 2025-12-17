@@ -296,7 +296,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
  
   private getAlarmState(isCleared: boolean, isAcknowledged: boolean): string {
     if (isCleared) {
-      return isAcknowledged ? 'Cleared' : 'Cleared; NotAcknowledged';
+      return isAcknowledged ? 'Cleared' : 'Cleared; Not Acknowledged';
     }
     return isAcknowledged ? 'Acknowledged' : 'Set';
   }

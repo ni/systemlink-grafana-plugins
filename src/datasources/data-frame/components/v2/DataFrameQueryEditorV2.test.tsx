@@ -1197,7 +1197,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                             await waitFor(() => {
                                 expect(
-                                    screen.getByText("The selected column 'InvalidColumn (String)' is not valid.")
+                                    screen.getByText("The following selected column is not valid: 'InvalidColumn (String)'")
                                 ).toBeInTheDocument();
                             });
                         });
@@ -1221,7 +1221,7 @@ describe("DataFrameQueryEditorV2", () => {
                             await waitFor(() => {
                                 expect(
                                     screen.getByText(
-                                        "The selected columns 'InvalidColumn1 (String), InvalidColumn2 (Numeric)' are not valid."
+                                        "The following selected columns are not valid: 'InvalidColumn1 (String), InvalidColumn2 (Numeric)'"
                                     )
                                 ).toBeInTheDocument();
                             });
@@ -1247,7 +1247,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                             await waitFor(() => {
                                 expect(
-                                    screen.getByText("The selected column 'InvalidColumn (String)' is not valid.")
+                                    screen.getByText("The following selected column is not valid: 'InvalidColumn (String)'")
                                 ).toBeInTheDocument();
                             });
                         });
@@ -1342,7 +1342,7 @@ describe("DataFrameQueryEditorV2", () => {
                             // Wait for error to appear
                             await waitFor(() => {
                                 expect(
-                                    screen.getByText("The selected column 'ColumnA (String)' is not valid.")
+                                    screen.getByText("The following selected column is not valid: 'ColumnA (String)'")
                                 ).toBeInTheDocument();
                             });
 
@@ -1421,7 +1421,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                         // Error message should be displayed
                         expect(screen.getByText(
-                            'The selected column \'ColumnA (String)\' is not valid.'
+                            "The following selected column is not valid: 'ColumnA (String)'"
                         )).toBeInTheDocument();
                     });
 
@@ -1442,7 +1442,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                         // Error message should be displayed
                         expect(screen.getByText(
-                            'The selected column \'ColumnA (String)\' is not valid.'
+                            "The following selected column is not valid: 'ColumnA (String)'"
                         )).toBeInTheDocument();
                     });
                 });
@@ -2603,24 +2603,24 @@ describe("DataFrameQueryEditorV2", () => {
                 });
             });
 
-            it("should show the expected options in the data table properties field", async () => {
+            it("should show the expected options in sorted order in the data table properties field", async () => {
                 await user.click(dataTablePropertiesField);
 
-                const optionControls = within(document.body).getAllByRole('option');
+                const optionControls = screen.getAllByRole('option');
                 const optionTexts = optionControls.map(opt => opt.textContent);
-                expect(optionTexts).toEqual(expect.arrayContaining([
-                    "Data table name",
-                    "Data table ID",
-                    "Rows",
+                expect(optionTexts).toEqual([
                     "Columns",
                     "Created",
-                    "Workspace",
+                    "Data table ID",
+                    "Data table name",
+                    "Data table properties",
                     "Metadata modified",
                     "Metadata revision",
+                    "Rows",
                     "Rows modified",
                     "Supports append",
-                    "Data table properties"
-                ]));
+                    "Workspace"
+                ]);
             });
         });
 
@@ -2663,15 +2663,17 @@ describe("DataFrameQueryEditorV2", () => {
                 });
             });
 
-            it("should show the expected options in the column properties field", async () => {
+            it("should show the expected options in sorted order in the column properties field", async () => {
                 await user.click(columnPropertiesField);
 
-                await waitFor(() => {
-                    expect(document.body).toHaveTextContent("Column name");
-                    expect(document.body).toHaveTextContent("Column data type");
-                    expect(document.body).toHaveTextContent("Column type");
-                    expect(document.body).toHaveTextContent("Column properties");
-                });
+                const optionControls = screen.getAllByRole('option');
+                const optionTexts = optionControls.map(opt => opt.textContent);
+                expect(optionTexts).toEqual([
+                    "Column data type",
+                    "Column name",
+                    "Column properties",
+                    "Column type"
+                ]);
             });
         });
 

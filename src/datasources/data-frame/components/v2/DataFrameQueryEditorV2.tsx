@@ -39,7 +39,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             .map(([key, value]) => ({
                 label: value.label,
                 value: key as DataTableProperties
-            }));
+            }))
+            .sort((a, b) => a.label.localeCompare(b.label));
 
     const dataTablePropertiesOptions = getPropertiesOptions(DataTableProjectionType.DataTable);
     const columnPropertiesOptions = getPropertiesOptions(DataTableProjectionType.Column);
@@ -132,8 +133,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
         const invalidColumnNames = invalidColumnSelections.map(column => column.label).join(', ');
         return invalidColumnSelections.length === 1
-            ? `The selected column '${invalidColumnNames}' is not valid.`
-            : `The selected columns '${invalidColumnNames}' are not valid.`;
+            ? `The following selected column is not valid: '${invalidColumnNames}'`
+            : `The following selected columns are not valid: '${invalidColumnNames}'`;
     }, [invalidColumnSelections, isColumnOptionsInitialized]);
 
     useEffect(

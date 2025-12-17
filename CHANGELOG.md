@@ -1,3 +1,29 @@
+## [4.109.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.109.0...v4.109.1) (2025-12-16)
+
+### Bug Fixes
+
+* **alarms:** Update one of the states label ([#628](https://github.com/ni/systemlink-grafana-plugins/issues/628)) ([53a0981](https://github.com/ni/systemlink-grafana-plugins/commit/53a09818ccc94356b8a74d86c8916767133f1586))
+* **dataframes:** Fix stack size exceeded error ([#626](https://github.com/ni/systemlink-grafana-plugins/issues/626)) ([cc74171](https://github.com/ni/systemlink-grafana-plugins/commit/cc74171c48fb2d5fb79697ef5583608d7b6f24be))
+* **dataframes:** Handle max and min datapoints ([#627](https://github.com/ni/systemlink-grafana-plugins/issues/627)) ([cfbdda8](https://github.com/ni/systemlink-grafana-plugins/commit/cfbdda823eab574ea7a436e1958a675ab746839b))
+
+## [4.109.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.108.0...v4.109.0) (2025-12-16)
+
+### Features
+
+* **dataframe:** Update user visible strings based tech writers review ([#625](https://github.com/ni/systemlink-grafana-plugins/issues/625)) ([4349959](https://github.com/ni/systemlink-grafana-plugins/commit/4349959f63cc5e8eeb83c9b714286705d1b6ddb6))
+
+## [4.108.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.107.0...v4.108.0) (2025-12-15)
+
+### Features
+
+* **dataframe:** Sort the properties selector options ([#624](https://github.com/ni/systemlink-grafana-plugins/issues/624)) ([4c8395b](https://github.com/ni/systemlink-grafana-plugins/commit/4c8395bb6569cbd997d05df94613ab6898303d6e))
+
+## [4.107.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.106.1...v4.107.0) (2025-12-15)
+
+### Features
+
+* **dataframe:** Add help documentation for Dataframe Datasource ([#600](https://github.com/ni/systemlink-grafana-plugins/issues/600)) ([6c8f540](https://github.com/ni/systemlink-grafana-plugins/commit/6c8f5404c44a503a8a4725806512e574516283e1))
+
 ## [4.106.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.106.0...v4.106.1) (2025-12-15)
 
 ### Bug Fixes

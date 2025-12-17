@@ -577,7 +577,7 @@ describe('ListAlarmsQueryHandler', () => {
             {
               name: 'State',
               type: 'string',
-              values: ['Cleared; NotAcknowledged', 'Acknowledged', 'Set', 'Cleared'],
+              values: ['Cleared; Not Acknowledged', 'Acknowledged', 'Set', 'Cleared'],
             },
           ],
         });

@@ -290,8 +290,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tableColumnsMap: Record<string, TableColumnsData>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
-        intervals = 1000
+        maxDataPoints = 1000
     ): Observable<Record<string, TableDataRows>> {
+        const intervals = maxDataPoints < 0 
+            ? 0 
+            : Math.min(maxDataPoints, TOTAL_ROWS_LIMIT);
         const decimatedDataRequests = this.getDecimatedDataRequests(
             tableColumnsMap,
             query,
@@ -432,7 +435,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 const errorMessage = this.getErrorMessage(error, 'decimated table data');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
-                    payload: ['Error during fetching decimated table data', errorMessage],
+                    payload: ['Error fetching decimated table data', errorMessage],
                 });
                 return of({frame: {columns: [], data: []}});
             })
@@ -500,7 +503,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 const errorMessage = this.getErrorMessage(error, 'data table columns');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
-                    payload: ['Error during fetching columns for migration', errorMessage],
+                    payload: ['Error fetching columns for migration', errorMessage],
                 });
                 return of(currentColumns.map(column => {
                     if (this.templateSrv.containsTemplate(column)) {
@@ -772,7 +775,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 }
 
                 if (selectedColumnIdentifiers.length > COLUMN_SELECTION_LIMIT) {
-                    const errorMessage = `The number of selected columns (${selectedColumnIdentifiers.length.toLocaleString()}) exceeds the limit of ${COLUMN_SELECTION_LIMIT.toLocaleString()}. Please select fewer columns and try again.`;
+                    const errorMessage = `The number of columns you selected (${selectedColumnIdentifiers.length.toLocaleString()}) exceeds the column limit (${COLUMN_SELECTION_LIMIT.toLocaleString()}). Reduce your number of selected columns and try again.`;
                     this.appEvents?.publish?.({
                         type: AppEvents.alertError.name,
                         payload: ['Column selection error', errorMessage],
@@ -832,7 +835,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                 tableColumnsMap,
                                 processedQuery,
                                 options.range,
-                                options.maxDataPoints   
+                                options.maxDataPoints
                             ).pipe(
                                 map(decimatedDataMap => {
                                     const aggregatedTableDataRows = this.aggregateTableDataRows(
@@ -907,11 +910,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 switch (field.name) {
                     case dataTableIdFieldLabel:
                         const tableIdColumnValues = Array(rowCount).fill(tableId);
-                        field.values!.push(...tableIdColumnValues);
+                        field.values = field.values!.concat(tableIdColumnValues);
                         break;
                     case dataTableNameFieldLabel:
                         const tableNameColumnValues = Array(rowCount).fill(tableName);
-                        field.values!.push(...tableNameColumnValues);
+                        field.values = field.values!.concat(tableNameColumnValues);
                         break;
                     default:
                         const { 
@@ -927,14 +930,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             || columnIndex === undefined
                         ) {
                             const emptyValues = Array(rowCount).fill(null);
-                            field.values!.push(...emptyValues);
+                            field.values = field.values!.concat(emptyValues);
                             break;
                         }
 
                         const decimatedData = decimatedTableData.map(row => {
                             return this.transformValue(columnDataType, row[columnIndex]);
                         });
-                        field.values!.push(...decimatedData);
+                        field.values = field.values!.concat(decimatedData);
                         break;
                 }
             });

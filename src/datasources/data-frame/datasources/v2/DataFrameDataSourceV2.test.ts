@@ -467,7 +467,7 @@ describe('DataFrameDataSourceV2', () => {
                         await expect(
                             lastValueFrom(ds.runQuery(query, options))
                         ).rejects.toThrow(
-                            `The number of selected columns (${(COLUMN_SELECTION_LIMIT + 1).toLocaleString()}) exceeds the limit of ${COLUMN_SELECTION_LIMIT.toLocaleString()}. Please select fewer columns and try again.`
+                            `The number of columns you selected (${(COLUMN_SELECTION_LIMIT + 1).toLocaleString()}) exceeds the column limit (${COLUMN_SELECTION_LIMIT.toLocaleString()}). Reduce your number of selected columns and try again.`
                         );
                     });
 
@@ -2830,7 +2830,7 @@ describe('DataFrameDataSourceV2', () => {
                     expect(publishMock).toHaveBeenCalledWith({
                         type: 'alert-error',
                         payload: [
-                            'Error during fetching columns for migration',
+                            'Error fetching columns for migration',
                             'The query to fetch data table columns failed because the requested resource was not found. Please check the query parameters and try again.'
                         ],
                     });
@@ -4591,6 +4591,117 @@ describe('DataFrameDataSourceV2', () => {
                 }),
                 expect.any(Object)
             );
+        });
+
+        describe('maxDataPoints handling', () => {
+
+            it('should use 0 intervals when maxDataPoints is negative', async () => {
+                const mockTables = [{
+                    id: 'table1',
+                    columns: [
+                        { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                    ]
+                }];
+                queryTablesSpy.mockReturnValue(of(mockTables));
+                postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+                const query = {
+                    refId: 'A',
+                    type: DataFrameQueryType.Data,
+                    columns: ['value1-Numeric'],
+                    dataTableFilter: 'name = "test"',
+                    decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE'
+                } as DataFrameQueryV2;
+
+                const optionsWithNegativeMaxDataPoints = {
+                    ...options,
+                    maxDataPoints: -100
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+
+                await lastValueFrom(ds.runQuery(query, optionsWithNegativeMaxDataPoints));
+
+                expect(postSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('query-decimated-data'),
+                    expect.objectContaining({
+                        decimation: expect.objectContaining({
+                            intervals: 0
+                        })
+                    }),
+                    expect.any(Object)
+                );
+            });
+
+            it('should cap maxDataPoints at TOTAL_ROWS_LIMIT when it exceeds the limit', async () => {
+                const mockTables = [{
+                    id: 'table1',
+                    columns: [
+                        { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                    ]
+                }];
+                queryTablesSpy.mockReturnValue(of(mockTables));
+                postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+                const query = {
+                    refId: 'A',
+                    type: DataFrameQueryType.Data,
+                    columns: ['value1-Numeric'],
+                    dataTableFilter: 'name = "test"',
+                    decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE'
+                } as DataFrameQueryV2;
+
+                const optionsWithLargeMaxDataPoints = {
+                    ...options,
+                    maxDataPoints: 2000000 // Greater than TOTAL_ROWS_LIMIT
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+
+                await lastValueFrom(ds.runQuery(query, optionsWithLargeMaxDataPoints));
+
+                expect(postSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('query-decimated-data'),
+                    expect.objectContaining({
+                        decimation: expect.objectContaining({
+                            intervals: 1000000 // TOTAL_ROWS_LIMIT
+                        })
+                    }),
+                    expect.any(Object)
+                );
+            });
+
+            it('should use maxDataPoints when it is valid and within limit', async () => {
+                const mockTables = [{
+                    id: 'table1',
+                    columns: [
+                        { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                    ]
+                }];
+                queryTablesSpy.mockReturnValue(of(mockTables));
+                postSpy.mockReturnValue(of({ frame: { columns: [], data: [] } }));
+
+                const query = {
+                    refId: 'A',
+                    type: DataFrameQueryType.Data,
+                    columns: ['value1-Numeric'],
+                    dataTableFilter: 'name = "test"',
+                    decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE'
+                } as DataFrameQueryV2;
+
+                const optionsWithValidMaxDataPoints = {
+                    ...options,
+                    maxDataPoints: 5000
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+
+                await lastValueFrom(ds.runQuery(query, optionsWithValidMaxDataPoints));
+
+                expect(postSpy).toHaveBeenCalledWith(
+                    expect.stringContaining('query-decimated-data'),
+                    expect.objectContaining({
+                        decimation: expect.objectContaining({
+                            intervals: 5000
+                        })
+                    }),
+                    expect.any(Object)
+                );
+            });
         });
     });
 });
