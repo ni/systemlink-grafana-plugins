@@ -8,6 +8,7 @@ import userEvent from '@testing-library/user-event';
 import { ColumnsQueryBuilder } from './columns-query-builder/ColumnsQueryBuilder';
 import { of, throwError } from 'rxjs';
 import { ResultsQueryBuilder } from 'shared/components/ResultsQueryBuilder/ResultsQueryBuilder';
+import { VALUE_FIELD_WIDTH } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 
 jest.mock("datasources/data-frame/components/v2/query-builders/data-table-query-builder/DataTableQueryBuilder", () => ({
     DataTableQueryBuilder: (
@@ -73,6 +74,7 @@ const renderComponent = (
     queryByResultAndColumnProperties = true,
     throwErrorFromQueryTables = false,
     additionalInfoMessage = '',
+    infoMessageWidth = VALUE_FIELD_WIDTH,
 ) => {
     const onResultFilterChange = jest.fn();
     const onDataTableFilterChange = jest.fn();
@@ -112,6 +114,7 @@ const renderComponent = (
             dataTableFilter={dataTableFilter}
             columnFilter={columnFilter}
             additionalInfoMessage={additionalInfoMessage}
+            infoMessageWidth={infoMessageWidth}
             onResultFilterChange={onResultFilterChange}
             onDataTableFilterChange={onDataTableFilterChange}
             onColumnFilterChange={onColumnFilterChange}
@@ -189,32 +192,7 @@ describe('DataFrameQueryBuilderWrapper', () => {
 
         it('should set width to custom value when infoMessageWidth is provided', async () => {
             const customWidth = 80;
-            const onResultFilterChange = jest.fn();
-            const onDataTableFilterChange = jest.fn();
-            const onColumnFilterChange = jest.fn();
-            const datasource = {
-                loadWorkspaces: jest.fn().mockResolvedValue(new Map()),
-                loadPartNumbers: jest.fn().mockResolvedValue([]),
-                globalVariableOptions: jest.fn().mockReturnValue([]),
-                queryTables$: jest.fn().mockReturnValue(of([])),
-                transformResultQuery: jest.fn((filter: string) => filter),
-                instanceSettings: {
-                    jsonData: { featureToggles: { queryByResultAndColumnProperties: true } },
-                },
-            } as unknown as DataFrameDataSource;
-
-            render(
-                <DataFrameQueryBuilderWrapper
-                    datasource={datasource}
-                    resultFilter=""
-                    dataTableFilter=""
-                    columnFilter=""
-                    infoMessageWidth={customWidth}
-                    onResultFilterChange={onResultFilterChange}
-                    onDataTableFilterChange={onDataTableFilterChange}
-                    onColumnFilterChange={onColumnFilterChange}
-                />
-            );
+            renderComponent('', '', '', true, false, 'Some info message', customWidth)
 
             await waitFor(() => {
                 const infoAlert = screen.getByLabelText('Query optimization');

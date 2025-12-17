@@ -92,10 +92,10 @@ export const errorMessages = {
 export const infoMessages = {
     queryOptimization: {
         title: 'Query optimization',
-        message: `Queries may have a significant impact on resource utilization.`,
-        linkText: 'Click here to learn more about optimizing data frame queries.',
+        message: `Queries may significantly impact resource utilization.`,
+        linkText: 'Click this link to learn more about data frame query optimization.',
         linkUrl: 'https://www.ni.com/r/dfs-db-query-performance',
-        width: 88.75,
     },
-    datasourceHelp: 'Please refer to the datasource help documentation for more information.',
+    datasourceHelp: 'For more information, refer to the datasource help documentation.',
+    width: 88.75,
 }
