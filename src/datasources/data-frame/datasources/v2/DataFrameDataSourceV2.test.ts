@@ -1896,7 +1896,7 @@ describe('DataFrameDataSourceV2', () => {
                         expect(result.fields.length).toBe(10000);
                     });
 
-                    it('should add a suffix `(datatable)` to property field names that conflict with first-class property names', async () => {
+                    it('should add a suffix `(Data table)` to property field names that conflict with first-class property names', async () => {
                         const queryWithProperties = {
                             type: DataFrameQueryType.Properties,
                             dataTableProperties: [DataTableProperties.ColumnCount, DataTableProperties.Properties],
@@ -1910,7 +1910,7 @@ describe('DataFrameDataSourceV2', () => {
                                 name: 'Table 1',
                                 columns: 2,
                                 properties: {
-                                    Columns: 'Conflicting property',
+                                    Columns: 'Conflicting property value',
                                 }
                             }
                         ];
@@ -1918,8 +1918,8 @@ describe('DataFrameDataSourceV2', () => {
 
                         const result = await lastValueFrom(ds.runQuery(queryWithProperties, options));
 
-                        const nameField = findField(result.fields, 'Columns (datatable)');
-                        expect(nameField?.values).toEqual(['Conflicting property']);
+                        const nameField = findField(result.fields, 'Columns (Data table)');
+                        expect(nameField?.values).toEqual(['Conflicting property value']);
                     });
                 });
             });

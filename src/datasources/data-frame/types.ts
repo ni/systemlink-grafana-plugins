@@ -248,7 +248,7 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
   },
 };
 
-export const FirstClassPropertyLabels = new Set(
+export const DataTableFirstClassPropertyLabels = new Set(
   Object.values(DataTableProjectionLabelLookup).map(lookup => lookup.label)
 );
 
