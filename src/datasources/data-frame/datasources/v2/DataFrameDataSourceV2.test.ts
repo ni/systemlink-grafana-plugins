@@ -1,5 +1,5 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
-import { DataQueryRequest, DataSourceInstanceSettings, Field, FieldDTO } from '@grafana/data';
+import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { ColumnType, DataFrameDataQuery, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { COLUMN_SELECTION_LIMIT, TAKE_LIMIT } from 'datasources/data-frame/constants';
