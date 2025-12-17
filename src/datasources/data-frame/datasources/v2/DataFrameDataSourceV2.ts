@@ -338,8 +338,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
                 // Signal to stop if limit reached
                 if (acc.totalDataPoints >= TOTAL_ROWS_LIMIT) {
-                    // Mark as exceeded if there are more tables to process
-                    if (acc.processedTables < totalRequests) {
+                    // Mark as exceeded if there are more tables to process OR if a single table exceeded the limit
+                    if (acc.processedTables < totalRequests || dataPointsToAdd > TOTAL_ROWS_LIMIT) {
                         acc.isLimitExceeded = true;
                     }
                     stopSignal$.next();

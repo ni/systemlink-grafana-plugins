@@ -4604,6 +4604,45 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result.meta?.notices).toBeUndefined();
             });
+
+            it('should show warning when a single table has more than 1 million data points', async () => {
+                const mockTables = [{
+                    id: 'table1',
+                    columns: [
+                        { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                        { name: 'value2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                    ]
+                }];
+                queryTablesSpy.mockReturnValue(of(mockTables));
+
+                // Single table with 600,000 rows x 2 columns = 1,200,000 data points (exceeds 1,000,000)
+                const largeSingleTableData = Array.from({ length: 600000 }, (_, i) => [i, i * 2]);
+                postSpy.mockReturnValue(of({ 
+                    frame: { 
+                        columns: [{ name: 'value1' }, { name: 'value2' }], 
+                        data: largeSingleTableData 
+                    } 
+                }));
+
+                const query = {
+                    refId: 'A',
+                    type: DataFrameQueryType.Data,
+                    columns: ['value1-Numeric', 'value2-Numeric'],
+                    xColumn: null,
+                    dataTableFilter: 'name = "test"',
+                    decimationMethod: 'LOSSY',
+                    filterNulls: false,
+                    applyTimeFilters: false
+                } as DataFrameQueryV2;
+
+                const result = await lastValueFrom(ds.runQuery(query, options));
+
+                expect(result.meta?.notices).toBeDefined();
+                expect(result.meta?.notices?.length).toBeGreaterThan(0);
+                expect(result.meta?.notices?.[0].severity).toBe('warning');
+                expect(result.meta?.notices?.[0].text).toContain('1,000,000');
+                expect(result.meta?.notices?.[0].text).toContain('data points');
+            });
         });
 
         describe('maxDataPoints handling', () => {
