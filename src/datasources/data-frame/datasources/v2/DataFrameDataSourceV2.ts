@@ -291,7 +291,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
         maxDataPoints = 1000
-    ): Observable<Record<string, TableDataRows>> {
+    ): Observable<{ data: Record<string, TableDataRows>; isLimitExceeded: boolean }> {
         const intervals = maxDataPoints < 0 
             ? 0 
             : Math.min(maxDataPoints, TOTAL_ROWS_LIMIT);
@@ -331,6 +331,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 // Only accumulate data if within limit
                 if (acc.totalDataPoints <= TOTAL_ROWS_LIMIT) {
                     acc.data[result.tableId] = result.data;
+                } else if (!acc.isLimitExceeded) {
+                    // Mark as truncated when we first exceed the limit
+                    acc.isLimitExceeded = true;
                 }
 
                 // Signal to stop if limit reached
@@ -340,8 +343,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 }
 
                 return acc;
-            }, { totalDataPoints: 0, data: {} as Record<string, TableDataRows> }),
-            map(acc => acc.data)
+            }, { totalDataPoints: 0, data: {} as Record<string, TableDataRows>, isLimitExceeded: false }),
+            map(acc => ({ data: acc.data, isLimitExceeded: acc.isLimitExceeded }))
         );
     }
 
@@ -837,16 +840,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                 options.range,
                                 options.maxDataPoints
                             ).pipe(
-                                map(decimatedDataMap => {
+                                map(result => {
                                     const aggregatedTableDataRows = this.aggregateTableDataRows(
                                         tableColumnsMap,
                                         tableNamesMap,
-                                        decimatedDataMap,
+                                        result.data,
                                         processedQuery.xColumn,
                                     );
                                     const dataFrame = this.buildDataFrame(
                                         processedQuery.refId,
-                                        aggregatedTableDataRows
+                                        aggregatedTableDataRows,
+                                        result.isLimitExceeded
                                     );
                                     return dataFrame;
                                 })
@@ -1127,13 +1131,28 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private buildDataFrame(
         refId: string,
-        fields: FieldDTO[] = []
+        fields: FieldDTO[] = [],
+        showLimitExceededWarning = false
     ): DataFrameDTO {
-        return createDataFrame({
+        const frame = createDataFrame({
             refId,
             name: refId,
             fields,
         });
+        
+        if (showLimitExceededWarning) {
+            frame.meta = {
+                ...frame.meta,
+                notices: [
+                    {
+                        severity: 'warning',
+                        text: `Data limited to ${TOTAL_ROWS_LIMIT.toLocaleString()} data points. Some data is not displayed. Refine your filters or reduce the number of selected columns to see all data.`
+                    }
+                ]
+            };
+        }
+        
+        return frame;
     }
 
     private get dataTableComputedDataFields(): Map<string, ExpressionTransformFunction> {
