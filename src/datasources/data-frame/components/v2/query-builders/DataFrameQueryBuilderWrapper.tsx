@@ -25,6 +25,7 @@ interface DataFrameQueryBuilderWrapperProps {
     dataTableFilter?: string;
     columnFilter?: string;
     additionalInfoMessage?: string;
+    infoMessageWidth?: number;
     onResultFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
     onDataTableFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
     onColumnFilterChange?: (event?: Event | React.FormEvent<Element>) => void | Promise<void>;
@@ -36,6 +37,7 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
     dataTableFilter,
     columnFilter,
     additionalInfoMessage = '' ,
+    infoMessageWidth = VALUE_FIELD_WIDTH,
     onResultFilterChange,
     onDataTableFilterChange,
     onColumnFilterChange,
@@ -102,7 +104,7 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
             <div 
                 style={
                     { 
-                        width: getValuesInPixels(VALUE_FIELD_WIDTH),
+                        width: getValuesInPixels(infoMessageWidth),
                     }
                 }
             >

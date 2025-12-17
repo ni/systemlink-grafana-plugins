@@ -378,6 +378,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                         dataTableFilter={migratedQuery.dataTableFilter}
                         columnFilter={migratedQuery.columnFilter}
                         additionalInfoMessage={infoMessages.datasourceHelp}
+                        infoMessageWidth={infoMessages.queryOptimization.width}
                         onResultFilterChange={onResultFilterChange}
                         onDataTableFilterChange={onDataTableFilterChange}
                         onColumnFilterChange={onColumnFilterChange}

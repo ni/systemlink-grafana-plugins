@@ -95,6 +95,7 @@ export const infoMessages = {
         message: `Queries may have a significant impact on resource utilization.`,
         linkText: 'Click here to learn more about optimizing data frame queries.',
         linkUrl: 'https://www.ni.com/r/dfs-db-query-performance',
+        width: 88.75,
     },
     datasourceHelp: 'Please refer to the datasource help documentation for more information.',
 }
