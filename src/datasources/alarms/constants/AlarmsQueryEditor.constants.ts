@@ -54,7 +54,7 @@ export const queryTypeOptions: ComboboxOption[] = [
   {
     label: QueryType.AlarmTrend,
     value: QueryType.AlarmTrend,
-    description: 'Alarm trend allows you to visualize trend of active alarms over time.'
+    description: 'Alarm trend allows you to visualize the trend of active alarms over time.'
   },
 ];
 

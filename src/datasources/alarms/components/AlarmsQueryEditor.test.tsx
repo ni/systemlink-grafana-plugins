@@ -284,7 +284,7 @@ describe('AlarmsQueryEditor', () => {
       const queryTypeControl = screen.getAllByRole('combobox')[0];
       await userEvent.click(queryTypeControl);
 
-      expect(screen.getByText('Alarm trend allows you to visualize trend of active alarms over time.')).toBeInTheDocument();
+      expect(screen.getByText('Alarm trend allows you to visualize the trend of active alarms over time.')).toBeInTheDocument();
     });
 
     it('should render the AlarmTrendQueryEditor if queryType is AlarmTrend', () => {
