@@ -1,8 +1,8 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, DataTableFirstClassPropertyLabels } from "../../types";
+import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -1380,18 +1380,35 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const dataFrame$ = flattenedTablesWithColumns$.pipe(
             combineLatestWith(workspaces$),
             map(([flattenedTablesWithColumns, workspaces]) => {
-                const fields = propertiesToQuery.map(property => {
+                const fields: FieldDTO[] = [];
+                const includeDataTableCustomProperties = propertiesToQuery.includes(
+                    DataTableProperties.Properties
+                );
+                const propertiesToQueryWithoutDataTableCustomProperties = propertiesToQuery.filter(
+                    property => property !== DataTableProperties.Properties
+                );
+
+                propertiesToQueryWithoutDataTableCustomProperties.forEach(property => {
                     const values = this.getFieldValues(
                         flattenedTablesWithColumns,
                         property,
                         workspaces
                     );
-                    return {
+                    fields.push({
                         name: DataTableProjectionLabelLookup[property].label,
                         type: this.getFieldType(property),
                         values
-                    };
+                    });
                 });
+
+                /**
+                 * If @see DataTableProperties.Properties is selected,
+                 * flatten it into separate fields in the data frame output
+                 */
+                if (includeDataTableCustomProperties) {
+                    const propertyFields = this.createFieldsFromTableProperties(flattenedTablesWithColumns);
+                    fields.push(...propertyFields);
+                }
 
                 return {
                     refId: processedQuery.refId,
@@ -1402,6 +1419,39 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
 
         return dataFrame$;
+    }
+
+    private createFieldsFromTableProperties(tables: FlattenedTableProperties[]): FieldDTO[] {
+        const uniquePropertyKeys = this.getUniqueCustomPropertyKeys(tables);
+        const sortedPropertyKeys = Array.from(uniquePropertyKeys)
+            .sort((propertyKey1, propertyKey2) => propertyKey1.localeCompare(propertyKey2));
+
+        return sortedPropertyKeys.map(propertyKey => ({
+            name: this.getCustomPropertyFieldName(propertyKey),
+            type: FieldType.string,
+            values: tables.map(table => table.properties?.[propertyKey])
+        }));
+    }
+
+    private getCustomPropertyFieldName(propertyKey: string): string {
+        return DataTableFirstClassPropertyLabels.has(propertyKey)
+            ? `${propertyKey} (Data table)`
+            : propertyKey;
+    }
+
+    private getUniqueCustomPropertyKeys(tables: FlattenedTableProperties[]): Set<string> {
+        const propertyKeysSet = new Set<string>();
+        for (const table of tables) {
+            if (table.properties) {
+                for (const key of Object.keys(table.properties)) {
+                    propertyKeysSet.add(key);
+                    if (propertyKeysSet.size >= CUSTOM_PROPERTY_COLUMNS_LIMIT) {
+                        return propertyKeysSet;
+                    }
+                }
+            }
+        }
+        return propertyKeysSet;
     }
 
     private queryResultIds$(resultFilter: string): Observable<string[]> {

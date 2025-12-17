@@ -1,3 +1,10 @@
+## [4.110.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.109.1...v4.110.0) (2025-12-17)
+
+### Features
+
+* **dataframe:** Flatten data table custom properties into separate fields ([#630](https://github.com/ni/systemlink-grafana-plugins/issues/630)) ([0717906](https://github.com/ni/systemlink-grafana-plugins/commit/0717906c7de1bb783fab20d29ce0fd7f3b8b902a))
+* **dataframe:** update help document to reflect the custom properties limit ([#633](https://github.com/ni/systemlink-grafana-plugins/issues/633)) ([753d7ec](https://github.com/ni/systemlink-grafana-plugins/commit/753d7ecb8184aea6f5261940e6deef4207ae498b))
+
 ## [4.109.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.109.0...v4.109.1) (2025-12-16)
 
 ### Bug Fixes
