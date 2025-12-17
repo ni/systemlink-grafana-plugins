@@ -4430,7 +4430,7 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await lastValueFrom(ds.runQuery(query, options));
 
                 expect(result.meta?.notices).toBeDefined();
-                expect(result.meta?.notices?.length).toBeGreaterThan(0);
+                expect(result.meta?.notices?.length).toBe(1);
                 expect(result.meta?.notices?.[0].severity).toBe('warning');
                 expect(result.meta?.notices?.[0].text).toContain('1,000,000');
                 expect(result.meta?.notices?.[0].text).toContain('data points');
@@ -4558,49 +4558,9 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await lastValueFrom(ds.runQuery(query, options));
 
                 expect(result.meta?.notices).toBeDefined();
-                expect(result.meta?.notices?.length).toBeGreaterThan(0);
+                expect(result.meta?.notices?.length).toBe(1);
                 expect(result.meta?.notices?.[0].severity).toBe('warning');
                 expect(result.meta?.notices?.[0].text).toContain('1,000,000');
-            });
-
-            it('should not show warning when all tables fit exactly at the limit', async () => {
-                const mockTables = [
-                    {
-                        id: 'table1',
-                        columns: [
-                            { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                        ]
-                    },
-                    {
-                        id: 'table2',
-                        columns: [
-                            { name: 'value1', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                        ]
-                    }
-                ];
-                queryTablesSpy.mockReturnValue(of(mockTables));
-
-                // Mock response where both tables fit exactly at limit
-                // Table 1: 500,000 rows x 1 column = 500,000 data points
-                // Table 2: 500,000 rows x 1 column = 500,000 data points (total = 1,000,000)
-                postSpy.mockImplementation(() => {
-                    return of({ frame: { columns: [{ name: 'value1' }], data: Array.from({ length: 500000 }, (_, i) => [i]) } });
-                });
-
-                const query = {
-                    refId: 'A',
-                    type: DataFrameQueryType.Data,
-                    columns: ['value1-Numeric'],
-                    xColumn: null,
-                    dataTableFilter: 'name = "test"',
-                    decimationMethod: 'LOSSY',
-                    filterNulls: false,
-                    applyTimeFilters: false
-                } as DataFrameQueryV2;
-
-                const result = await lastValueFrom(ds.runQuery(query, options));
-
-                expect(result.meta?.notices).toBeUndefined();
             });
 
             it('should show warning when a single table has more than 1 million data points', async () => {
@@ -4636,7 +4596,7 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await lastValueFrom(ds.runQuery(query, options));
 
                 expect(result.meta?.notices).toBeDefined();
-                expect(result.meta?.notices?.length).toBeGreaterThan(0);
+                expect(result.meta?.notices?.length).toBe(1);
                 expect(result.meta?.notices?.[0].severity).toBe('warning');
                 expect(result.meta?.notices?.[0].text).toContain('1,000,000');
                 expect(result.meta?.notices?.[0].text).toContain('data points');

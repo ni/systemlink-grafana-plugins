@@ -1,4 +1,4 @@
-import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
+import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, QueryResultMetaNotice, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType } from "../../types";
@@ -339,7 +339,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 // Signal to stop if limit reached
                 if (acc.totalDataPoints >= TOTAL_ROWS_LIMIT) {
                     // Mark as exceeded if there are more tables to process OR if a single table exceeded the limit
-                    if (acc.processedTables < totalRequests || dataPointsToAdd > TOTAL_ROWS_LIMIT) {
+                    if (acc.processedTables < totalRequests || acc.totalDataPoints > TOTAL_ROWS_LIMIT) {
                         acc.isLimitExceeded = true;
                     }
                     stopSignal$.next();
@@ -857,10 +857,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                         result.data,
                                         processedQuery.xColumn,
                                     );
+                                    const notices = result.isLimitExceeded ? [
+                                        {
+                                            severity: 'warning' as const,
+                                            text: `Data limited to ${TOTAL_ROWS_LIMIT.toLocaleString()} data points. Some data is not displayed. Refine your filters or reduce the number of selected columns to see all data.`
+                                        }
+                                    ] : undefined;
                                     const dataFrame = this.buildDataFrame(
                                         processedQuery.refId,
                                         aggregatedTableDataRows,
-                                        result.isLimitExceeded
+                                        notices
                                     );
                                     return dataFrame;
                                 })
@@ -1142,7 +1148,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private buildDataFrame(
         refId: string,
         fields: FieldDTO[] = [],
-        showLimitExceededWarning = false
+        notices?: QueryResultMetaNotice[]
     ): DataFrameDTO {
         const frame = createDataFrame({
             refId,
@@ -1150,15 +1156,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             fields,
         });
         
-        if (showLimitExceededWarning) {
+        if (notices) {
             frame.meta = {
                 ...frame.meta,
-                notices: [
-                    {
-                        severity: 'warning',
-                        text: `Data limited to ${TOTAL_ROWS_LIMIT.toLocaleString()} data points. Some data is not displayed. Refine your filters or reduce the number of selected columns to see all data.`
-                    }
-                ]
+                notices
             };
         }
         
