@@ -629,6 +629,38 @@ describe('DataFrameDataSourceV2', () => {
                             'One or more selected columns are invalid. Please update your column selection or refine your filters.'
                         );
                     });
+
+                    it(`should publish alert when user selects more than ${COLUMN_SELECTION_LIMIT} columns`, async () => {
+                        const selectedColumns = Array.from(
+                            {
+                                length: COLUMN_SELECTION_LIMIT + 1
+                            },
+                            (_, i) => `col${i}-Numeric`
+                        );
+                        const publishMock = jest.fn();
+                        (ds as any).appEvents = { publish: publishMock };
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: selectedColumns,
+                            resultFilter: 'status = "Active"',
+                            dataTableFilter: 'name = "Test"',
+                            columnFilter: 'name = "colA"'
+                        } as DataFrameQueryV2;
+
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow();
+
+                        expect(publishMock).toHaveBeenCalledWith({
+                            type: 'alert-error',
+                            payload: [
+                                'Column selection error',
+                                `The number of columns you selected (${(COLUMN_SELECTION_LIMIT + 1).toLocaleString()}) exceeds the column limit (${COLUMN_SELECTION_LIMIT.toLocaleString()}). Reduce your number of selected columns and try again.`
+                            ]
+                        });
+                    });
                 });
 
                 describe('invalid columns', () => {
