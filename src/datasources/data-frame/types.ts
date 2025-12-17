@@ -248,6 +248,10 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
   },
 };
 
+export const DataTableFirstClassPropertyLabels = new Set(
+  Object.values(DataTableProjectionLabelLookup).map(lookup => lookup.label)
+);
+
 export type ValidDataFrameQuery = ValidDataFrameQueryV1 | ValidDataFrameQueryV2;
 
 export type ValidDataFrameVariableQuery = DataFrameVariableQueryV2 & Required<Omit<DataFrameVariableQueryV2, keyof DataQuery>>;
