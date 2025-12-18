@@ -3093,6 +3093,75 @@ describe('DataFrameDataSourceV2', () => {
                 });
             });
         });
+
+        describe("when the field name is 'value'", () => {
+            let queryTablesSpy$: jest.SpyInstance;
+
+            beforeEach(() => {
+                queryTablesSpy$ = jest.spyOn(ds, 'queryTables$');
+            });
+
+            it('should set the displayName in the field config when the query type is Data', async () => {
+                const queryWithValueField = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['value-Numeric', 'otherField-String']
+                } as DataFrameQueryV2;
+                const mockTables = [
+                    {
+                        id: 'table-1',
+                        name: 'Table 1',
+                        columns: [
+                            { name: 'value', dataType: 'INT32' },
+                            { name: 'otherField', dataType: 'STRING' }
+                        ]
+                    }
+                ];
+                const mockDecimatedData = {
+                    frame: {
+                        columns: ['value', 'otherField'],
+                        data: [
+                            ['1', 'One'],
+                            ['2', 'Two']
+                        ]
+                    }
+                };
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                let queryDecimatedDataSpy$ = jest.spyOn(ds, 'post$');
+                queryDecimatedDataSpy$.mockReturnValue(of(mockDecimatedData));
+
+                const result = await lastValueFrom(ds.runQuery(queryWithValueField, options));
+
+                const valueField = findField(result.fields, 'value');
+                expect(valueField?.config?.displayName).toBe('value');
+            });
+
+            it('should set the displayName in the field config when the query type is Properties', async () => {
+                const queryWithValueField = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableFilter: 'name = "Test Table"',
+                    dataTableProperties: [DataTableProperties.Properties],
+                    refId: 'A',
+                } as DataFrameQueryV2;
+                const mockTables = [
+                    {
+                        id: 'table-1',
+                        name: 'Table 1',
+                        properties: {
+                            value: 'Some property value',
+                            otherField: 'Another property value'
+                        }
+                    }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await lastValueFrom(ds.runQuery(queryWithValueField, options));
+
+                const valueField = findField(result.fields, 'value');
+                expect(valueField?.config?.displayName).toBe('value');
+            });
+        });
     });
 
     describe('metricFindQuery', () => {
