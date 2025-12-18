@@ -47,7 +47,7 @@ async function clickQueryTypeOption(option: QueryType) {
   const queryTypeControl = screen.getAllByRole('combobox')[0];
   await userEvent.click(queryTypeControl);
 
-  const queryTypeOptionControl = await screen.findByRole('option', { name: option });
+  const queryTypeOptionControl = await screen.findByText(option);
   await userEvent.click(queryTypeOptionControl);
 }
 
@@ -168,6 +168,16 @@ describe('AlarmsQueryEditor', () => {
   });
 
   describe('ListAlarmsQueryEditor', () => {
+    it('should display appropriate description for List Alarms query type', async () => {
+      const query = buildQuery();
+
+      renderElement(query);
+      const queryTypeControl = screen.getAllByRole('combobox')[0];
+      await userEvent.click(queryTypeControl);
+
+      expect(screen.getByText('List alarms allows you to search for alarms based on various filters.')).toBeInTheDocument();
+    });
+
     it('should render list alarms query type and its editor in the UI', () => {
       const query = buildQuery({ queryType: QueryType.ListAlarms });
   
@@ -267,6 +277,16 @@ describe('AlarmsQueryEditor', () => {
   });
 
   describe('AlarmTrendQueryEditor', () => {
+    it('should display appropriate description for Alarm trend query type', async () => {
+      const query = buildQuery();
+
+      renderElement(query);
+      const queryTypeControl = screen.getAllByRole('combobox')[0];
+      await userEvent.click(queryTypeControl);
+
+      expect(screen.getByText('Alarm trend allows you to visualize the trend of active alarms over time.')).toBeInTheDocument();
+    });
+
     it('should render the AlarmTrendQueryEditor if queryType is AlarmTrend', () => {
       const query = buildQuery({ queryType: QueryType.AlarmTrend });
 

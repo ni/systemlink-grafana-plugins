@@ -1,4 +1,4 @@
-import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, ScopedVars, TimeRange } from "@grafana/data";
+import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, QueryResultMetaNotice, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, DataTableFirstClassPropertyLabels } from "../../types";
@@ -291,7 +291,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
         maxDataPoints = 1000
-    ): Observable<Record<string, TableDataRows>> {
+    ): Observable<{ data: Record<string, TableDataRows>; isLimitExceeded: boolean }> {
         const intervals = maxDataPoints < 0 
             ? 0 
             : Math.min(maxDataPoints, TOTAL_ROWS_LIMIT);
@@ -301,6 +301,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             timeRange,
             intervals
         );
+        const totalRequests = decimatedDataRequests.length;
         const batches = _.chunk(decimatedDataRequests, REQUESTS_PER_SECOND);
         const stopSignal$ = new Subject<void>();
 
@@ -326,6 +327,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 const rowsInRetrievedDataFrame = retrievedDataFrame.data.length;
                 const columnsInRetrievedDataFrame = retrievedDataFrame.columns.length;
                 const dataPointsToAdd = rowsInRetrievedDataFrame * columnsInRetrievedDataFrame;
+                
+                acc.processedTables++;
                 acc.totalDataPoints += dataPointsToAdd;
 
                 // Only accumulate data if within limit
@@ -335,13 +338,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
                 // Signal to stop if limit reached
                 if (acc.totalDataPoints >= TOTAL_ROWS_LIMIT) {
+                    // Mark as exceeded if there are more tables to process OR if a single table exceeded the limit
+                    if (acc.processedTables < totalRequests || acc.totalDataPoints > TOTAL_ROWS_LIMIT) {
+                        acc.isLimitExceeded = true;
+                    }
                     stopSignal$.next();
                     stopSignal$.complete();
                 }
 
                 return acc;
-            }, { totalDataPoints: 0, data: {} as Record<string, TableDataRows> }),
-            map(acc => acc.data)
+            }, 
+            { 
+                totalDataPoints: 0, 
+                data: {} as Record<string, TableDataRows>, 
+                processedTables: 0, 
+                isLimitExceeded: false 
+            }),
+            map(acc => ({ data: acc.data, isLimitExceeded: acc.isLimitExceeded }))
         );
     }
 
@@ -837,16 +850,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                 options.range,
                                 options.maxDataPoints
                             ).pipe(
-                                map(decimatedDataMap => {
+                                map(result => {
                                     const aggregatedTableDataRows = this.aggregateTableDataRows(
                                         tableColumnsMap,
                                         tableNamesMap,
-                                        decimatedDataMap,
+                                        result.data,
                                         processedQuery.xColumn,
                                     );
+                                    const notices = result.isLimitExceeded ? [
+                                        {
+                                            severity: 'warning' as const,
+                                            text: `Data limited to ${TOTAL_ROWS_LIMIT.toLocaleString()} data points. Some data is not displayed. Refine your filters or reduce the number of selected columns to see all data.`
+                                        }
+                                    ] : undefined;
                                     const dataFrame = this.buildDataFrame(
                                         processedQuery.refId,
-                                        aggregatedTableDataRows
+                                        aggregatedTableDataRows,
+                                        notices
                                     );
                                     return dataFrame;
                                 })
@@ -1127,13 +1147,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private buildDataFrame(
         refId: string,
-        fields: FieldDTO[] = []
+        fields: FieldDTO[] = [],
+        notices?: QueryResultMetaNotice[]
     ): DataFrameDTO {
-        return createDataFrame({
+        const frame = createDataFrame({
             refId,
             name: refId,
             fields,
         });
+        
+        if (notices) {
+            frame.meta = {
+                ...frame.meta,
+                notices
+            };
+        }
+        
+        return frame;
     }
 
     private get dataTableComputedDataFields(): Map<string, ExpressionTransformFunction> {

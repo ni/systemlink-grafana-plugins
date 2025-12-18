@@ -1,3 +1,10 @@
+## [4.111.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.110.0...v4.111.0) (2025-12-17)
+
+### Features
+
+* **alarms:** Add description to query type options ([#629](https://github.com/ni/systemlink-grafana-plugins/issues/629)) ([154fc4a](https://github.com/ni/systemlink-grafana-plugins/commit/154fc4ac0e44fb3e8a7527f02816884d419c3334))
+* **dataframes:** Show panel warning when 1M limit is hit ([#632](https://github.com/ni/systemlink-grafana-plugins/issues/632)) ([7cbe967](https://github.com/ni/systemlink-grafana-plugins/commit/7cbe967201794c82daeeed4f050b009cc52c653a))
+
 ## [4.110.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.109.1...v4.110.0) (2025-12-17)
 
 ### Features
