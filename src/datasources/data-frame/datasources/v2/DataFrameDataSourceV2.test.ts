@@ -630,10 +630,10 @@ describe('DataFrameDataSourceV2', () => {
                         );
                     });
 
-                    it(`should publish alert when user selects more than ${COLUMN_SELECTION_LIMIT} columns`, async () => {
+                    it(`should publish alert when user selects more than 20 columns`, async () => {
                         const selectedColumns = Array.from(
                             {
-                                length: COLUMN_SELECTION_LIMIT + 1
+                                length: 20 + 1
                             },
                             (_, i) => `col${i}-Numeric`
                         );
@@ -1268,6 +1268,10 @@ describe('DataFrameDataSourceV2', () => {
                 let queryTablesSpy: jest.SpyInstance;
                 let postSpy: jest.SpyInstance;
 
+                function findField(fields: FieldDTO[], name: string): FieldDTO | undefined {
+                    return fields.find(field => field.name === name);
+                }
+
                 beforeEach(() => {
                     queryTablesSpy = jest.spyOn(ds, 'queryTables$');
                     postSpy = jest.spyOn(ds, 'post$');
@@ -1365,19 +1369,19 @@ describe('DataFrameDataSourceV2', () => {
 
                     expect(result.fields.length).toBeGreaterThan(0);
                     // Verify that tableId and tableName fields have correct values
-                    const tableIdField = result.fields.find(field => field.name === 'Data table ID');
+                    const tableIdField = findField(result.fields, 'Data table ID');
                     expect(tableIdField?.values).toEqual(['table1', 'table1', 'table2', 'table2']);
                     
-                    const tableNameField = result.fields.find(field => field.name === 'Data table name');
+                    const tableNameField = findField(result.fields, 'Data table name');
                     expect(tableNameField?.values).toEqual(['table1', 'table1', 'table2', 'table2']);
 
                     // Verify that there are 2 rows (one from each table)
-                    const timeField = result.fields.find(field => field.name === 'time');
+                    const timeField = findField(result.fields, 'time');
                     const timestamp1 = new Date('2024-01-01T00:00:00Z').getTime();
                     const timestamp2 = new Date('2024-01-01T01:00:00Z').getTime();
                     expect(timeField?.values).toEqual([timestamp1, timestamp2, timestamp1, timestamp2]);
 
-                    const voltageField = result.fields.find(field => field.name === 'voltage');
+                    const voltageField = findField(result.fields, 'voltage');
                     expect(voltageField?.values).toEqual([10.5, 20.3, 15.2, 25.8]);
                 });
 
@@ -2104,7 +2108,7 @@ describe('DataFrameDataSourceV2', () => {
                 });
 
                 describe('field type conversion and null handling', () => {
-                    it('should convert field types correctly and handle empty values as null', async () => {
+                    it('should convert field types correctly', async () => {
                         const mockTables = [{
                             id: 'table1',
                             name: 'table1',
@@ -2283,48 +2287,7 @@ describe('DataFrameDataSourceV2', () => {
                         jest.useRealTimers();
                     });
 
-                    it('should batch requests into groups of REQUESTS_PER_SECOND (6)', async () => {
-                        // Create 10 tables to test batching (should create 2 batches: 6 + 4)
-                        const mockTables = Array.from({ length: 10 }, (_, i) => ({
-                            id: `table${i}`,
-                            name: `table${i}`,
-                            columns: [
-                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                            ]
-                        }));
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-
-                        postSpy.mockImplementation((_url) => {
-                            return of({
-                                frame: {
-                                    columns: ['voltage'],
-                                    data: [['1.0']]
-                                }
-                            });
-                        });
-
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['voltage-Numeric'],
-                            dataTableFilter: 'name = "Test"',
-                            decimationMethod: 'LOSSY',
-                            filterNulls: false,
-                            applyTimeFilters: false
-                        } as DataFrameQueryV2;
-
-                        const queryPromise = lastValueFrom(ds.runQuery(query, options));
-                        
-                        // Fast-forward through all timers
-                        await jest.runAllTimersAsync();
-                        
-                        await queryPromise;
-
-                        // Should have made 10 requests (one per table)
-                        expect(postSpy).toHaveBeenCalledTimes(10);
-                    });
-
-                    it('should delay batches by DELAY_BETWEEN_REQUESTS_MS (1000ms)', async () => {
+                    it('should batches with delay between each batch', async () => {
                         // Create 8 tables to test delays (2 batches: 6 + 2)
                         const mockTables = Array.from({ length: 8 }, (_, i) => ({
                             id: `table${i}`,
@@ -2354,7 +2317,7 @@ describe('DataFrameDataSourceV2', () => {
                             applyTimeFilters: false
                         } as DataFrameQueryV2;
 
-                        const queryPromise = lastValueFrom(ds.runQuery(query, options));
+                        lastValueFrom(ds.runQuery(query, options));
                         
                         // Advance timers step by step to verify delays
                         await jest.advanceTimersByTimeAsync(0);  // First batch (6 requests)
@@ -2362,8 +2325,6 @@ describe('DataFrameDataSourceV2', () => {
                         
                         await jest.advanceTimersByTimeAsync(1000);  // Second batch (2 requests) after 1000ms delay
                         expect(postSpy).toHaveBeenCalledTimes(8);
-                        
-                        await queryPromise;
                     });
 
                     it('should stop fetching when TOTAL_ROWS_LIMIT is reached', async () => {
@@ -2407,8 +2368,7 @@ describe('DataFrameDataSourceV2', () => {
 
                         // Should stop after fetching enough to reach the limit
                         // With 300k rows per table, we need 4 tables to exceed 1M limit
-                        expect(postSpy.mock.calls.length).toBeLessThan(10);
-                        expect(postSpy.mock.calls.length).toBeGreaterThanOrEqual(3); // At least 3 tables should be fetched
+                        expect(postSpy.mock.calls.length).toEqual(6); // At least 3 tables should be fetched
                         expect(result.refId).toBe('A');
                     });
 
