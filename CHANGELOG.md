@@ -1,3 +1,9 @@
+## [4.111.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.111.0...v4.111.1) (2025-12-18)
+
+### Bug Fixes
+
+* **dataframe:** Update custom property columns limit ([#635](https://github.com/ni/systemlink-grafana-plugins/issues/635)) ([2593d67](https://github.com/ni/systemlink-grafana-plugins/commit/2593d67844fd116424a1275e45a423ba978b5283))
+
 ## [4.111.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.110.0...v4.111.0) (2025-12-17)
 
 ### Features
