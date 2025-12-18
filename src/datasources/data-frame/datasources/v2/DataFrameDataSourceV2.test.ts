@@ -3056,7 +3056,7 @@ describe('DataFrameDataSourceV2', () => {
                         expect(authorField?.values).toEqual(['John', 'John']);
                     });
 
-                    it('should return only 10000 fields when more than 10000 unique property keys exist', async () => {
+                    it('should return only 100 fields when more than 100 unique property keys exist', async () => {
                         const queryWithProperties = {
                             type: DataFrameQueryType.Properties,
                             dataTableProperties: [DataTableProperties.Properties],
@@ -3069,7 +3069,7 @@ describe('DataFrameDataSourceV2', () => {
                                 id: 'table-1',
                                 name: 'Table 1',
                                 properties: Object.fromEntries(
-                                    Array.from({ length: 10001 }, (_, i) => [`prop${i}`, `value${i}`])
+                                    Array.from({ length: 101 }, (_, i) => [`prop${i}`, `value${i}`])
                                 )
                             }
                         ];
@@ -3077,7 +3077,7 @@ describe('DataFrameDataSourceV2', () => {
 
                         const result = await lastValueFrom(ds.runQuery(queryWithProperties, options));
 
-                        expect(result.fields.length).toBe(10000);
+                        expect(result.fields.length).toBe(100);
                     });
 
                     it('should add a suffix `(Data table)` to property field names that conflict with first-class property names', async () => {
