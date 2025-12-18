@@ -34,22 +34,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const processedQuery = this.processQuery(query);
         const transformedQuery = this.transformQuery(processedQuery, options.scopedVars);
 
+        let dataFrame: Observable<DataFrameDTO> = of(this.buildDataFrame(processedQuery.refId));
+
         if (this.shouldQueryForData(transformedQuery)) {
-            return this.getFieldsForDataQuery$(
+            dataFrame = this.getFieldsForDataQuery$(
                 transformedQuery,
                 options
             );
+        } else if (this.shouldQueryForProperties(transformedQuery)) {
+            dataFrame = this.getFieldsForPropertiesQuery$(transformedQuery);
         }
 
-        if (this.shouldQueryForProperties(transformedQuery)) {
-            return this.getFieldsForPropertiesQuery$(transformedQuery);
-        }
-
-        return of({
-            refId: transformedQuery.refId,
-            name: transformedQuery.refId,
-            fields: []
-        });
+        return this.transformDataFrame(dataFrame);
     }
 
     async metricFindQuery(
@@ -899,7 +895,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 name: column.displayName,
                 type: this.getFieldTypeForDataType(column.dataType),
                 values: [],
-                ...(column.displayName.toLowerCase() === 'value' && { config: { displayName: column.displayName } }),
             })),
             {
                 name: dataTableIdFieldLabel,
@@ -1540,5 +1535,28 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         return combinedFilters.join('&&');
+    }
+
+    private transformDataFrame(dataFrame$: Observable<DataFrameDTO>): Observable<DataFrameDTO> {
+        return dataFrame$.pipe(
+            map(dataFrame => {
+                const transformedFields = dataFrame.fields.map(field => {
+                    if (field.name.toLowerCase() === 'value') {
+                        return {
+                            ...field,
+                            config: {
+                                ...field.config,
+                                displayName: field.name,
+                            },
+                        };
+                    }
+                    return field;
+                });
+                return {
+                    ...dataFrame,
+                    fields: transformedFields,
+                };
+            })
+        );
     }
 }
