@@ -34,20 +34,6 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
 
   const traceColors = useTraceColors(theme);
 
-  const debouncedSyncXAxis = useMemo(
-    () =>
-      _.debounce((xAxisMin: number, xAxisMax: number, xAxisField: string) => {
-        locationService.partial(
-          {
-            [`nisl-${xAxisField}-min`]: Math.floor(xAxisMin),
-            [`nisl-${xAxisField}-max`]: Math.ceil(xAxisMax),
-          },
-          true,
-        );
-      }, 300),
-    []
-  );
-
   const plotData: Array<Partial<PlotData>> = [];
   const axisLabels: AxisLabels = {
     xAxis: '',
@@ -169,16 +155,29 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     } else {
       props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
       
-      const location = locationService.getLocation();
-      const searchParams = new URLSearchParams(location.search);
-      const syncTargets = searchParams.get('nisl-syncXAxisRangeTargets');
-      const panelIds = syncTargets ? syncTargets.split(',') : [];
+      const queryParams = locationService.getSearchObject();
+      const syncTargets = queryParams['nisl-syncXAxisRangeTargets'];
+      const panelIds = typeof syncTargets === 'string' ? syncTargets.split(',') : [];
       
       if (panelIds.includes(String(props.id)) && options.xAxis.field) {
-        debouncedSyncXAxis(xAxisMin, xAxisMax, options.xAxis.field);
+        updateXAxisParams(xAxisMin, xAxisMax, options.xAxis.field);
       }
     }
   };
+
+  const updateXAxisParams = useMemo(
+    () =>
+      _.debounce((xAxisMin: number, xAxisMax: number, xAxisField: string) => {
+        locationService.partial(
+          {
+            [`nisl-${xAxisField}-min`]: Math.floor(xAxisMin),
+            [`nisl-${xAxisField}-max`]: Math.ceil(xAxisMax),
+          },
+          true,
+        );
+      }, 300),
+    []
+  );
 
   const handleImageDownload = (gd: PlotlyHTMLElement) =>
     toImage(gd, { format: 'png', width, height }).then((data) => saveAs(data, props.title));
