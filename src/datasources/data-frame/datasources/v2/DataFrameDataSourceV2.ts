@@ -899,6 +899,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 name: column.displayName,
                 type: this.getFieldTypeForDataType(column.dataType),
                 values: [],
+                ...(column.displayName.toLowerCase() === 'value' && { config: { displayName: column.displayName } }),
             })),
             {
                 name: dataTableIdFieldLabel,
