@@ -33,6 +33,10 @@ describe('DataFrameDataSourceV2', () => {
     let templateSrv: jest.Mocked<TemplateSrv>;
     let ds: DataFrameDataSourceV2;
 
+    function findField(fields: FieldDTO[], name: string): FieldDTO | undefined {
+        return fields.find(field => field.name === name);
+    }
+
     beforeEach(() => {
         jest.clearAllMocks();
         const actualQueryBuilderUtils = jest.requireActual('core/query-builder.utils');
@@ -1267,10 +1271,6 @@ describe('DataFrameDataSourceV2', () => {
             describe('fetch decimated data', () => {
                 let queryTablesSpy: jest.SpyInstance;
                 let postSpy: jest.SpyInstance;
-
-                function findField(fields: FieldDTO[], name: string): FieldDTO | undefined {
-                    return fields.find(field => field.name === name);
-                }
 
                 beforeEach(() => {
                     queryTablesSpy = jest.spyOn(ds, 'queryTables$');
@@ -2902,9 +2902,6 @@ describe('DataFrameDataSourceV2', () => {
                 });
 
                 describe('when DataTableProperties.Properties is selected', () => {
-                    function findField(fields: FieldDTO[], name: string): FieldDTO | undefined {
-                        return fields.find(field => field.name === name);
-                    }
 
                     it('should return properties flattened into fields', async () => {
                         const queryWithProperties = {
