@@ -8,7 +8,7 @@ import {
   GrafanaTheme2,
   hasLinks,
   dateTimeParse,
-  FieldColorModeId,
+  FieldColorModeId
 } from '@grafana/data';
 import { AxisLabels, PanelOptions } from './types';
 import { useTheme2, ContextMenu, MenuItemsGroup, linkModelToContextMenuItems } from '@grafana/ui';

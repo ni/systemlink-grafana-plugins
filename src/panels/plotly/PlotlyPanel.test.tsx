@@ -38,7 +38,7 @@ describe('PlotlyPanel - X-Axis Sync', () => {
 
   const createMockProps = (
     options: Partial<PanelOptions> = {},
-    panelId: number = 1
+    panelId = 1
   ): PanelProps<PanelOptions> => ({
     options: {
       xAxis: { field: 'temperature', min: undefined, max: undefined },
