@@ -1553,8 +1553,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     return field;
                 });
                 return {
-                    ...dataFrame,
+                    refId: dataFrame.refId,
+                    name: dataFrame.name,
                     fields: transformedFields,
+                    meta: dataFrame.meta,
                 };
             })
         );
