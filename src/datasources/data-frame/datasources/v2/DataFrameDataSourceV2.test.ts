@@ -1600,7 +1600,7 @@ describe('DataFrameDataSourceV2', () => {
                         );
                     });
 
-                    it('should use xColumn when xColumn is not null and index column is timestamp', async () => {
+                    it('should use xColumn for filter when timestamp xColumn is selected', async () => {
                         const mockTables = [{
                             id: 'table1',
                             name: 'table1',
@@ -1661,7 +1661,7 @@ describe('DataFrameDataSourceV2', () => {
                         );
                     });
 
-                    it('should not apply time filters when xColumn is null and index column is not timestamp', async () => {
+                    it('should not apply time filters when xColumn is not selected and index column is not timestamp', async () => {
                         const mockTables = [{
                             id: 'table1',
                             name: 'table1',
@@ -1706,7 +1706,7 @@ describe('DataFrameDataSourceV2', () => {
                         expect(filters).toEqual([]);
                     });
 
-                    it('should use xColumn when xColumn is not null and index column is not timestamp', async () => {
+                    it('should not apply time filters when xColumn is selected and selected xColumn is not timestamp', async () => {
                         const mockTables = [{
                             id: 'table1',
                             name: 'table1',
@@ -1730,7 +1730,7 @@ describe('DataFrameDataSourceV2', () => {
                             refId: 'A',
                             type: DataFrameQueryType.Data,
                             columns: ['customTime-Timestamp', 'voltage-Numeric'],
-                            xColumn: 'customTime-Timestamp',
+                            xColumn: 'voltage-Numeric',
                             dataTableFilter: 'name = "Test"',
                             decimationMethod: 'LOSSY',
                             filterNulls: false,
@@ -1747,24 +1747,9 @@ describe('DataFrameDataSourceV2', () => {
 
                         await lastValueFrom(ds.runQuery(query, optionsWithRange));
 
-                        expect(postSpy).toHaveBeenCalledWith(
-                            expect.any(String),
-                            expect.objectContaining({
-                                filters: expect.arrayContaining([
-                                    expect.objectContaining({
-                                        column: 'customTime',
-                                        operation: 'GREATER_THAN_EQUALS',
-                                        value: '2024-01-01T00:00:00Z'
-                                    }),
-                                    expect.objectContaining({
-                                        column: 'customTime',
-                                        operation: 'LESS_THAN_EQUALS',
-                                        value: '2024-01-02T00:00:00Z'
-                                    })
-                                ])
-                            }),
-                            expect.any(Object)
-                        );
+                        // Should not include time filters
+                        const filters = postSpy.mock.calls[0][1].filters;
+                        expect(filters).toEqual([]);
                     });
                 });
 
