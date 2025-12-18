@@ -893,6 +893,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         const dataTableNameFieldLabel = 'Data table name';
         const dataTableIdFieldLabel = 'Data table ID';
+        const hasMultipleTables = Object.keys(decimatedDataMap).length > 1;
 
         const fields: FieldDTO[] = [
             ...uniqueOutputColumns.map(column => ({
@@ -900,16 +901,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 type: this.getFieldTypeForDataType(column.dataType),
                 values: [],
             })),
-            {
-                name: dataTableIdFieldLabel,
-                type: FieldType.string,
-                values: [],
-            },
-            {
-                name: dataTableNameFieldLabel,
-                type: FieldType.string,
-                values: [],
-            },
+            ...(hasMultipleTables ? [
+                {
+                    name: dataTableIdFieldLabel,
+                    type: FieldType.string,
+                    values: [],
+                },
+                {
+                    name: dataTableNameFieldLabel,
+                    type: FieldType.string,
+                    values: [],
+                },
+            ] : []),
         ];
 
         Object.entries(decimatedDataMap).forEach(([tableId, tableDataRows]) => {
@@ -929,12 +932,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             fields.forEach(field => {
                 switch (field.name) {
                     case dataTableIdFieldLabel:
-                        const tableIdColumnValues = Array(rowCount).fill(tableId);
-                        field.values = field.values!.concat(tableIdColumnValues);
+                        if (hasMultipleTables) {
+                            const tableIdColumnValues = Array(rowCount).fill(tableId);
+                            field.values = field.values!.concat(tableIdColumnValues);
+                        }
                         break;
                     case dataTableNameFieldLabel:
-                        const tableNameColumnValues = Array(rowCount).fill(tableName);
-                        field.values = field.values!.concat(tableNameColumnValues);
+                        if (hasMultipleTables) {
+                            const tableNameColumnValues = Array(rowCount).fill(tableName);
+                            field.values = field.values!.concat(tableNameColumnValues);
+                        }
                         break;
                     default:
                         const { 

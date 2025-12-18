@@ -1385,6 +1385,147 @@ describe('DataFrameDataSourceV2', () => {
                     expect(voltageField?.values).toEqual([10.5, 20.3, 15.2, 25.8]);
                 });
 
+                it('should not include Data table ID and Data table name fields when querying a single table', async () => {
+                    const mockTables = [
+                        {
+                            id: 'table1',
+                            name: 'table1',
+                            columns: [
+                                { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }
+                    ];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+                    
+                    const mockDecimatedData = {
+                        frame: {
+                            columns: ['time', 'voltage'],
+                            data: [
+                                ['2024-01-01T00:00:00Z', '10.5'],
+                                ['2024-01-01T01:00:00Z', '20.3']
+                            ]
+                        }
+                    };
+
+                    postSpy.mockReturnValue(of(mockDecimatedData));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['time-Timestamp', 'voltage-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'LOSSY',
+                        xColumn: 'time-Timestamp',
+                        filterNulls: false,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
+
+                    const result = await lastValueFrom(ds.runQuery(query, options));
+
+                    expect(result.refId).toBe('A');
+                    expect(result.fields.length).toBe(2); // Only time and voltage fields
+                    
+                    // Verify that Data table ID and Data table name fields are NOT present
+                    const tableIdField = findField(result.fields, 'Data table ID');
+                    expect(tableIdField).toBeUndefined();
+                    
+                    const tableNameField = findField(result.fields, 'Data table name');
+                    expect(tableNameField).toBeUndefined();
+
+                    // Verify that the data fields are present and correct
+                    const timeField = findField(result.fields, 'time');
+                    const timestamp1 = new Date('2024-01-01T00:00:00Z').getTime();
+                    const timestamp2 = new Date('2024-01-01T01:00:00Z').getTime();
+                    expect(timeField?.values).toEqual([timestamp1, timestamp2]);
+
+                    const voltageField = findField(result.fields, 'voltage');
+                    expect(voltageField?.values).toEqual([10.5, 20.3]);
+                });
+
+                it('should include Data table ID and Data table name fields when querying multiple tables', async () => {
+                    const mockTables = [
+                        {
+                            id: 'table1',
+                            name: 'Table One',
+                            columns: [
+                                { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        },
+                        {
+                            id: 'table2',
+                            name: 'Table Two',
+                            columns: [
+                                { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }
+                    ];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+                    
+                    const mockDecimatedData1 = {
+                        frame: {
+                            columns: ['time', 'voltage'],
+                            data: [
+                                ['2024-01-01T00:00:00Z', '10.5']
+                            ]
+                        }
+                    };
+                    const mockDecimatedData2 = {
+                        frame: {
+                            columns: ['time', 'voltage'],
+                            data: [
+                                ['2024-01-01T00:00:00Z', '15.2']
+                            ]
+                        }
+                    };
+
+                    postSpy.mockImplementation((url: string) => {
+                        if (url.includes('table1/query-decimated-data')) {
+                            return of(mockDecimatedData1);
+                        }
+                        if (url.includes('table2/query-decimated-data')) {
+                            return of(mockDecimatedData2);
+                        }
+                        return of({});
+                    });
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['time-Timestamp', 'voltage-Numeric'],
+                        dataTableFilter: 'name CONTAINS "Table"',
+                        decimationMethod: 'LOSSY',
+                        xColumn: 'time-Timestamp',
+                        filterNulls: false,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
+
+                    const result = await lastValueFrom(ds.runQuery(query, options));
+
+                    expect(result.refId).toBe('A');
+                    expect(result.fields.length).toBe(4); // time, voltage, Data table ID, Data table name
+                    
+                    // Verify that Data table ID field is present with correct values
+                    const tableIdField = findField(result.fields, 'Data table ID');
+                    expect(tableIdField).toBeDefined();
+                    expect(tableIdField?.values).toEqual(['table1', 'table2']);
+                    
+                    // Verify that Data table name field is present with correct values
+                    const tableNameField = findField(result.fields, 'Data table name');
+                    expect(tableNameField).toBeDefined();
+                    expect(tableNameField?.values).toEqual(['Table One', 'Table Two']);
+
+                    // Verify that the data fields are present and correct
+                    const timeField = findField(result.fields, 'time');
+                    const timestamp = new Date('2024-01-01T00:00:00Z').getTime();
+                    expect(timeField?.values).toEqual([timestamp, timestamp]);
+
+                    const voltageField = findField(result.fields, 'voltage');
+                    expect(voltageField?.values).toEqual([10.5, 15.2]);
+                });
+
                 it('should apply null filters when filterNulls is true', async () => {
                     const mockTables = [{
                         id: 'table1',
