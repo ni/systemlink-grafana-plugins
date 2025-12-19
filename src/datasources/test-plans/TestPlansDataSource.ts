@@ -183,9 +183,15 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   public prepareQuery(query: TestPlansQuery): TestPlansQuery {
-    // Ensure correct casing for DUTId in older dashboards/variables
+    // Ensure correct casing for DUTId field name in older dashboards/variables
     if (query.queryBy) {
-      query.queryBy = query.queryBy.replace(/\bDUTId\b/g, 'dutId');
+      // Match DUTId only when it appears as a field name
+      query.queryBy = query.queryBy
+        .replace(/(?:^|[\s()])DUTId(\s*(?:==|!=|<=|>=|<|>|=))/g,
+          (match, operator) => {
+            const prefix = match.substring(0, match.indexOf('DUTId'));
+            return `${prefix}dutId${operator}`;
+          });
     }
     return { ...this.defaultQuery, ...query };
   }

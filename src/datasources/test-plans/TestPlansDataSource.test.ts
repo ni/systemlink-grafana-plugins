@@ -1158,6 +1158,60 @@ describe('prepareQuery', () => {
     expect(result.queryBy).toBe('dutId = "dutId1" || dutId = "dutId2"');
   });
 
+  test('should only replace DUTId field name, not values in quotes', () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: 'DUTId = "DUTId-12345" && DUTId != "DUTId-67890"',
+      properties: [Properties.ID],
+      recordCount: 1000,
+    };
+    
+    const result = datastore.prepareQuery(mockQuery);
+    
+    expect(result.queryBy).toBe('dutId = "DUTId-12345" && dutId != "DUTId-67890"');
+  });
+
+  test('should handle DUTId with various operators', () => {
+    const testCases = [
+      { input: 'DUTId = "value"', expected: 'dutId = "value"' },
+      { input: 'DUTId == "value"', expected: 'dutId == "value"' },
+      { input: 'DUTId != "value"', expected: 'dutId != "value"' },
+      { input: 'DUTId > "value"', expected: 'dutId > "value"' },
+      { input: 'DUTId < "value"', expected: 'dutId < "value"' },
+      { input: 'DUTId >= "value"', expected: 'dutId >= "value"' },
+      { input: 'DUTId <= "value"', expected: 'dutId <= "value"' },
+    ];
+
+    testCases.forEach(({ input, expected }) => {
+      const mockQuery = {
+        refId: 'C',
+        outputType: OutputType.Properties,
+        queryBy: input,
+        properties: [Properties.ID],
+        recordCount: 1000,
+      };
+      
+      const result = datastore.prepareQuery(mockQuery);
+      
+      expect(result.queryBy).toBe(expected);
+    });
+  });
+
+  test('should handle complex nested expressions with DUTId', () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: '((DUTId = "DUTId-123" || DUTId = "DUTId-456") && (state = "running"))',
+      properties: [Properties.ID],
+      recordCount: 1000,
+    };
+    
+    const result = datastore.prepareQuery(mockQuery);
+    
+    expect(result.queryBy).toBe('((dutId = "DUTId-123" || dutId = "DUTId-456") && (state = "running"))');
+  });
+
   test('should add default query values when not provided', () => {
     const mockQuery = {
       refId: 'A',
