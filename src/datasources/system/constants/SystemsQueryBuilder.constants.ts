@@ -56,8 +56,6 @@ export const SystemFields: Record<string, QBField> = {
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
-            QueryBuilderOperations.CONTAINS.name,
-            QueryBuilderOperations.DOES_NOT_CONTAIN.name,
         ],
     },
     WORKSPACE: {
