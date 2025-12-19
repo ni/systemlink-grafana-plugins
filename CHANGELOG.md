@@ -1,3 +1,9 @@
+## [4.111.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.111.1...v4.111.2) (2025-12-19)
+
+### Bug Fixes
+
+* **data frames:** set display name as "value" when the column name is "value" ([#638](https://github.com/ni/systemlink-grafana-plugins/issues/638)) ([a32f493](https://github.com/ni/systemlink-grafana-plugins/commit/a32f493a4fe619c2eaa95d98b6e4c8eb6d150994))
+
 ## [4.111.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.111.0...v4.111.1) (2025-12-18)
 
 ### Bug Fixes
