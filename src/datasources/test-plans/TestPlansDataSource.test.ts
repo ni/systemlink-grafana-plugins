@@ -636,10 +636,10 @@ describe('runQuery', () => {
     expect(datastore.templateSrv.replace).toHaveBeenCalledWith('workspace = "${var}"', options.scopedVars);
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'workspace = "testWorkspace"',
-      undefined,
+      OrderByOptions.UPDATED_AT,
       ["ID"],
       1000,
-      undefined,
+      true,
     );
   });
 
@@ -659,10 +659,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       '(workspace = "testWorkspace1" || workspace = "testWorkspace2")',
-      undefined,
+      OrderByOptions.UPDATED_AT,
       ["ID"],
       1000,
-      undefined,
+      true,
     );
   });
 
@@ -680,10 +680,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'string.IsNullOrEmpty(testProgram)',
-      undefined,
+      OrderByOptions.UPDATED_AT,
       ["ID"],
       1000,
-      undefined,
+      true,
     );
   });
 
@@ -701,10 +701,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       '!string.IsNullOrEmpty(testProgram)',
-      undefined,
+      OrderByOptions.UPDATED_AT,
       ["ID"],
       1000,
-      undefined,
+      true,
     );
   });
 
@@ -723,10 +723,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'testProgram = "Regression"',
-      undefined,
+      OrderByOptions.UPDATED_AT,
       ["ID"],
       1000,
-      undefined,
+      true,
     );
   });
 
@@ -745,10 +745,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'estimatedDurationInSeconds > "172800"',
-      undefined,
+      OrderByOptions.UPDATED_AT,
       ["ID"],
       1000,
-      undefined,
+      true,
     );
   });
 
@@ -767,10 +767,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'estimatedDurationInSeconds < "172800"',
-      undefined,
+      OrderByOptions.UPDATED_AT,
       ["ID"],
       1000,
-      undefined,
+      true,
     );
   });
 
@@ -789,10 +789,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'estimatedDurationInSeconds >= "172800"',
-      undefined,
+      OrderByOptions.UPDATED_AT,
       ["ID"],
       1000,
-      undefined,
+      true,
     );
   });
 
@@ -811,10 +811,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'estimatedDurationInSeconds <= "172800"',
-      undefined,
+      OrderByOptions.UPDATED_AT,
       ["ID"],
       1000,
-      undefined,
+      true,
     );
   }); 
 
@@ -834,10 +834,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'updatedAt = "2025-01-01T00:00:00.000Z"',
-      undefined,
+      OrderByOptions.UPDATED_AT,
       ["ID"],
       1000,
-      undefined,
+      true,
     );
 
     jest.useRealTimers();
@@ -909,10 +909,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       '(estimatedDurationInSeconds > \"172800\" && estimatedDurationInSeconds != \"7200\")',
-      undefined,
+      OrderByOptions.UPDATED_AT,
       ["ID"],
       1000,
-      undefined,
+      true,
     );
   });
 
@@ -931,10 +931,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       '(estimatedDurationInSeconds > \"-172800\" && estimatedDurationInSeconds != \"-7200\")',
-      undefined,
+      OrderByOptions.UPDATED_AT,
       ["ID"],
       1000,
-      undefined,
+      true,
     );
   });
 
@@ -1144,7 +1144,7 @@ describe('runQuery', () => {
 });
 
  describe('prepareQuery', () => {
-    test('should transform DUT Id field in older dashboards with multiple values', async () => {
+    test('should transform DUTId field in older dashboards to dutId', async () => {
       const mockQuery = {
         refId: 'C',
         outputType: OutputType.Properties,
