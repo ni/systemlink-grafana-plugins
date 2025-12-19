@@ -1424,11 +1424,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         property,
                         workspaces
                     );
-                    fields.push(this.createField({
+                    fields.push({
                         name: DataTableProjectionLabelLookup[property].label,
                         type: this.getFieldType(property),
                         values
-                    }));
+                    });
                 });
 
                 /**
@@ -1456,11 +1456,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const sortedPropertyKeys = Array.from(uniquePropertyKeys)
             .sort((propertyKey1, propertyKey2) => propertyKey1.localeCompare(propertyKey2));
 
-        return sortedPropertyKeys.map(propertyKey => ({
+        return sortedPropertyKeys.map(propertyKey => (this.createField({
             name: this.getCustomPropertyFieldName(propertyKey),
             type: FieldType.string,
             values: tables.map(table => table.properties?.[propertyKey])
-        }));
+        })));
     }
 
     private getCustomPropertyFieldName(propertyKey: string): string {
