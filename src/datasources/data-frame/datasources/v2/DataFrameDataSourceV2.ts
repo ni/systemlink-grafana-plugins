@@ -895,11 +895,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const dataTableIdFieldLabel = 'Data table ID';
 
         const fields: FieldDTO[] = [
-            ...uniqueOutputColumns.map(column => ({
+            ...uniqueOutputColumns.map(column => (this.createField({
                 name: column.displayName,
                 type: this.getFieldTypeForDataType(column.dataType),
                 values: [],
-            })),
+            }))),
             {
                 name: dataTableIdFieldLabel,
                 type: FieldType.string,
@@ -1456,11 +1456,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const sortedPropertyKeys = Array.from(uniquePropertyKeys)
             .sort((propertyKey1, propertyKey2) => propertyKey1.localeCompare(propertyKey2));
 
-        return sortedPropertyKeys.map(propertyKey => ({
+        return sortedPropertyKeys.map(propertyKey => (this.createField({
             name: this.getCustomPropertyFieldName(propertyKey),
             type: FieldType.string,
             values: tables.map(table => table.properties?.[propertyKey])
-        }));
+        })));
     }
 
     private getCustomPropertyFieldName(propertyKey: string): string {
@@ -1539,5 +1539,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         return combinedFilters.join('&&');
+    }
+
+    private createField(field: FieldDTO): FieldDTO {
+        if (field.name.toLowerCase() === 'value') {
+            return {
+                ...field,
+                config: {
+                    ...field.config,
+                    displayName: field.name,
+                },
+            };
+        }
+        return field;
     }
 }
