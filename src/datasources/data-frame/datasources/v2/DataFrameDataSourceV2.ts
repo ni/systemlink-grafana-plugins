@@ -34,18 +34,22 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const processedQuery = this.processQuery(query);
         const transformedQuery = this.transformQuery(processedQuery, options.scopedVars);
 
-        let dataFrame: Observable<DataFrameDTO> = of(this.buildDataFrame(processedQuery.refId));
-
         if (this.shouldQueryForData(transformedQuery)) {
-            dataFrame = this.getFieldsForDataQuery$(
+            return this.getFieldsForDataQuery$(
                 transformedQuery,
                 options
             );
-        } else if (this.shouldQueryForProperties(transformedQuery)) {
-            dataFrame = this.getFieldsForPropertiesQuery$(transformedQuery);
         }
 
-        return this.transformDataFrame(dataFrame);
+        if (this.shouldQueryForProperties(transformedQuery)) {
+            return this.getFieldsForPropertiesQuery$(transformedQuery);
+        }
+
+        return of({
+            refId: transformedQuery.refId,
+            name: transformedQuery.refId,
+            fields: []
+        });
     }
 
     async metricFindQuery(
@@ -891,11 +895,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const dataTableIdFieldLabel = 'Data table ID';
 
         const fields: FieldDTO[] = [
-            ...uniqueOutputColumns.map(column => ({
+            ...uniqueOutputColumns.map(column => (this.createField({
                 name: column.displayName,
                 type: this.getFieldTypeForDataType(column.dataType),
                 values: [],
-            })),
+            }))),
             {
                 name: dataTableIdFieldLabel,
                 type: FieldType.string,
@@ -1420,11 +1424,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         property,
                         workspaces
                     );
-                    fields.push({
+                    fields.push(this.createField({
                         name: DataTableProjectionLabelLookup[property].label,
                         type: this.getFieldType(property),
                         values
-                    });
+                    }));
                 });
 
                 /**
@@ -1537,28 +1541,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return combinedFilters.join('&&');
     }
 
-    private transformDataFrame(dataFrame$: Observable<DataFrameDTO>): Observable<DataFrameDTO> {
-        return dataFrame$.pipe(
-            map(dataFrame => {
-                const transformedFields = dataFrame.fields.map(field => {
-                    if (field.name.toLowerCase() === 'value') {
-                        return {
-                            ...field,
-                            config: {
-                                ...field.config,
-                                displayName: field.name,
-                            },
-                        };
-                    }
-                    return field;
-                });
-                return {
-                    refId: dataFrame.refId,
-                    name: dataFrame.name,
-                    fields: transformedFields,
-                    meta: dataFrame.meta,
-                };
-            })
-        );
+    private createField(field: FieldDTO): FieldDTO {
+        if (field.name.toLowerCase() === 'value') {
+            return {
+                ...field,
+                config: {
+                    ...field.config,
+                    displayName: field.name,
+                },
+            };
+        }
+        return field;
     }
 }
