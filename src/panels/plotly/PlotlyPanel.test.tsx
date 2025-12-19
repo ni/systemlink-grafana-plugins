@@ -10,8 +10,8 @@ jest.mock('@grafana/runtime', () => ({
     replace: (str: string) => str,
   }),
   locationService: {
-    getLocation: jest.fn(),
     partial: jest.fn(),
+    getSearchObject: jest.fn(() => ({})),
   },
 }));
 
@@ -30,10 +30,14 @@ jest.mock('./utils', () => ({
 
 describe('PlotlyPanel - X-Axis Sync', () => {
   const mockLocationWith = (search: string) => {
-    (locationService.getLocation as jest.Mock).mockReturnValue({
-      search,
-      pathname: '/dashboard',
-    });
+    const params: Record<string, string> = {};
+    if (search && search.startsWith('?')) {
+      const searchParams = new URLSearchParams(search);
+      searchParams.forEach((value, key) => {
+        params[key] = value;
+      });
+    }
+    (locationService.getSearchObject as jest.Mock).mockReturnValue(params);
   };
 
   const createMockProps = (
