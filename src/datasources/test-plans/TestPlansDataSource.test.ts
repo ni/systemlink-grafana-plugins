@@ -1143,63 +1143,63 @@ describe('runQuery', () => {
   });
 });
 
- describe('prepareQuery', () => {
-    test('should transform DUTId field in older dashboards to dutId', async () => {
-      const mockQuery = {
-        refId: 'C',
-        outputType: OutputType.Properties,
-        queryBy: 'DUTId = "${dutIds}"',
-        properties: [Properties.ID],
-        recordCount: 1000,
-      };
-      
-      datastore.prepareQuery(mockQuery);
-      
-      expect(mockQuery.queryBy).toBe('dutId = "${dutIds}"');
-    });
+describe('prepareQuery', () => {
+  test('should transform DUTId field in older dashboards to dutId', () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy:  'DUTId = "dutId1" || DUTId = "dutId2"',
+      properties: [Properties.ID],
+      recordCount: 1000,
+    };
 
-    test('should add default query values when not provided', () => {
-      const mockQuery = {
-        refId: 'A',
-        outputType: OutputType.Properties,
-      };
+    const result = datastore.prepareQuery(mockQuery);
 
-      const result = datastore.prepareQuery(mockQuery);
-
-      expect(result.properties).toEqual([
-        Properties.NAME,
-        Properties.STATE,
-        Properties.ASSIGNED_TO,
-        Properties.PRODUCT_NAME,
-        Properties.DUT_NAME,
-        Properties.PLANNED_START_DATE_TIME,
-        Properties.ESTIMATED_DURATION_IN_SECONDS,
-        Properties.SYSTEM_NAME,
-        Properties.UPDATED_AT
-      ]);
-      expect(result.orderBy).toBe(OrderByOptions.UPDATED_AT);
-      expect(result.descending).toBe(true);
-      expect(result.recordCount).toBe(1000);
-    });
-
-    test('should preserve provided query values over defaults', () => {
-      const mockQuery = {
-        refId: 'A',
-        outputType: OutputType.Properties,
-        properties: [Properties.ID, Properties.NAME],
-        orderBy: OrderByOptions.UPDATED_AT,
-        descending: false,
-        recordCount: 500,
-      };
-
-      const result = datastore.prepareQuery(mockQuery);
-
-      expect(result.properties).toEqual([Properties.ID, Properties.NAME]);
-      expect(result.orderBy).toBe(OrderByOptions.UPDATED_AT);
-      expect(result.descending).toBe(false);
-      expect(result.recordCount).toBe(500);
-    });
+    expect(result.queryBy).toBe('dutId = "dutId1" || dutId = "dutId2"');
   });
+
+  test('should add default query values when not provided', () => {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+    };
+
+    const result = datastore.prepareQuery(mockQuery);
+
+    expect(result.properties).toEqual([
+      Properties.NAME,
+      Properties.STATE,
+      Properties.ASSIGNED_TO,
+      Properties.PRODUCT_NAME,
+      Properties.DUT_NAME,
+      Properties.PLANNED_START_DATE_TIME,
+      Properties.ESTIMATED_DURATION_IN_SECONDS,
+      Properties.SYSTEM_NAME,
+      Properties.UPDATED_AT
+    ]);
+    expect(result.orderBy).toBe(OrderByOptions.UPDATED_AT);
+    expect(result.descending).toBe(true);
+    expect(result.recordCount).toBe(1000);
+  });
+
+  test('should preserve provided query values over defaults', () => {
+    const mockQuery = {
+      refId: 'A',
+      outputType: OutputType.Properties,
+      properties: [Properties.ID, Properties.NAME],
+      orderBy: OrderByOptions.UPDATED_AT,
+      descending: false,
+      recordCount: 500,
+    };
+
+    const result = datastore.prepareQuery(mockQuery);
+
+    expect(result.properties).toEqual([Properties.ID, Properties.NAME]);
+    expect(result.orderBy).toBe(OrderByOptions.UPDATED_AT);
+    expect(result.descending).toBe(false);
+    expect(result.recordCount).toBe(500);
+  });
+});
 
 describe('loadWorkspaces', () => {
   test('returns workspaces', async () => {

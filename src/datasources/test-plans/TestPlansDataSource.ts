@@ -63,7 +63,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   async runQuery(query: TestPlansQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    query  = this.prepareQuery(query);
+    query = this.prepareQuery(query);
     const workspaces = await this.loadWorkspaces();
     const systemAliases = await this.loadSystemAliases();
     const users = await this.loadUsers();
