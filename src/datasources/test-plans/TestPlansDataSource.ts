@@ -63,15 +63,15 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   async runQuery(query: TestPlansQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    query  = this.prepareQuery(query);
     const workspaces = await this.loadWorkspaces();
     const systemAliases = await this.loadSystemAliases();
     const users = await this.loadUsers();
     const products = await this.loadProductNamesAndPartNumbers();
 
     if (query.queryBy) {
-      let queryBy = this.normalizeDUTIdFieldName(query.queryBy);
       query.queryBy = transformComputedFieldsQuery(
-        this.templateSrv.replace(queryBy, options.scopedVars),
+        this.templateSrv.replace(query.queryBy, options.scopedVars),
         this.testPlansComputedDataFields
       );
       query.queryBy = this.transformDurationFilters(query.queryBy);
@@ -180,6 +180,14 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       name: query.refId,
       fields: [],
     };
+  }
+
+  public prepareQuery(query: TestPlansQuery): TestPlansQuery {
+    // Ensure correct casing for DUTId in older dashboards/variables
+    if (query.queryBy) {
+      query.queryBy = query.queryBy.replace(/\bDUTId\b/g, 'dutId');
+    }
+    return { ...this.defaultQuery, ...query };
   }
 
   public async loadWorkspaces(): Promise<Map<string, Workspace>> {
@@ -299,9 +307,8 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
     let filter;
     if (variableQuery.queryBy) {
-      let queryBy = this.normalizeDUTIdFieldName(variableQuery.queryBy);
       filter = transformComputedFieldsQuery(
-        this.templateSrv.replace(queryBy, options.scopedVars),
+        this.templateSrv.replace(variableQuery.queryBy, options.scopedVars),
         this.testPlansComputedDataFields
       );
       filter = this.transformDurationFilters(filter);
@@ -495,15 +502,5 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
   private isPropertiesValid(query: TestPlansQuery): boolean {
     return !!query.properties && query.properties.length > 0;
-  }
-
-  /**
-   * Normalizes the DUT identifier field name in queries.
-   * TestPlansQueryBuilderFieldNames uses 'DUTId' but PropertiesProjectionMap uses 'dutId'.
-   * testPlansComputedDataFields is built from PropertiesProjectionMap, so it only has 'dutId' as a key.
-   * This converts DUTId → dutId before transformation to ensure the Map lookup succeeds.
-   */
-  private normalizeDUTIdFieldName(query: string): string {
-    return query.replace(/\bDUTId\b/g, 'dutId');
   }
 }
