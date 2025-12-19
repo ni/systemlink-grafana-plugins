@@ -23,8 +23,6 @@ jobs:
 
       - name: Check types
         run: npm run typecheck
-        env:
-          NODE_OPTIONS: --max-old-space-size=6144
 
       - name: Lint
         run: npm run lint -- --quiet
@@ -33,10 +31,6 @@ jobs:
 
       - name: Unit tests
         run: npm run test:ci
-        env:
-          NODE_OPTIONS: --max-old-space-size=6144
 
       - name: Build
         run: npm run build
-        env:
-          NODE_OPTIONS: --max-old-space-size=6144
