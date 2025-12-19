@@ -34,6 +34,20 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
 
   const traceColors = useTraceColors(theme);
 
+  const updateXAxisParams = useMemo(
+    () =>
+      _.debounce((xAxisMin: number, xAxisMax: number, xAxisField: string) => {
+        locationService.partial(
+          {
+            [`nisl-${xAxisField}-min`]: Math.floor(xAxisMin),
+            [`nisl-${xAxisField}-max`]: Math.ceil(xAxisMax),
+          },
+          true,
+        );
+      }, 300),
+    []
+  );
+
   const plotData: Array<Partial<PlotData>> = [];
   const axisLabels: AxisLabels = {
     xAxis: '',
@@ -164,20 +178,6 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       }
     }
   };
-
-  const updateXAxisParams = useMemo(
-    () =>
-      _.debounce((xAxisMin: number, xAxisMax: number, xAxisField: string) => {
-        locationService.partial(
-          {
-            [`nisl-${xAxisField}-min`]: Math.floor(xAxisMin),
-            [`nisl-${xAxisField}-max`]: Math.ceil(xAxisMax),
-          },
-          true,
-        );
-      }, 300),
-    []
-  );
 
   const handleImageDownload = (gd: PlotlyHTMLElement) =>
     toImage(gd, { format: 'png', width, height }).then((data) => saveAs(data, props.title));
