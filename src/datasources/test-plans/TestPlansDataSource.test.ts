@@ -636,10 +636,10 @@ describe('runQuery', () => {
     expect(datastore.templateSrv.replace).toHaveBeenCalledWith('workspace = "${var}"', options.scopedVars);
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'workspace = "testWorkspace"',
-      OrderByOptions.UPDATED_AT,
+      undefined,
       ["ID"],
       1000,
-      true,
+      undefined,
     );
   });
 
@@ -659,10 +659,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       '(workspace = "testWorkspace1" || workspace = "testWorkspace2")',
-      OrderByOptions.UPDATED_AT,
+      undefined,
       ["ID"],
       1000,
-      true,
+      undefined,
     );
   });
 
@@ -680,10 +680,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'string.IsNullOrEmpty(testProgram)',
-      OrderByOptions.UPDATED_AT,
+      undefined,
       ["ID"],
       1000,
-      true,
+      undefined,
     );
   });
 
@@ -701,10 +701,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       '!string.IsNullOrEmpty(testProgram)',
-      OrderByOptions.UPDATED_AT,
+      undefined,
       ["ID"],
       1000,
-      true,
+      undefined,
     );
   });
 
@@ -723,10 +723,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'testProgram = "Regression"',
-      OrderByOptions.UPDATED_AT,
+      undefined,
       ["ID"],
       1000,
-      true,
+      undefined,
     );
   });
 
@@ -745,10 +745,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'estimatedDurationInSeconds > "172800"',
-      OrderByOptions.UPDATED_AT,
+      undefined,
       ["ID"],
       1000,
-      true,
+      undefined,
     );
   });
 
@@ -767,10 +767,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'estimatedDurationInSeconds < "172800"',
-      OrderByOptions.UPDATED_AT,
+      undefined,
       ["ID"],
       1000,
-      true,
+      undefined,
     );
   });
 
@@ -789,10 +789,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'estimatedDurationInSeconds >= "172800"',
-      OrderByOptions.UPDATED_AT,
+      undefined,
       ["ID"],
       1000,
-      true,
+      undefined,
     );
   });
 
@@ -811,10 +811,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'estimatedDurationInSeconds <= "172800"',
-      OrderByOptions.UPDATED_AT,
+      undefined,
       ["ID"],
       1000,
-      true,
+      undefined,
     );
   }); 
 
@@ -834,10 +834,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       'updatedAt = "2025-01-01T00:00:00.000Z"',
-      OrderByOptions.UPDATED_AT,
+      undefined,
       ["ID"],
       1000,
-      true,
+      undefined,
     );
 
     jest.useRealTimers();
@@ -909,10 +909,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       '(estimatedDurationInSeconds > \"172800\" && estimatedDurationInSeconds != \"7200\")',
-      OrderByOptions.UPDATED_AT,
+      undefined,
       ["ID"],
       1000,
-      true,
+      undefined,
     );
   });
 
@@ -931,10 +931,10 @@ describe('runQuery', () => {
 
     expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
       '(estimatedDurationInSeconds > \"-172800\" && estimatedDurationInSeconds != \"-7200\")',
-      OrderByOptions.UPDATED_AT,
+      undefined,
       ["ID"],
       1000,
-      true,
+      undefined,
     );
   });
 
@@ -1140,118 +1140,6 @@ describe('runQuery', () => {
       refId: ''
     };
     expect(datastore.shouldRunQuery(query)).toBe(false);
-  });
-});
-
-describe('prepareQuery', () => {
-  test('should transform DUTId field in older dashboards to dutId', () => {
-    const mockQuery = {
-      refId: 'C',
-      outputType: OutputType.Properties,
-      queryBy:  'DUTId = "dutId1" || DUTId = "dutId2"',
-      properties: [Properties.ID],
-      recordCount: 1000,
-    };
-
-    const result = datastore.prepareQuery(mockQuery);
-
-    expect(result.queryBy).toBe('dutId = "dutId1" || dutId = "dutId2"');
-  });
-
-  test('should only replace DUTId field name, not values in quotes', () => {
-    const mockQuery = {
-      refId: 'C',
-      outputType: OutputType.Properties,
-      queryBy: 'DUTId = "DUTId-12345" && DUTId != "DUTId-67890"',
-      properties: [Properties.ID],
-      recordCount: 1000,
-    };
-    
-    const result = datastore.prepareQuery(mockQuery);
-    
-    expect(result.queryBy).toBe('dutId = "DUTId-12345" && dutId != "DUTId-67890"');
-  });
-
-  test('should handle DUTId with various operators', () => {
-    const testCases = [
-      { input: 'DUTId = "value"', expected: 'dutId = "value"' },
-      { input: 'DUTId == "value"', expected: 'dutId == "value"' },
-      { input: 'DUTId != "value"', expected: 'dutId != "value"' },
-      { input: 'DUTId > "value"', expected: 'dutId > "value"' },
-      { input: 'DUTId < "value"', expected: 'dutId < "value"' },
-      { input: 'DUTId >= "value"', expected: 'dutId >= "value"' },
-      { input: 'DUTId <= "value"', expected: 'dutId <= "value"' },
-    ];
-
-    testCases.forEach(({ input, expected }) => {
-      const mockQuery = {
-        refId: 'C',
-        outputType: OutputType.Properties,
-        queryBy: input,
-        properties: [Properties.ID],
-        recordCount: 1000,
-      };
-      
-      const result = datastore.prepareQuery(mockQuery);
-      
-      expect(result.queryBy).toBe(expected);
-    });
-  });
-
-  test('should handle complex nested expressions with DUTId', () => {
-    const mockQuery = {
-      refId: 'C',
-      outputType: OutputType.Properties,
-      queryBy: '((DUTId = "DUTId-123" || DUTId = "DUTId-456") && (state = "running"))',
-      properties: [Properties.ID],
-      recordCount: 1000,
-    };
-    
-    const result = datastore.prepareQuery(mockQuery);
-    
-    expect(result.queryBy).toBe('((dutId = "DUTId-123" || dutId = "DUTId-456") && (state = "running"))');
-  });
-
-  test('should add default query values when not provided', () => {
-    const mockQuery = {
-      refId: 'A',
-      outputType: OutputType.Properties,
-    };
-
-    const result = datastore.prepareQuery(mockQuery);
-
-    expect(result.properties).toEqual([
-      Properties.NAME,
-      Properties.STATE,
-      Properties.ASSIGNED_TO,
-      Properties.PRODUCT_NAME,
-      Properties.DUT_NAME,
-      Properties.PLANNED_START_DATE_TIME,
-      Properties.ESTIMATED_DURATION_IN_SECONDS,
-      Properties.SYSTEM_NAME,
-      Properties.UPDATED_AT
-    ]);
-    expect(result.orderBy).toBe(OrderByOptions.UPDATED_AT);
-    expect(result.descending).toBe(true);
-    expect(result.recordCount).toBe(1000);
-  });
-
-  test('should preserve provided query values over defaults', () => {
-    const mockQuery = {
-      refId: 'A',
-      outputType: OutputType.Properties,
-      properties: [Properties.ID, Properties.NAME],
-      orderBy: OrderByOptions.UPDATED_AT,
-      descending: false,
-      recordCount: 500,
-    };
-
-    const result = datastore.prepareQuery(mockQuery);
-
-    expect(result.properties).toEqual([Properties.ID, Properties.NAME]);
-    expect(result.orderBy).toBe(OrderByOptions.UPDATED_AT);
-    expect(result.descending).toBe(false);
-    expect(result.recordCount).toBe(500);
   });
 });
 

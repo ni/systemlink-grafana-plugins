@@ -1,10 +1,14 @@
 import { TestPlansQueryBuilderFieldNames } from "./constants/TestPlansQueryBuilder.constants";
 
-export function isTimeField(queryBuilderFieldName: TestPlansQueryBuilderFieldNames): boolean {
-    return queryBuilderFieldName === TestPlansQueryBuilderFieldNames.CreatedAt
+export function isTimeField(
+    queryBuilderFieldName: TestPlansQueryBuilderFieldNames
+): boolean {
+    return (
+        queryBuilderFieldName === TestPlansQueryBuilderFieldNames.CreatedAt
         || queryBuilderFieldName === TestPlansQueryBuilderFieldNames.UpdatedAt
         || queryBuilderFieldName === TestPlansQueryBuilderFieldNames.PlannedStartDate
-        || queryBuilderFieldName === TestPlansQueryBuilderFieldNames.EstimatedEndDate;
+        || queryBuilderFieldName === TestPlansQueryBuilderFieldNames.EstimatedEndDate
+    );
 }
 
 export const transformDuration = (totalSeconds: number): string => {
