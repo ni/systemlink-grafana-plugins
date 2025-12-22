@@ -64,7 +64,6 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   async runQuery(query: TestPlansQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    query = this.prepareQuery(query);
     const workspaces = await this.loadWorkspaces();
     const systemAliases = await this.loadSystemAliases();
     const users = await this.loadUsers();
@@ -181,20 +180,6 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       name: query.refId,
       fields: [],
     };
-  }
-
-  public prepareQuery(query: TestPlansQuery): TestPlansQuery {
-    // Ensure correct casing for DUTId field name in older dashboards/variables
-    if (query.queryBy) {
-      // Match DUTId only when it appears as a field name
-      query.queryBy = query.queryBy
-        .replace(/(?:^|[\s()])DUTId(\s*(?:==|!=|<=|>=|<|>|=))/g,
-          (match, operator) => {
-            const prefix = match.substring(0, match.indexOf('DUTId'));
-            return `${prefix}dutId${operator}`;
-          });
-    }
-    return { ...this.defaultQuery, ...query };
   }
 
   public async loadWorkspaces(): Promise<Map<string, Workspace>> {

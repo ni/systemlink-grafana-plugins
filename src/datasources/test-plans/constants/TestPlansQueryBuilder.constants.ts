@@ -7,7 +7,7 @@ export enum TestPlansQueryBuilderFieldNames {
     CreatedAt = 'createdAt',
     CreatedBy = 'createdBy',
     Description = 'description',
-    DUTIdentifier = 'dutId',
+    DUTIdentifier = 'DUTId',
     EstimatedDurationInDays = 'estimatedDurationInDays',
     EstimatedDurationInHours = 'estimatedDurationInHours',
     EstimatedEndDate = 'estimatedEndDateTime',
