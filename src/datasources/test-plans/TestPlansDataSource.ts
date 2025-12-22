@@ -319,9 +319,13 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
 
   readonly testPlansComputedDataFields = new Map<string, ExpressionTransformFunction>(
     Object.values(TestPlansQueryBuilderFieldNames).map(queryBuilderFieldName => {
-      const fieldName = queryBuilderFieldName;
       const isTime = isTimeField(queryBuilderFieldName);
-      return [fieldName, isTime ? timeFieldsQuery(queryBuilderFieldName) : multipleValuesQuery(fieldName)];
+      return [
+        queryBuilderFieldName, 
+        isTime
+          ? timeFieldsQuery(queryBuilderFieldName)
+          : multipleValuesQuery(queryBuilderFieldName)
+      ];
     })
   );
 
