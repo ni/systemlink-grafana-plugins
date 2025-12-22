@@ -17,6 +17,7 @@ import { User } from 'shared/types/QueryUsers.types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 import { TAKE_LIMIT } from './constants/QueryEditor.constants';
+import { TestPlansQueryBuilderFieldNames } from './constants/TestPlansQueryBuilder.constants';
 
 export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   constructor(
@@ -332,10 +333,10 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   readonly testPlansComputedDataFields = new Map<string, ExpressionTransformFunction>(
-    Object.values(PropertiesProjectionMap).map(({ field, projection }) => {
-      const fieldName = field;
-      const isTime = isTimeField(projection[0]);
-      return [fieldName, isTime ? timeFieldsQuery(fieldName) : multipleValuesQuery(fieldName)];
+    Object.values(TestPlansQueryBuilderFieldNames).map(queryBuilderFieldName => {
+      const fieldName = queryBuilderFieldName;
+      const isTime = isTimeField(queryBuilderFieldName);
+      return [fieldName, isTime ? timeFieldsQuery(queryBuilderFieldName) : multipleValuesQuery(fieldName)];
     })
   );
 
