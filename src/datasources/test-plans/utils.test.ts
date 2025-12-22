@@ -1,12 +1,12 @@
-import { Properties } from "./types";
+import { TestPlansQueryBuilderFieldNames } from "./constants/TestPlansQueryBuilder.constants";
 import { transformDuration, isTimeField } from "./utils";
 
 test('isTimeField', () => {
-    expect(isTimeField(Properties.CREATED_AT)).toBeTruthy();
-    expect(isTimeField(Properties.UPDATED_AT)).toBeTruthy();
-    expect(isTimeField(Properties.PLANNED_START_DATE_TIME)).toBeTruthy();
-    expect(isTimeField(Properties.ESTIMATED_END_DATE_TIME)).toBeTruthy();
-    expect(isTimeField(Properties.NAME)).toBeFalsy();
+    expect(isTimeField(TestPlansQueryBuilderFieldNames.CreatedAt)).toBeTruthy();
+    expect(isTimeField(TestPlansQueryBuilderFieldNames.UpdatedAt)).toBeTruthy();
+    expect(isTimeField(TestPlansQueryBuilderFieldNames.PlannedStartDate)).toBeTruthy();
+    expect(isTimeField(TestPlansQueryBuilderFieldNames.EstimatedEndDate)).toBeTruthy();
+    expect(isTimeField(TestPlansQueryBuilderFieldNames.Name)).toBeFalsy();
 });
 
 test('transformDuration', () => {
