@@ -72,16 +72,16 @@ export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, 
 
             if (booleanValues.length > 1) {
                 const expressions = booleanValues.map(boolVal =>
-                    operation === QueryBuilderOperations.DOES_NOT_EQUAL.name
+                    operation === '!='
                         ? `!${backendFieldName}.Equals(${boolVal})`
                         : `${backendFieldName}.Equals(${boolVal})`
                 );
 
-                const concatOperator = operation === QueryBuilderOperations.DOES_NOT_EQUAL.name ? ' && ' : ' || ';
+                const concatOperator = operation === '!=' ? ' && ' : ' || ';
                 return `(${expressions.join(concatOperator)})`;
             }
 
-            if (operation === QueryBuilderOperations.DOES_NOT_EQUAL.name) {
+            if (operation === '!=') {
                 return `!${backendFieldName}.Equals(${booleanValues[0]})`;
             }
 
