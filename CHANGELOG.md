@@ -1,3 +1,9 @@
+## [4.111.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.111.2...v4.111.3) (2025-12-23)
+
+### Bug Fixes
+
+* **testplans:** DutId variable workflow ([#623](https://github.com/ni/systemlink-grafana-plugins/issues/623)) ([7971a40](https://github.com/ni/systemlink-grafana-plugins/commit/7971a409dd8bab0cdcf9aeefd89854058be8820e))
+
 ## [4.111.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.111.1...v4.111.2) (2025-12-19)
 
 ### Bug Fixes
