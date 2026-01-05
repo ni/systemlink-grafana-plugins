@@ -273,8 +273,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     ): Promise<ColumnOptions> {
         const columnOptions = await this.getColumnOptions(filters);
         
-        const hasColumnsAvailable = columnOptions.uniqueColumnsAcrossTables.length > 0;        
-        const metadataFields: Option[] = hasColumnsAvailable ? metadataFieldOptions : [];
+        const hasUniqueColumnsAvailable = columnOptions.uniqueColumnsAcrossTables.length > 0;        
+        const metadataFields: Option[] = hasUniqueColumnsAvailable ? metadataFieldOptions : [];
         
         const uniqueColumnsAcrossTablesWithVariables = [
             ...this.getVariableOptions(),
@@ -792,10 +792,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     );
                 }
 
-                const nonMetadataColumns = this.filterMetadataFields(selectedColumnIdentifiers);
+                const nonMetadataColumnIdentifiers = this.filterMetadataFields(selectedColumnIdentifiers);
 
-                if (nonMetadataColumns.length > COLUMN_SELECTION_LIMIT) {
-                    const errorMessage = `The number of columns you selected (${nonMetadataColumns.length.toLocaleString()}) exceeds the column limit (${COLUMN_SELECTION_LIMIT.toLocaleString()}). Reduce your number of selected columns and try again.`;
+                if (nonMetadataColumnIdentifiers.length > COLUMN_SELECTION_LIMIT) {
+                    const errorMessage = `The number of columns you selected (${nonMetadataColumnIdentifiers.length.toLocaleString()}) exceeds the column limit (${COLUMN_SELECTION_LIMIT.toLocaleString()}). Reduce your number of selected columns and try again.`;
                     this.appEvents?.publish?.({
                         type: AppEvents.alertError.name,
                         payload: ['Column selection error', errorMessage],
@@ -825,7 +825,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
                 return tables$.pipe(
                     switchMap(tables => {
-                        if (!this.areSelectedColumnsValid(selectedColumnIdentifiers, tables)) {
+                        if (!this.areSelectedColumnsValid(nonMetadataColumnIdentifiers, tables)) {
                             const errorMessage = 'One or more selected columns are invalid. Please update your column selection or refine your filters.';
                             this.appEvents?.publish?.({
                                 type: AppEvents.alertError.name,
@@ -847,7 +847,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         }
 
                         const tableColumnsMap = this.buildTableColumnsMap(
-                            selectedColumnIdentifiers,
+                            nonMetadataColumnIdentifiers,
                             tables,
                             processedQuery.includeIndexColumns
                         );
@@ -859,7 +859,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         );
 
                         if (Object.keys(tableColumnsMap).length > 0 || hasOnlyMetadataFields) {
-                            const decimatedDataMap$ = Object.keys(tableColumnsMap).length === 0
+                            const decimatedDataMap$ = hasOnlyMetadataFields
                                 ? of({
                                     data: Object.fromEntries(
                                         tables.map(table => [
@@ -1056,12 +1056,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
 
         return selectedColumns.every(
-            selectedColumn => {
-                if (selectedColumn === DATA_TABLE_ID_FIELD || selectedColumn === DATA_TABLE_NAME_FIELD) {
-                    return true;
-                }
-                return allTableColumns.has(selectedColumn);
-            }
+            selectedColumn => allTableColumns.has(selectedColumn)
         );
     }
 
@@ -1086,12 +1081,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     ): Record<string, TableColumnsData> {
         const selectedTableColumnsMap: Record<string, TableColumnsData> = {};
         const uniqueColumnsAcrossTables = this.getUniqueColumnsAcrossTables(tables);
-        
-        const dataColumnIdentifiers = this.filterMetadataFields(selectedColumnIdentifiers);
-        
         tables.forEach(table => {
             const selectedColumns = this.getSelectedColumnsForTable(
-                dataColumnIdentifiers,
+                selectedColumnIdentifiers,
                 table,
                 includeIndexColumns
             ).map(column => {
