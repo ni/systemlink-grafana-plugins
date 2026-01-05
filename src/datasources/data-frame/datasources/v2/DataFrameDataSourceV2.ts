@@ -14,6 +14,9 @@ import { replaceVariables } from "core/utils";
 import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
 import { QueryBuilderOperations } from "core/query-builder.constants";
 
+const DATA_TABLE_ID_FIELD = 'Data table ID-Metadata';
+const DATA_TABLE_NAME_FIELD = 'Data table name-Metadata';
+
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
     private scopedVars: ScopedVars = {};
@@ -272,8 +275,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         filters: CombinedFilters
     ): Promise<ColumnOptions> {
         const columnOptions = await this.getColumnOptions(filters);
+        
+        const hasColumnsAvailable = columnOptions.uniqueColumnsAcrossTables.length > 0 
+            || columnOptions.commonColumnsAcrossTables.length > 0;
+        
+        const metadataFields: Option[] = hasColumnsAvailable ? [
+            { label: 'Data table ID', value: DATA_TABLE_ID_FIELD },
+            { label: 'Data table name', value: DATA_TABLE_NAME_FIELD }
+        ] : [];
+        
         const uniqueColumnsAcrossTablesWithVariables = [
             ...this.getVariableOptions(),
+            ...metadataFields,
             ...columnOptions.uniqueColumnsAcrossTables
         ];
         const commonColumnsAcrossTablesWithVariables = [
@@ -787,8 +800,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     );
                 }
 
-                if (selectedColumnIdentifiers.length > COLUMN_SELECTION_LIMIT) {
-                    const errorMessage = `The number of columns you selected (${selectedColumnIdentifiers.length.toLocaleString()}) exceeds the column limit (${COLUMN_SELECTION_LIMIT.toLocaleString()}). Reduce your number of selected columns and try again.`;
+                const nonMetadataColumns = selectedColumnIdentifiers.filter(
+                    col => col !== DATA_TABLE_ID_FIELD && col !== DATA_TABLE_NAME_FIELD
+                );
+
+                if (nonMetadataColumns.length > COLUMN_SELECTION_LIMIT) {
+                    const errorMessage = `The number of columns you selected (${nonMetadataColumns.length.toLocaleString()}) exceeds the column limit (${COLUMN_SELECTION_LIMIT.toLocaleString()}). Reduce your number of selected columns and try again.`;
                     this.appEvents?.publish?.({
                         type: AppEvents.alertError.name,
                         payload: ['Column selection error', errorMessage],
@@ -842,20 +859,38 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             processedQuery.includeIndexColumns
                         );
 
-                        if (Object.keys(tableColumnsMap).length > 0) {
-                            const tableNamesMap = this.buildTableNamesMap(tables);
-                            return this.getDecimatedTableDataInBatches$(
-                                tableColumnsMap,
-                                processedQuery,
-                                options.range,
-                                options.maxDataPoints
-                            ).pipe(
+                        const tableNamesMap = this.buildTableNamesMap(tables);
+                        
+                        const hasOnlyMetadataFields = selectedColumnIdentifiers.every(
+                            col => col === DATA_TABLE_ID_FIELD || col === DATA_TABLE_NAME_FIELD
+                        );
+
+                        if (Object.keys(tableColumnsMap).length > 0 || hasOnlyMetadataFields) {
+                            const decimatedDataMap$ = Object.keys(tableColumnsMap).length === 0
+                                ? of({
+                                    data: Object.fromEntries(
+                                        tables.map(table => [
+                                            table.id, 
+                                            { frame: { columns: [], data: [[]] } }
+                                        ])
+                                    ),
+                                    isLimitExceeded: false
+                                })
+                                : this.getDecimatedTableDataInBatches$(
+                                    tableColumnsMap,
+                                    processedQuery,
+                                    options.range,
+                                    options.maxDataPoints
+                                );
+
+                            return decimatedDataMap$.pipe(
                                 map(result => {
                                     const aggregatedTableDataRows = this.aggregateTableDataRows(
                                         tableColumnsMap,
                                         tableNamesMap,
                                         result.data,
                                         processedQuery.xColumn,
+                                        selectedColumnIdentifiers
                                     );
                                     const notices = result.isLimitExceeded ? [
                                         {
@@ -884,6 +919,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tableNamesMap: Record<string, string>,
         decimatedDataMap: Record<string, TableDataRows>,
         xColumn: string | null,
+        selectedColumns: string[]
     ): FieldDTO[] {
         let uniqueOutputColumns = this.getUniqueColumns(
             Object.values(tableColumnsMap)
@@ -894,23 +930,32 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const dataTableNameFieldLabel = 'Data table name';
         const dataTableIdFieldLabel = 'Data table ID';
 
+        const isDataTableIdSelected = selectedColumns.includes(DATA_TABLE_ID_FIELD);
+        const isDataTableNameSelected = selectedColumns.includes(DATA_TABLE_NAME_FIELD);
+
         const fields: FieldDTO[] = [
             ...uniqueOutputColumns.map(column => (this.createField({
                 name: column.displayName,
                 type: this.getFieldTypeForDataType(column.dataType),
                 values: [],
-            }))),
-            {
+            })))
+        ];
+
+        if (isDataTableIdSelected) {
+            fields.push({
                 name: dataTableIdFieldLabel,
                 type: FieldType.string,
                 values: [],
-            },
-            {
+            });
+        }
+
+        if (isDataTableNameSelected) {
+            fields.push({
                 name: dataTableNameFieldLabel,
                 type: FieldType.string,
                 values: [],
-            },
-        ];
+            });
+        }
 
         Object.entries(decimatedDataMap).forEach(([tableId, tableDataRows]) => {
             const tableName = tableNamesMap[tableId] || '';
@@ -919,9 +964,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             const decimatedTableData = tableDataRows.frame.data;
             const rowCount = decimatedTableData.length;
 
-            const columnInfoByDisplayName = new Map(
-                columnsData.selectedColumns.map(column => [column.displayName, column])
-            );
+            const columnInfoByDisplayName = columnsData 
+                ? new Map(columnsData.selectedColumns.map(column => [column.displayName, column]))
+                : new Map(); // Handle case where only metadata fields are selected
             const columnIndexByName = new Map(
                 decimatedTableColumns.map((columnName, index) => [columnName, index])
             );
@@ -1030,7 +1075,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
 
         return selectedColumns.every(
-            selectedColumn => allTableColumns.has(selectedColumn)
+            selectedColumn => {
+                if (selectedColumn === DATA_TABLE_ID_FIELD || selectedColumn === DATA_TABLE_NAME_FIELD) {
+                    return true;
+                }
+                return allTableColumns.has(selectedColumn);
+            }
         );
     }
 
@@ -1055,9 +1105,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     ): Record<string, TableColumnsData> {
         const selectedTableColumnsMap: Record<string, TableColumnsData> = {};
         const uniqueColumnsAcrossTables = this.getUniqueColumnsAcrossTables(tables);
+        
+        const dataColumnIdentifiers = selectedColumnIdentifiers.filter(
+            col => col !== DATA_TABLE_ID_FIELD && col !== DATA_TABLE_NAME_FIELD
+        );
+        
         tables.forEach(table => {
             const selectedColumns = this.getSelectedColumnsForTable(
-                selectedColumnIdentifiers,
+                dataColumnIdentifiers,
                 table,
                 includeIndexColumns
             ).map(column => {

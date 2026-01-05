@@ -4821,6 +4821,39 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.uniqueColumnsAcrossTables).toEqual([]);
             });
 
+            it('should not include metadata fields when no tables are found', async () => {
+                queryTablesMock$.mockReturnValue(of([]));
+
+                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
+
+                const metadataFieldValues = result.uniqueColumnsAcrossTables
+                    .filter(option => option.value === 'Data table ID-Metadata' || option.value === 'Data table name-Metadata');
+                
+                expect(metadataFieldValues).toEqual([]);
+            });
+
+            it('should include metadata fields when tables with columns are found', async () => {
+                queryTablesMock$.mockReturnValue(of([
+                    {
+                        id: '1',
+                        name: 'Table 1',
+                        columns: [
+                            { name: 'Column1', dataType: 'STRING' }
+                        ]
+                    }
+                ]));
+
+                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
+
+                const metadataFields = result.uniqueColumnsAcrossTables
+                    .filter(option => option.value === 'Data table ID-Metadata' || option.value === 'Data table name-Metadata');
+                
+                expect(metadataFields).toEqual([
+                    { label: 'Data table ID', value: 'Data table ID-Metadata' },
+                    { label: 'Data table name', value: 'Data table name-Metadata' }
+                ]);
+            });
+
             it('should return columns in sorted order by label', async () => {
                 queryTablesMock$.mockReturnValue(of([
                     {
