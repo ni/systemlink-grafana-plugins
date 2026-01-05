@@ -349,7 +349,6 @@ describe('DataFrameDataSourceV2', () => {
                 let queryTablesSpy: jest.SpyInstance;
 
                 const projections = [
-                    DataTableProjections.Name,
                     DataTableProjections.ColumnName,
                     DataTableProjections.ColumnDataType,
                     DataTableProjections.ColumnType
@@ -753,6 +752,53 @@ describe('DataFrameDataSourceV2', () => {
                         await lastValueFrom(ds.runQuery(query, options));
                         
                         expect(decimatedDataSpy).not.toHaveBeenCalled();
+                    });
+
+                    it('should call query tables API with name as projection when data table name column is selected', async () => {
+                        const selectedColumns = [
+                            DATA_TABLE_NAME_FIELD,
+                            'colA-Numeric'
+                        ];
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: selectedColumns,
+                            dataTableFilter: 'name = "Test"'
+                        } as DataFrameQueryV2;
+                        const mockTables = [{
+                            id: 'table1',
+                            name: 'Test Table',
+                            columns: [
+                                {
+                                    name: 'colA',
+                                    dataType: 'INT32',
+                                    columnType: ColumnType.Normal
+                                }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        const mockDecimatedData = {
+                            frame: {
+                                columns: ['colA'],
+                                data: [['123']]
+                            }
+                        };
+                        jest.spyOn(ds, 'post$').mockReturnValue(of(mockDecimatedData));
+
+                        await lastValueFrom(ds.runQuery(query, options));
+
+                        expect(queryTablesSpy).toHaveBeenCalledWith(
+                            {
+                                "dataTableFilter": "name = \"Test\"",
+                                "columnFilter": "",
+                                "resultFilter": ""
+                            },
+                            TAKE_LIMIT,
+                            [
+                                ...projections,
+                                DataTableProjections.Name
+                            ]
+                        );
                     });
 
                     it('should query tables and return results when columns are provided as array', async () => {
@@ -5101,17 +5147,6 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.uniqueColumnsAcrossTables).toEqual([]);
             });
 
-            it('should not include metadata fields when no tables are found', async () => {
-                queryTablesMock$.mockReturnValue(of([]));
-
-                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
-
-                const metadataFieldValues = result.uniqueColumnsAcrossTables
-                    .filter(option => option.value === DATA_TABLE_ID_FIELD || option.value === DATA_TABLE_NAME_FIELD);
-                
-                expect(metadataFieldValues).toEqual([]);
-            });
-
             it('should include metadata fields when tables with columns are found', async () => {
                 queryTablesMock$.mockReturnValue(of([
                     {
@@ -5125,10 +5160,11 @@ describe('DataFrameDataSourceV2', () => {
 
                 const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
-                const metadataFields = result.uniqueColumnsAcrossTables
-                    .filter(option => option.value === DATA_TABLE_ID_FIELD || option.value === DATA_TABLE_NAME_FIELD);
-                
-                expect(metadataFields).toEqual(metadataFieldOptions);
+                expect(result.uniqueColumnsAcrossTables).toEqual([
+                    { label: 'Data table ID', value: 'Data table ID-Metadata' },
+                    { label: 'Data table name', value: 'Data table name-Metadata' },
+                    { label: 'Column1', value: 'Column1-String' }
+                ]);
             });
 
             it('should return columns in sorted order by label', async () => {

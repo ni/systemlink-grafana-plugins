@@ -273,9 +273,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     ): Promise<ColumnOptions> {
         const columnOptions = await this.getColumnOptions(filters);
         
-        const hasColumnsAvailable = columnOptions.uniqueColumnsAcrossTables.length > 0 
-            || columnOptions.commonColumnsAcrossTables.length > 0;
-        
+        const hasColumnsAvailable = columnOptions.uniqueColumnsAcrossTables.length > 0;        
         const metadataFields: Option[] = hasColumnsAvailable ? metadataFieldOptions : [];
         
         const uniqueColumnsAcrossTablesWithVariables = [
@@ -806,11 +804,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 }
 
                 const projections: DataTableProjections[] = [
-                    DataTableProjections.Name,
                     DataTableProjections.ColumnName,
                     DataTableProjections.ColumnDataType,
                     DataTableProjections.ColumnType,
                 ];
+
+                if (selectedColumnIdentifiers.includes(DATA_TABLE_NAME_FIELD)) {
+                    projections.push(DataTableProjections.Name);
+                }
 
                 const tables$ = this.queryTables$(
                     {
@@ -854,7 +855,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         const tableNamesMap = this.buildTableNamesMap(tables);
                         
                         const hasOnlyMetadataFields = selectedColumnIdentifiers.every(
-                            col => col === DATA_TABLE_ID_FIELD || col === DATA_TABLE_NAME_FIELD
+                            column => column === DATA_TABLE_ID_FIELD || column === DATA_TABLE_NAME_FIELD
                         );
 
                         if (Object.keys(tableColumnsMap).length > 0 || hasOnlyMetadataFields) {
@@ -919,11 +920,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
         uniqueOutputColumns = this.sortColumnsByType(uniqueOutputColumns, xColumn);
 
-        const dataTableNameFieldLabel = DATA_TABLE_NAME_LABEL;
-        const dataTableIdFieldLabel = DATA_TABLE_ID_LABEL;
-        const isDataTableIdSelected = selectedColumns.includes(DATA_TABLE_ID_FIELD);
-        const isDataTableNameSelected = selectedColumns.includes(DATA_TABLE_NAME_FIELD);
-
         const fields: FieldDTO[] = [
             ...uniqueOutputColumns.map(column => (this.createField({
                 name: column.displayName,
@@ -932,21 +928,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             })))
         ];
 
-        if (isDataTableIdSelected) {
-            fields.push({
-                name: dataTableIdFieldLabel,
-                type: FieldType.string,
-                values: [],
-            });
-        }
-
-        if (isDataTableNameSelected) {
-            fields.push({
-                name: dataTableNameFieldLabel,
-                type: FieldType.string,
-                values: [],
-            });
-        }
+        metadataFieldOptions.forEach(({ label, value }) => {
+            if (selectedColumns.includes(value)) {
+                fields.push({
+                    name: label,
+                    type: FieldType.string,
+                    values: [],
+                });
+            }
+        });
 
         Object.entries(decimatedDataMap).forEach(([tableId, tableDataRows]) => {
             const tableName = tableNamesMap[tableId] || '';
@@ -964,11 +954,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
             fields.forEach(field => {
                 switch (field.name) {
-                    case dataTableIdFieldLabel:
+                    case DATA_TABLE_ID_LABEL:
                         const tableIdColumnValues = Array(rowCount).fill(tableId);
                         field.values = field.values!.concat(tableIdColumnValues);
                         break;
-                    case dataTableNameFieldLabel:
+                    case DATA_TABLE_NAME_LABEL:
                         const tableNameColumnValues = Array(rowCount).fill(tableName);
                         field.values = field.values!.concat(tableNameColumnValues);
                         break;
@@ -1124,11 +1114,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private filterMetadataFields(columns: string[]): string[] {
-        return columns.filter(col => !this.isMetadataField(col));
-    }
-
-    private isMetadataField(columnIdentifier: string): boolean {
-        return columnIdentifier === DATA_TABLE_ID_FIELD || columnIdentifier === DATA_TABLE_NAME_FIELD;
+        return columns.filter(column => column !== DATA_TABLE_ID_FIELD && column !== DATA_TABLE_NAME_FIELD);
     }
 
     private getSelectedColumnsForTable(
