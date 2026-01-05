@@ -1330,7 +1330,7 @@ describe('DataFrameDataSourceV2', () => {
                     const query = {
                         refId: 'A',
                         type: DataFrameQueryType.Data,
-                        columns: ['time-Timestamp', 'voltage-Numeric'],
+                        columns: ['time-Timestamp', 'voltage-Numeric', 'Data table ID-Metadata', 'Data table name-Metadata'],
                         dataTableFilter: 'name = "Test"',
                         decimationMethod: 'LOSSY',
                         xColumn: 'time-Timestamp',
@@ -4877,6 +4877,8 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                 expect(result.uniqueColumnsAcrossTables).toEqual([
+                    { label: 'Data table ID', value: 'Data table ID-Metadata' },
+                    { label: 'Data table name', value: 'Data table name-Metadata' },
                     { label: 'Alpha', value: 'Alpha-Numeric' },
                     { label: 'Column1', value: 'Column1-Numeric' },
                     { label: 'column2', value: 'column2-Numeric' },
@@ -4922,6 +4924,8 @@ describe('DataFrameDataSourceV2', () => {
 
                 const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
                 expect(result.uniqueColumnsAcrossTables).toEqual([
+                    { label: 'Data table ID', value: 'Data table ID-Metadata' },
+                    { label: 'Data table name', value: 'Data table name-Metadata' },
                     { label: 'Column 1', value: 'Column 1-Numeric' },
                     { label: 'Column 2', value: 'Column 2-Numeric' },
                     { label: 'Column 3', value: 'Column 3-Numeric' },
@@ -4954,6 +4958,8 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                     expect(result.uniqueColumnsAcrossTables).toEqual([
+                        { label: 'Data table ID', value: 'Data table ID-Metadata' },
+                        { label: 'Data table name', value: 'Data table name-Metadata' },
                         { label: 'Column 1', value: 'Column 1-String' },
                         { label: 'Column 2', value: 'Column 2-Numeric' },
                         { label: 'Column 3', value: 'Column 3-Timestamp' },
@@ -4992,6 +4998,8 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                     expect(result.uniqueColumnsAcrossTables).toEqual([
+                        { label: 'Data table ID', value: 'Data table ID-Metadata' },
+                        { label: 'Data table name', value: 'Data table name-Metadata' },
                         { label: 'Column 1 (Numeric)', value: 'Column 1-Numeric' },
                         { label: 'Column 1 (String)', value: 'Column 1-String' }
                     ]);
@@ -5025,6 +5033,8 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                     expect(result.uniqueColumnsAcrossTables).toEqual([
+                        { label: 'Data table ID', value: 'Data table ID-Metadata' },
+                        { label: 'Data table name', value: 'Data table name-Metadata' },
                         { label: 'Column A (Boolean)', value: 'Column A-Boolean' },
                         { label: 'Column A (String)', value: 'Column A-String' },
                         { label: 'Column B (Numeric)', value: 'Column B-Numeric' },
@@ -5065,6 +5075,8 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                     expect(result.uniqueColumnsAcrossTables).toEqual([
+                        { label: 'Data table ID', value: 'Data table ID-Metadata' },
+                        { label: 'Data table name', value: 'Data table name-Metadata' },
                         { label: 'Column A', value: 'Column A-String' },
                         { label: 'Column B', value: 'Column B-Numeric' },
                         { label: 'Column C', value: 'Column C-Boolean' },
@@ -5096,6 +5108,8 @@ describe('DataFrameDataSourceV2', () => {
                     expect(result.uniqueColumnsAcrossTables).toEqual([
                         { label: '$var1', value: '$var1' },
                         { label: '$var2', value: '$var2' },
+                        { label: 'Data table ID', value: 'Data table ID-Metadata' },
+                        { label: 'Data table name', value: 'Data table name-Metadata' },
                         { label: 'Column 1', value: 'Column 1-String' },
                         { label: 'Column 2', value: 'Column 2-Numeric' }
                     ]);
