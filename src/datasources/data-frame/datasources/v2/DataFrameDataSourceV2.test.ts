@@ -2,7 +2,7 @@ import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { ColumnType, DataFrameDataQuery, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
-import { COLUMN_SELECTION_LIMIT, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_SELECTION_LIMIT, TAKE_LIMIT, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, metadataFieldOptions } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
 import { Workspace } from 'core/types';
@@ -4827,7 +4827,7 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                 const metadataFieldValues = result.uniqueColumnsAcrossTables
-                    .filter(option => option.value === 'Data table ID-Metadata' || option.value === 'Data table name-Metadata');
+                    .filter(option => option.value === DATA_TABLE_ID_FIELD || option.value === DATA_TABLE_NAME_FIELD);
                 
                 expect(metadataFieldValues).toEqual([]);
             });
@@ -4846,12 +4846,9 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                 const metadataFields = result.uniqueColumnsAcrossTables
-                    .filter(option => option.value === 'Data table ID-Metadata' || option.value === 'Data table name-Metadata');
+                    .filter(option => option.value === DATA_TABLE_ID_FIELD || option.value === DATA_TABLE_NAME_FIELD);
                 
-                expect(metadataFields).toEqual([
-                    { label: 'Data table ID', value: 'Data table ID-Metadata' },
-                    { label: 'Data table name', value: 'Data table name-Metadata' }
-                ]);
+                expect(metadataFields).toEqual(metadataFieldOptions);
             });
 
             it('should return columns in sorted order by label', async () => {

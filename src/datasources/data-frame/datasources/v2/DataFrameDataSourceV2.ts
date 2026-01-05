@@ -2,7 +2,7 @@ import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceI
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, DataTableFirstClassPropertyLabels } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, metadataFieldOptions, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -13,9 +13,6 @@ import { ResultsQueryBuilderFieldNames } from "shared/components/ResultsQueryBui
 import { replaceVariables } from "core/utils";
 import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
 import { QueryBuilderOperations } from "core/query-builder.constants";
-
-const DATA_TABLE_ID_FIELD = 'Data table ID-Metadata';
-const DATA_TABLE_NAME_FIELD = 'Data table name-Metadata';
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
@@ -279,10 +276,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const hasColumnsAvailable = columnOptions.uniqueColumnsAcrossTables.length > 0 
             || columnOptions.commonColumnsAcrossTables.length > 0;
         
-        const metadataFields: Option[] = hasColumnsAvailable ? [
-            { label: 'Data table ID', value: DATA_TABLE_ID_FIELD },
-            { label: 'Data table name', value: DATA_TABLE_NAME_FIELD }
-        ] : [];
+        const metadataFields: Option[] = hasColumnsAvailable ? metadataFieldOptions : [];
         
         const uniqueColumnsAcrossTablesWithVariables = [
             ...this.getVariableOptions(),
@@ -800,9 +794,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     );
                 }
 
-                const nonMetadataColumns = selectedColumnIdentifiers.filter(
-                    col => col !== DATA_TABLE_ID_FIELD && col !== DATA_TABLE_NAME_FIELD
-                );
+                const nonMetadataColumns = this.filterMetadataFields(selectedColumnIdentifiers);
 
                 if (nonMetadataColumns.length > COLUMN_SELECTION_LIMIT) {
                     const errorMessage = `The number of columns you selected (${nonMetadataColumns.length.toLocaleString()}) exceeds the column limit (${COLUMN_SELECTION_LIMIT.toLocaleString()}). Reduce your number of selected columns and try again.`;
@@ -927,9 +919,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
         uniqueOutputColumns = this.sortColumnsByType(uniqueOutputColumns, xColumn);
 
-        const dataTableNameFieldLabel = 'Data table name';
-        const dataTableIdFieldLabel = 'Data table ID';
-
+        const dataTableNameFieldLabel = DATA_TABLE_NAME_LABEL;
+        const dataTableIdFieldLabel = DATA_TABLE_ID_LABEL;
         const isDataTableIdSelected = selectedColumns.includes(DATA_TABLE_ID_FIELD);
         const isDataTableNameSelected = selectedColumns.includes(DATA_TABLE_NAME_FIELD);
 
@@ -1106,9 +1097,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const selectedTableColumnsMap: Record<string, TableColumnsData> = {};
         const uniqueColumnsAcrossTables = this.getUniqueColumnsAcrossTables(tables);
         
-        const dataColumnIdentifiers = selectedColumnIdentifiers.filter(
-            col => col !== DATA_TABLE_ID_FIELD && col !== DATA_TABLE_NAME_FIELD
-        );
+        const dataColumnIdentifiers = this.filterMetadataFields(selectedColumnIdentifiers);
         
         tables.forEach(table => {
             const selectedColumns = this.getSelectedColumnsForTable(
@@ -1132,6 +1121,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             }
         });
         return selectedTableColumnsMap;
+    }
+
+    private filterMetadataFields(columns: string[]): string[] {
+        return columns.filter(col => !this.isMetadataField(col));
+    }
+
+    private isMetadataField(columnIdentifier: string): boolean {
+        return columnIdentifier === DATA_TABLE_ID_FIELD || columnIdentifier === DATA_TABLE_NAME_FIELD;
     }
 
     private getSelectedColumnsForTable(
