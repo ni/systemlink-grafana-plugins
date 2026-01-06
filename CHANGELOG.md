@@ -1,3 +1,9 @@
+## [4.112.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.111.3...v4.112.0) (2026-01-06)
+
+### Features
+
+* **dataframe:** Add data table ID and name as selection from column dropdown ([#639](https://github.com/ni/systemlink-grafana-plugins/issues/639)) ([a794833](https://github.com/ni/systemlink-grafana-plugins/commit/a79483353703785dda8ad4e69d48ed7f6ee870c0))
+
 ## [4.111.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.111.2...v4.111.3) (2025-12-23)
 
 ### Bug Fixes
