@@ -1077,6 +1077,63 @@ describe('DataFrameDataSourceV2', () => {
                             ]
                         });
                     });
+
+                    it('should throw error when only metadata fields are selected but no tables are returned', async () => {
+                        const selectedColumns = [
+                            DATA_TABLE_ID_FIELD,
+                            DATA_TABLE_NAME_FIELD,
+                        ];
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: selectedColumns,
+                            resultFilter: 'status = "Active"',
+                            dataTableFilter: 'name = "NonExistent"',
+                        } as DataFrameQueryV2;
+                        const publishMock = jest.fn();
+                        (ds as any).appEvents = { publish: publishMock };
+                        queryTablesSpy.mockReturnValue(of([]));
+                
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(errorMessage);
+
+                        expect(publishMock).toHaveBeenCalledWith({
+                            type: 'alert-error',
+                            payload: [
+                                'Column selection error',
+                                errorMessage
+                            ]
+                        });
+                    });
+
+                    it('should throw error when metadata fields and columns are selected but no tables are returned', async () => {
+                        const selectedColumns = [
+                            DATA_TABLE_ID_FIELD,
+                            'colA-Numeric'
+                        ];
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: selectedColumns,
+                            resultFilter: 'status = "Active"',
+                        } as DataFrameQueryV2;
+                        const publishMock = jest.fn();
+                        (ds as any).appEvents = { publish: publishMock };
+                        queryTablesSpy.mockReturnValue(of([]));
+                
+                        await expect(
+                            lastValueFrom(ds.runQuery(query, options))
+                        ).rejects.toThrow(errorMessage);
+
+                        expect(publishMock).toHaveBeenCalledWith({
+                            type: 'alert-error',
+                            payload: [
+                                'Column selection error',
+                                errorMessage
+                            ]
+                        });
+                    });
                 });
 
                 describe('include index columns', () => {
