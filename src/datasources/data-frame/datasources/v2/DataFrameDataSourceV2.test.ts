@@ -5425,10 +5425,10 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                     expect(result.uniqueColumnsAcrossTables).toEqual([
-                        { label: '$var1', value: '$var1' },
-                        { label: '$var2', value: '$var2' },
                         { label: 'Data table ID', value: 'Data table ID-Metadata' },
                         { label: 'Data table name', value: 'Data table name-Metadata' },
+                        { label: '$var1', value: '$var1' },
+                        { label: '$var2', value: '$var2' },
                         { label: 'Column 1', value: 'Column 1-String' },
                         { label: 'Column 2', value: 'Column 2-Numeric' }
                     ]);
