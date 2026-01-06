@@ -282,7 +282,7 @@ describe("DataFrameQueryEditorV2", () => {
                     const options = within(document.body).queryAllByRole('option');
                     expect(options.length).toBe(2);
                     expect(options.map(opt => opt.textContent)).toEqual(
-                        expect.arrayContaining(['Data table ID', 'Data table name'])
+                        expect.arrayContaining(['MetadataData table ID', 'Data table name'])
                     );
                 });
 
@@ -294,7 +294,7 @@ describe("DataFrameQueryEditorV2", () => {
                     const options = within(document.body).queryAllByRole('option');
                     expect(options.length).toBe(2);
                     expect(options.map(opt => opt.textContent)).toEqual(
-                        expect.arrayContaining(['Data table ID', 'Data table name'])
+                        expect.arrayContaining(['MetadataData table ID', 'Data table name'])
                     );
                 });
 
@@ -422,7 +422,7 @@ describe("DataFrameQueryEditorV2", () => {
                             const optionControls = within(document.body).queryAllByRole('option');
                             expect(optionControls.length).toBe(2);
                             expect(optionControls.map(opt => opt.textContent)).toEqual(
-                                expect.arrayContaining(['Data table ID', 'Data table name'])
+                                expect.arrayContaining(['MetadataData table ID', 'Data table name'])
                             );
                         });
                         expect(datasource.getColumnOptionsWithVariables).not.toHaveBeenCalled();
