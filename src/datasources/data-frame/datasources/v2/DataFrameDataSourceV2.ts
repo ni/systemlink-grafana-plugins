@@ -1103,10 +1103,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return selectedTableColumnsMap;
     }
 
-    private filterMetadataFields(columns: string[]): string[] {
-        return columns.filter(column => 
-            column !== DATA_TABLE_ID_FIELD && 
-            column !== DATA_TABLE_NAME_FIELD
+    private filterMetadataFields(columnIdentifiers: string[]): string[] {
+        return columnIdentifiers.filter(columnIdentifier => 
+            columnIdentifier !== DATA_TABLE_ID_FIELD && 
+            columnIdentifier !== DATA_TABLE_NAME_FIELD
         );
     }
 
