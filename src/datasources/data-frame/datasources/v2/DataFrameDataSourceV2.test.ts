@@ -721,6 +721,9 @@ describe('DataFrameDataSourceV2', () => {
                         
                         const nameField = findField(result.fields, 'Data table name');
                         expect(nameField?.values).toEqual(['Table A', 'Table B', 'Table C']);
+                        
+                        const valueField = findField(result.fields, 'value');
+                        expect(valueField?.values).toEqual([1, 2, 3]);
                     });
 
                     it('should not call decimated data API when only metadata columns are selected', async () => {

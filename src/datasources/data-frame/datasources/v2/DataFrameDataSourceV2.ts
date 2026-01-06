@@ -273,12 +273,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     ): Promise<ColumnOptions> {
         const columnOptions = await this.getColumnOptions(filters);
         
-        const hasUniqueColumnsAvailable = columnOptions.uniqueColumnsAcrossTables.length > 0;        
-        const metadataFields: Option[] = hasUniqueColumnsAvailable ? metadataFieldOptions : [];
+        const areUniqueColumnsAvailable = columnOptions.uniqueColumnsAcrossTables.length > 0;        
+        const metadataOptions: Option[] = areUniqueColumnsAvailable ? metadataFieldOptions : [];
         
         const uniqueColumnsAcrossTablesWithVariables = [
+            ...metadataOptions,
             ...this.getVariableOptions(),
-            ...metadataFields,
             ...columnOptions.uniqueColumnsAcrossTables
         ];
         const commonColumnsAcrossTablesWithVariables = [
@@ -1106,7 +1106,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private filterMetadataFields(columns: string[]): string[] {
-        return columns.filter(column => column !== DATA_TABLE_ID_FIELD && column !== DATA_TABLE_NAME_FIELD);
+        return columns.filter(column => 
+            column !== DATA_TABLE_ID_FIELD && 
+            column !== DATA_TABLE_NAME_FIELD
+        );
     }
 
     private getSelectedColumnsForTable(
