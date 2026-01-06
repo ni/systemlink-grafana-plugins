@@ -272,13 +272,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         filters: CombinedFilters
     ): Promise<ColumnOptions> {
         const columnOptions = await this.getColumnOptions(filters);
-        
-        const areUniqueColumnsAvailable = columnOptions.uniqueColumnsAcrossTables.length > 0;        
-        const metadataOptions: Option[] = areUniqueColumnsAvailable ? metadataFieldOptions : [];
-        const variableOptionsWithGroup = this.getVariableOptions().map(option => ({ ...option, group: COLUMNS_GROUP }));
-        
+
+        const variableOptionsWithGroup = this.getVariableOptions().map(
+            option => ({ ...option, group: COLUMNS_GROUP })
+        );
+
         const uniqueColumnsAcrossTablesWithVariables = [
-            ...metadataOptions,
+            ...metadataFieldOptions,
             ...variableOptionsWithGroup,
             ...columnOptions.uniqueColumnsAcrossTables
         ];
@@ -679,11 +679,19 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
             if (columnDataType.length === 1) {
                 // Single type: show just the name as label and value as name with type in sentence case
-                options.push({ label: columnName, value: `${columnName}-${columnDataType[0]}`, group: COLUMNS_GROUP });
+                options.push({ 
+                    label: columnName,
+                    value: `${columnName}-${columnDataType[0]}`,
+                    group: COLUMNS_GROUP
+                });
             } else {
                 // Multiple types: show type in label and value
                 columnDataType.forEach(dataType => {
-                    options.push({ label: `${columnName} (${dataType})`, value: `${columnName}-${dataType}`, group: COLUMNS_GROUP });
+                    options.push({
+                        label: `${columnName} (${dataType})`,
+                        value: `${columnName}-${dataType}`,
+                        group: COLUMNS_GROUP
+                    });
                 });
             }
         });
