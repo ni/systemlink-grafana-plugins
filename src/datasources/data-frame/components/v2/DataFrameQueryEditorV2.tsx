@@ -69,7 +69,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
             try {
                 const columnOptions = await datasource.getColumnOptionsWithVariables(filters);
-                // Limit column dropdown options to COLUMN_OPTIONS_LIMIT (10,000) + metadata fields (Data Table ID and Name)
                 const limitedColumnOptions = columnOptions.uniqueColumnsAcrossTables
                     .slice(0, COLUMN_OPTIONS_LIMIT + metadataFieldOptions.length);
                 const limitedXColumnOptions = columnOptions.commonColumnsAcrossTables
