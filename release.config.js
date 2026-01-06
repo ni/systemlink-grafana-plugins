@@ -1,6 +1,10 @@
 const package = 'systemlink-grafana-plugins';
 
 module.exports = {
+    branches: [
+        'main',
+        { name: '*', prerelease: 'pre' }
+    ],
     plugins: [
         ["@semantic-release/commit-analyzer", {
             preset: "conventionalcommits"
