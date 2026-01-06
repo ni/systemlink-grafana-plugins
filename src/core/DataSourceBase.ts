@@ -11,7 +11,7 @@ import { BackendSrv, BackendSrvRequest, TemplateSrv, getAppEvents } from '@grafa
 import { DataQuery } from '@grafana/schema';
 import { QuerySystemsResponse, QuerySystemsRequest, Workspace } from './types';
 import { get, get$, post, post$ } from './utils';
-import { forkJoin, from, map, Observable, of, switchMap } from 'rxjs';
+import { firstValueFrom, forkJoin, from, map, Observable, of, switchMap } from 'rxjs';
 import { ApiSessionUtils } from '../shared/api-session.utils';
 
 /**
@@ -54,11 +54,11 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
       .map(this.prepareQuery, this)
       .filter(this.shouldRunQuery, this)
       .map(q => this.runQuery(q, request), this);
-    
+
     if (queries$.length === 0) {
       return of({ data: [] });
     }
-    
+
     return forkJoin(queries$).pipe(
       map((data) => ({ data })),
     );
@@ -80,7 +80,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
     [url, options] = await this.buildApiRequestConfig(url, options, 'GET');
     return get<T>(this.backendSrv, url, options);
   }
- 
+
   /**
    * Sends a GET request to the specified URL with the provided parameters.
    *
@@ -103,7 +103,7 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
    * @template T - The expected response type.
    * @param url - The endpoint URL to which the POST request is sent.
    * @param body - The request payload as a key-value map.
-   * @param options - Optional configurations for the request. 
+   * @param options - Optional configurations for the request.
    * @returns A promise resolving to the response of type `T`.
    */
   public async post<T>(
@@ -153,15 +153,22 @@ export abstract class DataSourceBase<TQuery extends DataQuery, TOptions extends 
   private static Workspaces: Workspace[];
 
   public async getWorkspaces(): Promise<Workspace[]> {
+    return await firstValueFrom(this.getWorkspaces$());
+  }
+
+  public getWorkspaces$(): Observable<Workspace[]> {
     if (DataSourceBase.Workspaces) {
-      return DataSourceBase.Workspaces;
+      return of(DataSourceBase.Workspaces);
     }
 
-    const response = await this.backendSrv.get<{ workspaces: Workspace[] }>(
+    return this.get$<{ workspaces: Workspace[] }>(
       this.instanceSettings.url + '/niauth/v1/user'
+    ).pipe(
+        map(response => {
+            DataSourceBase.Workspaces = response.workspaces;
+            return DataSourceBase.Workspaces;
+        })
     );
-
-    return (DataSourceBase.Workspaces = response.workspaces);
   }
 
   public async getSystems(body: QuerySystemsRequest): Promise<QuerySystemsResponse> {
