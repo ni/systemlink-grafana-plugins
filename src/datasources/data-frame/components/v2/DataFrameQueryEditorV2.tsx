@@ -26,7 +26,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [isColumnConfigurationSectionOpen, setIsColumnConfigurationSectionOpen] = useState(true);
     const [isDecimationSettingsSectionOpen, setIsDecimationSettingsSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
-    const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
+    const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>(metadataFieldOptions);
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
     const [xColumnOptions, setXColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnOptionsInitialized, setIsColumnOptionsInitialized] = useState<boolean>(false);
@@ -76,7 +76,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                 setColumnOptions(limitedColumnOptions);
                 setXColumnOptions(limitedXColumnOptions);
             } catch (error) {
-                setColumnOptions([]);
+                setColumnOptions(metadataFieldOptions);
                 setXColumnOptions([]);
             } finally {
                 setIsColumnOptionsInitialized(true);
@@ -169,9 +169,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                 return;
             }
 
-            // Clear column options if filter is empty
+            // Clear column options (except metadata fields) if filter is empty
             if (columnOptions.length > 0) {
-                setColumnOptions([]);
+                setColumnOptions(metadataFieldOptions);
             }
             if (xColumnOptions.length > 0) {
                 setXColumnOptions([]);
