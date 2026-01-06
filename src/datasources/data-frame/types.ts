@@ -247,6 +247,15 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     field: 'properties'
   },
 };
+export const DATA_TABLE_ID_LABEL = DataTableProjectionLabelLookup[DataTableProperties.Id].label;
+export const DATA_TABLE_NAME_LABEL = DataTableProjectionLabelLookup[DataTableProperties.Name].label;
+export const DATA_TABLE_ID_FIELD = `${DATA_TABLE_ID_LABEL}-Metadata`;
+export const DATA_TABLE_NAME_FIELD = `${DATA_TABLE_NAME_LABEL}-Metadata`;
+
+export const metadataFieldOptions: Array<{ label: string; value: string }> = [
+  { label: DATA_TABLE_ID_LABEL, value: DATA_TABLE_ID_FIELD },
+  { label: DATA_TABLE_NAME_LABEL, value: DATA_TABLE_NAME_FIELD }
+];
 
 export const DataTableFirstClassPropertyLabels = new Set(
   Object.values(DataTableProjectionLabelLookup).map(lookup => lookup.label)

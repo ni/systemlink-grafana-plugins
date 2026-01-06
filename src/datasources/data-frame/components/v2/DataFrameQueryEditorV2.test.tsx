@@ -274,22 +274,28 @@ describe("DataFrameQueryEditorV2", () => {
                     ));
                 });
 
-                it('should not load column options when filter is empty', async () => {
+                it('should only show metadata column options when filter is empty', async () => {
                     renderComponent({ dataTableFilter: '', resultFilter: '' });
 
                     await clickColumnOptions();
 
-                    // Assert that no options are shown
-                    expect(within(document.body).queryAllByRole('option').length).toBe(0);
+                    const options = within(document.body).queryAllByRole('option');
+                    expect(options.length).toBe(2);
+                    expect(options.map(opt => opt.textContent)).toEqual(
+                        expect.arrayContaining(['Data table ID', 'Data table name'])
+                    );
                 });
 
-                it('should not load column options when only column filter is set', async () => {
+                it('should only show metadata column options when only column filter is set', async () => {
                     renderComponent({ columnFilter: 'ColumnB' });
                     
                     await clickColumnOptions();
 
-                    // Assert that no options are shown
-                    expect(within(document.body).queryAllByRole('option').length).toBe(0);
+                    const options = within(document.body).queryAllByRole('option');
+                    expect(options.length).toBe(2);
+                    expect(options.map(opt => opt.textContent)).toEqual(
+                        expect.arrayContaining(['Data table ID', 'Data table name'])
+                    );
                 });
 
                 it('should not load column options when filter is unchanged', async () => {
@@ -322,23 +328,29 @@ describe("DataFrameQueryEditorV2", () => {
                             cleanup();
                             jest.clearAllMocks();
 
-                            const columnOptions = Array.from({ length: COLUMN_OPTIONS_LIMIT + 25 }, (_, i) => ({
-                                label: `Column${i + 1}`,
-                                value: `Column${i + 1}`,
-                            }));
+                            const columnOptions = [
+                                { label: 'Data table ID', value: 'Data table ID-Metadata' },
+                                { label: 'Data table name', value: 'Data table name-Metadata' },
+                                ...Array.from({ length: COLUMN_OPTIONS_LIMIT + 25 }, (_, i) => ({
+                                    label: `Column${i + 1}`,
+                                    value: `Column${i + 1}`,
+                                }))
+                            ];
 
                             // Increase offsetHeight to allow more options to be rendered in the test environment
-                            jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(200);
+                            jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
                             const result = renderComponent({ dataTableFilter: ' ' }, '', '', columnOptions);
                             datasource = result.datasource;
 
                             await changeFilterValue();
                         });
 
-                        it(`should limit the number of column options to ${COLUMN_OPTIONS_LIMIT}`, async () => {
+                        it(`should limit column options to ${COLUMN_OPTIONS_LIMIT + 2} as metadata options are included in the dropdown`, async () => {
                             await clickColumnOptions();
                             const optionTexts = getColumnOptionTexts();
-                            expect(optionTexts.length).toBe(COLUMN_OPTIONS_LIMIT);
+                            expect(optionTexts.length).toBe(COLUMN_OPTIONS_LIMIT + 2);
+                            expect(optionTexts).toContain('Data table ID');
+                            expect(optionTexts).toContain('Data table name');
                         });
                     });
                 });
@@ -392,7 +404,7 @@ describe("DataFrameQueryEditorV2", () => {
                         });
                     });
 
-                    it('should not fetch column options when switching to Data query type with existing empty filter', async () => {
+                    it('should only show metadata options when switching to Data query type with existing empty filter', async () => {
                         const user = userEvent.setup();
                         const { datasource } = renderComponent({
                             type: DataFrameQueryType.Properties,
@@ -408,7 +420,10 @@ describe("DataFrameQueryEditorV2", () => {
 
                         await waitFor(() => {
                             const optionControls = within(document.body).queryAllByRole('option');
-                            expect(optionControls.length).toBe(0);
+                            expect(optionControls.length).toBe(2);
+                            expect(optionControls.map(opt => opt.textContent)).toEqual(
+                                expect.arrayContaining(['Data table ID', 'Data table name'])
+                            );
                         });
                         expect(datasource.getColumnOptionsWithVariables).not.toHaveBeenCalled();
                     });

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2 } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2, metadataFieldOptions } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
@@ -26,7 +26,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [isColumnConfigurationSectionOpen, setIsColumnConfigurationSectionOpen] = useState(true);
     const [isDecimationSettingsSectionOpen, setIsDecimationSettingsSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
-    const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
+    const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>(metadataFieldOptions);
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
     const [xColumnOptions, setXColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnOptionsInitialized, setIsColumnOptionsInitialized] = useState<boolean>(false);
@@ -70,13 +70,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             try {
                 const columnOptions = await datasource.getColumnOptionsWithVariables(filters);
                 const limitedColumnOptions = columnOptions.uniqueColumnsAcrossTables
-                    .slice(0, COLUMN_OPTIONS_LIMIT);
+                    .slice(0, COLUMN_OPTIONS_LIMIT + metadataFieldOptions.length);
                 const limitedXColumnOptions = columnOptions.commonColumnsAcrossTables
                     .slice(0, COLUMN_OPTIONS_LIMIT);
                 setColumnOptions(limitedColumnOptions);
                 setXColumnOptions(limitedXColumnOptions);
             } catch (error) {
-                setColumnOptions([]);
+                setColumnOptions(metadataFieldOptions);
                 setXColumnOptions([]);
             } finally {
                 setIsColumnOptionsInitialized(true);
@@ -169,9 +169,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                 return;
             }
 
-            // Clear column options if filter is empty
+            // Clear column options (except metadata fields) if filter is empty
             if (columnOptions.length > 0) {
-                setColumnOptions([]);
+                setColumnOptions(metadataFieldOptions);
             }
             if (xColumnOptions.length > 0) {
                 setXColumnOptions([]);
