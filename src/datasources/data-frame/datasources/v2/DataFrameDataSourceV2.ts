@@ -849,7 +849,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         );
 
                         const hasOnlyMetadataFields = selectedColumnIdentifiers.every(
-                            column => column === DATA_TABLE_ID_FIELD || column === DATA_TABLE_NAME_FIELD
+                            selectedColumnIdentifier => selectedColumnIdentifier === DATA_TABLE_ID_FIELD || selectedColumnIdentifier === DATA_TABLE_NAME_FIELD
                         );
 
                         if (
