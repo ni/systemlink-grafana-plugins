@@ -5147,7 +5147,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.uniqueColumnsAcrossTables).toEqual([]);
             });
 
-            it('should include metadata fields when tables with columns are found', async () => {
+            it('should include data table ID and name labels in column dropdown when tables with columns are found', async () => {
                 queryTablesMock$.mockReturnValue(of([
                     {
                         id: '1',
