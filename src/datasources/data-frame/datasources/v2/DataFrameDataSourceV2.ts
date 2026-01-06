@@ -272,7 +272,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         filters: CombinedFilters
     ): Promise<ColumnOptions> {
         const columnOptions = await this.getColumnOptions(filters);
-                
         const uniqueColumnsAcrossTablesWithVariables = [
             ...metadataFieldOptions,
             ...this.getVariableOptions(),
@@ -849,12 +848,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             processedQuery.includeIndexColumns
                         );
 
-                        const tableNamesMap = this.buildTableNamesMap(tables);
                         const hasOnlyMetadataFields = selectedColumnIdentifiers.every(
                             column => column === DATA_TABLE_ID_FIELD || column === DATA_TABLE_NAME_FIELD
                         );
 
-                        if (Object.keys(tableColumnsMap).length > 0 || hasOnlyMetadataFields) {
+                        if (
+                            Object.keys(tableColumnsMap).length > 0
+                            || hasOnlyMetadataFields
+                        ) {
+                            const tableNamesMap = this.buildTableNamesMap(tables);
                             const decimatedDataMap$ = hasOnlyMetadataFields
                                 ? of({
                                     data: Object.fromEntries(
