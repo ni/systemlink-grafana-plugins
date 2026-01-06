@@ -278,7 +278,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const variableOptionsWithGroup = this.getVariableOptions().map(option => ({ ...option, group: COLUMNS_GROUP }));
         
         const uniqueColumnsAcrossTablesWithVariables = [
-            ...metadataOptions,
+            ...metadataFields,
             ...variableOptionsWithGroup,
             ...columnOptions.uniqueColumnsAcrossTables
         ];
