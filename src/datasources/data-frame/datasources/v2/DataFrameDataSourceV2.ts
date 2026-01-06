@@ -910,7 +910,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tableNamesMap: Record<string, string>,
         decimatedDataMap: Record<string, TableDataRows>,
         xColumn: string | null,
-        selectedColumns: string[]
+        selectedColumnIdentifiers: string[]
     ): FieldDTO[] {
         let uniqueOutputColumns = this.getUniqueColumns(
             Object.values(tableColumnsMap)
@@ -927,7 +927,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         ];
 
         metadataFieldOptions.forEach(({ label, value }) => {
-            if (selectedColumns.includes(value)) {
+            if (selectedColumnIdentifiers.includes(value)) {
                 fields.push({
                     name: label,
                     type: FieldType.string,
