@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2 } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2, metadataFieldOptions } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
@@ -69,9 +69,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
             try {
                 const columnOptions = await datasource.getColumnOptionsWithVariables(filters);
-                // Limit to 10,002 options: 10,000 data table columns + 2 metadata fields (Data Table ID and Name)
+                // Limit column dropdown options to COLUMN_OPTIONS_LIMIT (10,000) + metadata fields (Data Table ID and Name)
                 const limitedColumnOptions = columnOptions.uniqueColumnsAcrossTables
-                    .slice(0, COLUMN_OPTIONS_LIMIT + 2);
+                    .slice(0, COLUMN_OPTIONS_LIMIT + metadataFieldOptions.length);
                 const limitedXColumnOptions = columnOptions.commonColumnsAcrossTables
                     .slice(0, COLUMN_OPTIONS_LIMIT);
                 setColumnOptions(limitedColumnOptions);
