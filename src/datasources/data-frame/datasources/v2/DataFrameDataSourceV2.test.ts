@@ -5146,11 +5146,13 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.uniqueColumnsAcrossTables).toEqual([
                     {
                         label: 'Data table ID',
-                        value: 'Data table ID-Metadata'
+                        value: 'Data table ID-Metadata',
+                        group: 'Metadata'
                     },
                     {
                         label: 'Data table name',
-                        value: 'Data table name-Metadata'
+                        value: 'Data table name-Metadata',
+                        group: 'Metadata'
                     }
                 ]);
             });
@@ -5166,11 +5168,13 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.uniqueColumnsAcrossTables).toEqual([
                     {
                         label: 'Data table ID',
-                        value: 'Data table ID-Metadata'
+                        value: 'Data table ID-Metadata',
+                        group: 'Metadata'
                     },
                     {
                         label: 'Data table name',
-                        value: 'Data table name-Metadata'
+                        value: 'Data table name-Metadata',
+                        group: 'Metadata'
                     }
                 ]);
             });
@@ -5189,9 +5193,9 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                 expect(result.uniqueColumnsAcrossTables).toEqual([
-                    { label: 'Data table ID', value: 'Data table ID-Metadata' },
-                    { label: 'Data table name', value: 'Data table name-Metadata' },
-                    { label: 'Column1', value: 'Column1-String' }
+                    { label: 'Data table ID', value: 'Data table ID-Metadata', group: 'Metadata' },
+                    { label: 'Data table name', value: 'Data table name-Metadata', group: 'Metadata' },
+                    { label: 'Column1', value: 'Column1-String', group: 'Columns' }
                 ]);
             });
 
@@ -5221,15 +5225,15 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                 expect(result.uniqueColumnsAcrossTables).toEqual([
-                    { label: 'Data table ID', value: 'Data table ID-Metadata' },
-                    { label: 'Data table name', value: 'Data table name-Metadata' },
-                    { label: 'Alpha', value: 'Alpha-Numeric' },
-                    { label: 'Column1', value: 'Column1-Numeric' },
-                    { label: 'column2', value: 'column2-Numeric' },
-                    { label: 'Test (Numeric)', value: 'Test-Numeric' },
-                    { label: 'Test (String)', value: 'Test-String' },
-                    { label: 'test1', value: 'test1-Numeric' },
-                    { label: 'Zeta', value: 'Zeta-String' },
+                    { label: 'Data table ID', value: 'Data table ID-Metadata', group: 'Metadata' },
+                    { label: 'Data table name', value: 'Data table name-Metadata', group: 'Metadata' },
+                    { label: 'Alpha', value: 'Alpha-Numeric', group: 'Columns' },
+                    { label: 'Column1', value: 'Column1-Numeric', group: 'Columns' },
+                    { label: 'column2', value: 'column2-Numeric', group: 'Columns' },
+                    { label: 'Test (Numeric)', value: 'Test-Numeric', group: 'Columns' },
+                    { label: 'Test (String)', value: 'Test-String', group: 'Columns' },
+                    { label: 'test1', value: 'test1-Numeric', group: 'Columns' },
+                    { label: 'Zeta', value: 'Zeta-String', group: 'Columns' },
                 ]);
             });
 
@@ -5268,12 +5272,12 @@ describe('DataFrameDataSourceV2', () => {
 
                 const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
                 expect(result.uniqueColumnsAcrossTables).toEqual([
-                    { label: 'Data table ID', value: 'Data table ID-Metadata' },
-                    { label: 'Data table name', value: 'Data table name-Metadata' },
-                    { label: 'Column 1', value: 'Column 1-Numeric' },
-                    { label: 'Column 2', value: 'Column 2-Numeric' },
-                    { label: 'Column 3', value: 'Column 3-Numeric' },
-                    { label: 'Column 4', value: 'Column 4-Numeric' },
+                    { label: 'Data table ID', value: 'Data table ID-Metadata', group: 'Metadata' },
+                    { label: 'Data table name', value: 'Data table name-Metadata', group: 'Metadata' },
+                    { label: 'Column 1', value: 'Column 1-Numeric', group: 'Columns' },
+                    { label: 'Column 2', value: 'Column 2-Numeric', group: 'Columns' },
+                    { label: 'Column 3', value: 'Column 3-Numeric', group: 'Columns' },
+                    { label: 'Column 4', value: 'Column 4-Numeric', group: 'Columns' },
                 ]);
             });
 
@@ -5302,13 +5306,13 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                     expect(result.uniqueColumnsAcrossTables).toEqual([
-                        { label: 'Data table ID', value: 'Data table ID-Metadata' },
-                        { label: 'Data table name', value: 'Data table name-Metadata' },
-                        { label: 'Column 1', value: 'Column 1-String' },
-                        { label: 'Column 2', value: 'Column 2-Numeric' },
-                        { label: 'Column 3', value: 'Column 3-Timestamp' },
-                        { label: 'Column 4', value: 'Column 4-Boolean' },
-                        { label: 'Column 5', value: 'Column 5-String' },
+                        { label: 'Data table ID', value: 'Data table ID-Metadata', group: 'Metadata' },
+                        { label: 'Data table name', value: 'Data table name-Metadata', group: 'Metadata' },
+                        { label: 'Column 1', value: 'Column 1-String', group: 'Columns' },
+                        { label: 'Column 2', value: 'Column 2-Numeric', group: 'Columns' },
+                        { label: 'Column 3', value: 'Column 3-Timestamp', group: 'Columns' },
+                        { label: 'Column 4', value: 'Column 4-Boolean', group: 'Columns' },
+                        { label: 'Column 5', value: 'Column 5-String', group: 'Columns' },
                     ]);
                 });
             });
@@ -5342,10 +5346,10 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                     expect(result.uniqueColumnsAcrossTables).toEqual([
-                        { label: 'Data table ID', value: 'Data table ID-Metadata' },
-                        { label: 'Data table name', value: 'Data table name-Metadata' },
-                        { label: 'Column 1 (Numeric)', value: 'Column 1-Numeric' },
-                        { label: 'Column 1 (String)', value: 'Column 1-String' }
+                        { label: 'Data table ID', value: 'Data table ID-Metadata', group: 'Metadata' },
+                        { label: 'Data table name', value: 'Data table name-Metadata', group: 'Metadata' },
+                        { label: 'Column 1 (Numeric)', value: 'Column 1-Numeric', group: 'Columns' },
+                        { label: 'Column 1 (String)', value: 'Column 1-String', group: 'Columns' }
                     ]);
                 });
 
@@ -5377,16 +5381,16 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                     expect(result.uniqueColumnsAcrossTables).toEqual([
-                        { label: 'Data table ID', value: 'Data table ID-Metadata' },
-                        { label: 'Data table name', value: 'Data table name-Metadata' },
-                        { label: 'Column A (Boolean)', value: 'Column A-Boolean' },
-                        { label: 'Column A (String)', value: 'Column A-String' },
-                        { label: 'Column B (Numeric)', value: 'Column B-Numeric' },
-                        { label: 'Column B (Timestamp)', value: 'Column B-Timestamp' },
-                        { label: 'Column C (Boolean)', value: 'Column C-Boolean' },
-                        { label: 'Column C (String)', value: 'Column C-String' },
-                        { label: 'Column D', value: 'Column D-Numeric' },
-                        { label: 'Column E', value: 'Column E-Numeric' }
+                        { label: 'Data table ID', value: 'Data table ID-Metadata', group: 'Metadata' },
+                        { label: 'Data table name', value: 'Data table name-Metadata', group: 'Metadata' },
+                        { label: 'Column A (Boolean)', value: 'Column A-Boolean', group: 'Columns' },
+                        { label: 'Column A (String)', value: 'Column A-String', group: 'Columns' },
+                        { label: 'Column B (Numeric)', value: 'Column B-Numeric', group: 'Columns' },
+                        { label: 'Column B (Timestamp)', value: 'Column B-Timestamp', group: 'Columns' },
+                        { label: 'Column C (Boolean)', value: 'Column C-Boolean', group: 'Columns' },
+                        { label: 'Column C (String)', value: 'Column C-String', group: 'Columns' },
+                        { label: 'Column D', value: 'Column D-Numeric', group: 'Columns' },
+                        { label: 'Column E', value: 'Column E-Numeric', group: 'Columns' }
                     ]);
                 });
             });
@@ -5419,12 +5423,12 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                     expect(result.uniqueColumnsAcrossTables).toEqual([
-                        { label: 'Data table ID', value: 'Data table ID-Metadata' },
-                        { label: 'Data table name', value: 'Data table name-Metadata' },
-                        { label: 'Column A', value: 'Column A-String' },
-                        { label: 'Column B', value: 'Column B-Numeric' },
-                        { label: 'Column C', value: 'Column C-Boolean' },
-                        { label: 'Column D', value: 'Column D-Numeric' },
+                        { label: 'Data table ID', value: 'Data table ID-Metadata', group: 'Metadata' },
+                        { label: 'Data table name', value: 'Data table name-Metadata', group: 'Metadata' },
+                        { label: 'Column A', value: 'Column A-String', group: 'Columns' },
+                        { label: 'Column B', value: 'Column B-Numeric', group: 'Columns' },
+                        { label: 'Column C', value: 'Column C-Boolean', group: 'Columns' },
+                        { label: 'Column D', value: 'Column D-Numeric', group: 'Columns' },
                     ]);
                 });
             });
@@ -5450,12 +5454,12 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                     expect(result.uniqueColumnsAcrossTables).toEqual([
-                        { label: 'Data table ID', value: 'Data table ID-Metadata' },
-                        { label: 'Data table name', value: 'Data table name-Metadata' },
-                        { label: '$var1', value: '$var1' },
-                        { label: '$var2', value: '$var2' },
-                        { label: 'Column 1', value: 'Column 1-String' },
-                        { label: 'Column 2', value: 'Column 2-Numeric' }
+                        { label: 'Data table ID', value: 'Data table ID-Metadata', group: 'Metadata' },
+                        { label: 'Data table name', value: 'Data table name-Metadata', group: 'Metadata' },
+                        { label: '$var1', value: '$var1', group: 'Columns' },
+                        { label: '$var2', value: '$var2', group: 'Columns' },
+                        { label: 'Column 1', value: 'Column 1-String', group: 'Columns' },
+                        { label: 'Column 2', value: 'Column 2-Numeric', group: 'Columns' }
                     ]);
                 });
             });

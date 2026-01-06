@@ -43,3 +43,6 @@ export const NUMERIC_DATA_TYPES = [
     'FLOAT32',
     'FLOAT64'
 ];
+
+export const COLUMNS_GROUP = 'Columns';
+export const METADATA_GROUP = 'Metadata';

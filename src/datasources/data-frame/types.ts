@@ -2,7 +2,7 @@ import { DataQuery } from '@grafana/schema';
 import { QueryBuilderOption, SystemLinkError } from "../../core/types";
 import { DataSourceJsonData, QueryEditorProps } from '@grafana/data';
 import { DataFrameDataSource } from './DataFrameDataSource';
-import { TAKE_LIMIT } from './constants';
+import { METADATA_GROUP, TAKE_LIMIT } from './constants';
 import { QueryBuilderField } from 'smart-webcomponents-react';
 import { Observable } from 'rxjs';
 
@@ -249,12 +249,12 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
 };
 export const DATA_TABLE_ID_LABEL = DataTableProjectionLabelLookup[DataTableProperties.Id].label;
 export const DATA_TABLE_NAME_LABEL = DataTableProjectionLabelLookup[DataTableProperties.Name].label;
-export const DATA_TABLE_ID_FIELD = `${DATA_TABLE_ID_LABEL}-Metadata`;
-export const DATA_TABLE_NAME_FIELD = `${DATA_TABLE_NAME_LABEL}-Metadata`;
+export const DATA_TABLE_ID_FIELD = `${DATA_TABLE_ID_LABEL}-${METADATA_GROUP}`;
+export const DATA_TABLE_NAME_FIELD = `${DATA_TABLE_NAME_LABEL}-${METADATA_GROUP}`;
 
-export const metadataFieldOptions: Array<{ label: string; value: string }> = [
-  { label: DATA_TABLE_ID_LABEL, value: DATA_TABLE_ID_FIELD },
-  { label: DATA_TABLE_NAME_LABEL, value: DATA_TABLE_NAME_FIELD }
+export const metadataFieldOptions: Option[] = [
+  { label: DATA_TABLE_ID_LABEL, value: DATA_TABLE_ID_FIELD, group: METADATA_GROUP },
+  { label: DATA_TABLE_NAME_LABEL, value: DATA_TABLE_NAME_FIELD, group: METADATA_GROUP }
 ];
 
 export const DataTableFirstClassPropertyLabels = new Set(
@@ -365,6 +365,7 @@ export interface ColumnOptions {
 export interface Option {
   label: string;
   value: string;
+  group?: string;
 }
 
 export interface DecimationOptions {
