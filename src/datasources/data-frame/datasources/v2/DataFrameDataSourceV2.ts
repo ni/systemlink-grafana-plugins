@@ -2,7 +2,7 @@ import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceI
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, DataTableFirstClassPropertyLabels, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -275,10 +275,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         
         const areUniqueColumnsAvailable = columnOptions.uniqueColumnsAcrossTables.length > 0;        
         const metadataOptions: Option[] = areUniqueColumnsAvailable ? metadataFieldOptions : [];
+        const variableOptionsWithGroup = this.getVariableOptions().map(option => ({ ...option, group: COLUMNS_GROUP }));
         
         const uniqueColumnsAcrossTablesWithVariables = [
             ...metadataOptions,
-            ...this.getVariableOptions(),
+            ...variableOptionsWithGroup,
             ...columnOptions.uniqueColumnsAcrossTables
         ];
         const commonColumnsAcrossTablesWithVariables = [
@@ -678,11 +679,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
             if (columnDataType.length === 1) {
                 // Single type: show just the name as label and value as name with type in sentence case
-                options.push({ label: columnName, value: `${columnName}-${columnDataType[0]}` });
+                options.push({ label: columnName, value: `${columnName}-${columnDataType[0]}`, group: COLUMNS_GROUP });
             } else {
                 // Multiple types: show type in label and value
                 columnDataType.forEach(dataType => {
-                    options.push({ label: `${columnName} (${dataType})`, value: `${columnName}-${dataType}` });
+                    options.push({ label: `${columnName} (${dataType})`, value: `${columnName}-${dataType}`, group: COLUMNS_GROUP });
                 });
             }
         });
