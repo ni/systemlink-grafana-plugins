@@ -272,12 +272,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         filters: CombinedFilters
     ): Promise<ColumnOptions> {
         const columnOptions = await this.getColumnOptions(filters);
-        
-        const areUniqueColumnsAvailable = columnOptions.uniqueColumnsAcrossTables.length > 0;        
-        const metadataOptions: Option[] = areUniqueColumnsAvailable ? metadataFieldOptions : [];
-        
+                
         const uniqueColumnsAcrossTablesWithVariables = [
-            ...metadataOptions,
+            ...metadataFieldOptions,
             ...this.getVariableOptions(),
             ...columnOptions.uniqueColumnsAcrossTables
         ];
@@ -825,14 +822,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
                 return tables$.pipe(
                     switchMap(tables => {
-                        const hasOnlyMetadataFields = selectedColumnIdentifiers.every(
-                            column => column === DATA_TABLE_ID_FIELD || column === DATA_TABLE_NAME_FIELD
-                        );
-                        
-                        if (
-                            !this.areSelectedColumnsValid(nonMetadataColumnIdentifiers, tables) ||
-                            (hasOnlyMetadataFields && tables.length === 0)
-                        ) {
+                        if (!this.areSelectedColumnsValid(nonMetadataColumnIdentifiers, tables)) {
                             const errorMessage = 'One or more selected columns are invalid. Please update your column selection or refine your filters.';
                             this.appEvents?.publish?.({
                                 type: AppEvents.alertError.name,
@@ -860,6 +850,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         );
 
                         const tableNamesMap = this.buildTableNamesMap(tables);
+                        const hasOnlyMetadataFields = selectedColumnIdentifiers.every(
+                            column => column === DATA_TABLE_ID_FIELD || column === DATA_TABLE_NAME_FIELD
+                        );
 
                         if (Object.keys(tableColumnsMap).length > 0 || hasOnlyMetadataFields) {
                             const decimatedDataMap$ = hasOnlyMetadataFields
