@@ -1,3 +1,9 @@
+## [4.113.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.112.0...v4.113.0) (2026-01-06)
+
+### Features
+
+* **dataframe:** Group columns under different category in the dropdown ([#640](https://github.com/ni/systemlink-grafana-plugins/issues/640)) ([063d35e](https://github.com/ni/systemlink-grafana-plugins/commit/063d35e7194f17aa5566a6196b7784448c0b32b0))
+
 ## [4.112.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.111.3...v4.112.0) (2026-01-06)
 
 ### Features
