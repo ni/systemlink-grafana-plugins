@@ -322,23 +322,29 @@ describe("DataFrameQueryEditorV2", () => {
                             cleanup();
                             jest.clearAllMocks();
 
-                            const columnOptions = Array.from({ length: COLUMN_OPTIONS_LIMIT + 25 }, (_, i) => ({
-                                label: `Column${i + 1}`,
-                                value: `Column${i + 1}`,
-                            }));
+                            const columnOptions = [
+                                { label: 'Data table ID', value: 'Data table ID-Metadata' },
+                                { label: 'Data table name', value: 'Data table name-Metadata' },
+                                ...Array.from({ length: COLUMN_OPTIONS_LIMIT + 25 }, (_, i) => ({
+                                    label: `Column${i + 1}`,
+                                    value: `Column${i + 1}`,
+                                }))
+                            ];
 
                             // Increase offsetHeight to allow more options to be rendered in the test environment
-                            jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(200);
+                            jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
                             const result = renderComponent({ dataTableFilter: ' ' }, '', '', columnOptions);
                             datasource = result.datasource;
 
                             await changeFilterValue();
                         });
 
-                        it(`should limit the number of column options to ${COLUMN_OPTIONS_LIMIT}`, async () => {
+                        it(`should limit column options to ${COLUMN_OPTIONS_LIMIT + 2} as metadata options are included in the dropdown`, async () => {
                             await clickColumnOptions();
                             const optionTexts = getColumnOptionTexts();
-                            expect(optionTexts.length).toBe(COLUMN_OPTIONS_LIMIT);
+                            expect(optionTexts.length).toBe(COLUMN_OPTIONS_LIMIT + 2);
+                            expect(optionTexts).toContain('Data table ID');
+                            expect(optionTexts).toContain('Data table name');
                         });
                     });
                 });
