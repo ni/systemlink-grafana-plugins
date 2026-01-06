@@ -5146,11 +5146,13 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.uniqueColumnsAcrossTables).toEqual([
                     {
                         label: 'Data table ID',
-                        value: 'Data table ID-Metadata'
+                        value: 'Data table ID-Metadata',
+                        group: 'Metadata'
                     },
                     {
                         label: 'Data table name',
-                        value: 'Data table name-Metadata'
+                        value: 'Data table name-Metadata',
+                        group: 'Metadata'
                     }
                 ]);
             });
@@ -5166,11 +5168,13 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.uniqueColumnsAcrossTables).toEqual([
                     {
                         label: 'Data table ID',
-                        value: 'Data table ID-Metadata'
+                        value: 'Data table ID-Metadata',
+                        group: 'Metadata'
                     },
                     {
                         label: 'Data table name',
-                        value: 'Data table name-Metadata'
+                        value: 'Data table name-Metadata',
+                        group: 'Metadata'
                     }
                 ]);
             });
@@ -5189,9 +5193,9 @@ describe('DataFrameDataSourceV2', () => {
                 const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
                 expect(result.uniqueColumnsAcrossTables).toEqual([
-                    { label: 'Data table ID', value: 'Data table ID-Metadata' },
-                    { label: 'Data table name', value: 'Data table name-Metadata' },
-                    { label: 'Column1', value: 'Column1-String' }
+                    { label: 'Data table ID', value: 'Data table ID-Metadata', group: 'Metadata' },
+                    { label: 'Data table name', value: 'Data table name-Metadata', group: 'Metadata' },
+                    { label: 'Column1', value: 'Column1-String', group: 'Columns' }
                 ]);
             });
 
