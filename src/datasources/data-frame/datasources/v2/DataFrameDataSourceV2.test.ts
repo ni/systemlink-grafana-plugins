@@ -706,13 +706,20 @@ describe('DataFrameDataSourceV2', () => {
                             }
                         ];
                         queryTablesSpy.mockReturnValue(of(mockTables));
-                        const mockDecimatedData = {
-                            frame: {
-                                columns: ['value'],
-                                data: [['1', '2', '3']]
+                        
+                        const postSpy = jest.spyOn(ds, 'post$');
+                        postSpy.mockImplementation((url: string) => {
+                            if (url.includes('table-A/query-decimated-data')) {
+                                return of({ frame: { columns: ['value'], data: [['1']] } });
                             }
-                        };
-                        jest.spyOn(ds, 'post$').mockReturnValue(of(mockDecimatedData));
+                            if (url.includes('table-B/query-decimated-data')) {
+                                return of({ frame: { columns: ['value'], data: [['2']] } });
+                            }
+                            if (url.includes('table-C/query-decimated-data')) {
+                                return of({ frame: { columns: ['value'], data: [['3']] } });
+                            }
+                            return of({});
+                        });
                         
                         const result = await lastValueFrom(ds.runQuery(query, options));
 
