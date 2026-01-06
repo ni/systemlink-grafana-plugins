@@ -5195,15 +5195,24 @@ describe('DataFrameDataSourceV2', () => {
                 );
             });
 
-            it('should return an empty array when no tables are found', async () => {
+            it('should return only metadata field options when no tables are found', async () => {
                 queryTablesMock$.mockReturnValue(of([]));
 
                 const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
-                expect(result.uniqueColumnsAcrossTables).toEqual([]);
+                expect(result.uniqueColumnsAcrossTables).toEqual([
+                    {
+                        label: 'Data table ID',
+                        value: 'Data table ID-Metadata'
+                    },
+                    {
+                        label: 'Data table name',
+                        value: 'Data table name-Metadata'
+                    }
+                ]);
             });
 
-            it('should return an empty array when tables have no columns', async () => {
+            it('should return only metadata field options when tables have no columns', async () => {
                 queryTablesMock$.mockReturnValue(of([
                     { id: '1', name: 'Table 1', columns: [] },
                     { id: '2', name: 'Table 2' },
@@ -5211,7 +5220,36 @@ describe('DataFrameDataSourceV2', () => {
 
                 const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
 
-                expect(result.uniqueColumnsAcrossTables).toEqual([]);
+                expect(result.uniqueColumnsAcrossTables).toEqual([
+                    {
+                        label: 'Data table ID',
+                        value: 'Data table ID-Metadata'
+                    },
+                    {
+                        label: 'Data table name',
+                        value: 'Data table name-Metadata'
+                    }
+                ]);
+            });
+
+            it('should include data table ID and name labels in column dropdown when tables with columns are found', async () => {
+                queryTablesMock$.mockReturnValue(of([
+                    {
+                        id: '1',
+                        name: 'Table 1',
+                        columns: [
+                            { name: 'Column1', dataType: 'STRING' }
+                        ]
+                    }
+                ]));
+
+                const result = await ds.getColumnOptionsWithVariables({ dataTableFilter: 'some-filter' });
+
+                expect(result.uniqueColumnsAcrossTables).toEqual([
+                    { label: 'Data table ID', value: 'Data table ID-Metadata' },
+                    { label: 'Data table name', value: 'Data table name-Metadata' },
+                    { label: 'Column1', value: 'Column1-String' }
+                ]);
             });
 
             it('should include data table ID and name labels in column dropdown when tables with columns are found', async () => {

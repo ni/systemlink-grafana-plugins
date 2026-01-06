@@ -826,14 +826,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
                 return tables$.pipe(
                     switchMap(tables => {
-                        const hasOnlyMetadataFields = selectedColumnIdentifiers.every(
-                            column => column === DATA_TABLE_ID_FIELD || column === DATA_TABLE_NAME_FIELD
-                        );
-                        
-                        if (
-                            !this.areSelectedColumnsValid(nonMetadataColumnIdentifiers, tables) ||
-                            (hasOnlyMetadataFields && tables.length === 0)
-                        ) {
+                        if (!this.areSelectedColumnsValid(nonMetadataColumnIdentifiers, tables)) {
                             const errorMessage = 'One or more selected columns are invalid. Please update your column selection or refine your filters.';
                             this.appEvents?.publish?.({
                                 type: AppEvents.alertError.name,
@@ -860,9 +853,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             processedQuery.includeIndexColumns
                         );
 
-                        const tableNamesMap = this.buildTableNamesMap(tables);
+                        const hasOnlyMetadataFields = selectedColumnIdentifiers.every(
+                            selectedColumnIdentifier => selectedColumnIdentifier === DATA_TABLE_ID_FIELD || selectedColumnIdentifier === DATA_TABLE_NAME_FIELD
+                        );
 
-                        if (Object.keys(tableColumnsMap).length > 0 || hasOnlyMetadataFields) {
+                        if (
+                            Object.keys(tableColumnsMap).length > 0
+                            || hasOnlyMetadataFields
+                        ) {
+                            const tableNamesMap = this.buildTableNamesMap(tables);
                             const decimatedDataMap$ = hasOnlyMetadataFields
                                 ? of({
                                     data: Object.fromEntries(
@@ -916,7 +915,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tableNamesMap: Record<string, string>,
         decimatedDataMap: Record<string, TableDataRows>,
         xColumn: string | null,
-        selectedColumns: string[]
+        selectedColumnIdentifiers: string[]
     ): FieldDTO[] {
         let uniqueOutputColumns = this.getUniqueColumns(
             Object.values(tableColumnsMap)
@@ -933,7 +932,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         ];
 
         metadataFieldOptions.forEach(({ label, value }) => {
-            if (selectedColumns.includes(value)) {
+            if (selectedColumnIdentifiers.includes(value)) {
                 fields.push({
                     name: label,
                     type: FieldType.string,
@@ -1109,10 +1108,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return selectedTableColumnsMap;
     }
 
-    private filterMetadataFields(columns: string[]): string[] {
-        return columns.filter(column => 
-            column !== DATA_TABLE_ID_FIELD && 
-            column !== DATA_TABLE_NAME_FIELD
+    private filterMetadataFields(columnIdentifiers: string[]): string[] {
+        return columnIdentifiers.filter(columnIdentifier => 
+            columnIdentifier !== DATA_TABLE_ID_FIELD && 
+            columnIdentifier !== DATA_TABLE_NAME_FIELD
         );
     }
 
