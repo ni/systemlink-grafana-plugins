@@ -58,10 +58,10 @@ export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, 
     }
 
     /**
- * @returns Overrides the System Start Time computed field to handle Grafana date variables and wrap
- * the field with DateTime conversion for proper backend comparison. Converts ${__now:date}, ${__from:date},
- * and ${__to:date} variables to ISO timestamps and supports multi-select values.
- */
+     * @returns Overrides the System Start Time computed field to handle Grafana date variables and wrap
+     * the field with DateTime conversion for proper backend comparison. Converts ${__now:date}, ${__from:date},
+     * and ${__to:date} variables to ISO timestamps and supports multi-select values.
+     */
     private getOverrideSystemStartTimeComputedField(): [string, ExpressionTransformFunction] {
         return [
             AllFieldNames.SYSTEM_START_TIME,
