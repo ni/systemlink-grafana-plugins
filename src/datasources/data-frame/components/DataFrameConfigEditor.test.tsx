@@ -15,7 +15,8 @@ const defaultProps: DataSourcePluginOptionsEditorProps<any> = {
     options: {
         jsonData: {
             featureToggles: {
-                queryByDataTableProperties: false
+                queryByDataTableProperties: false,
+                queryUndecimatedData: false
             },
         },
         id: 0,
@@ -41,7 +42,12 @@ describe('DataFrameConfigEditor', () => {
 
     test('should update the queryByDataTableProperties feature toggles option when it is toggled', async () => {
         const expecteJsonData = {
-            "jsonData": { "featureToggles": { "queryByDataTableProperties": true } }
+            "jsonData": { 
+                "featureToggles": { 
+                    "queryByDataTableProperties": true,
+                    "queryUndecimatedData": false
+                } 
+            }
         };
 
         expect(dataTableQueryBuilderToggle).not.toBeChecked();
@@ -50,6 +56,26 @@ describe('DataFrameConfigEditor', () => {
         await waitFor(() => {
             expect(mockOnOptionsChange).toHaveBeenCalledWith(
                 expect.objectContaining(expecteJsonData)
+            );
+        });
+    });
+
+    test('should update the queryUndecimatedData feature toggles option when it is toggled', async () => {
+        const undecimatedDataQueryBuilderToggle = screen.getAllByRole('switch')[2];
+        const expectedJsonData = {
+            "jsonData": { 
+                "featureToggles": { 
+                    "queryByDataTableProperties": false,
+                    "queryUndecimatedData": true
+                } 
+            }
+        };  
+        expect(undecimatedDataQueryBuilderToggle).not.toBeChecked();
+
+        await userEvent.click(undecimatedDataQueryBuilderToggle);
+        await waitFor(() => {
+            expect(mockOnOptionsChange).toHaveBeenCalledWith(
+                expect.objectContaining(expectedJsonData)
             );
         });
     });
