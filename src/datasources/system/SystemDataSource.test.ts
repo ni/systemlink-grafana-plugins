@@ -11,7 +11,7 @@ beforeEach(() => {
   [ds, backendSrv, templateSrv] = setupDataSource(SystemDataSource);
 });
 
-const buildQuery = getQueryBuilder<SystemQuery>()({ systemName: '', workspace: '' });
+const buildQuery = getQueryBuilder<SystemQuery>()({ systemName: '', workspace: '', filter: '' });
 
 test('query for summary counts', async () => {
   backendSrv.fetch
@@ -61,7 +61,7 @@ test('query properties for all systems', async () => {
 test('query properties for one system', async () => {
   backendSrv.fetch
     .calledWith(
-      requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { filter: 'id = "system-1" || alias = "system-1"' } })
+      requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { filter: '(id = "system-1")' } })
     )
     .mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
 
@@ -88,12 +88,12 @@ test('query properties for one system', async () => {
 });
 
 test('query properties with templated system name', async () => {
-  templateSrv.replace.calledWith('$system_id').mockReturnValue('system-1');
+  templateSrv.replace.mockImplementation((str) => (str ?? '').replace('$system_id', 'system-1'));
   backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
 
   await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: '$system_id' })));
 
-  expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('filter', 'id = "system-1" || alias = "system-1"');
+  expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('filter', '(id = "system-1")');
 });
 
 test('queries for system variable values - all workspaces', async () => {
@@ -120,12 +120,13 @@ test('queries for system variable values - single workspace', async () => {
 test('attempts to replace variables in properties query', async () => {
   const workspaceVariable = '$workspace';
   backendSrv.fetch.mockReturnValue(createFetchResponse({ data: fakeSystems }));
-  templateSrv.replace.calledWith(workspaceVariable).mockReturnValue('1');
+  templateSrv.replace.mockImplementation((str) => (str ?? '').replace('$workspace', '1'));
 
-  await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: 'system', workspace: workspaceVariable })));
 
-  expect(templateSrv.replace).toHaveBeenCalledTimes(2);
-  expect(templateSrv.replace.mock.calls[1][0]).toBe(workspaceVariable);
+  await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties, filter: `workspace = "${workspaceVariable}"` })));
+
+  expect(templateSrv.replace).toHaveBeenCalledTimes(1);
+  expect(templateSrv.replace.mock.calls[0][0]).toContain(workspaceVariable);
 });
 
 test('attempts to replace variables in metricFindQuery', async () => {
@@ -141,13 +142,342 @@ test('attempts to replace variables in metricFindQuery', async () => {
 
 test('should not run query if hidden', () => {
   const query: SystemQuery = {
-      hide: true,
+    hide: true,
+    queryKind: SystemQueryType.Properties,
+    systemName: '',
+    workspace: '',
+    refId: ''
+  };
+  expect(ds.shouldRunQuery(query)).toBe(false);
+});
+
+describe('System filter transformation', () => {
+  let getSystemPropertiesSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    getSystemPropertiesSpy = jest.spyOn(ds, 'getSystemProperties' as any).mockResolvedValue([]);
+  });
+
+  test('should transform scan code field with multi-value does not equal operator', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
       queryKind: SystemQueryType.Properties,
       systemName: '',
       workspace: '',
-      refId: ''
-  };
-  expect(ds.shouldRunQuery(query)).toBe(false);
+      filter: `scanCode != "{scan1,scan2}"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
+      '(scanCode != "scan1" && scanCode != "scan2")',
+      expect.any(Array)
+    );
+  });
+
+  test('should transform scan code field with multi-value equals operator', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `scanCode = "{scan1,scan2,scan3}"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
+      '(scanCode = "scan1" || scanCode = "scan2" || scanCode = "scan3")',
+      expect.any(Array)
+    );
+  });
+
+  test('should transform minion id field with multi-value equals operator', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `id = "{system1,system2,system3}"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
+      '(id = "system1" || id = "system2" || id = "system3")',
+      expect.any(Array)
+    );
+  });
+
+  test('should transform minion id field with multi-value does not equal operator', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `id != "{system1,system2}"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
+      '(id != "system1" && id != "system2")',
+      expect.any(Array)
+    );
+  });
+
+  test('should transform boolean field with does not equal operator', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `lockedStatus != "true"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
+      '!grains.data.minion_blackout.Equals(true)',
+      expect.any(Array)
+    );
+  });
+
+  test('should transform boolean field with multi-value equals operator', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `lockedStatus = "{true,false}"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
+      '(grains.data.minion_blackout.Equals(true) || grains.data.minion_blackout.Equals(false))',
+      expect.any(Array)
+    );
+  });
+
+  test('should transform boolean field with multi-value does not equal operator', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `lockedStatus != "{true,false}"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
+      '(!grains.data.minion_blackout.Equals(true) && !grains.data.minion_blackout.Equals(false))',
+      expect.any(Array)
+    );
+  });
+});
+
+describe('backward compatibility - legacy systemName and workspace migration', () => {
+  let getSystemPropertiesSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    getSystemPropertiesSpy = jest.spyOn(ds, 'getSystemProperties' as any).mockResolvedValue([]);
+  });
+
+  test('should migrate systemName to minionId filter', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: 'my-system',
+      workspace: '',
+      filter: ''
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
+      '(id = "my-system")',
+      expect.any(Array)
+    );
+  });
+
+  test('should migrate workspace to filter when systemName is empty', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: 'workspace-1',
+      filter: ''
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
+      'workspace = "workspace-1"',
+      expect.any(Array)
+    );
+  });
+
+  test('should preserve existing filter and append migrated systemName', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: 'my-system',
+      workspace: '',
+      filter: 'state = "CONNECTED"'
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
+      'state = "CONNECTED" && (id = "my-system")',
+      expect.any(Array)
+    );
+  });
+
+  test('should not add workspace filter if systemName is provided', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: 'my-system',
+      workspace: 'workspace-1',
+      filter: ''
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
+      '(id = "my-system")',
+      expect.any(Array)
+    );
+  });
+
+  test('should clear systemName and workspace fields after migration', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: 'my-system',
+      workspace: 'workspace-1',
+      filter: ''
+    };
+
+    const prepared = ds.prepareQuery(query);
+
+    expect(prepared.systemName).toBe('');
+    expect(prepared.workspace).toBe('');
+    expect(prepared.filter).toBe('(id = "my-system")');
+  });
+});
+
+describe('UI field mapping', () => {
+  let getSystemPropertiesSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    getSystemPropertiesSpy = jest.spyOn(ds, 'getSystemProperties' as any).mockResolvedValue([]);
+  });
+
+  test('should map connectionStatus UI field names to connected.data.state backend field names in filter', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `connectionStatus = "CONNECTED" && scanCode = "ABC123DEF456"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
+      `connected.data.state = "CONNECTED" && scanCode = "ABC123DEF456"`,
+      expect.any(Array)
+    );
+  });
+
+  test('should map model UI field to grains.data.productname backend field', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `model = "NI cRIO-9033"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
+      `grains.data.productname = "NI cRIO-9033"`,
+      expect.any(Array)
+    );
+  });
+
+  test('should map vendor UI field to grains.data.manufacturer backend field', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `vendor = "National Instruments"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
+      `grains.data.manufacturer = "National Instruments"`,
+      expect.any(Array)
+    );
+  });
+
+  test('should map osFullName UI field to grains.data.osfullname backend field', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `osFullName = "nilrt"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
+      `grains.data.osfullname = "nilrt"`,
+      expect.any(Array)
+    );
+  });
+
+  test('should map lockedStatus UI field to grains.data.minion_blackout backend field', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `lockedStatus = "true"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
+      `grains.data.minion_blackout.Equals(true)`,
+      expect.any(Array)
+    );
+  });
+
+  test('should map multiple UI fields in a single filter', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `connectionStatus = "CONNECTED" && osFullName = "nilrt" && lockedStatus != "true"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
+      `connected.data.state = "CONNECTED" && grains.data.osfullname = "nilrt" && !grains.data.minion_blackout.Equals(true)`,
+      expect.any(Array)
+    );
+  });
 });
 
 const fakeSystems: SystemProperties[] = [
