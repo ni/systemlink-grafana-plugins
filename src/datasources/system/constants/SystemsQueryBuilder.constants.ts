@@ -125,20 +125,20 @@ export const SystemFields: Record<string, QBField> = {
                 { label: 'False', value: 'false' }
             ],
         }
-    },
-    SYSTEM_START_TIME: {
-        label: 'System Start Time',
-        dataField: SystemUIFieldNames.SYSTEM_START_TIME,
-        filterOperations: [
-            QueryBuilderOperations.LESS_THAN.name,
-            QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
-            QueryBuilderOperations.GREATER_THAN.name,
-            QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
-        ],
-        lookup: {
-            dataSource: [],
-        }
     }
+    // SYSTEM_START_TIME: {
+    //     label: 'System Start Time',
+    //     dataField: SystemUIFieldNames.SYSTEM_START_TIME,
+    //     filterOperations: [
+    //         QueryBuilderOperations.LESS_THAN.name,
+    //         QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
+    //         QueryBuilderOperations.GREATER_THAN.name,
+    //         QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
+    //     ],
+    //     lookup: {
+    //         dataSource: [],
+    //     }
+    // }
 };
 
 export const SystemStaticFields = [

@@ -96,11 +96,10 @@ export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
         const customOperations = [
             QueryBuilderOperations.EQUALS,
             QueryBuilderOperations.DOES_NOT_EQUAL,
-            QueryBuilderOperations.DATE_TIME_IS_AFTER,
-            QueryBuilderOperations.GREATER_THAN,
-            QueryBuilderOperations.LESS_THAN,
-            QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO,
-            QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO,
+            // QueryBuilderOperations.GREATER_THAN,
+            // QueryBuilderOperations.LESS_THAN,
+            // QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO,
+            // QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO,
         ].map(operation => {
             return {
                 ...operation,
