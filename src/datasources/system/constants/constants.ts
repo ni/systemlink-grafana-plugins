@@ -20,3 +20,4 @@ export const systemFields = {
   ALIAS: 'alias',
   SCAN_CODE: 'scanCode',
 } as const;
+
