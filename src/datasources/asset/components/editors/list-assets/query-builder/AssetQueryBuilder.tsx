@@ -145,7 +145,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
         ...QueryBuilderOperations.IS_NOT_BLANK,
         ...callbacks,
       },
-      {
+      { 
         ...QueryBuilderOperations.CONTAINS,
         ...callbacks,
       },
