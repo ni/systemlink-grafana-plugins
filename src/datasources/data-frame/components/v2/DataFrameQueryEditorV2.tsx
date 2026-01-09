@@ -3,7 +3,7 @@ import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBui
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2, metadataFieldOptions } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
-import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT, UNDECIMATED_RECORDS_LIMIT } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
 import {
     errorMessages,
@@ -26,6 +26,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     const [isColumnConfigurationSectionOpen, setIsColumnConfigurationSectionOpen] = useState(true);
     const [isDecimationSettingsSectionOpen, setIsDecimationSettingsSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
+    const [undecimatedCountInvalidMessage, setUndecimatedCountInvalidMessage] = useState<string>('');
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>(metadataFieldOptions);
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
     const [xColumnOptions, setXColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
@@ -310,6 +311,15 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         handleQueryChange({ ...migratedQuery, take: value });
     };
 
+    const onUndecimatedRecordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
+        const value = parseInt((event.target as HTMLInputElement).value, 10);
+        const message = validateTakeValue(value, UNDECIMATED_RECORDS_LIMIT);
+
+        setUndecimatedCountInvalidMessage(message);
+        handleQueryChange({ ...migratedQuery, undecimatedRecordCount: value });
+    };
+
+
     const onColumnsChange = (columns: Array<ComboboxOption<string>>) => {
         handleQueryChange({ ...migratedQuery, columns: columns.map(column => column.value) });
     };
@@ -343,7 +353,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             return errorMessages.take.greaterOrEqualToZero;
         }
         if (value > TAKE_LIMIT) {
-            return errorMessages.take.lessOrEqualToTakeLimit;
+            return errorMessages.take.lessOrEqualToTakeLimit
+                .replace(
+                    '{TAKE_LIMIT}', 
+                    TAKE_LIMIT.toString()
+                );
         }
 
         return '';
@@ -505,6 +519,25 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                                 onChange={onUseTimeRangeChange}
                             />
                         </InlineField>
+                        { migratedQuery.decimationMethod === 'NONE' && (
+                            <InlineField
+                                label={labels.take}
+                                labelWidth={INLINE_LABEL_WIDTH}
+                                tooltip={tooltips.take}
+                                invalid={!!undecimatedCountInvalidMessage}
+                                error={undecimatedCountInvalidMessage}
+                            >
+                                <AutoSizeInput
+                                    minWidth={26}
+                                    maxWidth={26}
+                                    type="number"
+                                    placeholder={placeholders.take}
+                                    value={migratedQuery.undecimatedRecordCount}
+                                    onBlur={onUndecimatedRecordCountChange}
+                                    onKeyDown={(event) => { validateNumericInput(event); }}
+                                />
+                            </InlineField>
+                        )}
                     </Collapse>
                 </div >
             )}

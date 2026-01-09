@@ -2,6 +2,11 @@ import { nbsp } from "./utils";
 
 export const decimationMethods = [
   {
+    value: 'NONE',
+    label: 'None',
+    description: nbsp`No decimation applied`,
+  },
+  {
     value: 'LOSSY',
     label: 'Lossy',
     description: nbsp`Completes faster but is less accurate`,
@@ -26,6 +31,7 @@ export const errorCodes: { [key: number]: string; } = {
 export const propertiesCacheTTL = 1000 * 60 * 5; // 5 minutes
 
 export const TAKE_LIMIT = 1000;
+export const UNDECIMATED_RECORDS_LIMIT = 1000000;
 export const COLUMN_OPTIONS_LIMIT = 10000;
 export const COLUMN_SELECTION_LIMIT = 20;
 export const TOTAL_ROWS_LIMIT = 1000000;
