@@ -10,7 +10,7 @@ import { defaultOrderBy, defaultProjection, systemFields } from './constants/con
 import { NetworkUtils } from './network-utils';
 import { SystemQuery, SystemQueryType, SystemSummary, SystemVariableQuery, SystemQueryReturnType, SystemProperties } from './types';
 import { getWorkspaceName } from 'core/utils';
-import { SystemsDataSourceBase } from './components/SystemsDataSourceBase';
+import { SystemsDataSourceBase } from './SystemsDataSourceBase';
 import { transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { SystemFieldMapping } from './constants/SystemsQueryBuilder.constants';
 
@@ -58,7 +58,7 @@ export class SystemDataSource extends SystemsDataSourceBase {
     }
 
     if (query.systemName?.trim()) {
-      const systemPart = `(id = "${query.systemName}")`;
+      const systemPart = `(id = "${query.systemName}") `;
       parts.push(systemPart);
     }
 

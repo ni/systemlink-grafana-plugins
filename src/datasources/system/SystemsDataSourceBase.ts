@@ -1,11 +1,11 @@
 import { buildExpressionFromTemplate, ExpressionTransformFunction, getConcatOperatorForMultiExpression } from "core/query-builder.utils";
-import { AllFieldNames } from "../constants/constants";
 import { QueryBuilderOperations } from "core/query-builder.constants";
 import { DataSourceBase } from "core/DataSourceBase";
-import { SystemQuery } from "../types";
+import { SystemQuery } from "./types";
 import { DataFrameDTO, DataQueryRequest, DataSourceJsonData } from "@grafana/data";
 import { Workspace } from "core/types";
 import { parseErrorMessage } from "core/errors";
+import { SystemBackendFieldNames } from "./constants/SystemsQueryBuilder.constants";
 
 export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, DataSourceJsonData> {
     private workspacesLoaded!: () => void;
@@ -64,7 +64,7 @@ export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, 
      */
     private getOverrideSystemStartTimeComputedField(): [string, ExpressionTransformFunction] {
         return [
-            AllFieldNames.SYSTEM_START_TIME,
+            SystemBackendFieldNames.SYSTEM_START_TIME,
             (value: string, operation: string, _options?: Map<string, unknown>) => {
                 let values = [value];
 
@@ -81,12 +81,12 @@ export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, 
 
                 if (convertedValues.length > 1) {
                     const query = convertedValues
-                        .map(val => `DateTime(${AllFieldNames.SYSTEM_START_TIME}) ${operation} DateTime.parse("${val}")`)
+                        .map(val => `DateTime(${SystemBackendFieldNames.SYSTEM_START_TIME}) ${operation} DateTime.parse("${val}")`)
                         .join(` ${getConcatOperatorForMultiExpression(operation)} `);
                     return `(${query})`;
                 }
 
-                return `DateTime(${AllFieldNames.SYSTEM_START_TIME}) ${operation} DateTime.parse("${convertedValues[0]}")`;
+                return `DateTime(${SystemBackendFieldNames.SYSTEM_START_TIME}) ${operation} DateTime.parse("${convertedValues[0]}")`;
             }
         ];
     }
@@ -127,7 +127,7 @@ export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, 
      * @returns Gathers all fields and applies the default transformation algorithm based on the operation type
      */
     private getDefaultComputedDataFields(): Array<[string, ExpressionTransformFunction]> {
-        return [...Object.values(AllFieldNames).map(field => [field, this.getDefaultComputedField(field)] as [string, ExpressionTransformFunction])];
+        return [...Object.values(SystemBackendFieldNames).map(field => [field, this.getDefaultComputedField(field)] as [string, ExpressionTransformFunction])];
     }
 
     private getDefaultComputedField(field: string): ExpressionTransformFunction {
