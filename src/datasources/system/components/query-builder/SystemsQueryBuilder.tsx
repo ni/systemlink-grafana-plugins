@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useTheme2 } from '@grafana/ui';
 import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
+import { SystemFields, SystemStaticFields } from 'datasources/system/constants/SystemsQueryBuilder.constants';
 import { QBField, QueryBuilderOption, Workspace } from 'core/types';
 import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
-import { SystemFields, SystemStaticFields } from 'datasources/system/constants/SystemsQueryBuilder.constants';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
 import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
@@ -23,9 +22,6 @@ export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
     workspaces,
     areDependenciesLoaded,
 }) => {
-    const theme = useTheme2();
-    document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
-
     const [fields, setFields] = useState<QBField[]>([]);
     const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
 
@@ -47,12 +43,28 @@ export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
         }
     }, [workspaces]);
 
+    const systemStartTimeField = useMemo(() => {
+        const startTimeField = SystemFields.SYSTEM_START_TIME;
+        return {
+            ...startTimeField,
+            lookup: {
+                ...startTimeField.lookup,
+                dataSource: [
+                    ...(startTimeField.lookup?.dataSource || []),
+                    { label: 'From', value: '${__from:date}' },
+                    { label: 'To', value: '${__to:date}' },
+                    { label: 'Now', value: '${__now:date}' },
+                ],
+            },
+        };
+    }, []);
+
     useEffect(() => {
         if (!areDependenciesLoaded) {
             return;
         }
 
-        const fields = [workspaceField, ...SystemStaticFields]
+        const fields = [workspaceField, systemStartTimeField, ...SystemStaticFields]
             .sort((a, b) => a.label?.localeCompare(b?.label ?? '') ?? 0)
             .map(field => {
                 if (field.lookup?.dataSource) {
@@ -84,8 +96,11 @@ export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
         const customOperations = [
             QueryBuilderOperations.EQUALS,
             QueryBuilderOperations.DOES_NOT_EQUAL,
-            QueryBuilderOperations.CONTAINS,
-            QueryBuilderOperations.DOES_NOT_CONTAIN,
+            QueryBuilderOperations.DATE_TIME_IS_AFTER,
+            QueryBuilderOperations.GREATER_THAN,
+            QueryBuilderOperations.LESS_THAN,
+            QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO,
+            QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO,
         ].map(operation => {
             return {
                 ...operation,
@@ -93,7 +108,7 @@ export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
             };
         });
         setOperations([...customOperations]);
-    }, [globalVariableOptions, workspaceField, areDependenciesLoaded]);
+    }, [globalVariableOptions, workspaceField, systemStartTimeField, areDependenciesLoaded]);
 
     return (
         <SlQueryBuilder

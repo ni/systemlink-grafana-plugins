@@ -49,6 +49,7 @@ export enum ConnectionStatus {
   CONNECTED = 'CONNECTED',
   VIRTUAL = 'VIRTUAL',
   APPROVED = 'APPROVED',
+  CONNECTED_REFRESH_PENDING = 'CONNECTED_REFRESH_PENDING',
 }
 
 export const ConnectionStatusOptions = [
@@ -57,4 +58,5 @@ export const ConnectionStatusOptions = [
   { label: 'Connected', value: ConnectionStatus.CONNECTED },
   { label: 'Virtual', value: ConnectionStatus.VIRTUAL },
   { label: 'Approved', value: ConnectionStatus.APPROVED },
+  { label: 'Connected Refresh Pending', value: ConnectionStatus.CONNECTED_REFRESH_PENDING },
 ];

@@ -77,7 +77,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
     };
   }, [systems, locations]);
 
-  const calibrationDueDateField = useMemo(() => {
+  const systemStartTime = useMemo(() => {
     const calibrationField = ListAssetsFields.CALIBRATION_DUE_DATE;
     return {
       ...calibrationField,
@@ -98,7 +98,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
       return;
     }
 
-    const fields = [workspaceField, locationField, calibrationDueDateField, ...ListAssetsStaticFields]
+    const fields = [workspaceField, locationField, systemStartTime, ...ListAssetsStaticFields]
       .sort((a, b) => a.label?.localeCompare(b?.label ?? '') ?? 0)
       .map(field => {
         if (field.lookup?.dataSource) {
@@ -170,7 +170,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
         ...callbacks,
       }
     ]);
-  }, [workspaceField, locationField, calibrationDueDateField, areDependenciesLoaded, globalVariableOptions]);
+  }, [workspaceField, locationField, systemStartTime, areDependenciesLoaded, globalVariableOptions]);
 
   return (
     <QueryBuilder
