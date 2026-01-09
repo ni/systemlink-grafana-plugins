@@ -43,28 +43,28 @@ export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
         }
     }, [workspaces]);
 
-    const systemStartTimeField = useMemo(() => {
-        const startTimeField = SystemFields.SYSTEM_START_TIME;
-        return {
-            ...startTimeField,
-            lookup: {
-                ...startTimeField.lookup,
-                dataSource: [
-                    ...(startTimeField.lookup?.dataSource || []),
-                    { label: 'From', value: '${__from:date}' },
-                    { label: 'To', value: '${__to:date}' },
-                    { label: 'Now', value: '${__now:date}' },
-                ],
-            },
-        };
-    }, []);
+    // const systemStartTimeField = useMemo(() => {
+    //     const startTimeField = SystemFields.SYSTEM_START_TIME;
+    //     return {
+    //         ...startTimeField,
+    //         lookup: {
+    //             ...startTimeField.lookup,
+    //             dataSource: [
+    //                 ...(startTimeField.lookup?.dataSource || []),
+    //                 { label: 'From', value: '${__from:date}' },
+    //                 { label: 'To', value: '${__to:date}' },
+    //                 { label: 'Now', value: '${__now:date}' },
+    //             ],
+    //         },
+    //     };
+    // }, []);
 
     useEffect(() => {
         if (!areDependenciesLoaded) {
             return;
         }
 
-        const fields = [workspaceField, systemStartTimeField, ...SystemStaticFields]
+        const fields = [workspaceField, ...SystemStaticFields]
             .sort((a, b) => a.label?.localeCompare(b?.label ?? '') ?? 0)
             .map(field => {
                 if (field.lookup?.dataSource) {
@@ -107,7 +107,7 @@ export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
             };
         });
         setOperations([...customOperations]);
-    }, [globalVariableOptions, workspaceField, systemStartTimeField, areDependenciesLoaded]);
+    }, [globalVariableOptions, workspaceField, areDependenciesLoaded]);
 
     return (
         <SlQueryBuilder

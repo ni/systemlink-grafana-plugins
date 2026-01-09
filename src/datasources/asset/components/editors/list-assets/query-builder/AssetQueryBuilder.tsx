@@ -1,13 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { QueryBuilder, QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 import { useTheme2 } from '@grafana/ui';
-
 import 'smart-webcomponents-react/source/styles/smart.dark-orange.css';
 import 'smart-webcomponents-react/source/styles/smart.orange.css';
 import 'smart-webcomponents-react/source/styles/components/smart.base.css';
 import 'smart-webcomponents-react/source/styles/components/smart.common.css';
 import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
-
 import { Workspace, QueryBuilderOption } from 'core/types';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
@@ -16,7 +14,6 @@ import { QBField } from '../../../../types/CalibrationForecastQuery.types';
 import { ListAssetsFields, ListAssetsStaticFields } from '../../../../constants/ListAssets.constants';
 import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
 import { LocationModel } from 'datasources/asset/types/ListLocations.types';
-
 type AssetCalibrationQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
     filter?: string;
@@ -26,7 +23,6 @@ type AssetCalibrationQueryBuilderProps = QueryBuilderProps &
     globalVariableOptions: QueryBuilderOption[];
     areDependenciesLoaded: boolean;
   };
-
 export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
   filter,
   onChange,
@@ -38,17 +34,13 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
 }) => {
   const theme = useTheme2();
   document.body.setAttribute('theme', theme.isDark ? 'dark-orange' : 'orange');
-
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
-
   const sanitizedFilter = useMemo(() => {
     return filterXSSLINQExpression(filter);
   }, [filter])
-
   const workspaceField = useMemo(() => {
     const workspaceField = ListAssetsFields.WORKSPACE;
-
     return {
       ...workspaceField,
       lookup: {
@@ -60,10 +52,8 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
       },
     };
   }, [workspaces]);
-
   const locationField = useMemo(() => {
     const locationField = ListAssetsFields.LOCATION;
-
     return {
       ...locationField,
       lookup: {
@@ -77,7 +67,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
     };
   }, [systems, locations]);
 
-  const systemStartTime = useMemo(() => {
+  const calibrationDueDateField = useMemo(() => {
     const calibrationField = ListAssetsFields.CALIBRATION_DUE_DATE;
     return {
       ...calibrationField,
@@ -92,13 +82,12 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
       },
     };
   }, []);
-
   useEffect(() => {
     if (!areDependenciesLoaded) {
       return;
     }
 
-    const fields = [workspaceField, locationField, systemStartTime, ...ListAssetsStaticFields]
+    const fields = [workspaceField, locationField, calibrationDueDateField, ...ListAssetsStaticFields]
       .sort((a, b) => a.label?.localeCompare(b?.label ?? '') ?? 0)
       .map(field => {
         if (field.lookup?.dataSource) {
@@ -109,25 +98,19 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
             }
           }
         }
-
         return field;
       });
-
     setFields(fields);
-
     const options = Object.values(fields).reduce((accumulator, fieldConfig) => {
       if (fieldConfig.lookup) {
         accumulator[fieldConfig.dataField!] = fieldConfig.lookup.dataSource;
       }
-
       return accumulator;
     }, {} as Record<string, QueryBuilderOption[]>);
-
     const callbacks = {
       expressionBuilderCallback: expressionBuilderCallback(options),
       expressionReaderCallback: expressionReaderCallback(options),
     };
-
     setOperations([
       {
         ...QueryBuilderOperations.EQUALS,
@@ -170,7 +153,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
         ...callbacks,
       }
     ]);
-  }, [workspaceField, locationField, systemStartTime, areDependenciesLoaded, globalVariableOptions]);
+  }, [workspaceField, locationField, calibrationDueDateField, areDependenciesLoaded, globalVariableOptions]);
 
   return (
     <QueryBuilder
