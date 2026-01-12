@@ -4,6 +4,10 @@ import { PanelProps } from '@grafana/data';
 import { PlotlyPanel } from './PlotlyPanel';
 import { PanelOptions } from './types';
 import { locationService } from '@grafana/runtime';
+import _ from 'lodash';
+
+const mockPublish = jest.fn();
+let plotlyOnReLayout: any;
 
 jest.mock('@grafana/runtime', () => ({
   getTemplateSrv: () => ({
@@ -13,9 +17,10 @@ jest.mock('@grafana/runtime', () => ({
     partial: jest.fn(),
     getSearchObject: jest.fn(() => ({})),
   },
+  getAppEvents: () => ({
+    publish: mockPublish,
+  }),
 }));
-
-let plotlyOnReLayout: any;
 
 jest.mock('./utils', () => ({
   getFieldsByName: jest.fn((frames, name) => frames.map((f: any) => f.fields[0])),
@@ -132,7 +137,7 @@ describe('PlotlyPanel - X-Axis Sync', () => {
   });
 
   describe('X-Axis Range Synchronization', () => {
-    it('should update route parameters when panel is in sync targets and x-axis is zoomed', () => {
+    it('should update route parameters when panel is in nisl-syncXAxisRangeTargets and x-axis is zoomed', () => {
       mockLocationWith('?nisl-syncXAxisRangeTargets=1,2,3');
       const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
@@ -149,7 +154,24 @@ describe('PlotlyPanel - X-Axis Sync', () => {
       );
     });
 
-    it('should not update route parameters when panel is NOT in sync targets', () => {
+    it('should update route parameters when panel ID is present in nisl-syncXAxisRangeTargets', () => {
+      mockLocationWith('?nisl-syncXAxisRangeTargets=1,2,3');
+      const props = createMockProps({ xAxis: { field: 'temperature' } }, 2);
+
+      renderPlotlyElement(props);
+      triggerReLayout(20.5, 80.3);
+      jest.runOnlyPendingTimers();
+
+      expect(locationService.partial).toHaveBeenCalledWith(
+        {
+          'nisl-temperature-min': 20,
+          'nisl-temperature-max': 81,
+        },
+        true
+      );
+    });
+
+    it('should not update route parameters when panel is not in nisl-syncXAxisRangeTargets', () => {
       mockLocationWith('?nisl-syncXAxisRangeTargets=2,3,4');
       const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
@@ -210,7 +232,7 @@ describe('PlotlyPanel - X-Axis Sync', () => {
       expect(locationService.partial).not.toHaveBeenCalled();
     });
 
-    it('should handle empty sync targets parameter', () => {
+    it('should handle empty nisl-syncXAxisRangeTargets parameter', () => {
       mockLocationWith('?nisl-syncXAxisRangeTargets=');
       const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
@@ -221,9 +243,42 @@ describe('PlotlyPanel - X-Axis Sync', () => {
       expect(locationService.partial).not.toHaveBeenCalled();
     });
 
-    it('should handle missing sync targets parameter', () => {
+    it('should handle missing nisl-syncXAxisRangeTargets query parameter', () => {
       mockLocationWith('?someOtherParam=value');
       const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+
+      renderPlotlyElement(props);
+      triggerReLayout(10, 100);
+      jest.runOnlyPendingTimers();
+
+      expect(locationService.partial).not.toHaveBeenCalled();
+    });
+
+    it('should not update route parameters when nisl-syncXAxisRangeTargets has spaces between values', () => {
+      mockLocationWith('?nisl-syncXAxisRangeTargets=1, 2, 3');
+      const props = createMockProps({ xAxis: { field: 'temperature' } }, 2);
+
+      renderPlotlyElement(props);
+      triggerReLayout(10, 100);
+      jest.runOnlyPendingTimers();
+
+      expect(locationService.partial).not.toHaveBeenCalled();
+    });
+
+    it('should not update route parameters when nisl-syncXAxisRangeTargets has single quotes around values', () => {
+      mockLocationWith('?nisl-syncXAxisRangeTargets=\'1\',\'2\'');
+      const props = createMockProps({ xAxis: { field: 'temperature' } }, 2);
+
+      renderPlotlyElement(props);
+      triggerReLayout(10, 100);
+      jest.runOnlyPendingTimers();
+
+      expect(locationService.partial).not.toHaveBeenCalled();
+    });
+
+    it('should not update route parameters when nisl-syncXAxisRangeTargets has double quotes around values', () => {
+      mockLocationWith('?nisl-syncXAxisRangeTargets="1","2"');
+      const props = createMockProps({ xAxis: { field: 'temperature' } }, 2);
 
       renderPlotlyElement(props);
       triggerReLayout(10, 100);
@@ -247,6 +302,40 @@ describe('PlotlyPanel - X-Axis Sync', () => {
         },
         true
       );
+    });
+
+    it('should publish NIRefreshDashboardEvent after updating X-axis range', () => {
+      mockLocationWith('?nisl-syncXAxisRangeTargets=1');
+      const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+
+      renderPlotlyElement(props);
+      triggerReLayout(10, 100);
+      jest.runOnlyPendingTimers();
+
+      expect(mockPublish).toHaveBeenCalled();
+      const eventArg = mockPublish.mock.calls[0][0];
+      expect(eventArg.constructor.name).toBe('NIRefreshDashboardEvent');
+    });
+
+    it('should use debounce with 300ms wait time', () => {
+      const debounceSpy = jest.spyOn(_, 'debounce');
+      const props = createMockProps();
+
+      renderPlotlyElement(props);
+      
+      expect(debounceSpy).toHaveBeenCalledWith(expect.any(Function), 300);
+    });
+
+    it('should call onOptionsChange with new min and max when relayout event provides numbers', () => {
+      const props = createMockProps({ xAxis: { field: 'temperature', min: 1, max: 2 } }, 1);
+
+      renderPlotlyElement(props);
+      triggerReLayout(10, 100);
+
+      expect(props.onOptionsChange).toHaveBeenCalledWith({
+        ...props.options,
+        xAxis: { ...props.options.xAxis, min: 10, max: 100 },
+      });
     });
   });
 });

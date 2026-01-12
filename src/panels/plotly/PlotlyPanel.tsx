@@ -12,11 +12,12 @@ import {
 } from '@grafana/data';
 import { AxisLabels, PanelOptions } from './types';
 import { useTheme2, ContextMenu, MenuItemsGroup, linkModelToContextMenuItems } from '@grafana/ui';
-import { getTemplateSrv, PanelDataErrorView, locationService } from '@grafana/runtime';
+import { getTemplateSrv, PanelDataErrorView, locationService, getAppEvents } from '@grafana/runtime';
 import { getFieldsByName, notEmpty, Plot, renderMenuItems, useTraceColors } from './utils';
 import { AxisType, Legend, PlotData, PlotType, toImage, Icons, PlotlyHTMLElement } from 'plotly.js-basic-dist-min';
 import { saveAs } from 'file-saver';
 import _ from 'lodash';
+import { NIRefreshDashboardEvent } from './events';
 
 interface MenuState {
   x: number;
@@ -34,7 +35,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
 
   const traceColors = useTraceColors(theme);
 
-  const updateXAxisParams = useMemo(
+  const publishXAxisRangeUpdate = useMemo(
     () =>
       _.debounce((xAxisMin: number, xAxisMax: number, xAxisField: string) => {
         locationService.partial(
@@ -44,6 +45,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           },
           true,
         );
+        getAppEvents().publish(new NIRefreshDashboardEvent());
       }, 300),
     []
   );
@@ -174,7 +176,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       const panelIds = typeof syncTargets === 'string' ? syncTargets.split(',') : [];
       
       if (panelIds.includes(String(props.id)) && options.xAxis.field) {
-        updateXAxisParams(xAxisMin, xAxisMax, options.xAxis.field);
+        publishXAxisRangeUpdate(xAxisMin, xAxisMax, options.xAxis.field);
       }
     }
   };
