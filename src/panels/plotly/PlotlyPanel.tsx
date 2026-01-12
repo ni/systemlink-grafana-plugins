@@ -40,8 +40,8 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       _.debounce((xAxisMin: number, xAxisMax: number, xAxisField: string) => {
         locationService.partial(
           {
-            [`nisl-${xAxisField}-min`]: Math.floor(xAxisMin),
-            [`nisl-${xAxisField}-max`]: Math.ceil(xAxisMax),
+            [`nisl-${xAxisField}-min`]: xAxisMin,
+            [`nisl-${xAxisField}-max`]: xAxisMax,
           },
           true,
         );
@@ -175,8 +175,17 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       const syncTargets = queryParams['nisl-syncXAxisRangeTargets'];
       const panelIds = typeof syncTargets === 'string' ? syncTargets.split(',') : [];
       
-      if (panelIds.includes(String(props.id)) && options.xAxis.field) {
-        publishXAxisRangeUpdate(xAxisMin, xAxisMax, options.xAxis.field);
+      if (!panelIds.includes(String(props.id)) || !options.xAxis.field) {
+        return;
+      }
+      
+      const flooredXAxisMin = Math.floor(xAxisMin);
+      const ceiledXAxisMax = Math.ceil(xAxisMax);
+      const existingXAxisMin = queryParams[`nisl-${options.xAxis.field}-min`];
+      const existingXAxisMax = queryParams[`nisl-${options.xAxis.field}-max`];
+      
+      if (String(flooredXAxisMin) !== existingXAxisMin || String(ceiledXAxisMax) !== existingXAxisMax) {
+        publishXAxisRangeUpdate(flooredXAxisMin, ceiledXAxisMax, options.xAxis.field);
       }
     }
   };

@@ -337,5 +337,71 @@ describe('PlotlyPanel', () => {
         xAxis: { ...props.options.xAxis, min: 10, max: 100 },
       });
     });
+
+    it('should not update route parameters when floored/ceiled values match existing URL parameters', () => {
+      mockLocationWith('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=50');
+      const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+
+      renderPlotlyElement(props);
+      triggerReLayout(10.3, 49.7);
+      jest.runOnlyPendingTimers();
+
+      expect(locationService.partial).not.toHaveBeenCalled();
+      expect(mockPublish).not.toHaveBeenCalled();
+    });
+
+    it('should update route parameters when floored min value differs from existing URL parameter', () => {
+      mockLocationWith('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=50');
+      const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+
+      renderPlotlyElement(props);
+      triggerReLayout(9.8, 49.7);
+      jest.runOnlyPendingTimers();
+
+      expect(locationService.partial).toHaveBeenCalledWith(
+        {
+          'nisl-temperature-min': 9,
+          'nisl-temperature-max': 50,
+        },
+        true
+      );
+      expect(mockPublish).toHaveBeenCalled();
+    });
+
+    it('should update route parameters when ceiled max value differs from existing URL parameter', () => {
+      mockLocationWith('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=50');
+      const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+
+      renderPlotlyElement(props);
+      triggerReLayout(10.3, 50.1);
+      jest.runOnlyPendingTimers();
+
+      expect(locationService.partial).toHaveBeenCalledWith(
+        {
+          'nisl-temperature-min': 10,
+          'nisl-temperature-max': 51,
+        },
+        true
+      );
+      expect(mockPublish).toHaveBeenCalled();
+    });
+
+    it('should update route parameters when both floored min and ceiled max differ from existing URL parameters', () => {
+      mockLocationWith('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=50');
+      const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+
+      renderPlotlyElement(props);
+      triggerReLayout(8.2, 52.8);
+      jest.runOnlyPendingTimers();
+
+      expect(locationService.partial).toHaveBeenCalledWith(
+        {
+          'nisl-temperature-min': 8,
+          'nisl-temperature-max': 53,
+        },
+        true
+      );
+      expect(mockPublish).toHaveBeenCalled();
+    });
   });
 });
