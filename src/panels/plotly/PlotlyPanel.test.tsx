@@ -33,7 +33,7 @@ jest.mock('./utils', () => ({
   useTraceColors: jest.fn(() => ['#color1', '#color2']),
 }));
 
-describe('PlotlyPanel - X-Axis Sync', () => {
+describe('PlotlyPanel', () => {
   const mockLocationWith = (search: string) => {
     const params: Record<string, string> = {};
     if (search && search.startsWith('?')) {
@@ -182,7 +182,7 @@ describe('PlotlyPanel - X-Axis Sync', () => {
       expect(locationService.partial).not.toHaveBeenCalled();
     });
 
-    it('should not update route parameters when x-axis field is not configured', () => {
+    it('should not update route parameters when x-axis field is undefined', () => {
       mockLocationWith('?nisl-syncXAxisRangeTargets=1');
       const props = createMockProps({ xAxis: { field: undefined } }, 1);
 
