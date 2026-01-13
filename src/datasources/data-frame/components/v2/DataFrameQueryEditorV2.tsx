@@ -3,7 +3,7 @@ import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBui
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2, metadataFieldOptions } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
-import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT, UNDECIMATED_RECORDS_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT, UNDECIMATED_RECORDS_LIMIT,decimationNoneOption } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
 import {
     errorMessages,
@@ -20,6 +20,8 @@ import { isObservable, lastValueFrom } from 'rxjs';
 import _ from 'lodash';
 
 export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRunQuery, datasource }: Props) => {
+    const isQueryUndecimatedDataFeatureEnabled = 
+        datasource.instanceSettings.jsonData?.featureToggles?.queryUndecimatedData ?? false;
     const migratedQuery = datasource.processQuery(query as DataFrameDataQuery) as ValidDataFrameQueryV2;
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
@@ -363,6 +365,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         return '';
     }
 
+    const decimationMethodOptions= () => {
+        if (isQueryUndecimatedDataFeatureEnabled) {
+            return [decimationNoneOption, ...decimationMethods];
+        }
+        return decimationMethods;
+    }
+
     return (
         <>
             <InlineField
@@ -488,7 +497,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                                 width={INLINE_LABEL_WIDTH}
                                 value={migratedQuery.decimationMethod}
                                 onChange={onDecimationMethodChange}
-                                options={decimationMethods}
+                                options={decimationMethodOptions()}
                                 createCustomValue={false}
                             />
                         </InlineField>
@@ -519,25 +528,27 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                                 onChange={onUseTimeRangeChange}
                             />
                         </InlineField>
-                        { migratedQuery.decimationMethod === 'NONE' && (
-                            <InlineField
-                                label={labels.take}
-                                labelWidth={INLINE_LABEL_WIDTH}
-                                tooltip={tooltips.take}
-                                invalid={!!undecimatedCountInvalidMessage}
-                                error={undecimatedCountInvalidMessage}
-                            >
-                                <AutoSizeInput
-                                    minWidth={26}
-                                    maxWidth={26}
-                                    type="number"
-                                    placeholder={placeholders.take}
-                                    value={migratedQuery.undecimatedRecordCount}
-                                    onBlur={onUndecimatedRecordCountChange}
-                                    onKeyDown={(event) => { validateNumericInput(event); }}
-                                />
-                            </InlineField>
-                        )}
+                        { 
+                            (isQueryUndecimatedDataFeatureEnabled && migratedQuery.decimationMethod === 'NONE') && (
+                                <InlineField
+                                    label={labels.take}
+                                    labelWidth={INLINE_LABEL_WIDTH}
+                                    tooltip={tooltips.take}
+                                    invalid={!!undecimatedCountInvalidMessage}
+                                    error={undecimatedCountInvalidMessage}
+                                >
+                                    <AutoSizeInput
+                                        minWidth={26}
+                                        maxWidth={26}
+                                        type="number"
+                                        placeholder={placeholders.take}
+                                        value={migratedQuery.undecimatedRecordCount}
+                                        onBlur={onUndecimatedRecordCountChange}
+                                        onKeyDown={(event) => { validateNumericInput(event); }}
+                                    />
+                                </InlineField>
+                            )
+                        }
                     </Collapse>
                 </div >
             )}

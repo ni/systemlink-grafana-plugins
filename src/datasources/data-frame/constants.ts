@@ -2,11 +2,6 @@ import { nbsp } from "./utils";
 
 export const decimationMethods = [
   {
-    value: 'NONE',
-    label: 'None',
-    description: nbsp`No decimation applied`,
-  },
-  {
     value: 'LOSSY',
     label: 'Lossy',
     description: nbsp`Completes faster but is less accurate`,
@@ -22,6 +17,12 @@ export const decimationMethods = [
     description: nbsp`Maintains edges of data (includes max/min)`,
   },
 ];
+
+export const decimationNoneOption = {
+  value: 'NONE',
+  label: 'None',
+  description: nbsp`No decimation applied`,
+};
 
 export const errorCodes: { [key: number]: string; } = {
   [-255134]: 'Invalid table ID',
