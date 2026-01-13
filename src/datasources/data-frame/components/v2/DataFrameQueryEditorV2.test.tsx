@@ -1569,207 +1569,186 @@ describe("DataFrameQueryEditorV2", () => {
                     });
                 });
 
-                it("should include 'None' as a decimation method option", async () => {
-                    await user.click(decimationMethodField);
+                describe("when queryUndecimatedData feature flag is enabled", () => {
+                    it("should include 'None' as a decimation method option", async () => {
+                        await user.click(decimationMethodField);
 
-                    await waitFor(() => {
+                        await waitFor(() => {
+                            const options = within(document.body).getAllByRole('option');
+                            const optionTexts = options.map(opt => opt.textContent);
+                            expect(optionTexts.some(text => text?.startsWith('None'))).toBe(true);
+                        });
+                    });
+
+                    it("should allow selecting 'None' decimation method", async () => {
+                        await user.click(decimationMethodField);
                         const options = within(document.body).getAllByRole('option');
-                        const optionTexts = options.map(opt => opt.textContent);
-                        expect(optionTexts.some(text => text?.startsWith('None'))).toBe(true);
-                    });
-                });
-
-                it("should allow selecting 'None' decimation method", async () => {
-                    await user.click(decimationMethodField);
-                    const options = within(document.body).getAllByRole('option');
-                    const noneOption = options.find(opt => opt.textContent?.startsWith('None'));
-                    
-                    expect(noneOption).toBeDefined();
-                    await user.click(noneOption!);
-
-                    await waitFor(() => {
-                        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                            decimationMethod: 'NONE'
-                        }));
-                        expect(onRunQuery).toHaveBeenCalled();
-                    });
-                });
-
-                it("should display undecimated record count field when 'None' decimation is selected", async () => {
-                    renderComponent({ 
-                        type: DataFrameQueryType.Data,
-                        decimationMethod: 'NONE'
-                    });
-
-                    await waitFor(() => {
-                        const spinbuttons = screen.getAllByRole('spinbutton');
-                        // Should have the undecimated record count field
-                        expect(spinbuttons.length).toBe(1);
-                    });
-                });
-
-                it("should not display undecimated record count field when decimation method is not 'None'", async () => {
-                    renderComponent({ 
-                        type: DataFrameQueryType.Data,
-                        decimationMethod: 'LOSSY'
-                    });
-
-                    await waitFor(() => {
-                        const spinbuttons = screen.queryAllByRole('spinbutton');
-                        // Should have no spinbuttons (take field is only for Properties query type)
-                        expect(spinbuttons.length).toBe(0);
-                    });
-                });
-
-                
-                describe("undecimated record count field", () => {
-                    let undecimatedInput: HTMLElement;
-                    let user: UserEvent;
-
-                    beforeEach(() => {
-                        cleanup(); // Clean up the parent render
-                        renderComponent({ 
-                            type: DataFrameQueryType.Data,
-                            decimationMethod: 'NONE'
-                        });
-                        user = userEvent.setup();
-                    });
-
-                    it("should show the undecimated record count field with default value when decimation is 'NONE'", async () => {
-                        await waitFor(() => {
-                            const spinbuttons = screen.getAllByRole('spinbutton');
-                            expect(spinbuttons.length).toBe(1);
-                            
-                            undecimatedInput = spinbuttons[0];
-                            expect(undecimatedInput).toBeInTheDocument();
-                            expect(undecimatedInput).toHaveValue(10000);
-                        });
-                    });
-
-                    it("should allow only numeric input in the undecimated record count field", async () => {
-                        await waitFor(() => {
-                            const spinbuttons = screen.getAllByRole('spinbutton');
-                            undecimatedInput = spinbuttons[0];
-                        });
-
-                        await user.type(undecimatedInput, "abc");
-                        await user.tab();
-
-                        expect(undecimatedInput).toHaveValue(10000);
-                    });
-
-                    it("should show an error message when the undecimated record count is less than or equal to 0", async () => {
-                        await waitFor(() => {
-                            const spinbuttons = screen.getAllByRole('spinbutton');
-                            undecimatedInput = spinbuttons[0];
-                        });
-
-                        await user.clear(undecimatedInput);
-                        await user.type(undecimatedInput, "0");
-                        await user.tab();
-
-                        await waitFor(() => {
-                            expect(screen.getByText("Enter a value greater than or equal to 1."))
-                                .toBeInTheDocument();
-                        });
-                    });
-
-                    it("should show an error message when the undecimated record count is greater than 1000000", async () => {
-                        await waitFor(() => {
-                            const spinbuttons = screen.getAllByRole('spinbutton');
-                            undecimatedInput = spinbuttons[0];
-                        });
-
-                        await user.clear(undecimatedInput);
-                        await user.type(undecimatedInput, "2000000");
-                        await user.tab();
-
-                        await waitFor(() => {
-                            expect(screen.getByText("Enter a value less than or equal to 1000000."))
-                                .toBeInTheDocument();
-                        });
-                    });
-
-                    it("should not show an error message when a valid undecimated record count is entered", async () => {
-                        await waitFor(() => {
-                            const spinbuttons = screen.getAllByRole('spinbutton');
-                            undecimatedInput = spinbuttons[0];
-                        });
-
-                        await user.clear(undecimatedInput);
-                        await user.type(undecimatedInput, "50000");
-                        await user.tab();
-
-                        await waitFor(() => {
-                            expect(screen.queryByText("Enter a value greater than or equal to 1."))
-                                .not.toBeInTheDocument();
-                            expect(screen.queryByText("Enter a value less than or equal to 1000000."))
-                                .not.toBeInTheDocument();
-                        });
-                    });
-
-                    it("should call onChange when a valid undecimated record count is entered", async () => {
-                        cleanup();
-                        const { onChange } = renderComponent({ 
-                            type: DataFrameQueryType.Data,
-                            decimationMethod: 'NONE'
-                        });
-
-                        await waitFor(() => {
-                            const spinbuttons = screen.getAllByRole('spinbutton');
-                            undecimatedInput = spinbuttons[0];
-                        });
-
-                        await user.clear(undecimatedInput);
-                        await user.type(undecimatedInput, "50000");
-                        await user.tab();
+                        const noneOption = options.find(opt => opt.textContent?.startsWith('None'));
+                        
+                        expect(noneOption).toBeDefined();
+                        await user.click(noneOption!);
 
                         await waitFor(() => {
                             expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                                undecimatedRecordCount: 50000,
+                                decimationMethod: 'NONE'
                             }));
-                        });
-                    });
-
-                    it("should call onRunQuery when a valid undecimated record count is entered", async () => {
-                        cleanup();
-                        const { onRunQuery } = renderComponent({ 
-                            type: DataFrameQueryType.Data,
-                            decimationMethod: 'NONE'
-                        });
-
-                        await waitFor(() => {
-                            const spinbuttons = screen.getAllByRole('spinbutton');
-                            undecimatedInput = spinbuttons[0];
-                        });
-
-                        await user.clear(undecimatedInput);
-                        await user.type(undecimatedInput, "50000");
-                        await user.tab();
-
-                        await waitFor(() => {
                             expect(onRunQuery).toHaveBeenCalled();
                         });
                     });
 
-                    it("should not call onChange and onRunQuery until undecimated input loses focus", async () => {
-                        cleanup();
-                        const { onChange, onRunQuery } = renderComponent({ 
+                    it("should display undecimated record count field when 'None' decimation is selected", async () => {
+                        renderComponent({ 
                             type: DataFrameQueryType.Data,
                             decimationMethod: 'NONE'
                         });
 
                         await waitFor(() => {
-                            const spinbuttons = screen.getAllByRole('spinbutton');
-                            undecimatedInput = spinbuttons[0];
+                            const recordCountInput = screen.getAllByRole('spinbutton');
+                            expect(recordCountInput.length).toBe(1);
+                        });
+                    });
+
+                    it("should not display undecimated record count field when decimation method is not 'None'", async () => {
+                        renderComponent({ 
+                            type: DataFrameQueryType.Data,
+                            decimationMethod: 'LOSSY'
                         });
 
-                        await user.clear(undecimatedInput);
-                        await user.type(undecimatedInput, "50000");
-
                         await waitFor(() => {
-                            expect(onChange).not.toHaveBeenCalled();
-                            expect(onRunQuery).not.toHaveBeenCalled();
+                            const recordCountInput = screen.queryAllByRole('spinbutton');
+                            expect(recordCountInput.length).toBe(0);
+                        });
+                    });
+
+                    describe("undecimated record count field", () => {
+                        let undecimatedInput: HTMLElement;
+                        let user: UserEvent;
+
+                        beforeEach(() => {
+                            cleanup();
+                            renderComponent({ 
+                                type: DataFrameQueryType.Data,
+                                decimationMethod: 'NONE'
+                            });
+                            user = userEvent.setup();
+                        });
+
+                        it("should show the undecimated record count field with default value", async () => {
+                            await waitFor(() => {
+                                const recordCountInput = screen.getAllByRole('spinbutton');
+                                expect(recordCountInput.length).toBe(1);
+                                
+                                undecimatedInput = recordCountInput[0];
+                                expect(undecimatedInput).toBeInTheDocument();
+                                expect(undecimatedInput).toHaveValue(10000);
+                            });
+                        });
+
+                        it("should allow only numeric input", async () => {
+                            await waitFor(() => {
+                                const recordCountInput = screen.getAllByRole('spinbutton');
+                                undecimatedInput = recordCountInput[0];
+                            });
+
+                            await user.type(undecimatedInput, "abc");
+                            await user.tab();
+
+                            expect(undecimatedInput).toHaveValue(10000);
+                        });
+
+                        it("should show an error message when value is less than or equal to 0", async () => {
+                            await waitFor(() => {
+                                const recordCountInput = screen.getAllByRole('spinbutton');
+                                undecimatedInput = recordCountInput[0];
+                            });
+
+                            await user.clear(undecimatedInput);
+                            await user.type(undecimatedInput, "0");
+                            await user.tab();
+
+                            await waitFor(() => {
+                                expect(screen.getByText("Enter a value greater than or equal to 1."))
+                                    .toBeInTheDocument();
+                            });
+                        });
+
+                        it("should show an error message when value is greater than 1000000", async () => {
+                            await waitFor(() => {
+                                const recordCountInput = screen.getAllByRole('spinbutton');
+                                undecimatedInput = recordCountInput[0];
+                            });
+
+                            await user.clear(undecimatedInput);
+                            await user.type(undecimatedInput, "2000000");
+                            await user.tab();
+
+                            await waitFor(() => {
+                                expect(screen.getByText("Enter a value less than or equal to 1000000."))
+                                    .toBeInTheDocument();
+                            });
+                        });
+
+                        it("should not show an error message when a valid value is entered", async () => {
+                            await waitFor(() => {
+                                const recordCountInput = screen.getAllByRole('spinbutton');
+                                undecimatedInput = recordCountInput[0];
+                            });
+
+                            await user.clear(undecimatedInput);
+                            await user.type(undecimatedInput, "50000");
+                            await user.tab();
+
+                            await waitFor(() => {
+                                expect(screen.queryByText("Enter a value greater than or equal to 1."))
+                                    .not.toBeInTheDocument();
+                                expect(screen.queryByText("Enter a value less than or equal to 1000000."))
+                                    .not.toBeInTheDocument();
+                            });
+                        });
+
+                        it("should call onChange and onRunQuery when a valid value is entered", async () => {
+                            cleanup();
+                            const { onChange, onRunQuery } = renderComponent({ 
+                                type: DataFrameQueryType.Data,
+                                decimationMethod: 'NONE'
+                            });
+
+                            await waitFor(() => {
+                                const recordCountInput = screen.getAllByRole('spinbutton');
+                                undecimatedInput = recordCountInput[0];
+                            });
+
+                            await user.clear(undecimatedInput);
+                            await user.type(undecimatedInput, "50000");
+                            await user.tab();
+
+                            await waitFor(() => {
+                                expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                                    undecimatedRecordCount: 50000,
+                                }));
+                                expect(onRunQuery).toHaveBeenCalled();
+                            });
+                        });
+
+                        it("should not call onChange and onRunQuery until input loses focus", async () => {
+                            cleanup();
+                            const { onChange, onRunQuery } = renderComponent({ 
+                                type: DataFrameQueryType.Data,
+                                decimationMethod: 'NONE'
+                            });
+
+                            await waitFor(() => {
+                                const recordCountInput = screen.getAllByRole('spinbutton');
+                                undecimatedInput = recordCountInput[0];
+                            });
+
+                            await user.clear(undecimatedInput);
+                            await user.type(undecimatedInput, "50000");
+
+                            await waitFor(() => {
+                                expect(onChange).not.toHaveBeenCalled();
+                                expect(onRunQuery).not.toHaveBeenCalled();
+                            });
                         });
                     });
                 });
@@ -1840,9 +1819,9 @@ describe("DataFrameQueryEditorV2", () => {
                         );
 
                         await waitFor(() => {
-                            const spinbuttons = screen.queryAllByRole('spinbutton');
-                            // Should have no spinbuttons when feature flag is disabled
-                            expect(spinbuttons.length).toBe(0);
+                            const recordCountInput = screen.queryAllByRole('spinbutton');
+                            // Should have no record count inputs when feature flag is disabled
+                            expect(recordCountInput.length).toBe(0);
                         });
                     });
                 });
