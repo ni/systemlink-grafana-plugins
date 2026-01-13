@@ -21,14 +21,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check system resources
-        run: |
-          echo "=== System Memory ==="
-          free -h
-          echo ""
-          echo "=== Node.js Heap Statistics ==="
-          node -e "const v8 = require('v8'); const stats = v8.getHeapStatistics(); console.log('Heap Size Limit:', (stats.heap_size_limit / 1024 / 1024).toFixed(2), 'MB'); console.log('Total Heap Size:', (stats.total_heap_size / 1024 / 1024).toFixed(2), 'MB'); console.log('Used Heap Size:', (stats.used_heap_size / 1024 / 1024).toFixed(2), 'MB'); console.log('Available Heap:', ((stats.heap_size_limit - stats.used_heap_size) / 1024 / 1024).toFixed(2), 'MB');"
-
       - name: Check types
         run: npm run typecheck
 
