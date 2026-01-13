@@ -61,7 +61,7 @@ describe('DataFrameConfigEditor', () => {
     });
 
     test('should update the queryUndecimatedData feature toggles option when it is toggled', async () => {
-        const undecimatedDataQueryBuilderToggle = screen.getAllByRole('switch')[2];
+        const queryUndecimatedDataToggle = screen.getAllByRole('switch')[2];
         const expectedJsonData = {
             "jsonData": { 
                 "featureToggles": { 
@@ -70,9 +70,9 @@ describe('DataFrameConfigEditor', () => {
                 } 
             }
         };  
-        expect(undecimatedDataQueryBuilderToggle).not.toBeChecked();
+        expect(queryUndecimatedDataToggle).not.toBeChecked();
 
-        await userEvent.click(undecimatedDataQueryBuilderToggle);
+        await userEvent.click(queryUndecimatedDataToggle);
         await waitFor(() => {
             expect(mockOnOptionsChange).toHaveBeenCalledWith(
                 expect.objectContaining(expectedJsonData)
