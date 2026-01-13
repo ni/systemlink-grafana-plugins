@@ -38,21 +38,21 @@ export const DataFrameConfigEditor: React.FC<Props> = ({ options, onOptionsChang
                     </InlineField>
                 </InlineSegmentGroup>
                 <InlineSegmentGroup>
-                    <InlineField 
-                        label={labels.resultAndColumnQueryBuilder}
-                        labelWidth={30}
-                    >
+                    <InlineField label={labels.resultAndColumnQueryBuilder} labelWidth={30}>
                         <InlineSwitch
                             value={
                                 options.jsonData?.featureToggles?.queryByResultAndColumnProperties
-                                    ?? DataFrameFeatureTogglesDefaults.queryByResultAndColumnProperties
+                                ?? DataFrameFeatureTogglesDefaults.queryByResultAndColumnProperties
                             }
                             onChange={handleFeatureChange('queryByResultAndColumnProperties')}
                     />
                     </InlineField>
                 </InlineSegmentGroup>
                 <InlineSegmentGroup> 
-                    <InlineField label={labels.queryUndecimatedData} labelWidth={30}>
+                    <InlineField
+                        label={labels.queryUndecimatedData}
+                        labelWidth={30}
+                    >
                         <InlineSwitch
                             value={
                                 options.jsonData?.featureToggles?.queryUndecimatedData
