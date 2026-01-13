@@ -61,7 +61,7 @@ test('query properties for all systems', async () => {
 test('query properties for one system', async () => {
   backendSrv.fetch
     .calledWith(
-      requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { filter: '(id = "system-1")' } })
+      requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { filter: '(id = "system-1" || alias = "system-1")' } })
     )
     .mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
 
@@ -88,12 +88,13 @@ test('query properties for one system', async () => {
 });
 
 test('query properties with templated system name', async () => {
-  templateSrv.replace.mockImplementation((str) => (str ?? '').replace('$system_id', 'system-1'));
-  backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
+  templateSrv.replace.calledWith('(id = "$system_id" || alias = "$system_id")', expect.any(Object)).mockReturnValue('(id = "system-1" || alias = "system-1")');
+  backendSrv.fetch
+    .mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
 
   await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: '$system_id' })));
 
-  expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('filter', '(id = "system-1")');
+  expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('filter', '(id = "system-1" || alias = "system-1")');
 });
 
 test('queries for system variable values - all workspaces', async () => {
@@ -297,7 +298,7 @@ describe('backward compatibility - legacy systemName and workspace migration', (
     await firstValueFrom(ds.query(buildQuery(query)));
 
     expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      '(id = "my-system")',
+      '(id = "my-system" || alias = "my-system")',
       expect.any(Array)
     );
   });
@@ -331,7 +332,7 @@ describe('backward compatibility - legacy systemName and workspace migration', (
     await firstValueFrom(ds.query(buildQuery(query)));
 
     expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      'state = "CONNECTED" && (id = "my-system")',
+      'state = "CONNECTED" && (id = "my-system" || alias = "my-system")',
       expect.any(Array)
     );
   });
@@ -348,7 +349,7 @@ describe('backward compatibility - legacy systemName and workspace migration', (
     await firstValueFrom(ds.query(buildQuery(query)));
 
     expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      '(id = "my-system")',
+      '(id = "my-system" || alias = "my-system")',
       expect.any(Array)
     );
   });
@@ -366,7 +367,7 @@ describe('backward compatibility - legacy systemName and workspace migration', (
 
     expect(prepared.systemName).toBe('');
     expect(prepared.workspace).toBe('');
-    expect(prepared.filter).toBe('(id = "my-system")');
+    expect(prepared.filter).toBe('(id = "my-system" || alias = "my-system")');
   });
 });
 

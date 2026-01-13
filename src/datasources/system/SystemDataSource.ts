@@ -58,8 +58,9 @@ export class SystemDataSource extends SystemsDataSourceBase {
     }
 
     if (query.systemName?.trim()) {
-      const systemPart = `(id = "${query.systemName}") `;
-      parts.push(systemPart);
+      const idPart = `id = "${query.systemName}"`;
+      const aliasPart = `alias = "${query.systemName}"`;
+      parts.push(`(${idPart} || ${aliasPart})`);
     }
 
     if (query.workspace?.trim() && !query.systemName) {
