@@ -49,7 +49,7 @@ export const DataFrameConfigEditor: React.FC<Props> = ({ options, onOptionsChang
                     </InlineField>
                 </InlineSegmentGroup>
                 <InlineSegmentGroup> 
-                    <InlineField label={labels.undecimatedDataQueryBuilder} labelWidth={30}>
+                    <InlineField label={labels.queryUndecimatedData} labelWidth={30}>
                         <InlineSwitch
                             value={
                                 options.jsonData?.featureToggles?.queryUndecimatedData
@@ -68,5 +68,5 @@ const labels = {
     features: 'Features',
     datatableQueryBuilder: 'Datatable query builder',
     resultAndColumnQueryBuilder: 'Results and columns query builders',
-    undecimatedDataQueryBuilder: 'Query undecimated data',
+    queryUndecimatedData: 'Query undecimated data',
 };
