@@ -50,13 +50,15 @@ export enum ConnectionStatus {
   VIRTUAL = 'VIRTUAL',
   APPROVED = 'APPROVED',
   CONNECTED_REFRESH_PENDING = 'CONNECTED_REFRESH_PENDING',
+  ACTIVATED_WITHOUT_CONNECTION = 'ACTIVATED_WITHOUT_CONNECTION',
 }
 
 export const ConnectionStatusOptions = [
   { label: 'Disconnected', value: ConnectionStatus.DISCONNECTED },
-  { label: 'Connected Refresh Failed', value: ConnectionStatus.CONNECTED_REFRESH_FAILED },
+  { label: 'Connected refresh failed', value: ConnectionStatus.CONNECTED_REFRESH_FAILED },
   { label: 'Connected', value: ConnectionStatus.CONNECTED },
   { label: 'Virtual', value: ConnectionStatus.VIRTUAL },
   { label: 'Approved', value: ConnectionStatus.APPROVED },
-  { label: 'Connected Refresh Pending', value: ConnectionStatus.CONNECTED_REFRESH_PENDING },
+  { label: 'Connected refresh pending', value: ConnectionStatus.CONNECTED_REFRESH_PENDING },
+  { label: 'Activated without connection', value: ConnectionStatus.ACTIVATED_WITHOUT_CONNECTION },
 ];
