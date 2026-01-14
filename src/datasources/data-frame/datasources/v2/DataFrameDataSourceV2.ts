@@ -925,18 +925,31 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         xColumn: string | null,
         selectedColumnIdentifiers: string[]
     ): FieldDTO[] {
+        let addUnitsToColumns = false;
+
         let uniqueOutputColumns = this.getUniqueColumns(
             Object.values(tableColumnsMap)
-                .flatMap(columnsData => columnsData.selectedColumns)
+                .flatMap(columnsData => columnsData.selectedColumns),
+            addUnitsToColumns
         );
         uniqueOutputColumns = this.sortColumnsByType(uniqueOutputColumns, xColumn);
 
         const fields: FieldDTO[] = [
-            ...uniqueOutputColumns.map(column => (this.createField({
-                name: column.displayName,
-                type: this.getFieldTypeForDataType(column.dataType),
-                values: [],
-            })))
+            ...uniqueOutputColumns.map(column => {
+                let columnDisplayName = column.displayName;
+                const config: FieldDTO['config'] = {};
+
+                if (addUnitsToColumns) {
+                    columnDisplayName += ` (${this.getUnitForColumn(column)})`
+                    config.unit = this.getUnitForColumn(column);
+                }
+
+                return this.createField({
+                    name: columnDisplayName,
+                    type: this.getFieldTypeForDataType(column.dataType),
+                    values: [],
+                })
+            }),
         ];
 
         metadataFieldOptions.forEach(({ label, value }) => {
@@ -956,7 +969,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             const decimatedTableData = tableDataRows.frame.data;
             const rowCount = decimatedTableData.length;
 
-            const columnInfoByDisplayName = columnsData 
+            const columnInfoByDisplayName: Map<string,ColumnWithDisplayName> = columnsData 
                 ? new Map(columnsData.selectedColumns.map(column => [column.displayName, column]))
                 : new Map(); // Handle case where only metadata fields are selected
             const columnIndexByName = new Map(
@@ -974,17 +987,29 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         field.values = field.values!.concat(tableNameColumnValues);
                         break;
                     default:
+                        const columnDetails = columnInfoByDisplayName.get(field.name);
+
+                        if (!columnDetails) {
+                            const emptyValues = Array(rowCount).fill(null);
+                            field.values = field.values!.concat(emptyValues);
+                            break;
+                        }
+
                         const { 
                             name: actualColumnName,
-                            dataType: columnDataType
-                        } = columnInfoByDisplayName.get(field.name) || {};
+                            dataType: columnDataType,
+                        } = columnDetails;
                         const columnIndex = actualColumnName !== undefined
                             ? columnIndexByName.get(actualColumnName)
                             : undefined;
+
+                        const isUnitsMatch = !addUnitsToColumns 
+                            || this.getUnitForColumn(columnDetails) === field.config?.unit;
                         if (
                             actualColumnName === undefined
                             || columnDataType === undefined
                             || columnIndex === undefined
+                            || !isUnitsMatch
                         ) {
                             const emptyValues = Array(rowCount).fill(null);
                             field.values = field.values!.concat(emptyValues);
@@ -1039,15 +1064,30 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
     }
 
-    private getUniqueColumns(columns: ColumnWithDisplayName[]): ColumnWithDisplayName[] {
+    private getUniqueColumns(
+        columns: ColumnWithDisplayName[],
+        addUnitsToColumns: boolean
+    ): ColumnWithDisplayName[] {
         const uniqueColumnsMap: Map<string, ColumnWithDisplayName> = new Map();
         columns.forEach(column => {
-            const key = this.getColumnIdentifier(column.name, column.dataType);
+            let key = this.getColumnIdentifier(column.name, column.dataType);
+
+            if (addUnitsToColumns) {
+                key += `-${this.getUnitForColumn(column)}`;
+            }
+
             if (!uniqueColumnsMap.has(key)) {
                 uniqueColumnsMap.set(key, column);
             }
         });
         return Array.from(uniqueColumnsMap.values());
+    }
+
+    private getUnitForColumn(column?: ColumnWithDisplayName): string {
+        const properties = column?.properties ?? {};
+        const POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS = ['unit', 'units', 'Unit', 'Units'];
+        const matchedUnitPropertyKey = POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS.find(name => properties[name]);
+        return matchedUnitPropertyKey ? properties[matchedUnitPropertyKey] : '';
     }
 
     private buildTableNamesMap(tables: TableProperties[]) {
