@@ -337,7 +337,7 @@ describe('PlotlyPanel', () => {
         );
       });
 
-      it('should call onOptionsChange with new min and max when relayout event provides numbers', () => {
+      it('should call onOptionsChange with new min and max when relayout event provides numeric x-axis values', () => {
         const props = createMockProps({ xAxis: { field: 'temperature', min: 1, max: 2 } }, 1);
 
         renderPlotlyElement(props);

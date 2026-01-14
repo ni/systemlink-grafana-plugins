@@ -199,8 +199,9 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       return;
     }
     
-    const precisionXAxisMin = Number(xAxisMin.toFixed(6));
-    const precisionXAxisMax = Number(xAxisMax.toFixed(6));
+    const X_AXIS_PRECISION_DECIMALS = 6;
+    const precisionXAxisMin = Number(xAxisMin.toFixed(X_AXIS_PRECISION_DECIMALS));
+    const precisionXAxisMax = Number(xAxisMax.toFixed(X_AXIS_PRECISION_DECIMALS));
     const existingXAxisMin = queryParams[`nisl-${options.xAxis.field}-min`];
     const existingXAxisMax = queryParams[`nisl-${options.xAxis.field}-max`];
 
@@ -214,7 +215,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         options.xAxis.field
       );
     }
-  }
+  };
 
   const handleImageDownload = (gd: PlotlyHTMLElement) =>
     toImage(gd, { format: 'png', width, height }).then((data) => saveAs(data, props.title));
