@@ -26,8 +26,6 @@ jobs:
 
       - name: Lint
         run: npm run lint -- --quiet
-        env:
-          NODE_OPTIONS: --max-old-space-size=6144
 
       - name: Unit tests
         run: npm run test:ci
