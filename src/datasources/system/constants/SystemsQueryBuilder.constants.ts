@@ -70,7 +70,7 @@ export const SystemFields: Record<string, QBField> = {
         }
     },
     CONNECTION_STATUS: {
-        label: 'Connection Status',
+        label: 'Connection status',
         dataField: SystemUIFieldNames.CONNECTION_STATUS,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
@@ -97,7 +97,7 @@ export const SystemFields: Record<string, QBField> = {
         ],
     },
     OS_FULL_NAME: {
-        label: 'Operating System',
+        label: 'Operating system',
         dataField: SystemUIFieldNames.OS_FULL_NAME,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
@@ -105,7 +105,7 @@ export const SystemFields: Record<string, QBField> = {
         ],
     },
     SCAN_CODE: {
-        label: 'Scan Code',
+        label: 'Scan code',
         dataField: SystemUIFieldNames.SCAN_CODE,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
@@ -113,7 +113,7 @@ export const SystemFields: Record<string, QBField> = {
         ],
     },
     LOCKED_STATUS: {
-        label: 'Locked Status',
+        label: 'Locked status',
         dataField: SystemUIFieldNames.LOCKED_STATUS,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
@@ -126,19 +126,6 @@ export const SystemFields: Record<string, QBField> = {
             ],
         }
     }
-    // SYSTEM_START_TIME: {
-    //     label: 'System Start Time',
-    //     dataField: SystemUIFieldNames.SYSTEM_START_TIME,
-    //     filterOperations: [
-    //         QueryBuilderOperations.LESS_THAN.name,
-    //         QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
-    //         QueryBuilderOperations.GREATER_THAN.name,
-    //         QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
-    //     ],
-    //     lookup: {
-    //         dataSource: [],
-    //     }
-    // }
 };
 
 export const SystemStaticFields = [

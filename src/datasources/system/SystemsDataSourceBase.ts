@@ -45,7 +45,7 @@ export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, 
     }
 
     public readonly systemsComputedDataFields = new Map<string, ExpressionTransformFunction>([
-        ...this.getDefaultComputedDataFields(), ...this.getBooleanFieldComputedData(), this.getOverrideSystemStartTimeComputedField()
+        ...this.getDefaultComputedDataFields(), ...this.getBooleanFieldComputedData()
     ]);
 
     /**
@@ -54,40 +54,6 @@ export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, 
     private getBooleanFieldComputedData(): Array<[string, ExpressionTransformFunction]> {
         return [
             ['grains.data.minion_blackout', this.handleBooleanField('grains.data.minion_blackout')],
-        ];
-    }
-
-    /**
-     * @returns Overrides the System Start Time computed field to handle Grafana date variables and wrap
-     * the field with DateTime conversion for proper backend comparison. Converts ${__now:date}, ${__from:date},
-     * and ${__to:date} variables to ISO timestamps and supports multi-select values.
-     */
-    private getOverrideSystemStartTimeComputedField(): [string, ExpressionTransformFunction] {
-        return [
-            SystemBackendFieldNames.SYSTEM_START_TIME,
-            (value: string, operation: string, _options?: Map<string, unknown>) => {
-                let values = [value];
-
-                if (this.isMultiSelectValue(value)) {
-                    values = this.getMultipleValuesArray(value);
-                }
-
-                const convertedValues = values.map(value => {
-                    if (value === '${__now:date}') {
-                        return new Date().toISOString();
-                    }
-                    return value;
-                });
-
-                if (convertedValues.length > 1) {
-                    const query = convertedValues
-                        .map(val => `DateTime(${SystemBackendFieldNames.SYSTEM_START_TIME}) ${operation} DateTime.parse("${val}")`)
-                        .join(` ${getConcatOperatorForMultiExpression(operation)} `);
-                    return `(${query})`;
-                }
-
-                return `DateTime(${SystemBackendFieldNames.SYSTEM_START_TIME}) ${operation} DateTime.parse("${convertedValues[0]}")`;
-            }
         ];
     }
 

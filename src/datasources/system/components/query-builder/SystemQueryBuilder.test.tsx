@@ -47,7 +47,7 @@ describe('SystemsQueryBuilder', () => {
             const { conditionsContainer } = renderElement([workspace], 'connectionStatus = "CONNECTED"');
 
             expect(conditionsContainer?.length).toBe(1);
-            expect(conditionsContainer.item(0)?.textContent).toContain('Connection Status');
+            expect(conditionsContainer.item(0)?.textContent).toContain('Connection status');
             expect(conditionsContainer.item(0)?.textContent).toContain('equals');
             expect(conditionsContainer.item(0)?.textContent).toContain('Connected');
         });
@@ -56,7 +56,7 @@ describe('SystemsQueryBuilder', () => {
             const { conditionsContainer } = renderElement([workspace], 'connectionStatus != "DISCONNECTED"');
 
             expect(conditionsContainer?.length).toBe(1);
-            expect(conditionsContainer.item(0)?.textContent).toContain('Connection Status');
+            expect(conditionsContainer.item(0)?.textContent).toContain('Connection status');
             expect(conditionsContainer.item(0)?.textContent).toContain('does not equal');
             expect(conditionsContainer.item(0)?.textContent).toContain('Disconnected');
         });
@@ -65,7 +65,7 @@ describe('SystemsQueryBuilder', () => {
             const { conditionsContainer } = renderElement([workspace], 'lockedStatus = "true"');
 
             expect(conditionsContainer?.length).toBe(1);
-            expect(conditionsContainer.item(0)?.textContent).toContain('Locked Status');
+            expect(conditionsContainer.item(0)?.textContent).toContain('Locked status');
             expect(conditionsContainer.item(0)?.textContent).toContain('equals');
             expect(conditionsContainer.item(0)?.textContent).toContain('True');
         });
@@ -74,7 +74,7 @@ describe('SystemsQueryBuilder', () => {
             const { conditionsContainer } = renderElement([workspace], 'osFullName = "nilrt"');
 
             expect(conditionsContainer?.length).toBe(1);
-            expect(conditionsContainer.item(0)?.textContent).toContain('Operating System');
+            expect(conditionsContainer.item(0)?.textContent).toContain('Operating system');
             expect(conditionsContainer.item(0)?.textContent).toContain('nilrt');
         });
 
@@ -98,7 +98,7 @@ describe('SystemsQueryBuilder', () => {
             const { conditionsContainer } = renderElement([workspace], 'scanCode = "ABC123DEF456"');
 
             expect(conditionsContainer?.length).toBe(1);
-            expect(conditionsContainer.item(0)?.textContent).toContain('Scan Code');
+            expect(conditionsContainer.item(0)?.textContent).toContain('Scan code');
             expect(conditionsContainer.item(0)?.textContent).toContain('ABC123DEF456');
         });
 
@@ -132,7 +132,7 @@ describe('SystemsQueryBuilder', () => {
             );
 
             expect(conditionsContainer?.length).toBe(1);
-            expect(conditionsContainer.item(0)?.textContent).toContain('Scan Code');
+            expect(conditionsContainer.item(0)?.textContent).toContain('Scan code');
         });
 
         it('should select multi-value does-not-equal filter', () => {
