@@ -14,8 +14,6 @@ import { replaceVariables } from "core/utils";
 import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
 import { QueryBuilderOperations } from "core/query-builder.constants";
 
-let addUnitsToColumns = true;
-
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
     private scopedVars: ScopedVars = {};
@@ -861,7 +859,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         const tableColumnsMap = this.buildTableColumnsMap(
                             nonMetadataColumnIdentifiers,
                             tables,
-                            processedQuery.includeIndexColumns
+                            processedQuery.includeIndexColumns,
+                            processedQuery.includeColumnUnits
                         );
 
                         const hasOnlyMetadataFields = selectedColumnIdentifiers.every(
@@ -897,7 +896,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                         tableNamesMap,
                                         result.data,
                                         processedQuery.xColumn,
-                                        selectedColumnIdentifiers
+                                        selectedColumnIdentifiers,
+                                        processedQuery.includeColumnUnits
                                     );
                                     const notices = result.isLimitExceeded ? [
                                         {
@@ -926,12 +926,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tableNamesMap: Record<string, string>,
         decimatedDataMap: Record<string, TableDataRows>,
         xColumn: string | null,
-        selectedColumnIdentifiers: string[]
+        selectedColumnIdentifiers: string[],
+        includeColumnUnits: boolean
     ): FieldDTO[] {
         let uniqueOutputColumns = this.getUniqueColumns(
             Object.values(tableColumnsMap)
                 .flatMap(columnsData => columnsData.selectedColumns),
-            addUnitsToColumns
+            includeColumnUnits
         );
         uniqueOutputColumns = this.sortColumnsByType(uniqueOutputColumns, xColumn);
 
@@ -939,7 +940,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             ...uniqueOutputColumns.map(column => {
                 const config: FieldDTO['config'] = {};
 
-                if (addUnitsToColumns) {
+                if (includeColumnUnits) {
                     config.unit = this.getUnitForColumn(column);
                 }
 
@@ -1003,7 +1004,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             ? columnIndexByName.get(actualColumnName)
                             : undefined;
 
-                        const isUnitsMatch = !addUnitsToColumns 
+                        const isUnitsMatch = !includeColumnUnits 
                             || this.getUnitForColumn(columnDetails) === field.config?.unit;
                         if (
                             actualColumnName === undefined
@@ -1128,7 +1129,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private buildTableColumnsMap(
         selectedColumnIdentifiers: string[],
         tables: TableProperties[],
-        includeIndexColumns: boolean
+        includeIndexColumns: boolean,
+        includeColumnUnits: boolean
     ): Record<string, TableColumnsData> {
         const selectedTableColumnsMap: Record<string, TableColumnsData> = {};
         const uniqueColumnsAcrossTables = this.getUniqueColumnsAcrossTables(tables);
@@ -1142,7 +1144,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     uniqueColumn => uniqueColumn.value === this.getColumnIdentifier(column.name, column.dataType)
                 )?.label || '';
 
-                if (addUnitsToColumns) {
+                if (includeColumnUnits) {
                     displayName += ` (${this.getUnitForColumn(column)})`;
                 }
 
