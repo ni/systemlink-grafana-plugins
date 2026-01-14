@@ -7,7 +7,7 @@ import { locationService } from '@grafana/runtime';
 import _ from 'lodash';
 
 const mockPublish = jest.fn();
-let plotlyOnReLayout: any;
+let plotlyOnRelayout: any;
 
 jest.mock('@grafana/runtime', () => ({
   getTemplateSrv: () => ({
@@ -26,7 +26,7 @@ jest.mock('./utils', () => ({
   getFieldsByName: jest.fn((frames, name) => frames.map((f: any) => f.fields[0])),
   notEmpty: jest.fn((val) => val !== null && val !== undefined),
   Plot: ({ onRelayout }: any) => {
-    plotlyOnReLayout = onRelayout;
+    plotlyOnRelayout = onRelayout;
     return <div data-testid="plotly-plot">Plot</div>;
   },
   renderMenuItems: jest.fn(),
@@ -34,7 +34,7 @@ jest.mock('./utils', () => ({
 }));
 
 describe('PlotlyPanel', () => {
-  const mockLocationWith = (search: string) => {
+  const mockSearchObject = (search: string) => {
     const params: Record<string, string> = {};
     if (search && search.startsWith('?')) {
       const searchParams = new URLSearchParams(search);
@@ -120,8 +120,8 @@ describe('PlotlyPanel', () => {
     return render(<PlotlyPanel {...props} />);
   };
 
-  const triggerReLayout = (xAxisMin?: number | string, xAxisMax?: number | string) => {
-    plotlyOnReLayout({
+  const triggerRelayout = (xAxisMin?: number | string, xAxisMax?: number | string) => {
+    plotlyOnRelayout({
       'xaxis.range[0]': xAxisMin,
       'xaxis.range[1]': xAxisMax,
     });
@@ -137,271 +137,291 @@ describe('PlotlyPanel', () => {
   });
 
   describe('X-Axis Range Synchronization', () => {
-    it('should update route parameters when panel is in nisl-syncXAxisRangeTargets and x-axis is zoomed', () => {
-      mockLocationWith('?nisl-syncXAxisRangeTargets=1,2,3');
-      const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+    describe('when x-axis field is defined', () => {
+      it('should update route parameters when panel ID is in nisl-syncXAxisRangeTargets and x-axis is zoomed', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1,2,3');
+        const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
-      renderPlotlyElement(props);
-      triggerReLayout(10.3, 99.7);
-      jest.runOnlyPendingTimers();
+        renderPlotlyElement(props);
+        triggerRelayout(10.3, 99.7);
+        jest.runOnlyPendingTimers();
 
-      expect(locationService.partial).toHaveBeenCalledWith(
-        {
-          'nisl-temperature-min': 10,
-          'nisl-temperature-max': 100,
-        },
-        true
-      );
-    });
+        expect(locationService.partial).toHaveBeenCalledWith(
+          {
+            'nisl-temperature-min': 10,
+            'nisl-temperature-max': 100,
+          },
+          true
+        );
+      });
 
-    it('should update route parameters when panel ID is present in nisl-syncXAxisRangeTargets', () => {
-      mockLocationWith('?nisl-syncXAxisRangeTargets=1,2,3');
-      const props = createMockProps({ xAxis: { field: 'temperature' } }, 2);
+      it('should not update route parameters when panel ID is not in nisl-syncXAxisRangeTargets', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=2,3,4');
+        const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
-      renderPlotlyElement(props);
-      triggerReLayout(20.5, 80.3);
-      jest.runOnlyPendingTimers();
+        renderPlotlyElement(props);
+        triggerRelayout(10.3, 99.7);
+        jest.runOnlyPendingTimers();
 
-      expect(locationService.partial).toHaveBeenCalledWith(
-        {
-          'nisl-temperature-min': 20,
-          'nisl-temperature-max': 81,
-        },
-        true
-      );
-    });
+        expect(locationService.partial).not.toHaveBeenCalled();
+      });
 
-    it('should not update route parameters when panel is not in nisl-syncXAxisRangeTargets', () => {
-      mockLocationWith('?nisl-syncXAxisRangeTargets=2,3,4');
-      const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+      it('should floor min value and ceil max value', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=5');
+        const props = createMockProps({ xAxis: { field: 'pressure' } }, 5);
 
-      renderPlotlyElement(props);
-      triggerReLayout(10.3, 99.7);
-      jest.runOnlyPendingTimers();
+        renderPlotlyElement(props);
+        triggerRelayout(45.8, 78.2);
+        jest.runOnlyPendingTimers();
 
-      expect(locationService.partial).not.toHaveBeenCalled();
-    });
+        expect(locationService.partial).toHaveBeenCalledWith(
+          {
+            'nisl-pressure-min': 45,
+            'nisl-pressure-max': 79,
+          },
+          true
+        );
+      });
 
-    it('should not update route parameters when x-axis field is undefined', () => {
-      mockLocationWith('?nisl-syncXAxisRangeTargets=1');
-      const props = createMockProps({ xAxis: { field: undefined } }, 1);
+      it('should not update route parameters when x-axis values are undefined', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1');
+        const props = createMockProps({ xAxis: { field: 'voltage' } }, 1);
 
-      renderPlotlyElement(props);
-      triggerReLayout(10.3, 99.7);
-      jest.runOnlyPendingTimers();
+        renderPlotlyElement(props);
+        triggerRelayout(undefined, undefined);
+        jest.runOnlyPendingTimers();
 
-      expect(locationService.partial).not.toHaveBeenCalled();
-    });
+        expect(locationService.partial).not.toHaveBeenCalled();
+      });
 
-    it('should floor min value and ceil max value', () => {
-      mockLocationWith('?nisl-syncXAxisRangeTargets=5');
-      const props = createMockProps({ xAxis: { field: 'pressure' } }, 5);
+      it('should not update route parameters when x-axis values represent time', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1');
+        const props = createMockProps({ xAxis: { field: 'time' } }, 1);
 
-      renderPlotlyElement(props);
-      triggerReLayout(45.8, 78.2);
-      jest.runOnlyPendingTimers();
+        renderPlotlyElement(props);
+        triggerRelayout('2025-01-01', '2025-12-31');
+        jest.runOnlyPendingTimers();
 
-      expect(locationService.partial).toHaveBeenCalledWith(
-        {
-          'nisl-pressure-min': 45,
-          'nisl-pressure-max': 79,
-        },
-        true
-      );
-    });
+        expect(locationService.partial).not.toHaveBeenCalled();
+      });
 
-    it('should not update route parameters when x-axis values are undefined', () => {
-      mockLocationWith('?nisl-syncXAxisRangeTargets=1');
-      const props = createMockProps({ xAxis: { field: 'voltage' } }, 1);
+      it('should handle empty nisl-syncXAxisRangeTargets parameter', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=');
+        const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
-      renderPlotlyElement(props);
-      triggerReLayout(undefined, undefined);
-      jest.runOnlyPendingTimers();
+        renderPlotlyElement(props);
+        triggerRelayout(10, 100);
+        jest.runOnlyPendingTimers();
 
-      expect(locationService.partial).not.toHaveBeenCalled();
-    });
+        expect(locationService.partial).not.toHaveBeenCalled();
+      });
 
-    it('should not update route parameters when x-axis values are strings', () => {
-      mockLocationWith('?nisl-syncXAxisRangeTargets=1');
-      const props = createMockProps({ xAxis: { field: 'voltage' } }, 1);
+      it('should handle missing nisl-syncXAxisRangeTargets query parameter', () => {
+        mockSearchObject('?someOtherParam=value');
+        const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
-      renderPlotlyElement(props);
-      triggerReLayout('2025-01-01', '2025-12-31');
-      jest.runOnlyPendingTimers();
+        renderPlotlyElement(props);
+        triggerRelayout(10, 100);
+        jest.runOnlyPendingTimers();
 
-      expect(locationService.partial).not.toHaveBeenCalled();
-    });
+        expect(locationService.partial).not.toHaveBeenCalled();
+      });
 
-    it('should handle empty nisl-syncXAxisRangeTargets parameter', () => {
-      mockLocationWith('?nisl-syncXAxisRangeTargets=');
-      const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+      it('should update route parameters when nisl-syncXAxisRangeTargets has spaces between values', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets= 1,  2,  3');
+        const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
-      renderPlotlyElement(props);
-      triggerReLayout(10, 100);
-      jest.runOnlyPendingTimers();
+        renderPlotlyElement(props);
+        triggerRelayout(10, 100);
+        jest.runOnlyPendingTimers();
 
-      expect(locationService.partial).not.toHaveBeenCalled();
-    });
+        expect(locationService.partial).toHaveBeenCalledWith(
+          {
+            'nisl-temperature-min': 10,
+            'nisl-temperature-max': 100,
+          },
+          true
+        );
+      });
 
-    it('should handle missing nisl-syncXAxisRangeTargets query parameter', () => {
-      mockLocationWith('?someOtherParam=value');
-      const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+      it('should not update route parameters when nisl-syncXAxisRangeTargets has single quotes around values', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=\'1\',\'2\'');
+        const props = createMockProps({ xAxis: { field: 'temperature' } }, 2);
 
-      renderPlotlyElement(props);
-      triggerReLayout(10, 100);
-      jest.runOnlyPendingTimers();
+        renderPlotlyElement(props);
+        triggerRelayout(10, 100);
+        jest.runOnlyPendingTimers();
 
-      expect(locationService.partial).not.toHaveBeenCalled();
-    });
+        expect(locationService.partial).not.toHaveBeenCalled();
+      });
 
-    it('should not update route parameters when nisl-syncXAxisRangeTargets has spaces between values', () => {
-      mockLocationWith('?nisl-syncXAxisRangeTargets=1, 2, 3');
-      const props = createMockProps({ xAxis: { field: 'temperature' } }, 2);
+      it('should not update route parameters when nisl-syncXAxisRangeTargets has double quotes around values', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets="1","2"');
+        const props = createMockProps({ xAxis: { field: 'temperature' } }, 2);
 
-      renderPlotlyElement(props);
-      triggerReLayout(10, 100);
-      jest.runOnlyPendingTimers();
+        renderPlotlyElement(props);
+        triggerRelayout(10, 100);
+        jest.runOnlyPendingTimers();
 
-      expect(locationService.partial).not.toHaveBeenCalled();
-    });
+        expect(locationService.partial).not.toHaveBeenCalled();
+      });
 
-    it('should not update route parameters when nisl-syncXAxisRangeTargets has single quotes around values', () => {
-      mockLocationWith('?nisl-syncXAxisRangeTargets=\'1\',\'2\'');
-      const props = createMockProps({ xAxis: { field: 'temperature' } }, 2);
+      it('should use x-axis field name in route parameter keys', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=7');
+        const props = createMockProps({ xAxis: { field: 'custom-field-name' } }, 7);
 
-      renderPlotlyElement(props);
-      triggerReLayout(10, 100);
-      jest.runOnlyPendingTimers();
+        renderPlotlyElement(props);
+        triggerRelayout(5.5, 15.5);
+        jest.runOnlyPendingTimers();
 
-      expect(locationService.partial).not.toHaveBeenCalled();
-    });
+        expect(locationService.partial).toHaveBeenCalledWith(
+          {
+            'nisl-custom-field-name-min': 5,
+            'nisl-custom-field-name-max': 16,
+          },
+          true
+        );
+      });
 
-    it('should not update route parameters when nisl-syncXAxisRangeTargets has double quotes around values', () => {
-      mockLocationWith('?nisl-syncXAxisRangeTargets="1","2"');
-      const props = createMockProps({ xAxis: { field: 'temperature' } }, 2);
+      it('should publish NIRefreshDashboardEvent after updating X-axis range', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1');
+        const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
-      renderPlotlyElement(props);
-      triggerReLayout(10, 100);
-      jest.runOnlyPendingTimers();
+        renderPlotlyElement(props);
+        triggerRelayout(10, 100);
+        jest.runOnlyPendingTimers();
 
-      expect(locationService.partial).not.toHaveBeenCalled();
-    });
+        expect(mockPublish).toHaveBeenCalled();
+        const eventArg = mockPublish.mock.calls[0][0];
+        expect(eventArg.constructor.name).toBe('NIRefreshDashboardEvent');
+      });
 
-    it('should use x-axis field name in route parameter keys', () => {
-      mockLocationWith('?nisl-syncXAxisRangeTargets=7');
-      const props = createMockProps({ xAxis: { field: 'custom-field-name' } }, 7);
+      it('should debounce multiple rapid zoom actions and only update route parameters once', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1');
+        const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
-      renderPlotlyElement(props);
-      triggerReLayout(5.5, 15.5);
-      jest.runOnlyPendingTimers();
+        renderPlotlyElement(props);
+        for (let i = 0; i < 10; i++) {
+          triggerRelayout(10 + i, 100 + i);
+          jest.advanceTimersByTime(20);
+        }
 
-      expect(locationService.partial).toHaveBeenCalledWith(
-        {
-          'nisl-custom-field-name-min': 5,
-          'nisl-custom-field-name-max': 16,
-        },
-        true
-      );
-    });
+        expect(locationService.partial).toHaveBeenCalledTimes(0);
 
-    it('should publish NIRefreshDashboardEvent after updating X-axis range', () => {
-      mockLocationWith('?nisl-syncXAxisRangeTargets=1');
-      const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+        jest.advanceTimersByTime(300);
+        
+        expect(locationService.partial).toHaveBeenCalledTimes(1);
+        expect(locationService.partial).toHaveBeenCalledWith(
+          {
+            'nisl-temperature-min': 19,
+            'nisl-temperature-max': 109,
+          },
+          true
+        );
+      });
 
-      renderPlotlyElement(props);
-      triggerReLayout(10, 100);
-      jest.runOnlyPendingTimers();
+      it('should call onOptionsChange with new min and max when relayout event provides numbers', () => {
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 1, max: 2 } }, 1);
 
-      expect(mockPublish).toHaveBeenCalled();
-      const eventArg = mockPublish.mock.calls[0][0];
-      expect(eventArg.constructor.name).toBe('NIRefreshDashboardEvent');
-    });
+        renderPlotlyElement(props);
+        triggerRelayout(10, 100);
 
-    it('should use debounce with 300ms wait time', () => {
-      const debounceSpy = jest.spyOn(_, 'debounce');
-      const props = createMockProps();
+        expect(props.onOptionsChange).toHaveBeenCalledWith({
+          ...props.options,
+          xAxis: { ...props.options.xAxis, min: 10, max: 100 },
+        });
+      });
 
-      renderPlotlyElement(props);
-      
-      expect(debounceSpy).toHaveBeenCalledWith(expect.any(Function), 300);
-    });
+      it('should not update route parameters when floored/ceiled values match existing URL parameters', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=50');
+        const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
-    it('should call onOptionsChange with new min and max when relayout event provides numbers', () => {
-      const props = createMockProps({ xAxis: { field: 'temperature', min: 1, max: 2 } }, 1);
+        renderPlotlyElement(props);
+        triggerRelayout(10.3, 49.7);
+        jest.runOnlyPendingTimers();
 
-      renderPlotlyElement(props);
-      triggerReLayout(10, 100);
+        expect(locationService.partial).not.toHaveBeenCalled();
+        expect(mockPublish).not.toHaveBeenCalled();
+      });
 
-      expect(props.onOptionsChange).toHaveBeenCalledWith({
-        ...props.options,
-        xAxis: { ...props.options.xAxis, min: 10, max: 100 },
+      it('should update route parameters when floored min value differs from existing URL parameter', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=50');
+        const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+
+        renderPlotlyElement(props);
+        triggerRelayout(9.8, 49.7);
+        jest.runOnlyPendingTimers();
+
+        expect(locationService.partial).toHaveBeenCalledWith(
+          {
+            'nisl-temperature-min': 9,
+            'nisl-temperature-max': 50,
+          },
+          true
+        );
+        expect(mockPublish).toHaveBeenCalled();
+      });
+
+      it('should update route parameters when ceiled max value differs from existing URL parameter', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=50');
+        const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+
+        renderPlotlyElement(props);
+        triggerRelayout(10.3, 50.1);
+        jest.runOnlyPendingTimers();
+
+        expect(locationService.partial).toHaveBeenCalledWith(
+          {
+            'nisl-temperature-min': 10,
+            'nisl-temperature-max': 51,
+          },
+          true
+        );
+        expect(mockPublish).toHaveBeenCalled();
+      });
+
+      it('should update route parameters when both floored min and ceiled max differ from existing URL parameters', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=50');
+        const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+
+        renderPlotlyElement(props);
+        triggerRelayout(8.2, 52.8);
+        jest.runOnlyPendingTimers();
+
+        expect(locationService.partial).toHaveBeenCalledWith(
+          {
+            'nisl-temperature-min': 8,
+            'nisl-temperature-max': 53,
+          },
+          true
+        );
+        expect(mockPublish).toHaveBeenCalled();
       });
     });
 
-    it('should not update route parameters when floored/ceiled values match existing URL parameters', () => {
-      mockLocationWith('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=50');
+    describe('when x-axis field is undefined', () => {
+      it('should not update route parameters when x-axis field is undefined', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1');
+        const props = createMockProps({ xAxis: { field: undefined } }, 1);
+
+        renderPlotlyElement(props);
+        triggerRelayout(10.3, 99.7);
+        jest.runOnlyPendingTimers();
+
+        expect(locationService.partial).not.toHaveBeenCalled();
+      });
+    });
+
+    it('should not update URL parameters after component unmount', () => {
+      mockSearchObject('?nisl-syncXAxisRangeTargets=1');
       const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
-      renderPlotlyElement(props);
-      triggerReLayout(10.3, 49.7);
+      const { unmount } = renderPlotlyElement(props);
+      triggerRelayout(10, 100);      
+      unmount();
       jest.runOnlyPendingTimers();
-
+      
       expect(locationService.partial).not.toHaveBeenCalled();
-      expect(mockPublish).not.toHaveBeenCalled();
-    });
-
-    it('should update route parameters when floored min value differs from existing URL parameter', () => {
-      mockLocationWith('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=50');
-      const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
-
-      renderPlotlyElement(props);
-      triggerReLayout(9.8, 49.7);
-      jest.runOnlyPendingTimers();
-
-      expect(locationService.partial).toHaveBeenCalledWith(
-        {
-          'nisl-temperature-min': 9,
-          'nisl-temperature-max': 50,
-        },
-        true
-      );
-      expect(mockPublish).toHaveBeenCalled();
-    });
-
-    it('should update route parameters when ceiled max value differs from existing URL parameter', () => {
-      mockLocationWith('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=50');
-      const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
-
-      renderPlotlyElement(props);
-      triggerReLayout(10.3, 50.1);
-      jest.runOnlyPendingTimers();
-
-      expect(locationService.partial).toHaveBeenCalledWith(
-        {
-          'nisl-temperature-min': 10,
-          'nisl-temperature-max': 51,
-        },
-        true
-      );
-      expect(mockPublish).toHaveBeenCalled();
-    });
-
-    it('should update route parameters when both floored min and ceiled max differ from existing URL parameters', () => {
-      mockLocationWith('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=50');
-      const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
-
-      renderPlotlyElement(props);
-      triggerReLayout(8.2, 52.8);
-      jest.runOnlyPendingTimers();
-
-      expect(locationService.partial).toHaveBeenCalledWith(
-        {
-          'nisl-temperature-min': 8,
-          'nisl-temperature-max': 53,
-        },
-        true
-      );
-      expect(mockPublish).toHaveBeenCalled();
     });
   });
 });

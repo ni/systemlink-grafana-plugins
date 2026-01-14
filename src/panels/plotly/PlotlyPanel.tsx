@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   PanelProps,
   DataFrame,
@@ -49,6 +49,12 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       }, 300),
     []
   );
+
+  useEffect(() => {
+    return () => {
+      publishXAxisRangeUpdate.cancel();
+    };
+  }, [publishXAxisRangeUpdate]);
 
   const plotData: Array<Partial<PlotData>> = [];
   const axisLabels: AxisLabels = {
@@ -170,25 +176,45 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       }
     } else {
       props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
-      
-      const queryParams = locationService.getSearchObject();
-      const syncTargets = queryParams['nisl-syncXAxisRangeTargets'];
-      const panelIds = typeof syncTargets === 'string' ? syncTargets.split(',') : [];
-      
-      if (!panelIds.includes(String(props.id)) || !options.xAxis.field) {
-        return;
-      }
-      
-      const flooredXAxisMin = Math.floor(xAxisMin);
-      const ceiledXAxisMax = Math.ceil(xAxisMax);
-      const existingXAxisMin = queryParams[`nisl-${options.xAxis.field}-min`];
-      const existingXAxisMax = queryParams[`nisl-${options.xAxis.field}-max`];
-      
-      if (String(flooredXAxisMin) !== existingXAxisMin || String(ceiledXAxisMax) !== existingXAxisMax) {
-        publishXAxisRangeUpdate(flooredXAxisMin, ceiledXAxisMax, options.xAxis.field);
-      }
+      syncNumericXAxisRange(xAxisMin, xAxisMax);
     }
   };
+
+  const syncNumericXAxisRange = (xAxisMin: number, xAxisMax: number) => {
+    if(!options.xAxis.field) {
+      return;
+    }
+
+    const queryParams = locationService.getSearchObject();
+    const syncTargetsQueryParam = queryParams['nisl-syncXAxisRangeTargets'];
+    const syncTargets =
+      typeof syncTargetsQueryParam === 'string'
+        ? syncTargetsQueryParam
+            .split(',')
+            .map(id => Number(id.trim()))
+            .filter(id => !isNaN(id) && id > 0)
+        : [];
+
+    if (!syncTargets.includes(props.id)) {
+      return;
+    }
+    
+    const flooredXAxisMin = Math.floor(xAxisMin);
+    const ceiledXAxisMax = Math.ceil(xAxisMax);
+    const existingXAxisMin = queryParams[`nisl-${options.xAxis.field}-min`];
+    const existingXAxisMax = queryParams[`nisl-${options.xAxis.field}-max`];
+    
+    if (
+      flooredXAxisMin.toString() !== existingXAxisMin || 
+      ceiledXAxisMax.toString() !== existingXAxisMax
+    ) {
+      publishXAxisRangeUpdate(
+        flooredXAxisMin, 
+        ceiledXAxisMax, 
+        options.xAxis.field
+      );
+    }
+  }
 
   const handleImageDownload = (gd: PlotlyHTMLElement) =>
     toImage(gd, { format: 'png', width, height }).then((data) => saveAs(data, props.title));
