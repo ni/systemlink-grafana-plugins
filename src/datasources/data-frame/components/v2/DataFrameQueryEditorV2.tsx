@@ -321,7 +321,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         handleQueryChange({ ...migratedQuery, undecimatedRecordCount: value });
     };
 
-
     const onColumnsChange = (columns: Array<ComboboxOption<string>>) => {
         handleQueryChange({ ...migratedQuery, columns: columns.map(column => column.value) });
     };
@@ -533,7 +532,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                                 <InlineField
                                     label={labels.take}
                                     labelWidth={INLINE_LABEL_WIDTH}
-                                    tooltip={tooltips.take}
+                                    tooltip={tooltips.undecimatedRecordCount}
                                     invalid={!!undecimatedCountInvalidMessage}
                                     error={undecimatedCountInvalidMessage}
                                 >
