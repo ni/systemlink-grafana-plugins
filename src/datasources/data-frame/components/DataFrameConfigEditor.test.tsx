@@ -16,7 +16,8 @@ const defaultProps: DataSourcePluginOptionsEditorProps<any> = {
         jsonData: {
             featureToggles: {
                 queryByDataTableProperties: false,
-                queryUndecimatedData: false
+                queryUndecimatedData: false,
+                highResolutionZoom: false
             },
         },
         id: 0,
@@ -45,7 +46,8 @@ describe('DataFrameConfigEditor', () => {
             "jsonData": { 
                 "featureToggles": { 
                     "queryByDataTableProperties": true,
-                    "queryUndecimatedData": false
+                    "queryUndecimatedData": false,
+                    "highResolutionZoom": false
                 } 
             }
         };
@@ -66,13 +68,35 @@ describe('DataFrameConfigEditor', () => {
             "jsonData": { 
                 "featureToggles": { 
                     "queryByDataTableProperties": false,
-                    "queryUndecimatedData": true
+                    "queryUndecimatedData": true,
+                    "highResolutionZoom": false
                 } 
             }
         };  
         expect(queryUndecimatedDataToggle).not.toBeChecked();
 
         await userEvent.click(queryUndecimatedDataToggle);
+        await waitFor(() => {
+            expect(mockOnOptionsChange).toHaveBeenCalledWith(
+                expect.objectContaining(expectedJsonData)
+            );
+        });
+    });
+
+    test('should update the highResolutionZoom feature toggles option when it is toggled', async () => {
+        const highResolutionZoomToggle = screen.getAllByRole('switch')[3];
+        const expectedJsonData = {
+            "jsonData": { 
+                "featureToggles": { 
+                    "queryByDataTableProperties": false,
+                    "queryUndecimatedData": false,
+                    "highResolutionZoom": true
+                } 
+            }
+        };  
+        expect(highResolutionZoomToggle).not.toBeChecked();
+
+        await userEvent.click(highResolutionZoomToggle);
         await waitFor(() => {
             expect(mockOnOptionsChange).toHaveBeenCalledWith(
                 expect.objectContaining(expectedJsonData)
