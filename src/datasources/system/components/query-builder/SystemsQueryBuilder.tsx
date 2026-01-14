@@ -43,22 +43,6 @@ export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
         }
     }, [workspaces]);
 
-    // const systemStartTimeField = useMemo(() => {
-    //     const startTimeField = SystemFields.SYSTEM_START_TIME;
-    //     return {
-    //         ...startTimeField,
-    //         lookup: {
-    //             ...startTimeField.lookup,
-    //             dataSource: [
-    //                 ...(startTimeField.lookup?.dataSource || []),
-    //                 { label: 'From', value: '${__from:date}' },
-    //                 { label: 'To', value: '${__to:date}' },
-    //                 { label: 'Now', value: '${__now:date}' },
-    //             ],
-    //         },
-    //     };
-    // }, []);
-
     useEffect(() => {
         if (!areDependenciesLoaded) {
             return;
@@ -96,10 +80,6 @@ export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
         const customOperations = [
             QueryBuilderOperations.EQUALS,
             QueryBuilderOperations.DOES_NOT_EQUAL,
-            // QueryBuilderOperations.GREATER_THAN,
-            // QueryBuilderOperations.LESS_THAN,
-            // QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO,
-            // QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO,
         ].map(operation => {
             return {
                 ...operation,
