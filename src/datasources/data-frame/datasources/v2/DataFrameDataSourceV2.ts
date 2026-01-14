@@ -14,6 +14,8 @@ import { replaceVariables } from "core/utils";
 import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
 import { QueryBuilderOperations } from "core/query-builder.constants";
 
+let addUnitsToColumns = true;
+
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
     private scopedVars: ScopedVars = {};
@@ -816,6 +818,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     DataTableProjections.ColumnName,
                     DataTableProjections.ColumnDataType,
                     DataTableProjections.ColumnType,
+                    DataTableProjections.ColumnProperties
                 ];
 
                 if (selectedColumnIdentifiers.includes(DATA_TABLE_NAME_FIELD)) {
@@ -925,8 +928,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         xColumn: string | null,
         selectedColumnIdentifiers: string[]
     ): FieldDTO[] {
-        let addUnitsToColumns = false;
-
         let uniqueOutputColumns = this.getUniqueColumns(
             Object.values(tableColumnsMap)
                 .flatMap(columnsData => columnsData.selectedColumns),
@@ -936,18 +937,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         const fields: FieldDTO[] = [
             ...uniqueOutputColumns.map(column => {
-                let columnDisplayName = column.displayName;
                 const config: FieldDTO['config'] = {};
 
                 if (addUnitsToColumns) {
-                    columnDisplayName += ` (${this.getUnitForColumn(column)})`
                     config.unit = this.getUnitForColumn(column);
                 }
 
                 return this.createField({
-                    name: columnDisplayName,
+                    name: column.displayName,
                     type: this.getFieldTypeForDataType(column.dataType),
                     values: [],
+                    config
                 })
             }),
         ];
@@ -1083,7 +1083,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return Array.from(uniqueColumnsMap.values());
     }
 
-    private getUnitForColumn(column?: ColumnWithDisplayName): string {
+    private getUnitForColumn(column?: Column): string {
         const properties = column?.properties ?? {};
         const POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS = ['unit', 'units', 'Unit', 'Units'];
         const matchedUnitPropertyKey = POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS.find(name => properties[name]);
@@ -1138,9 +1138,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 table,
                 includeIndexColumns
             ).map(column => {
-                const displayName = uniqueColumnsAcrossTables.find(
+                let displayName = uniqueColumnsAcrossTables.find(
                     uniqueColumn => uniqueColumn.value === this.getColumnIdentifier(column.name, column.dataType)
                 )?.label || '';
+
+                if (addUnitsToColumns) {
+                    displayName += ` (${this.getUnitForColumn(column)})`;
+                }
+
                 return {
                     ...column,
                     displayName
@@ -1181,7 +1186,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     name: column.name,
                     dataType: column.dataType,
                     columnType: column.columnType,
-                    properties: {}
+                    properties: column.properties
                 });
             }
         });
