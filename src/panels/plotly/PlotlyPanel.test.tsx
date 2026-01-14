@@ -148,8 +148,8 @@ describe('PlotlyPanel', () => {
 
         expect(locationService.partial).toHaveBeenCalledWith(
           {
-            'nisl-temperature-min': 10,
-            'nisl-temperature-max': 100,
+            'nisl-temperature-min': 10.3,
+            'nisl-temperature-max': 99.7,
           },
           true
         );
@@ -166,18 +166,35 @@ describe('PlotlyPanel', () => {
         expect(locationService.partial).not.toHaveBeenCalled();
       });
 
-      it('should floor min value and ceil max value', () => {
+      it('should use 6-decimal precision for min and max values', () => {
         mockSearchObject('?nisl-syncXAxisRangeTargets=5');
         const props = createMockProps({ xAxis: { field: 'pressure' } }, 5);
 
         renderPlotlyElement(props);
-        triggerRelayout(45.8, 78.2);
+        triggerRelayout(45.8789239, 78.6543212);
         jest.runOnlyPendingTimers();
 
         expect(locationService.partial).toHaveBeenCalledWith(
           {
-            'nisl-pressure-min': 45,
-            'nisl-pressure-max': 79,
+            'nisl-pressure-min': 45.878924,
+            'nisl-pressure-max': 78.654321,
+          },
+          true
+        );
+      });
+
+      it('should handle negative x-axis values with 6-decimal precision', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1');
+        const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+
+        renderPlotlyElement(props);
+        triggerRelayout(-15.123456, -5.987654);
+        jest.runOnlyPendingTimers();
+
+        expect(locationService.partial).toHaveBeenCalledWith(
+          {
+            'nisl-temperature-min': -15.123456,
+            'nisl-temperature-max': -5.987654,
           },
           true
         );
@@ -276,8 +293,8 @@ describe('PlotlyPanel', () => {
 
         expect(locationService.partial).toHaveBeenCalledWith(
           {
-            'nisl-custom-field-name-min': 5,
-            'nisl-custom-field-name-max': 16,
+            'nisl-custom-field-name-min': 5.5,
+            'nisl-custom-field-name-max': 15.5,
           },
           true
         );
@@ -296,7 +313,7 @@ describe('PlotlyPanel', () => {
         expect(eventArg.constructor.name).toBe('NIRefreshDashboardEvent');
       });
 
-      it('should debounce multiple rapid zoom actions and only update route parameters once', () => {
+      it('should debounce rapid x-axis range changes and only trigger one URL update after 300ms delay', () => {
         mockSearchObject('?nisl-syncXAxisRangeTargets=1');
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
@@ -332,20 +349,20 @@ describe('PlotlyPanel', () => {
         });
       });
 
-      it('should not update route parameters when floored/ceiled values match existing URL parameters', () => {
-        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=50');
+      it('should not update route parameters when precision values match existing URL parameters', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10.345678&nisl-temperature-max=49.712345');
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
         renderPlotlyElement(props);
-        triggerRelayout(10.3, 49.7);
+        triggerRelayout(10.345678, 49.712345);
         jest.runOnlyPendingTimers();
 
         expect(locationService.partial).not.toHaveBeenCalled();
         expect(mockPublish).not.toHaveBeenCalled();
       });
 
-      it('should update route parameters when floored min value differs from existing URL parameter', () => {
-        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=50');
+      it('should update route parameters when precision min value differs from existing URL parameter', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10.3&nisl-temperature-max=49.7');
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
         renderPlotlyElement(props);
@@ -354,16 +371,16 @@ describe('PlotlyPanel', () => {
 
         expect(locationService.partial).toHaveBeenCalledWith(
           {
-            'nisl-temperature-min': 9,
-            'nisl-temperature-max': 50,
+            'nisl-temperature-min': 9.8,
+            'nisl-temperature-max': 49.7,
           },
           true
         );
         expect(mockPublish).toHaveBeenCalled();
       });
 
-      it('should update route parameters when ceiled max value differs from existing URL parameter', () => {
-        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=50');
+      it('should update route parameters when precision max value differs from existing URL parameter', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10.3&nisl-temperature-max=49.7');
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
         renderPlotlyElement(props);
@@ -372,16 +389,16 @@ describe('PlotlyPanel', () => {
 
         expect(locationService.partial).toHaveBeenCalledWith(
           {
-            'nisl-temperature-min': 10,
-            'nisl-temperature-max': 51,
+            'nisl-temperature-min': 10.3,
+            'nisl-temperature-max': 50.1,
           },
           true
         );
         expect(mockPublish).toHaveBeenCalled();
       });
 
-      it('should update route parameters when both floored min and ceiled max differ from existing URL parameters', () => {
-        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=50');
+      it('should update route parameters when both precision min and max differ from existing URL parameters', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10.3&nisl-temperature-max=49.7');
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
         renderPlotlyElement(props);
@@ -390,8 +407,8 @@ describe('PlotlyPanel', () => {
 
         expect(locationService.partial).toHaveBeenCalledWith(
           {
-            'nisl-temperature-min': 8,
-            'nisl-temperature-max': 53,
+            'nisl-temperature-min': 8.2,
+            'nisl-temperature-max': 52.8,
           },
           true
         );

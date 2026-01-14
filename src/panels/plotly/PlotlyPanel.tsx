@@ -199,18 +199,18 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       return;
     }
     
-    const flooredXAxisMin = Math.floor(xAxisMin);
-    const ceiledXAxisMax = Math.ceil(xAxisMax);
+    const precisionXAxisMin = Number(xAxisMin.toFixed(6));
+    const precisionXAxisMax = Number(xAxisMax.toFixed(6));
     const existingXAxisMin = queryParams[`nisl-${options.xAxis.field}-min`];
     const existingXAxisMax = queryParams[`nisl-${options.xAxis.field}-max`];
     
     if (
-      flooredXAxisMin.toString() !== existingXAxisMin || 
-      ceiledXAxisMax.toString() !== existingXAxisMax
+      precisionXAxisMin.toString() !== existingXAxisMin || 
+      precisionXAxisMax.toString() !== existingXAxisMax
     ) {
       publishXAxisRangeUpdate(
-        flooredXAxisMin, 
-        ceiledXAxisMax, 
+        precisionXAxisMin, 
+        precisionXAxisMax, 
         options.xAxis.field
       );
     }
