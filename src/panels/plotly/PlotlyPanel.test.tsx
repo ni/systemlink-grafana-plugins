@@ -143,13 +143,13 @@ describe('PlotlyPanel', () => {
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
         renderPlotlyElement(props);
-        triggerRelayout(10.3, 99.7);
+        triggerRelayout(2.6013864243031377, 99.7458293847562891);
         jest.runOnlyPendingTimers();
 
         expect(locationService.partial).toHaveBeenCalledWith(
           {
-            'nisl-temperature-min': 10.3,
-            'nisl-temperature-max': 99.7,
+            'nisl-temperature-min': 2.601386,
+            'nisl-temperature-max': 99.745829,
           },
           true
         );
@@ -160,7 +160,7 @@ describe('PlotlyPanel', () => {
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
         renderPlotlyElement(props);
-        triggerRelayout(10.3, 99.7);
+        triggerRelayout(15.2847392847563829, 87.9384756293847561);
         jest.runOnlyPendingTimers();
 
         expect(locationService.partial).not.toHaveBeenCalled();
@@ -171,7 +171,7 @@ describe('PlotlyPanel', () => {
         const props = createMockProps({ xAxis: { field: 'pressure' } }, 5);
 
         renderPlotlyElement(props);
-        triggerRelayout(45.8789239, 78.6543212);
+        triggerRelayout(45.8789239472847561, 78.6543212947382756);
         jest.runOnlyPendingTimers();
 
         expect(locationService.partial).toHaveBeenCalledWith(
@@ -188,12 +188,12 @@ describe('PlotlyPanel', () => {
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
         renderPlotlyElement(props);
-        triggerRelayout(-15.123456, -5.987654);
+        triggerRelayout(-15.1234567890123456, -5.9876543210987654);
         jest.runOnlyPendingTimers();
 
         expect(locationService.partial).toHaveBeenCalledWith(
           {
-            'nisl-temperature-min': -15.123456,
+            'nisl-temperature-min': -15.123457,
             'nisl-temperature-max': -5.987654,
           },
           true
@@ -238,7 +238,7 @@ describe('PlotlyPanel', () => {
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
         renderPlotlyElement(props);
-        triggerRelayout(10, 100);
+        triggerRelayout(10.2847392847563829, 100.7384756293847561);
         jest.runOnlyPendingTimers();
 
         expect(locationService.partial).not.toHaveBeenCalled();
@@ -249,13 +249,13 @@ describe('PlotlyPanel', () => {
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
         renderPlotlyElement(props);
-        triggerRelayout(10, 100);
+        triggerRelayout(10.1847392847563829, 100.6384756293847561);
         jest.runOnlyPendingTimers();
 
         expect(locationService.partial).toHaveBeenCalledWith(
           {
-            'nisl-temperature-min': 10,
-            'nisl-temperature-max': 100,
+            'nisl-temperature-min': 10.184739,
+            'nisl-temperature-max': 100.638476,
           },
           true
         );
@@ -266,7 +266,7 @@ describe('PlotlyPanel', () => {
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 2);
 
         renderPlotlyElement(props);
-        triggerRelayout(10, 100);
+        triggerRelayout(10.5847392847563829, 100.3384756293847561);
         jest.runOnlyPendingTimers();
 
         expect(locationService.partial).not.toHaveBeenCalled();
@@ -277,7 +277,7 @@ describe('PlotlyPanel', () => {
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 2);
 
         renderPlotlyElement(props);
-        triggerRelayout(10, 100);
+        triggerRelayout(10.7847392847563829, 100.1384756293847561);
         jest.runOnlyPendingTimers();
 
         expect(locationService.partial).not.toHaveBeenCalled();
@@ -288,13 +288,13 @@ describe('PlotlyPanel', () => {
         const props = createMockProps({ xAxis: { field: 'custom-field-name' } }, 7);
 
         renderPlotlyElement(props);
-        triggerRelayout(5.5, 15.5);
+        triggerRelayout(5.5847392847563829, 15.5384756293847561);
         jest.runOnlyPendingTimers();
 
         expect(locationService.partial).toHaveBeenCalledWith(
           {
-            'nisl-custom-field-name-min': 5.5,
-            'nisl-custom-field-name-max': 15.5,
+            'nisl-custom-field-name-min': 5.584739,
+            'nisl-custom-field-name-max': 15.538476,
           },
           true
         );
@@ -305,7 +305,7 @@ describe('PlotlyPanel', () => {
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
         renderPlotlyElement(props);
-        triggerRelayout(10, 100);
+        triggerRelayout(10.9847392847563829, 100.2384756293847561);
         jest.runOnlyPendingTimers();
 
         expect(mockPublish).toHaveBeenCalled();
@@ -319,7 +319,7 @@ describe('PlotlyPanel', () => {
 
         renderPlotlyElement(props);
         for (let i = 0; i < 10; i++) {
-          triggerRelayout(10 + i, 100 + i);
+          triggerRelayout(10.1234567890123456 + i, 100.9876543210987654 + i);
           jest.advanceTimersByTime(20);
         }
 
@@ -330,8 +330,8 @@ describe('PlotlyPanel', () => {
         expect(locationService.partial).toHaveBeenCalledTimes(1);
         expect(locationService.partial).toHaveBeenCalledWith(
           {
-            'nisl-temperature-min': 19,
-            'nisl-temperature-max': 109,
+            'nisl-temperature-min': 19.123457,
+            'nisl-temperature-max': 109.987654,
           },
           true
         );
@@ -341,20 +341,20 @@ describe('PlotlyPanel', () => {
         const props = createMockProps({ xAxis: { field: 'temperature', min: 1, max: 2 } }, 1);
 
         renderPlotlyElement(props);
-        triggerRelayout(10, 100);
+        triggerRelayout(10.8472639485726394, 100.5938475629384756);
 
         expect(props.onOptionsChange).toHaveBeenCalledWith({
           ...props.options,
-          xAxis: { ...props.options.xAxis, min: 10, max: 100 },
+          xAxis: { ...props.options.xAxis, min: 10.8472639485726394, max: 100.5938475629384756 },
         });
       });
 
       it('should not update route parameters when precision values match existing URL parameters', () => {
-        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10.345678&nisl-temperature-max=49.712345');
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10.345679&nisl-temperature-max=49.712345');
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
         renderPlotlyElement(props);
-        triggerRelayout(10.345678, 49.712345);
+        triggerRelayout(10.3456789123456789, 49.7123451123498675);
         jest.runOnlyPendingTimers();
 
         expect(locationService.partial).not.toHaveBeenCalled();
@@ -362,17 +362,17 @@ describe('PlotlyPanel', () => {
       });
 
       it('should update route parameters when precision min value differs from existing URL parameter', () => {
-        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10.3&nisl-temperature-max=49.7');
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10.317283&nisl-temperature-max=49.793848');
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
         renderPlotlyElement(props);
-        triggerRelayout(9.8, 49.7);
+        triggerRelayout(9.8472639485726394, 49.7938475629384756);
         jest.runOnlyPendingTimers();
 
         expect(locationService.partial).toHaveBeenCalledWith(
           {
-            'nisl-temperature-min': 9.8,
-            'nisl-temperature-max': 49.7,
+            'nisl-temperature-min': 9.847264,
+            'nisl-temperature-max': 49.793848,
           },
           true
         );
@@ -380,17 +380,17 @@ describe('PlotlyPanel', () => {
       });
 
       it('should update route parameters when precision max value differs from existing URL parameter', () => {
-        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10.3&nisl-temperature-max=49.7');
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10.347264&nisl-temperature-max=49.789067');
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
         renderPlotlyElement(props);
-        triggerRelayout(10.3, 50.1);
+        triggerRelayout(10.3472639485726394, 50.1938475629384756);
         jest.runOnlyPendingTimers();
 
         expect(locationService.partial).toHaveBeenCalledWith(
           {
-            'nisl-temperature-min': 10.3,
-            'nisl-temperature-max': 50.1,
+            'nisl-temperature-min': 10.347264,
+            'nisl-temperature-max': 50.193848,
           },
           true
         );
@@ -398,17 +398,17 @@ describe('PlotlyPanel', () => {
       });
 
       it('should update route parameters when both precision min and max differ from existing URL parameters', () => {
-        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10.3&nisl-temperature-max=49.7');
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10.317283&nisl-temperature-max=49.793848');
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
         renderPlotlyElement(props);
-        triggerRelayout(8.2, 52.8);
+        triggerRelayout(8.2472639485726394, 52.8938475629384756);
         jest.runOnlyPendingTimers();
 
         expect(locationService.partial).toHaveBeenCalledWith(
           {
-            'nisl-temperature-min': 8.2,
-            'nisl-temperature-max': 52.8,
+            'nisl-temperature-min': 8.247264,
+            'nisl-temperature-max': 52.893848,
           },
           true
         );
@@ -422,7 +422,7 @@ describe('PlotlyPanel', () => {
         const props = createMockProps({ xAxis: { field: undefined } }, 1);
 
         renderPlotlyElement(props);
-        triggerRelayout(10.3, 99.7);
+        triggerRelayout(10.3472639485726394, 99.7938475629384756);
         jest.runOnlyPendingTimers();
 
         expect(locationService.partial).not.toHaveBeenCalled();
@@ -434,7 +434,7 @@ describe('PlotlyPanel', () => {
       const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
       const { unmount } = renderPlotlyElement(props);
-      triggerRelayout(10, 100);      
+      triggerRelayout(10.4472639485726394, 100.8938475629384756);      
       unmount();
       jest.runOnlyPendingTimers();
       

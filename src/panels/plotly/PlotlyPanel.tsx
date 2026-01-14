@@ -203,7 +203,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     const precisionXAxisMax = Number(xAxisMax.toFixed(6));
     const existingXAxisMin = queryParams[`nisl-${options.xAxis.field}-min`];
     const existingXAxisMax = queryParams[`nisl-${options.xAxis.field}-max`];
-    
+
     if (
       precisionXAxisMin.toString() !== existingXAxisMin || 
       precisionXAxisMax.toString() !== existingXAxisMax
