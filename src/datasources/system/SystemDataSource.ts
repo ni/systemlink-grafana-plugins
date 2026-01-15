@@ -13,6 +13,7 @@ import { getWorkspaceName } from 'core/utils';
 import { SystemsDataSourceBase } from './SystemsDataSourceBase';
 import { transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { SystemFieldMapping } from './constants/SystemsQueryBuilder.constants';
+import { firstValueFrom, from, switchMap } from 'rxjs';
 
 export class SystemDataSource extends SystemsDataSourceBase {
   private dependenciesLoadedPromise: Promise<void>;
@@ -73,50 +74,62 @@ export class SystemDataSource extends SystemsDataSourceBase {
     return parts.join(' && ');
   }
 
-  async runQuery(query: SystemQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    await this.dependenciesLoadedPromise;
+  runQuery(query: SystemQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    return firstValueFrom(
+      from(this.dependenciesLoadedPromise).pipe(
+        switchMap(() => {
+          if (query.queryKind === SystemQueryType.Summary) {
+            return this.runSummaryQuery(query);
+          } else {
+            return this.runDataQuery(query, options);
+          }
+        })
+      )
+    );
+  }
 
-    if (query.queryKind === SystemQueryType.Summary) {
-      const summary = await this.get<SystemSummary>(this.baseUrl + '/get-systems-summary');
-      return {
-        refId: query.refId,
-        fields: [
-          { name: 'Connected', values: [summary.connectedCount] },
-          { name: 'Disconnected', values: [summary.disconnectedCount] },
-        ],
-      };
-    } else {
-      let processedFilter = '';
-      if (query.filter) {
-        let tempFilter = this.templateSrv.replace(query.filter, options.scopedVars);
-        tempFilter = this.mapUIFieldsToBackendFields(tempFilter);
-        processedFilter = transformComputedFieldsQuery(
-          tempFilter,
-          this.systemsComputedDataFields
-        );
-      }
-      const properties = await this.getSystemProperties(processedFilter, defaultProjection);
-      const workspaces = this.getCachedWorkspaces();
-      return {
-        refId: query.refId,
-        fields: [
-          { name: 'id', values: properties.map(m => m.id) },
-          { name: 'alias', values: properties.map(m => m.alias) },
-          { name: 'connection status', values: properties.map(m => m.state) },
-          { name: 'locked status', values: properties.map(m => m.locked) },
-          { name: 'system start time', values: properties.map(m => m.systemStartTime) },
-          { name: 'model', values: properties.map(m => m.model) },
-          { name: 'vendor', values: properties.map(m => m.vendor) },
-          { name: 'operating system', values: properties.map(m => m.osFullName) },
-          {
-            name: 'ip address',
-            values: properties.map(m => NetworkUtils.getIpAddressFromInterfaces(m.ip4Interfaces, m.ip6Interfaces)),
-          },
-          { name: 'workspace', values: properties.map(m => getWorkspaceName(workspaces, m.workspace)) },
-          { name: 'scan code', values: properties.map(m => m.scanCode) }
-        ],
-      };
+  private async runSummaryQuery(query: SystemQuery): Promise<DataFrameDTO> {
+    const summary = await this.get<SystemSummary>(this.baseUrl + '/get-systems-summary');
+    return {
+      refId: query.refId,
+      fields: [
+        { name: 'Connected', values: [summary.connectedCount] },
+        { name: 'Disconnected', values: [summary.disconnectedCount] },
+      ],
+    };
+  }
+
+  private async runDataQuery(query: SystemQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
+    let processedFilter = '';
+    if (query.filter) {
+      let tempFilter = this.templateSrv.replace(query.filter, options.scopedVars);
+      tempFilter = this.mapUIFieldsToBackendFields(tempFilter);
+      processedFilter = transformComputedFieldsQuery(
+        tempFilter,
+        this.systemsComputedDataFields
+      );
     }
+    const properties = await this.getSystemProperties(processedFilter, defaultProjection);
+    const workspaces = this.getCachedWorkspaces();
+    return {
+      refId: query.refId,
+      fields: [
+        { name: 'id', values: properties.map(m => m.id) },
+        { name: 'alias', values: properties.map(m => m.alias) },
+        { name: 'connection status', values: properties.map(m => m.state) },
+        { name: 'locked status', values: properties.map(m => m.locked) },
+        { name: 'system start time', values: properties.map(m => m.systemStartTime) },
+        { name: 'model', values: properties.map(m => m.model) },
+        { name: 'vendor', values: properties.map(m => m.vendor) },
+        { name: 'operating system', values: properties.map(m => m.osFullName) },
+        {
+          name: 'ip address',
+          values: properties.map(m => NetworkUtils.getIpAddressFromInterfaces(m.ip4Interfaces, m.ip6Interfaces)),
+        },
+        { name: 'workspace', values: properties.map(m => getWorkspaceName(workspaces, m.workspace)) },
+        { name: 'scan code', values: properties.map(m => m.scanCode) }
+      ],
+    };
   }
 
   private mapUIFieldsToBackendFields(filter: string): string {

@@ -78,5 +78,5 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
 const tooltips = {
   queryType: `Properties allows you to visualize one or more systems' properties.
               Summary allows you to visualize the number of disconnected and connected systems.`,
-  filter: `Filter the systems by various properties. This is an optional field.`,
+  filter: `Filter the systems by various properties.`,
 };

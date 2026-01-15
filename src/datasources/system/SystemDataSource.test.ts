@@ -121,8 +121,7 @@ test('queries for system variable values - single workspace', async () => {
 test('attempts to replace variables in properties query', async () => {
   const workspaceVariable = '$workspace';
   backendSrv.fetch.mockReturnValue(createFetchResponse({ data: fakeSystems }));
-  templateSrv.replace.mockImplementation((str) => (str ?? '').replace('$workspace', '1'));
-
+  templateSrv.replace.calledWith(`workspace = "${workspaceVariable}"`).mockReturnValue('workspace = "1"');
 
   await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties, filter: `workspace = "${workspaceVariable}"` })));
 

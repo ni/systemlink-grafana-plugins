@@ -1,5 +1,5 @@
+import { QBField } from "core/types";
 import { QueryBuilderOperations } from "../../../core/query-builder.constants";
-import { QBField } from "../../asset/types/CalibrationForecastQuery.types";
 import { ConnectionStatusOptions } from "../types";
 
 export enum SystemUIFieldNames {
