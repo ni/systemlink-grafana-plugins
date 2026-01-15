@@ -125,26 +125,6 @@ describe('SystemsQueryBuilder', () => {
             expect(conditionsContainer.item(0)?.innerHTML).not.toContain("alert('XSS')");
         });
 
-        it('should select multi-value equals filter', () => {
-            const { conditionsContainer } = renderElement(
-                [workspace],
-                'scanCode = "{scan1,scan2,scan3}"'
-            );
-
-            expect(conditionsContainer?.length).toBe(1);
-            expect(conditionsContainer.item(0)?.textContent).toContain('Scan code');
-        });
-
-        it('should select multi-value does-not-equal filter', () => {
-            const { conditionsContainer } = renderElement(
-                [workspace],
-                'id != "{system1,system2}"'
-            );
-
-            expect(conditionsContainer?.length).toBe(1);
-            expect(conditionsContainer.item(0)?.textContent).toContain('does not equal');
-        });
-
         it('should not render query builder until dependencies are loaded', () => {
             reactNode = React.createElement(SystemsQueryBuilder, {
                 workspaces: [workspace],

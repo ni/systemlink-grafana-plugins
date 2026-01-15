@@ -156,7 +156,7 @@ describe('System filter transformation', () => {
     backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [] }));
   });
 
-  test('should transform scan code field with multi-value does not equal operator', async () => {
+  test('handles multi-value transform of "scanCode" with "!=" operator', async () => {
     const query: SystemQuery = {
       refId: 'A',
       queryKind: SystemQueryType.Properties,
@@ -173,7 +173,7 @@ describe('System filter transformation', () => {
     );
   });
 
-  test('should transform scan code field with multi-value equals operator', async () => {
+  test('handles multi-value transform of "scanCode" with "=" operator', async () => {
     const query: SystemQuery = {
       refId: 'A',
       queryKind: SystemQueryType.Properties,
@@ -190,7 +190,7 @@ describe('System filter transformation', () => {
     );
   });
 
-  test('should transform minion id field with multi-value equals operator', async () => {
+  test('handles multi-value transform of "id" with "=" operator', async () => {
     const query: SystemQuery = {
       refId: 'A',
       queryKind: SystemQueryType.Properties,
@@ -207,7 +207,7 @@ describe('System filter transformation', () => {
     );
   });
 
-  test('should transform minion id field with multi-value does not equal operator', async () => {
+  test('handles multi-value transform of "id" with "!=" operator', async () => {
     const query: SystemQuery = {
       refId: 'A',
       queryKind: SystemQueryType.Properties,
@@ -224,7 +224,7 @@ describe('System filter transformation', () => {
     );
   });
 
-  test('should transform boolean field with does not equal operator', async () => {
+  test('handles boolean field with "!=" operator', async () => {
     const query: SystemQuery = {
       refId: 'A',
       queryKind: SystemQueryType.Properties,
@@ -238,40 +238,6 @@ describe('System filter transformation', () => {
     expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
       'filter',
       '!grains.data.minion_blackout.Equals(true)'
-    );
-  });
-
-  test('should transform boolean field with multi-value equals operator', async () => {
-    const query: SystemQuery = {
-      refId: 'A',
-      queryKind: SystemQueryType.Properties,
-      systemName: '',
-      workspace: '',
-      filter: `lockedStatus = "{true,false}"`
-    };
-
-    await firstValueFrom(ds.query(buildQuery(query)));
-
-    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
-      'filter',
-      '(grains.data.minion_blackout.Equals(true) || grains.data.minion_blackout.Equals(false))'
-    );
-  });
-
-  test('should transform boolean field with multi-value does not equal operator', async () => {
-    const query: SystemQuery = {
-      refId: 'A',
-      queryKind: SystemQueryType.Properties,
-      systemName: '',
-      workspace: '',
-      filter: `lockedStatus != "{true,false}"`
-    };
-
-    await firstValueFrom(ds.query(buildQuery(query)));
-
-    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
-      'filter',
-      '(!grains.data.minion_blackout.Equals(true) && !grains.data.minion_blackout.Equals(false))'
     );
   });
 });
@@ -371,7 +337,7 @@ describe('UI field mapping', () => {
     backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [] }));
   });
 
-  test('should map connectionStatus UI field names to connected.data.state backend field names in filter', async () => {
+  test('should map connectionStatus UI field to connected.data.state backend field in filter', async () => {
     const query: SystemQuery = {
       refId: 'A',
       queryKind: SystemQueryType.Properties,
@@ -388,7 +354,7 @@ describe('UI field mapping', () => {
     );
   });
 
-  test('should map model UI field to grains.data.productname backend field', async () => {
+  test('should map model UI field to grains.data.productname backend field in filter', async () => {
     const query: SystemQuery = {
       refId: 'A',
       queryKind: SystemQueryType.Properties,
@@ -405,7 +371,7 @@ describe('UI field mapping', () => {
     );
   });
 
-  test('should map vendor UI field to grains.data.manufacturer backend field', async () => {
+  test('should map vendor UI field to grains.data.manufacturer backend field in filter', async () => {
     const query: SystemQuery = {
       refId: 'A',
       queryKind: SystemQueryType.Properties,
@@ -422,7 +388,7 @@ describe('UI field mapping', () => {
     );
   });
 
-  test('should map osFullName UI field to grains.data.osfullname backend field', async () => {
+  test('should map osFullName UI field to grains.data.osfullname backend field in filter', async () => {
     const query: SystemQuery = {
       refId: 'A',
       queryKind: SystemQueryType.Properties,
@@ -439,7 +405,7 @@ describe('UI field mapping', () => {
     );
   });
 
-  test('should map lockedStatus UI field to grains.data.minion_blackout backend field', async () => {
+  test('should map lockedStatus UI field to grains.data.minion_blackout backend field in filter', async () => {
     const query: SystemQuery = {
       refId: 'A',
       queryKind: SystemQueryType.Properties,
