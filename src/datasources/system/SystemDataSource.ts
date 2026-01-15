@@ -102,12 +102,7 @@ export class SystemDataSource extends SystemsDataSourceBase {
   private async runDataQuery(query: SystemQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
     let processedFilter = '';
     if (query.filter) {
-      let tempFilter = this.templateSrv.replace(query.filter, options.scopedVars);
-      tempFilter = this.mapUIFieldsToBackendFields(tempFilter);
-      processedFilter = transformComputedFieldsQuery(
-        tempFilter,
-        this.systemsComputedDataFields
-      );
+      processedFilter = this.processFilter(query.filter, options.scopedVars);
     }
     const properties = await this.getSystemProperties(processedFilter, defaultProjection);
     const workspaces = this.getCachedWorkspaces();
@@ -130,6 +125,12 @@ export class SystemDataSource extends SystemsDataSourceBase {
         { name: 'scan code', values: properties.map(m => m.scanCode) }
       ],
     };
+  }
+
+  private processFilter(filter: string, scopedVars: any): string {
+    let tempFilter = this.templateSrv.replace(filter, scopedVars);
+    tempFilter = this.mapUIFieldsToBackendFields(tempFilter);
+    return transformComputedFieldsQuery(tempFilter, this.systemsComputedDataFields);
   }
 
   private mapUIFieldsToBackendFields(filter: string): string {
