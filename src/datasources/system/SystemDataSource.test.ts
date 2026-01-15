@@ -152,10 +152,8 @@ test('should not run query if hidden', () => {
 });
 
 describe('System filter transformation', () => {
-  let getSystemPropertiesSpy: jest.SpyInstance;
-
   beforeEach(() => {
-    getSystemPropertiesSpy = jest.spyOn(ds, 'getSystemProperties' as any).mockResolvedValue([]);
+    backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [] }));
   });
 
   test('should transform scan code field with multi-value does not equal operator', async () => {
@@ -169,9 +167,9 @@ describe('System filter transformation', () => {
 
     await firstValueFrom(ds.query(buildQuery(query)));
 
-    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      '(scanCode != "scan1" && scanCode != "scan2")',
-      expect.any(Array)
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      '(scanCode != "scan1" && scanCode != "scan2")'
     );
   });
 
@@ -186,9 +184,9 @@ describe('System filter transformation', () => {
 
     await firstValueFrom(ds.query(buildQuery(query)));
 
-    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      '(scanCode = "scan1" || scanCode = "scan2" || scanCode = "scan3")',
-      expect.any(Array)
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      '(scanCode = "scan1" || scanCode = "scan2" || scanCode = "scan3")'
     );
   });
 
@@ -203,9 +201,9 @@ describe('System filter transformation', () => {
 
     await firstValueFrom(ds.query(buildQuery(query)));
 
-    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      '(id = "system1" || id = "system2" || id = "system3")',
-      expect.any(Array)
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      '(id = "system1" || id = "system2" || id = "system3")'
     );
   });
 
@@ -220,9 +218,9 @@ describe('System filter transformation', () => {
 
     await firstValueFrom(ds.query(buildQuery(query)));
 
-    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      '(id != "system1" && id != "system2")',
-      expect.any(Array)
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      '(id != "system1" && id != "system2")'
     );
   });
 
@@ -237,9 +235,9 @@ describe('System filter transformation', () => {
 
     await firstValueFrom(ds.query(buildQuery(query)));
 
-    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      '!grains.data.minion_blackout.Equals(true)',
-      expect.any(Array)
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      '!grains.data.minion_blackout.Equals(true)'
     );
   });
 
@@ -254,9 +252,9 @@ describe('System filter transformation', () => {
 
     await firstValueFrom(ds.query(buildQuery(query)));
 
-    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      '(grains.data.minion_blackout.Equals(true) || grains.data.minion_blackout.Equals(false))',
-      expect.any(Array)
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      '(grains.data.minion_blackout.Equals(true) || grains.data.minion_blackout.Equals(false))'
     );
   });
 
@@ -271,18 +269,16 @@ describe('System filter transformation', () => {
 
     await firstValueFrom(ds.query(buildQuery(query)));
 
-    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      '(!grains.data.minion_blackout.Equals(true) && !grains.data.minion_blackout.Equals(false))',
-      expect.any(Array)
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      '(!grains.data.minion_blackout.Equals(true) && !grains.data.minion_blackout.Equals(false))'
     );
   });
 });
 
 describe('backward compatibility - legacy systemName and workspace migration', () => {
-  let getSystemPropertiesSpy: jest.SpyInstance;
-
   beforeEach(() => {
-    getSystemPropertiesSpy = jest.spyOn(ds, 'getSystemProperties' as any).mockResolvedValue([]);
+    backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [] }));
   });
 
   test('should migrate systemName to minionId filter', async () => {
@@ -296,9 +292,9 @@ describe('backward compatibility - legacy systemName and workspace migration', (
 
     await firstValueFrom(ds.query(buildQuery(query)));
 
-    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      '(id = "my-system" || alias = "my-system")',
-      expect.any(Array)
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      '(id = "my-system" || alias = "my-system")'
     );
   });
 
@@ -313,9 +309,9 @@ describe('backward compatibility - legacy systemName and workspace migration', (
 
     await firstValueFrom(ds.query(buildQuery(query)));
 
-    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      'workspace = "workspace-1"',
-      expect.any(Array)
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      'workspace = "workspace-1"'
     );
   });
 
@@ -330,9 +326,9 @@ describe('backward compatibility - legacy systemName and workspace migration', (
 
     await firstValueFrom(ds.query(buildQuery(query)));
 
-    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      'state = "CONNECTED" && (id = "my-system" || alias = "my-system")',
-      expect.any(Array)
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      'state = "CONNECTED" && (id = "my-system" || alias = "my-system")'
     );
   });
 
@@ -347,9 +343,9 @@ describe('backward compatibility - legacy systemName and workspace migration', (
 
     await firstValueFrom(ds.query(buildQuery(query)));
 
-    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      '(id = "my-system" || alias = "my-system")',
-      expect.any(Array)
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      '(id = "my-system" || alias = "my-system")'
     );
   });
 
@@ -371,10 +367,8 @@ describe('backward compatibility - legacy systemName and workspace migration', (
 });
 
 describe('UI field mapping', () => {
-  let getSystemPropertiesSpy: jest.SpyInstance;
-
   beforeEach(() => {
-    getSystemPropertiesSpy = jest.spyOn(ds, 'getSystemProperties' as any).mockResolvedValue([]);
+    backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [] }));
   });
 
   test('should map connectionStatus UI field names to connected.data.state backend field names in filter', async () => {
@@ -388,9 +382,9 @@ describe('UI field mapping', () => {
 
     await firstValueFrom(ds.query(buildQuery(query)));
 
-    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      `connected.data.state = "CONNECTED" && scanCode = "ABC123DEF456"`,
-      expect.any(Array)
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      `connected.data.state = "CONNECTED" && scanCode = "ABC123DEF456"`
     );
   });
 
@@ -405,9 +399,9 @@ describe('UI field mapping', () => {
 
     await firstValueFrom(ds.query(buildQuery(query)));
 
-    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      `grains.data.productname = "NI cRIO-9033"`,
-      expect.any(Array)
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      `grains.data.productname = "NI cRIO-9033"`
     );
   });
 
@@ -422,9 +416,9 @@ describe('UI field mapping', () => {
 
     await firstValueFrom(ds.query(buildQuery(query)));
 
-    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      `grains.data.manufacturer = "National Instruments"`,
-      expect.any(Array)
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      `grains.data.manufacturer = "National Instruments"`
     );
   });
 
@@ -439,9 +433,9 @@ describe('UI field mapping', () => {
 
     await firstValueFrom(ds.query(buildQuery(query)));
 
-    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      `grains.data.osfullname = "nilrt"`,
-      expect.any(Array)
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      `grains.data.osfullname = "nilrt"`
     );
   });
 
@@ -456,9 +450,9 @@ describe('UI field mapping', () => {
 
     await firstValueFrom(ds.query(buildQuery(query)));
 
-    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      `grains.data.minion_blackout.Equals(true)`,
-      expect.any(Array)
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      `grains.data.minion_blackout.Equals(true)`
     );
   });
 
@@ -473,9 +467,9 @@ describe('UI field mapping', () => {
 
     await firstValueFrom(ds.query(buildQuery(query)));
 
-    expect(getSystemPropertiesSpy).toHaveBeenCalledWith(
-      `connected.data.state = "CONNECTED" && grains.data.osfullname = "nilrt" && !grains.data.minion_blackout.Equals(true)`,
-      expect.any(Array)
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      `connected.data.state = "CONNECTED" && grains.data.osfullname = "nilrt" && !grains.data.minion_blackout.Equals(true)`
     );
   });
 });

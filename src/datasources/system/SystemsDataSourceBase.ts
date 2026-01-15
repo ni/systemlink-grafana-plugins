@@ -6,6 +6,7 @@ import { DataFrameDTO, DataQueryRequest, DataSourceJsonData } from "@grafana/dat
 import { Workspace } from "core/types";
 import { parseErrorMessage } from "core/errors";
 import { SystemBackendFieldNames } from "./constants/SystemsQueryBuilder.constants";
+import { Observable } from "rxjs";
 
 export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, DataSourceJsonData> {
     private workspacesLoaded!: () => void;
@@ -16,7 +17,7 @@ export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, 
 
     public readonly workspacesCache = new Map<string, Workspace>([]);
 
-    abstract runQuery(query: SystemQuery, options: DataQueryRequest): Promise<DataFrameDTO>;
+    abstract runQuery(query: SystemQuery, options: DataQueryRequest): Observable<DataFrameDTO>;;
     abstract shouldRunQuery(query: SystemQuery): boolean;
 
     public getCachedWorkspaces(): Workspace[] {
