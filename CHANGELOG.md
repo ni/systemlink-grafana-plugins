@@ -1,3 +1,9 @@
+## [4.114.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.113.0...v4.114.0) (2026-01-16)
+
+### Features
+
+* **dataframe:** Add undecimated data feature flag options ([#641](https://github.com/ni/systemlink-grafana-plugins/issues/641)) ([fd23fd0](https://github.com/ni/systemlink-grafana-plugins/commit/fd23fd0a4f07918465b5cc51e25169ba8298b600))
+
 ## [4.113.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.112.0...v4.113.0) (2026-01-06)
 
 ### Features
