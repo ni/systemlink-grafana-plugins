@@ -21,3 +21,5 @@ export const systemFields = {
   SCAN_CODE: 'scanCode',
 } as const;
 
+export const systemProjectionForAssets = ['id', 'alias', 'connected.data.state', 'workspace'];
+

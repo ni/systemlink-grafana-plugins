@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, TestDataSourceResponse } from "@grafana/data";
 import { AssetDataSourceOptions, AssetQuery } from "../types/types";
 import { DataSourceBase } from "../../../core/DataSourceBase";
-import { defaultOrderBy, defaultProjection } from "../../system/constants/constants";
+import { defaultOrderBy, systemProjectionForAssets } from "../../system/constants/constants";
 import { SystemProperties } from "../../system/types";
 import { parseErrorMessage } from "../../../core/errors";
 import { QueryBuilderOption, Workspace } from "../../../core/types";
@@ -35,7 +35,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
     throw new Error("Method not implemented.");
   }
 
-  public async querySystems(filter = '', projection = defaultProjection): Promise<SystemProperties[]> {
+  public async querySystems(filter: string, projection: string[]): Promise<SystemProperties[]> {
     try {
       let response = await this.getSystems({
         filter: filter,
@@ -86,7 +86,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
       return;
     }
 
-    const systems = await this.querySystems('', ['id', 'alias', 'connected.data.state', 'workspace'])
+    const systems = await this.querySystems('', systemProjectionForAssets)
       .catch(error => {
         this.error = parseErrorMessage(error)!;
       });
