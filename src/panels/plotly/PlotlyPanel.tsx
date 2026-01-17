@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   PanelProps,
   DataFrame,
@@ -12,11 +12,12 @@ import {
 } from '@grafana/data';
 import { AxisLabels, PanelOptions } from './types';
 import { useTheme2, ContextMenu, MenuItemsGroup, linkModelToContextMenuItems } from '@grafana/ui';
-import { getTemplateSrv, PanelDataErrorView } from '@grafana/runtime';
+import { getTemplateSrv, PanelDataErrorView, locationService, getAppEvents } from '@grafana/runtime';
 import { getFieldsByName, notEmpty, Plot, renderMenuItems, useTraceColors } from './utils';
 import { AxisType, Legend, PlotData, PlotType, toImage, Icons, PlotlyHTMLElement } from 'plotly.js-basic-dist-min';
 import { saveAs } from 'file-saver';
 import _ from 'lodash';
+import { NIRefreshDashboardEvent } from './events';
 
 interface MenuState {
   x: number;
@@ -33,6 +34,27 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const theme = useTheme2();
 
   const traceColors = useTraceColors(theme);
+
+  const publishXAxisRangeUpdate = useMemo(
+    () =>
+      _.debounce((xAxisMin: number, xAxisMax: number, xAxisField: string) => {
+        locationService.partial(
+          {
+            [`nisl-${xAxisField}-min`]: xAxisMin,
+            [`nisl-${xAxisField}-max`]: xAxisMax,
+          },
+          true,
+        );
+        getAppEvents().publish(new NIRefreshDashboardEvent());
+      }, 300),
+    []
+  );
+
+  useEffect(() => {
+    return () => {
+      publishXAxisRangeUpdate.cancel();
+    };
+  }, [publishXAxisRangeUpdate]);
 
   const plotData: Array<Partial<PlotData>> = [];
   const axisLabels: AxisLabels = {
@@ -154,6 +176,44 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       }
     } else {
       props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
+      syncNumericXAxisRange(xAxisMin, xAxisMax);
+    }
+  };
+
+  const syncNumericXAxisRange = (xAxisMin: number, xAxisMax: number) => {
+    if(!options.xAxis.field) {
+      return;
+    }
+
+    const queryParams = locationService.getSearchObject();
+    const syncTargetsQueryParam = queryParams['nisl-syncXAxisRangeTargets'];
+    const syncTargets =
+      typeof syncTargetsQueryParam === 'string'
+        ? syncTargetsQueryParam
+            .split(',')
+            .map(id => Number(id.trim()))
+            .filter(id => !isNaN(id) && id > 0)
+        : [];
+
+    if (!syncTargets.includes(props.id)) {
+      return;
+    }
+    
+    const X_AXIS_PRECISION_DECIMALS = 6;
+    const precisionXAxisMin = Number(xAxisMin.toFixed(X_AXIS_PRECISION_DECIMALS));
+    const precisionXAxisMax = Number(xAxisMax.toFixed(X_AXIS_PRECISION_DECIMALS));
+    const existingXAxisMin = queryParams[`nisl-${options.xAxis.field}-min`];
+    const existingXAxisMax = queryParams[`nisl-${options.xAxis.field}-max`];
+
+    if (
+      precisionXAxisMin.toString() !== existingXAxisMin || 
+      precisionXAxisMax.toString() !== existingXAxisMax
+    ) {
+      publishXAxisRangeUpdate(
+        precisionXAxisMin, 
+        precisionXAxisMax, 
+        options.xAxis.field
+      );
     }
   };
 
