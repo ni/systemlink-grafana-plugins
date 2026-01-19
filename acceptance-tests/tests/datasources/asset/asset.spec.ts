@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { BASE_URL } from '../../../config/environment';
+import { BASE_URL, FAKE_API_URL } from '../../../config/environment';
+import { DashboardPage } from '../../../page-objects/dashboard/dashboard.pageobject';
 
 test.describe('AssetDataSource', () => {
     test.beforeEach(async ({ page }) => {
@@ -8,10 +9,7 @@ test.describe('AssetDataSource', () => {
 
         await page.waitForSelector('text=HTTP');
 
-        await page.getByTestId('data-testid Datasource HTTP settings url').fill('https://dev-api.lifecyclesolutions.ni.com');
-        await page.getByRole('button', { name: 'Add header' }).click();
-        await page.getByRole('textbox', { name: 'X-Custom-Header' }).fill('x-ni-api-key');
-        await page.getByRole('textbox', { name: 'Value' }).fill('rOkM_Cn9QuztyOCIOu-tG7tcEvlOZdQfRlHeDkiLXh');
+        await page.getByTestId('data-testid Datasource HTTP settings url').fill(FAKE_API_URL);
 
         await page.click('button:has-text("Save & test")');
         await page.waitForSelector('text=Data source connected and authentication successful!', { timeout: 10000 });
@@ -26,19 +24,32 @@ test.describe('AssetDataSource', () => {
     });
 
     test('should switch between query types correctly', async ({ page }) => {
+        const dashboard = new DashboardPage(page);
+
         await page.goto(`${BASE_URL}/dashboard/new`);
 
-        await page.waitForSelector('text=Add visualization');
-        await page.click('text=Add visualization');
-        await page.waitForSelector('text=SystemLink Assets');
-        await page.click('text=SystemLink Assets');
-        await page.waitForSelector('text=Query type');
+        await dashboard.addVisualizationButton.waitFor();
+        await dashboard.toolbar.addVisualization();
+        await dashboard.selectDataSource('SystemLink Assets');
+        await dashboard.waitForQueryEditor();
 
-        const queryTypeDropdown = page.locator('label:has-text("Query type")').locator('..').locator('select, [role="combobox"]');
-
-        await queryTypeDropdown.click();
-        await expect(page.getByTestId('data-testid Select menu').getByText('List Assets', { exact: true })).toBeVisible();
-        await expect(page.getByText('Calibration Forecast', { exact: true })).toBeVisible();
-        await expect(page.getByText('Asset Summary', { exact: true })).toBeVisible();
+        await dashboard.assetQueryEditor.openQueryTypeDropdown();
+        await expect(dashboard.assetQueryEditor.getQueryTypeOption('List Assets')).toBeVisible();
+        await expect(dashboard.assetQueryEditor.getQueryTypeOption('Calibration Forecast')).toBeVisible();
+        await expect(dashboard.assetQueryEditor.getQueryTypeOption('Asset Summary')).toBeVisible();
     });
+
+    test('should contain both output types', async ({ page }) => {
+        const dashboard = new DashboardPage(page);
+
+        await page.goto(`${BASE_URL}/dashboard/new`);
+
+        await dashboard.addVisualizationButton.waitFor();
+        await dashboard.toolbar.addVisualization();
+        await dashboard.selectDataSource('SystemLink Assets');
+        await dashboard.waitForQueryEditor();
+
+        await expect(dashboard.assetQueryEditor.getOutputTypeOption('Properties')).toBeVisible();
+        await expect(dashboard.assetQueryEditor.getOutputTypeOption('Total Count')).toBeVisible();
+    })
 });
