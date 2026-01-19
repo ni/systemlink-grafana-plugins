@@ -1,3 +1,9 @@
+## [4.115.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.114.0...v4.115.0) (2026-01-19)
+
+### Features
+
+* **dataframes:** Add take and None to the decimation setting ([#643](https://github.com/ni/systemlink-grafana-plugins/issues/643)) ([ba26143](https://github.com/ni/systemlink-grafana-plugins/commit/ba261433751b0c6c87af575d730ef841031cad47))
+
 ## [4.114.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.113.0...v4.114.0) (2026-01-16)
 
 ### Features
