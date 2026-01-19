@@ -30,7 +30,7 @@ interface MenuState {
 interface Props extends PanelProps<PanelOptions> {}
 
 export const PlotlyPanel: React.FC<Props> = (props) => {
-  const { data, width, height, options } = props;
+  const { data, width, height, options, timeRange, onOptionsChange } = props;
   const [menu, setMenu] = useState<MenuState>({ x: 0, y: 0, show: false, items: [] });
   const theme = useTheme2();
 
@@ -66,6 +66,36 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   };
 
   const xFields = _.attempt(() => getXFields(data.series, options.xAxis.field));
+  
+  // Check if x-axis is time-based (must be before any early returns for hooks rules)
+  const isTimeBasedXAxis = !_.isError(xFields) && xFields.length > 0 && xFields[0].type === FieldType.time;
+
+  // Extract time range values to avoid complex expressions in dependency array
+  const dashboardTimeFrom = timeRange?.from.valueOf();
+  const dashboardTimeTo = timeRange?.to.valueOf();
+  const savedMin = options.xAxis.min;
+  const savedMax = options.xAxis.max;
+
+  // Sync dashboard time range changes to Plotly x-axis when x-axis is time-based
+  useEffect(() => {
+    if (!isTimeBasedXAxis || !dashboardTimeFrom || !dashboardTimeTo) {
+      return;
+    }
+
+    // If saved min/max don't match dashboard time range, update them
+    // This ensures Plotly responds to dashboard time changes (from other panels, controls, presets)
+    if (savedMin !== dashboardTimeFrom || savedMax !== dashboardTimeTo) {
+      onOptionsChange({
+        ...options,
+        xAxis: {
+          ...options.xAxis,
+          min: dashboardTimeFrom,
+          max: dashboardTimeTo,
+        },
+      });
+    }
+  }, [dashboardTimeFrom, dashboardTimeTo, savedMin, savedMax, isTimeBasedXAxis, options, onOptionsChange]);
+
   if (_.isError(xFields)) {
     return renderErrorView(props, xFields.message);
   }
