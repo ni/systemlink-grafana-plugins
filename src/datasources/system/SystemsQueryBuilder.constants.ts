@@ -1,6 +1,6 @@
 import { QBField } from "core/types";
-import { QueryBuilderOperations } from "../../../core/query-builder.constants";
-import { ConnectionStatusOptions } from "../types";
+import { QueryBuilderOperations } from "../../core/query-builder.constants";
+import { ConnectionStatusOptions } from "./types";
 
 export enum SystemUIFieldNames {
     ID = 'id',
@@ -138,3 +138,20 @@ export const SystemStaticFields = [
     SystemFields.CONNECTION_STATUS,
     SystemFields.LOCKED_STATUS,
 ];
+
+export const defaultProjection = [
+    'id',
+    'alias',
+    'connected.data.state',
+    'grains.data.minion_blackout as locked',
+    'grains.data.boottime as systemStartTime',
+    'grains.data.productname as model',
+    'grains.data.manufacturer as vendor',
+    'grains.data.osfullname as osFullName',
+    'grains.data.ip4_interfaces as ip4Interfaces',
+    'grains.data.ip6_interfaces as ip6Interfaces',
+    'workspace',
+    'scanCode',
+];
+
+export const defaultOrderBy = 'createdTimeStamp DESC';

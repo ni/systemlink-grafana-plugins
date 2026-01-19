@@ -5,7 +5,7 @@ import { SystemQuery } from "./types";
 import { DataFrameDTO, DataQueryRequest, DataSourceJsonData } from "@grafana/data";
 import { Workspace } from "core/types";
 import { parseErrorMessage } from "core/errors";
-import { SystemBackendFieldNames } from "./constants/SystemsQueryBuilder.constants";
+import { SystemBackendFieldNames } from "./SystemsQueryBuilder.constants";
 import { Observable } from "rxjs";
 
 export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, DataSourceJsonData> {

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
-import { SystemFields, SystemStaticFields } from 'datasources/system/constants/SystemsQueryBuilder.constants';
+import { SystemFields, SystemStaticFields } from 'datasources/system/SystemsQueryBuilder.constants';
 import { QBField, QueryBuilderOption, Workspace } from 'core/types';
 import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';

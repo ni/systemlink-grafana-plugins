@@ -1,8 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, TestDataSourceResponse } from "@grafana/data";
 import { AssetDataSourceOptions, AssetQuery } from "../types/types";
 import { DataSourceBase } from "../../../core/DataSourceBase";
-import { defaultOrderBy } from "../../system/constants/constants";
-import { SystemBackendFieldNames } from "../../system/constants/SystemsQueryBuilder.constants";
+import { defaultOrderBy, SystemBackendFieldNames } from "../../system/SystemsQueryBuilder.constants";
 import { SystemProperties } from "../../system/types";
 import { parseErrorMessage } from "../../../core/errors";
 import { QueryBuilderOption, Workspace } from "../../../core/types";

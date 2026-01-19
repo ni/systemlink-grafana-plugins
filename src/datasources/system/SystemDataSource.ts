@@ -6,13 +6,12 @@ import {
   TestDataSourceResponse
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
-import { defaultOrderBy, defaultProjection } from './constants/constants';
 import { NetworkUtils } from './network-utils';
 import { SystemQuery, SystemQueryType, SystemSummary, SystemVariableQuery, SystemQueryReturnType, SystemProperties } from './types';
 import { getWorkspaceName } from 'core/utils';
 import { SystemsDataSourceBase } from './SystemsDataSourceBase';
 import { transformComputedFieldsQuery } from 'core/query-builder.utils';
-import { SystemBackendFieldNames, SystemFieldMapping } from './constants/SystemsQueryBuilder.constants';
+import { defaultOrderBy, defaultProjection, SystemBackendFieldNames, SystemFieldMapping } from './SystemsQueryBuilder.constants';
 import { from, map, Observable, switchMap } from 'rxjs';
 import { QuerySystemsResponse } from 'core/types';
 
