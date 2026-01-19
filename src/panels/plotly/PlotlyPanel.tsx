@@ -8,7 +8,8 @@ import {
   GrafanaTheme2,
   hasLinks,
   dateTimeParse,
-  FieldColorModeId
+  FieldColorModeId,
+  UrlQueryValue
 } from '@grafana/data';
 import { AxisLabels, PanelOptions } from './types';
 import { useTheme2, ContextMenu, MenuItemsGroup, linkModelToContextMenuItems } from '@grafana/ui';
@@ -34,6 +35,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const theme = useTheme2();
 
   const traceColors = useTraceColors(theme);
+  const debounceDelayInMs = 300;
 
   const publishXAxisRangeUpdate = useMemo(
     () =>
@@ -46,7 +48,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           true,
         );
         getAppEvents().publish(new NIRefreshDashboardEvent());
-      }, 300),
+      }, debounceDelayInMs),
     []
   );
 
@@ -155,7 +157,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   };
 
   const handlePlotRelayout = (event: Readonly<Plotly.PlotRelayoutEvent>) => {
-    const { "xaxis.range[0]": xAxisMin, "xaxis.range[1]": xAxisMax, "xaxis.autorange": autoRange } = event;
+    let { "xaxis.range[0]": xAxisMin, "xaxis.range[1]": xAxisMax, "xaxis.autorange": autoRange } = event;
 
     if (autoRange) {
       props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: undefined, max: undefined }});
@@ -175,6 +177,10 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: from.valueOf(), max: to.valueOf() } });
       }
     } else {
+      if (!Number.isFinite(xAxisMin) || !Number.isFinite(xAxisMax)) {
+        return;
+      }
+      
       props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
       syncNumericXAxisRange(xAxisMin, xAxisMax);
     }
@@ -192,29 +198,39 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         ? syncTargetsQueryParam
             .split(',')
             .map(id => Number(id.trim()))
-            .filter(id => !isNaN(id) && id > 0)
+            .filter(id => !isNaN(id) && id >= 0)
         : [];
 
     if (!syncTargets.includes(props.id)) {
       return;
     }
     
-    const X_AXIS_PRECISION_DECIMALS = 6;
-    const precisionXAxisMin = Number(xAxisMin.toFixed(X_AXIS_PRECISION_DECIMALS));
-    const precisionXAxisMax = Number(xAxisMax.toFixed(X_AXIS_PRECISION_DECIMALS));
-    const existingXAxisMin = queryParams[`nisl-${options.xAxis.field}-min`];
-    const existingXAxisMax = queryParams[`nisl-${options.xAxis.field}-max`];
+    const xAxisPrecisionDecimals = 6;
+    const updatedXAxisMin = Number(xAxisMin.toFixed(xAxisPrecisionDecimals));
+    const updatedXAxisMax = Number(xAxisMax.toFixed(xAxisPrecisionDecimals));
+    const existingXAxisMinParam = queryParams[`nisl-${options.xAxis.field}-min`];
+    const existingXAxisMaxParam = queryParams[`nisl-${options.xAxis.field}-max`];
+    const existingXAxisMin = parseNumericQueryParam(existingXAxisMinParam);
+    const existingXAxisMax = parseNumericQueryParam(existingXAxisMaxParam);
 
     if (
-      precisionXAxisMin.toString() !== existingXAxisMin || 
-      precisionXAxisMax.toString() !== existingXAxisMax
+      updatedXAxisMin !== existingXAxisMin ||
+      updatedXAxisMax !== existingXAxisMax
     ) {
       publishXAxisRangeUpdate(
-        precisionXAxisMin, 
-        precisionXAxisMax, 
+        updatedXAxisMin, 
+        updatedXAxisMax, 
         options.xAxis.field
       );
     }
+  };
+
+  const parseNumericQueryParam = (paramValue: UrlQueryValue): number | undefined => {
+    if (typeof paramValue === 'string' && paramValue !== '') {
+      return Number(paramValue);
+    }
+
+    return undefined;
   };
 
   const handleImageDownload = (gd: PlotlyHTMLElement) =>
