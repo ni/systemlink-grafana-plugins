@@ -1,7 +1,8 @@
 import { DataFrameDTO, DataQueryRequest, TestDataSourceResponse } from "@grafana/data";
 import { AssetDataSourceOptions, AssetQuery } from "../types/types";
 import { DataSourceBase } from "../../../core/DataSourceBase";
-import { defaultOrderBy, systemProjectionForAssets } from "../../system/constants/constants";
+import { defaultOrderBy } from "../../system/constants/constants";
+import { SystemBackendFieldNames } from "../../system/constants/SystemsQueryBuilder.constants";
 import { SystemProperties } from "../../system/types";
 import { parseErrorMessage } from "../../../core/errors";
 import { QueryBuilderOption, Workspace } from "../../../core/types";
@@ -86,7 +87,7 @@ export abstract class AssetDataSourceBase extends DataSourceBase<AssetQuery, Ass
       return;
     }
 
-    const systems = await this.querySystems('', systemProjectionForAssets)
+    const systems = await this.querySystems('', [SystemBackendFieldNames.ID, SystemBackendFieldNames.ALIAS, SystemBackendFieldNames.CONNECTION_STATUS, SystemBackendFieldNames.WORKSPACE])
       .catch(error => {
         this.error = parseErrorMessage(error)!;
       });

@@ -14,12 +14,3 @@ export const defaultProjection = [
 ];
 
 export const defaultOrderBy = 'createdTimeStamp DESC';
-
-export const systemFields = {
-  ID: 'id',
-  ALIAS: 'alias',
-  SCAN_CODE: 'scanCode',
-} as const;
-
-export const systemProjectionForAssets = ['id', 'alias', 'connected.data.state', 'workspace'];
-

@@ -6,13 +6,13 @@ import {
   TestDataSourceResponse
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
-import { defaultOrderBy, defaultProjection, systemFields } from './constants/constants';
+import { defaultOrderBy, defaultProjection } from './constants/constants';
 import { NetworkUtils } from './network-utils';
 import { SystemQuery, SystemQueryType, SystemSummary, SystemVariableQuery, SystemQueryReturnType, SystemProperties } from './types';
 import { getWorkspaceName } from 'core/utils';
 import { SystemsDataSourceBase } from './SystemsDataSourceBase';
 import { transformComputedFieldsQuery } from 'core/query-builder.utils';
-import { SystemFieldMapping } from './constants/SystemsQueryBuilder.constants';
+import { SystemBackendFieldNames, SystemFieldMapping } from './constants/SystemsQueryBuilder.constants';
 import { from, map, Observable, switchMap } from 'rxjs';
 import { QuerySystemsResponse } from 'core/types';
 
@@ -170,7 +170,7 @@ export class SystemDataSource extends SystemsDataSourceBase {
       filter = `workspace = "${resolvedWorkspace}"`;
     }
 
-    const properties = await this.getSystemProperties(filter, [systemFields.ID, systemFields.ALIAS, systemFields.SCAN_CODE]);
+    const properties = await this.getSystemProperties(filter, [SystemBackendFieldNames.ID, SystemBackendFieldNames.ALIAS, SystemBackendFieldNames.SCAN_CODE]);
     return properties.map(system => this.getSystemNameForMetricQuery({ queryReturnType }, system));
   }
 
