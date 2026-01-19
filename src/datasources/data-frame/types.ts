@@ -44,6 +44,7 @@ export interface DataFrameQueryV2 extends DataQuery {
   xColumn?: string | null;
   applyTimeFilters?: boolean;
   take?: number;
+  undecimatedRecordCount?: number;
 }
 
 export interface DataFrameVariableQueryV2 extends DataQuery {
@@ -144,7 +145,8 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   decimationMethod: 'LOSSY',
   xColumn: null,
   applyTimeFilters: false,
-  take: TAKE_LIMIT
+  take: TAKE_LIMIT,
+  undecimatedRecordCount: 10_000
 };
 
 export interface QueryResultsResponse {
