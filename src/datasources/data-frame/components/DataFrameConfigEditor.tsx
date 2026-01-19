@@ -62,6 +62,20 @@ export const DataFrameConfigEditor: React.FC<Props> = ({ options, onOptionsChang
                     />
                     </InlineField>
                 </InlineSegmentGroup>
+                <InlineSegmentGroup> 
+                    <InlineField
+                        label={labels.highResolutionZoom}
+                        labelWidth={30}
+                    >
+                        <InlineSwitch
+                            value={
+                                options.jsonData?.featureToggles?.highResolutionZoom
+                                ?? DataFrameFeatureTogglesDefaults.highResolutionZoom
+                            }
+                            onChange={handleFeatureChange('highResolutionZoom')}
+                    />
+                    </InlineField>
+                </InlineSegmentGroup>
             </>
         </>
     );
@@ -72,4 +86,5 @@ const labels = {
     datatableQueryBuilder: 'Datatable query builder',
     resultAndColumnQueryBuilder: 'Results and columns query builders',
     queryUndecimatedData: 'Query undecimated data',
+    highResolutionZoom: 'Filter for x-axis range on zoom/pan',
 };
