@@ -1,3 +1,9 @@
+## [4.116.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.115.0...v4.116.0) (2026-01-19)
+
+### Features
+
+* **dataframe:** add high resolution zoom feature toggle ([#644](https://github.com/ni/systemlink-grafana-plugins/issues/644)) ([fa03e3d](https://github.com/ni/systemlink-grafana-plugins/commit/fa03e3d88a9ace9a85d93381ab1b38aed4883551))
+
 ## [4.115.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.114.0...v4.115.0) (2026-01-19)
 
 ### Features
