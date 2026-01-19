@@ -4147,6 +4147,7 @@ describe('DataFrameDataSourceV2', () => {
                     xColumn: null,
                     applyTimeFilters: false,
                     take: 1000,
+                    undecimatedRecordCount: 10000,
                     refId: 'A'
                 });
                 expect(result).not.toHaveProperty('tableId');
@@ -4185,6 +4186,7 @@ describe('DataFrameDataSourceV2', () => {
                     xColumn: null,
                     applyTimeFilters: true,
                     take: 1000,
+                    undecimatedRecordCount: 10000,
                     refId: 'B'
                 });
                 expect(result).not.toHaveProperty('tableId');
@@ -4439,6 +4441,7 @@ describe('DataFrameDataSourceV2', () => {
                     xColumn: null,
                     applyTimeFilters: false,
                     take: 500,
+                    undecimatedRecordCount: 10000,
                     refId: 'E'
                 });
             });
@@ -4458,6 +4461,7 @@ describe('DataFrameDataSourceV2', () => {
                     xColumn: 'time',
                     applyTimeFilters: true,
                     take: 100,
+                    undecimatedRecordCount: 10000,
                     refId: 'F'
                 } as DataFrameQueryV2;
 
