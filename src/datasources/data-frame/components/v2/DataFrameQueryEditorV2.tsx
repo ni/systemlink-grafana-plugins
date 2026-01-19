@@ -20,15 +20,17 @@ import { isObservable, lastValueFrom } from 'rxjs';
 import _ from 'lodash';
 
 export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRunQuery, datasource }: Props) => {
-    const isQueryUndecimatedDataFeatureEnabled = 
-        datasource.instanceSettings.jsonData?.featureToggles?.queryUndecimatedData ?? false;
+    const isQueryUndecimatedDataFeatureEnabled = useMemo(() => 
+        datasource.instanceSettings.jsonData?.featureToggles?.queryUndecimatedData ?? false,
+        [datasource]
+    );
     const migratedQuery = datasource.processQuery(query as DataFrameDataQuery) as ValidDataFrameQueryV2;
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
     const [isColumnConfigurationSectionOpen, setIsColumnConfigurationSectionOpen] = useState(true);
     const [isDecimationSettingsSectionOpen, setIsDecimationSettingsSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
-    const [undecimatedCountInvalidMessage, setUndecimatedCountInvalidMessage] = useState<string>('');
+    const [undecimatedRecordCountInvalidMessage, setUndecimatedRecordCountInvalidMessage] = useState<string>('');
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>(metadataFieldOptions);
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
     const [xColumnOptions, setXColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
@@ -317,7 +319,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         const value = parseInt((event.target as HTMLInputElement).value, 10);
         const message = validateTakeValue(value, UNDECIMATED_RECORDS_LIMIT);
 
-        setUndecimatedCountInvalidMessage(message);
+        setUndecimatedRecordCountInvalidMessage(message);
         handleQueryChange({ ...migratedQuery, undecimatedRecordCount: value });
     };
 
@@ -364,12 +366,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         return '';
     }
 
-    const decimationMethodOptions= () => {
+    const decimationMethodOptions = useMemo(() => {
         if (isQueryUndecimatedDataFeatureEnabled) {
             return [decimationNoneOption, ...decimationMethods];
         }
         return decimationMethods;
-    }
+    }, [isQueryUndecimatedDataFeatureEnabled]);
 
     return (
         <>
@@ -496,7 +498,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                                 width={INLINE_LABEL_WIDTH}
                                 value={migratedQuery.decimationMethod}
                                 onChange={onDecimationMethodChange}
-                                options={decimationMethodOptions()}
+                                options={decimationMethodOptions}
                                 createCustomValue={false}
                             />
                         </InlineField>
@@ -528,13 +530,17 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             />
                         </InlineField>
                         { 
-                            (isQueryUndecimatedDataFeatureEnabled && migratedQuery.decimationMethod === 'NONE') && (
+                            (
+                                isQueryUndecimatedDataFeatureEnabled 
+                                && 
+                                migratedQuery.decimationMethod === 'NONE'
+                            ) && (
                                 <InlineField
                                     label={labels.take}
                                     labelWidth={INLINE_LABEL_WIDTH}
                                     tooltip={tooltips.undecimatedRecordCount}
-                                    invalid={!!undecimatedCountInvalidMessage}
-                                    error={undecimatedCountInvalidMessage}
+                                    invalid={!!undecimatedRecordCountInvalidMessage}
+                                    error={undecimatedRecordCountInvalidMessage}
                                 >
                                     <AutoSizeInput
                                         minWidth={26}
