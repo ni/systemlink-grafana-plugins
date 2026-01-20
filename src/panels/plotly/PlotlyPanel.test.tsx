@@ -301,13 +301,13 @@ describe('PlotlyPanel', () => {
         [
           { name: 'xAxisMin is NaN', xAxisMin: NaN, xAxisMax: 100 },
           { name: 'xAxisMax is NaN', xAxisMin: 10, xAxisMax: NaN },
-          { name: 'both values are NaN', xAxisMin: NaN, xAxisMax: NaN },
+          { name: 'both xAxisMin and xAxisMax are NaN', xAxisMin: NaN, xAxisMax: NaN },
           { name: 'xAxisMin is Infinity', xAxisMin: Infinity, xAxisMax: 100 },
           { name: 'xAxisMax is Infinity', xAxisMin: 10, xAxisMax: Infinity },
-          { name: 'both values are Infinity', xAxisMin: Infinity, xAxisMax: Infinity },
+          { name: 'both xAxisMin and xAxisMax are Infinity', xAxisMin: Infinity, xAxisMax: Infinity },
           { name: 'xAxisMin is -Infinity', xAxisMin: -Infinity, xAxisMax: 100 },
           { name: 'xAxisMax is -Infinity', xAxisMin: 10, xAxisMax: -Infinity },
-          { name: 'both values are -Infinity', xAxisMin: -Infinity, xAxisMax: -Infinity },
+          { name: 'both xAxisMin and xAxisMax are -Infinity', xAxisMin: -Infinity, xAxisMax: -Infinity },
         ].forEach(({ name, xAxisMin, xAxisMax }) => {
           it(`should not update route parameters when ${name}`, () => {
             mockSearchObject('?nisl-syncXAxisRangeTargets=1');

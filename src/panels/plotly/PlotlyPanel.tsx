@@ -157,7 +157,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   };
 
   const handlePlotRelayout = (event: Readonly<Plotly.PlotRelayoutEvent>) => {
-    let { "xaxis.range[0]": xAxisMin, "xaxis.range[1]": xAxisMax, "xaxis.autorange": autoRange } = event;
+    const { "xaxis.range[0]": xAxisMin, "xaxis.range[1]": xAxisMax, "xaxis.autorange": autoRange } = event;
 
     if (autoRange) {
       props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: undefined, max: undefined }});
