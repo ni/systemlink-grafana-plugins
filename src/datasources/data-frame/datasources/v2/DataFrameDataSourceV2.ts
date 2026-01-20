@@ -552,18 +552,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         if (parseResult.errors && parseResult.errors.length > 0) {
             // Only treat actual parsing errors as fatal, not warnings like delimiter auto-detection
             const fatalErrors = parseResult.errors.filter(
-                (error: { type: string; }) => error.type !== 'Delimiter'
+                error => error.type !== 'Delimiter'
             );
 
             if (fatalErrors.length > 0) {
-                const errorMessage = `Failed to parse CSV data: ${
-                    fatalErrors.map((error: { message: any; }) => error.message).join(', ')
-                }`;
-                this.appEvents?.publish?.({
-                    type: AppEvents.alertError.name,
-                    payload: ['Error parsing CSV data', errorMessage],
-                });
-                throw new Error(errorMessage);
+                const errorMessages = fatalErrors.map(error => error.message).join(', ');
+                throw new Error(`Failed to parse CSV data: ${errorMessages}`);
             }
         }
 
