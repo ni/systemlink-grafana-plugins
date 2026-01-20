@@ -524,7 +524,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         };
 
         return this.post$<string>(
-            `${this.instanceSettings.url}/nidataframe/v1/tables/${request.tableId}/export-data`,
+            `${this.baseUrl}/tables/${request.tableId}/export-data`,
             requestBody,
             { 
                 useApiIngress: true,

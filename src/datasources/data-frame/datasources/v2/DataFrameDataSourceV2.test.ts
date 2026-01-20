@@ -8,6 +8,7 @@ import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/componen
 import { Workspace } from 'core/types';
 import { isObservable, lastValueFrom, Observable, of, throwError } from 'rxjs';
 import * as coreUtils from 'core/utils';
+import Papa from 'papaparse';
 
 jest.mock('core/query-builder.utils', () => {
     const actualQueryBuilderUtils = jest.requireActual('core/query-builder.utils');
@@ -3065,6 +3066,105 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await lastValueFrom(datasource.runQuery(query, options));
 
                     expect(result.refId).toBe('A');
+                });
+
+                it('should handle CSV parsing errors gracefully', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        name: 'table1',
+                        columns: [
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+
+                    // Mock PapaParse to simulate parsing error
+                    const originalParse = Papa.parse;
+                    (Papa.parse as any) = jest.fn().mockReturnValue({
+                        data: [],
+                        errors: [{ message: 'Invalid CSV format' }]
+                    });
+
+                    const csvResponse = 'invalid,csv\ndata';
+                    postSpy.mockReturnValue(of(csvResponse));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['voltage-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'NONE',
+                        filterNulls: false,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
+
+                    await expect(
+                        lastValueFrom(datasource.runQuery(query, options))
+                    ).rejects.toThrow();
+
+                    // Restore original parse
+                    Papa.parse = originalParse;
+                });
+
+                it('should handle CSV with only headers (no data rows)', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        name: 'table1',
+                        columns: [
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+
+                    const csvResponse = 'voltage';
+                    postSpy.mockReturnValue(of(csvResponse));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['voltage-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'NONE',
+                        filterNulls: false,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
+
+                    const result = await lastValueFrom(datasource.runQuery(query, options));
+
+                    const voltageField = findField(result.fields, 'voltage');
+                    expect(voltageField?.values).toEqual([]);
+                });
+
+                it('should handle malformed CSV with inconsistent column counts', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        name: 'table1',
+                        columns: [
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+
+                    // CSV with inconsistent columns (first row has 2, second row has 3)
+                    const csvResponse = 'voltage,current\n10.5,20.3\n15.2,25.8,35.0';
+                    postSpy.mockReturnValue(of(csvResponse));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['voltage-Numeric', 'current-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'NONE',
+                        filterNulls: false,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
+
+                    const result = await lastValueFrom(datasource.runQuery(query, options));
+
+                    // Should still parse available data
+                    const voltageField = findField(result.fields, 'voltage');
+                    expect(voltageField?.values).toHaveLength(2);
                 });
 
                 it('should aggregate undecimated data from multiple tables', async () => {
