@@ -14,6 +14,7 @@ import { replaceVariables } from "core/utils";
 import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
 import { QueryBuilderOperations } from "core/query-builder.constants";
 import Papa from 'papaparse';
+import { error } from "console";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
@@ -549,18 +550,22 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             skipEmptyLines: true
         });
 
-        // Only treat actual parsing errors as fatal, not warnings like delimiter auto-detection
-        const fatalErrors = parseResult.errors.filter(
-            error => error.type !== 'Delimiter'
-        );
+        if (parseResult.errors && parseResult.errors.length > 0) {
+            // Only treat actual parsing errors as fatal, not warnings like delimiter auto-detection
+            const fatalErrors = parseResult.errors.filter(
+                (error: { type: string; }) => error.type !== 'Delimiter'
+            );
 
-        if (fatalErrors.length > 0) {
-            const errorMessage = `Failed to parse CSV data: ${fatalErrors.map(e => e.message).join(', ')}`;
-            this.appEvents?.publish?.({
-                type: AppEvents.alertError.name,
-                payload: ['Error parsing CSV data', errorMessage],
-            });
-            throw new Error(errorMessage);
+            if (fatalErrors.length > 0) {
+                const errorMessage = `Failed to parse CSV data: ${
+                    fatalErrors.map((error: { message: any; }) => error.message).join(', ')
+                }`;
+                this.appEvents?.publish?.({
+                    type: AppEvents.alertError.name,
+                    payload: ['Error parsing CSV data', errorMessage],
+                });
+                throw new Error(errorMessage);
+            }
         }
 
         const rows = parseResult.data;
