@@ -121,27 +121,44 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             query.columns = (query.columns as Array<{ name: string; }>).map(column => column.name);
         }
 
-        if ('tableId' in query) {
-            // Convert V1 to V2
-            const { tableId, applyTimeFilters, ...filteredV1Query } = query as DataFrameQueryV1;
-            const dataTableProperties = query.type === DataFrameQueryType.Properties
-                ? [DataTableProperties.Properties]
-                : defaultQueryV2.dataTableProperties;
-            const columns = this.getMigratedColumns(tableId, query.columns);
-
-            return {
-                ...defaultQueryV2,
-                ...filteredV1Query,
-                dataTableFilter: tableId ? `id = "${tableId}"` : '',
-                dataTableProperties,
-                columns,
-                filterXRangeOnZoomPan: applyTimeFilters ?? defaultQueryV2.filterXRangeOnZoomPan
-            };
+        /**
+         * Convert V1 to V2
+         * 
+         * 1. dataTableFilter and columns
+         * 2. dataTableProperties
+         * 3. filterXRangeOnZoomPan
+         */
+        let dataTableFilter = '';
+        let columns: string[] | Observable<string[]> = query.columns ?? [];
+        if ('dataTableFilter' in query) {
+            dataTableFilter = query.dataTableFilter ?? '';
+        } else if ('tableId' in query) {
+            dataTableFilter = query.tableId ? `id = "${query.tableId}"` : '';
+            columns = this.getMigratedColumns(query.tableId, query.columns);
         }
 
+        let dataTableProperties: DataTableProperties[] = defaultQueryV2.dataTableProperties;
+        if ('dataTableProperties' in query) {
+            dataTableProperties = query.dataTableProperties ?? defaultQueryV2.dataTableProperties;
+        } else if (query.type === DataFrameQueryType.Properties) {
+            dataTableProperties = [DataTableProperties.Properties];
+        }
+
+        let filterXRangeOnZoomPan = defaultQueryV2.filterXRangeOnZoomPan;
+        if ('filterXRangeOnZoomPan' in query) {
+            filterXRangeOnZoomPan = query.filterXRangeOnZoomPan ?? defaultQueryV2.filterXRangeOnZoomPan;
+        } else if ('applyTimeFilters' in query) {
+            filterXRangeOnZoomPan = query.applyTimeFilters ?? defaultQueryV2.filterXRangeOnZoomPan;
+        }
+
+        const { tableId, applyTimeFilters, ...v2SpecificProperties } = query as DataFrameQueryV1;
         return {
             ...defaultQueryV2,
-            ...query
+            ...v2SpecificProperties,
+            dataTableFilter,
+            columns,
+            dataTableProperties,
+            filterXRangeOnZoomPan,
         };
     }
 
