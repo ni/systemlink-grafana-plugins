@@ -48,7 +48,10 @@ export abstract class DataFrameDataSourceBase<
         this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
     }
 
-    public abstract processQuery(query: DataFrameDataQuery): ValidDataFrameQuery;
+    public abstract processQuery(
+        query: DataFrameDataQuery,
+        queries: DataFrameDataQuery[]
+    ): ValidDataFrameQuery;
 
     public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
         return query as ValidDataFrameVariableQuery;

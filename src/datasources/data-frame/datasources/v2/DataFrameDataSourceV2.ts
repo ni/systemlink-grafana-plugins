@@ -31,7 +31,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         options: DataQueryRequest<DataFrameQueryV2>
     ): Observable<DataFrameDTO> {
         this.scopedVars = options.scopedVars;
-        const processedQuery = this.processQuery(query);
+        const processedQuery = this.processQuery(query, options.targets);
         const transformedQuery = this.transformQuery(processedQuery, options.scopedVars);
 
         if (this.shouldQueryForData(transformedQuery)) {
@@ -110,7 +110,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return !query.hide;
     }
 
-    processQuery(query: DataFrameDataQuery): ValidDataFrameQueryV2 {
+    processQuery(
+        query: DataFrameDataQuery,
+        queries: DataFrameDataQuery[] = []
+    ): ValidDataFrameQueryV2 {
         // Handle existing dashboards with 'MetaData' type
         if ((query.type as any) === LEGACY_METADATA_TYPE) {
             query.type = DataFrameQueryType.Properties;
@@ -129,13 +132,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 : defaultQueryV2.dataTableProperties;
             const columns = this.getMigratedColumns(tableId, query.columns);
 
+            const v1Queries = queries as DataFrameQueryV1[];
+            const filterXRangeOnZoomPan = v1Queries.some(v1Query => v1Query.applyTimeFilters);
+
             return {
                 ...defaultQueryV2,
                 ...filteredV1Query,
                 dataTableFilter: tableId ? `id = "${tableId}"` : '',
                 dataTableProperties,
                 columns,
-                filterXRangeOnZoomPan: applyTimeFilters ?? defaultQueryV2.filterXRangeOnZoomPan
+                filterXRangeOnZoomPan
             };
         }
 

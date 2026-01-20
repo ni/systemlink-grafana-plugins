@@ -114,8 +114,11 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.queryTables(query, take, projection);
   }
 
-  public processQuery(query: DataFrameDataQuery): ValidDataFrameQuery {
-    return this.datasource.processQuery(query);
+  public processQuery(
+    query: DataFrameDataQuery,
+    queries: DataFrameDataQuery[] = []
+  ): ValidDataFrameQuery {
+    return this.datasource.processQuery(query, queries);
   }
 
   public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {
