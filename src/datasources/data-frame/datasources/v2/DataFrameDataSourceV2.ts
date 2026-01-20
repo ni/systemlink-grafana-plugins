@@ -123,7 +123,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         if ('tableId' in query) {
             // Convert V1 to V2
-            const { tableId, ...v1QueryWithoutTableId } = query as DataFrameQueryV1;
+            const { tableId, applyTimeFilters, ...filteredV1Query } = query as DataFrameQueryV1;
             const dataTableProperties = query.type === DataFrameQueryType.Properties
                 ? [DataTableProperties.Properties]
                 : defaultQueryV2.dataTableProperties;
@@ -131,10 +131,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
             return {
                 ...defaultQueryV2,
-                ...v1QueryWithoutTableId,
+                ...filteredV1Query,
                 dataTableFilter: tableId ? `id = "${tableId}"` : '',
                 dataTableProperties,
-                columns
+                columns,
+                filterXRangeOnZoomPan: applyTimeFilters ?? defaultQueryV2.filterXRangeOnZoomPan
             };
         }
 
@@ -374,7 +375,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             const nullFilters: ColumnFilter[] = query.filterNulls
                 ? this.constructNullFilters(columnsMap.selectedColumns)
                 : [];
-            const timeFilters: ColumnFilter[] = query.applyTimeFilters
+            const timeFilters: ColumnFilter[] = query.filterXRangeOnZoomPan
                 ? this.constructTimeFilters(query.xColumn, columnsMap.columns, timeRange)
                 : [];
             const filters: ColumnFilter[] = [

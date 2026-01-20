@@ -346,9 +346,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         handleQueryChange({ ...migratedQuery, xColumn });
     };
 
-    const onUseTimeRangeChange = (event: React.FormEvent<HTMLInputElement>) => {
-        const applyTimeFilters = event.currentTarget.checked;
-        handleQueryChange({ ...migratedQuery, applyTimeFilters });
+    const onFilterXRangeOnZoomPanChange = (event: React.FormEvent<HTMLInputElement>) => {
+        const filterXRangeOnZoomPan = event.currentTarget.checked;
+        handleQueryChange({ ...migratedQuery, filterXRangeOnZoomPan });
     };
 
     function validateTakeValue(value: number, TAKE_LIMIT: number) {
@@ -525,8 +525,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             tooltip={tooltips.useTimeRange}
                         >
                             <InlineSwitch
-                                value={migratedQuery.applyTimeFilters}
-                                onChange={onUseTimeRangeChange}
+                                value={migratedQuery.filterXRangeOnZoomPan}
+                                onChange={onFilterXRangeOnZoomPanChange}
                             />
                         </InlineField>
                         { 

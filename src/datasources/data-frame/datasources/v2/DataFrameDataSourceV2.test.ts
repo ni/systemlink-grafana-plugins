@@ -1671,7 +1671,7 @@ describe('DataFrameDataSourceV2', () => {
                         decimationMethod: 'LOSSY',
                         xColumn: 'time-Timestamp',
                         filterNulls: false,
-                        applyTimeFilters: false
+                        filterXRangeOnZoomPan: false
                     } as DataFrameQueryV2;
 
                     const result = await lastValueFrom(ds.runQuery(query, options));
@@ -1747,7 +1747,7 @@ describe('DataFrameDataSourceV2', () => {
                         dataTableFilter: 'name = "Test"',
                         decimationMethod: 'LOSSY',
                         filterNulls: true,
-                        applyTimeFilters: false
+                        filterXRangeOnZoomPan: false
                     } as DataFrameQueryV2;
 
                     await lastValueFrom(ds.runQuery(query, options));
@@ -1773,7 +1773,7 @@ describe('DataFrameDataSourceV2', () => {
                     );
                 });
 
-                it('should apply time filters when applyTimeFilters is true', async () => {
+                it('should apply time filters when filterXRangeOnZoomPan is true', async () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
@@ -1800,7 +1800,7 @@ describe('DataFrameDataSourceV2', () => {
                         dataTableFilter: 'name = "Test"',
                         decimationMethod: 'LOSSY',
                         filterNulls: false,
-                        applyTimeFilters: true
+                        filterXRangeOnZoomPan: true
                     } as DataFrameQueryV2;
 
                     const optionsWithRange = {
@@ -1853,7 +1853,7 @@ describe('DataFrameDataSourceV2', () => {
                         dataTableFilter: 'name = "Test"',
                         decimationMethod: 'LOSSY',
                         filterNulls: true,
-                        applyTimeFilters: true
+                        filterXRangeOnZoomPan: true
                     } as DataFrameQueryV2;
 
                     const optionsWithRange = {
@@ -1903,7 +1903,7 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "Test"',
                             decimationMethod: 'LOSSY',
                             filterNulls: false,
-                            applyTimeFilters: true
+                            filterXRangeOnZoomPan: true
                         } as DataFrameQueryV2;
 
                         const optionsWithRange = {
@@ -1964,7 +1964,7 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "Test"',
                             decimationMethod: 'LOSSY',
                             filterNulls: false,
-                            applyTimeFilters: true
+                            filterXRangeOnZoomPan: true
                         } as DataFrameQueryV2;
 
                         const optionsWithRange = {
@@ -2024,7 +2024,7 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "Test"',
                             decimationMethod: 'LOSSY',
                             filterNulls: false,
-                            applyTimeFilters: true
+                            filterXRangeOnZoomPan: true
                         } as DataFrameQueryV2;
 
                         const optionsWithRange = {
@@ -2070,7 +2070,7 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "Test"',
                             decimationMethod: 'LOSSY',
                             filterNulls: false,
-                            applyTimeFilters: true
+                            filterXRangeOnZoomPan: true
                         } as DataFrameQueryV2;
 
                         const optionsWithRange = {
@@ -2118,7 +2118,7 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "test"',
                             decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
                             filterNulls: false,
-                            applyTimeFilters: false
+                            filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
                         await lastValueFrom(ds.runQuery(query, options));
@@ -2155,7 +2155,7 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "test"',
                             decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
                             filterNulls: false,
-                            applyTimeFilters: false
+                            filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
                         await lastValueFrom(ds.runQuery(query, options));
@@ -2192,7 +2192,7 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "test"',
                             decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
                             filterNulls: false,
-                            applyTimeFilters: false
+                            filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
                         await lastValueFrom(ds.runQuery(query, options));
@@ -2229,7 +2229,7 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "test"',
                             decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
                             filterNulls: false,
-                            applyTimeFilters: false
+                            filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
                         await lastValueFrom(ds.runQuery(query, options));
@@ -2264,7 +2264,7 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "test"',
                             decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
                             filterNulls: false,
-                            applyTimeFilters: false
+                            filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
                         await lastValueFrom(ds.runQuery(query, options));
@@ -2299,7 +2299,7 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "test"',
                             decimationMethod: 'DECIMATE_MIN_MAX_AVERAGE',
                             filterNulls: false,
-                            applyTimeFilters: false
+                            filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
                         await lastValueFrom(ds.runQuery(query, options));
@@ -2460,7 +2460,7 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "Test"',
                             decimationMethod: 'LOSSY',
                             filterNulls: false,
-                            applyTimeFilters: false
+                            filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
                         const result = await lastValueFrom(ds.runQuery(query, options));
@@ -2523,7 +2523,7 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "Test"',
                             decimationMethod: 'LOSSY',
                             filterNulls: false,
-                            applyTimeFilters: false
+                            filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
                         const result = await lastValueFrom(ds.runQuery(query, options));
@@ -2574,7 +2574,7 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "Test"',
                             decimationMethod: 'LOSSY',
                             filterNulls: false,
-                            applyTimeFilters: false
+                            filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
                         const result = await lastValueFrom(ds.runQuery(query, options));
@@ -2635,7 +2635,7 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "Test"',
                             decimationMethod: 'LOSSY',
                             filterNulls: false,
-                            applyTimeFilters: false
+                            filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
                         lastValueFrom(ds.runQuery(query, options));
@@ -2678,7 +2678,7 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "Test"',
                             decimationMethod: 'LOSSY',
                             filterNulls: false,
-                            applyTimeFilters: false
+                            filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
                         const queryPromise = lastValueFrom(ds.runQuery(query, options));
@@ -2724,7 +2724,7 @@ describe('DataFrameDataSourceV2', () => {
                             dataTableFilter: 'name = "Test"',
                             decimationMethod: 'LOSSY',
                             filterNulls: false,
-                            applyTimeFilters: false
+                            filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
                         const queryPromise = lastValueFrom(ds.runQuery(query, options));
@@ -4145,7 +4145,7 @@ describe('DataFrameDataSourceV2', () => {
                     filterNulls: false,
                     decimationMethod: 'LOSSY',
                     xColumn: null,
-                    applyTimeFilters: false,
+                    filterXRangeOnZoomPan: false,
                     take: 1000,
                     undecimatedRecordCount: 10000,
                     refId: 'A'
@@ -4184,7 +4184,7 @@ describe('DataFrameDataSourceV2', () => {
                     filterNulls: true,
                     decimationMethod: 'LOSSY',
                     xColumn: null,
-                    applyTimeFilters: true,
+                    filterXRangeOnZoomPan: true,
                     take: 1000,
                     undecimatedRecordCount: 10000,
                     refId: 'B'
@@ -4439,7 +4439,7 @@ describe('DataFrameDataSourceV2', () => {
                     filterNulls: false,
                     decimationMethod: 'LOSSY',
                     xColumn: null,
-                    applyTimeFilters: false,
+                    filterXRangeOnZoomPan: false,
                     take: 500,
                     undecimatedRecordCount: 10000,
                     refId: 'E'
@@ -4459,7 +4459,7 @@ describe('DataFrameDataSourceV2', () => {
                     filterNulls: true,
                     decimationMethod: 'LOSSY',
                     xColumn: 'time',
-                    applyTimeFilters: true,
+                    filterXRangeOnZoomPan: true,
                     take: 100,
                     undecimatedRecordCount: 10000,
                     refId: 'F'

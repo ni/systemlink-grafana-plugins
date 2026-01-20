@@ -2728,7 +2728,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                     await waitFor(() => {
                         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                            applyTimeFilters: true
+                            filterXRangeOnZoomPan: true
                         }));
                         expect(onRunQuery).toHaveBeenCalled();
                     });
