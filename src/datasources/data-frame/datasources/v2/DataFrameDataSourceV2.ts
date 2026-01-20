@@ -128,8 +128,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
          * 2. dataTableProperties
          * 3. filterXRangeOnZoomPan
          */
-        let dataTableFilter = '';
-        let columns: string[] | Observable<string[]> = query.columns ?? [];
+        let dataTableFilter = defaultQueryV2.dataTableFilter;
+        let columns = query.columns ?? defaultQueryV2.columns;
         if ('dataTableFilter' in query) {
             dataTableFilter = query.dataTableFilter ?? '';
         } else if ('tableId' in query) {
