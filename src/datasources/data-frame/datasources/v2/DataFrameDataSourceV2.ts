@@ -14,7 +14,6 @@ import { replaceVariables } from "core/utils";
 import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
 import { QueryBuilderOperations } from "core/query-builder.constants";
 import Papa from 'papaparse';
-import { error } from "console";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
@@ -303,14 +302,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         timeRange: TimeRange,
         maxDataPoints = 1000
     ): Observable<{ data: Record<string, TableDataRows>; isLimitExceeded: boolean }> {
-        const isUndecimated = this.isQueryUndecimatedDataFeatureEnabled 
+        const queryUndecimatedData = this.isQueryUndecimatedDataFeatureEnabled 
             && query.decimationMethod === 'NONE';
 
-        const requests: Array<{ tableId: string }> = isUndecimated
+        const requests: Array<{ tableId: string }> = queryUndecimatedData
             ? this.getUndecimatedDataRequests(tableColumnsMap, query, timeRange)
             : this.getDecimatedDataRequests(tableColumnsMap, query, timeRange, maxDataPoints);
         
-        const fetchData$ = isUndecimated
+        const fetchTableData$ = queryUndecimatedData
             ? (request: { tableId: string }) => 
                 this.getUndecimatedTableData$(request as UndecimatedDataRequest)
             : (request: { tableId: string }) => 
@@ -326,7 +325,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     takeUntil(stopSignal$),
                     concatMap(() => from(batch).pipe(
                         mergeMap(request =>
-                            fetchData$(request).pipe(
+                            fetchTableData$(request).pipe(
                                 takeUntil(stopSignal$),
                                 map(tableDataRows => ({
                                     tableId: request.tableId,

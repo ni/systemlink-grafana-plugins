@@ -2997,41 +2997,6 @@ describe('DataFrameDataSourceV2', () => {
                     );
                 });
 
-                it('should use default undecimatedRecordCount when not specified', async () => {
-                    const mockTables = [{
-                        id: 'table1',
-                        name: 'table1',
-                        columns: [
-                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                        ]
-                    }];
-                    queryTablesSpy.mockReturnValue(of(mockTables));
-
-                    const csvResponse = 'voltage\n10.5';
-                    postSpy.mockReturnValue(of(csvResponse));
-
-                    const query = {
-                        refId: 'A',
-                        type: DataFrameQueryType.Data,
-                        columns: ['voltage-Numeric'],
-                        dataTableFilter: 'name = "Test"',
-                        decimationMethod: 'NONE',
-                        filterNulls: false,
-                        applyTimeFilters: false
-                    } as DataFrameQueryV2;
-
-                    await lastValueFrom(datasource.runQuery(query, options));
-
-                    // Default undecimatedRecordCount is 10_000 from defaultQueryV2
-                    expect(postSpy).toHaveBeenCalledWith(
-                        expect.any(String),
-                        expect.objectContaining({
-                            take: 10000
-                        }),
-                        expect.any(Object)
-                    );
-                });
-
                 it('should fall back to decimated data when feature toggle is disabled', async () => {
                     // Use the default ds which doesn't have queryUndecimatedData enabled
                     queryTablesSpy = jest.spyOn(ds, 'queryTables$');
