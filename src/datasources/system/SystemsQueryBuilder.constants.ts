@@ -156,3 +156,10 @@ export const defaultProjection = [
 ];
 
 export const defaultOrderBy = 'createdTimeStamp DESC';
+
+/**
+ * Fields that require special boolean handling with .Equals() method
+ */
+export const BooleanBackendFields = [
+    SystemBackendFieldNames.LOCKED_STATUS
+] as const;

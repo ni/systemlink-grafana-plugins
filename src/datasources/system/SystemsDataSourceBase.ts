@@ -5,7 +5,7 @@ import { SystemQuery } from "./types";
 import { DataFrameDTO, DataQueryRequest, DataSourceJsonData } from "@grafana/data";
 import { Workspace } from "core/types";
 import { parseErrorMessage } from "core/errors";
-import { SystemBackendFieldNames } from "./SystemsQueryBuilder.constants";
+import { BooleanBackendFields, SystemBackendFieldNames } from "./SystemsQueryBuilder.constants";
 import { Observable } from "rxjs";
 
 export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, DataSourceJsonData> {
@@ -53,9 +53,7 @@ export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, 
      * Handle boolean fields that need .Equals() method instead of = operator
      */
     private getBooleanFieldComputedData(): Array<[string, ExpressionTransformFunction]> {
-        return [
-            ['grains.data.minion_blackout', this.handleBooleanField('grains.data.minion_blackout')],
-        ];
+        return BooleanBackendFields.map(field => [field, this.handleBooleanField(field)]);
     }
 
     private handleBooleanField(backendFieldName: string): ExpressionTransformFunction {
