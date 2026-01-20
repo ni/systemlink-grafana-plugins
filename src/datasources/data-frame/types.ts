@@ -388,6 +388,14 @@ export interface DecimatedDataRequest {
   decimation: DecimationOptions;
 }
 
+export interface UndecimatedDataRequest {
+  tableId: string;
+  columns: string[];
+  orderBy: Array<{ column: string; descending: boolean }> | undefined;
+  filters: ColumnFilter[];
+  take: number;
+}
+
 export interface TableColumnsData {
   columns: Column[];
   selectedColumns: ColumnWithDisplayName[];
