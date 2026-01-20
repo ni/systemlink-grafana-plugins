@@ -66,13 +66,8 @@ export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, 
                 values = this.getMultipleValuesArray(value);
             }
 
-            const booleanValues = values.map(v => {
-                const cleanValue = v.replace(/"/g, '').toLowerCase();
-                return cleanValue === 'true' ? 'true' : 'false';
-            });
-
-            if (booleanValues.length > 1) {
-                const expressions = booleanValues.map(boolVal =>
+            if (values.length > 1) {
+                const expressions = values.map(boolVal =>
                     operation === '!='
                         ? `!${backendFieldName}.Equals(${boolVal})`
                         : `${backendFieldName}.Equals(${boolVal})`
@@ -83,10 +78,10 @@ export abstract class SystemsDataSourceBase extends DataSourceBase<SystemQuery, 
             }
 
             if (operation === '!=') {
-                return `!${backendFieldName}.Equals(${booleanValues[0]})`;
+                return `!${backendFieldName}.Equals(${values[0]})`;
             }
 
-            return `${backendFieldName}.Equals(${booleanValues[0]})`;
+            return `${backendFieldName}.Equals(${values[0]})`;
         };
     }
 

@@ -120,6 +120,7 @@ export const SystemFields: Record<string, QBField> = {
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
         ],
         lookup: {
+            readonly: true,
             dataSource: [
                 { label: 'True', value: 'true' },
                 { label: 'False', value: 'false' }
