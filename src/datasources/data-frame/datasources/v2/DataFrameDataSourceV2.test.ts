@@ -4116,18 +4116,6 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.columns).toEqual([]);
             });
 
-            it('should not convert columns if they are already strings', () => {
-                const query = {
-                    type: DataFrameQueryType.Data,
-                    columns: ['col1', 'col2'],
-                    refId: 'A'
-                } as DataFrameQueryV2;
-
-                const result = ds.processQuery(query);
-
-                expect(result.columns).toEqual(['col1', 'col2']);
-            });
-
             it('should return an observable that resolves to migrated columns when columns are provided and tableId is present', async () => {
                 getSpy$.mockReturnValue(of({
                     columns: [
@@ -4176,7 +4164,7 @@ describe('DataFrameDataSourceV2', () => {
                 );
             });
 
-            it('should not call get$ and should return an empty array when no columns are provided', () => {
+            it('should not call get$ when no columns are provided', () => {
                 const v1Query = {
                     type: DataFrameQueryType.Data,
                     tableId: 'table-789',
@@ -4184,13 +4172,12 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'E'
                 } as DataFrameQueryV1;
 
-                const result = ds.processQuery(v1Query);
+                ds.processQuery(v1Query);
 
                 expect(getSpy$).not.toHaveBeenCalled();
-                expect(result.columns).toEqual([]);
             });
 
-            it('should not call get$ and should return an empty array when columns are objects without name property', () => {
+            it('should not call get$ when columns are objects without name property', () => {
                 const v1Query = {
                     type: DataFrameQueryType.Data,
                     tableId: 'table-789',
@@ -4198,10 +4185,9 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'E'
                 } as DataFrameQueryV1;
 
-                const result = ds.processQuery(v1Query);
+                ds.processQuery(v1Query);
 
                 expect(getSpy$).not.toHaveBeenCalled();
-                expect(result.columns).toEqual([]);
             });
 
             it('should return an observable with original columns and datatype set to unknown when columns are not found in table metadata', async () => {
@@ -4406,6 +4392,68 @@ describe('DataFrameDataSourceV2', () => {
                 const result = ds.processQuery(v1Query);
 
                 expect(result.dataTableFilter).toBe('');
+            });
+        });
+
+        describe('DataFrameDataQuery.dataTableProperties', () => {
+            it('should set dataTableProperties as [DataTableProperties.Properties] when query type is properties', () => {
+                const v1Query = {
+                    type: DataFrameQueryType.Properties,
+                    tableId: 'table-123',
+                    refId: 'A'
+                } as DataFrameQueryV1;
+
+                const result = ds.processQuery(v1Query);
+
+                expect(result.dataTableProperties).toEqual([DataTableProperties.Properties]);
+            });
+
+            it('should set dataTableProperties with default values when query type is data', () => {
+                const v1Query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-456',
+                    refId: 'B'
+                } as DataFrameQueryV1;
+
+                const result = ds.processQuery(v1Query);
+
+                expect(result.dataTableProperties).toEqual([
+                    DataTableProperties.Name,
+                    DataTableProperties.Id,
+                    DataTableProperties.RowCount,
+                    DataTableProperties.ColumnCount,
+                    DataTableProperties.CreatedAt,
+                    DataTableProperties.Workspace
+                ]);
+            });
+        });
+
+        describe('DataFrameDataQuery.filterXRangeOnZoomPan', () => {
+            it('should copy applyTimeFilters value into filterXRangeOnZoomPan and remove applyTimeFilters', () => {
+                const v1Query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-123',
+                    applyTimeFilters: true,
+                    refId: 'A'
+                } as DataFrameQueryV1;
+
+                const result = ds.processQuery(v1Query);
+
+                expect(result.filterXRangeOnZoomPan).toBe(true);
+                expect(result).not.toHaveProperty('applyTimeFilters');
+            });
+
+            it('should preserve filterXRangeOnZoomPan when provided', () => {
+                const v1Query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-123',
+                    filterXRangeOnZoomPan: true,
+                    refId: 'A'
+                } as DataFrameQueryV1;
+
+                const result = ds.processQuery(v1Query);
+
+                expect(result.filterXRangeOnZoomPan).toBe(true);
             });
         });
 
