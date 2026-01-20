@@ -446,10 +446,21 @@ describe('PlotlyPanel', () => {
       });
     });
 
-    describe('when x-axis field is undefined', () => {
-      it('should not update route parameters', () => {
+    describe('when x-axis field is invalid', () => {
+      it('should not update route parameters when field is undefined', () => {
         mockSearchObject('?nisl-syncXAxisRangeTargets=1');
         const props = createMockProps({ xAxis: { field: undefined } }, 1);
+
+        renderPlotlyElement(props);
+        triggerRelayout(10.3472639485726394, 99.7938475629384756);
+        jest.runOnlyPendingTimers();
+
+        expect(locationService.partial).not.toHaveBeenCalled();
+      });
+
+      it('should not update route parameters when field is an empty string', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1');
+        const props = createMockProps({ xAxis: { field: '' } }, 1);
 
         renderPlotlyElement(props);
         triggerRelayout(10.3472639485726394, 99.7938475629384756);
