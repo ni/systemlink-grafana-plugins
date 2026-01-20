@@ -4058,7 +4058,7 @@ describe('DataFrameDataSourceV2', () => {
     });
 
     describe('processQuery', () => {
-        describe('when query has legacy MetaData type', () => {
+        describe('DataFrameDataQuery.type', () => {
             it('should convert MetaData type to Properties type', () => {
                 const query = {
                     type: 'Metadata' as any,
@@ -4071,7 +4071,13 @@ describe('DataFrameDataSourceV2', () => {
             });
         });
 
-        describe('when query has columns as objects', () => {
+        describe('DataFrameDataQuery.columns', () => {
+            let getSpy$: jest.SpyInstance;
+
+            beforeEach(() => {
+                getSpy$ = jest.spyOn(ds, 'get$');
+            });
+
             it('should convert column objects to string array', () => {
                 const query = {
                     type: DataFrameQueryType.Data,
@@ -4121,10 +4127,199 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result.columns).toEqual(['col1', 'col2']);
             });
+
+            it('should return an observable that resolves to migrated columns when columns are provided and tableId is present', async () => {
+                getSpy$.mockReturnValue(of({
+                    columns: [
+                        {
+                            name: 'col1',
+                            dataType: 'INT64'
+                        },
+                        {
+                            name: 'col2',
+                            dataType: 'STRING'
+                        }
+                    ]
+                }));
+                const v1Query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-789',
+                    columns: ['col1', 'col2'],
+                    refId: 'E'
+                } as DataFrameQueryV1;
+
+                const result = ds.processQuery(v1Query);
+
+                expect(getSpy$).toHaveBeenCalledWith(
+                    expect.stringContaining('tables/table-789')
+                );
+                expect(isObservable(result.columns)).toBe(true);
+                expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
+                    ['col1-Numeric', 'col2-String']
+                );
+            });
+
+            it('should call get$ with transformed tableId when template variables are used', async () => {
+                templateSrv.replace.mockReturnValue('table-789');
+                const v1Query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: '$table',
+                    columns: ['col1', 'col2'],
+                    refId: 'E'
+                } as DataFrameQueryV1;
+
+                ds.processQuery(v1Query);
+
+                expect(templateSrv.replace).toHaveBeenCalledWith('$table', {});
+                expect(getSpy$).toHaveBeenCalledWith(
+                    expect.stringContaining('tables/table-789')
+                );
+            });
+
+            it('should not call get$ and should return an empty array when no columns are provided', () => {
+                const v1Query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-789',
+                    columns: [],
+                    refId: 'E'
+                } as DataFrameQueryV1;
+
+                const result = ds.processQuery(v1Query);
+
+                expect(getSpy$).not.toHaveBeenCalled();
+                expect(result.columns).toEqual([]);
+            });
+
+            it('should not call get$ and should return an empty array when columns are objects without name property', () => {
+                const v1Query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-789',
+                    columns: [{ dataType: 'string' }, { dataType: 'string' }] as any,
+                    refId: 'E'
+                } as DataFrameQueryV1;
+
+                const result = ds.processQuery(v1Query);
+
+                expect(getSpy$).not.toHaveBeenCalled();
+                expect(result.columns).toEqual([]);
+            });
+
+            it('should return an observable with original columns and datatype set to unknown when columns are not found in table metadata', async () => {
+                getSpy$.mockReturnValue(of({
+                    columns: [
+                        {
+                            name: 'col2',
+                            dataType: 'STRING'
+                        }
+                    ]
+                }));
+                const v1Query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-789',
+                    columns: ['col1', 'col2'],
+                    refId: 'E'
+                } as DataFrameQueryV1;
+
+                const result = ds.processQuery(v1Query);
+
+                expect(isObservable(result.columns)).toBe(true);
+                expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
+                    ['col1-Unknown', 'col2-String']
+                );
+            });
+
+            it('should return an observable with original columns without datatype when using variables for columns', async () => {
+                getSpy$.mockReturnValue(of({
+                    columns: [
+                        {
+                            name: 'col2',
+                            dataType: 'STRING'
+                        }
+                    ]
+                }));
+                templateSrv.containsTemplate.mockImplementation(
+                    (target?: string) => target ? target.startsWith('$') : false
+                );
+                const v1Query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-789',
+                    columns: ['$col1', 'col2', 'col3'],
+                    refId: 'E'
+                } as DataFrameQueryV1;
+
+                const result = ds.processQuery(v1Query);
+
+                expect(isObservable(result.columns)).toBe(true);
+                expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
+                    ['$col1', 'col2-String', 'col3-Unknown']
+                );
+            });
+
+            it('should return an observable with original columns when get table call failed', async () => {
+                getSpy$.mockReturnValue(throwError(() => new Error('Table not found')));
+                const v1Query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-789',
+                    columns: ['col1', 'col2'],
+                    refId: 'E'
+                } as DataFrameQueryV1;
+
+                const result = ds.processQuery(v1Query);
+
+                expect(isObservable(result.columns)).toBe(true);
+                expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
+                    ['col1-Unknown', 'col2-Unknown']
+                );
+            });
+
+            it('should return an observable with original columns preserving variables when get table call failed', async () => {
+                getSpy$.mockReturnValue(throwError(() => new Error('Table not found')));
+                templateSrv.containsTemplate.mockImplementation(
+                    (target?: string) => target ? target.startsWith('$') : false
+                );
+                const v1Query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-789',
+                    columns: ['$col1', 'col2'],
+                    refId: 'E'
+                } as DataFrameQueryV1;
+
+                const result = ds.processQuery(v1Query);
+
+                expect(isObservable(result.columns)).toBe(true);
+                expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
+                    ['$col1', 'col2-Unknown']
+                );
+            });
+
+            it('should publish the error when get table call failed', async () => {
+                getSpy$.mockReturnValue(throwError(() => new Error(
+                    `Request failed with status code: 404. Error message: "The requested resource was not found."`
+                )));
+                const publishMock = jest.fn();
+                (ds as any).appEvents = { publish: publishMock };
+                const v1Query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-789',
+                    columns: ['col1', 'col2'],
+                    refId: 'E'
+                } as DataFrameQueryV1;
+
+                const result = ds.processQuery(v1Query);
+                await lastValueFrom(result.columns as Observable<string[]>);
+
+                expect(publishMock).toHaveBeenCalledWith({
+                    type: 'alert-error',
+                    payload: [
+                        'Error fetching columns for migration',
+                        'The query to fetch data table columns failed because the requested resource was not found. Please check the query parameters and try again.'
+                    ],
+                });
+            });
         });
 
-        describe('when query contains tableId', () => {
-            it('should convert V1 query to V2 format when query type is properties', () => {
+        describe('DataFrameDataQuery.dataTableFilter', () => {
+            it('should transform tableId as dataTableFilter when query type is properties', () => {
                 const v1Query = {
                     type: DataFrameQueryType.Properties,
                     tableId: 'table-123',
@@ -4153,13 +4348,10 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result).not.toHaveProperty('tableId');
             });
 
-            it('should convert V1 query to V2 format when query type is data', () => {
+            it('should transform tableId as dataTableFilter when query type is data', () => {
                 const v1Query = {
                     type: DataFrameQueryType.Data,
                     tableId: 'table-456',
-                    decimationMethod: 'LOSSY',
-                    filterNulls: true,
-                    applyTimeFilters: true,
                     refId: 'B'
                 } as DataFrameQueryV1;
 
@@ -4184,7 +4376,7 @@ describe('DataFrameDataSourceV2', () => {
                     filterNulls: true,
                     decimationMethod: 'LOSSY',
                     xColumn: null,
-                    filterXRangeOnZoomPan: true,
+                    filterXRangeOnZoomPan: false,
                     take: 1000,
                     undecimatedRecordCount: 10000,
                     refId: 'B'
@@ -4215,212 +4407,17 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result.dataTableFilter).toBe('');
             });
-
-            describe('should migrate columns from V1 to V2 correctly', () => {
-                let getSpy$: jest.SpyInstance;
-
-                beforeEach(() => {
-                    getSpy$ = jest.spyOn(ds, 'get$');
-                });
-
-                it('should return an observable that resolves to migrated columns when columns are provided', async () => {
-                    getSpy$.mockReturnValue(of({
-                        columns: [
-                            {
-                                name: 'col1',
-                                dataType: 'INT64'
-                            },
-                            {
-                                name: 'col2',
-                                dataType: 'STRING'
-                            }
-                        ]
-                    }));
-                    const v1Query = {
-                        type: DataFrameQueryType.Data,
-                        tableId: 'table-789',
-                        columns: ['col1', 'col2'],
-                        refId: 'E'
-                    } as DataFrameQueryV1;
-
-                    const result = ds.processQuery(v1Query);
-
-                    expect(getSpy$).toHaveBeenCalledWith(
-                        expect.stringContaining('tables/table-789')
-                    );
-                    expect(isObservable(result.columns)).toBe(true);
-                    expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
-                        ['col1-Numeric', 'col2-String']
-                    );
-                });
-
-                it('should call get$ with transformed tableId when template variables are used', async () => {
-                    templateSrv.replace.mockReturnValue('table-789');
-                    const v1Query = {
-                        type: DataFrameQueryType.Data,
-                        tableId: '$table',
-                        columns: ['col1', 'col2'],
-                        refId: 'E'
-                    } as DataFrameQueryV1;
-
-                    ds.processQuery(v1Query);
-
-                    expect(templateSrv.replace).toHaveBeenCalledWith('$table', {});
-                    expect(getSpy$).toHaveBeenCalledWith(
-                        expect.stringContaining('tables/table-789')
-                    );
-                });
-
-                it('should not call get$ and should return an empty array when no columns are provided', () => {
-                    const v1Query = {
-                        type: DataFrameQueryType.Data,
-                        tableId: 'table-789',
-                        columns: [],
-                        refId: 'E'
-                    } as DataFrameQueryV1;
-
-                    const result = ds.processQuery(v1Query);
-
-                    expect(getSpy$).not.toHaveBeenCalled();
-                    expect(result.columns).toEqual([]);
-                });
-
-                it('should not call get$ and should return an empty array when columns are objects without name property', () => {
-                    const v1Query = {
-                        type: DataFrameQueryType.Data,
-                        tableId: 'table-789',
-                        columns: [{ dataType: 'string' }, { dataType: 'string' }] as any,
-                        refId: 'E'
-                    } as DataFrameQueryV1;
-
-                    const result = ds.processQuery(v1Query);
-
-                    expect(getSpy$).not.toHaveBeenCalled();
-                    expect(result.columns).toEqual([]);
-                });
-
-                it('should return an observable with original columns and datatype set to unknown when columns are not found in table metadata', async () => {
-                    getSpy$.mockReturnValue(of({
-                        columns: [
-                            {
-                                name: 'col2',
-                                dataType: 'STRING'
-                            }
-                        ]
-                    }));
-                    const v1Query = {
-                        type: DataFrameQueryType.Data,
-                        tableId: 'table-789',
-                        columns: ['col1', 'col2'],
-                        refId: 'E'
-                    } as DataFrameQueryV1;
-
-                    const result = ds.processQuery(v1Query);
-
-                    expect(isObservable(result.columns)).toBe(true);
-                    expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
-                        ['col1-Unknown', 'col2-String']
-                    );
-                });
-
-                it('should return an observable with original columns without datatype when using variables for columns', async () => {
-                    getSpy$.mockReturnValue(of({
-                        columns: [
-                            {
-                                name: 'col2',
-                                dataType: 'STRING'
-                            }
-                        ]
-                    }));
-                    templateSrv.containsTemplate.mockImplementation(
-                        (target?: string) => target ? target.startsWith('$') : false
-                    );
-                    const v1Query = {
-                        type: DataFrameQueryType.Data,
-                        tableId: 'table-789',
-                        columns: ['$col1', 'col2', 'col3'],
-                        refId: 'E'
-                    } as DataFrameQueryV1;
-
-                    const result = ds.processQuery(v1Query);
-
-                    expect(isObservable(result.columns)).toBe(true);
-                    expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
-                        ['$col1', 'col2-String', 'col3-Unknown']
-                    );
-                });
-
-                it('should return an observable with original columns when get table call failed', async () => {
-                    getSpy$.mockReturnValue(throwError(() => new Error('Table not found')));
-                    const v1Query = {
-                        type: DataFrameQueryType.Data,
-                        tableId: 'table-789',
-                        columns: ['col1', 'col2'],
-                        refId: 'E'
-                    } as DataFrameQueryV1;
-
-                    const result = ds.processQuery(v1Query);
-
-                    expect(isObservable(result.columns)).toBe(true);
-                    expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
-                        ['col1-Unknown', 'col2-Unknown']
-                    );
-                });
-
-                it('should return an observable with original columns preserving variables when get table call failed', async () => {
-                    getSpy$.mockReturnValue(throwError(() => new Error('Table not found')));
-                    templateSrv.containsTemplate.mockImplementation(
-                        (target?: string) => target ? target.startsWith('$') : false
-                    );
-                    const v1Query = {
-                        type: DataFrameQueryType.Data,
-                        tableId: 'table-789',
-                        columns: ['$col1', 'col2'],
-                        refId: 'E'
-                    } as DataFrameQueryV1;
-
-                    const result = ds.processQuery(v1Query);
-
-                    expect(isObservable(result.columns)).toBe(true);
-                    expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
-                        ['$col1', 'col2-Unknown']
-                    );
-                });
-
-                it('should publish the error when get table call failed', async () => {
-                    getSpy$.mockReturnValue(throwError(() => new Error(
-                        `Request failed with status code: 404. Error message: "The requested resource was not found."`
-                    )));
-                    const publishMock = jest.fn();
-                    (ds as any).appEvents = { publish: publishMock };
-                    const v1Query = {
-                        type: DataFrameQueryType.Data,
-                        tableId: 'table-789',
-                        columns: ['col1', 'col2'],
-                        refId: 'E'
-                    } as DataFrameQueryV1;
-
-                    const result = ds.processQuery(v1Query);
-                    await lastValueFrom(result.columns as Observable<string[]>);
-
-                    expect(publishMock).toHaveBeenCalledWith({
-                        type: 'alert-error',
-                        payload: [
-                            'Error fetching columns for migration',
-                            'The query to fetch data table columns failed because the requested resource was not found. Please check the query parameters and try again.'
-                        ],
-                    });
-                });
-            });
         });
 
-        describe('when query does not contain tableId', () => {
+        describe('when the query is already migrated', () => {
             it('should return query merged with defaults', () => {
                 const v2Query = {
                     type: DataFrameQueryType.Properties,
                     dataTableFilter: 'name = "test"',
                     dataTableProperties: [DataTableProperties.Name, DataTableProperties.Id],
                     columnProperties: [DataTableProperties.ColumnName],
+                    filterXRangeOnZoomPan: true,
+                    decimationMethod: 'MAX_MIN',
                     take: 500,
                     refId: 'E'
                 } as DataFrameQueryV2;
@@ -4437,9 +4434,9 @@ describe('DataFrameDataSourceV2', () => {
                     columns: [],
                     includeIndexColumns: false,
                     filterNulls: false,
-                    decimationMethod: 'LOSSY',
+                    decimationMethod: 'MAX_MIN',
                     xColumn: null,
-                    filterXRangeOnZoomPan: false,
+                    filterXRangeOnZoomPan: true,
                     take: 500,
                     undecimatedRecordCount: 10000,
                     refId: 'E'

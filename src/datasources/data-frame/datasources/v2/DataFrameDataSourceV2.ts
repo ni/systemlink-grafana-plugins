@@ -131,9 +131,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         let dataTableFilter = defaultQueryV2.dataTableFilter;
         let columns = query.columns ?? defaultQueryV2.columns;
         if ('dataTableFilter' in query) {
-            dataTableFilter = query.dataTableFilter ?? '';
+            dataTableFilter = query.dataTableFilter ?? defaultQueryV2.dataTableFilter;
         } else if ('tableId' in query) {
-            dataTableFilter = query.tableId ? `id = "${query.tableId}"` : '';
+            dataTableFilter = query.tableId ? `id = "${query.tableId}"` : defaultQueryV2.dataTableFilter;
             columns = this.getMigratedColumns(query.tableId, query.columns);
         }
 
