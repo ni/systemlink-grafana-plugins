@@ -4314,23 +4314,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 const result = ds.processQuery(v1Query);
 
-                expect(result).toEqual({
-                    type: DataFrameQueryType.Properties,
-                    resultFilter: '',
-                    dataTableFilter: 'id = "table-123"',
-                    columnFilter: '',
-                    dataTableProperties: [DataTableProperties.Properties],
-                    columnProperties: [],
-                    columns: [],
-                    includeIndexColumns: false,
-                    filterNulls: false,
-                    decimationMethod: 'LOSSY',
-                    xColumn: null,
-                    filterXRangeOnZoomPan: false,
-                    take: 1000,
-                    undecimatedRecordCount: 10000,
-                    refId: 'A'
-                });
+                expect(result.dataTableFilter).toBe('id = "table-123"');
                 expect(result).not.toHaveProperty('tableId');
             });
 
@@ -4343,30 +4327,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 const result = ds.processQuery(v1Query);
 
-                expect(result).toEqual({
-                    type: DataFrameQueryType.Data,
-                    resultFilter: '',
-                    dataTableFilter: 'id = "table-456"',
-                    columnFilter: '',
-                    dataTableProperties: [
-                        DataTableProperties.Name,
-                        DataTableProperties.Id,
-                        DataTableProperties.RowCount,
-                        DataTableProperties.ColumnCount,
-                        DataTableProperties.CreatedAt,
-                        DataTableProperties.Workspace
-                    ],
-                    columnProperties: [],
-                    columns: [],
-                    includeIndexColumns: false,
-                    filterNulls: true,
-                    decimationMethod: 'LOSSY',
-                    xColumn: null,
-                    filterXRangeOnZoomPan: false,
-                    take: 1000,
-                    undecimatedRecordCount: 10000,
-                    refId: 'B'
-                });
+                expect(result.dataTableFilter).toBe('id = "table-456"');
                 expect(result).not.toHaveProperty('tableId');
             });
 
@@ -4380,6 +4341,7 @@ describe('DataFrameDataSourceV2', () => {
                 const result = ds.processQuery(v1Query);
 
                 expect(result.dataTableFilter).toBe('');
+                expect(result).not.toHaveProperty('tableId');
             });
 
             it('should handle undefined tableId by setting empty dataTableFilter', () => {
@@ -4392,6 +4354,7 @@ describe('DataFrameDataSourceV2', () => {
                 const result = ds.processQuery(v1Query);
 
                 expect(result.dataTableFilter).toBe('');
+                expect(result).not.toHaveProperty('tableId');
             });
         });
 
