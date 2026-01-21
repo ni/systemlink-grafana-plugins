@@ -1604,7 +1604,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private resolveColumns(query: DataFrameDataQuery): string[] | Observable<string[]> {
-        if ('tableId' in query && query.tableId !== undefined) {
+        if ('tableId' in query && query.tableId !== undefined && query.tableId !== '') {
             return this.getMigratedColumns(query.tableId, query.columns);
         }
 
