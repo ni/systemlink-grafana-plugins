@@ -104,8 +104,11 @@ describe('DataFrameDataSource', () => {
         await expect(ds.queryTables('query')).resolves.toEqual(['v1-tables']);
         expect(v1Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined);
 
-        expect(ds.processQuery({} as any)).toBe('v1-processed');
-        expect(v1Mock.processQuery).toHaveBeenCalled();
+        const query1 = { refId: '1' };
+        const query2 = { refId: '2' };
+        const queries = [query1, query2];
+        expect(ds.processQuery(query1 as any, queries as any)).toBe('v1-processed');
+        expect(v1Mock.processQuery).toHaveBeenCalledWith(query1, queries);
 
         expect(ds.processVariableQuery({} as any)).toBe('v1-processed');
         expect(v1Mock.processVariableQuery).toHaveBeenCalled();
@@ -144,8 +147,11 @@ describe('DataFrameDataSource', () => {
         await expect(ds.queryTables('query')).resolves.toEqual(['v2-tables']);
         expect(v2Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined);
 
-        expect(ds.processQuery({} as any)).toBe('v2-processed');
-        expect(v2Mock.processQuery).toHaveBeenCalled();
+        const query1 = { refId: '1' };
+        const query2 = { refId: '2' };
+        const queries = [query1, query2];
+        expect(ds.processQuery(query1 as any, queries as any)).toBe('v2-processed');
+        expect(v2Mock.processQuery).toHaveBeenCalledWith(query1, queries);
 
         expect(ds.processVariableQuery({} as any)).toBe('v2-processed');
         expect(v2Mock.processVariableQuery).toHaveBeenCalled();
