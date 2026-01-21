@@ -7,7 +7,7 @@ import React from "react";
 import { cleanup, render, RenderResult, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
-import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties, DataFrameDataQuery } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties, DataFrameDataQuery } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { COLUMN_OPTIONS_LIMIT } from "datasources/data-frame/constants";
@@ -41,7 +41,7 @@ const renderComponent = (
     errorDescription = '',
     columnOptions: ComboboxOption[] = [],
     xColumnOptions: ComboboxOption[] = [],
-    processQueryOverride?: jest.Mock<DataFrameQuery, [DataFrameDataQuery, DataFrameDataQuery[]]>,
+    processQueryOverride?: jest.Mock<ValidDataFrameQuery, [DataFrameDataQuery, DataFrameDataQuery[]]>,
     variablesCache: Record<string, string> = {},
     mockDatasource: Partial<DataFrameDataSource> = {},
     queries: DataFrameDataQuery[] = []
@@ -49,7 +49,7 @@ const renderComponent = (
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
     const processQuery = processQueryOverride ?? jest
-        .fn<DataFrameQuery, [DataFrameDataQuery, DataFrameDataQuery[]]>()
+        .fn<ValidDataFrameQuery, [DataFrameDataQuery, DataFrameDataQuery[]]>()
         .mockImplementation((query, _queries) => ({ ...defaultQueryV2, ...query }));
     const datasource = {
         errorTitle,
@@ -144,7 +144,7 @@ describe("DataFrameQueryEditorV2", () => {
         expect(processQuery).toHaveBeenCalledWith(
             expect.objectContaining({
                 type: DataFrameQueryType.Data,
-                tableId: 'ExistingFilter',
+                tableId: 'Table1',
             }),
             [query1, query2]
         );
@@ -595,7 +595,7 @@ describe("DataFrameQueryEditorV2", () => {
                             { label: 'Column2', value: 'Column2' },
                         ];
                         const datasource = {
-                            processQuery: jest.fn((query, _queries) => ({ ...defaultQueryV2, ...query })),
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
                                 uniqueColumnsAcrossTables: mockColumnOptions,
                                 commonColumnsAcrossTables: []
@@ -646,7 +646,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                     it('should call getColumnOptionsWithVariables with transformed filters on initial render', async () => {
                         const datasource = {
-                            processQuery: jest.fn((query, _queries) => ({ ...defaultQueryV2, ...query })),
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
                                 uniqueColumnsAcrossTables: [{ label: 'Col1', value: 'Col1' }],
                                 commonColumnsAcrossTables: []
@@ -689,7 +689,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                     it('should transform variables before deciding to load column options', async () => {
                         const datasource = {
-                            processQuery: jest.fn((query, _queries) => ({ ...defaultQueryV2, ...query })),
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
                                 uniqueColumnsAcrossTables: [{ label: 'Col1', value: 'Col1' }],
                                 commonColumnsAcrossTables: []
@@ -735,7 +735,7 @@ describe("DataFrameQueryEditorV2", () => {
                         const initialVariablesCache = { var1: 'value1' };
                         const updatedVariablesCache = { var1: 'value2' };
                         const datasource = {
-                            processQuery: jest.fn((query, _queries) => ({ ...defaultQueryV2, ...query })),
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
                                 uniqueColumnsAcrossTables: [{ label: 'Col1', value: 'Col1' }],
                                 commonColumnsAcrossTables: []
@@ -803,7 +803,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                 it('should only refetch column options when either resultFilter or dataTableFilter changes', async () => {
                     const datasource = {
-                        processQuery: jest.fn((query, _queries) => ({ ...defaultQueryV2, ...query })),
+                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                         getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
                             uniqueColumnsAcrossTables: [{ label: 'Col1', value: 'Col1' }],
                             commonColumnsAcrossTables: []
@@ -860,7 +860,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                 it('should refetch column options when columnFilter changes', async () => {
                     const datasource = {
-                        processQuery: jest.fn((query, _queries) => ({ ...defaultQueryV2, ...query })),
+                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                         getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
                             uniqueColumnsAcrossTables: [{ label: 'Col1', value: 'Col1' }],
                             commonColumnsAcrossTables: []
@@ -917,7 +917,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                 it('should not refetch column options when filters remain the same after variable substitution', async () => {
                     const datasource = {
-                        processQuery: jest.fn((query, _queries) => ({ ...defaultQueryV2, ...query })),
+                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                         getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
                             uniqueColumnsAcrossTables: [{ label: 'Col1', value: 'Col1' }],
                             commonColumnsAcrossTables: []
@@ -989,8 +989,8 @@ describe("DataFrameQueryEditorV2", () => {
                     it("should call onChange with a list of columns when processQuery returns an observable", async () => {
                         const columns = of(['ColumnB-Numeric', 'ColumnD-String']);
                         const processQueryOverride = jest
-                            .fn<DataFrameQuery, [DataFrameDataQuery, DataFrameDataQuery[]]>()
-                            .mockImplementation((query, _queries) => ({
+                            .fn<ValidDataFrameQuery, [DataFrameDataQuery, DataFrameDataQuery[]]>()
+                            .mockImplementation(query => ({
                                 ...defaultQueryV2,
                                 ...query,
                                 columns
@@ -1019,8 +1019,8 @@ describe("DataFrameQueryEditorV2", () => {
                     it("should call onRunQuery with a list of columns when processQuery returns an observable", async () => {
                         const columns = of(['ColumnB-Numeric', 'ColumnD-String']);
                         const processQueryOverride = jest
-                            .fn<DataFrameQuery, [DataFrameDataQuery, DataFrameDataQuery[]]>()
-                            .mockImplementation((query, _queries) => ({
+                            .fn<ValidDataFrameQuery, [DataFrameDataQuery, DataFrameDataQuery[]]>()
+                            .mockImplementation(query => ({
                                 ...defaultQueryV2,
                                 ...query,
                                 columns
@@ -1174,7 +1174,7 @@ describe("DataFrameQueryEditorV2", () => {
                         jest.clearAllMocks();
 
                         mockDatasource = {
-                            processQuery: jest.fn((query, _queries) => ({ ...defaultQueryV2, ...query })),
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
                                 uniqueColumnsAcrossTables: [
                                     { label: 'ColumnA', value: 'ColumnA-String' },
@@ -1782,7 +1782,7 @@ describe("DataFrameQueryEditorV2", () => {
                     beforeEach(() => {
                         cleanup();
                         mockDatasource = {
-                            processQuery: jest.fn((query, _queries) => ({ ...defaultQueryV2, ...query })),
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
                                 uniqueColumnsAcrossTables: [],
                                 commonColumnsAcrossTables: []
@@ -2229,7 +2229,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                     it('should call getColumnOptionsWithVariables with transformed filter on initial render', async () => {
                         const datasource = {
-                            processQuery: jest.fn((query, _queries) => ({ ...defaultQueryV2, ...query })),
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
                                 uniqueColumnsAcrossTables: [],
                                 commonColumnsAcrossTables: [{ label: 'XCol1', value: 'XCol1' }]
@@ -2271,7 +2271,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                     it('should call transformDataTableQuery before deciding to load x-column options', async () => {
                         const datasource = {
-                            processQuery: jest.fn((query, _queries) => ({ ...defaultQueryV2, ...query })),
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
                                 uniqueColumnsAcrossTables: [],
                                 commonColumnsAcrossTables: [{ label: 'XCol1', value: 'XCol1' }]
@@ -2316,7 +2316,7 @@ describe("DataFrameQueryEditorV2", () => {
                         const initialVariablesCache = { var1: 'value1' };
                         const updatedVariablesCache = { var1: 'value2' };
                         const datasource = {
-                            processQuery: jest.fn((query, _queries) => ({ ...defaultQueryV2, ...query })),
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
                                 uniqueColumnsAcrossTables: [],
                                 commonColumnsAcrossTables: [{ label: 'XCol1', value: 'XCol1' }]
@@ -2522,7 +2522,7 @@ describe("DataFrameQueryEditorV2", () => {
                         cleanup();
                         jest.clearAllMocks();
                         mockDatasource = {
-                            processQuery: jest.fn((query, _queries) => ({ ...defaultQueryV2, ...query })),
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
                             getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
                                 uniqueColumnsAcrossTables: [
                                     { label: 'ColumnA', value: 'ColumnA-String' },
