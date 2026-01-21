@@ -1632,7 +1632,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         queries: DataFrameDataQuery[]
     ): boolean {
         if ('filterXRangeOnZoomPan' in query && query.filterXRangeOnZoomPan !== undefined) {
-            return query.filterXRangeOnZoomPan;
+            return queries.some(q => (q as DataFrameQueryV2).filterXRangeOnZoomPan);
         }
 
         if ('applyTimeFilters' in query && query.applyTimeFilters !== undefined) {
