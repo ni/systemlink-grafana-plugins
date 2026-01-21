@@ -4422,16 +4422,14 @@ describe('DataFrameDataSourceV2', () => {
 
         describe('when the query is already migrated', () => {
             it('should return query merged with defaults', () => {
-                const v2Query = {
+                const v2Query: DataFrameQueryV2 = {
                     type: DataFrameQueryType.Properties,
                     dataTableFilter: 'name = "test"',
+                    columns: [],
                     dataTableProperties: [DataTableProperties.Name, DataTableProperties.Id],
-                    columnProperties: [DataTableProperties.ColumnName],
                     filterXRangeOnZoomPan: true,
-                    decimationMethod: 'MAX_MIN',
-                    take: 500,
                     refId: 'E'
-                } as DataFrameQueryV2;
+                };
 
                 const result = ds.processQuery(v2Query);
 
@@ -4441,14 +4439,14 @@ describe('DataFrameDataSourceV2', () => {
                     dataTableFilter: 'name = "test"',
                     columnFilter: '',
                     dataTableProperties: [DataTableProperties.Name, DataTableProperties.Id],
-                    columnProperties: [DataTableProperties.ColumnName],
+                    columnProperties: [],
                     columns: [],
                     includeIndexColumns: false,
                     filterNulls: false,
-                    decimationMethod: 'MAX_MIN',
+                    decimationMethod: 'LOSSY',
                     xColumn: null,
                     filterXRangeOnZoomPan: true,
-                    take: 500,
+                    take: 1000,
                     undecimatedRecordCount: 10000,
                     refId: 'E'
                 });
@@ -4460,8 +4458,8 @@ describe('DataFrameDataSourceV2', () => {
                     resultFilter: '',
                     dataTableFilter: 'workspace = "ws-1"',
                     columnFilter: '',
-                    dataTableProperties: [],
-                    columnProperties: [],
+                    dataTableProperties: [DataTableProperties.Name, DataTableProperties.Id],
+                    columnProperties: [DataTableProperties.ColumnName],
                     columns: ['col1', 'col2'],
                     includeIndexColumns: true,
                     filterNulls: true,

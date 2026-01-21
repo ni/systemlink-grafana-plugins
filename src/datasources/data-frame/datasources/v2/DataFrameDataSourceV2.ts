@@ -1596,7 +1596,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return query.dataTableFilter;
         }
 
-        if ('tableId' in query && query.tableId !== undefined) {
+        if ('tableId' in query && query.tableId !== undefined && query.tableId !== '') {
             return `id = "${query.tableId}"`;
         }
 
