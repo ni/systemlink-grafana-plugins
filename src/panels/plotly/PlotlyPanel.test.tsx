@@ -651,28 +651,64 @@ describe('PlotlyPanel', () => {
 
           expect(props.onOptionsChange).not.toHaveBeenCalled();
         });
-      });
 
-      describe('when x-axis is numeric', () => {
-        it('should not sync dashboard time range to numeric x-axis', () => {
+        it('should sync dashboard time to panel x-axis when field type changes from numeric to time', () => {
           const timeFrom = 1609459200000;
-          const timeTo = 1609545600000;
-          const props = createMockProps(
-            {
-              xAxis: { field: 'temperature', min: undefined, max: undefined },
-            },
-            1,
-            FieldType.number,
-            'temperature'
-          );
+          const timeTo = 1609545600000;          
+          const props = createMockProps();
           props.timeRange = {
             from: { isValid: () => true, valueOf: () => timeFrom },
             to: { isValid: () => true, valueOf: () => timeTo },
           } as any;
 
-          renderPlotlyElement(props);
-
+          const { rerender } = renderPlotlyElement(props);
+          
           expect(props.onOptionsChange).not.toHaveBeenCalled();
+          
+          jest.clearAllMocks();
+
+          props.data.series[0].fields[0].type = FieldType.time;
+          props.data.series[0].fields[0].name = 'timestamp';
+          props.options.xAxis.field = 'timestamp';
+
+          rerender(<PlotlyPanel {...props} />);
+
+          expect(props.onOptionsChange).toHaveBeenCalledWith(
+            expect.objectContaining({
+              xAxis: expect.objectContaining({
+                min: timeFrom,
+                max: timeTo,
+              }),
+            })
+          );
+        });
+      });
+
+      describe('when x-axis is non-time-based', () => {
+        [
+          { fieldType: FieldType.number, fieldName: 'temperature', description: 'numeric' },
+          { fieldType: FieldType.string, fieldName: 'status', description: 'string' },
+        ].forEach(({ fieldType, fieldName, description }) => {
+          it(`should not sync dashboard time range to ${description} x-axis`, () => {
+            const timeFrom = 1609459200000;
+            const timeTo = 1609545600000;
+            const props = createMockProps(
+              {
+                xAxis: { field: fieldName, min: undefined, max: undefined },
+              },
+              1,
+              fieldType,
+              fieldName
+            );
+            props.timeRange = {
+              from: { isValid: () => true, valueOf: () => timeFrom },
+              to: { isValid: () => true, valueOf: () => timeTo },
+            } as any;
+
+            renderPlotlyElement(props);
+
+            expect(props.onOptionsChange).not.toHaveBeenCalled();
+          });
         });
       });
 
