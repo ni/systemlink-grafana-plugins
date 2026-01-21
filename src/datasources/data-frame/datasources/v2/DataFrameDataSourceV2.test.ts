@@ -4431,6 +4431,29 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.filterXRangeOnZoomPan).toBe(true);
             });
 
+            it('should set filterXRangeOnZoomPan to false when all queries in queries array have applyTimeFilters false or undefined', () => {
+                const v1Query1 = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-456',
+                    decimationMethod: 'LOSSY',
+                    filterNulls: true,
+                    applyTimeFilters: false,
+                    refId: 'A'
+                } as DataFrameQueryV1;
+
+                const v1Query2 = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-789',
+                    decimationMethod: 'LOSSY',
+                    filterNulls: false,
+                    refId: 'B'
+                } as DataFrameQueryV1;
+
+                const result = ds.processQuery(v1Query1, [v1Query1, v1Query2]);
+
+                expect(result.filterXRangeOnZoomPan).toBe(false);
+            });
+
             it('should preserve filterXRangeOnZoomPan when provided', () => {
                 const v1Query = {
                     type: DataFrameQueryType.Data,
