@@ -1592,8 +1592,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private resolveDataTableFilter(query: DataFrameDataQuery): string {
-        const defaultValue = defaultQueryV2.dataTableFilter;
-
         if ('dataTableFilter' in query && query.dataTableFilter !== undefined) {
             return query.dataTableFilter;
         }
@@ -1602,7 +1600,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return `id = "${query.tableId}"`;
         }
 
-        return defaultValue;
+        return defaultQueryV2.dataTableFilter;
     }
 
     private resolveColumns(query: DataFrameDataQuery): string[] | Observable<string[]> {
@@ -1614,8 +1612,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private resolveDataTableProperties(query: DataFrameDataQuery): DataTableProperties[] {
-        const defaultValue = defaultQueryV2.dataTableProperties;
-
         if ('dataTableProperties' in query && query.dataTableProperties !== undefined) {
             return query.dataTableProperties;
         }
@@ -1624,12 +1620,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return [DataTableProperties.Properties];
         }
 
-        return defaultValue;
+        return defaultQueryV2.dataTableProperties;
     }
 
     private resolveFilterXRangeOnZoomPan(query: DataFrameDataQuery): boolean {
-        const defaultValue = defaultQueryV2.filterXRangeOnZoomPan;
-
         if ('filterXRangeOnZoomPan' in query && query.filterXRangeOnZoomPan !== undefined) {
             return query.filterXRangeOnZoomPan;
         }
@@ -1638,6 +1632,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return query.applyTimeFilters;
         }
 
-        return defaultValue;
+        return defaultQueryV2.filterXRangeOnZoomPan;
     }
 }
