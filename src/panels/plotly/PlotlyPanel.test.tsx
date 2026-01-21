@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react';
-import { PanelProps } from '@grafana/data';
+import { PanelProps, FieldType } from '@grafana/data';
 import { PlotlyPanel } from './PlotlyPanel';
 import { PanelOptions } from './types';
 import { locationService } from '@grafana/runtime';
@@ -20,6 +20,7 @@ jest.mock('@grafana/runtime', () => ({
   getAppEvents: () => ({
     publish: mockPublish,
   }),
+  PanelDataErrorView: ({ message }: any) => <div data-testid="error-view">{message}</div>,
 }));
 
 jest.mock('./utils', () => ({
@@ -47,7 +48,9 @@ describe('PlotlyPanel', () => {
 
   const createMockProps = (
     options: Partial<PanelOptions> = {},
-    panelId = 1
+    panelId = 1,
+    fieldType: FieldType | 'number' = 'number',
+    fieldName = 'temperature'
   ): PanelProps<PanelOptions> => ({
     options: {
       xAxis: { field: 'temperature', min: undefined, max: undefined },
@@ -83,8 +86,8 @@ describe('PlotlyPanel', () => {
           name: 'Series 1',
           fields: [
             {
-              name: 'temperature',
-              type: 'number',
+              name: fieldName,
+              type: fieldType,
               values: { toArray: () => [1, 2, 3] },
               config: {},
             },
@@ -100,7 +103,10 @@ describe('PlotlyPanel', () => {
       ],
       state: 'Done',
     } as any,
-    timeRange: {} as any,
+    timeRange: {
+      from: { isValid: () => false, valueOf: () => 0 },
+      to: { isValid: () => false, valueOf: () => 0 },
+    } as any,
     timeZone: 'UTC',
     width: 800,
     height: 600,
@@ -511,6 +517,174 @@ describe('PlotlyPanel', () => {
       jest.runOnlyPendingTimers();
       
       expect(locationService.partial).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Dashboard Time Range Synchronization', () => {
+    describe('when x-axis is time-based', () => {
+      const createTimeSeriesProps = (
+        xAxisMin?: number,
+        xAxisMax?: number
+      ) => {
+        return createMockProps(
+          {
+            xAxis: { field: 'Updated at', min: xAxisMin, max: xAxisMax },
+          },
+          1,
+          FieldType.time,
+          'Updated at'
+        );
+      };
+
+      it('should sync dashboard time range to panel x-axis on initial load', () => {
+        const timeFrom = 1609459200000;
+        const timeTo = 1609545600000;
+        const props = createTimeSeriesProps(undefined, undefined);
+        
+        props.timeRange = {
+          from: { isValid: () => true, valueOf: () => timeFrom },
+          to: { isValid: () => true, valueOf: () => timeTo },
+        } as any;
+
+        renderPlotlyElement(props);
+
+        expect(props.onOptionsChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            xAxis: expect.objectContaining({
+              min: timeFrom,
+              max: timeTo,
+            }),
+          })
+        );
+      });
+
+      it('should update panel x-axis when dashboard time range changes', () => {
+        const initialFrom = 1609459200000;
+        const initialTo = 1609545600000;
+        const props = createTimeSeriesProps(initialFrom, initialTo);
+        
+        props.timeRange = {
+          from: { isValid: () => true, valueOf: () => initialFrom },
+          to: { isValid: () => true, valueOf: () => initialTo },
+        } as any;
+
+        const { rerender } = renderPlotlyElement(props);
+        jest.clearAllMocks();
+
+        const newFrom = 1609632000000;
+        const newTo = 1609718400000;
+        props.timeRange = {
+          from: { isValid: () => true, valueOf: () => newFrom },
+          to: { isValid: () => true, valueOf: () => newTo },
+        } as any;
+
+        rerender(<PlotlyPanel {...props} />);
+
+        expect(props.onOptionsChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            xAxis: expect.objectContaining({
+              min: newFrom,
+              max: newTo,
+            }),
+          })
+        );
+      });
+
+      it('should not update when saved min/max already match dashboard time', () => {
+        const timeFrom = 1609459200000;
+        const timeTo = 1609545600000;
+        const props = createTimeSeriesProps(timeFrom, timeTo);
+        
+        props.timeRange = {
+          from: { isValid: () => true, valueOf: () => timeFrom },
+          to: { isValid: () => true, valueOf: () => timeTo },
+        } as any;
+
+        renderPlotlyElement(props);
+
+        expect(props.onOptionsChange).not.toHaveBeenCalled();
+      });
+
+      it('should handle epoch timestamp (0) correctly', () => {
+        const timeFrom = 0;
+        const timeTo = 86400000;
+        const props = createTimeSeriesProps(undefined, undefined);
+        
+        props.timeRange = {
+          from: { isValid: () => true, valueOf: () => timeFrom },
+          to: { isValid: () => true, valueOf: () => timeTo },
+        } as any;
+
+        renderPlotlyElement(props);
+
+        expect(props.onOptionsChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            xAxis: expect.objectContaining({
+              min: 0,
+              max: 86400000,
+            }),
+          })
+        );
+      });
+
+      it('should not sync when timeRange is invalid', () => {
+        const props = createTimeSeriesProps();
+        
+        props.timeRange = {
+          from: { isValid: () => false, valueOf: () => NaN },
+          to: { isValid: () => true, valueOf: () => 1609545600000 },
+        } as any;
+
+        renderPlotlyElement(props);
+
+        expect(props.onOptionsChange).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when x-axis is numeric', () => {
+      it('should not sync dashboard time range to numeric x-axis', () => {
+        const timeFrom = 1609459200000;
+        const timeTo = 1609545600000;
+        const props = createMockProps(
+          {
+            xAxis: { field: 'temperature', min: undefined, max: undefined },
+          },
+          1,
+          FieldType.number,
+          'temperature'
+        );
+
+        props.timeRange = {
+          from: { isValid: () => true, valueOf: () => timeFrom },
+          to: { isValid: () => true, valueOf: () => timeTo },
+        } as any;
+
+        renderPlotlyElement(props);
+
+        expect(props.onOptionsChange).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when x-axis field detection fails', () => {
+      it('should not sync when xFields detection returns error', () => {
+        const props = createMockProps(
+          {
+            xAxis: { field: 'temperature', min: undefined, max: undefined },
+          },
+          1
+        );
+
+        props.timeRange = {
+          from: { isValid: () => true, valueOf: () => 1609459200000 },
+          to: { isValid: () => true, valueOf: () => 1609545600000 },
+        } as any;
+
+        props.data.series = [];
+
+        renderPlotlyElement(props);
+
+        expect(props.onOptionsChange).not.toHaveBeenCalled();
+      });
     });
   });
 });
