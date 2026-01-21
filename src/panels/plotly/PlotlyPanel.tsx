@@ -45,11 +45,19 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const savedMax = options.xAxis.max;
 
   useEffect(() => {
-    if (_.isError(xFields) || !isTimeBasedXAxis || !Number.isFinite(dashboardTimeFrom) || !Number.isFinite(dashboardTimeTo)) {
+    if (
+      _.isError(xFields) ||
+      !isTimeBasedXAxis ||
+      !Number.isFinite(dashboardTimeFrom) ||
+      !Number.isFinite(dashboardTimeTo)
+    ) {
       return;
     }
 
-    if (savedMin !== dashboardTimeFrom || savedMax !== dashboardTimeTo) {
+    if (
+      savedMin !== dashboardTimeFrom ||
+      savedMax !== dashboardTimeTo
+    ) {
       onOptionsChange({
         ...options,
         xAxis: {
