@@ -127,7 +127,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const dataTableFilter = this.resolveDataTableFilter(query);
         const columns = this.resolveColumns(query);
         const dataTableProperties = this.resolveDataTableProperties(query);
-        const filterXRangeOnZoomPan = this.resolveFilterXRangeOnZoomPan(query, queries as DataFrameQueryV1[]);
+        const filterXRangeOnZoomPan = this.resolveFilterXRangeOnZoomPan(
+            query,
+            queries as DataFrameQueryV1[]
+        );
 
         const { tableId, applyTimeFilters, ...v2SpecificProperties } = query as DataFrameQueryV1;
         return {
@@ -1626,7 +1629,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return defaultQueryV2.dataTableProperties;
     }
 
-    private resolveFilterXRangeOnZoomPan(query: DataFrameDataQuery, v1Queries: DataFrameQueryV1[]): boolean {
+    private resolveFilterXRangeOnZoomPan(
+        query: DataFrameDataQuery,
+        v1Queries: DataFrameQueryV1[]
+    ): boolean {
         if ('filterXRangeOnZoomPan' in query && query.filterXRangeOnZoomPan !== undefined) {
             return query.filterXRangeOnZoomPan;
         }
