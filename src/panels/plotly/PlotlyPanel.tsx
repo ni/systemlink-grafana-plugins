@@ -49,7 +49,6 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
 
   useEffect(() => {
     if (
-      _.isError(xFields) ||
       !isTimeBasedXAxis ||
       !Number.isFinite(dashboardTimeFrom) ||
       !Number.isFinite(dashboardTimeTo)
@@ -70,9 +69,9 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         },
       });
     }
+    // options excluded to prevent overwriting manual panel configuration with dashboard time
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    // options is excluded - we track the specific properties via panelXAxisMin and panelXAxisMax
-  }, [dashboardTimeFrom, dashboardTimeTo, panelXAxisMin, panelXAxisMax, isTimeBasedXAxis, onOptionsChange]);
+  }, [dashboardTimeFrom, dashboardTimeTo, isTimeBasedXAxis]);
 
   const publishXAxisRangeUpdate = useMemo(
     () =>
