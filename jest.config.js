@@ -2,9 +2,16 @@
 // generally used by snapshots, but can affect specific tests
 process.env.TZ = 'UTC';
 
+const baseConfig = require('./.config/jest.config');
+
 module.exports = {
   // Jest configuration provided by Grafana scaffolding
-  ...require('./.config/jest.config'),
+  ...baseConfig,
+  moduleNameMapper: {
+    ...baseConfig.moduleNameMapper,
+    // papaparse is a dependency of @grafana/data, map it to the nested version
+    '^papaparse$': '<rootDir>/node_modules/@grafana/data/node_modules/papaparse',
+  },
   // Clear mocks before every test
   clearMocks: true
 };
