@@ -1822,7 +1822,8 @@ describe('DataFrameDataSourceV2', () => {
                         range: {
                             from: { toISOString: () => '2024-01-01T00:00:00Z' },
                             to: { toISOString: () => '2024-01-02T00:00:00Z' }
-                        }
+                        },
+                        targets: [query]
                     } as any;
 
                     await lastValueFrom(ds.runQuery(query, optionsWithRange));
@@ -1875,7 +1876,8 @@ describe('DataFrameDataSourceV2', () => {
                         range: {
                             from: { toISOString: () => '2024-01-01T00:00:00Z' },
                             to: { toISOString: () => '2024-01-02T00:00:00Z' }
-                        }
+                        },
+                        targets: [query]
                     } as any;
 
                     await lastValueFrom(ds.runQuery(query, optionsWithRange));
@@ -1925,7 +1927,8 @@ describe('DataFrameDataSourceV2', () => {
                             range: {
                                 from: { toISOString: () => '2024-01-01T00:00:00Z' },
                                 to: { toISOString: () => '2024-01-02T00:00:00Z' }
-                            }
+                            },
+                            targets: [query]
                         } as any;
 
                         await lastValueFrom(ds.runQuery(query, optionsWithRange));
@@ -1986,7 +1989,8 @@ describe('DataFrameDataSourceV2', () => {
                             range: {
                                 from: { toISOString: () => '2024-01-01T00:00:00Z' },
                                 to: { toISOString: () => '2024-01-02T00:00:00Z' }
-                            }
+                            },
+                            targets: [query]
                         } as any;
 
                         await lastValueFrom(ds.runQuery(query, optionsWithRange));
@@ -2046,7 +2050,8 @@ describe('DataFrameDataSourceV2', () => {
                             range: {
                                 from: { toISOString: () => '2024-01-01T00:00:00Z' },
                                 to: { toISOString: () => '2024-01-02T00:00:00Z' }
-                            }
+                            },
+                            targets: [query]
                         } as any;
 
                         await lastValueFrom(ds.runQuery(query, optionsWithRange));
@@ -2092,7 +2097,8 @@ describe('DataFrameDataSourceV2', () => {
                             range: {
                                 from: { toISOString: () => '2024-01-01T00:00:00Z' },
                                 to: { toISOString: () => '2024-01-02T00:00:00Z' }
-                            }
+                            },
+                            targets: [query]
                         } as any;
 
                         await lastValueFrom(ds.runQuery(query, optionsWithRange));
@@ -2135,7 +2141,7 @@ describe('DataFrameDataSourceV2', () => {
                             filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
-                        await lastValueFrom(ds.runQuery(query, options));
+                        await lastValueFrom(ds.runQuery(query, { ...options, targets: [query] }));
 
                         expect(postSpy).toHaveBeenCalledWith(
                             expect.stringContaining('query-decimated-data'),
@@ -2172,7 +2178,7 @@ describe('DataFrameDataSourceV2', () => {
                             filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
-                        await lastValueFrom(ds.runQuery(query, options));
+                        await lastValueFrom(ds.runQuery(query, { ...options, targets: [query] }));
 
                         expect(postSpy).toHaveBeenCalledWith(
                             expect.stringContaining('query-decimated-data'),
@@ -2209,7 +2215,7 @@ describe('DataFrameDataSourceV2', () => {
                             filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
-                        await lastValueFrom(ds.runQuery(query, options));
+                        await lastValueFrom(ds.runQuery(query, { ...options, targets: [query] }));
 
                         expect(postSpy).toHaveBeenCalledWith(
                             expect.stringContaining('query-decimated-data'),
@@ -2246,7 +2252,7 @@ describe('DataFrameDataSourceV2', () => {
                             filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
-                        await lastValueFrom(ds.runQuery(query, options));
+                        await lastValueFrom(ds.runQuery(query, { ...options, targets: [query] }));
 
                         expect(postSpy).toHaveBeenCalledWith(
                             expect.stringContaining('query-decimated-data'),
@@ -2281,7 +2287,7 @@ describe('DataFrameDataSourceV2', () => {
                             filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
-                        await lastValueFrom(ds.runQuery(query, options));
+                        await lastValueFrom(ds.runQuery(query, { ...options, targets: [query] }));
 
                         expect(postSpy).toHaveBeenCalledWith(
                             expect.stringContaining('query-decimated-data'),
@@ -2316,7 +2322,7 @@ describe('DataFrameDataSourceV2', () => {
                             filterXRangeOnZoomPan: false
                         } as DataFrameQueryV2;
 
-                        await lastValueFrom(ds.runQuery(query, options));
+                        await lastValueFrom(ds.runQuery(query, { ...options, targets: [query] }));
 
                         expect(postSpy).toHaveBeenCalledWith(
                             expect.stringContaining('query-decimated-data'),
