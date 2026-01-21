@@ -69,7 +69,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         },
       });
     }
-    // options excluded to prevent overwriting manual panel configuration with dashboard time
+    // options excluded from dependencies to prevent infinite loop as onOptionsChange updates options
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dashboardTimeFrom, dashboardTimeTo, isTimeBasedXAxis]);
 
