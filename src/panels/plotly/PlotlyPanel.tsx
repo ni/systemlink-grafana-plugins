@@ -36,12 +36,6 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
 
   const traceColors = useTraceColors(theme);
   const debounceDelayInMs = 300;
-  const plotData: Array<Partial<PlotData>> = [];
-  const axisLabels: AxisLabels = {
-    xAxis: '',
-    yAxis: [],
-    yAxis2: [],
-  };
 
   const xFields = _.attempt(() => getXFields(data.series, options.xAxis.field));
   const isTimeBasedXAxis = !_.isError(xFields) && xFields[0].type === FieldType.time;
@@ -89,6 +83,12 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     };
   }, [publishXAxisRangeUpdate]);
 
+  const plotData: Array<Partial<PlotData>> = [];
+  const axisLabels: AxisLabels = {
+    xAxis: '',
+    yAxis: [],
+    yAxis2: [],
+  };
 
   if (_.isError(xFields)) {
     return renderErrorView(props, xFields.message);
