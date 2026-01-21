@@ -36,28 +36,6 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
 
   const traceColors = useTraceColors(theme);
   const debounceDelayInMs = 300;
-
-  const publishXAxisRangeUpdate = useMemo(
-    () =>
-      _.debounce((xAxisMin: number, xAxisMax: number, xAxisField: string) => {
-        locationService.partial(
-          {
-            [`nisl-${xAxisField}-min`]: xAxisMin,
-            [`nisl-${xAxisField}-max`]: xAxisMax,
-          },
-          true,
-        );
-        getAppEvents().publish(new NIRefreshDashboardEvent());
-      }, debounceDelayInMs),
-    []
-  );
-
-  useEffect(() => {
-    return () => {
-      publishXAxisRangeUpdate.cancel();
-    };
-  }, [publishXAxisRangeUpdate]);
-
   const plotData: Array<Partial<PlotData>> = [];
   const axisLabels: AxisLabels = {
     xAxis: '',
@@ -89,6 +67,28 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dashboardTimeFrom, dashboardTimeTo, savedMin, savedMax, xFields, isTimeBasedXAxis, onOptionsChange]);
+
+  const publishXAxisRangeUpdate = useMemo(
+    () =>
+      _.debounce((xAxisMin: number, xAxisMax: number, xAxisField: string) => {
+        locationService.partial(
+          {
+            [`nisl-${xAxisField}-min`]: xAxisMin,
+            [`nisl-${xAxisField}-max`]: xAxisMax,
+          },
+          true,
+        );
+        getAppEvents().publish(new NIRefreshDashboardEvent());
+      }, debounceDelayInMs),
+    []
+  );
+
+  useEffect(() => {
+    return () => {
+      publishXAxisRangeUpdate.cancel();
+    };
+  }, [publishXAxisRangeUpdate]);
+
 
   if (_.isError(xFields)) {
     return renderErrorView(props, xFields.message);
