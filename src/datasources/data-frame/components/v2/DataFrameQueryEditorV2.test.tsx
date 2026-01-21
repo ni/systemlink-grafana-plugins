@@ -142,10 +142,7 @@ describe("DataFrameQueryEditorV2", () => {
         );
 
         expect(processQuery).toHaveBeenCalledWith(
-            expect.objectContaining({
-                type: DataFrameQueryType.Data,
-                tableId: 'Table1',
-            }),
+            query1,
             [query1, query2]
         );
     });
