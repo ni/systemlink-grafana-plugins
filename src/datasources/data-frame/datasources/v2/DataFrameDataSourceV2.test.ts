@@ -4425,7 +4425,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result).not.toHaveProperty('applyTimeFilters');
             });
 
-            it('should set filterXRangeOnZoomPan to true when any query in queries array has filterXRangeOnZoomPan true', () => {
+            it('should set filterXRangeOnZoomPan to true when any query in queries array has filterXRangeOnZoomPan as true', () => {
                 const v1Query1 = {
                     type: DataFrameQueryType.Data,
                     tableId: 'table-456',
@@ -4449,7 +4449,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.filterXRangeOnZoomPan).toBe(true);
             });
 
-            it('should set filterXRangeOnZoomPan to false when all queries in queries array have filterXRangeOnZoomPan false or undefined', () => {
+            it('should set filterXRangeOnZoomPan to false when all queries in queries array have filterXRangeOnZoomPan as false or undefined', () => {
                 const v1Query1 = {
                     type: DataFrameQueryType.Data,
                     tableId: 'table-456',
@@ -4472,7 +4472,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.filterXRangeOnZoomPan).toBe(false);
             });
 
-            it('should set filterXRangeOnZoomPan to true when any query in queries array has applyTimeFilters true', () => {
+            it('should set filterXRangeOnZoomPan to true when any query in queries array has applyTimeFilters as true', () => {
                 const v1Query1 = {
                     type: DataFrameQueryType.Data,
                     tableId: 'table-456',
@@ -4496,7 +4496,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result.filterXRangeOnZoomPan).toBe(true);
             });
 
-            it('should set filterXRangeOnZoomPan to false when all queries in queries array have applyTimeFilters false or undefined', () => {
+            it('should set filterXRangeOnZoomPan to false when all queries in queries array have applyTimeFilters as false or undefined', () => {
                 const v1Query1 = {
                     type: DataFrameQueryType.Data,
                     tableId: 'table-456',
@@ -4518,6 +4518,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result.filterXRangeOnZoomPan).toBe(false);
             });
+
             describe('when high resolution zoom feature is disabled', () => {
                 let dsWithHighResZoomDisabled: DataFrameDataSourceV2;
 
