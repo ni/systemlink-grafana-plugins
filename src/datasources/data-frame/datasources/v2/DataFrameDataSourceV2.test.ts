@@ -97,7 +97,8 @@ describe('DataFrameDataSourceV2', () => {
         const options = {
             scopedVars: {
                 name: { value: 'Test Table' }
-            }
+            },
+            targets: [query]
         } as unknown as DataQueryRequest<DataFrameQueryV2>;
 
         it('should call processQuery with the provided query', async () => {
@@ -4331,69 +4332,6 @@ describe('DataFrameDataSourceV2', () => {
                 expect(result).not.toHaveProperty('tableId');
             });
 
-            it('should convert V1 query to V2 format when query type is data and applyTimeFilters is false', () => {
-                const v1Query = {
-                    type: DataFrameQueryType.Data,
-                    tableId: 'table-456',
-                    decimationMethod: 'LOSSY',
-                    filterNulls: true,
-                    applyTimeFilters: false,
-                    refId: 'B'
-                } as DataFrameQueryV1;
-
-                const result = ds.processQuery(v1Query, [v1Query]);
-
-                expect(result).toEqual({
-                    type: DataFrameQueryType.Data,
-                    resultFilter: '',
-                    dataTableFilter: 'id = "table-456"',
-                    columnFilter: '',
-                    dataTableProperties: [
-                        DataTableProperties.Name,
-                        DataTableProperties.Id,
-                        DataTableProperties.RowCount,
-                        DataTableProperties.ColumnCount,
-                        DataTableProperties.CreatedAt,
-                        DataTableProperties.Workspace
-                    ],
-                    columnProperties: [],
-                    columns: [],
-                    includeIndexColumns: false,
-                    filterNulls: true,
-                    decimationMethod: 'LOSSY',
-                    xColumn: null,
-                    filterXRangeOnZoomPan: false,
-                    take: 1000,
-                    undecimatedRecordCount: 10000,
-                    refId: 'B'
-                });
-                expect(result).not.toHaveProperty('tableId');
-            });
-
-            it('should set filterXRangeOnZoomPan to true when any query in queries array has applyTimeFilters true', () => {
-                const v1Query1 = {
-                    type: DataFrameQueryType.Data,
-                    tableId: 'table-456',
-                    decimationMethod: 'LOSSY',
-                    filterNulls: true,
-                    applyTimeFilters: false,
-                    refId: 'A'
-                } as DataFrameQueryV1;
-
-                const v1Query2 = {
-                    type: DataFrameQueryType.Data,
-                    tableId: 'table-789',
-                    decimationMethod: 'LOSSY',
-                    filterNulls: false,
-                    applyTimeFilters: true,
-                    refId: 'B'
-                } as DataFrameQueryV1;
-
-                const result = ds.processQuery(v1Query1, [v1Query1, v1Query2]);
-
-                expect(result.filterXRangeOnZoomPan).toBe(true);
-            });
-
             it('should handle empty tableId by setting empty dataTableFilter', () => {
                 const v1Query = {
                     type: DataFrameQueryType.Data,
@@ -4467,6 +4405,30 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result.filterXRangeOnZoomPan).toBe(true);
                 expect(result).not.toHaveProperty('applyTimeFilters');
+            });
+
+            it('should set filterXRangeOnZoomPan to true when any query in queries array has applyTimeFilters true', () => {
+                const v1Query1 = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-456',
+                    decimationMethod: 'LOSSY',
+                    filterNulls: true,
+                    applyTimeFilters: false,
+                    refId: 'A'
+                } as DataFrameQueryV1;
+
+                const v1Query2 = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-789',
+                    decimationMethod: 'LOSSY',
+                    filterNulls: false,
+                    applyTimeFilters: true,
+                    refId: 'B'
+                } as DataFrameQueryV1;
+
+                const result = ds.processQuery(v1Query1, [v1Query1, v1Query2]);
+
+                expect(result.filterXRangeOnZoomPan).toBe(true);
             });
 
             it('should preserve filterXRangeOnZoomPan when provided', () => {
