@@ -521,139 +521,136 @@ describe('PlotlyPanel', () => {
 
     describe('Dashboard Time Range Synchronization', () => {
       describe('when x-axis is time-based', () => {
-      const createTimeSeriesProps = (
-        xAxisMin?: number,
-        xAxisMax?: number
-      ) => {
-        return createMockProps(
-          {
-            xAxis: { field: 'Updated at', min: xAxisMin, max: xAxisMax },
-          },
-          1,
-          FieldType.time,
-          'Updated at'
-        );
-      };
+        const createTimeSeriesProps = (xAxisMin?: number, xAxisMax?: number) => {
+          return createMockProps(
+            {
+              xAxis: { field: 'Updated at', min: xAxisMin, max: xAxisMax },
+            },
+            1,
+            FieldType.time,
+            'Updated at'
+          );
+        };
 
-      it('should sync dashboard time range to panel x-axis on initial load', () => {
-        const timeFrom = 1609459200000;
-        const timeTo = 1609545600000;
-        const props = createTimeSeriesProps(undefined, undefined);
-        props.timeRange = {
-          from: { isValid: () => true, valueOf: () => timeFrom },
-          to: { isValid: () => true, valueOf: () => timeTo },
-        } as any;
+        it('should sync dashboard time range to panel x-axis on initial load', () => {
+          const timeFrom = 1609459200000;
+          const timeTo = 1609545600000;
+          const props = createTimeSeriesProps(undefined, undefined);
+          props.timeRange = {
+            from: { isValid: () => true, valueOf: () => timeFrom },
+            to: { isValid: () => true, valueOf: () => timeTo },
+          } as any;
 
-        renderPlotlyElement(props);
+          renderPlotlyElement(props);
 
-        expect(props.onOptionsChange).toHaveBeenCalledWith(
-          expect.objectContaining({
-            xAxis: expect.objectContaining({
-              min: timeFrom,
-              max: timeTo,
-            }),
-          })
-        );
-      });
+          expect(props.onOptionsChange).toHaveBeenCalledWith(
+            expect.objectContaining({
+              xAxis: expect.objectContaining({
+                min: timeFrom,
+                max: timeTo,
+              }),
+            })
+          );
+        });
 
-      it('should sync dashboard time to panel x-axis when time range changes', () => {
-        const initialTimeFrom = 1609459200000;
-        const initialTimeTo = 1609545600000;
-        const props = createTimeSeriesProps(initialTimeFrom, initialTimeTo);
-        props.timeRange = {
-          from: { isValid: () => true, valueOf: () => initialTimeFrom },
-          to: { isValid: () => true, valueOf: () => initialTimeTo },
-        } as any;
+        it('should sync dashboard time to panel x-axis when time range changes', () => {
+          const initialTimeFrom = 1609459200000;
+          const initialTimeTo = 1609545600000;
+          const props = createTimeSeriesProps(initialTimeFrom, initialTimeTo);
+          props.timeRange = {
+            from: { isValid: () => true, valueOf: () => initialTimeFrom },
+            to: { isValid: () => true, valueOf: () => initialTimeTo },
+          } as any;
 
-        const { rerender } = renderPlotlyElement(props);
-        jest.clearAllMocks();
+          const { rerender } = renderPlotlyElement(props);
+          jest.clearAllMocks();
 
-        const updatedTimeFrom = 1609632000000;
-        const updatedTimeTo = 1609718400000;
-        props.timeRange = {
-          from: { isValid: () => true, valueOf: () => updatedTimeFrom },
-          to: { isValid: () => true, valueOf: () => updatedTimeTo },
-        } as any;
+          const updatedTimeFrom = 1609632000000;
+          const updatedTimeTo = 1609718400000;
+          props.timeRange = {
+            from: { isValid: () => true, valueOf: () => updatedTimeFrom },
+            to: { isValid: () => true, valueOf: () => updatedTimeTo },
+          } as any;
 
-        rerender(<PlotlyPanel {...props} />);
+          rerender(<PlotlyPanel {...props} />);
 
-        expect(props.onOptionsChange).toHaveBeenCalledWith(
-          expect.objectContaining({
-            xAxis: expect.objectContaining({
-              min: updatedTimeFrom,
-              max: updatedTimeTo,
-            }),
-          })
-        );
-      });
+          expect(props.onOptionsChange).toHaveBeenCalledWith(
+            expect.objectContaining({
+              xAxis: expect.objectContaining({
+                min: updatedTimeFrom,
+                max: updatedTimeTo,
+              }),
+            })
+          );
+        });
 
-      it('should not sync dashboard time to panel x-axis when x-axis already matches', () => {
-        const timeFrom = 1609459200000;
-        const timeTo = 1609545600000;
-        const props = createTimeSeriesProps(timeFrom, timeTo);
-        props.timeRange = {
-          from: { isValid: () => true, valueOf: () => timeFrom },
-          to: { isValid: () => true, valueOf: () => timeTo },
-        } as any;
+        it('should not sync dashboard time to panel x-axis when x-axis already matches', () => {
+          const timeFrom = 1609459200000;
+          const timeTo = 1609545600000;
+          const props = createTimeSeriesProps(timeFrom, timeTo);
+          props.timeRange = {
+            from: { isValid: () => true, valueOf: () => timeFrom },
+            to: { isValid: () => true, valueOf: () => timeTo },
+          } as any;
 
-        renderPlotlyElement(props);
+          renderPlotlyElement(props);
 
-        expect(props.onOptionsChange).not.toHaveBeenCalled();
-      });
+          expect(props.onOptionsChange).not.toHaveBeenCalled();
+        });
 
-      it('should sync dashboard time to panel x-axis when time starts at Unix epoch (0)', () => {
-        const timeFrom = 0;
-        const timeTo = 86400000;
-        const props = createTimeSeriesProps(undefined, undefined);
-        props.timeRange = {
-          from: { isValid: () => true, valueOf: () => timeFrom },
-          to: { isValid: () => true, valueOf: () => timeTo },
-        } as any;
+        it('should sync dashboard time to panel x-axis when time starts at Unix epoch (0)', () => {
+          const timeFrom = 0;
+          const timeTo = 86400000;
+          const props = createTimeSeriesProps(undefined, undefined);
+          props.timeRange = {
+            from: { isValid: () => true, valueOf: () => timeFrom },
+            to: { isValid: () => true, valueOf: () => timeTo },
+          } as any;
 
-        renderPlotlyElement(props);
+          renderPlotlyElement(props);
 
-        expect(props.onOptionsChange).toHaveBeenCalledWith(
-          expect.objectContaining({
-            xAxis: expect.objectContaining({
-              min: 0,
-              max: 86400000,
-            }),
-          })
-        );
-      });
+          expect(props.onOptionsChange).toHaveBeenCalledWith(
+            expect.objectContaining({
+              xAxis: expect.objectContaining({
+                min: 0,
+                max: 86400000,
+              }),
+            })
+          );
+        });
 
-      it('should sync dashboard time to panel x-axis when time includes negative timestamp (pre-1970)', () => {
-        const timeFrom = -86400000;
-        const timeTo = 0;
-        const props = createTimeSeriesProps(undefined, undefined);
-        props.timeRange = {
-          from: { isValid: () => true, valueOf: () => timeFrom },
-          to: { isValid: () => true, valueOf: () => timeTo },
-        } as any;
+        it('should sync dashboard time to panel x-axis when time includes negative timestamp (pre-1970)', () => {
+          const timeFrom = -86400000;
+          const timeTo = 0;
+          const props = createTimeSeriesProps(undefined, undefined);
+          props.timeRange = {
+            from: { isValid: () => true, valueOf: () => timeFrom },
+            to: { isValid: () => true, valueOf: () => timeTo },
+          } as any;
 
-        renderPlotlyElement(props);
+          renderPlotlyElement(props);
 
-        expect(props.onOptionsChange).toHaveBeenCalledWith(
-          expect.objectContaining({
-            xAxis: expect.objectContaining({
-              min: -86400000,
-              max: 0,
-            }),
-          })
-        );
-      });
+          expect(props.onOptionsChange).toHaveBeenCalledWith(
+            expect.objectContaining({
+              xAxis: expect.objectContaining({
+                min: -86400000,
+                max: 0,
+              }),
+            })
+          );
+        });
 
-      it('should not sync dashboard time to panel x-axis when timeRange is invalid', () => {
-        const props = createTimeSeriesProps();
-        props.timeRange = {
-          from: { isValid: () => false, valueOf: () => NaN },
-          to: { isValid: () => true, valueOf: () => 1609545600000 },
-        } as any;
+        it('should not sync dashboard time to panel x-axis when timeRange is invalid', () => {
+          const props = createTimeSeriesProps();
+          props.timeRange = {
+            from: { isValid: () => false, valueOf: () => NaN },
+            to: { isValid: () => true, valueOf: () => 1609545600000 },
+          } as any;
 
-        renderPlotlyElement(props);
+          renderPlotlyElement(props);
 
-        expect(props.onOptionsChange).not.toHaveBeenCalled();
-      });
+          expect(props.onOptionsChange).not.toHaveBeenCalled();
+        });
       });
 
       describe('when x-axis is numeric', () => {

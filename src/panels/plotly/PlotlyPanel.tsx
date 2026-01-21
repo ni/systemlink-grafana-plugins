@@ -41,7 +41,11 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     () => _.attempt(() => getXFields(data.series, options.xAxis.field)),
     [data.series, options.xAxis.field]
   );
-  const isTimeBasedXAxis = !_.isError(xFields) && xFields[0].type === FieldType.time;
+  const isTimeBasedXAxis =
+    !_.isError(xFields) &&
+    xFields.length > 0 &&
+    xFields[0].type === FieldType.time;
+
   const dashboardTimeFrom = timeRange.from.isValid() ? timeRange.from.valueOf() : undefined;
   const dashboardTimeTo = timeRange.to.isValid() ? timeRange.to.valueOf() : undefined;
   const panelXAxisMin = options.xAxis.min;
