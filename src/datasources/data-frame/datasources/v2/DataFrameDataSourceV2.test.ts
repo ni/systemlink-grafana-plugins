@@ -4453,7 +4453,7 @@ describe('DataFrameDataSourceV2', () => {
             });
 
             it('should preserve all V2 query properties', () => {
-                const v2Query = {
+                const v2Query: ValidDataFrameQueryV2 = {
                     type: DataFrameQueryType.Data,
                     resultFilter: '',
                     dataTableFilter: 'workspace = "ws-1"',
@@ -4469,7 +4469,7 @@ describe('DataFrameDataSourceV2', () => {
                     take: 100,
                     undecimatedRecordCount: 10000,
                     refId: 'F'
-                } as DataFrameQueryV2;
+                };
 
                 const result = ds.processQuery(v2Query);
 
