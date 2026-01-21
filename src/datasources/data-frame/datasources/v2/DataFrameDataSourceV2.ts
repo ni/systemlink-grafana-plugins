@@ -112,7 +112,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     processQuery(
         query: DataFrameDataQuery,
-        queries: DataFrameDataQuery[] = []
+        queries: DataFrameDataQuery[]
     ): ValidDataFrameQueryV2 {
         // Handle existing dashboards with 'MetaData' type
         if ((query.type as any) === LEGACY_METADATA_TYPE) {
