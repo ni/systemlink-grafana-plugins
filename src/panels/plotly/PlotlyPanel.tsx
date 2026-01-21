@@ -37,12 +37,15 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const traceColors = useTraceColors(theme);
   const debounceDelayInMs = 300;
 
-  const xFields = _.attempt(() => getXFields(data.series, options.xAxis.field));
+  const xFields = useMemo(
+    () => _.attempt(() => getXFields(data.series, options.xAxis.field)),
+    [data.series, options.xAxis.field]
+  );
   const isTimeBasedXAxis = !_.isError(xFields) && xFields[0].type === FieldType.time;
   const dashboardTimeFrom = timeRange.from.isValid() ? timeRange.from.valueOf() : undefined;
   const dashboardTimeTo = timeRange.to.isValid() ? timeRange.to.valueOf() : undefined;
-  const savedMin = options.xAxis.min;
-  const savedMax = options.xAxis.max;
+  const panelXAxisMin = options.xAxis.min;
+  const panelXAxisMax = options.xAxis.max;
 
   useEffect(() => {
     if (
@@ -55,8 +58,8 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     }
 
     if (
-      savedMin !== dashboardTimeFrom ||
-      savedMax !== dashboardTimeTo
+      panelXAxisMin !== dashboardTimeFrom ||
+      panelXAxisMax !== dashboardTimeTo
     ) {
       onOptionsChange({
         ...options,
@@ -68,7 +71,8 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dashboardTimeFrom, dashboardTimeTo, savedMin, savedMax, xFields, isTimeBasedXAxis, onOptionsChange]);
+    // options is excluded - we track the specific properties via panelXAxisMin and panelXAxisMax
+  }, [dashboardTimeFrom, dashboardTimeTo, panelXAxisMin, panelXAxisMax, isTimeBasedXAxis, onOptionsChange]);
 
   const publishXAxisRangeUpdate = useMemo(
     () =>
