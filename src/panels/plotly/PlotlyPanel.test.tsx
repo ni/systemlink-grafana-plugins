@@ -49,7 +49,7 @@ describe('PlotlyPanel', () => {
   const createMockProps = (
     options: Partial<PanelOptions> = {},
     panelId = 1,
-    fieldType: FieldType | 'number' = 'number',
+    fieldType = 'number',
     fieldName = 'temperature'
   ): PanelProps<PanelOptions> => ({
     options: {
@@ -104,8 +104,8 @@ describe('PlotlyPanel', () => {
       state: 'Done',
     } as any,
     timeRange: {
-      from: { isValid: () => false, valueOf: () => 0 },
-      to: { isValid: () => false, valueOf: () => 0 },
+      from: { isValid: () => false, valueOf: () => undefined },
+      to: { isValid: () => false, valueOf: () => undefined },
     } as any,
     timeZone: 'UTC',
     width: 800,
@@ -518,10 +518,9 @@ describe('PlotlyPanel', () => {
       
       expect(locationService.partial).not.toHaveBeenCalled();
     });
-  });
 
-  describe('Dashboard Time Range Synchronization', () => {
-    describe('when x-axis is time-based', () => {
+    describe('Dashboard Time Range Synchronization', () => {
+      describe('when x-axis is time-based', () => {
       const createTimeSeriesProps = (
         xAxisMin?: number,
         xAxisMax?: number
@@ -540,7 +539,6 @@ describe('PlotlyPanel', () => {
         const timeFrom = 1609459200000;
         const timeTo = 1609545600000;
         const props = createTimeSeriesProps(undefined, undefined);
-        
         props.timeRange = {
           from: { isValid: () => true, valueOf: () => timeFrom },
           to: { isValid: () => true, valueOf: () => timeTo },
@@ -558,24 +556,23 @@ describe('PlotlyPanel', () => {
         );
       });
 
-      it('should update panel x-axis when dashboard time range changes', () => {
-        const initialFrom = 1609459200000;
-        const initialTo = 1609545600000;
-        const props = createTimeSeriesProps(initialFrom, initialTo);
-        
+      it('should sync dashboard time to panel x-axis when time range changes', () => {
+        const initialTimeFrom = 1609459200000;
+        const initialTimeTo = 1609545600000;
+        const props = createTimeSeriesProps(initialTimeFrom, initialTimeTo);
         props.timeRange = {
-          from: { isValid: () => true, valueOf: () => initialFrom },
-          to: { isValid: () => true, valueOf: () => initialTo },
+          from: { isValid: () => true, valueOf: () => initialTimeFrom },
+          to: { isValid: () => true, valueOf: () => initialTimeTo },
         } as any;
 
         const { rerender } = renderPlotlyElement(props);
         jest.clearAllMocks();
 
-        const newFrom = 1609632000000;
-        const newTo = 1609718400000;
+        const updatedTimeFrom = 1609632000000;
+        const updatedTimeTo = 1609718400000;
         props.timeRange = {
-          from: { isValid: () => true, valueOf: () => newFrom },
-          to: { isValid: () => true, valueOf: () => newTo },
+          from: { isValid: () => true, valueOf: () => updatedTimeFrom },
+          to: { isValid: () => true, valueOf: () => updatedTimeTo },
         } as any;
 
         rerender(<PlotlyPanel {...props} />);
@@ -583,18 +580,17 @@ describe('PlotlyPanel', () => {
         expect(props.onOptionsChange).toHaveBeenCalledWith(
           expect.objectContaining({
             xAxis: expect.objectContaining({
-              min: newFrom,
-              max: newTo,
+              min: updatedTimeFrom,
+              max: updatedTimeTo,
             }),
           })
         );
       });
 
-      it('should not update when saved min/max already match dashboard time', () => {
+      it('should not sync dashboard time to panel x-axis when x-axis already matches', () => {
         const timeFrom = 1609459200000;
         const timeTo = 1609545600000;
         const props = createTimeSeriesProps(timeFrom, timeTo);
-        
         props.timeRange = {
           from: { isValid: () => true, valueOf: () => timeFrom },
           to: { isValid: () => true, valueOf: () => timeTo },
@@ -605,11 +601,10 @@ describe('PlotlyPanel', () => {
         expect(props.onOptionsChange).not.toHaveBeenCalled();
       });
 
-      it('should handle epoch timestamp (0) correctly', () => {
+      it('should sync dashboard time to panel x-axis when time starts at Unix epoch (0)', () => {
         const timeFrom = 0;
         const timeTo = 86400000;
         const props = createTimeSeriesProps(undefined, undefined);
-        
         props.timeRange = {
           from: { isValid: () => true, valueOf: () => timeFrom },
           to: { isValid: () => true, valueOf: () => timeTo },
@@ -627,9 +622,29 @@ describe('PlotlyPanel', () => {
         );
       });
 
-      it('should not sync when timeRange is invalid', () => {
+      it('should sync dashboard time to panel x-axis when time includes negative timestamp (pre-1970)', () => {
+        const timeFrom = -86400000;
+        const timeTo = 0;
+        const props = createTimeSeriesProps(undefined, undefined);
+        props.timeRange = {
+          from: { isValid: () => true, valueOf: () => timeFrom },
+          to: { isValid: () => true, valueOf: () => timeTo },
+        } as any;
+
+        renderPlotlyElement(props);
+
+        expect(props.onOptionsChange).toHaveBeenCalledWith(
+          expect.objectContaining({
+            xAxis: expect.objectContaining({
+              min: -86400000,
+              max: 0,
+            }),
+          })
+        );
+      });
+
+      it('should not sync dashboard time to panel x-axis when timeRange is invalid', () => {
         const props = createTimeSeriesProps();
-        
         props.timeRange = {
           from: { isValid: () => false, valueOf: () => NaN },
           to: { isValid: () => true, valueOf: () => 1609545600000 },
@@ -639,51 +654,49 @@ describe('PlotlyPanel', () => {
 
         expect(props.onOptionsChange).not.toHaveBeenCalled();
       });
-    });
-
-    describe('when x-axis is numeric', () => {
-      it('should not sync dashboard time range to numeric x-axis', () => {
-        const timeFrom = 1609459200000;
-        const timeTo = 1609545600000;
-        const props = createMockProps(
-          {
-            xAxis: { field: 'temperature', min: undefined, max: undefined },
-          },
-          1,
-          FieldType.number,
-          'temperature'
-        );
-
-        props.timeRange = {
-          from: { isValid: () => true, valueOf: () => timeFrom },
-          to: { isValid: () => true, valueOf: () => timeTo },
-        } as any;
-
-        renderPlotlyElement(props);
-
-        expect(props.onOptionsChange).not.toHaveBeenCalled();
       });
-    });
 
-    describe('when x-axis field detection fails', () => {
-      it('should not sync when xFields detection returns error', () => {
-        const props = createMockProps(
-          {
-            xAxis: { field: 'temperature', min: undefined, max: undefined },
-          },
-          1
-        );
+      describe('when x-axis is numeric', () => {
+        it('should not sync dashboard time range to numeric x-axis', () => {
+          const timeFrom = 1609459200000;
+          const timeTo = 1609545600000;
+          const props = createMockProps(
+            {
+              xAxis: { field: 'temperature', min: undefined, max: undefined },
+            },
+            1,
+            FieldType.number,
+            'temperature'
+          );
+          props.timeRange = {
+            from: { isValid: () => true, valueOf: () => timeFrom },
+            to: { isValid: () => true, valueOf: () => timeTo },
+          } as any;
 
-        props.timeRange = {
-          from: { isValid: () => true, valueOf: () => 1609459200000 },
-          to: { isValid: () => true, valueOf: () => 1609545600000 },
-        } as any;
+          renderPlotlyElement(props);
 
-        props.data.series = [];
+          expect(props.onOptionsChange).not.toHaveBeenCalled();
+        });
+      });
 
-        renderPlotlyElement(props);
+      describe('when x-axis field detection fails', () => {
+        it('should not sync dashboard time to panel x-axis when xFields detection returns error', () => {
+          const props = createMockProps(
+            {
+              xAxis: { field: 'temperature', min: undefined, max: undefined },
+            },
+            1
+          );
+          props.timeRange = {
+            from: { isValid: () => true, valueOf: () => 1609459200000 },
+            to: { isValid: () => true, valueOf: () => 1609545600000 },
+          } as any;
+          props.data.series = []; // No data frames to detect fields
 
-        expect(props.onOptionsChange).not.toHaveBeenCalled();
+          renderPlotlyElement(props);
+
+          expect(props.onOptionsChange).not.toHaveBeenCalled();
+        });
       });
     });
   });
