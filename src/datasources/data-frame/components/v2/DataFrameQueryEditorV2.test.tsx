@@ -12,7 +12,7 @@ import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource"
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { COLUMN_OPTIONS_LIMIT } from "datasources/data-frame/constants";
 import { ComboboxOption } from "@grafana/ui";
-import { errorMessages, infoMessages } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
+import { errorMessages, infoMessage } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
 import { of } from "rxjs";
 
 jest.mock("./query-builders/DataFrameQueryBuilderWrapper", () => ({
@@ -74,6 +74,14 @@ const renderComponent = (
         hasRequiredFilters: mockHasRequiredFilters,
         variablesCache,
         parseColumnIdentifier: mockParseColumnIdentifier,
+        instanceSettings: {
+            jsonData: {
+                featureToggles: {
+                    queryUndecimatedData: true
+                }
+            }
+        },
+        ...mockDatasource
     } as unknown as DataFrameDataSource;
 
     const initialQuery = {
@@ -83,7 +91,7 @@ const renderComponent = (
 
     const renderResult = render(
         <DataFrameQueryEditorV2
-            datasource={mockDatasource.processQuery ? mockDatasource as DataFrameDataSource : datasource}
+            datasource={datasource}
             query={initialQuery}
             onChange={onChange}
             onRunQuery={onRunQuery}
@@ -93,7 +101,7 @@ const renderComponent = (
     onChange.mockImplementation(newQuery => {
         renderResult.rerender(
             <DataFrameQueryEditorV2
-                datasource={mockDatasource.processQuery ? mockDatasource as DataFrameDataSource : datasource}
+                datasource={datasource}
                 query={newQuery}
                 onChange={onChange}
                 onRunQuery={onRunQuery}
@@ -274,22 +282,28 @@ describe("DataFrameQueryEditorV2", () => {
                     ));
                 });
 
-                it('should not load column options when filter is empty', async () => {
+                it('should only show metadata column options when filter is empty', async () => {
                     renderComponent({ dataTableFilter: '', resultFilter: '' });
 
                     await clickColumnOptions();
 
-                    // Assert that no options are shown
-                    expect(within(document.body).queryAllByRole('option').length).toBe(0);
+                    const options = within(document.body).queryAllByRole('option');
+                    expect(options.length).toBe(2);
+                    expect(options.map(opt => opt.textContent)).toEqual(
+                        expect.arrayContaining(['MetadataData table ID', 'Data table name'])
+                    );
                 });
 
-                it('should not load column options when only column filter is set', async () => {
+                it('should only show metadata column options when only column filter is set', async () => {
                     renderComponent({ columnFilter: 'ColumnB' });
                     
                     await clickColumnOptions();
 
-                    // Assert that no options are shown
-                    expect(within(document.body).queryAllByRole('option').length).toBe(0);
+                    const options = within(document.body).queryAllByRole('option');
+                    expect(options.length).toBe(2);
+                    expect(options.map(opt => opt.textContent)).toEqual(
+                        expect.arrayContaining(['MetadataData table ID', 'Data table name'])
+                    );
                 });
 
                 it('should not load column options when filter is unchanged', async () => {
@@ -322,23 +336,29 @@ describe("DataFrameQueryEditorV2", () => {
                             cleanup();
                             jest.clearAllMocks();
 
-                            const columnOptions = Array.from({ length: COLUMN_OPTIONS_LIMIT + 25 }, (_, i) => ({
-                                label: `Column${i + 1}`,
-                                value: `Column${i + 1}`,
-                            }));
+                            const columnOptions = [
+                                { label: 'Data table ID', value: 'Data table ID-Metadata' },
+                                { label: 'Data table name', value: 'Data table name-Metadata' },
+                                ...Array.from({ length: COLUMN_OPTIONS_LIMIT + 25 }, (_, i) => ({
+                                    label: `Column${i + 1}`,
+                                    value: `Column${i + 1}`,
+                                }))
+                            ];
 
                             // Increase offsetHeight to allow more options to be rendered in the test environment
-                            jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(200);
+                            jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
                             const result = renderComponent({ dataTableFilter: ' ' }, '', '', columnOptions);
                             datasource = result.datasource;
 
                             await changeFilterValue();
                         });
 
-                        it(`should limit the number of column options to ${COLUMN_OPTIONS_LIMIT}`, async () => {
+                        it(`should limit column options to ${COLUMN_OPTIONS_LIMIT + 2} as metadata options are included in the dropdown`, async () => {
                             await clickColumnOptions();
                             const optionTexts = getColumnOptionTexts();
-                            expect(optionTexts.length).toBe(COLUMN_OPTIONS_LIMIT);
+                            expect(optionTexts.length).toBe(COLUMN_OPTIONS_LIMIT + 2);
+                            expect(optionTexts).toContain('Data table ID');
+                            expect(optionTexts).toContain('Data table name');
                         });
                     });
                 });
@@ -392,7 +412,7 @@ describe("DataFrameQueryEditorV2", () => {
                         });
                     });
 
-                    it('should not fetch column options when switching to Data query type with existing empty filter', async () => {
+                    it('should only show metadata options when switching to Data query type with existing empty filter', async () => {
                         const user = userEvent.setup();
                         const { datasource } = renderComponent({
                             type: DataFrameQueryType.Properties,
@@ -408,7 +428,10 @@ describe("DataFrameQueryEditorV2", () => {
 
                         await waitFor(() => {
                             const optionControls = within(document.body).queryAllByRole('option');
-                            expect(optionControls.length).toBe(0);
+                            expect(optionControls.length).toBe(2);
+                            expect(optionControls.map(opt => opt.textContent)).toEqual(
+                                expect.arrayContaining(['MetadataData table ID', 'Data table name'])
+                            );
                         });
                         expect(datasource.getColumnOptionsWithVariables).not.toHaveBeenCalled();
                     });
@@ -1144,6 +1167,13 @@ describe("DataFrameQueryEditorV2", () => {
                             transformColumnQuery: jest.fn((filter: string) => filter),
                             hasRequiredFilters: mockHasRequiredFilters,
                             parseColumnIdentifier: mockParseColumnIdentifier,
+                            instanceSettings: {
+                                jsonData: {
+                                    featureToggles: {
+                                        queryUndecimatedData: true
+                                    }
+                                }
+                            }
                         } as any;
                     });
 
@@ -1536,6 +1566,261 @@ describe("DataFrameQueryEditorV2", () => {
                             decimationMethod: 'MAX_MIN'
                         }));
                         expect(onRunQuery).toHaveBeenCalled();
+                    });
+                });
+
+                it("should include 'None' as a decimation method option", async () => {
+                    await user.click(decimationMethodField);
+
+                    await waitFor(() => {
+                        const options = within(document.body).getAllByRole('option');
+                        const optionTexts = options.map(opt => opt.textContent);
+                        expect(optionTexts.some(text => text?.startsWith('None'))).toBe(true);
+                    });
+                });
+
+                it("should allow selecting 'None' decimation method", async () => {
+                    await user.click(decimationMethodField);
+                    const options = within(document.body).getAllByRole('option');
+                    const noneOption = options.find(opt => opt.textContent?.startsWith('None'));
+                    
+                    expect(noneOption).toBeDefined();
+                    await user.click(noneOption!);
+
+                    await waitFor(() => {
+                        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                            decimationMethod: 'NONE'
+                        }));
+                        expect(onRunQuery).toHaveBeenCalled();
+                    });
+                });
+
+                it("should display undecimated record count field when 'None' decimation is selected", async () => {
+                    renderComponent({ 
+                        type: DataFrameQueryType.Data,
+                        decimationMethod: 'NONE'
+                    });
+
+                    await waitFor(() => {
+                        const recordCountInput = screen.getAllByRole('spinbutton');
+                        expect(recordCountInput.length).toBe(1);
+                    });
+                });
+
+                it("should not display undecimated record count field when decimation method is not 'None'", async () => {
+                    renderComponent({ 
+                        type: DataFrameQueryType.Data,
+                        decimationMethod: 'LOSSY'
+                    });
+
+                    await waitFor(() => {
+                        const recordCountInput = screen.queryAllByRole('spinbutton');
+                        expect(recordCountInput.length).toBe(0);
+                    });
+                });
+
+                describe("undecimated record count field", () => {
+                    let undecimatedInput: HTMLElement;
+                    let user: UserEvent;
+
+                    beforeEach(() => {
+                        cleanup();
+                        renderComponent({ 
+                            type: DataFrameQueryType.Data,
+                            decimationMethod: 'NONE'
+                        });
+                        user = userEvent.setup();
+                    });
+
+                    it("should show the undecimated record count field with default value", async () => {
+                        await waitFor(() => {
+                            const recordCountInput = screen.getAllByRole('spinbutton');
+                            expect(recordCountInput.length).toBe(1);
+                            
+                            undecimatedInput = recordCountInput[0];
+                            expect(undecimatedInput).toBeInTheDocument();
+                            expect(undecimatedInput).toHaveValue(10_000);
+                        });
+                    });
+
+                    it("should allow only numeric input", async () => {
+                        await waitFor(() => {
+                            const recordCountInput = screen.getAllByRole('spinbutton');
+                            undecimatedInput = recordCountInput[0];
+                        });
+
+                        await user.type(undecimatedInput, "abc");
+                        await user.tab();
+
+                        expect(undecimatedInput).toHaveValue(10_000);
+                    });
+
+                    it("should show an error message when value is less than or equal to 0", async () => {
+                        await waitFor(() => {
+                            const recordCountInput = screen.getAllByRole('spinbutton');
+                            undecimatedInput = recordCountInput[0];
+                        });
+
+                        await user.clear(undecimatedInput);
+                        await user.type(undecimatedInput, "0");
+                        await user.tab();
+
+                        await waitFor(() => {
+                            expect(screen.getByText("Enter a value greater than or equal to 1."))
+                                .toBeInTheDocument();
+                        });
+                    });
+
+                    it("should show an error message when value is greater than 1000000", async () => {
+                        await waitFor(() => {
+                            const recordCountInput = screen.getAllByRole('spinbutton');
+                            undecimatedInput = recordCountInput[0];
+                        });
+
+                        await user.clear(undecimatedInput);
+                        await user.type(undecimatedInput, "2000000");
+                        await user.tab();
+
+                        await waitFor(() => {
+                            expect(screen.getByText("Enter a value less than or equal to 1000000."))
+                                .toBeInTheDocument();
+                        });
+                    });
+
+                    it("should not show an error message when a valid value is entered", async () => {
+                        await waitFor(() => {
+                            const recordCountInput = screen.getAllByRole('spinbutton');
+                            undecimatedInput = recordCountInput[0];
+                        });
+
+                        await user.clear(undecimatedInput);
+                        await user.type(undecimatedInput, "50000");
+                        await user.tab();
+
+                        await waitFor(() => {
+                            expect(screen.queryByText("Enter a value greater than or equal to 1."))
+                                .not.toBeInTheDocument();
+                            expect(screen.queryByText("Enter a value less than or equal to 1000000."))
+                                .not.toBeInTheDocument();
+                        });
+                    });
+
+                    it("should call onChange and onRunQuery when a valid value is entered", async () => {
+                        cleanup();
+                        const { onChange, onRunQuery } = renderComponent({ 
+                            type: DataFrameQueryType.Data,
+                            decimationMethod: 'NONE'
+                        });
+
+                        await waitFor(() => {
+                            const recordCountInput = screen.getAllByRole('spinbutton');
+                            undecimatedInput = recordCountInput[0];
+                        });
+
+                        await user.clear(undecimatedInput);
+                        await user.type(undecimatedInput, "50000");
+                        await user.tab();
+
+                        await waitFor(() => {
+                            expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                                undecimatedRecordCount: 50_000,
+                            }));
+                            expect(onRunQuery).toHaveBeenCalled();
+                        });
+                    });
+
+                    it("should not call onChange and onRunQuery until input loses focus", async () => {
+                        cleanup();
+                        const { onChange, onRunQuery } = renderComponent({ 
+                            type: DataFrameQueryType.Data,
+                            decimationMethod: 'NONE'
+                        });
+
+                        await waitFor(() => {
+                            const recordCountInput = screen.getAllByRole('spinbutton');
+                            undecimatedInput = recordCountInput[0];
+                        });
+
+                        await user.clear(undecimatedInput);
+                        await user.type(undecimatedInput, "50000");
+
+                        await waitFor(() => {
+                            expect(onChange).not.toHaveBeenCalled();
+                            expect(onRunQuery).not.toHaveBeenCalled();
+                        });
+                    });
+                });
+
+                describe("when queryUndecimatedData feature flag is disabled", () => {
+                    let mockDatasource: Partial<DataFrameDataSource>;
+
+                    beforeEach(() => {
+                        cleanup();
+                        mockDatasource = {
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                            getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                                uniqueColumnsAcrossTables: [],
+                                commonColumnsAcrossTables: []
+                            }),
+                            transformDataTableQuery: jest.fn((filter: string) => filter),
+                            transformResultQuery: jest.fn((filter: string) => filter),
+                            transformColumnQuery: jest.fn((filter: string) => filter),
+                            hasRequiredFilters: mockHasRequiredFilters,
+                            parseColumnIdentifier: mockParseColumnIdentifier,
+                            instanceSettings: {
+                                jsonData: {
+                                    featureToggles: {
+                                        queryUndecimatedData: false
+                                    }
+                                }
+                            }
+                        } as unknown as Partial<DataFrameDataSource>;
+                    });
+
+                    it("should not include 'None' as a decimation method option", async () => {
+                        const user = userEvent.setup();
+
+                        renderComponent(
+                            { type: DataFrameQueryType.Data },
+                            '',
+                            '',
+                            [],
+                            [],
+                            undefined,
+                            {},
+                            mockDatasource
+                        );
+
+                        const decimationMethodField = screen.getAllByRole('combobox')[1];
+                        await user.click(decimationMethodField);
+
+                        await waitFor(() => {
+                            const options = within(document.body).getAllByRole('option');
+                            const optionTexts = options.map(opt => opt.textContent);
+                            expect(optionTexts.some(text => text?.startsWith('None'))).toBe(false);
+                        });
+                    });
+
+                    it("should not display undecimated record count field even when decimation method is 'NONE'", async () => {
+                        renderComponent(
+                            { 
+                                type: DataFrameQueryType.Data,
+                                decimationMethod: 'NONE'
+                            },
+                            '',
+                            '',
+                            [],
+                            [],
+                            undefined,
+                            {},
+                            mockDatasource
+                        );
+
+                        await waitFor(() => {
+                            const recordCountInput = screen.queryAllByRole('spinbutton');
+                            // Should have no record count inputs when feature flag is disabled
+                            expect(recordCountInput.length).toBe(0);
+                        });
                     });
                 });
             });
@@ -2862,7 +3147,7 @@ describe("DataFrameQueryEditorV2", () => {
 
           const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
 
-          expect(props.additionalInfoMessage).toBe(infoMessages.datasourceHelp);
+          expect(props.additionalInfoMessage).toBe(infoMessage.datasourceHelp);
         });
 
         it("should pass columnFilter to the query builder wrapper", () => {
@@ -3040,3 +3325,4 @@ describe("DataFrameQueryEditorV2", () => {
     });
 
 });
+

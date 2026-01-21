@@ -938,6 +938,73 @@ describe('runQuery', () => {
     );
   });
 
+  test('should transform DUTId filter with single value in runQuery', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: 'DUTId = "dut-123"',
+      properties: [Properties.ID],
+      recordCount: 1000,
+    };
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.runQuery(mockQuery, {} as DataQueryRequest);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      'DUTId = "dut-123"',
+      undefined,
+      ["ID"],
+      1000,
+      undefined,
+    );
+  });
+
+  test('should transform DUTId filter with multiple values in runQuery', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: 'DUTId = "${dutVar}"',
+      properties: [Properties.ID],
+      recordCount: 1000,
+    };
+    const options = { scopedVars: { dutVar: { value: '{dut-1,dut-2,dut-3}' } } } as unknown as DataQueryRequest;
+    jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('DUTId = "{dut-1,dut-2,dut-3}"');
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.runQuery(mockQuery, options);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      '(DUTId = "dut-1" || DUTId = "dut-2" || DUTId = "dut-3")',
+      undefined,
+      ["ID"],
+      1000,
+      undefined,
+    );
+  });
+
+  test('should transform DUTId in complex query with multiple conditions', async () => {
+    const mockQuery = {
+      refId: 'C',
+      outputType: OutputType.Properties,
+      queryBy: '(state = "Active" && DUTId = "${dutVar}" && workspace = "ws-1")',
+      properties: [Properties.ID],
+      recordCount: 1000,
+    };
+    const options = { scopedVars: { dutVar: { value: '{dut-1,dut-2}' } } } as unknown as DataQueryRequest;
+    jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('(state = "Active" && DUTId = "{dut-1,dut-2}" && workspace = "ws-1")');
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.runQuery(mockQuery, options);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      '(state = "Active" && (DUTId = "dut-1" || DUTId = "dut-2") && workspace = "ws-1")',
+      undefined,
+      ["ID"],
+      1000,
+      undefined,
+    );
+  });
+
   test('should return type as string type', async () => {
     const mockQuery = {
       refId: 'A',
@@ -1826,5 +1893,89 @@ describe('metricFindQuery', () => {
       { text: 'Test Plan B (1)', value: '1' },
       { text: 'Test Plan C (3)', value: '3' }
     ]);
+  });
+
+  test('should transform DUTId field with single value', async () => {
+    const mockQuery = {
+      refId: 'C',
+      queryBy: 'DUTId = "dut-123"',
+      recordCount: 1000,
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.metricFindQuery(mockQuery, {});
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      'DUTId = "dut-123"',
+      "UPDATED_AT",
+      ["ID", "NAME"],
+      1000,
+      true
+    );
+  });
+
+  test('should transform DUTId field with multiple values', async () => {
+    const mockQuery = {
+      refId: 'C',
+      queryBy: 'DUTId = "${dutVar}"',
+      recordCount: 1000,
+    };
+    const options = { scopedVars: { dutVar: { value: '{dut-1,dut-2,dut-3}' } } };
+    
+    jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('DUTId = "{dut-1,dut-2,dut-3}"');
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.metricFindQuery(mockQuery, options);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      '(DUTId = "dut-1" || DUTId = "dut-2" || DUTId = "dut-3")',
+      "UPDATED_AT",
+      ["ID", "NAME"],
+      1000,
+      true
+    );
+  });
+
+  test('should handle DUTId with does not equal operator and single value', async () => {
+    const mockQuery = {
+      refId: 'C',
+      queryBy: 'DUTId != "dut-123"',
+      recordCount: 1000,
+    };
+
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.metricFindQuery(mockQuery, {});
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      'DUTId != "dut-123"',
+      "UPDATED_AT",
+      ["ID", "NAME"],
+      1000,
+      true
+    );
+  });
+
+  test('should transform DUTId with multiple values using variable in complex query', async () => {
+    const mockQuery = {
+      refId: 'C',
+      queryBy: '(state = "Active" && DUTId = "${dutVar}")',
+      recordCount: 1000,
+    };
+    const options = { scopedVars: { dutVar: { value: '{dut-1,dut-2}' } } };
+    
+    jest.spyOn(datastore.templateSrv, 'replace').mockReturnValue('(state = "Active" && DUTId = "{dut-1,dut-2}")');
+    jest.spyOn(datastore, 'queryTestPlansInBatches').mockResolvedValue({ testPlans: [] });
+
+    await datastore.metricFindQuery(mockQuery, options);
+
+    expect(datastore.queryTestPlansInBatches).toHaveBeenCalledWith(
+      '(state = "Active" && (DUTId = "dut-1" || DUTId = "dut-2"))',
+      "UPDATED_AT",
+      ["ID", "NAME"],
+      1000,
+      true
+    );
   });
 });

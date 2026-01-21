@@ -27,9 +27,10 @@ The **SystemLink Data Frames** data source allows you to display data table prop
 | Configuration        | Max limit per query   | Behavior                                                                                                                |
 | -------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | **Data Tables**      | 1,000 tables          | If a filter matches more than 1,000 tables, the data source only processes the first 1,000 tables. |
-| **Columns options**  | 10,000 unique columns | If more than 10,000 unique columns exist, the data source only displays the first 10,000 columns in the drop-down menu. |
+| **Columns Options**  | 10,000 unique columns | If more than 10,000 unique columns exist, the data source only displays the first 10,000 columns in the drop-down menu. |
 | **Column Selection** | 20 columns            | If you select more than 20 columns, the data source will not query the data and instead return an error. |
 | **Data Points**      | 1 million points      | The data source caps all results at 1 million data points (rows × columns). |
+| **Data Table Custom Properties** | 100 properties | If the matching data tables contain more than 100 unique custom property keys, the data source only returns the first 100 properties. |
 
 ---
 

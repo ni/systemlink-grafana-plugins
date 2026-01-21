@@ -2,7 +2,7 @@ import { DataQuery } from '@grafana/schema';
 import { QueryBuilderOption, SystemLinkError } from "../../core/types";
 import { DataSourceJsonData, QueryEditorProps } from '@grafana/data';
 import { DataFrameDataSource } from './DataFrameDataSource';
-import { TAKE_LIMIT } from './constants';
+import { METADATA_GROUP, TAKE_LIMIT } from './constants';
 import { QueryBuilderField } from 'smart-webcomponents-react';
 import { Observable } from 'rxjs';
 
@@ -44,6 +44,7 @@ export interface DataFrameQueryV2 extends DataQuery {
   xColumn?: string | null;
   applyTimeFilters?: boolean;
   take?: number;
+  undecimatedRecordCount?: number;
 }
 
 export interface DataFrameVariableQueryV2 extends DataQuery {
@@ -72,6 +73,8 @@ export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
 export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
   queryByDataTableProperties: false,
   queryByResultAndColumnProperties: false,
+  queryUndecimatedData: false,
+  highResolutionZoom: false
 };
 
 export enum DataTableProperties {
@@ -143,7 +146,8 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   decimationMethod: 'LOSSY',
   xColumn: null,
   applyTimeFilters: false,
-  take: TAKE_LIMIT
+  take: TAKE_LIMIT,
+  undecimatedRecordCount: 10_000
 };
 
 export interface QueryResultsResponse {
@@ -247,6 +251,19 @@ export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
     field: 'properties'
   },
 };
+export const DATA_TABLE_ID_LABEL = DataTableProjectionLabelLookup[DataTableProperties.Id].label;
+export const DATA_TABLE_NAME_LABEL = DataTableProjectionLabelLookup[DataTableProperties.Name].label;
+export const DATA_TABLE_ID_FIELD = `${DATA_TABLE_ID_LABEL}-${METADATA_GROUP}`;
+export const DATA_TABLE_NAME_FIELD = `${DATA_TABLE_NAME_LABEL}-${METADATA_GROUP}`;
+
+export const metadataFieldOptions: Option[] = [
+  { label: DATA_TABLE_ID_LABEL, value: DATA_TABLE_ID_FIELD, group: METADATA_GROUP },
+  { label: DATA_TABLE_NAME_LABEL, value: DATA_TABLE_NAME_FIELD, group: METADATA_GROUP }
+];
+
+export const DataTableFirstClassPropertyLabels = new Set(
+  Object.values(DataTableProjectionLabelLookup).map(lookup => lookup.label)
+);
 
 export type ValidDataFrameQuery = ValidDataFrameQueryV1 | ValidDataFrameQueryV2;
 
@@ -338,6 +355,8 @@ export interface TableDataRows {
 export interface DataFrameFeatureToggles {
   queryByDataTableProperties: boolean;
   queryByResultAndColumnProperties: boolean;
+  queryUndecimatedData: boolean;
+  highResolutionZoom: boolean;
 }
 
 export interface DataFrameDataSourceOptions extends DataSourceJsonData {
@@ -352,6 +371,7 @@ export interface ColumnOptions {
 export interface Option {
   label: string;
   value: string;
+  group?: string;
 }
 
 export interface DecimationOptions {

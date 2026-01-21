@@ -1,4 +1,4 @@
-import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_OPTIONS_LIMIT } from 'datasources/data-frame/constants';
 
 /**
  * Converts Grafana grid units to pixels
@@ -51,6 +51,7 @@ export const tooltips = {
     queryByResultProperties: 'This field applies a results filter while searching data tables.',
     queryByColumnProperties: 'This field applies a column filter while searching data tables.',
     take: 'This field sets the maximum number of records to return from the query.',
+    undecimatedRecordCount: 'This field sets the maximum number of rows to return from the query.',
     columns: 'Specifies the columns to include in the response data.',
     filterNulls: `Specifies whether to filter out null and NaN values before decimating the data.`,
     includeIndexColumns: 'Specifies whether to include index columns in the response data.',
@@ -78,7 +79,7 @@ export const placeholders = {
 export const errorMessages = {
     take: {
         greaterOrEqualToZero: 'Enter a value greater than or equal to 1.',
-        lessOrEqualToTakeLimit: `Enter a value less than or equal to ${TAKE_LIMIT}.`
+        lessOrEqualToTakeLimit: 'Enter a value less than or equal to {TAKE_LIMIT}.'
     },
     columnLimitExceeded: `The tables query returned too many columns. Only the first ${COLUMN_OPTIONS_LIMIT} columns are shown in the selection list.`,
     xColumnLimitExceeded: `The tables query returned too many columns. Only the first ${COLUMN_OPTIONS_LIMIT} columns are shown in the x-column selection list.`,
@@ -89,12 +90,13 @@ export const errorMessages = {
 /**
  * Informational messages for the DataFrameQueryEditorV2 component
  */
-export const infoMessages = {
+export const infoMessage = {
     queryOptimization: {
         title: 'Query optimization',
-        message: `Queries may have a significant impact on resource utilization.`,
-        linkText: 'Click here to learn more about optimizing data frame queries.',
+        message: `Queries may significantly impact resource utilization.`,
+        linkText: 'Click this link to learn more about data frame query optimization.',
         linkUrl: 'https://www.ni.com/r/dfs-db-query-performance',
     },
-    datasourceHelp: 'Please refer to the datasource help documentation for more information.',
+    datasourceHelp: 'For more information, refer to the datasource help documentation.',
+    width: 88.75,
 }

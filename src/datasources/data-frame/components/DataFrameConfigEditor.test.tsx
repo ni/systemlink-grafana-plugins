@@ -15,7 +15,9 @@ const defaultProps: DataSourcePluginOptionsEditorProps<any> = {
     options: {
         jsonData: {
             featureToggles: {
-                queryByDataTableProperties: false
+                queryByDataTableProperties: false,
+                queryUndecimatedData: false,
+                highResolutionZoom: false
             },
         },
         id: 0,
@@ -41,7 +43,13 @@ describe('DataFrameConfigEditor', () => {
 
     test('should update the queryByDataTableProperties feature toggles option when it is toggled', async () => {
         const expecteJsonData = {
-            "jsonData": { "featureToggles": { "queryByDataTableProperties": true } }
+            "jsonData": { 
+                "featureToggles": { 
+                    "queryByDataTableProperties": true,
+                    "queryUndecimatedData": false,
+                    "highResolutionZoom": false
+                } 
+            }
         };
 
         expect(dataTableQueryBuilderToggle).not.toBeChecked();
@@ -50,6 +58,48 @@ describe('DataFrameConfigEditor', () => {
         await waitFor(() => {
             expect(mockOnOptionsChange).toHaveBeenCalledWith(
                 expect.objectContaining(expecteJsonData)
+            );
+        });
+    });
+
+    test('should update the queryUndecimatedData feature toggles option when it is toggled', async () => {
+        const queryUndecimatedDataToggle = screen.getAllByRole('switch')[2];
+        const expectedJsonData = {
+            "jsonData": { 
+                "featureToggles": { 
+                    "queryByDataTableProperties": false,
+                    "queryUndecimatedData": true,
+                    "highResolutionZoom": false
+                } 
+            }
+        };  
+        expect(queryUndecimatedDataToggle).not.toBeChecked();
+
+        await userEvent.click(queryUndecimatedDataToggle);
+        await waitFor(() => {
+            expect(mockOnOptionsChange).toHaveBeenCalledWith(
+                expect.objectContaining(expectedJsonData)
+            );
+        });
+    });
+
+    test('should update the highResolutionZoom feature toggles option when it is toggled', async () => {
+        const highResolutionZoomToggle = screen.getAllByRole('switch')[3];
+        const expectedJsonData = {
+            "jsonData": { 
+                "featureToggles": { 
+                    "queryByDataTableProperties": false,
+                    "queryUndecimatedData": false,
+                    "highResolutionZoom": true
+                } 
+            }
+        };  
+        expect(highResolutionZoomToggle).not.toBeChecked();
+
+        await userEvent.click(highResolutionZoomToggle);
+        await waitFor(() => {
+            expect(mockOnOptionsChange).toHaveBeenCalledWith(
+                expect.objectContaining(expectedJsonData)
             );
         });
     });
