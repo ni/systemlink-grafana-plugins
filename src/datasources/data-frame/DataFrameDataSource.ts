@@ -37,7 +37,12 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     this.queryByTablePropertiesFeatureEnabled = featureToggles?.queryByDataTableProperties ?? DataFrameFeatureTogglesDefaults.queryByDataTableProperties;
 
     if (this.queryByTablePropertiesFeatureEnabled) {
-      this.datasource = new DataFrameDataSourceV2(instanceSettings, backendSrv, templateSrv);
+      this.datasource = new DataFrameDataSourceV2(
+        instanceSettings,
+        backendSrv,
+        templateSrv,
+        featureToggles
+      );
     } else {
       this.datasource = new DataFrameDataSourceV1(instanceSettings, backendSrv, templateSrv);
     }

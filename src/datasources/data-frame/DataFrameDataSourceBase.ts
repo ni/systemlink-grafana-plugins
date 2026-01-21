@@ -17,7 +17,9 @@ import {
     DataFrameVariableQuery,
     CombinedFilters,
     ColumnOptions,
-    ColumnFilter
+    ColumnFilter,
+    DataFrameFeatureTogglesDefaults,
+    DataFrameFeatureToggles
 } from './types';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { extractErrorInfo } from 'core/errors';
@@ -42,7 +44,8 @@ export abstract class DataFrameDataSourceBase<
     public constructor(
         public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
         public readonly backendSrv: BackendSrv,
-        public readonly templateSrv: TemplateSrv
+        public readonly templateSrv: TemplateSrv,
+        protected readonly featureToggles: DataFrameFeatureToggles = DataFrameFeatureTogglesDefaults
     ) {
         super(instanceSettings, backendSrv, templateSrv);
         this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
