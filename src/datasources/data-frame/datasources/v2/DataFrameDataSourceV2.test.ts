@@ -4553,8 +4553,8 @@ describe('DataFrameDataSourceV2', () => {
                         refId: 'B'
                     } as DataFrameQueryV1;
 
-                    const result1 = ds.processQuery(v1Query1, [v1Query1, v1Query2]);
-                    const result2 = ds.processQuery(v1Query2, [v1Query1, v1Query2]);
+                    const result1 = dsWithHighResZoomDisabled.processQuery(v1Query1, [v1Query1, v1Query2]);
+                    const result2 = dsWithHighResZoomDisabled.processQuery(v1Query2, [v1Query1, v1Query2]);
 
                     expect(result1.filterXRangeOnZoomPan).toBe(false);
                     expect(result2.filterXRangeOnZoomPan).toBe(true);
