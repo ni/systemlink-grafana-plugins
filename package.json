@@ -85,6 +85,7 @@
     "ajv": "^8.12.0",
     "file-saver": "^2.0.5",
     "jsdom-testing-mocks": "^1.13.1",
+    "papaparse": "^5.5.3",
     "plotly.js-basic-dist-min": "^2.24.3",
     "qrcode.react": "^4.2.0",
     "react": "18.2.0",
