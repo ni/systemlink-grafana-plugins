@@ -3423,6 +3423,80 @@ describe('DataFrameDataSourceV2', () => {
                         expect(result.refId).toBe('A');
                     });
                 });
+
+                describe('CSV sanitization', () => {
+                    it('should sanitize HTML content in CSV values using textUtil.sanitize', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            name: 'table1',
+                            columns: [
+                                { name: 'column1', dataType: 'STRING', columnType: ColumnType.Normal },
+                                { name: 'column2', dataType: 'STRING', columnType: ColumnType.Normal }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        // CSV with HTML/XSS content
+                        const csvWithHtml = 'column1,column2\n<script>alert("xss")</script>,normalValue\n<img onerror="alert(1)" src="x">,test';
+                        postSpy.mockReturnValue(of(csvWithHtml));
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['column1-String', 'column2-String'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'NONE',
+                            filterNulls: false,
+                            applyTimeFilters: false,
+                            undecimatedRecordCount: 10000
+                        } as DataFrameQueryV2;
+
+                        const result = await lastValueFrom(datasource.runQuery(query, options));
+
+                        const column1Field = findField(result.fields, 'column1');
+                        const column2Field = findField(result.fields, 'column2');
+
+                        // textUtil.sanitize should strip dangerous HTML
+                        expect(column1Field?.values?.[0]).not.toContain('<script>');
+                        expect(column1Field?.values?.[1]).not.toContain('onerror');
+                        expect(column2Field?.values?.[0]).toBe('normalValue');
+                        expect(column2Field?.values?.[1]).toBe('test');
+                    });
+
+                    it('should handle CSV with quoted values containing special characters', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            name: 'table1',
+                            columns: [
+                                { name: 'column1', dataType: 'STRING', columnType: ColumnType.Normal }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const csvWithQuotedValues = 'column1\n"value with, comma"\n"value with ""quotes"""\nplain value';
+                        postSpy.mockReturnValue(of(csvWithQuotedValues));
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['column1-String'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'NONE',
+                            filterNulls: false,
+                            applyTimeFilters: false,
+                            undecimatedRecordCount: 10000
+                        } as DataFrameQueryV2;
+
+                        const result = await lastValueFrom(datasource.runQuery(query, options));
+
+                        const column1Field = findField(result.fields, 'column1');
+
+                        // PapaParse should handle CSV escaping correctly
+                        expect(column1Field?.values?.[0]).toBe('value with, comma');
+                        expect(column1Field?.values?.[1]).toBe('value with "quotes"');
+                        expect(column1Field?.values?.[2]).toBe('plain value');
+                    });
+                });
             });
         });
 
