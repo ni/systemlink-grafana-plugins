@@ -2998,6 +2998,126 @@ describe('DataFrameDataSourceV2', () => {
                     );
                 });
 
+                it('should calculate take based on number of columns to ensure total data points <= 1M', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        name: 'table1',
+                        columns: [
+                            { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'col4', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'col5', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'col6', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'col7', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'col8', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'col9', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'col10', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+
+                    const csvResponse = 'col1,col2,col3,col4,col5,col6,col7,col8,col9,col10\n1,2,3,4,5,6,7,8,9,10';
+                    postSpy.mockReturnValue(of(csvResponse));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['col1-Numeric', 'col2-Numeric', 'col3-Numeric', 'col4-Numeric', 'col5-Numeric',
+                                  'col6-Numeric', 'col7-Numeric', 'col8-Numeric', 'col9-Numeric', 'col10-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'NONE',
+                        filterNulls: false,
+                        applyTimeFilters: false,
+                        undecimatedRecordCount: 500000 // User requests 500k but with 10 columns, max is 100k
+                    } as DataFrameQueryV2;
+
+                    await lastValueFrom(datasource.runQuery(query, options));
+
+                    // With 10 columns, max rows should be floor(1,000,000 / 10) = 100,000
+                    // User requested 500,000 but should be capped at 100,000
+                    expect(postSpy).toHaveBeenCalledWith(
+                        expect.any(String),
+                        expect.objectContaining({
+                            take: 100000
+                        }),
+                        expect.any(Object)
+                    );
+                });
+
+                it('should allow full 1M rows when only 1 column is selected', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        name: 'table1',
+                        columns: [
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+
+                    const csvResponse = 'voltage\n10.5';
+                    postSpy.mockReturnValue(of(csvResponse));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['voltage-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'NONE',
+                        filterNulls: false,
+                        applyTimeFilters: false,
+                        undecimatedRecordCount: 2000000 // User requests 2M but max is 1M with 1 column
+                    } as DataFrameQueryV2;
+
+                    await lastValueFrom(datasource.runQuery(query, options));
+
+                    // With 1 column, max rows should be 1,000,000
+                    expect(postSpy).toHaveBeenCalledWith(
+                        expect.any(String),
+                        expect.objectContaining({
+                            take: 1000000
+                        }),
+                        expect.any(Object)
+                    );
+                });
+
+                it('should use user entered undecimatedRecordCount when it is less than calculated max data points', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        name: 'table1',
+                        columns: [
+                            { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+
+                    const csvResponse = 'col1,col2\n1,2';
+                    postSpy.mockReturnValue(of(csvResponse));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['col1-Numeric', 'col2-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'NONE',
+                        filterNulls: false,
+                        applyTimeFilters: false,
+                        undecimatedRecordCount: 5000 // User specifies 5000, which is less than calculated max (500,000)
+                    } as DataFrameQueryV2;
+
+                    await lastValueFrom(datasource.runQuery(query, options));
+
+                    // Should respect user's preference since it's less than the calculated max
+                    expect(postSpy).toHaveBeenCalledWith(
+                        expect.any(String),
+                        expect.objectContaining({
+                            take: 5000
+                        }),
+                        expect.any(Object)
+                    );
+                });
+
                 it('should fall back to decimated data when feature toggle is disabled', async () => {
                     // Use the default ds which doesn't have queryUndecimatedData enabled
                     queryTablesSpy = jest.spyOn(ds, 'queryTables$');

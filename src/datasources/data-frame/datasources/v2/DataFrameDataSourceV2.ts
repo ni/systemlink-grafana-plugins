@@ -478,12 +478,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange
     ): UndecimatedDataRequest[] {
-        const take = Math.min(
-            query.undecimatedRecordCount ?? UNDECIMATED_RECORDS_LIMIT, 
-            UNDECIMATED_RECORDS_LIMIT
-        );
-
         return Object.entries(tableColumnsMap).map(([tableId, columnsMap]) => {
+            // Calculate take based on number of columns to ensure total data points <= 1M
+            const numberOfColumns = Math.max(columnsMap.selectedColumns.length, 1);
+            const maxRowsForColumns = Math.floor(UNDECIMATED_RECORDS_LIMIT / numberOfColumns);
+            const take = Math.min(
+                query.undecimatedRecordCount ?? maxRowsForColumns,
+                maxRowsForColumns
+            );
+    
             const nullFilters: ColumnFilter[] = query.filterNulls
                 ? this.constructNullFilters(columnsMap.selectedColumns)
                 : [];
