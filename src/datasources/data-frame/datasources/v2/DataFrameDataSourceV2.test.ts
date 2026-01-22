@@ -2963,7 +2963,9 @@ describe('DataFrameDataSourceV2', () => {
                     );
                 });
 
-                it('should limit undecimatedRecordCount to UNDECIMATED_RECORDS_LIMIT', async () => {
+                it('should cap take at UNDECIMATED_RECORDS_LIMIT when user requests more via dynamic calculation', async () => {
+                    // Test that when undecimatedRecordCount is valid (1M) but columns would allow more,
+                    // the take is still capped at the undecimatedRecordCount value
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
@@ -2984,7 +2986,7 @@ describe('DataFrameDataSourceV2', () => {
                         decimationMethod: 'NONE',
                         filterNulls: false,
                         applyTimeFilters: false,
-                        undecimatedRecordCount: 2000000 // Exceeds limit of 1,000,000
+                        undecimatedRecordCount: 1000000 // Valid max value
                     } as DataFrameQueryV2;
 
                     await lastValueFrom(datasource.runQuery(query, options));
@@ -2992,7 +2994,7 @@ describe('DataFrameDataSourceV2', () => {
                     expect(postSpy).toHaveBeenCalledWith(
                         expect.any(String),
                         expect.objectContaining({
-                            take: 1000000 // Should be capped at UNDECIMATED_RECORDS_LIMIT
+                            take: 1000000 // Should use the undecimatedRecordCount as it equals limit
                         }),
                         expect.any(Object)
                     );
@@ -3066,7 +3068,7 @@ describe('DataFrameDataSourceV2', () => {
                         decimationMethod: 'NONE',
                         filterNulls: false,
                         applyTimeFilters: false,
-                        undecimatedRecordCount: 2000000 // User requests 2M but max is 1M with 1 column
+                        undecimatedRecordCount: 1000000 // User requests exactly 1M (valid max value)
                     } as DataFrameQueryV2;
 
                     await lastValueFrom(datasource.runQuery(query, options));
@@ -3116,6 +3118,58 @@ describe('DataFrameDataSourceV2', () => {
                         }),
                         expect.any(Object)
                     );
+                });
+
+                it('should return empty DataFrame when undecimatedRecordCount is 0', async () => {
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['voltage-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'NONE',
+                        filterNulls: false,
+                        applyTimeFilters: false,
+                        undecimatedRecordCount: 0 // Invalid: must be > 0
+                    } as DataFrameQueryV2;
+
+                    const result = await lastValueFrom(datasource.runQuery(query, options));
+
+                    // Should return empty DataFrame without querying
+                    expect(result).toEqual(
+                        expect.objectContaining({
+                            refId: 'A',
+                            name: 'A',
+                            fields: []
+                        })
+                    );
+                    expect(queryTablesSpy).not.toHaveBeenCalled();
+                    expect(postSpy).not.toHaveBeenCalled();
+                });
+
+                it('should return empty DataFrame when undecimatedRecordCount exceeds limit', async () => {
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['voltage-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'NONE',
+                        filterNulls: false,
+                        applyTimeFilters: false,
+                        undecimatedRecordCount: 1000001 // Invalid: exceeds limit of 1,000,000
+                    } as DataFrameQueryV2;
+
+                    const result = await lastValueFrom(datasource.runQuery(query, options));
+
+                    // Should return empty DataFrame without querying
+                    expect(result).toEqual(
+                        expect.objectContaining({
+                            refId: 'A',
+                            name: 'A',
+                            fields: []
+                        })
+                    );
+                    expect(queryTablesSpy).not.toHaveBeenCalled();
+                    expect(postSpy).not.toHaveBeenCalled();
                 });
 
                 it('should fall back to decimated data when feature toggle is disabled', async () => {
