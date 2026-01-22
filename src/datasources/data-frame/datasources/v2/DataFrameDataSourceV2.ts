@@ -883,10 +883,22 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private shouldQueryForData(query: ValidDataFrameQueryV2): boolean {
-        return (
-            query.type === DataFrameQueryType.Data
-            && this.hasRequiredFilters(query)
-        );
+        const isDataQueryType = query.type === DataFrameQueryType.Data;
+        
+        if (!isDataQueryType || !this.hasRequiredFilters(query)) {
+            return false;
+        }
+
+        const isUndecimatedDataQuery = this.isQueryUndecimatedDataFeatureEnabled
+            && query.decimationMethod === 'NONE';
+
+        if (isUndecimatedDataQuery) {
+            const isUndecimatedRecordCountValid = query.undecimatedRecordCount > 0 
+                && query.undecimatedRecordCount <= UNDECIMATED_RECORDS_LIMIT;
+            return isUndecimatedRecordCountValid;
+        }
+
+        return true;
     }
 
     public hasRequiredFilters(query: ValidDataFrameQueryV2): boolean {
