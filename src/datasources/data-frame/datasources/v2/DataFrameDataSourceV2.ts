@@ -525,7 +525,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             responseFormat: 'CSV',
             take: request.take
         };
-
         return this.post$<string>(
             `${this.baseUrl}/tables/${request.tableId}/export-data`,
             requestBody,
@@ -551,7 +550,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             header: false,
             skipEmptyLines: true
         });
-
         if (parseResult.errors && parseResult.errors.length > 0) {
             // Only treat actual parsing errors as fatal, not warnings like delimiter auto-detection
             const fatalErrors = parseResult.errors.filter(
