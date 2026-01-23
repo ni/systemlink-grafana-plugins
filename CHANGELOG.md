@@ -1,3 +1,9 @@
+## [4.117.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.116.0...v4.117.0) (2026-01-21)
+
+### Features
+
+* **dataframe:** version 2: rename applyTimeFilters as filterXRangeOnZoomPan ([#648](https://github.com/ni/systemlink-grafana-plugins/issues/648)) ([cfd3131](https://github.com/ni/systemlink-grafana-plugins/commit/cfd31318415ccbbbcef4536fb015f54f2acfcdc0))
+
 ## [4.116.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.115.0...v4.116.0) (2026-01-19)
 
 ### Features

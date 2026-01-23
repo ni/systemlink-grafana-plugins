@@ -42,7 +42,7 @@ export interface DataFrameQueryV2 extends DataQuery {
   filterNulls?: boolean;
   decimationMethod?: string;
   xColumn?: string | null;
-  applyTimeFilters?: boolean;
+  filterXRangeOnZoomPan?: boolean;
   take?: number;
   undecimatedRecordCount?: number;
 }
@@ -143,7 +143,7 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   filterNulls: false,
   decimationMethod: 'LOSSY',
   xColumn: null,
-  applyTimeFilters: false,
+  filterXRangeOnZoomPan: false,
   take: TAKE_LIMIT,
   undecimatedRecordCount: 10_000
 };
