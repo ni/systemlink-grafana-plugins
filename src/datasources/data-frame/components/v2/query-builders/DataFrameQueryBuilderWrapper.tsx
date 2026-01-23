@@ -42,8 +42,6 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
     onDataTableFilterChange,
     onColumnFilterChange,
 }) => {
-    const isQueryByResultAndColumnPropertiesEnabled = 
-    datasource.instanceSettings.jsonData.featureToggles.queryByResultAndColumnProperties;
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
     const [partNumbers, setPartNumbers] = useState<string[] | null>(null);
 
@@ -124,31 +122,27 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                     {' '}{additionalInfoMessage}
                 </Alert>
             </div>
-            {isQueryByResultAndColumnPropertiesEnabled && (
-                <>
-                    <InlineLabel
-                        width={VALUE_FIELD_WIDTH}
-                        tooltip={tooltips.queryByResultProperties}
-                    >
-                        {labels.queryByResultProperties}
-                    </InlineLabel>
-                    <div
-                        style={{
-                            width: getValuesInPixels(VALUE_FIELD_WIDTH),
-                            marginBottom: getValuesInPixels(DEFAULT_MARGIN_BOTTOM),
-                        }}
-                    >
-                        <ResultsQueryBuilder
-                            filter={resultFilter}
-                            workspaces={workspaces}
-                            partNumbers={partNumbers}
-                            status={statusOptions}
-                            globalVariableOptions={datasource.globalVariableOptions()}
-                            onChange={onResultFilterChange}
-                        />
-                    </div>
-                </>
-            )}
+            <InlineLabel
+                width={VALUE_FIELD_WIDTH}
+                tooltip={tooltips.queryByResultProperties}
+            >
+                {labels.queryByResultProperties}
+            </InlineLabel>
+            <div
+                style={{
+                    width: getValuesInPixels(VALUE_FIELD_WIDTH),
+                    marginBottom: getValuesInPixels(DEFAULT_MARGIN_BOTTOM),
+                }}
+            >
+                <ResultsQueryBuilder
+                    filter={resultFilter}
+                    workspaces={workspaces}
+                    partNumbers={partNumbers}
+                    status={statusOptions}
+                    globalVariableOptions={datasource.globalVariableOptions()}
+                    onChange={onResultFilterChange}
+                />
+            </div>
             <InlineLabel
                 width={VALUE_FIELD_WIDTH}
                 tooltip={tooltips.queryByDataTableProperties}
@@ -169,28 +163,24 @@ export const DataFrameQueryBuilderWrapper: React.FC<DataFrameQueryBuilderWrapper
                     dataTableNameLookupCallback={dataTableNameLookupCallback}
                 />
             </div>
-            {isQueryByResultAndColumnPropertiesEnabled && (
-                <>
-                    <InlineLabel
-                        width={VALUE_FIELD_WIDTH}
-                        tooltip={tooltips.queryByColumnProperties}
-                    >
-                        {labels.queryByColumnProperties}
-                    </InlineLabel>
-                    <div
-                        style={{
-                            width: getValuesInPixels(VALUE_FIELD_WIDTH),
-                            marginBottom: getValuesInPixels(DEFAULT_MARGIN_BOTTOM),
-                        }}
-                    >
-                        <ColumnsQueryBuilder
-                            filter={columnFilter}
-                            onChange={onColumnFilterChange}
-                            disabled={!resultFilter || resultFilter.trim() === ''}
-                        />
-                    </div>
-                </>
-            )}
+            <InlineLabel
+                width={VALUE_FIELD_WIDTH}
+                tooltip={tooltips.queryByColumnProperties}
+            >
+                {labels.queryByColumnProperties}
+            </InlineLabel>
+            <div
+                style={{
+                    width: getValuesInPixels(VALUE_FIELD_WIDTH),
+                    marginBottom: getValuesInPixels(DEFAULT_MARGIN_BOTTOM),
+                }}
+            >
+                <ColumnsQueryBuilder
+                    filter={columnFilter}
+                    onChange={onColumnFilterChange}
+                    disabled={!resultFilter || resultFilter.trim() === ''}
+                />
+            </div>
         </>
     );
 };
