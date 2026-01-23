@@ -41,7 +41,7 @@ describe('DataFrameConfigEditor', () => {
     });
 
     test('should update the queryUndecimatedData feature toggles option when it is toggled', async () => {
-        const queryUndecimatedDataToggle = screen.getAllByRole('switch')[2];
+        const queryUndecimatedDataToggle = screen.getAllByRole('switch')[0];
         const expectedJsonData = {
             "jsonData": { 
                 "featureToggles": { 
@@ -61,7 +61,7 @@ describe('DataFrameConfigEditor', () => {
     });
 
     test('should update the highResolutionZoom feature toggles option when it is toggled', async () => {
-        const highResolutionZoomToggle = screen.getAllByRole('switch')[3];
+        const highResolutionZoomToggle = screen.getAllByRole('switch')[1];
         const expectedJsonData = {
             "jsonData": { 
                 "featureToggles": { 
