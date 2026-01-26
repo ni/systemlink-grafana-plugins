@@ -29,15 +29,6 @@ describe('DataFrameQueryParamsHandler', () => {
       expect(mockPartial).not.toHaveBeenCalled();
     });
 
-    it('should not update query parameters when a panel is in edit mode', () => {
-      const queryParams: UrlQueryMap = { [editPanelModeParam]: '7' } as UrlQueryMap;
-      mockGetSearchObject.mockReturnValue(queryParams);
-
-      DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam(true, '7');
-
-      expect(mockPartial).not.toHaveBeenCalled();
-    });
-
     it('should not update query parameters when filterXRangeOnZoomPan is enabled and panelId is already present in targets', () => {
       const queryParams: UrlQueryMap = { [syncXAxisRangeTargets]: '10,11' } as UrlQueryMap;
       mockGetSearchObject.mockReturnValue(queryParams);

@@ -1,6 +1,6 @@
 import { UrlQueryMap } from "@grafana/data";
 import { locationService } from "@grafana/runtime";
-import { editPanelModeParam, syncXAxisRangeTargets } from "datasources/data-frame/constants/v2/route-query-parameters";
+import { syncXAxisRangeTargets } from "datasources/data-frame/constants/v2/route-query-parameters";
 
 export  class  DataFrameQueryParamsHandler {
     public static updateSyncXAxisRangeTargetsQueryParam(
@@ -12,11 +12,6 @@ export  class  DataFrameQueryParamsHandler {
         }
 
         const queryParams = locationService.getSearchObject();
-        const isInEditPanelMode = queryParams[editPanelModeParam] !== undefined;
-        if (isInEditPanelMode) {
-            return;
-        }
-
         let targets: string[] = this.getSyncXAxisRangeTargets(queryParams);
         if (
             (filterXRangeOnZoomPan && targets.includes(panelId))
