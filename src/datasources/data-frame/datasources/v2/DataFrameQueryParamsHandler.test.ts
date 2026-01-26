@@ -1,5 +1,5 @@
 import type { UrlQueryMap } from '@grafana/data';
-import { editPanelModeParam, syncXAxisRangeTargets } from 'datasources/data-frame/constants/v2/route-query-parameters';
+import { syncXAxisRangeTargets } from 'datasources/data-frame/constants/v2/route-query-parameters';
 import { DataFrameQueryParamsHandler } from 'datasources/data-frame/datasources/v2/DataFrameQueryParamsHandler';
 import { locationService } from '@grafana/runtime';
 
