@@ -11,7 +11,7 @@ beforeEach(() => {
   [ds, backendSrv, templateSrv] = setupDataSource(SystemDataSource);
 });
 
-const buildQuery = getQueryBuilder<SystemQuery>()({ systemName: '', workspace: '' });
+const buildQuery = getQueryBuilder<SystemQuery>()({ systemName: '', workspace: '', filter: '' });
 
 test('query for summary counts', async () => {
   backendSrv.fetch
@@ -61,7 +61,7 @@ test('query properties for all systems', async () => {
 test('query properties for one system', async () => {
   backendSrv.fetch
     .calledWith(
-      requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { filter: 'id = "system-1" || alias = "system-1"' } })
+      requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { filter: '(id = "system-1" || alias = "system-1")' } })
     )
     .mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
 
@@ -88,12 +88,13 @@ test('query properties for one system', async () => {
 });
 
 test('query properties with templated system name', async () => {
-  templateSrv.replace.calledWith('$system_id').mockReturnValue('system-1');
-  backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
+  templateSrv.replace.calledWith('(id = "$system_id" || alias = "$system_id")', expect.any(Object)).mockReturnValue('(id = "system-1" || alias = "system-1")');
+  backendSrv.fetch
+    .mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
 
   await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: '$system_id' })));
 
-  expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('filter', 'id = "system-1" || alias = "system-1"');
+  expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('filter', '(id = "system-1" || alias = "system-1")');
 });
 
 test('queries for system variable values - all workspaces', async () => {
@@ -120,12 +121,12 @@ test('queries for system variable values - single workspace', async () => {
 test('attempts to replace variables in properties query', async () => {
   const workspaceVariable = '$workspace';
   backendSrv.fetch.mockReturnValue(createFetchResponse({ data: fakeSystems }));
-  templateSrv.replace.calledWith(workspaceVariable).mockReturnValue('1');
+  templateSrv.replace.calledWith(`workspace = "${workspaceVariable}"`).mockReturnValue('workspace = "1"');
 
-  await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: 'system', workspace: workspaceVariable })));
+  await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties, filter: `workspace = "${workspaceVariable}"` })));
 
-  expect(templateSrv.replace).toHaveBeenCalledTimes(2);
-  expect(templateSrv.replace.mock.calls[1][0]).toBe(workspaceVariable);
+  expect(templateSrv.replace).toHaveBeenCalledTimes(1);
+  expect(templateSrv.replace.mock.calls[0][0]).toContain(workspaceVariable);
 });
 
 test('attempts to replace variables in metricFindQuery', async () => {
@@ -141,13 +142,302 @@ test('attempts to replace variables in metricFindQuery', async () => {
 
 test('should not run query if hidden', () => {
   const query: SystemQuery = {
-      hide: true,
+    hide: true,
+    queryKind: SystemQueryType.Properties,
+    systemName: '',
+    workspace: '',
+    refId: ''
+  };
+  expect(ds.shouldRunQuery(query)).toBe(false);
+});
+
+describe('System filter transformation', () => {
+  beforeEach(() => {
+    backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [] }));
+  });
+
+  test('handles multi-value transform of "scanCode" with "!=" operator', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
       queryKind: SystemQueryType.Properties,
       systemName: '',
       workspace: '',
-      refId: ''
-  };
-  expect(ds.shouldRunQuery(query)).toBe(false);
+      filter: `scanCode != "{scan1,scan2}"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      '(scanCode != "scan1" && scanCode != "scan2")'
+    );
+  });
+
+  test('handles multi-value transform of "scanCode" with "=" operator', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `scanCode = "{scan1,scan2,scan3}"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      '(scanCode = "scan1" || scanCode = "scan2" || scanCode = "scan3")'
+    );
+  });
+
+  test('handles multi-value transform of "id" with "=" operator', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `id = "{system1,system2,system3}"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      '(id = "system1" || id = "system2" || id = "system3")'
+    );
+  });
+
+  test('handles multi-value transform of "id" with "!=" operator', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `id != "{system1,system2}"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      '(id != "system1" && id != "system2")'
+    );
+  });
+
+  test('handles boolean field with "!=" operator', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `lockedStatus != "true"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      '!grains.data.minion_blackout.Equals(true)'
+    );
+  });
+});
+
+describe('backward compatibility - legacy systemName and workspace migration', () => {
+  beforeEach(() => {
+    backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [] }));
+  });
+
+  test('should migrate systemName to minionId filter', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: 'my-system',
+      workspace: '',
+      filter: ''
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      '(id = "my-system" || alias = "my-system")'
+    );
+  });
+
+  test('should migrate workspace to filter when systemName is empty', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: 'workspace-1',
+      filter: ''
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      'workspace = "workspace-1"'
+    );
+  });
+
+  test('should preserve existing filter and append migrated systemName', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: 'my-system',
+      workspace: '',
+      filter: 'state = "CONNECTED"'
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      'state = "CONNECTED" && (id = "my-system" || alias = "my-system")'
+    );
+  });
+
+  test('should not add workspace filter if systemName is provided', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: 'my-system',
+      workspace: 'workspace-1',
+      filter: ''
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      '(id = "my-system" || alias = "my-system")'
+    );
+  });
+
+  test('should clear systemName and workspace fields after migration', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: 'my-system',
+      workspace: 'workspace-1',
+      filter: ''
+    };
+
+    const prepared = ds.prepareQuery(query);
+
+    expect(prepared.systemName).toBe('');
+    expect(prepared.workspace).toBe('');
+    expect(prepared.filter).toBe('(id = "my-system" || alias = "my-system")');
+  });
+});
+
+describe('UI field mapping', () => {
+  beforeEach(() => {
+    backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [] }));
+  });
+
+  test('should map connectionStatus UI field to connected.data.state backend field in filter', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `connectionStatus = "CONNECTED" && scanCode = "ABC123DEF456"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      `connected.data.state = "CONNECTED" && scanCode = "ABC123DEF456"`
+    );
+  });
+
+  test('should map model UI field to grains.data.productname backend field in filter', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `model = "NI cRIO-9033"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      `grains.data.productname = "NI cRIO-9033"`
+    );
+  });
+
+  test('should map vendor UI field to grains.data.manufacturer backend field in filter', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `vendor = "National Instruments"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      `grains.data.manufacturer = "National Instruments"`
+    );
+  });
+
+  test('should map osFullName UI field to grains.data.osfullname backend field in filter', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `osFullName = "nilrt"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      `grains.data.osfullname = "nilrt"`
+    );
+  });
+
+  test('should map lockedStatus UI field to grains.data.minion_blackout backend field in filter', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `lockedStatus = "true"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      `grains.data.minion_blackout.Equals(true)`
+    );
+  });
+
+  test('should map multiple UI fields in a single filter', async () => {
+    const query: SystemQuery = {
+      refId: 'A',
+      queryKind: SystemQueryType.Properties,
+      systemName: '',
+      workspace: '',
+      filter: `connectionStatus = "CONNECTED" && osFullName = "nilrt" && lockedStatus != "true"`
+    };
+
+    await firstValueFrom(ds.query(buildQuery(query)));
+
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
+      'filter',
+      `connected.data.state = "CONNECTED" && grains.data.osfullname = "nilrt" && !grains.data.minion_blackout.Equals(true)`
+    );
+  });
 });
 
 const fakeSystems: SystemProperties[] = [
