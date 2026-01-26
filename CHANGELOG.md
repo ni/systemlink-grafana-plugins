@@ -1,3 +1,9 @@
+## [4.118.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.117.0...v4.118.0) (2026-01-26)
+
+### Features
+
+* **system:** Implement query builder for systems data source filtering ([#560](https://github.com/ni/systemlink-grafana-plugins/issues/560)) ([573dece](https://github.com/ni/systemlink-grafana-plugins/commit/573decedc476abcf0158be4fe10e15c791ded85a))
+
 ## [4.117.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.116.0...v4.117.0) (2026-01-21)
 
 ### Features
