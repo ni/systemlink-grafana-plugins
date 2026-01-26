@@ -8,6 +8,7 @@ import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/componen
 import { Workspace } from 'core/types';
 import { isObservable, lastValueFrom, Observable, of, throwError } from 'rxjs';
 import * as coreUtils from 'core/utils';
+import { DataFrameQueryParamsHandler } from './DataFrameQueryParamsHandler';
 
 jest.mock('core/query-builder.utils', () => {
     const actualQueryBuilderUtils = jest.requireActual('core/query-builder.utils');
@@ -46,6 +47,8 @@ describe('DataFrameDataSourceV2', () => {
 
         const actualCoreUtils = jest.requireActual('core/utils');
         (coreUtils.replaceVariables as jest.Mock).mockImplementation(actualCoreUtils.replaceVariables);
+
+        jest.spyOn(DataFrameQueryParamsHandler, 'updateSyncXAxisRangeTargetsQueryParam').mockImplementation(() => { });
 
         instanceSettings = {
             id: 1,
@@ -114,6 +117,90 @@ describe('DataFrameDataSourceV2', () => {
             await lastValueFrom(ds.runQuery(query, options));
 
             expect(processQuerySpy).toHaveBeenCalledWith(query, options.targets);
+        });
+
+        describe('syncXAxisRangeTargets query param initialization', () => {
+            const optionsWithoutPanelId = {
+                ...options,
+                targets: [
+                    {
+                        ...query,
+                        applyTimeFilters: false,
+                    },
+                    {
+                        ...query,
+                        applyTimeFilters: true,
+                    }
+                ],
+            } as unknown as DataQueryRequest<DataFrameQueryV2>;
+            const optionsWithPanelId = {
+                ...options,
+                panelId: 42,
+                targets: [
+                    {
+                        ...query,
+                        applyTimeFilters: false,
+                    },
+                    {
+                        ...query,
+                        applyTimeFilters: true,
+                    }
+                ],
+            } as unknown as DataQueryRequest<DataFrameQueryV2>;
+
+            beforeEach(() => {
+                jest.spyOn(ds, 'queryTables$').mockReturnValue(of([]));
+                jest.spyOn(ds, 'post$').mockReturnValue(of({ frame: { columns: ['Column1'], data: [] } }));
+            });
+
+            it('should call updateSyncXAxisRangeTargetsQueryParam when panelId is defined', async () => {
+                await lastValueFrom(ds.runQuery(optionsWithPanelId.targets[0], optionsWithPanelId));
+
+                expect(DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam).toHaveBeenCalledWith(
+                    true,
+                    '42'
+                );
+            });
+
+            it('should call updateSyncXAxisRangeTargetsQueryParam when panelId is undefined', async () => {
+                await lastValueFrom(ds.runQuery(optionsWithoutPanelId.targets[0], optionsWithoutPanelId));
+
+                expect(DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam).toHaveBeenCalledWith(
+                    true,
+                    undefined
+                );
+            });
+
+            it('should call updateSyncXAxisRangeTargetsQueryParam when run query is called second time', async () => {
+                await lastValueFrom(ds.runQuery(optionsWithPanelId.targets[0], optionsWithPanelId));
+
+                expect(DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam).toHaveBeenCalledTimes(1);
+
+                await lastValueFrom(ds.runQuery(optionsWithPanelId.targets[0], optionsWithPanelId));
+                expect(DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam).toHaveBeenCalledTimes(2);
+            });
+
+            describe('when high resolution zoom feature is disabled', () => {
+                let dsWithHighResZoomDisabled: DataFrameDataSourceV2;
+
+                beforeEach(() => {
+                    dsWithHighResZoomDisabled = new DataFrameDataSourceV2(
+                        instanceSettings,
+                        backendSrv,
+                        templateSrv,
+                        {
+                            ...DataFrameFeatureTogglesDefaults,
+                            highResolutionZoom: false
+                        }
+                    );
+                });
+
+                it('should not call updateSyncXAxisRangeTargetsQueryParam when run query is called', async () => {
+                    await lastValueFrom(dsWithHighResZoomDisabled.runQuery(optionsWithPanelId.targets[0], optionsWithPanelId));
+
+                    expect(DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam).toHaveBeenCalledTimes(0);
+                });
+            });
         });
 
         it('should call transformComputedFieldsQuery when dataTableFilter is present', async () => {

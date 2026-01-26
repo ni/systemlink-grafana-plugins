@@ -13,6 +13,7 @@ import { ResultsQueryBuilderFieldNames } from "shared/components/ResultsQueryBui
 import { replaceVariables } from "core/utils";
 import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
 import { QueryBuilderOperations } from "core/query-builder.constants";
+import { DataFrameQueryParamsHandler } from "./DataFrameQueryParamsHandler";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
@@ -34,6 +35,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         this.scopedVars = options.scopedVars;
         const processedQuery = this.processQuery(query, options.targets);
         const transformedQuery = this.transformQuery(processedQuery, options.scopedVars);
+
+        if (this.featureToggles.highResolutionZoom) {
+            DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam(
+                transformedQuery.filterXRangeOnZoomPan,
+                options.panelId?.toString(),
+            );
+        }
+
 
         if (this.shouldQueryForData(transformedQuery)) {
             return this.getFieldsForDataQuery$(
