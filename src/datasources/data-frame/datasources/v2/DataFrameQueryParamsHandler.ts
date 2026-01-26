@@ -20,9 +20,9 @@ export  class  DataFrameQueryParamsHandler {
             return;
         }
 
-        if (filterXRangeOnZoomPan && !targets.includes(panelId)) {
+        if (filterXRangeOnZoomPan) {
             targets.push(panelId);
-        } else if (!filterXRangeOnZoomPan && targets.includes(panelId)) {
+        } else {
             targets = targets.filter((target) => target !== panelId);
         }
 

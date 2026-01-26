@@ -43,7 +43,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             );
         }
 
-
         if (this.shouldQueryForData(transformedQuery)) {
             return this.getFieldsForDataQuery$(
                 transformedQuery,

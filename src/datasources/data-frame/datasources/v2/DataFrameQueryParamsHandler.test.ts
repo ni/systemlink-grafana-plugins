@@ -21,6 +21,14 @@ describe('DataFrameQueryParamsHandler', () => {
   });
 
   describe('updateSyncXAxisRangeTargetsQueryParam', () => {
+    it('should not update query parameters when panelId is undefined', () => {
+      mockGetSearchObject.mockReturnValue({});
+
+      DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam(true, undefined);
+
+      expect(mockPartial).not.toHaveBeenCalled();
+    });
+
     it('should not update query parameters when panelId is empty', () => {
       mockGetSearchObject.mockReturnValue({});
 
@@ -67,7 +75,7 @@ describe('DataFrameQueryParamsHandler', () => {
       expect(mockPartial).toHaveBeenCalledWith({ [syncXAxisRangeTargets]: '1' }, true);
     });
 
-    it('should initialize query parameter when it do not exist and filterXRangeOnZoomPan is enabled', () => {
+    it('should initialize query parameter when it does not exist and filterXRangeOnZoomPan is enabled', () => {
       const queryParams: UrlQueryMap = {} as UrlQueryMap;
       mockGetSearchObject.mockReturnValue(queryParams);
 
@@ -75,6 +83,16 @@ describe('DataFrameQueryParamsHandler', () => {
 
       expect(mockPartial).toHaveBeenCalledTimes(1);
       expect(mockPartial).toHaveBeenCalledWith({ [syncXAxisRangeTargets]: '42' }, true);
+    });
+
+    it('should update query parameter to empty when it only contains the panelId and filterXRangeOnZoomPan is disabled', () => {
+      const queryParams: UrlQueryMap = { [syncXAxisRangeTargets]: '42' } as UrlQueryMap;
+      mockGetSearchObject.mockReturnValue(queryParams);
+
+      DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam(false, '42');
+      
+      expect(mockPartial).toHaveBeenCalledTimes(1);
+      expect(mockPartial).toHaveBeenCalledWith({ [syncXAxisRangeTargets]: '' }, true);
     });
   });
 
