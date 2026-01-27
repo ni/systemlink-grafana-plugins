@@ -36,6 +36,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
 
   const traceColors = useTraceColors(theme);
   const debounceDelayInMs = 300;
+  const xAxisPrecisionDecimals = 6;
 
   const publishXAxisRangeUpdate = useMemo(
     () =>
@@ -205,7 +206,6 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       return;
     }
     
-    const xAxisPrecisionDecimals = 6;
     const updatedXAxisMin = Number(xAxisMin.toFixed(xAxisPrecisionDecimals));
     const updatedXAxisMax = Number(xAxisMax.toFixed(xAxisPrecisionDecimals));
     const existingXAxisMinParam = queryParams[`nisl-${options.xAxis.field}-min`];
