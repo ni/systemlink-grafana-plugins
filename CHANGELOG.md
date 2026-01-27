@@ -1,3 +1,9 @@
+## [4.119.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.119.0...v4.119.1) (2026-01-27)
+
+### Bug Fixes
+
+* **systems:** Cancel ongoing requests when refreshing query ([#526](https://github.com/ni/systemlink-grafana-plugins/issues/526)) ([bafcefa](https://github.com/ni/systemlink-grafana-plugins/commit/bafcefa9ab9867b29027bce74bd87c6443cdf1e3))
+
 ## [4.119.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.118.0...v4.119.0) (2026-01-27)
 
 ### Features
