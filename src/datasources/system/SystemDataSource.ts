@@ -151,7 +151,7 @@ export class SystemDataSource extends SystemsDataSourceBase {
     return mappedFilter;
   }
 
-  async getSystemProperties(filter?: string, projection = defaultProjection) {
+  async getSystemProperties(filter?: string, projection = defaultProjection): Promise<SystemProperties[]> {
     const response = await this.getSystems({
       filter: filter || '',
       projection: `new(${projection.join()})`,
