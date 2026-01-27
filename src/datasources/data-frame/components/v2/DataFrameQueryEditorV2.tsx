@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery, CombinedFilters } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2, metadataFieldOptions } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
-import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT, UNDECIMATED_RECORDS_LIMIT,decimationNoneOption } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
 import {
     errorMessages,
@@ -14,22 +14,27 @@ import {
     labels,
     placeholders,
     tooltips,
+    infoMessage,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { isObservable, lastValueFrom } from 'rxjs';
 import _ from 'lodash';
 
 export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRunQuery, datasource }: Props) => {
+    const isQueryUndecimatedDataFeatureEnabled = useMemo(() => 
+        datasource.instanceSettings.jsonData?.featureToggles?.queryUndecimatedData ?? false,
+        [datasource]
+    );
     const migratedQuery = datasource.processQuery(query as DataFrameDataQuery) as ValidDataFrameQueryV2;
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
     const [isColumnConfigurationSectionOpen, setIsColumnConfigurationSectionOpen] = useState(true);
     const [isDecimationSettingsSectionOpen, setIsDecimationSettingsSectionOpen] = useState(true);
     const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
-    const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
-    const [isColumnLimitExceeded, setIsColumnLimitExceeded] = useState<boolean>(false);
+    const [undecimatedRecordCountInvalidMessage, setUndecimatedRecordCountInvalidMessage] = useState<string>('');
+    const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>(metadataFieldOptions);
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
     const [xColumnOptions, setXColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
-    const [isXColumnLimitExceeded, setIsXColumnLimitExceeded] = useState<boolean>(false);
+    const [isColumnOptionsInitialized, setIsColumnOptionsInitialized] = useState<boolean>(false);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -39,7 +44,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             .map(([key, value]) => ({
                 label: value.label,
                 value: key as DataTableProperties
-            }));
+            }))
+            .sort((a, b) => a.label.localeCompare(b.label));
 
     const dataTablePropertiesOptions = getPropertiesOptions(DataTableProjectionType.DataTable);
     const columnPropertiesOptions = getPropertiesOptions(DataTableProjectionType.Column);
@@ -50,6 +56,16 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         columnFilter: '',
     });
 
+    // Auto-run query on initial render
+    // if it is default query
+    useEffect(() => {
+        const isDefaultQuery = _.isMatch(migratedQuery, defaultQueryV2);
+        if (isDefaultQuery) {
+          onRunQuery();
+        }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, []);
+
     const fetchAndSetColumnOptions = useCallback(
         async (filters: CombinedFilters) => {
             if (!filters.dataTableFilter && !filters.resultFilter && !filters.columnFilter) {
@@ -59,22 +75,16 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             try {
                 const columnOptions = await datasource.getColumnOptionsWithVariables(filters);
                 const limitedColumnOptions = columnOptions.uniqueColumnsAcrossTables
-                    .slice(0, COLUMN_OPTIONS_LIMIT);
+                    .slice(0, COLUMN_OPTIONS_LIMIT + metadataFieldOptions.length);
                 const limitedXColumnOptions = columnOptions.commonColumnsAcrossTables
                     .slice(0, COLUMN_OPTIONS_LIMIT);
-                setIsColumnLimitExceeded(
-                    columnOptions.uniqueColumnsAcrossTables.length > COLUMN_OPTIONS_LIMIT
-                );
-                setIsXColumnLimitExceeded(
-                    columnOptions.commonColumnsAcrossTables.length > COLUMN_OPTIONS_LIMIT
-                );
                 setColumnOptions(limitedColumnOptions);
                 setXColumnOptions(limitedXColumnOptions);
             } catch (error) {
-                setColumnOptions([]);
+                setColumnOptions(metadataFieldOptions);
                 setXColumnOptions([]);
-                setIsColumnLimitExceeded(false);
-                setIsXColumnLimitExceeded(false);
+            } finally {
+                setIsColumnOptionsInitialized(true);
             }
         },
         [
@@ -122,15 +132,15 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
     }, [validColumnSelections, invalidColumnSelections]);
 
     const invalidSelectedColumnsMessage = useMemo(() => {
-        if (invalidColumnSelections.length === 0) {
+        if (invalidColumnSelections.length === 0 || !isColumnOptionsInitialized) {
             return '';
         }
 
         const invalidColumnNames = invalidColumnSelections.map(column => column.label).join(', ');
         return invalidColumnSelections.length === 1
-            ? `The selected column '${invalidColumnNames}' is not valid.`
-            : `The selected columns '${invalidColumnNames}' are not valid.`;
-    }, [invalidColumnSelections]);
+            ? `The following selected column is not valid: '${invalidColumnNames}'`
+            : `The following selected columns are not valid: '${invalidColumnNames}'`;
+    }, [invalidColumnSelections, isColumnOptionsInitialized]);
 
     useEffect(
         () => {
@@ -144,6 +154,14 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             };
 
             const filterChanged = !_.isEqual(lastFilterRef.current, transformedFilter);
+            const hasRequiredFilters = datasource.hasRequiredFilters(migratedQuery);
+
+            if (
+                !isColumnOptionsInitialized
+                && (!filterChanged || !hasRequiredFilters)
+            ) {
+                setIsColumnOptionsInitialized(true);
+            }
 
             if (migratedQuery.type !== DataFrameQueryType.Data || !filterChanged) {
                 return;
@@ -151,20 +169,14 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
             lastFilterRef.current = transformedFilter;
 
-            if (
-                transformedFilter.dataTableFilter ||
-                transformedFilter.resultFilter ||
-                transformedFilter.columnFilter
-            ) {
+            if (hasRequiredFilters) {
                 fetchAndSetColumnOptions(transformedFilter);
                 return;
             }
 
-            // Clear column options if filter is empty
-            setIsColumnLimitExceeded(false);
-            setIsXColumnLimitExceeded(false);
+            // Clear column options (except metadata fields) if filter is empty
             if (columnOptions.length > 0) {
-                setColumnOptions([]);
+                setColumnOptions(metadataFieldOptions);
             }
             if (xColumnOptions.length > 0) {
                 setXColumnOptions([]);
@@ -196,8 +208,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                 label: getSelectedColumnLabelForInvalidColumn(migratedQuery.xColumn),
                 value: migratedQuery.xColumn
             };
-        return { isInvalid: !validXColumn, value };
-    }, [migratedQuery.xColumn, xColumnOptions, getSelectedColumnLabelForInvalidColumn]);
+        return { isInvalid: !validXColumn && isColumnOptionsInitialized, value };
+    }, [
+        migratedQuery.xColumn, 
+        xColumnOptions, 
+        getSelectedColumnLabelForInvalidColumn, 
+        isColumnOptionsInitialized
+    ]);
 
     const handleQueryChange = useCallback(
         (query: DataFrameQueryV2, runQuery = true): void => {
@@ -298,6 +315,14 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         handleQueryChange({ ...migratedQuery, take: value });
     };
 
+    const onUndecimatedRecordCountChange = (event: React.FormEvent<HTMLInputElement>) => {
+        const value = parseInt((event.target as HTMLInputElement).value, 10);
+        const message = validateTakeValue(value, UNDECIMATED_RECORDS_LIMIT);
+
+        setUndecimatedRecordCountInvalidMessage(message);
+        handleQueryChange({ ...migratedQuery, undecimatedRecordCount: value });
+    };
+
     const onColumnsChange = (columns: Array<ComboboxOption<string>>) => {
         handleQueryChange({ ...migratedQuery, columns: columns.map(column => column.value) });
     };
@@ -309,11 +334,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
 
     const onFilterNullsChange = (event: React.FormEvent<HTMLInputElement>) => {
         const filterNulls = event.currentTarget.checked;
-        handleQueryChange({ ...migratedQuery, filterNulls }, false);
+        handleQueryChange({ ...migratedQuery, filterNulls });
     };
 
     const onDecimationMethodChange = (option: ComboboxOption<string>) => {
-        handleQueryChange({ ...migratedQuery, decimationMethod: option.value }, false);
+        handleQueryChange({ ...migratedQuery, decimationMethod: option.value });
     };
 
     const onXColumnChange = (option: ComboboxOption<string> | null) => {
@@ -321,9 +346,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         handleQueryChange({ ...migratedQuery, xColumn });
     };
 
-    const onUseTimeRangeChange = (event: React.FormEvent<HTMLInputElement>) => {
-        const applyTimeFilters = event.currentTarget.checked;
-        handleQueryChange({ ...migratedQuery, applyTimeFilters }, false);
+    const onFilterXRangeOnZoomPanChange = (event: React.FormEvent<HTMLInputElement>) => {
+        const filterXRangeOnZoomPan = event.currentTarget.checked;
+        handleQueryChange({ ...migratedQuery, filterXRangeOnZoomPan });
     };
 
     function validateTakeValue(value: number, TAKE_LIMIT: number) {
@@ -331,11 +356,22 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             return errorMessages.take.greaterOrEqualToZero;
         }
         if (value > TAKE_LIMIT) {
-            return errorMessages.take.lessOrEqualToTakeLimit;
+            return errorMessages.take.lessOrEqualToTakeLimit
+                .replace(
+                    '{TAKE_LIMIT}', 
+                    TAKE_LIMIT.toString()
+                );
         }
 
         return '';
     }
+
+    const decimationMethodOptions = useMemo(() => {
+        if (isQueryUndecimatedDataFeatureEnabled) {
+            return [decimationNoneOption, ...decimationMethods];
+        }
+        return decimationMethods;
+    }, [isQueryUndecimatedDataFeatureEnabled]);
 
     return (
         <>
@@ -360,21 +396,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                     collapsible={true}
                     onToggle={() => setIsQueryConfigurationSectionOpen(!isQueryConfigurationSectionOpen)}
                 >
-                    {migratedQuery.type === DataFrameQueryType.Data && (
-                        <>
-                            {isColumnLimitExceeded && (
-                                <Alert title='Warning' severity='warning'>{errorMessages.columnLimitExceeded}</Alert>
-                            )}
-                            {isXColumnLimitExceeded && (
-                                <Alert title='Warning' severity='warning'>{errorMessages.xColumnLimitExceeded}</Alert>
-                            )}
-                        </>
-                    )}
                     <DataFrameQueryBuilderWrapper
                         datasource={datasource}
                         resultFilter={migratedQuery.resultFilter}
                         dataTableFilter={migratedQuery.dataTableFilter}
                         columnFilter={migratedQuery.columnFilter}
+                        additionalInfoMessage={infoMessage.datasourceHelp}
+                        infoMessageWidth={infoMessage.width}
                         onResultFilterChange={onResultFilterChange}
                         onDataTableFilterChange={onDataTableFilterChange}
                         onColumnFilterChange={onColumnFilterChange}
@@ -470,7 +498,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                                 width={INLINE_LABEL_WIDTH}
                                 value={migratedQuery.decimationMethod}
                                 onChange={onDecimationMethodChange}
-                                options={decimationMethods}
+                                options={decimationMethodOptions}
                                 createCustomValue={false}
                             />
                         </InlineField>
@@ -497,10 +525,35 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             tooltip={tooltips.useTimeRange}
                         >
                             <InlineSwitch
-                                value={migratedQuery.applyTimeFilters}
-                                onChange={onUseTimeRangeChange}
+                                value={migratedQuery.filterXRangeOnZoomPan}
+                                onChange={onFilterXRangeOnZoomPanChange}
                             />
                         </InlineField>
+                        { 
+                            (
+                                isQueryUndecimatedDataFeatureEnabled 
+                                && 
+                                migratedQuery.decimationMethod === 'NONE'
+                            ) && (
+                                <InlineField
+                                    label={labels.take}
+                                    labelWidth={INLINE_LABEL_WIDTH}
+                                    tooltip={tooltips.undecimatedRecordCount}
+                                    invalid={!!undecimatedRecordCountInvalidMessage}
+                                    error={undecimatedRecordCountInvalidMessage}
+                                >
+                                    <AutoSizeInput
+                                        minWidth={26}
+                                        maxWidth={26}
+                                        type="number"
+                                        placeholder={placeholders.take}
+                                        value={migratedQuery.undecimatedRecordCount}
+                                        onBlur={onUndecimatedRecordCountChange}
+                                        onKeyDown={(event) => { validateNumericInput(event); }}
+                                    />
+                                </InlineField>
+                            )
+                        }
                     </Collapse>
                 </div >
             )}
@@ -508,7 +561,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
             {migratedQuery.type === DataFrameQueryType.Properties && (
                 <>
                     {isPropertiesNotSelected && (
-                        <Alert title='Error' severity='error'>
+                        <Alert 
+                            title='Error' 
+                            severity='error' 
+                            style={{ width: getValuesInPixels(VALUE_FIELD_WIDTH) }}
+                        >
                             {errorMessages.propertiesNotSelected}
                         </Alert>
                     )}
@@ -525,6 +582,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             value={migratedQuery.dataTableProperties}
                             onChange={onDataTablePropertiesChange}
                             options={dataTablePropertiesOptions}
+                            isClearable={true}
                         />
                     </InlineField>
                     <InlineField
@@ -540,6 +598,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             value={migratedQuery.columnProperties}
                             onChange={onColumnPropertiesChange}
                             options={columnPropertiesOptions}
+                            isClearable={true}
                         />
                     </InlineField>
                 </>

@@ -18,6 +18,12 @@ export const decimationMethods = [
   },
 ];
 
+export const decimationNoneOption = {
+  value: 'NONE',
+  label: 'None',
+  description: nbsp`No decimation applied`,
+};
+
 export const errorCodes: { [key: number]: string; } = {
   [-255134]: 'Invalid table ID',
   [-255130]: 'Table does not exist',
@@ -26,9 +32,12 @@ export const errorCodes: { [key: number]: string; } = {
 export const propertiesCacheTTL = 1000 * 60 * 5; // 5 minutes
 
 export const TAKE_LIMIT = 1000;
+export const UNDECIMATED_RECORDS_LIMIT = 1_000_000;
 export const COLUMN_OPTIONS_LIMIT = 10000;
+export const COLUMN_SELECTION_LIMIT = 20;
 export const TOTAL_ROWS_LIMIT = 1000000;
 export const RESULT_IDS_LIMIT = 1000;
+export const CUSTOM_PROPERTY_COLUMNS_LIMIT = 100;
 
 export const REQUESTS_PER_SECOND = 6;
 export const DELAY_BETWEEN_REQUESTS_MS = 1000;
@@ -41,3 +50,6 @@ export const NUMERIC_DATA_TYPES = [
     'FLOAT32',
     'FLOAT64'
 ];
+
+export const COLUMNS_GROUP = 'Columns';
+export const METADATA_GROUP = 'Metadata';

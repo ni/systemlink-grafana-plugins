@@ -1,4 +1,4 @@
-import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_OPTIONS_LIMIT } from 'datasources/data-frame/constants';
 
 /**
  * Converts Grafana grid units to pixels
@@ -46,20 +46,20 @@ export const labels = {
  * Tooltips for the DataFrameQueryEditorV2 component
  */
 export const tooltips = {
-    queryType: 'This field specifies the type for the query that searches the data tables. The query can retrieve row data or metadata.',
-    queryByDataTableProperties: 'This optional field applies a filter to a query while searching the data tables.',
-    queryByResultProperties: 'This optional field applies a filter to a results query while searching the data tables.',
-    queryByColumnProperties: 'This optional field applies a filter to a columns query while searching the data tables.',
+    queryType: 'This field specifies the type of query that searches the data tables. The query can retrieve row data or metadata.',
+    queryByDataTableProperties: 'This field applies a datatable properties filter while searching data tables.',
+    queryByResultProperties: 'This field applies a results filter while searching data tables.',
+    queryByColumnProperties: 'This field applies a column filter while searching data tables.',
     take: 'This field sets the maximum number of records to return from the query.',
+    undecimatedRecordCount: 'This field sets the maximum number of rows to return from the query.',
     columns: 'Specifies the columns to include in the response data.',
     filterNulls: `Specifies whether to filter out null and NaN values before decimating the data.`,
     includeIndexColumns: 'Specifies whether to include index columns in the response data.',
     dataTableProperties: 'This field specifies the data table properties to be queried.',
     columnProperties: 'This field specifies the column properties to be queried.',
     decimationMethod: 'Specifies the method used to decimate the data.',
-    xColumn: 'Specifies the column to use for the x-axis when decimating the data.',
-    useTimeRange: `Specifies whether to query only for data within the dashboard time range if the
-                table index is a timestamp. Enable when interacting with your data on a graph.`,
+    xColumn: `Specifies the column to use as the x-axis when decimating the data. If this field is left blank, INDEX column will be used.`,
+    useTimeRange: `Applies the dashboard time range to the selected x-column or alternatively to INDEX column (if either is a timestamp).`,
 };
 
 /**
@@ -78,11 +78,25 @@ export const placeholders = {
  */
 export const errorMessages = {
     take: {
-        greaterOrEqualToZero: 'The take value must be greater than or equal to 0.',
-        lessOrEqualToTakeLimit: `The take value must be less than or equal to ${TAKE_LIMIT}.`
+        greaterOrEqualToZero: 'Enter a value greater than or equal to 1.',
+        lessOrEqualToTakeLimit: 'Enter a value less than or equal to {TAKE_LIMIT}.'
     },
     columnLimitExceeded: `The tables query returned too many columns. Only the first ${COLUMN_OPTIONS_LIMIT} columns are shown in the selection list.`,
     xColumnLimitExceeded: `The tables query returned too many columns. Only the first ${COLUMN_OPTIONS_LIMIT} columns are shown in the x-column selection list.`,
     xColumnSelectionInvalid: 'The selected x-column is not available in all the tables matching the query.',
     propertiesNotSelected: 'At least one data table property or column property must be selected.',
 };
+
+/**
+ * Informational messages for the DataFrameQueryEditorV2 component
+ */
+export const infoMessage = {
+    queryOptimization: {
+        title: 'Query optimization',
+        message: `Queries may significantly impact resource utilization.`,
+        linkText: 'Click this link to learn more about data frame query optimization.',
+        linkUrl: 'https://www.ni.com/r/dfs-db-query-performance',
+    },
+    datasourceHelp: 'For more information, refer to the datasource help documentation.',
+    width: 88.75,
+}

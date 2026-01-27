@@ -143,4 +143,8 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
   ): { columnName: string, transformedDataType: string } {
     return this.datasource.parseColumnIdentifier(columnIdentifier);
   }
+
+  public hasRequiredFilters(query: ValidDataFrameQuery): boolean {
+    return this.datasource.hasRequiredFilters(query);
+  }
 }

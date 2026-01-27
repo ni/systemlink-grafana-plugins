@@ -1,7 +1,7 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TimeRange } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { DataFrameDataSourceBase } from './DataFrameDataSourceBase';
-import { DataFrameQuery, DataFrameDataSourceOptions, TableProperties, TableDataRows, Column, DataFrameVariableQuery, ValidDataFrameVariableQuery, DataFrameDataQuery, CombinedFilters, ColumnType, ColumnFilter } from './types';
+import { DataFrameQuery, DataFrameDataSourceOptions, TableProperties, TableDataRows, Column, DataFrameVariableQuery, ValidDataFrameVariableQuery, DataFrameDataQuery, CombinedFilters, ColumnType, ColumnFilter, ValidDataFrameQuery } from './types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { Workspace } from 'core/types';
 import { lastValueFrom, Observable, of } from 'rxjs';
@@ -522,6 +522,29 @@ describe('DataFrameDataSourceBase', () => {
                 columnName: '',
                 transformedDataType: ''
             });
+        });
+    });
+
+    describe('hasRequiredFilters', () => {
+        let ds: TestDataFrameDataSource;
+
+        beforeEach(() => {
+            ds = new TestDataFrameDataSource(
+                instanceSettings,
+                backendSrv,
+                templateSrv
+            );
+        });
+
+        it('should return false for any query object', () => {
+            const query = {
+                refId: 'A',
+                dataTableFilter: 'name = "TestTable"',
+            } as ValidDataFrameQuery;
+            
+            const result = ds.hasRequiredFilters(query);
+            
+            expect(result).toBe(false);
         });
     });
 });

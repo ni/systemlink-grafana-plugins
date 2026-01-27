@@ -8,6 +8,7 @@ import userEvent from '@testing-library/user-event';
 import { ColumnsQueryBuilder } from './columns-query-builder/ColumnsQueryBuilder';
 import { of, throwError } from 'rxjs';
 import { ResultsQueryBuilder } from 'shared/components/ResultsQueryBuilder/ResultsQueryBuilder';
+import { VALUE_FIELD_WIDTH } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 
 jest.mock("datasources/data-frame/components/v2/query-builders/data-table-query-builder/DataTableQueryBuilder", () => ({
     DataTableQueryBuilder: (
@@ -71,7 +72,9 @@ const renderComponent = (
     dataTableFilter = '',
     columnFilter = '',
     queryByResultAndColumnProperties = true,
-    throwErrorFromQueryTables = false
+    throwErrorFromQueryTables = false,
+    additionalInfoMessage = '',
+    infoMessageWidth = VALUE_FIELD_WIDTH,
 ) => {
     const onResultFilterChange = jest.fn();
     const onDataTableFilterChange = jest.fn();
@@ -110,6 +113,8 @@ const renderComponent = (
             resultFilter={resultFilter}
             dataTableFilter={dataTableFilter}
             columnFilter={columnFilter}
+            additionalInfoMessage={additionalInfoMessage}
+            infoMessageWidth={infoMessageWidth}
             onResultFilterChange={onResultFilterChange}
             onDataTableFilterChange={onDataTableFilterChange}
             onColumnFilterChange={onColumnFilterChange}
@@ -154,6 +159,50 @@ const renderComponent = (
 };
 
 describe('DataFrameQueryBuilderWrapper', () => {
+    describe('Info Banner', () => {
+        it('should show with additional info message', async () => {
+            renderComponent('', '', '', true, true, 'Some info message');
+            await waitFor(() => {
+                const infoAlert = screen.getByLabelText('Query optimization');
+                expect(infoAlert).toBeInTheDocument();
+                expect(within(infoAlert).getByText(/Some info message/)).toBeInTheDocument();
+            });
+        });
+
+        it('should show without additional info message by default', async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                const infoAlert = screen.queryByLabelText('Query optimization');
+                expect(infoAlert).toBeInTheDocument();
+                expect(screen.queryByText(/Some info message/)).not.toBeInTheDocument();
+            });
+        });
+
+        it('should set width to default VALUE_FIELD_WIDTH when infoMessageWidth is not provided', async () => {
+            renderComponent();
+
+            await waitFor(() => {
+                const infoAlert = screen.getByLabelText('Query optimization');
+                const parentDiv = infoAlert.parentElement;
+                // VALUE_FIELD_WIDTH (65.5) * 8 = 524px
+                expect(parentDiv).toHaveStyle('width: 524px');
+            });
+        });
+
+        it('should set width to custom value when infoMessageWidth is provided', async () => {
+            const customWidth = 80;
+            renderComponent('', '', '', true, false, 'Some info message', customWidth)
+
+            await waitFor(() => {
+                const infoAlert = screen.getByLabelText('Query optimization');
+                const parentDiv = infoAlert.parentElement;
+                // customWidth (80) * 8 = 640px
+                expect(parentDiv).toHaveStyle('width: 640px');
+            });
+        });
+    });
+
     describe('DataTableQueryBuilder', () => {
         it('should show the DataTableQueryBuilder component', async () => {
             renderComponent();

@@ -21,4 +21,4 @@ For queries that use the _SystemLink TestResults_ data source, refer to the foll
 
 ### Additional Resources
 
-For more information on analyzing test data using SystemLink Enterprise, refer to [Analyzing and Interacting with Test Results - SystemLink Enterprise](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/analyzing-test-data-jupyter.html).
+For more information on analyzing test data using SystemLink Enterprise, refer to <a href="https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/analyzing-test-data-jupyter.html" target="_blank" rel="noopener noreferrer">Analyzing and Interacting with Test Results - SystemLink Enterprise</a>.

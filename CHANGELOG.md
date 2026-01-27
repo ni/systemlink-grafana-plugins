@@ -1,3 +1,222 @@
+## [4.119.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.118.0...v4.119.0) (2026-01-27)
+
+### Features
+
+* **plotly:** sync numerical x-axis range in URL query params ([#637](https://github.com/ni/systemlink-grafana-plugins/issues/637)) ([5f251a1](https://github.com/ni/systemlink-grafana-plugins/commit/5f251a1c7fe047300579c519a351757a593457ce))
+
+## [4.118.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.117.0...v4.118.0) (2026-01-26)
+
+### Features
+
+* **system:** Implement query builder for systems data source filtering ([#560](https://github.com/ni/systemlink-grafana-plugins/issues/560)) ([573dece](https://github.com/ni/systemlink-grafana-plugins/commit/573decedc476abcf0158be4fe10e15c791ded85a))
+
+## [4.117.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.116.0...v4.117.0) (2026-01-21)
+
+### Features
+
+* **dataframe:** version 2: rename applyTimeFilters as filterXRangeOnZoomPan ([#648](https://github.com/ni/systemlink-grafana-plugins/issues/648)) ([cfd3131](https://github.com/ni/systemlink-grafana-plugins/commit/cfd31318415ccbbbcef4536fb015f54f2acfcdc0))
+
+## [4.116.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.115.0...v4.116.0) (2026-01-19)
+
+### Features
+
+* **dataframe:** add high resolution zoom feature toggle ([#644](https://github.com/ni/systemlink-grafana-plugins/issues/644)) ([fa03e3d](https://github.com/ni/systemlink-grafana-plugins/commit/fa03e3d88a9ace9a85d93381ab1b38aed4883551))
+
+## [4.115.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.114.0...v4.115.0) (2026-01-19)
+
+### Features
+
+* **dataframes:** Add take and None to the decimation setting ([#643](https://github.com/ni/systemlink-grafana-plugins/issues/643)) ([ba26143](https://github.com/ni/systemlink-grafana-plugins/commit/ba261433751b0c6c87af575d730ef841031cad47))
+
+## [4.114.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.113.0...v4.114.0) (2026-01-16)
+
+### Features
+
+* **dataframe:** Add undecimated data feature flag options ([#641](https://github.com/ni/systemlink-grafana-plugins/issues/641)) ([fd23fd0](https://github.com/ni/systemlink-grafana-plugins/commit/fd23fd0a4f07918465b5cc51e25169ba8298b600))
+
+## [4.113.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.112.0...v4.113.0) (2026-01-06)
+
+### Features
+
+* **dataframe:** Group columns under different category in the dropdown ([#640](https://github.com/ni/systemlink-grafana-plugins/issues/640)) ([063d35e](https://github.com/ni/systemlink-grafana-plugins/commit/063d35e7194f17aa5566a6196b7784448c0b32b0))
+
+## [4.112.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.111.3...v4.112.0) (2026-01-06)
+
+### Features
+
+* **dataframe:** Add data table ID and name as selection from column dropdown ([#639](https://github.com/ni/systemlink-grafana-plugins/issues/639)) ([a794833](https://github.com/ni/systemlink-grafana-plugins/commit/a79483353703785dda8ad4e69d48ed7f6ee870c0))
+
+## [4.111.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.111.2...v4.111.3) (2025-12-23)
+
+### Bug Fixes
+
+* **testplans:** DutId variable workflow ([#623](https://github.com/ni/systemlink-grafana-plugins/issues/623)) ([7971a40](https://github.com/ni/systemlink-grafana-plugins/commit/7971a409dd8bab0cdcf9aeefd89854058be8820e))
+
+## [4.111.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.111.1...v4.111.2) (2025-12-19)
+
+### Bug Fixes
+
+* **data frames:** set display name as "value" when the column name is "value" ([#638](https://github.com/ni/systemlink-grafana-plugins/issues/638)) ([a32f493](https://github.com/ni/systemlink-grafana-plugins/commit/a32f493a4fe619c2eaa95d98b6e4c8eb6d150994))
+
+## [4.111.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.111.0...v4.111.1) (2025-12-18)
+
+### Bug Fixes
+
+* **dataframe:** Update custom property columns limit ([#635](https://github.com/ni/systemlink-grafana-plugins/issues/635)) ([2593d67](https://github.com/ni/systemlink-grafana-plugins/commit/2593d67844fd116424a1275e45a423ba978b5283))
+
+## [4.111.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.110.0...v4.111.0) (2025-12-17)
+
+### Features
+
+* **alarms:** Add description to query type options ([#629](https://github.com/ni/systemlink-grafana-plugins/issues/629)) ([154fc4a](https://github.com/ni/systemlink-grafana-plugins/commit/154fc4ac0e44fb3e8a7527f02816884d419c3334))
+* **dataframes:** Show panel warning when 1M limit is hit ([#632](https://github.com/ni/systemlink-grafana-plugins/issues/632)) ([7cbe967](https://github.com/ni/systemlink-grafana-plugins/commit/7cbe967201794c82daeeed4f050b009cc52c653a))
+
+## [4.110.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.109.1...v4.110.0) (2025-12-17)
+
+### Features
+
+* **dataframe:** Flatten data table custom properties into separate fields ([#630](https://github.com/ni/systemlink-grafana-plugins/issues/630)) ([0717906](https://github.com/ni/systemlink-grafana-plugins/commit/0717906c7de1bb783fab20d29ce0fd7f3b8b902a))
+* **dataframe:** update help document to reflect the custom properties limit ([#633](https://github.com/ni/systemlink-grafana-plugins/issues/633)) ([753d7ec](https://github.com/ni/systemlink-grafana-plugins/commit/753d7ecb8184aea6f5261940e6deef4207ae498b))
+
+## [4.109.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.109.0...v4.109.1) (2025-12-16)
+
+### Bug Fixes
+
+* **alarms:** Update one of the states label ([#628](https://github.com/ni/systemlink-grafana-plugins/issues/628)) ([53a0981](https://github.com/ni/systemlink-grafana-plugins/commit/53a09818ccc94356b8a74d86c8916767133f1586))
+* **dataframes:** Fix stack size exceeded error ([#626](https://github.com/ni/systemlink-grafana-plugins/issues/626)) ([cc74171](https://github.com/ni/systemlink-grafana-plugins/commit/cc74171c48fb2d5fb79697ef5583608d7b6f24be))
+* **dataframes:** Handle max and min datapoints ([#627](https://github.com/ni/systemlink-grafana-plugins/issues/627)) ([cfbdda8](https://github.com/ni/systemlink-grafana-plugins/commit/cfbdda823eab574ea7a436e1958a675ab746839b))
+
+## [4.109.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.108.0...v4.109.0) (2025-12-16)
+
+### Features
+
+* **dataframe:** Update user visible strings based tech writers review ([#625](https://github.com/ni/systemlink-grafana-plugins/issues/625)) ([4349959](https://github.com/ni/systemlink-grafana-plugins/commit/4349959f63cc5e8eeb83c9b714286705d1b6ddb6))
+
+## [4.108.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.107.0...v4.108.0) (2025-12-15)
+
+### Features
+
+* **dataframe:** Sort the properties selector options ([#624](https://github.com/ni/systemlink-grafana-plugins/issues/624)) ([4c8395b](https://github.com/ni/systemlink-grafana-plugins/commit/4c8395bb6569cbd997d05df94613ab6898303d6e))
+
+## [4.107.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.106.1...v4.107.0) (2025-12-15)
+
+### Features
+
+* **dataframe:** Add help documentation for Dataframe Datasource ([#600](https://github.com/ni/systemlink-grafana-plugins/issues/600)) ([6c8f540](https://github.com/ni/systemlink-grafana-plugins/commit/6c8f5404c44a503a8a4725806512e574516283e1))
+
+## [4.106.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.106.0...v4.106.1) (2025-12-15)
+
+### Bug Fixes
+
+* **plotly:** reorder logic in getXFields to prioritize numeric fields before string fields ([#618](https://github.com/ni/systemlink-grafana-plugins/issues/618)) ([5f5493c](https://github.com/ni/systemlink-grafana-plugins/commit/5f5493cdfb74dd8f11ae6cba2f68d7d6b28b9fcd))
+
+## [4.106.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.105.0...v4.106.0) (2025-12-12)
+
+### Features
+
+* **dataframe:** Sort columns options by label ([#622](https://github.com/ni/systemlink-grafana-plugins/issues/622)) ([8a4efe0](https://github.com/ni/systemlink-grafana-plugins/commit/8a4efe04d509a5974a4e7f1b76a1311065aae5fa))
+
+### Bug Fixes
+
+* **dataframe:** Handle null values when transforming values for grafana fields ([#621](https://github.com/ni/systemlink-grafana-plugins/issues/621)) ([29a5c7c](https://github.com/ni/systemlink-grafana-plugins/commit/29a5c7ce173ab3c9c64d79f964afc62ddef00e50))
+
+## [4.105.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.104.3...v4.105.0) (2025-12-12)
+
+### Features
+
+* **dataframes:** Add order by and order by descending in query tables request ([#613](https://github.com/ni/systemlink-grafana-plugins/issues/613)) ([c020edd](https://github.com/ni/systemlink-grafana-plugins/commit/c020edd3a2aabc035172e96077749761da849452))
+
+### Bug Fixes
+
+* **dataframe:** Fix datasource initialize on datasource switch ([#620](https://github.com/ni/systemlink-grafana-plugins/issues/620)) ([0f4cb05](https://github.com/ni/systemlink-grafana-plugins/commit/0f4cb05ca373f40269aadc95cec8f934d2530d14))
+
+## [4.104.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.104.2...v4.104.3) (2025-12-12)
+
+### Bug Fixes
+
+* **alarms,products,results,workorders,testplans:** Open links in help documentation as a new tab ([#616](https://github.com/ni/systemlink-grafana-plugins/issues/616)) ([125ca5c](https://github.com/ni/systemlink-grafana-plugins/commit/125ca5c98885fce27a62c8834433e34606a96fab))
+
+## [4.104.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.104.1...v4.104.2) (2025-12-12)
+
+### Bug Fixes
+
+* **dataframe:** Exclude xColumn from yColumns  ([#611](https://github.com/ni/systemlink-grafana-plugins/issues/611)) ([1ee8586](https://github.com/ni/systemlink-grafana-plugins/commit/1ee8586b23b3cd4aa7a477729e51be836e02d650))
+* **dataframe:** Include table ID in the display name for  variable options ([#614](https://github.com/ni/systemlink-grafana-plugins/issues/614)) ([08bfc28](https://github.com/ni/systemlink-grafana-plugins/commit/08bfc28f67dfbd8a538ae8c5a27482407e0cd95c))
+* **dataframe:** Open link in a new tab  ([#612](https://github.com/ni/systemlink-grafana-plugins/issues/612)) ([88fc5c6](https://github.com/ni/systemlink-grafana-plugins/commit/88fc5c6adb89263a6d9caffa69314da7ea877ef7))
+
+## [4.104.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.104.0...v4.104.1) (2025-12-12)
+
+### Bug Fixes
+
+* **dataframe:** Restrict string columns in x-column selection ([#617](https://github.com/ni/systemlink-grafana-plugins/issues/617)) ([be9f975](https://github.com/ni/systemlink-grafana-plugins/commit/be9f975f17535b92ba9dd3ea3753656961369c0b))
+
+## [4.104.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.103.1...v4.104.0) (2025-12-12)
+
+### Features
+
+* **dataframe:** Update Query builder tooltip ([#615](https://github.com/ni/systemlink-grafana-plugins/issues/615)) ([5e36923](https://github.com/ni/systemlink-grafana-plugins/commit/5e36923ddec48a3b65e227c7c4cead72f5bccc43))
+
+## [4.103.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.103.0...v4.103.1) (2025-12-11)
+
+### Bug Fixes
+
+* **dataframe:** Prevent validation error messages from appearing before column options have been fetched from the server ([#609](https://github.com/ni/systemlink-grafana-plugins/issues/609)) ([075bd87](https://github.com/ni/systemlink-grafana-plugins/commit/075bd87621953f6b171de8a884c62e6616ace018))
+
+## [4.103.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.102.4...v4.103.0) (2025-12-11)
+
+### Features
+
+* **dataframe:** Add column selection limit  ([#607](https://github.com/ni/systemlink-grafana-plugins/issues/607)) ([c147ebf](https://github.com/ni/systemlink-grafana-plugins/commit/c147ebf6b81a9bb985a82595fb0df0ef8e65d138))
+* **dataframe:** Add info banner for query optimization  ([#606](https://github.com/ni/systemlink-grafana-plugins/issues/606)) ([9419f74](https://github.com/ni/systemlink-grafana-plugins/commit/9419f74edd0ee0294cee6613292774f99c21fee8))
+
+## [4.102.4](https://github.com/ni/systemlink-grafana-plugins/compare/v4.102.3...v4.102.4) (2025-12-11)
+
+### Bug Fixes
+
+* **dataframe:** Unknown datatype appending with variables when migrating columns from v1 to v2 ([#608](https://github.com/ni/systemlink-grafana-plugins/issues/608)) ([f7f76aa](https://github.com/ni/systemlink-grafana-plugins/commit/f7f76aa896e3c487b58d660e00c2cd8a43d4f795))
+
+## [4.102.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.102.2...v4.102.3) (2025-12-10)
+
+### Bug Fixes
+
+* **dataframe:** Update time filter implementation to apply only when the x column is of type timestamp ([#605](https://github.com/ni/systemlink-grafana-plugins/issues/605)) ([59f935b](https://github.com/ni/systemlink-grafana-plugins/commit/59f935bf9ba0c997c98bef8d7f2cc5b3ab47db52))
+
+## [4.102.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.102.1...v4.102.2) (2025-12-10)
+
+### Bug Fixes
+
+* **dataframe:** Add unknown as datatype when the migration failed ([#604](https://github.com/ni/systemlink-grafana-plugins/issues/604)) ([3cc84ff](https://github.com/ni/systemlink-grafana-plugins/commit/3cc84ff7b9fb160b9fc27ced27b8d6ac3aeca307))
+
+## [4.102.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.102.0...v4.102.1) (2025-12-10)
+
+### Bug Fixes
+
+* **dataframe:** Block query execution when filters are empty ([#596](https://github.com/ni/systemlink-grafana-plugins/issues/596)) ([2db5efb](https://github.com/ni/systemlink-grafana-plugins/commit/2db5efbe15d756ff2ed6fc06628b9790e279f452))
+
+## [4.102.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.101.0...v4.102.0) (2025-12-10)
+
+### Features
+
+* **dataframe:** Handle 404 errors and provide a user friendly message ([#603](https://github.com/ni/systemlink-grafana-plugins/issues/603)) ([01a282e](https://github.com/ni/systemlink-grafana-plugins/commit/01a282e58813e664cad06054c06a2f068acf6148))
+
+## [4.101.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.100.1...v4.101.0) (2025-12-10)
+
+### Features
+
+* **dataframe:** Update take error message and query type tooltip ([#599](https://github.com/ni/systemlink-grafana-plugins/issues/599)) ([b61a965](https://github.com/ni/systemlink-grafana-plugins/commit/b61a9652c4cd6e39adc55d1ca6aa21d5fb5e84b9))
+
+## [4.100.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.100.0...v4.100.1) (2025-12-10)
+
+### Bug Fixes
+
+* **dataframe:** Replace variable with value when calling getTable API during migration ([#598](https://github.com/ni/systemlink-grafana-plugins/issues/598)) ([dc3eb22](https://github.com/ni/systemlink-grafana-plugins/commit/dc3eb2208563b43b9919642e3ce0a7ad2e8cad85))
+
+## [4.100.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.99.0...v4.100.0) (2025-12-10)
+
+### Features
+
+* **dataframe:** Call onRunQuery when decimation method, filter nulls or use time range changes ([#597](https://github.com/ni/systemlink-grafana-plugins/issues/597)) ([42380d6](https://github.com/ni/systemlink-grafana-plugins/commit/42380d6a12332947b99e7d729aea212e40f57682))
+
 ## [4.99.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.98.3...v4.99.0) (2025-12-09)
 
 ### Features

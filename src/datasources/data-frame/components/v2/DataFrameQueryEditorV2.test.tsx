@@ -12,7 +12,7 @@ import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource"
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { COLUMN_OPTIONS_LIMIT } from "datasources/data-frame/constants";
 import { ComboboxOption } from "@grafana/ui";
-import { errorMessages } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
+import { errorMessages, infoMessage } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
 import { of } from "rxjs";
 
 jest.mock("./query-builders/DataFrameQueryBuilderWrapper", () => ({
@@ -30,6 +30,10 @@ const mockParseColumnIdentifier = (columnIdentifier: string) => {
     transformedDataType,
   };
 };
+
+const mockHasRequiredFilters = jest.fn((query: ValidDataFrameQueryV2) => {
+    return (query.resultFilter !== '' || query.dataTableFilter !== '');
+});
 
 const renderComponent = (
     queryOverrides: Partial<DataFrameDataQuery> = {},
@@ -67,8 +71,17 @@ const renderComponent = (
         transformDataTableQuery: jest.fn((filter: string) => filter),
         transformResultQuery: jest.fn((filter: string) => filter),
         transformColumnQuery: jest.fn((filter: string) => filter),
+        hasRequiredFilters: mockHasRequiredFilters,
         variablesCache,
         parseColumnIdentifier: mockParseColumnIdentifier,
+        instanceSettings: {
+            jsonData: {
+                featureToggles: {
+                    queryUndecimatedData: true
+                }
+            }
+        },
+        ...mockDatasource
     } as unknown as DataFrameDataSource;
 
     const initialQuery = {
@@ -78,7 +91,7 @@ const renderComponent = (
 
     const renderResult = render(
         <DataFrameQueryEditorV2
-            datasource={mockDatasource.processQuery ? mockDatasource as DataFrameDataSource : datasource}
+            datasource={datasource}
             query={initialQuery}
             onChange={onChange}
             onRunQuery={onRunQuery}
@@ -88,7 +101,7 @@ const renderComponent = (
     onChange.mockImplementation(newQuery => {
         renderResult.rerender(
             <DataFrameQueryEditorV2
-                datasource={mockDatasource.processQuery ? mockDatasource as DataFrameDataSource : datasource}
+                datasource={datasource}
                 query={newQuery}
                 onChange={onChange}
                 onRunQuery={onRunQuery}
@@ -146,6 +159,27 @@ describe("DataFrameQueryEditorV2", () => {
         await user.click(screen.getByRole("radio", { name: DataFrameQueryType.Properties }));
 
         expect(onRunQuery).toHaveBeenCalled();
+    });
+
+    it("should call onRunQuery on first render when query matches default query", async () => {
+        const { onChange, onRunQuery } = renderComponent({});
+
+        await waitFor(() => {
+            expect(onRunQuery).toHaveBeenCalled();
+            expect(onChange).not.toHaveBeenCalled();
+        });
+    });
+
+    it("should not call onRunQuery on first render when query is not default", async () => {
+        const { onChange, onRunQuery } = renderComponent({
+            type: DataFrameQueryType.Data,
+            dataTableFilter: 'SomeFilter',
+        });
+
+        await waitFor(() => {
+            expect(onRunQuery).not.toHaveBeenCalled();
+            expect(onChange).not.toHaveBeenCalled();
+        });
     });
 
     describe("when the query type is data", () => {
@@ -248,13 +282,28 @@ describe("DataFrameQueryEditorV2", () => {
                     ));
                 });
 
-                it('should not load column options when filter is empty', async () => {
-                    renderComponent({ dataTableFilter: '' });
+                it('should only show metadata column options when filter is empty', async () => {
+                    renderComponent({ dataTableFilter: '', resultFilter: '' });
 
                     await clickColumnOptions();
 
-                    // Assert that no options are shown
-                    expect(within(document.body).queryAllByRole('option').length).toBe(0);
+                    const options = within(document.body).queryAllByRole('option');
+                    expect(options.length).toBe(2);
+                    expect(options.map(opt => opt.textContent)).toEqual(
+                        expect.arrayContaining(['MetadataData table ID', 'Data table name'])
+                    );
+                });
+
+                it('should only show metadata column options when only column filter is set', async () => {
+                    renderComponent({ columnFilter: 'ColumnB' });
+                    
+                    await clickColumnOptions();
+
+                    const options = within(document.body).queryAllByRole('option');
+                    expect(options.length).toBe(2);
+                    expect(options.map(opt => opt.textContent)).toEqual(
+                        expect.arrayContaining(['MetadataData table ID', 'Data table name'])
+                    );
                 });
 
                 it('should not load column options when filter is unchanged', async () => {
@@ -282,75 +331,34 @@ describe("DataFrameQueryEditorV2", () => {
                 });
 
                 describe('column limit', () => {
-                    it('should not render warning alert when column limit is not exceeded', async () => {
-                        await changeFilterValue();
-                        await clickColumnOptions();
-
-                        const optionTexts = getColumnOptionTexts();
-
-                        expect(optionTexts.length).toBeLessThanOrEqual(COLUMN_OPTIONS_LIMIT);
-                        await waitFor(() => {
-                            expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-                        });
-                    });
-
                     describe('when column limit is exceeded', () => {
                         beforeEach(async () => {
                             cleanup();
                             jest.clearAllMocks();
 
-                            const columnOptions = Array.from({ length: COLUMN_OPTIONS_LIMIT + 25 }, (_, i) => ({
-                                label: `Column${i + 1}`,
-                                value: `Column${i + 1}`,
-                            }));
+                            const columnOptions = [
+                                { label: 'Data table ID', value: 'Data table ID-Metadata' },
+                                { label: 'Data table name', value: 'Data table name-Metadata' },
+                                ...Array.from({ length: COLUMN_OPTIONS_LIMIT + 25 }, (_, i) => ({
+                                    label: `Column${i + 1}`,
+                                    value: `Column${i + 1}`,
+                                }))
+                            ];
 
                             // Increase offsetHeight to allow more options to be rendered in the test environment
-                            jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(200);
+                            jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
                             const result = renderComponent({ dataTableFilter: ' ' }, '', '', columnOptions);
                             datasource = result.datasource;
 
                             await changeFilterValue();
                         });
 
-                        it(`should limit the number of column options to ${COLUMN_OPTIONS_LIMIT}`, async () => {
+                        it(`should limit column options to ${COLUMN_OPTIONS_LIMIT + 2} as metadata options are included in the dropdown`, async () => {
                             await clickColumnOptions();
                             const optionTexts = getColumnOptionTexts();
-                            expect(optionTexts.length).toBe(COLUMN_OPTIONS_LIMIT);
-                        });
-
-                        it('should render warning alert when column limit is exceeded', async () => {
-                            await waitFor(() => {
-                                const alert = screen.getByRole('alert');
-                                expect(alert).toBeInTheDocument();
-                                expect(within(alert).getByText(/Warning/i)).toBeInTheDocument();
-                                expect(within(alert).getByText(errorMessages.columnLimitExceeded)).toBeInTheDocument();
-                            });
-                        });
-
-                        it('should hide the warning alert when filter is removed', async () => {
-                            await changeFilterValue();
-                            const alert = screen.getByRole('alert');
-                            expect(alert).toBeInTheDocument();
-
-                            await changeFilterValue('');
-
-                            await waitFor(() => {
-                                expect(alert).not.toBeInTheDocument();
-                            });
-                        });
-
-                        it('should hide the warning alert when filter is changed and the `getColumnOptionsWithVariables` errored', async () => {
-                            await changeFilterValue();
-                            const alert = screen.getByRole('alert');
-                            expect(alert).toBeInTheDocument();
-
-                            // Mock getColumnOptionsWithVariables to throw error
-                            jest.spyOn(datasource, 'getColumnOptionsWithVariables').mockRejectedValue(new Error('Test error'));
-                            await changeFilterValue('AnotherFilter');
-
-                            await waitFor(() => {
-                                expect(alert).not.toBeInTheDocument();
-                            });
+                            expect(optionTexts.length).toBe(COLUMN_OPTIONS_LIMIT + 2);
+                            expect(optionTexts).toContain('Data table ID');
+                            expect(optionTexts).toContain('Data table name');
                         });
                     });
                 });
@@ -404,7 +412,7 @@ describe("DataFrameQueryEditorV2", () => {
                         });
                     });
 
-                    it('should not fetch column options when switching to Data query type with existing empty filter', async () => {
+                    it('should only show metadata options when switching to Data query type with existing empty filter', async () => {
                         const user = userEvent.setup();
                         const { datasource } = renderComponent({
                             type: DataFrameQueryType.Properties,
@@ -420,7 +428,10 @@ describe("DataFrameQueryEditorV2", () => {
 
                         await waitFor(() => {
                             const optionControls = within(document.body).queryAllByRole('option');
-                            expect(optionControls.length).toBe(0);
+                            expect(optionControls.length).toBe(2);
+                            expect(optionControls.map(opt => opt.textContent)).toEqual(
+                                expect.arrayContaining(['MetadataData table ID', 'Data table name'])
+                            );
                         });
                         expect(datasource.getColumnOptionsWithVariables).not.toHaveBeenCalled();
                     });
@@ -567,6 +578,7 @@ describe("DataFrameQueryEditorV2", () => {
                             transformDataTableQuery: jest.fn(f => f),
                             transformResultQuery: jest.fn(f => f),
                             transformColumnQuery: jest.fn(f => f),
+                            hasRequiredFilters: mockHasRequiredFilters,
                         } as any;
 
                             renderComponent({
@@ -617,6 +629,7 @@ describe("DataFrameQueryEditorV2", () => {
                             transformDataTableQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                             transformResultQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                             transformColumnQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
+                            hasRequiredFilters: mockHasRequiredFilters,
                         } as any;
 
                         renderComponent(
@@ -659,6 +672,7 @@ describe("DataFrameQueryEditorV2", () => {
                             transformDataTableQuery: jest.fn(f => f),
                             transformResultQuery: jest.fn(f => f),
                             transformColumnQuery: jest.fn(f => f),
+                            hasRequiredFilters: mockHasRequiredFilters,
                         } as any;
                         renderComponent(
                             {
@@ -704,6 +718,7 @@ describe("DataFrameQueryEditorV2", () => {
                             transformDataTableQuery: jest.fn(f => f),
                             transformResultQuery: jest.fn(f => f),
                             transformColumnQuery: jest.fn(f => f),
+                            hasRequiredFilters: mockHasRequiredFilters,
                         } as any;
 
                         renderComponent(
@@ -771,6 +786,7 @@ describe("DataFrameQueryEditorV2", () => {
                         transformDataTableQuery: jest.fn((filter: string) => filter),
                         transformResultQuery: jest.fn((filter: string) => filter),
                         transformColumnQuery: jest.fn((filter: string) => filter),
+                        hasRequiredFilters: mockHasRequiredFilters,
                     } as any;
 
                     const { onChange } = renderComponent(
@@ -827,6 +843,7 @@ describe("DataFrameQueryEditorV2", () => {
                         transformDataTableQuery: jest.fn((filter: string) => filter),
                         transformResultQuery: jest.fn((filter: string) => filter),
                         transformColumnQuery: jest.fn((filter: string) => filter),
+                        hasRequiredFilters: mockHasRequiredFilters,
                     } as any;
 
                     const { onChange } = renderComponent(
@@ -883,6 +900,7 @@ describe("DataFrameQueryEditorV2", () => {
                         transformDataTableQuery: jest.fn(() => 'name = "Table1"'),
                         transformResultQuery: jest.fn(() => 'status = "Passed"'),
                         transformColumnQuery: jest.fn(() => 'columnName = "Col1"'),
+                        hasRequiredFilters: mockHasRequiredFilters,
                     } as any;
 
                     const { onChange } = renderComponent(
@@ -1120,25 +1138,7 @@ describe("DataFrameQueryEditorV2", () => {
                 });
 
                 describe('column validation and error handling', () => {
-                    const mockDatasource = {
-                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
-                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
-                            uniqueColumnsAcrossTables: [
-                                { label: 'ColumnA', value: 'ColumnA-String' },
-                                { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
-                                { label: 'ColumnB (String)', value: 'ColumnB-String' },
-                            ],
-                            commonColumnsAcrossTables: [
-                                { label: 'ColumnA', value: 'ColumnA-String' },
-                                { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
-                                { label: 'ColumnB (String)', value: 'ColumnB-String' },
-                            ]
-                        }),
-                        transformDataTableQuery: jest.fn((filter: string) => filter),
-                        transformResultQuery: jest.fn((filter: string) => filter),
-                        transformColumnQuery: jest.fn((filter: string) => filter),
-                        parseColumnIdentifier: mockParseColumnIdentifier,
-                    } as any;
+                    let mockDatasource: any;
 
                     beforeAll(() => {
                         jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
@@ -1147,6 +1147,34 @@ describe("DataFrameQueryEditorV2", () => {
                     beforeEach(() => {
                         cleanup();
                         jest.clearAllMocks();
+
+                        mockDatasource = {
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                            getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                                uniqueColumnsAcrossTables: [
+                                    { label: 'ColumnA', value: 'ColumnA-String' },
+                                    { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
+                                    { label: 'ColumnB (String)', value: 'ColumnB-String' },
+                                ],
+                                commonColumnsAcrossTables: [
+                                    { label: 'ColumnA', value: 'ColumnA-String' },
+                                    { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
+                                    { label: 'ColumnB (String)', value: 'ColumnB-String' },
+                                ]
+                            }),
+                            transformDataTableQuery: jest.fn((filter: string) => filter),
+                            transformResultQuery: jest.fn((filter: string) => filter),
+                            transformColumnQuery: jest.fn((filter: string) => filter),
+                            hasRequiredFilters: mockHasRequiredFilters,
+                            parseColumnIdentifier: mockParseColumnIdentifier,
+                            instanceSettings: {
+                                jsonData: {
+                                    featureToggles: {
+                                        queryUndecimatedData: true
+                                    }
+                                }
+                            }
+                        } as any;
                     });
 
                     describe('when existing columns are valid', () => {
@@ -1199,7 +1227,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                             await waitFor(() => {
                                 expect(
-                                    screen.getByText("The selected column 'InvalidColumn (String)' is not valid.")
+                                    screen.getByText("The following selected column is not valid: 'InvalidColumn (String)'")
                                 ).toBeInTheDocument();
                             });
                         });
@@ -1223,7 +1251,7 @@ describe("DataFrameQueryEditorV2", () => {
                             await waitFor(() => {
                                 expect(
                                     screen.getByText(
-                                        "The selected columns 'InvalidColumn1 (String), InvalidColumn2 (Numeric)' are not valid."
+                                        "The following selected columns are not valid: 'InvalidColumn1 (String), InvalidColumn2 (Numeric)'"
                                     )
                                 ).toBeInTheDocument();
                             });
@@ -1249,7 +1277,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                             await waitFor(() => {
                                 expect(
-                                    screen.getByText("The selected column 'InvalidColumn (String)' is not valid.")
+                                    screen.getByText("The following selected column is not valid: 'InvalidColumn (String)'")
                                 ).toBeInTheDocument();
                             });
                         });
@@ -1344,7 +1372,7 @@ describe("DataFrameQueryEditorV2", () => {
                             // Wait for error to appear
                             await waitFor(() => {
                                 expect(
-                                    screen.getByText("The selected column 'ColumnA (String)' is not valid.")
+                                    screen.getByText("The following selected column is not valid: 'ColumnA (String)'")
                                 ).toBeInTheDocument();
                             });
 
@@ -1378,6 +1406,74 @@ describe("DataFrameQueryEditorV2", () => {
                                 expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
                             });
                         });
+                    });
+
+                    it('should not show error before fetching column options', () => {
+                        mockDatasource.getColumnOptionsWithVariables = jest.fn().mockReturnValue(
+                            new Promise(() => {})
+                        );
+
+                        renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                dataTableFilter: 'name = "TestTable"',
+                                columns: ['ColumnA-String'],
+                            },
+                            '',
+                            '',
+                            [],
+                            [],
+                            undefined,
+                            {},
+                            mockDatasource
+                        );
+
+                        // No error message should be displayed
+                        expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+                    });
+
+                    it('should show error when columns selected and required filters are not provided', async () => {
+                        mockDatasource.hasRequiredFilters = jest.fn().mockReturnValue(false);
+                        renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                columnFilter: 'name = "TestTable"',
+                                columns: ['ColumnA-String'],
+                            },
+                            '',
+                            '',
+                            [],
+                            [],
+                            undefined,
+                            {},
+                            mockDatasource
+                        );
+
+                        // Error message should be displayed
+                        expect(screen.getByText(
+                            "The following selected column is not valid: 'ColumnA (String)'"
+                        )).toBeInTheDocument();
+                    });
+
+                    it('should show error when columns selected and all filters are not provided', async () => {
+                        renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                columns: ['ColumnA-String'],
+                            },
+                            '',
+                            '',
+                            [],
+                            [],
+                            undefined,
+                            {},
+                            mockDatasource
+                        );
+
+                        // Error message should be displayed
+                        expect(screen.getByText(
+                            "The following selected column is not valid: 'ColumnA (String)'"
+                        )).toBeInTheDocument();
                     });
                 });
             });
@@ -1422,14 +1518,14 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(filterNullsCheckbox).not.toBeChecked();
                 });
 
-                it("should call onChange when the filter nulls checkbox is checked", async () => {
+                it("should call onChange and onRunQuery when the filter nulls checkbox is checked", async () => {
                     await user.click(filterNullsCheckbox);
 
                     await waitFor(() => {
                         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
                             filterNulls: true
                         }));
-                        expect(onRunQuery).not.toHaveBeenCalled();
+                        expect(onRunQuery).toHaveBeenCalled();
                     });
                 });
             });
@@ -1460,7 +1556,7 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(decimationMethodField).toHaveDisplayValue('Lossy');
                 });
 
-                it("should call onChange when a decimation method is selected", async () => {
+                it("should call onChange and onRunQuery when a decimation method is selected", async () => {
                     await user.click(decimationMethodField);
                     await user.keyboard('{ArrowDown}');
                     await user.keyboard('{Enter}');
@@ -1469,7 +1565,262 @@ describe("DataFrameQueryEditorV2", () => {
                         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
                             decimationMethod: 'MAX_MIN'
                         }));
-                        expect(onRunQuery).not.toHaveBeenCalled();
+                        expect(onRunQuery).toHaveBeenCalled();
+                    });
+                });
+
+                it("should include 'None' as a decimation method option", async () => {
+                    await user.click(decimationMethodField);
+
+                    await waitFor(() => {
+                        const options = within(document.body).getAllByRole('option');
+                        const optionTexts = options.map(opt => opt.textContent);
+                        expect(optionTexts.some(text => text?.startsWith('None'))).toBe(true);
+                    });
+                });
+
+                it("should allow selecting 'None' decimation method", async () => {
+                    await user.click(decimationMethodField);
+                    const options = within(document.body).getAllByRole('option');
+                    const noneOption = options.find(opt => opt.textContent?.startsWith('None'));
+                    
+                    expect(noneOption).toBeDefined();
+                    await user.click(noneOption!);
+
+                    await waitFor(() => {
+                        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                            decimationMethod: 'NONE'
+                        }));
+                        expect(onRunQuery).toHaveBeenCalled();
+                    });
+                });
+
+                it("should display undecimated record count field when 'None' decimation is selected", async () => {
+                    renderComponent({ 
+                        type: DataFrameQueryType.Data,
+                        decimationMethod: 'NONE'
+                    });
+
+                    await waitFor(() => {
+                        const recordCountInput = screen.getAllByRole('spinbutton');
+                        expect(recordCountInput.length).toBe(1);
+                    });
+                });
+
+                it("should not display undecimated record count field when decimation method is not 'None'", async () => {
+                    renderComponent({ 
+                        type: DataFrameQueryType.Data,
+                        decimationMethod: 'LOSSY'
+                    });
+
+                    await waitFor(() => {
+                        const recordCountInput = screen.queryAllByRole('spinbutton');
+                        expect(recordCountInput.length).toBe(0);
+                    });
+                });
+
+                describe("undecimated record count field", () => {
+                    let undecimatedInput: HTMLElement;
+                    let user: UserEvent;
+
+                    beforeEach(() => {
+                        cleanup();
+                        renderComponent({ 
+                            type: DataFrameQueryType.Data,
+                            decimationMethod: 'NONE'
+                        });
+                        user = userEvent.setup();
+                    });
+
+                    it("should show the undecimated record count field with default value", async () => {
+                        await waitFor(() => {
+                            const recordCountInput = screen.getAllByRole('spinbutton');
+                            expect(recordCountInput.length).toBe(1);
+                            
+                            undecimatedInput = recordCountInput[0];
+                            expect(undecimatedInput).toBeInTheDocument();
+                            expect(undecimatedInput).toHaveValue(10_000);
+                        });
+                    });
+
+                    it("should allow only numeric input", async () => {
+                        await waitFor(() => {
+                            const recordCountInput = screen.getAllByRole('spinbutton');
+                            undecimatedInput = recordCountInput[0];
+                        });
+
+                        await user.type(undecimatedInput, "abc");
+                        await user.tab();
+
+                        expect(undecimatedInput).toHaveValue(10_000);
+                    });
+
+                    it("should show an error message when value is less than or equal to 0", async () => {
+                        await waitFor(() => {
+                            const recordCountInput = screen.getAllByRole('spinbutton');
+                            undecimatedInput = recordCountInput[0];
+                        });
+
+                        await user.clear(undecimatedInput);
+                        await user.type(undecimatedInput, "0");
+                        await user.tab();
+
+                        await waitFor(() => {
+                            expect(screen.getByText("Enter a value greater than or equal to 1."))
+                                .toBeInTheDocument();
+                        });
+                    });
+
+                    it("should show an error message when value is greater than 1000000", async () => {
+                        await waitFor(() => {
+                            const recordCountInput = screen.getAllByRole('spinbutton');
+                            undecimatedInput = recordCountInput[0];
+                        });
+
+                        await user.clear(undecimatedInput);
+                        await user.type(undecimatedInput, "2000000");
+                        await user.tab();
+
+                        await waitFor(() => {
+                            expect(screen.getByText("Enter a value less than or equal to 1000000."))
+                                .toBeInTheDocument();
+                        });
+                    });
+
+                    it("should not show an error message when a valid value is entered", async () => {
+                        await waitFor(() => {
+                            const recordCountInput = screen.getAllByRole('spinbutton');
+                            undecimatedInput = recordCountInput[0];
+                        });
+
+                        await user.clear(undecimatedInput);
+                        await user.type(undecimatedInput, "50000");
+                        await user.tab();
+
+                        await waitFor(() => {
+                            expect(screen.queryByText("Enter a value greater than or equal to 1."))
+                                .not.toBeInTheDocument();
+                            expect(screen.queryByText("Enter a value less than or equal to 1000000."))
+                                .not.toBeInTheDocument();
+                        });
+                    });
+
+                    it("should call onChange and onRunQuery when a valid value is entered", async () => {
+                        cleanup();
+                        const { onChange, onRunQuery } = renderComponent({ 
+                            type: DataFrameQueryType.Data,
+                            decimationMethod: 'NONE'
+                        });
+
+                        await waitFor(() => {
+                            const recordCountInput = screen.getAllByRole('spinbutton');
+                            undecimatedInput = recordCountInput[0];
+                        });
+
+                        await user.clear(undecimatedInput);
+                        await user.type(undecimatedInput, "50000");
+                        await user.tab();
+
+                        await waitFor(() => {
+                            expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                                undecimatedRecordCount: 50_000,
+                            }));
+                            expect(onRunQuery).toHaveBeenCalled();
+                        });
+                    });
+
+                    it("should not call onChange and onRunQuery until input loses focus", async () => {
+                        cleanup();
+                        const { onChange, onRunQuery } = renderComponent({ 
+                            type: DataFrameQueryType.Data,
+                            decimationMethod: 'NONE'
+                        });
+
+                        await waitFor(() => {
+                            const recordCountInput = screen.getAllByRole('spinbutton');
+                            undecimatedInput = recordCountInput[0];
+                        });
+
+                        await user.clear(undecimatedInput);
+                        await user.type(undecimatedInput, "50000");
+
+                        await waitFor(() => {
+                            expect(onChange).not.toHaveBeenCalled();
+                            expect(onRunQuery).not.toHaveBeenCalled();
+                        });
+                    });
+                });
+
+                describe("when queryUndecimatedData feature flag is disabled", () => {
+                    let mockDatasource: Partial<DataFrameDataSource>;
+
+                    beforeEach(() => {
+                        cleanup();
+                        mockDatasource = {
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                            getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                                uniqueColumnsAcrossTables: [],
+                                commonColumnsAcrossTables: []
+                            }),
+                            transformDataTableQuery: jest.fn((filter: string) => filter),
+                            transformResultQuery: jest.fn((filter: string) => filter),
+                            transformColumnQuery: jest.fn((filter: string) => filter),
+                            hasRequiredFilters: mockHasRequiredFilters,
+                            parseColumnIdentifier: mockParseColumnIdentifier,
+                            instanceSettings: {
+                                jsonData: {
+                                    featureToggles: {
+                                        queryUndecimatedData: false
+                                    }
+                                }
+                            }
+                        } as unknown as Partial<DataFrameDataSource>;
+                    });
+
+                    it("should not include 'None' as a decimation method option", async () => {
+                        const user = userEvent.setup();
+
+                        renderComponent(
+                            { type: DataFrameQueryType.Data },
+                            '',
+                            '',
+                            [],
+                            [],
+                            undefined,
+                            {},
+                            mockDatasource
+                        );
+
+                        const decimationMethodField = screen.getAllByRole('combobox')[1];
+                        await user.click(decimationMethodField);
+
+                        await waitFor(() => {
+                            const options = within(document.body).getAllByRole('option');
+                            const optionTexts = options.map(opt => opt.textContent);
+                            expect(optionTexts.some(text => text?.startsWith('None'))).toBe(false);
+                        });
+                    });
+
+                    it("should not display undecimated record count field even when decimation method is 'NONE'", async () => {
+                        renderComponent(
+                            { 
+                                type: DataFrameQueryType.Data,
+                                decimationMethod: 'NONE'
+                            },
+                            '',
+                            '',
+                            [],
+                            [],
+                            undefined,
+                            {},
+                            mockDatasource
+                        );
+
+                        await waitFor(() => {
+                            const recordCountInput = screen.queryAllByRole('spinbutton');
+                            // Should have no record count inputs when feature flag is disabled
+                            expect(recordCountInput.length).toBe(0);
+                        });
                     });
                 });
             });
@@ -1568,18 +1919,6 @@ describe("DataFrameQueryEditorV2", () => {
                 });
 
                 describe('x-column limit', () => {
-                    it('should not render warning alert when x-column limit is not exceeded', async () => {
-                        await changeFilterValue();
-                        await clickXColumnCombobox();
-
-                        const optionTexts = getXColumnOptionTexts();
-
-                        expect(optionTexts.length).toBeLessThanOrEqual(COLUMN_OPTIONS_LIMIT);
-                        await waitFor(() => {
-                            expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-                        });
-                    });
-
                     describe('when x-column limit is exceeded', () => {
                         beforeEach(async () => {
                             cleanup();
@@ -1605,42 +1944,6 @@ describe("DataFrameQueryEditorV2", () => {
                             await clickXColumnCombobox();
                             const optionTexts = getXColumnOptionTexts();
                             expect(optionTexts.length).toBe(COLUMN_OPTIONS_LIMIT);
-                        });
-
-                        it('should render warning alert when x-column limit is exceeded', async () => {
-                            await waitFor(() => {
-                                const alert = screen.getByRole('alert');
-                                expect(alert).toBeInTheDocument();
-                                expect(within(alert).getByText(/Warning/i)).toBeInTheDocument();
-                                expect(within(alert).getByText(errorMessages.xColumnLimitExceeded))
-                                    .toBeInTheDocument();
-                            });
-                        });
-
-                        it('should hide the warning alert when filter is removed', async () => {
-                            await changeFilterValue();
-                            const alert = screen.getByRole('alert');
-                            expect(alert).toBeInTheDocument();
-
-                            await changeFilterValue('');
-
-                            await waitFor(() => {
-                                expect(alert).not.toBeInTheDocument();
-                            });
-                        });
-
-                        it('should hide the warning alert when filter is changed and the `getColumnOptionsWithVariables` errored', async () => {
-                            await changeFilterValue();
-                            const alert = screen.getByRole('alert');
-                            expect(alert).toBeInTheDocument();
-
-                            // Mock getColumnOptionsWithVariables to throw error
-                            jest.spyOn(datasource, 'getColumnOptionsWithVariables').mockRejectedValue(new Error('Test error'));
-                            await changeFilterValue('AnotherFilter');
-
-                            await waitFor(() => {
-                                expect(alert).not.toBeInTheDocument();
-                            });
                         });
                     });
                 });
@@ -1909,6 +2212,7 @@ describe("DataFrameQueryEditorV2", () => {
                             transformResultQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                             transformDataTableQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
                             transformColumnQuery: jest.fn((filter: string) => `TRANSFORMED_${filter}`),
+                            hasRequiredFilters: mockHasRequiredFilters,
                         } as any;
 
                         renderComponent(
@@ -1950,6 +2254,7 @@ describe("DataFrameQueryEditorV2", () => {
                             transformResultQuery: jest.fn(f => f),
                             transformDataTableQuery: jest.fn(f => f),
                             transformColumnQuery: jest.fn(f => f),
+                            hasRequiredFilters: mockHasRequiredFilters,
                         } as any;
                         renderComponent(
                             {
@@ -1994,6 +2299,7 @@ describe("DataFrameQueryEditorV2", () => {
                             transformResultQuery: jest.fn(f => f),
                             transformDataTableQuery: jest.fn(f => f),
                             transformColumnQuery: jest.fn(f => f),
+                            hasRequiredFilters: mockHasRequiredFilters,
                         } as any;
 
                         renderComponent(
@@ -2181,6 +2487,7 @@ describe("DataFrameQueryEditorV2", () => {
                 });
 
                 describe('x-column validation', () => {
+                    let mockDatasource: any;
                     beforeAll(() => {
                         jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
                             .mockReturnValue(300);
@@ -2189,6 +2496,26 @@ describe("DataFrameQueryEditorV2", () => {
                     beforeEach(() => {
                         cleanup();
                         jest.clearAllMocks();
+                        mockDatasource = {
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                            getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                                uniqueColumnsAcrossTables: [
+                                    { label: 'ColumnA', value: 'ColumnA-String' },
+                                    { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
+                                    { label: 'ColumnB (String)', value: 'ColumnB-String' },
+                                ],
+                                commonColumnsAcrossTables: [
+                                    { label: 'ColumnA', value: 'ColumnA-String' },
+                                    { label: 'ColumnB (Numeric)', value: 'ColumnB-Numeric' },
+                                    { label: 'ColumnB (String)', value: 'ColumnB-String' },
+                                ]
+                            }),
+                            transformDataTableQuery: jest.fn((filter: string) => filter),
+                            transformResultQuery: jest.fn((filter: string) => filter),
+                            transformColumnQuery: jest.fn((filter: string) => filter),
+                            hasRequiredFilters: mockHasRequiredFilters,
+                            parseColumnIdentifier: mockParseColumnIdentifier,
+                        } as any;
                     });
 
                     it('should not show validation error when selected x-column is in the options list', async () => {
@@ -2306,6 +2633,79 @@ describe("DataFrameQueryEditorV2", () => {
                                 .toBeInTheDocument();
                         });
                     });
+
+                    it('should not show error before fetching column options', () => {
+                        mockDatasource.getColumnOptionsWithVariables = jest.fn().mockReturnValue(
+                            new Promise(() => {})
+                        );
+
+                        renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                dataTableFilter: 'name = "TestTable"',
+                                columns: ['ColumnA-String'],
+                                xColumn: 'ColumnA-String',
+                            },
+                            '',
+                            '',
+                            [],
+                            [],
+                            undefined,
+                            {},
+                            mockDatasource
+                        );
+
+                        // No error message should be displayed
+                        expect(screen.queryByText(
+                            'The selected x-column is not available in all the tables matching the query.'
+                        )).not.toBeInTheDocument();
+                    });
+
+                    it('should show error when x-column selected and required filters are not provided', async () => {
+                        mockDatasource.hasRequiredFilters = jest.fn().mockReturnValue(false);
+                        renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                columnFilter: 'name = "TestTable"',
+                                columns: ['ColumnA-String'],
+                                xColumn: 'ColumnA-String',
+                            },
+                            '',
+                            '',
+                            [],
+                            [],
+                            undefined,
+                            {},
+                            mockDatasource
+                        );
+
+                        // Error message should be displayed
+                        expect(screen.getByText(
+                            'The selected x-column is not available in all the tables matching the query.'
+                        )).toBeInTheDocument();
+                    });
+
+                    it('should show error when x-column selected and all filters are not provided', async () => {
+                        renderComponent(
+                            {
+                                type: DataFrameQueryType.Data,
+                                columns: ['ColumnA-String'],
+                                xColumn: 'ColumnA-String',
+                            },
+                            '',
+                            '',
+                            [],
+                            [],
+                            undefined,
+                            {},
+                            mockDatasource
+                        );
+
+                        // Error message should be displayed
+                        expect(screen.getByText(
+                            'The selected x-column is not available in all the tables matching the query.'
+                        )).toBeInTheDocument();
+                    });
                 });
             });
 
@@ -2323,14 +2723,14 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(useTimeRangeCheckbox).not.toBeChecked();
                 });
 
-                it("should call onChange when the use time range checkbox is checked", async () => {
+                it("should call onChange and onRunQuery when the use time range checkbox is checked", async () => {
                     await user.click(useTimeRangeCheckbox);
 
                     await waitFor(() => {
                         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                            applyTimeFilters: true
+                            filterXRangeOnZoomPan: true
                         }));
-                        expect(onRunQuery).not.toHaveBeenCalled();
+                        expect(onRunQuery).toHaveBeenCalled();
                     });
                 });
             });
@@ -2488,24 +2888,24 @@ describe("DataFrameQueryEditorV2", () => {
                 });
             });
 
-            it("should show the expected options in the data table properties field", async () => {
+            it("should show the expected options in sorted order in the data table properties field", async () => {
                 await user.click(dataTablePropertiesField);
 
-                const optionControls = within(document.body).getAllByRole('option');
+                const optionControls = screen.getAllByRole('option');
                 const optionTexts = optionControls.map(opt => opt.textContent);
-                expect(optionTexts).toEqual(expect.arrayContaining([
-                    "Data table name",
-                    "Data table ID",
-                    "Rows",
+                expect(optionTexts).toEqual([
                     "Columns",
                     "Created",
-                    "Workspace",
+                    "Data table ID",
+                    "Data table name",
+                    "Data table properties",
                     "Metadata modified",
                     "Metadata revision",
+                    "Rows",
                     "Rows modified",
                     "Supports append",
-                    "Data table properties"
-                ]));
+                    "Workspace"
+                ]);
             });
         });
 
@@ -2548,15 +2948,17 @@ describe("DataFrameQueryEditorV2", () => {
                 });
             });
 
-            it("should show the expected options in the column properties field", async () => {
+            it("should show the expected options in sorted order in the column properties field", async () => {
                 await user.click(columnPropertiesField);
 
-                await waitFor(() => {
-                    expect(document.body).toHaveTextContent("Column name");
-                    expect(document.body).toHaveTextContent("Column data type");
-                    expect(document.body).toHaveTextContent("Column type");
-                    expect(document.body).toHaveTextContent("Column properties");
-                });
+                const optionControls = screen.getAllByRole('option');
+                const optionTexts = optionControls.map(opt => opt.textContent);
+                expect(optionTexts).toEqual([
+                    "Column data type",
+                    "Column name",
+                    "Column properties",
+                    "Column type"
+                ]);
             });
         });
 
@@ -2589,7 +2991,7 @@ describe("DataFrameQueryEditorV2", () => {
                 await user.tab();
 
                 await waitFor(() => {
-                    expect(screen.getByText("The take value must be greater than or equal to 0."))
+                    expect(screen.getByText("Enter a value greater than or equal to 1."))
                         .toBeInTheDocument();
                 });
             });
@@ -2600,7 +3002,7 @@ describe("DataFrameQueryEditorV2", () => {
                 await user.tab();
 
                 await waitFor(() => {
-                    expect(screen.getByText("The take value must be less than or equal to 1000."))
+                    expect(screen.getByText("Enter a value less than or equal to 1000."))
                         .toBeInTheDocument();
                 });
             });
@@ -2611,9 +3013,9 @@ describe("DataFrameQueryEditorV2", () => {
                 await user.tab();
 
                 await waitFor(() => {
-                    expect(screen.queryByText("The take value must be greater than or equal to 0."))
+                    expect(screen.queryByText("Enter a value greater than or equal to 1."))
                         .not.toBeInTheDocument();
-                    expect(screen.queryByText("The take value must be less than or equal to 1000."))
+                    expect(screen.queryByText("Enter a value less than or equal to 1000."))
                         .not.toBeInTheDocument();
                 });
             });
@@ -2738,6 +3140,14 @@ describe("DataFrameQueryEditorV2", () => {
             const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
 
             expect(props.dataTableFilter).toBe('TestFilter');
+        });
+
+        it('should pass datasourceHelp message as additionalInfoMessage to the wrapper', () => {
+          renderComponent({ type: DataFrameQueryType.Data, dataTableFilter: 'TestFilter' });
+
+          const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+
+          expect(props.additionalInfoMessage).toBe(infoMessage.datasourceHelp);
         });
 
         it("should pass columnFilter to the query builder wrapper", () => {
@@ -2915,3 +3325,4 @@ describe("DataFrameQueryEditorV2", () => {
     });
 
 });
+

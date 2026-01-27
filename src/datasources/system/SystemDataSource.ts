@@ -2,25 +2,29 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
-  DataSourceJsonData,
   MetricFindValue,
   TestDataSourceResponse
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
-import { DataSourceBase } from 'core/DataSourceBase';
-import { defaultOrderBy, defaultProjection, systemFields } from './constants';
 import { NetworkUtils } from './network-utils';
 import { SystemQuery, SystemQueryType, SystemSummary, SystemVariableQuery, SystemQueryReturnType, SystemProperties } from './types';
 import { getWorkspaceName } from 'core/utils';
-import { firstValueFrom, forkJoin, map, Observable } from 'rxjs';
+import { SystemsDataSourceBase } from './SystemsDataSourceBase';
+import { transformComputedFieldsQuery } from 'core/query-builder.utils';
+import { defaultOrderBy, defaultProjection, SystemBackendFieldNames, SystemFieldMapping } from './SystemsQueryBuilder.constants';
+import { from, map, Observable, switchMap } from 'rxjs';
+import { QuerySystemsResponse } from 'core/types';
 
-export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJsonData> {
+export class SystemDataSource extends SystemsDataSourceBase {
+  private dependenciesLoadedPromise: Promise<void>;
+
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.dependenciesLoadedPromise = this.loadDependencies();
   }
 
   baseUrl = this.instanceSettings.url + '/nisysmgmt/v1';
@@ -31,26 +35,84 @@ export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJson
     workspace: ''
   };
 
-  runQuery(query: SystemQuery, options: DataQueryRequest): Observable<DataFrameDTO> {
-    if (query.queryKind === SystemQueryType.Summary) {
-      return this.get$<SystemSummary>(this.baseUrl + '/get-systems-summary').pipe(
-        map(summary => ({
-          refId: query.refId,
-          fields: [
-            { name: 'Connected', values: [summary.connectedCount] },
-            { name: 'Disconnected', values: [summary.disconnectedCount] },
-          ]
-        }))
-      );
-    } else {
-      const systemFilter = this.templateSrv.replace(query.systemName, options.scopedVars);
-      const workspace = this.templateSrv.replace(query.workspace, options.scopedVars);
+  prepareQuery(query: SystemQuery): SystemQuery {
+    const prepared = { ...query };
 
-      return forkJoin({
-        properties: this.getSystemProperties$(systemFilter, defaultProjection, workspace),
-        workspaces: this.getWorkspaces$()
-      }).pipe(
-        map(({ properties, workspaces }) => ({
+    if (!prepared.queryKind) {
+      prepared.queryKind = this.defaultQuery.queryKind;
+    }
+
+    if ((prepared.systemName || prepared.workspace) && prepared.queryKind === SystemQueryType.Properties) {
+      prepared.filter = this.backwardCompatibility(prepared);
+      prepared.systemName = '';
+      prepared.workspace = '';
+    }
+
+    return prepared;
+  }
+
+  private backwardCompatibility(query: SystemQuery): string {
+    const parts: string[] = [];
+
+    if (query.filter?.trim()) {
+      parts.push(query.filter);
+    }
+
+    if (query.systemName?.trim()) {
+      const idPart = `id = "${query.systemName}"`;
+      const aliasPart = `alias = "${query.systemName}"`;
+      parts.push(`(${idPart} || ${aliasPart})`);
+    }
+
+    if (query.workspace?.trim() && !query.systemName) {
+      const workspacePart = `workspace = "${query.workspace}"`;
+      if (!query.filter?.includes('workspace =')) {
+        parts.push(workspacePart);
+      }
+    }
+
+    return parts.join(' && ');
+  }
+
+  runQuery(query: SystemQuery, options: DataQueryRequest): Observable<DataFrameDTO> {
+    return from(this.dependenciesLoadedPromise).pipe(
+      switchMap(() => {
+        if (query.queryKind === SystemQueryType.Summary) {
+          return this.runSummaryQuery(query);
+        } else {
+          return this.runDataQuery(query, options);
+        }
+      })
+    );
+  }
+
+  private runSummaryQuery(query: SystemQuery): Observable<DataFrameDTO> {
+    return this.get$<SystemSummary>(this.baseUrl + '/get-systems-summary').pipe(
+      map(summary => ({
+        refId: query.refId,
+        fields: [
+          { name: 'Connected', values: [summary.connectedCount] },
+          { name: 'Disconnected', values: [summary.disconnectedCount] },
+        ],
+      }))
+    );
+  }
+
+  private runDataQuery(query: SystemQuery, options: DataQueryRequest): Observable<DataFrameDTO> {
+    const processedFilter = query.filter ? this.processFilter(query.filter, options.scopedVars) : '';
+
+    return this.post$<QuerySystemsResponse>(
+      this.instanceSettings.url + '/nisysmgmt/v1/query-systems',
+      {
+        filter: processedFilter || '',
+        projection: `new(${defaultProjection.join()})`,
+        orderBy: defaultOrderBy,
+      }
+    ).pipe(
+      map(response => {
+        const properties = response.data;
+        const workspaces = this.getCachedWorkspaces();
+        return {
           refId: query.refId,
           fields: [
             { name: 'id', values: properties.map(m => m.id) },
@@ -68,35 +130,46 @@ export class SystemDataSource extends DataSourceBase<SystemQuery, DataSourceJson
             { name: 'workspace', values: properties.map(m => getWorkspaceName(workspaces, m.workspace)) },
             { name: 'scan code', values: properties.map(m => m.scanCode) }
           ],
-        }))
-      );
-    }
-  }
-
-  async getSystemProperties(systemFilter: string, projection = defaultProjection, workspace?: string) {
-    return await firstValueFrom(this.getSystemProperties$(systemFilter, projection, workspace));
-  }
-
-  getSystemProperties$(systemFilter: string, projection = defaultProjection, workspace?: string): Observable<any[]> {
-    const filters = [
-      systemFilter && `id = "${systemFilter}" || alias = "${systemFilter}"`,
-      workspace && !systemFilter && `workspace = "${workspace}"`,
-    ];
-
-    return this.post$<any>(
-      this.instanceSettings.url + '/nisysmgmt/v1/query-systems',
-      {
-        filter: filters.filter(Boolean).join(' '),
-        projection: `new(${projection.join()})`,
-        orderBy: defaultOrderBy,
-      }
-    ).pipe(
-      map(response => response.data)
+        };
+      })
     );
   }
 
-  async metricFindQuery({ workspace, queryReturnType }: SystemVariableQuery): Promise<MetricFindValue[]> {
-    const properties = await this.getSystemProperties('', [systemFields.ID, systemFields.ALIAS, systemFields.SCAN_CODE], this.templateSrv.replace(workspace));
+  private processFilter(filter: string, scopedVars: any): string {
+    let tempFilter = this.templateSrv.replace(filter, scopedVars);
+    tempFilter = this.mapUIFieldsToBackendFields(tempFilter);
+    return transformComputedFieldsQuery(tempFilter, this.systemsComputedDataFields);
+  }
+
+  private mapUIFieldsToBackendFields(filter: string): string {
+    let mappedFilter = filter;
+    Object.entries(SystemFieldMapping).forEach(([uiField, backendField]) => {
+      const regex = new RegExp(`\\b${uiField}\\b`, 'g');
+      mappedFilter = mappedFilter.replace(regex, backendField);
+    });
+
+    return mappedFilter;
+  }
+
+  async getSystemProperties(filter?: string, projection = defaultProjection): Promise<SystemProperties[]> {
+    const response = await this.getSystems({
+      filter: filter || '',
+      projection: `new(${projection.join()})`,
+      orderBy: defaultOrderBy,
+    });
+    return response.data;
+  }
+
+  async metricFindQuery({ queryReturnType, workspace }: SystemVariableQuery): Promise<MetricFindValue[]> {
+    await this.dependenciesLoadedPromise;
+
+    let filter = '';
+    if (workspace) {
+      const resolvedWorkspace = this.templateSrv.replace(workspace);
+      filter = `workspace = "${resolvedWorkspace}"`;
+    }
+
+    const properties = await this.getSystemProperties(filter, [SystemBackendFieldNames.ID, SystemBackendFieldNames.ALIAS, SystemBackendFieldNames.SCAN_CODE]);
     return properties.map(system => this.getSystemNameForMetricQuery({ queryReturnType }, system));
   }
 
