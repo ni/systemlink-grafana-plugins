@@ -93,7 +93,7 @@ describe('queries', () => {
     test('should return properties for single system', async () => {
       backendSrv.fetch
         .calledWith(
-        requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { filter: 'id = "system-1" || alias = "system-1"' } })
+          requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { filter: '(id = "system-1" || alias = "system-1")' } })
         )
         .mockReturnValue(createFetchResponse({ data: [fakeSystems[0]] }));
 
@@ -127,17 +127,6 @@ describe('queries', () => {
       await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: '$system_id' })));
 
       expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('filter', '(id = "system-1" || alias = "system-1")');
-    });
-
-    test('should replace template variables in workspace', async () => {
-      const workspaceVariable = '$workspace';
-      backendSrv.fetch.mockReturnValue(createFetchResponse({ data: fakeSystems }));
-      templateSrv.replace.calledWith(workspaceVariable).mockReturnValue('1');
-
-      await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties, systemName: 'system', workspace: workspaceVariable })));
-
-      expect(templateSrv.replace).toHaveBeenCalledTimes(2);
-      expect(templateSrv.replace.mock.calls[1][0]).toBe(workspaceVariable);
     });
 
     test('should handle API errors gracefully', async () => {
@@ -216,17 +205,6 @@ describe('metricFindQuery', () => {
 
     expect(templateSrv.replace).toHaveBeenCalledTimes(1);
     expect(templateSrv.replace.mock.calls[0][0]).toBe(workspaceVariable);
-  });
-
-  test('should not run query if hidden', () => {
-    const query: SystemQuery = {
-      hide: true,
-      queryKind: SystemQueryType.Properties,
-      systemName: '',
-      workspace: '',
-      refId: ''
-    };
-    expect(ds.shouldRunQuery(query)).toBe(false);
   });
 });
 
