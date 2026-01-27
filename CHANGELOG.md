@@ -1,3 +1,9 @@
+## [4.119.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.118.0...v4.119.0) (2026-01-27)
+
+### Features
+
+* **plotly:** sync numerical x-axis range in URL query params ([#637](https://github.com/ni/systemlink-grafana-plugins/issues/637)) ([5f251a1](https://github.com/ni/systemlink-grafana-plugins/commit/5f251a1c7fe047300579c519a351757a593457ce))
+
 ## [4.118.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.117.0...v4.118.0) (2026-01-26)
 
 ### Features
