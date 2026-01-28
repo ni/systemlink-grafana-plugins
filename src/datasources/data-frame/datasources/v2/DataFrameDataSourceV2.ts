@@ -1,7 +1,7 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, QueryResultMetaNotice, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, DataTableFirstClassPropertyLabels, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, DataTableFirstClassPropertyLabels, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL, DataFrameFeatureToggles } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -13,6 +13,7 @@ import { ResultsQueryBuilderFieldNames } from "shared/components/ResultsQueryBui
 import { replaceVariables } from "core/utils";
 import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
 import { QueryBuilderOperations } from "core/query-builder.constants";
+import { DataFrameQueryParamsHandler } from "./DataFrameQueryParamsHandler";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
@@ -21,9 +22,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     public constructor(
         public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
         public readonly backendSrv: BackendSrv = getBackendSrv(),
-        public readonly templateSrv: TemplateSrv = getTemplateSrv()
+        public readonly templateSrv: TemplateSrv = getTemplateSrv(),
+        protected readonly featureToggles: DataFrameFeatureToggles
     ) {
-        super(instanceSettings, backendSrv, templateSrv);
+        super(instanceSettings, backendSrv, templateSrv, featureToggles);
     }
 
     runQuery(
@@ -31,8 +33,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         options: DataQueryRequest<DataFrameQueryV2>
     ): Observable<DataFrameDTO> {
         this.scopedVars = options.scopedVars;
-        const processedQuery = this.processQuery(query);
+        const processedQuery = this.processQuery(query, options.targets);
         const transformedQuery = this.transformQuery(processedQuery, options.scopedVars);
+
+        if (this.featureToggles.highResolutionZoom) {
+            DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam(
+                transformedQuery.filterXRangeOnZoomPan,
+                options.panelId?.toString(),
+            );
+        }
 
         if (this.shouldQueryForData(transformedQuery)) {
             return this.getFieldsForDataQuery$(
@@ -110,7 +119,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return !query.hide;
     }
 
-    processQuery(query: DataFrameDataQuery): ValidDataFrameQueryV2 {
+    processQuery(
+        query: DataFrameDataQuery,
+        queries: DataFrameDataQuery[]
+    ): ValidDataFrameQueryV2 {
         // Handle existing dashboards with 'MetaData' type
         if ((query.type as any) === LEGACY_METADATA_TYPE) {
             query.type = DataFrameQueryType.Properties;
@@ -121,26 +133,19 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             query.columns = (query.columns as Array<{ name: string; }>).map(column => column.name);
         }
 
-        if ('tableId' in query) {
-            // Convert V1 to V2
-            const { tableId, ...v1QueryWithoutTableId } = query as DataFrameQueryV1;
-            const dataTableProperties = query.type === DataFrameQueryType.Properties
-                ? [DataTableProperties.Properties]
-                : defaultQueryV2.dataTableProperties;
-            const columns = this.getMigratedColumns(tableId, query.columns);
+        const dataTableFilter = this.resolveDataTableFilter(query);
+        const columns = this.resolveColumns(query);
+        const dataTableProperties = this.resolveDataTableProperties(query);
+        const filterXRangeOnZoomPan = this.resolveFilterXRangeOnZoomPan(query, queries);
 
-            return {
-                ...defaultQueryV2,
-                ...v1QueryWithoutTableId,
-                dataTableFilter: tableId ? `id = "${tableId}"` : '',
-                dataTableProperties,
-                columns
-            };
-        }
-
+        const { tableId, applyTimeFilters, ...v2SpecificProperties } = query as DataFrameQueryV1;
         return {
             ...defaultQueryV2,
-            ...query
+            ...v2SpecificProperties,
+            dataTableFilter,
+            columns,
+            dataTableProperties,
+            filterXRangeOnZoomPan,
         };
     }
 
@@ -292,7 +297,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         };
     }
 
-    private getDecimatedTableDataInBatches$(
+    private getTableDataInBatches$(
         tableColumnsMap: Record<string, TableColumnsData>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
@@ -374,7 +379,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             const nullFilters: ColumnFilter[] = query.filterNulls
                 ? this.constructNullFilters(columnsMap.selectedColumns)
                 : [];
-            const timeFilters: ColumnFilter[] = query.applyTimeFilters
+            const timeFilters: ColumnFilter[] = query.filterXRangeOnZoomPan
                 ? this.constructTimeFilters(query.xColumn, columnsMap.columns, timeRange)
                 : [];
             const filters: ColumnFilter[] = [
@@ -780,13 +785,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         processedQuery: ValidDataFrameQueryV2,
         options: DataQueryRequest<DataFrameQueryV2>
     ): Observable<DataFrameDTO> {
-        return this.getDecimatedDataForSelectedColumns$(
+        return this.getTableDataForSelectedColumns$(
             processedQuery,
             options
         );
     }
 
-    private getDecimatedDataForSelectedColumns$(
+    private getTableDataForSelectedColumns$(
         processedQuery: ValidDataFrameQueryV2,
         options: DataQueryRequest<DataFrameQueryV2>
     ): Observable<DataFrameDTO> {
@@ -870,7 +875,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             || hasOnlyMetadataFields
                         ) {
                             const tableNamesMap = this.buildTableNamesMap(tables);
-                            const decimatedDataMap$ = hasOnlyMetadataFields
+                            const tableDataMap$ = hasOnlyMetadataFields
                                 ? of({
                                     data: Object.fromEntries(
                                         tables.map(table => [
@@ -880,14 +885,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                     ),
                                     isLimitExceeded: false
                                 })
-                                : this.getDecimatedTableDataInBatches$(
+                                : this.getTableDataInBatches$(
                                     tableColumnsMap,
                                     processedQuery,
                                     options.range,
                                     options.maxDataPoints
                                 );
 
-                            return decimatedDataMap$.pipe(
+                            return tableDataMap$.pipe(
                                 map(result => {
                                     const aggregatedTableDataRows = this.aggregateTableDataRows(
                                         tableColumnsMap,
@@ -921,7 +926,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private aggregateTableDataRows(
         tableColumnsMap: Record<string, TableColumnsData>,
         tableNamesMap: Record<string, string>,
-        decimatedDataMap: Record<string, TableDataRows>,
+        tableRowDataMap: Record<string, TableDataRows>,
         xColumn: string | null,
         selectedColumnIdentifiers: string[]
     ): FieldDTO[] {
@@ -949,18 +954,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             }
         });
 
-        Object.entries(decimatedDataMap).forEach(([tableId, tableDataRows]) => {
+        Object.entries(tableRowDataMap).forEach(([tableId, tableRowData]) => {
             const tableName = tableNamesMap[tableId] || '';
-            const columnsData = tableColumnsMap[tableId];
-            const decimatedTableColumns = tableDataRows.frame.columns;
-            const decimatedTableData = tableDataRows.frame.data;
-            const rowCount = decimatedTableData.length;
+            const tableColumnsData = tableColumnsMap[tableId];
+            const columns = tableRowData.frame.columns;
+            const data = tableRowData.frame.data;
+            const rowCount = data.length;
 
-            const columnInfoByDisplayName = columnsData 
-                ? new Map(columnsData.selectedColumns.map(column => [column.displayName, column]))
+            const columnInfoByDisplayName = tableColumnsData 
+                ? new Map(tableColumnsData.selectedColumns.map(column => [column.displayName, column]))
                 : new Map(); // Handle case where only metadata fields are selected
             const columnIndexByName = new Map(
-                decimatedTableColumns.map((columnName, index) => [columnName, index])
+                columns.map((columnName, index) => [columnName, index])
             );
 
             fields.forEach(field => {
@@ -991,10 +996,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             break;
                         }
 
-                        const decimatedData = decimatedTableData.map(row => {
+                        const transformedData = data.map(row => {
                             return this.transformValue(columnDataType, row[columnIndex]);
                         });
-                        field.values = field.values!.concat(decimatedData);
+                        field.values = field.values!.concat(transformedData);
                         break;
                 }
             });
@@ -1596,5 +1601,56 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             };
         }
         return field;
+    }
+
+    private resolveDataTableFilter(query: DataFrameDataQuery): string {
+        if ('dataTableFilter' in query && query.dataTableFilter !== undefined) {
+            return query.dataTableFilter;
+        }
+
+        if ('tableId' in query && query.tableId !== undefined && query.tableId !== '') {
+            return `id = "${query.tableId}"`;
+        }
+
+        return defaultQueryV2.dataTableFilter;
+    }
+
+    private resolveColumns(query: DataFrameDataQuery): string[] | Observable<string[]> {
+        if ('tableId' in query) {
+            return this.getMigratedColumns(query.tableId, query.columns);
+        }
+
+        return query.columns ?? defaultQueryV2.columns;
+    }
+
+    private resolveDataTableProperties(query: DataFrameDataQuery): DataTableProperties[] {
+        if ('dataTableProperties' in query && query.dataTableProperties !== undefined) {
+            return query.dataTableProperties;
+        }
+
+        if (query.type === DataFrameQueryType.Properties) {
+            return [DataTableProperties.Properties];
+        }
+
+        return defaultQueryV2.dataTableProperties;
+    }
+
+    private resolveFilterXRangeOnZoomPan(
+        query: DataFrameDataQuery,
+        queries: DataFrameDataQuery[]
+    ): boolean {
+        if ('filterXRangeOnZoomPan' in query && query.filterXRangeOnZoomPan !== undefined) {
+            return queries.some(q => (q as DataFrameQueryV2).filterXRangeOnZoomPan);
+        }
+
+        if ('applyTimeFilters' in query && query.applyTimeFilters !== undefined) {
+            if (this.featureToggles.highResolutionZoom) {
+                return queries.some(q => (q as DataFrameQueryV1).applyTimeFilters);
+            }
+
+            return query.applyTimeFilters;
+        }
+
+        return defaultQueryV2.filterXRangeOnZoomPan;
     }
 }
