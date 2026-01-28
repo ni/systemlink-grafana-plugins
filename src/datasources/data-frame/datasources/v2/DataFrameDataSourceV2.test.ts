@@ -3184,6 +3184,38 @@ describe('DataFrameDataSourceV2', () => {
                     expect(voltageField?.values).toEqual([]);
                 });
 
+                it('should handle CSV with delimiter mismatch in data rows', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        name: 'table1',
+                        columns: [
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+
+                    // CSV with just one column (delimiter error)
+                    const csvResponse = 'voltage\n10.5\n20.3\n30.1';
+                    postSpy.mockReturnValue(of(csvResponse));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['voltage-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'NONE',
+                        filterNulls: false,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
+
+                    const result = await lastValueFrom(datasource.runQuery(query, options));
+
+                    const voltageField = findField(result.fields, 'voltage');
+                    
+                    // Should still parse available data
+                    expect(voltageField?.values).toEqual([10.5, 20.3, 30.1]);
+                });
+
                 it('should handle CSV parsing errors gracefully', async () => {
                     const mockTables = [{
                         id: 'table1',
