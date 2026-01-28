@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import React, { useState, useMemo, useEffect } from 'react';
 import {
   PanelProps,
   DataFrame,
@@ -37,6 +36,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
 
   const traceColors = useTraceColors(theme);
   const debounceDelayInMs = 300;
+  const xAxisPrecisionDecimals = 6;
 
   const xFields = useMemo(
     () => _.attempt(() => getXFields(data.series, options.xAxis.field)),
@@ -77,29 +77,6 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     // options excluded from dependencies to prevent infinite loop as onOptionsChange updates options
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dashboardTimeFrom, dashboardTimeTo, isTimeBasedXAxis]);
-
-  const publishXAxisRangeUpdate = useMemo(
-    () =>
-      _.debounce((xAxisMin: number, xAxisMax: number, xAxisField: string) => {
-        locationService.partial(
-          {
-            [`nisl-${xAxisField}-min`]: xAxisMin,
-            [`nisl-${xAxisField}-max`]: xAxisMax,
-          },
-          true,
-        );
-        getAppEvents().publish(new NIRefreshDashboardEvent());
-      }, debounceDelayInMs),
-    []
-  );
-
-  useEffect(() => {
-    return () => {
-      publishXAxisRangeUpdate.cancel();
-    };
-  }, [publishXAxisRangeUpdate]);
-  const debounceDelayInMs = 300;
-  const xAxisPrecisionDecimals = 6;
 
   const publishXAxisRangeUpdate = useMemo(
     () =>
@@ -268,7 +245,6 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       return;
     }
     
-    const xAxisPrecisionDecimals = 6;
     const updatedXAxisMin = Number(xAxisMin.toFixed(xAxisPrecisionDecimals));
     const updatedXAxisMax = Number(xAxisMax.toFixed(xAxisPrecisionDecimals));
     const existingXAxisMinParam = queryParams[`nisl-${options.xAxis.field}-min`];
