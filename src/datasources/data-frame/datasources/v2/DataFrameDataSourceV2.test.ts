@@ -2877,7 +2877,7 @@ describe('DataFrameDataSourceV2', () => {
                         id: 'table1',
                         name: 'table1',
                         columns: [
-                            { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                            { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
                         ]
                     }];
@@ -2917,7 +2917,7 @@ describe('DataFrameDataSourceV2', () => {
                         id: 'table1',
                         name: 'table1',
                         columns: [
-                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));

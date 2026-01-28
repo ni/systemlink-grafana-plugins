@@ -448,13 +448,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         descending: true
                     }
                 ]
-                : [
-                    {
-                        column: columnsMap.columns.find(
-                            column => column.columnType === ColumnType.Index)!.name,
-                        descending: true
-                    }
-                ];
+                : undefined;
 
             return {
                 tableId,

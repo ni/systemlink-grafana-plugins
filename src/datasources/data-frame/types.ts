@@ -391,7 +391,7 @@ export interface DecimatedDataRequest {
 export interface UndecimatedDataRequest {
   tableId: string;
   columns: string[];
-  orderBy: Array<{ column: string; descending: boolean }>;
+  orderBy?: Array<{ column: string; descending: boolean }>;
   filters: ColumnFilter[];
   take: number;
 }
