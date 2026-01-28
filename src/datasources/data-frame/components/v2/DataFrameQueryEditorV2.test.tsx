@@ -7,7 +7,7 @@ import React from "react";
 import { cleanup, render, RenderResult, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
-import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties, DataFrameDataQuery } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties, DataFrameDataQuery } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { COLUMN_OPTIONS_LIMIT } from "datasources/data-frame/constants";
@@ -41,15 +41,16 @@ const renderComponent = (
     errorDescription = '',
     columnOptions: ComboboxOption[] = [],
     xColumnOptions: ComboboxOption[] = [],
-    processQueryOverride?: jest.Mock<DataFrameQuery, [ValidDataFrameQueryV2]>,
+    processQueryOverride?: jest.Mock<ValidDataFrameQuery, [DataFrameDataQuery, DataFrameDataQuery[]]>,
     variablesCache: Record<string, string> = {},
-    mockDatasource: Partial<DataFrameDataSource> = {}
+    mockDatasource: Partial<DataFrameDataSource> = {},
+    queries: DataFrameDataQuery[] = []
 ) => {
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
     const processQuery = processQueryOverride ?? jest
-        .fn<DataFrameQuery, [ValidDataFrameQueryV2]>()
-        .mockImplementation(query => ({ ...defaultQueryV2, ...query }));
+        .fn<ValidDataFrameQuery, [DataFrameDataQuery, DataFrameDataQuery[]]>()
+        .mockImplementation((query, _queries) => ({ ...defaultQueryV2, ...query }));
     const datasource = {
         errorTitle,
         errorDescription,
@@ -93,6 +94,7 @@ const renderComponent = (
         <DataFrameQueryEditorV2
             datasource={datasource}
             query={initialQuery}
+            queries={queries}
             onChange={onChange}
             onRunQuery={onRunQuery}
         />
@@ -103,6 +105,7 @@ const renderComponent = (
             <DataFrameQueryEditorV2
                 datasource={datasource}
                 query={newQuery}
+                queries={queries}
                 onChange={onChange}
                 onRunQuery={onRunQuery}
             />
@@ -113,16 +116,35 @@ const renderComponent = (
 };
 
 describe("DataFrameQueryEditorV2", () => {
-    it("should call processQuery with the initial query", () => {
-        const { processQuery } = renderComponent({
+    it("should call processQuery with the initial query and queries array", () => {
+        const query1: DataFrameDataQuery = {
             type: DataFrameQueryType.Data,
-            tableId: 'ExistingFilter',
-        });
+            tableId: 'Table1',
+            refId: 'A',
+        };
 
-        expect(processQuery).toHaveBeenCalledWith(expect.objectContaining({
+        const query2: DataFrameDataQuery = {
             type: DataFrameQueryType.Data,
-            tableId: 'ExistingFilter',
-        }));
+            tableId: 'Table2',
+            refId: 'B',
+        };
+
+        const { processQuery } = renderComponent(
+            query1,
+            '',
+            '',
+            [],
+            [],
+            undefined,
+            {},
+            undefined,
+            [query1, query2]
+        );
+
+        expect(processQuery).toHaveBeenCalledWith(
+            query1,
+            [query1, query2]
+        );
     });
 
     it("should render query type options", () => {
@@ -227,7 +249,7 @@ describe("DataFrameQueryEditorV2", () => {
                 let columnsField: HTMLElement;
                 let datasource: DataFrameDataSource;
 
-                const processQuery = jest.fn(query => ({ ...defaultQueryV2, ...query }));
+                const processQuery = jest.fn((query, _queries) => ({ ...defaultQueryV2, ...query }));
 
                 async function changeFilterValue(filterValue = 'NewFilter') {
                     // Get the onDataTableFilterChange callback from the mock
@@ -964,7 +986,7 @@ describe("DataFrameQueryEditorV2", () => {
                     it("should call onChange with a list of columns when processQuery returns an observable", async () => {
                         const columns = of(['ColumnB-Numeric', 'ColumnD-String']);
                         const processQueryOverride = jest
-                            .fn<DataFrameQuery, [ValidDataFrameQueryV2]>()
+                            .fn<ValidDataFrameQuery, [DataFrameDataQuery, DataFrameDataQuery[]]>()
                             .mockImplementation(query => ({
                                 ...defaultQueryV2,
                                 ...query,
@@ -994,7 +1016,7 @@ describe("DataFrameQueryEditorV2", () => {
                     it("should call onRunQuery with a list of columns when processQuery returns an observable", async () => {
                         const columns = of(['ColumnB-Numeric', 'ColumnD-String']);
                         const processQueryOverride = jest
-                            .fn<DataFrameQuery, [ValidDataFrameQueryV2]>()
+                            .fn<ValidDataFrameQuery, [DataFrameDataQuery, DataFrameDataQuery[]]>()
                             .mockImplementation(query => ({
                                 ...defaultQueryV2,
                                 ...query,
@@ -1829,7 +1851,7 @@ describe("DataFrameQueryEditorV2", () => {
                 let xColumnField: HTMLElement;
                 let datasource: DataFrameDataSource;
 
-                const processQuery = jest.fn(query => ({ ...defaultQueryV2, ...query }));
+                const processQuery = jest.fn((query, _queries) => ({ ...defaultQueryV2, ...query }));
 
                 async function changeFilterValue(filterValue = 'NewFilter') {
                     // Get the onDataTableFilterChange callback from the mock
@@ -2728,7 +2750,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                     await waitFor(() => {
                         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                            applyTimeFilters: true
+                            filterXRangeOnZoomPan: true
                         }));
                         expect(onRunQuery).toHaveBeenCalled();
                     });
