@@ -14,7 +14,7 @@ export const getValuesInPixels = (valueInGrafanaUnits: number) => {
  * The following values are multiples of 8 to align with Grafana's grid system.
  * For example, 25 in Grafana units is equal to 25*8 = 200px.
  */
-export const INLINE_LABEL_WIDTH = 25;
+export const INLINE_LABEL_WIDTH = 31;
 export const VALUE_FIELD_WIDTH = 65.5;
 export const INLINE_MARGIN_BETWEEN_LABEL_AND_FIELD = 0.5;
 export const DEFAULT_MARGIN_BOTTOM = 1;
