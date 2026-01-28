@@ -2,7 +2,7 @@ import { UrlQueryMap } from "@grafana/data";
 import { locationService } from "@grafana/runtime";
 import { syncXAxisRangeTargets } from "datasources/data-frame/constants/v2/route-query-parameters";
 
-export class  DataFrameQueryParamsHandler {
+export class DataFrameQueryParamsHandler {
     public static updateSyncXAxisRangeTargetsQueryParam(
         filterXRangeOnZoomPan: boolean,
         panelId = ''
