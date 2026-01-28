@@ -400,16 +400,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             : Math.min(maxDataPoints, TOTAL_ROWS_LIMIT);
 
         return Object.entries(tableColumnsMap).map(([tableId, columnsMap]) => {
-            const nullFilters: ColumnFilter[] = query.filterNulls
-                ? this.constructNullFilters(columnsMap.selectedColumns)
-                : [];
-            const timeFilters: ColumnFilter[] = query.filterXRangeOnZoomPan
-                ? this.constructTimeFilters(query.xColumn, columnsMap.columns, timeRange)
-                : [];
-            const filters: ColumnFilter[] = [
-                ...nullFilters,
-                ...timeFilters
-            ];
+            const filters = this.constructColumnFilters(query, columnsMap, timeRange);
 
             const xColumn = query.xColumn 
                     ? this.parseColumnIdentifier(query.xColumn).columnName
@@ -442,16 +433,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             UNDECIMATED_RECORDS_LIMIT
         );
         return Object.entries(tableColumnsMap).map(([tableId, columnsMap]) => {
-            const nullFilters: ColumnFilter[] = query.filterNulls
-                ? this.constructNullFilters(columnsMap.selectedColumns)
-                : [];
-            const timeFilters: ColumnFilter[] = query.filterXRangeOnZoomPan
-                ? this.constructTimeFilters(query.xColumn, columnsMap.columns, timeRange)
-                : [];
-            const filters: ColumnFilter[] = [
-                ...nullFilters,
-                ...timeFilters
-            ];
+            const filters = this.constructColumnFilters(query, columnsMap, timeRange);
 
             const orderBy = query.xColumn 
                 ? [
@@ -469,6 +451,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 take
             };
         });
+    }
+
+    private constructColumnFilters(
+        query: ValidDataFrameQueryV2,
+        columnsMap: TableColumnsData,
+        timeRange: TimeRange
+    ): ColumnFilter[] {
+        const nullFilters: ColumnFilter[] = query.filterNulls
+            ? this.constructNullFilters(columnsMap.selectedColumns)
+            : [];
+        const timeFilters: ColumnFilter[] = query.filterXRangeOnZoomPan
+            ? this.constructTimeFilters(query.xColumn, columnsMap.columns, timeRange)
+            : [];
+        return [
+            ...nullFilters,
+            ...timeFilters
+        ];
     }
 
     private constructTimeFilters(
