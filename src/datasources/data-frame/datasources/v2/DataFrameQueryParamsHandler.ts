@@ -57,7 +57,7 @@ export class DataFrameQueryParamsHandler {
             && typeof panelIdQueryParam === 'string'
             && panelIdQueryParam !== ''
         ) {
-            return  panelIdQueryParam;
+            return panelIdQueryParam;
         }
 
         return undefined;
