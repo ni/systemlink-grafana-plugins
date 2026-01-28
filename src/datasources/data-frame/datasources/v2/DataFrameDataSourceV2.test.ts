@@ -2853,16 +2853,16 @@ describe('DataFrameDataSourceV2', () => {
                 let postSpy: jest.SpyInstance;
                 let datasource: DataFrameDataSourceV2;
                 let featureToggles = {
-                            queryByResultAndColumnProperties: true,
-                            queryUndecimatedData: true
-                        }
+                    queryByResultAndColumnProperties: true,
+                    queryUndecimatedData: true
+                }
                 const undecimatedInstanceSettings = {
                     id: 1,
                     name: 'test',
                     type: 'test',
                     url: 'http://localhost',
                     jsonData: {
-                        featureToggles: featureToggles
+                        featureToggles
                     }
                 } as any;
 
