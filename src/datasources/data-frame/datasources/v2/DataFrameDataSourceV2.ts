@@ -325,10 +325,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
-    private queryTableDataInBatches$<T extends { tableId: string }>(
-        requests: T[],
-        queryTableDataHandler$: (request: T) => Observable<TableDataRows>
-    ): Observable<{ 
+    private queryTableDataInBatches$<TRequest extends { tableId: string }>(
+        requests: TRequest[],
+        queryTableDataHandler$: (request: TRequest) => Observable<TableDataRows>
+    ): Observable<{
             data: Record<string, TableDataRows>;
             isLimitExceeded: boolean 
         }> {
