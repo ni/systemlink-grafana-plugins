@@ -90,6 +90,7 @@ describe('DataFrameQueryParamsHandler', () => {
       mockGetSearchObject.mockReturnValue(queryParams);
 
       DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam(false, '42');
+
       expect(mockPartial).toHaveBeenCalledTimes(1);
       expect(mockPartial).toHaveBeenCalledWith({ [syncXAxisRangeTargets]: '' }, true);
     });
