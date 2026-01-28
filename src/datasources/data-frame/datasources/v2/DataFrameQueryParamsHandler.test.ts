@@ -121,5 +121,10 @@ describe('DataFrameQueryParamsHandler', () => {
       const targets = DataFrameQueryParamsHandler.getSyncXAxisRangeTargets({ [syncXAxisRangeTargets]: ' a , b , c ' } as UrlQueryMap);
       expect(targets).toEqual(['a', 'b', 'c']);
     });
+
+    it('should ignore empty targets after splitting', () => {
+      const targets = DataFrameQueryParamsHandler.getSyncXAxisRangeTargets({ [syncXAxisRangeTargets]: 'a,,b, ,c' } as UrlQueryMap);
+      expect(targets).toEqual(['a', 'b', 'c']);
+    });
   });
 });
