@@ -11,7 +11,7 @@ services:
     environment:
       - GF_USERS_DEFAULT_THEME=system
     ports:
-      - 3002:3000/tcp
+      - 4000:3000/tcp
     volumes:
       - ./dist:/var/lib/grafana/plugins/ni-systemlink-app
       - ./grafana.ini:/etc/grafana/grafana.ini

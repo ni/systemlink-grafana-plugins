@@ -1,5 +1,4 @@
-import type { PlaywrightTestConfig } from '@playwright/test';
-import { devices } from '@playwright/test';
+import {type  PlaywrightTestConfig, devices } from '@playwright/test';
 
 const isCI = !!process.env.CI;
 
@@ -55,5 +54,4 @@ const config: PlaywrightTestConfig = {
     outputDir: './playwright-results/'
 };
 
-// eslint-disable-next-line import/no-default-export
 export default config;
