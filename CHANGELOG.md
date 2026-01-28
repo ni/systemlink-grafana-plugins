@@ -1,3 +1,9 @@
+## [4.120.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.119.1...v4.120.0) (2026-01-28)
+
+### Features
+
+* **dataframe:** version 2: migrate applyTimeFilters based on multiple queries in a panel ([#649](https://github.com/ni/systemlink-grafana-plugins/issues/649)) ([b0f9cf2](https://github.com/ni/systemlink-grafana-plugins/commit/b0f9cf2b7d6172d2c43d735ad92d94c345fc049a))
+
 ## [4.119.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.119.0...v4.119.1) (2026-01-27)
 
 ### Bug Fixes
