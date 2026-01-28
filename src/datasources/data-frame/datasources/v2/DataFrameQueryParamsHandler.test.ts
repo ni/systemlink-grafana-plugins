@@ -90,7 +90,6 @@ describe('DataFrameQueryParamsHandler', () => {
       mockGetSearchObject.mockReturnValue(queryParams);
 
       DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam(false, '42');
-      
       expect(mockPartial).toHaveBeenCalledTimes(1);
       expect(mockPartial).toHaveBeenCalledWith({ [syncXAxisRangeTargets]: '' }, true);
     });
@@ -119,6 +118,11 @@ describe('DataFrameQueryParamsHandler', () => {
 
     it('should trim whitespace from targets', () => {
       const targets = DataFrameQueryParamsHandler.getSyncXAxisRangeTargets({ [syncXAxisRangeTargets]: ' a , b , c ' } as UrlQueryMap);
+      expect(targets).toEqual(['a', 'b', 'c']);
+    });
+
+    it('should ignore empty targets after splitting', () => {
+      const targets = DataFrameQueryParamsHandler.getSyncXAxisRangeTargets({ [syncXAxisRangeTargets]: 'a,,b, ,c' } as UrlQueryMap);
       expect(targets).toEqual(['a', 'b', 'c']);
     });
   });

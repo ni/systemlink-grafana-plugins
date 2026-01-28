@@ -1,3 +1,27 @@
+## [4.120.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.119.1...v4.120.0) (2026-01-28)
+
+### Features
+
+* **dataframe:** version 2: migrate applyTimeFilters based on multiple queries in a panel ([#649](https://github.com/ni/systemlink-grafana-plugins/issues/649)) ([b0f9cf2](https://github.com/ni/systemlink-grafana-plugins/commit/b0f9cf2b7d6172d2c43d735ad92d94c345fc049a))
+
+## [4.119.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.119.0...v4.119.1) (2026-01-27)
+
+### Bug Fixes
+
+* **systems:** Cancel ongoing requests when refreshing query ([#526](https://github.com/ni/systemlink-grafana-plugins/issues/526)) ([bafcefa](https://github.com/ni/systemlink-grafana-plugins/commit/bafcefa9ab9867b29027bce74bd87c6443cdf1e3))
+
+## [4.119.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.118.0...v4.119.0) (2026-01-27)
+
+### Features
+
+* **plotly:** sync numerical x-axis range in URL query params ([#637](https://github.com/ni/systemlink-grafana-plugins/issues/637)) ([5f251a1](https://github.com/ni/systemlink-grafana-plugins/commit/5f251a1c7fe047300579c519a351757a593457ce))
+
+## [4.118.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.117.0...v4.118.0) (2026-01-26)
+
+### Features
+
+* **system:** Implement query builder for systems data source filtering ([#560](https://github.com/ni/systemlink-grafana-plugins/issues/560)) ([573dece](https://github.com/ni/systemlink-grafana-plugins/commit/573decedc476abcf0158be4fe10e15c791ded85a))
+
 ## [4.117.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.116.0...v4.117.0) (2026-01-21)
 
 ### Features

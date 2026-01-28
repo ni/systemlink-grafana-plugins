@@ -2,7 +2,7 @@ import { UrlQueryMap } from "@grafana/data";
 import { locationService } from "@grafana/runtime";
 import { editPanel, syncXAxisRangeTargets } from "datasources/data-frame/constants/v2/route-query-parameters";
 
-export  class  DataFrameQueryParamsHandler {
+export class  DataFrameQueryParamsHandler {
     public static updateSyncXAxisRangeTargetsQueryParam(
         filterXRangeOnZoomPan: boolean,
         panelId = ''
@@ -15,7 +15,7 @@ export  class  DataFrameQueryParamsHandler {
         let targets: string[] = this.getSyncXAxisRangeTargets(queryParams);
         if (
             (filterXRangeOnZoomPan && targets.includes(panelId))
-            || (!filterXRangeOnZoomPan && !targets.includes(panelId)) 
+            || (!filterXRangeOnZoomPan && !targets.includes(panelId))
         ){
             return;
         }
@@ -42,7 +42,8 @@ export  class  DataFrameQueryParamsHandler {
         ) {
             targets = syncXAxisRangeTargetsQueryParam
                 .split(',')
-                .map((target) => target.trim());
+                .map((target) => target.trim())
+                .filter((target) => target !== '');
         }
 
         return targets;
