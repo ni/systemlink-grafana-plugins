@@ -1,6 +1,6 @@
 # Acceptance Tests
 
-This directory contains acceptance tests for the SystemLink Grafana plugins.
+This directory contains acceptance tests for the NI SystemLink Grafana plugins.
 
 ## Overview
 
@@ -13,6 +13,7 @@ Run `docker-compose.tests.yaml` from project root. This will start a Grafana ins
 ## Running Tests
 
 ```bash
+# in acceptance-tests folder
 npm install
 npm run playwright:setup # if not ran before
 npm test
