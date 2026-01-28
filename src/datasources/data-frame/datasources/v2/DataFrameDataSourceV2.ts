@@ -301,7 +301,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         };
     }
 
-    private getTableDataInBatches$(
+    private getTableData$(
         tableColumnsMap: Record<string, TableColumnsData>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
@@ -312,22 +312,22 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         if (queryUndecimatedData) {
             const requests = this.getUndecimatedDataRequests(tableColumnsMap, query, timeRange);
-            return this.fetchTableDataInBatches$(
+            return this.queryTableDataInBatches$(
                 requests,
                 request => this.getUndecimatedTableData$(request)
             );
         }
 
         const requests = this.getDecimatedDataRequests(tableColumnsMap, query, timeRange, maxDataPoints);
-        return this.fetchTableDataInBatches$(
+        return this.queryTableDataInBatches$(
             requests,
             request => this.getDecimatedTableData$(request)
         );
     }
 
-    private fetchTableDataInBatches$<T extends { tableId: string }>(
+    private queryTableDataInBatches$<T extends { tableId: string }>(
         requests: T[],
-        fetchTableData$: (request: T) => Observable<TableDataRows>
+        queryTableDataHandler$: (request: T) => Observable<TableDataRows>
     ): Observable<{ 
             data: Record<string, TableDataRows>;
             isLimitExceeded: boolean 
@@ -342,7 +342,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     takeUntil(stopSignal$),
                     concatMap(() => from(batch).pipe(
                         mergeMap(request =>
-                            fetchTableData$(request).pipe(
+                            queryTableDataHandler$(request).pipe(
                                 takeUntil(stopSignal$),
                                 map(tableDataRows => ({
                                     tableId: request.tableId,
@@ -432,6 +432,45 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         });
     }
 
+    private getUndecimatedDataRequests(
+        tableColumnsMap: Record<string, TableColumnsData>,
+        query: ValidDataFrameQueryV2,
+        timeRange: TimeRange
+    ): UndecimatedDataRequest[] {
+        const take = Math.min(
+            query.undecimatedRecordCount ?? UNDECIMATED_RECORDS_LIMIT, 
+            UNDECIMATED_RECORDS_LIMIT
+        );
+        return Object.entries(tableColumnsMap).map(([tableId, columnsMap]) => {
+            const nullFilters: ColumnFilter[] = query.filterNulls
+                ? this.constructNullFilters(columnsMap.selectedColumns)
+                : [];
+            const timeFilters: ColumnFilter[] = query.filterXRangeOnZoomPan
+                ? this.constructTimeFilters(query.xColumn, columnsMap.columns, timeRange)
+                : [];
+            const filters: ColumnFilter[] = [
+                ...nullFilters,
+                ...timeFilters
+            ];
+
+            const orderBy = query.xColumn 
+                ? [
+                    {
+                        column: this.parseColumnIdentifier(query.xColumn).columnName,
+                        descending: true
+                    }]
+                : undefined;
+
+            return {
+                tableId,
+                columns: columnsMap.selectedColumns.map(column => column.name),
+                orderBy,
+                filters,
+                take
+            };
+        });
+    }
+
     private constructTimeFilters(
         xColumn: string | null,
         columns: Column[],
@@ -488,45 +527,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 return of({frame: {columns: [], data: []}});
             })
         );
-    }
-
-    private getUndecimatedDataRequests(
-        tableColumnsMap: Record<string, TableColumnsData>,
-        query: ValidDataFrameQueryV2,
-        timeRange: TimeRange
-    ): UndecimatedDataRequest[] {
-        const take = Math.min(
-            query.undecimatedRecordCount ?? UNDECIMATED_RECORDS_LIMIT, 
-            UNDECIMATED_RECORDS_LIMIT
-        );
-        return Object.entries(tableColumnsMap).map(([tableId, columnsMap]) => {
-            const nullFilters: ColumnFilter[] = query.filterNulls
-                ? this.constructNullFilters(columnsMap.selectedColumns)
-                : [];
-            const timeFilters: ColumnFilter[] = query.filterXRangeOnZoomPan
-                ? this.constructTimeFilters(query.xColumn, columnsMap.columns, timeRange)
-                : [];
-            const filters: ColumnFilter[] = [
-                ...nullFilters,
-                ...timeFilters
-            ];
-
-            const orderBy = query.xColumn 
-                ? [
-                    {
-                        column: this.parseColumnIdentifier(query.xColumn).columnName,
-                        descending: true
-                    }]
-                : undefined;
-
-            return {
-                tableId,
-                columns: columnsMap.selectedColumns.map(column => column.name),
-                orderBy,
-                filters,
-                take
-            };
-        });
     }
 
     private getUndecimatedTableData$(request: UndecimatedDataRequest): Observable<TableDataRows> {
@@ -1012,7 +1012,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                     ),
                                     isLimitExceeded: false
                                 })
-                                : this.getTableDataInBatches$(
+                                : this.getTableData$(
                                     tableColumnsMap,
                                     processedQuery,
                                     options.range,
