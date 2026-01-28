@@ -3071,7 +3071,7 @@ describe('DataFrameDataSourceV2', () => {
                     expect(postSpy).toHaveBeenCalledWith(
                         expect.any(String),
                         expect.objectContaining({
-                            orderBy: [{ column: 'time', descending: true }]
+                            orderBy: [{ column: 'time' }]
                         }),
                         expect.any(Object)
                     );
