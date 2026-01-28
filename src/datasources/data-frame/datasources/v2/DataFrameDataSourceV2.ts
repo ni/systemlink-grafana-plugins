@@ -447,7 +447,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         column: this.parseColumnIdentifier(query.xColumn).columnName,
                         descending: true
                     }]
-                : undefined;
+                : [
+                    {
+                        column: columnsMap.columns.find(
+                            column => column.columnType === ColumnType.Index)?.name,
+                        descending: true
+                    }
+                ];
 
             return {
                 tableId,
