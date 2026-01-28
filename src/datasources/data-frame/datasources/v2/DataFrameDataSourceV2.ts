@@ -310,16 +310,28 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const queryUndecimatedData = this.isQueryUndecimatedDataFeatureEnabled 
             && query.decimationMethod === 'NONE';
 
-        const requests: Array<{ tableId: string }> = queryUndecimatedData
-            ? this.getUndecimatedDataRequests(tableColumnsMap, query, timeRange)
-            : this.getDecimatedDataRequests(tableColumnsMap, query, timeRange, maxDataPoints);
-        
-        const fetchTableData$ = queryUndecimatedData
-            ? (request: { tableId: string }) => 
-                this.getUndecimatedTableData$(request as UndecimatedDataRequest)
-            : (request: { tableId: string }) => 
-                this.getDecimatedTableData$(request as DecimatedDataRequest);
+        if (queryUndecimatedData) {
+            const requests = this.getUndecimatedDataRequests(tableColumnsMap, query, timeRange);
+            return this.fetchTableDataInBatches$(
+                requests,
+                request => this.getUndecimatedTableData$(request)
+            );
+        }
 
+        const requests = this.getDecimatedDataRequests(tableColumnsMap, query, timeRange, maxDataPoints);
+        return this.fetchTableDataInBatches$(
+            requests,
+            request => this.getDecimatedTableData$(request)
+        );
+    }
+
+    private fetchTableDataInBatches$<T extends { tableId: string }>(
+        requests: T[],
+        fetchTableData$: (request: T) => Observable<TableDataRows>
+    ): Observable<{ 
+            data: Record<string, TableDataRows>;
+            isLimitExceeded: boolean 
+        }> {
         const totalRequests = requests.length;
         const batches = _.chunk(requests, REQUESTS_PER_SECOND);
         const stopSignal$ = new Subject<void>();

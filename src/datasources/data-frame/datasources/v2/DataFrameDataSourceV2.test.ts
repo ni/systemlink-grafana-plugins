@@ -1,7 +1,7 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
-import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
+import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureToggles, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { COLUMN_SELECTION_LIMIT, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
@@ -2852,21 +2852,22 @@ describe('DataFrameDataSourceV2', () => {
                 let queryTablesSpy: jest.SpyInstance;
                 let postSpy: jest.SpyInstance;
                 let datasource: DataFrameDataSourceV2;
+                let featureToggles = {
+                            queryByResultAndColumnProperties: true,
+                            queryUndecimatedData: true
+                        }
                 const undecimatedInstanceSettings = {
                     id: 1,
                     name: 'test',
                     type: 'test',
                     url: 'http://localhost',
                     jsonData: {
-                        featureToggles: {
-                            queryByResultAndColumnProperties: true,
-                            queryUndecimatedData: true
-                        }
+                        featureToggles: featureToggles
                     }
                 } as any;
 
                 beforeEach(() => {
-                    datasource = new DataFrameDataSourceV2(undecimatedInstanceSettings, backendSrv, templateSrv);
+                    datasource = new DataFrameDataSourceV2(undecimatedInstanceSettings, backendSrv, templateSrv, featureToggles as DataFrameFeatureToggles);
                     queryTablesSpy = jest.spyOn(datasource, 'queryTables$');
                     postSpy = jest.spyOn(datasource, 'post$');
                 });
