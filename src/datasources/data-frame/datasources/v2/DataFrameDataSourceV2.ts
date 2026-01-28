@@ -949,18 +949,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             }
         });
 
-        Object.entries(tableRowDataMap).forEach(([tableId, tableDataRows]) => {
+        Object.entries(tableRowDataMap).forEach(([tableId, tableRowData]) => {
             const tableName = tableNamesMap[tableId] || '';
-            const columnsData = tableColumnsMap[tableId];
-            const filteredTableColumns = tableDataRows.frame.columns;
-            const tableRowData = tableDataRows.frame.data;
-            const rowCount = tableRowData.length;
+            const tableColumnsData = tableColumnsMap[tableId];
+            const columns = tableRowData.frame.columns;
+            const data = tableRowData.frame.data;
+            const rowCount = data.length;
 
-            const columnInfoByDisplayName = columnsData 
-                ? new Map(columnsData.selectedColumns.map(column => [column.displayName, column]))
+            const columnInfoByDisplayName = tableColumnsData 
+                ? new Map(tableColumnsData.selectedColumns.map(column => [column.displayName, column]))
                 : new Map(); // Handle case where only metadata fields are selected
             const columnIndexByName = new Map(
-                filteredTableColumns.map((columnName, index) => [columnName, index])
+                columns.map((columnName, index) => [columnName, index])
             );
 
             fields.forEach(field => {
@@ -991,10 +991,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             break;
                         }
 
-                        const transformedRowData = tableRowData.map(row => {
+                        const transformedData = data.map(row => {
                             return this.transformValue(columnDataType, row[columnIndex]);
                         });
-                        field.values = field.values!.concat(transformedRowData);
+                        field.values = field.values!.concat(transformedData);
                         break;
                 }
             });
