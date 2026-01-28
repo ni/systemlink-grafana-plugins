@@ -525,9 +525,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                             />
                         </InlineField>
                         <InlineField
-                            label={labels.useTimeRange}
+                            label={isHighResolutionZoomFeatureEnabled ? labels.filterXRangeOnZoomPan : labels.useTimeRange}
                             labelWidth={INLINE_LABEL_WIDTH}
-                            tooltip={tooltips.useTimeRange}
+                            tooltip={isHighResolutionZoomFeatureEnabled ? tooltips.filterXRangeOnZoomPan : tooltips.useTimeRange}
                         >
                             <InlineSwitch
                                 value={migratedQuery.filterXRangeOnZoomPan}
