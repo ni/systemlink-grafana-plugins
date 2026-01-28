@@ -297,7 +297,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         };
     }
 
-    private getDecimatedTableDataInBatches$(
+    private getTableDataInBatches$(
         tableColumnsMap: Record<string, TableColumnsData>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
@@ -785,13 +785,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         processedQuery: ValidDataFrameQueryV2,
         options: DataQueryRequest<DataFrameQueryV2>
     ): Observable<DataFrameDTO> {
-        return this.getDecimatedDataForSelectedColumns$(
+        return this.getTableDataForSelectedColumns$(
             processedQuery,
             options
         );
     }
 
-    private getDecimatedDataForSelectedColumns$(
+    private getTableDataForSelectedColumns$(
         processedQuery: ValidDataFrameQueryV2,
         options: DataQueryRequest<DataFrameQueryV2>
     ): Observable<DataFrameDTO> {
@@ -875,7 +875,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             || hasOnlyMetadataFields
                         ) {
                             const tableNamesMap = this.buildTableNamesMap(tables);
-                            const decimatedDataMap$ = hasOnlyMetadataFields
+                            const tableDataMap$ = hasOnlyMetadataFields
                                 ? of({
                                     data: Object.fromEntries(
                                         tables.map(table => [
@@ -885,14 +885,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                     ),
                                     isLimitExceeded: false
                                 })
-                                : this.getDecimatedTableDataInBatches$(
+                                : this.getTableDataInBatches$(
                                     tableColumnsMap,
                                     processedQuery,
                                     options.range,
                                     options.maxDataPoints
                                 );
 
-                            return decimatedDataMap$.pipe(
+                            return tableDataMap$.pipe(
                                 map(result => {
                                     const aggregatedTableDataRows = this.aggregateTableDataRows(
                                         tableColumnsMap,
@@ -926,7 +926,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private aggregateTableDataRows(
         tableColumnsMap: Record<string, TableColumnsData>,
         tableNamesMap: Record<string, string>,
-        decimatedDataMap: Record<string, TableDataRows>,
+        tableRowDataMap: Record<string, TableDataRows>,
         xColumn: string | null,
         selectedColumnIdentifiers: string[]
     ): FieldDTO[] {
@@ -954,18 +954,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             }
         });
 
-        Object.entries(decimatedDataMap).forEach(([tableId, tableDataRows]) => {
+        Object.entries(tableRowDataMap).forEach(([tableId, tableRowData]) => {
             const tableName = tableNamesMap[tableId] || '';
-            const columnsData = tableColumnsMap[tableId];
-            const decimatedTableColumns = tableDataRows.frame.columns;
-            const decimatedTableData = tableDataRows.frame.data;
-            const rowCount = decimatedTableData.length;
+            const tableColumnsData = tableColumnsMap[tableId];
+            const columns = tableRowData.frame.columns;
+            const data = tableRowData.frame.data;
+            const rowCount = data.length;
 
-            const columnInfoByDisplayName = columnsData 
-                ? new Map(columnsData.selectedColumns.map(column => [column.displayName, column]))
+            const columnInfoByDisplayName = tableColumnsData 
+                ? new Map(tableColumnsData.selectedColumns.map(column => [column.displayName, column]))
                 : new Map(); // Handle case where only metadata fields are selected
             const columnIndexByName = new Map(
-                decimatedTableColumns.map((columnName, index) => [columnName, index])
+                columns.map((columnName, index) => [columnName, index])
             );
 
             fields.forEach(field => {
@@ -996,10 +996,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             break;
                         }
 
-                        const decimatedData = decimatedTableData.map(row => {
+                        const transformedData = data.map(row => {
                             return this.transformValue(columnDataType, row[columnIndex]);
                         });
-                        field.values = field.values!.concat(decimatedData);
+                        field.values = field.values!.concat(transformedData);
                         break;
                 }
             });

@@ -1,3 +1,9 @@
+## [4.121.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.120.0...v4.121.0) (2026-01-28)
+
+### Features
+
+* **dataframe:** version 2: initialize nisl-syncXAxisRangeTargets based on filterXRangeOnZoomPan ([#659](https://github.com/ni/systemlink-grafana-plugins/issues/659)) ([89502a5](https://github.com/ni/systemlink-grafana-plugins/commit/89502a509ea197e1a77cf68dc42cbced6bdbfd74))
+
 ## [4.120.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.119.1...v4.120.0) (2026-01-28)
 
 ### Features
