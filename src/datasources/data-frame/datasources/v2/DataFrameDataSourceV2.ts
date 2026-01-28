@@ -491,7 +491,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             const nullFilters: ColumnFilter[] = query.filterNulls
                 ? this.constructNullFilters(columnsMap.selectedColumns)
                 : [];
-            const timeFilters: ColumnFilter[] = query.applyTimeFilters
+            const timeFilters: ColumnFilter[] = query.filterXRangeOnZoomPan
                 ? this.constructTimeFilters(query.xColumn, columnsMap.columns, timeRange)
                 : [];
             const filters: ColumnFilter[] = [
