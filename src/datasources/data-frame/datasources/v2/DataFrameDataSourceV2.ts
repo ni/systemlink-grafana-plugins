@@ -328,10 +328,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private queryTableDataInBatches$<TRequest extends { tableId: string }>(
         requests: TRequest[],
         queryTableDataHandler$: (request: TRequest) => Observable<TableDataRows>
-    ): Observable<{
-            data: Record<string, TableDataRows>;
-            isLimitExceeded: boolean 
-        }> {
+    ): Observable<{ data: Record<string, TableDataRows>; isLimitExceeded: boolean }> {
         const totalRequests = requests.length;
         const batches = _.chunk(requests, REQUESTS_PER_SECOND);
         const stopSignal$ = new Subject<void>();
@@ -445,7 +442,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 ? [
                     {
                         column: this.parseColumnIdentifier(query.xColumn).columnName,
-                        descending: true
                     }
                 ]
                 : undefined;
