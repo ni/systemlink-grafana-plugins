@@ -546,9 +546,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             columns: request.columns,
             orderBy: request.orderBy,
             filters: request.filters.length > 0 ? request.filters : undefined,
+            take: request.take,
             destination: 'INLINE',
             responseFormat: 'CSV',
-            take: request.take
         };
         return this.post$<string>(
             `${this.baseUrl}/tables/${request.tableId}/export-data`,
