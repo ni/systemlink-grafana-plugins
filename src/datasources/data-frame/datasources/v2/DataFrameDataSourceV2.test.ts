@@ -2917,18 +2917,19 @@ describe('DataFrameDataSourceV2', () => {
                         id: 'table1',
                         name: 'table1',
                         columns: [
-                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                            { name: 'current', dataType: 'INT32', columnType: ColumnType.Normal }
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
 
-                    const csvResponse = 'voltage\n10.5\n20.3\n30.1';
+                    const csvResponse = 'voltage,current\n10.5,20\n20.3,25\n30.1,30';
                     postSpy.mockReturnValue(of(csvResponse));
 
                     const query = {
                         refId: 'A',
                         type: DataFrameQueryType.Data,
-                        columns: ['voltage-Numeric'],
+                        columns: ['voltage-Numeric', 'current-Numeric'],
                         dataTableFilter: 'name = "Test"',
                         decimationMethod: 'NONE',
                         filterNulls: false,
@@ -2939,6 +2940,9 @@ describe('DataFrameDataSourceV2', () => {
 
                     const valueField = findField(result.fields, 'voltage');
                     expect(valueField?.values).toEqual([10.5, 20.3, 30.1]);
+
+                    const currentField = findField(result.fields, 'current');
+                    expect(currentField?.values).toEqual([20, 25, 30]);
                 });
 
                 it('should apply null filters for undecimated data when filterNulls is true', async () => {
@@ -2982,7 +2986,7 @@ describe('DataFrameDataSourceV2', () => {
                     );
                 });
 
-                it('should apply time filters for undecimated data when applyTimeFilters is true', async () => {
+                it('should apply time filters for undecimated data when filterXRangeOnZoomPan is true', async () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
@@ -3023,11 +3027,13 @@ describe('DataFrameDataSourceV2', () => {
                             filters: expect.arrayContaining([
                                 expect.objectContaining({
                                     column: 'time',
-                                    operation: 'GREATER_THAN_EQUALS'
+                                    operation: 'GREATER_THAN_EQUALS',
+                                    value: '2024-01-01T00:00:00Z'
                                 }),
                                 expect.objectContaining({
                                     column: 'time',
-                                    operation: 'LESS_THAN_EQUALS'
+                                    operation: 'LESS_THAN_EQUALS',
+                                    value: '2024-01-02T00:00:00Z'
                                 })
                             ])
                         }),
@@ -3174,6 +3180,8 @@ describe('DataFrameDataSourceV2', () => {
                     const result = await lastValueFrom(datasource.runQuery(query, options));
 
                     expect(result.refId).toBe('A');
+                    const voltageField = findField(result.fields, 'voltage');
+                    expect(voltageField?.values).toEqual([]);
                 });
 
                 it('should handle CSV parsing errors gracefully', async () => {
@@ -3186,38 +3194,36 @@ describe('DataFrameDataSourceV2', () => {
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
 
-                    // Mock PapaParse to simulate parsing error
-                    const originalParse = Papa.parse;
-                    try {
-                        (Papa.parse as any) = jest.fn().mockReturnValue({
-                            data: [],
-                            errors: [{ message: 'Invalid CSV format', type: 'FieldMismatch' }]
-                        });
+                    // Save original and mock PapaParse to simulate parsing error
+                    const originalPapaParse = Papa.parse;
+                    (Papa.parse as any) = jest.fn().mockReturnValue({
+                        data: [],
+                        errors: [{ message: 'Invalid CSV format', type: 'FieldMismatch' }]
+                    });
 
-                        const csvResponse = 'invalid,csv\ndata';
-                        postSpy.mockReturnValue(of(csvResponse));
+                    const csvResponse = 'invalid,csv\ndata';
+                    postSpy.mockReturnValue(of(csvResponse));
 
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['voltage-Numeric'],
-                            dataTableFilter: 'name = "Test"',
-                            decimationMethod: 'NONE',
-                            filterNulls: false,
-                            applyTimeFilters: false
-                        } as DataFrameQueryV2;
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['voltage-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'NONE',
+                        filterNulls: false,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
 
-                        // CSV parsing errors are handled gracefully by returning empty result
-                        const result = await lastValueFrom(datasource.runQuery(query, options));
-                        
-                        // The implementation catches parsing errors and returns empty data
-                        expect(result.refId).toBe('A');
-                        const voltageField = findField(result.fields, 'voltage');
-                        expect(voltageField?.values).toEqual([]);
-                    } finally {
-                        // Always restore original parse
-                        Papa.parse = originalParse;
-                    }
+                    // CSV parsing errors are handled gracefully by returning empty result
+                    const result = await lastValueFrom(datasource.runQuery(query, options));
+
+                    // The implementation catches parsing errors and returns empty data
+                    expect(result.refId).toBe('A');
+                    const voltageField = findField(result.fields, 'voltage');
+                    expect(voltageField?.values).toEqual([]);
+
+                    // Restore original PapaParse
+                    (Papa.parse as any) = originalPapaParse;
                 });
 
                 it('should handle CSV with only headers (no data rows)', async () => {
@@ -3254,7 +3260,7 @@ describe('DataFrameDataSourceV2', () => {
                         id: 'table1',
                         name: 'table1',
                         columns: [
-                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
                             { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
                         ]
                     }];
@@ -3288,14 +3294,16 @@ describe('DataFrameDataSourceV2', () => {
                             id: 'table1',
                             name: 'Table 1',
                             columns: [
-                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal}
                             ]
                         },
                         {
                             id: 'table2',
                             name: 'Table 2',
                             columns: [
-                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
                             ]
                         }
                     ];
@@ -3303,10 +3311,10 @@ describe('DataFrameDataSourceV2', () => {
 
                     postSpy.mockImplementation((url: string) => {
                         if (url.includes('table1/export-data')) {
-                            return of('voltage\n10.5\n20.3');
+                            return of('voltage,current\n10.5,1\n20.3,2');
                         }
                         if (url.includes('table2/export-data')) {
-                            return of('voltage\n15.2\n25.8');
+                            return of('voltage,current\n15.2,3\n25.8,4');
                         }
                         return of('');
                     });
@@ -3314,7 +3322,7 @@ describe('DataFrameDataSourceV2', () => {
                     const query = {
                         refId: 'A',
                         type: DataFrameQueryType.Data,
-                        columns: ['voltage-Numeric', 'Data table ID-Metadata', 'Data table name-Metadata'],
+                        columns: ['voltage-Numeric', 'current-Numeric', 'Data table ID-Metadata', 'Data table name-Metadata'],
                         dataTableFilter: 'name = "Test"',
                         decimationMethod: 'NONE',
                         filterNulls: false,
@@ -3326,6 +3334,9 @@ describe('DataFrameDataSourceV2', () => {
 
                     const voltageField = findField(result.fields, 'voltage');
                     expect(voltageField?.values).toEqual([10.5, 20.3, 15.2, 25.8]);
+
+                    const currentField = findField(result.fields, 'current');
+                    expect(currentField?.values).toEqual([1, 2, 3, 4]);
 
                     const tableIdField = findField(result.fields, 'Data table ID');
                     expect(tableIdField?.values).toEqual(['table1', 'table1', 'table2', 'table2']);
