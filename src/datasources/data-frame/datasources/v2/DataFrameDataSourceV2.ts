@@ -400,8 +400,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             : Math.min(maxDataPoints, TOTAL_ROWS_LIMIT);
 
         return Object.entries(tableColumnsMap).map(([tableId, columnsMap]) => {
-            const filters = this.constructColumnFilters(query, columnsMap, timeRange);
-
+            const filters = this.constructColumnFilters(
+                    query, 
+                    columnsMap,
+                    timeRange
+                );
             const xColumn = query.xColumn 
                     ? this.parseColumnIdentifier(query.xColumn).columnName
                     : undefined;
@@ -433,8 +436,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             UNDECIMATED_RECORDS_LIMIT
         );
         return Object.entries(tableColumnsMap).map(([tableId, columnsMap]) => {
-            const filters = this.constructColumnFilters(query, columnsMap, timeRange);
-
+            const filters = this.constructColumnFilters(
+                query,
+                columnsMap,
+                timeRange
+            );
             const orderBy = query.xColumn 
                 ? [
                     {
