@@ -1,5 +1,5 @@
 import type { UrlQueryMap } from '@grafana/data';
-import { syncXAxisRangeTargets } from 'datasources/data-frame/constants/v2/route-query-parameters';
+import { editPanel, syncXAxisRangeTargets } from 'datasources/data-frame/constants/v2/route-query-parameters';
 import { DataFrameQueryParamsHandler } from 'datasources/data-frame/datasources/v2/DataFrameQueryParamsHandler';
 import { locationService } from '@grafana/runtime';
 
@@ -120,6 +120,31 @@ describe('DataFrameQueryParamsHandler', () => {
     it('should trim whitespace from targets', () => {
       const targets = DataFrameQueryParamsHandler.getSyncXAxisRangeTargets({ [syncXAxisRangeTargets]: ' a , b , c ' } as UrlQueryMap);
       expect(targets).toEqual(['a', 'b', 'c']);
+    });
+  });
+
+  describe('getEditPanelId', () => {
+    it('should return panel id when editPanel query param is a valid non-empty string', () => {
+      const panelId = DataFrameQueryParamsHandler.getEditPanelId({ [editPanel]: '42' } as UrlQueryMap);
+      expect(panelId).toBe('42');
+    });
+
+    it('should return undefined when editPanel query param is undefined', () => {
+      const panelId = DataFrameQueryParamsHandler.getEditPanelId({} as UrlQueryMap);
+      expect(panelId).toBeUndefined();
+    });
+
+    it('should return undefined when editPanel query param is empty string', () => {
+      const panelId = DataFrameQueryParamsHandler.getEditPanelId({ [editPanel]: '' } as UrlQueryMap);
+      expect(panelId).toBeUndefined();
+    });
+
+    it('should return undefined when editPanel query param is not a string', () => {
+      let panelId = DataFrameQueryParamsHandler.getEditPanelId({ [editPanel]: {} as any } as UrlQueryMap);
+      expect(panelId).toBeUndefined();
+
+      panelId = DataFrameQueryParamsHandler.getEditPanelId({ [editPanel]: ['42', '43'] as any } as UrlQueryMap);
+      expect(panelId).toBeUndefined();
     });
   });
 });

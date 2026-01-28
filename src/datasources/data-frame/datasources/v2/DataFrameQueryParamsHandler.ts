@@ -1,6 +1,6 @@
 import { UrlQueryMap } from "@grafana/data";
 import { locationService } from "@grafana/runtime";
-import { syncXAxisRangeTargets } from "datasources/data-frame/constants/v2/route-query-parameters";
+import { editPanel, syncXAxisRangeTargets } from "datasources/data-frame/constants/v2/route-query-parameters";
 
 export  class  DataFrameQueryParamsHandler {
     public static updateSyncXAxisRangeTargetsQueryParam(
@@ -46,5 +46,19 @@ export  class  DataFrameQueryParamsHandler {
         }
 
         return targets;
+    }
+
+    public static getEditPanelId(queryParams: UrlQueryMap): string | undefined {
+        const panelIdQueryParam = queryParams[editPanel];
+
+        if (
+            panelIdQueryParam !== undefined 
+            && typeof panelIdQueryParam === 'string'
+            && panelIdQueryParam !== ''
+        ) {
+            return  panelIdQueryParam;
+        }
+
+        return undefined;
     }
 }
