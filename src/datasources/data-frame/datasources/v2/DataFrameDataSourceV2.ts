@@ -439,11 +439,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 timeRange
             );
             const orderBy = query.xColumn 
-                ? [
-                    {
-                        column: this.parseColumnIdentifier(query.xColumn).columnName,
-                    }
-                ]
+                ? [{ column: this.parseColumnIdentifier(query.xColumn).columnName }]
                 : undefined;
 
             return {
