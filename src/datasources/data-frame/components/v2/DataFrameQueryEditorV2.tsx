@@ -404,15 +404,15 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const onFilterXRangeOnZoomPanChange = useCallback((event: React.FormEvent<HTMLInputElement>) => {
             const filterXRangeOnZoomPan = event.currentTarget.checked;
 
-            if (!isHighResolutionZoomFeatureEnabled) {
-                handleQueryChange({ ...migratedQuery, filterXRangeOnZoomPan });
-            }
+            handleQueryChange({ ...migratedQuery, filterXRangeOnZoomPan });
 
-            const panelId = DataFrameQueryParamsHandler.getEditPanelId(locationService.getSearchObject());
-            DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam(
-                filterXRangeOnZoomPan,
-                panelId
-            );
+            if (isHighResolutionZoomFeatureEnabled) {
+                const panelId = DataFrameQueryParamsHandler.getEditPanelId(locationService.getSearchObject());
+                DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam(
+                    filterXRangeOnZoomPan,
+                    panelId
+                );
+            }
         },
         [migratedQuery, handleQueryChange, isHighResolutionZoomFeatureEnabled]
     );
