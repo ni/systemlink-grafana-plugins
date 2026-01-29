@@ -55,11 +55,7 @@ describe('DataFrameDataSourceV2', () => {
             name: 'test',
             type: 'test',
             url: '',
-            jsonData: {
-                featureToggles: {
-                    queryByResultAndColumnProperties: true
-                }
-            }
+            jsonData: {}
         } as any;
         backendSrv = {
             fetch: jest.fn().mockReturnValue(of({
@@ -4963,39 +4959,6 @@ describe('DataFrameDataSourceV2', () => {
 
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
-                {
-                    interactive: true,
-                    orderBy: 'ROWS_MODIFIED_AT',
-                    orderByDescending: true,
-                    filter: 'name = "Table1"',
-                    take: 10,
-                    projection: [DataTableProjections.RowsModifiedAt],
-                    substitutions: undefined
-                },
-                { useApiIngress: true, showErrorAlert: false }
-            );
-            expect(result).toBe(mockTables);
-        });
-
-        it('should not query result IDs when feature flag is disabled', async () => {
-            const dsWithoutFeature = new DataFrameDataSourceV2(
-                { ...instanceSettings, jsonData: {} } as any,
-                backendSrv,
-                templateSrv,
-                DataFrameFeatureTogglesDefaults
-            );
-            const postMockWithoutFeature$ = jest.spyOn(dsWithoutFeature, 'post$').mockReturnValue(of({ tables: mockTables }));
-            const filters = {
-                resultFilter: 'status = "Passed"',
-                dataTableFilter: 'name = "Table1"'
-            };
-
-            const result = await lastValueFrom(dsWithoutFeature.queryTables$(filters, 10));
-
-            // Should only call query-tables, not query-results
-            expect(postMockWithoutFeature$).toHaveBeenCalledTimes(1);
-            expect(postMockWithoutFeature$).toHaveBeenCalledWith(
-                expect.stringContaining('query-tables'),
                 {
                     interactive: true,
                     orderBy: 'ROWS_MODIFIED_AT',

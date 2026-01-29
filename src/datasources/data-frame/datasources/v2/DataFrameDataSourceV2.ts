@@ -201,8 +201,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         take?: number,
         projections?: DataTableProjections[]
     ): Observable<TableProperties[]> {
-        const isQueryByResultFeatureEnabled = this.instanceSettings.jsonData?.featureToggles?.queryByResultAndColumnProperties;
-        if (filters.resultFilter && isQueryByResultFeatureEnabled) {
+        if (filters.resultFilter) {
             return this.queryResultIds$(filters.resultFilter).pipe(
                 switchMap(resultIds => {
                     if (resultIds.length === 0) {
