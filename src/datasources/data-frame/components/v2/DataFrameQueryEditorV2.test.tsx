@@ -1539,7 +1539,6 @@ describe("DataFrameQueryEditorV2", () => {
                         expect(onRunQuery).toHaveBeenCalled();
                     });
                 });
-
             });
         });
 
