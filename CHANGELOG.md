@@ -1,3 +1,9 @@
+## [4.123.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.122.1...v4.123.0) (2026-01-29)
+
+### Features
+
+* **dataframes:** Add support for querying undecimated data  ([#652](https://github.com/ni/systemlink-grafana-plugins/issues/652)) ([689b2c0](https://github.com/ni/systemlink-grafana-plugins/commit/689b2c083e67c47c3012b9f9f4be3630f89f9657))
+
 ## [4.122.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.122.0...v4.122.1) (2026-01-29)
 
 ### Bug Fixes
