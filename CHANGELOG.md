@@ -1,3 +1,9 @@
+## [4.125.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.124.0...v4.125.0) (2026-01-29)
+
+### Features
+
+* **dataframe:** version 2: rename "Use time range" control label based on feature flag ([#661](https://github.com/ni/systemlink-grafana-plugins/issues/661)) ([9939605](https://github.com/ni/systemlink-grafana-plugins/commit/993960562b3fd56ab9d244b2c661fa57dd0b1e3a))
+
 ## [4.124.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.123.0...v4.124.0) (2026-01-29)
 
 ### Features
