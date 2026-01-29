@@ -1,7 +1,7 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, QueryResultMetaNotice, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, DataTableFirstClassPropertyLabels, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL, DataFrameFeatureToggles } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, DataTableFirstClassPropertyLabels, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT, UNDECIMATED_RECORDS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -20,16 +20,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
     private scopedVars: ScopedVars = {};
     private isQueryUndecimatedDataFeatureEnabled: boolean;
+    private isHighResolutionZoomFeatureEnabled: boolean;
 
     public constructor(
         public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
         public readonly backendSrv: BackendSrv = getBackendSrv(),
         public readonly templateSrv: TemplateSrv = getTemplateSrv(),
-        protected readonly featureToggles: DataFrameFeatureToggles
     ) {
-        super(instanceSettings, backendSrv, templateSrv, featureToggles);
+        super(instanceSettings, backendSrv, templateSrv);
         this.isQueryUndecimatedDataFeatureEnabled = this.instanceSettings
             .jsonData?.featureToggles?.queryUndecimatedData ?? false;
+        this.isHighResolutionZoomFeatureEnabled = this.instanceSettings
+            .jsonData?.featureToggles?.highResolutionZoom ?? false;
     }
 
     runQuery(
@@ -40,7 +42,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const processedQuery = this.processQuery(query, options.targets);
         const transformedQuery = this.transformQuery(processedQuery, options.scopedVars);
 
-        if (this.featureToggles.highResolutionZoom) {
+        if (this.isHighResolutionZoomFeatureEnabled) {
             DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam(
                 transformedQuery.filterXRangeOnZoomPan,
                 options.panelId?.toString(),
@@ -1772,7 +1774,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         if ('applyTimeFilters' in query && query.applyTimeFilters !== undefined) {
-            if (this.featureToggles.highResolutionZoom) {
+            if (this.isHighResolutionZoomFeatureEnabled) {
                 return queries.some(q => (q as DataFrameQueryV1).applyTimeFilters);
             }
 

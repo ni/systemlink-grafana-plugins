@@ -30,13 +30,10 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
   ) {
     super(instanceSettings, backendSrv, templateSrv);
 
-    const featureToggles = instanceSettings.jsonData?.featureToggles;
-
     this.datasource = new DataFrameDataSourceV2(
         instanceSettings,
         backendSrv,
-        templateSrv,
-        featureToggles
+        templateSrv
       );
   }
 
