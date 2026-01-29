@@ -3256,7 +3256,10 @@ describe('DataFrameDataSourceV2', () => {
                     expect(voltageField?.values).toEqual([10.5, 20.3, 30.1]);
                 });
 
-                it('should handle CSV parsing errors gracefully', async () => {
+                it('should handle CSV parsing errors gracefully and publish alertError event when CSV parsing fails', async () => {
+                    const publishMock = jest.fn();
+                    (datasource as any).appEvents = { publish: publishMock };
+
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
@@ -3273,7 +3276,7 @@ describe('DataFrameDataSourceV2', () => {
                         errors: [{ message: 'Invalid CSV format', type: 'FieldMismatch' }]
                     });
 
-                    const csvResponse = 'invalid,csv\ndata';
+                    const csvResponse = 'invalid;;csv\ndata';
                     postSpy.mockReturnValue(of(csvResponse));
 
                     const query = {
@@ -3294,8 +3297,57 @@ describe('DataFrameDataSourceV2', () => {
                     const voltageField = findField(result.fields, 'voltage');
                     expect(voltageField?.values).toEqual([]);
 
+                    expect(publishMock).toHaveBeenCalledWith({
+                        type: 'alert-error',
+                        payload: [
+                            'Error fetching undecimated table data',
+                            expect.any(String)
+                        ],
+                    });
+
                     // Restore original PapaParse
                     (Papa.parse as any) = originalPapaParse;
+                });
+
+                it('should publish alertError when export-data API returns error response', async () => {
+                    const publishMock = jest.fn();
+                    (datasource as any).appEvents = { publish: publishMock };
+                    const mockTables = [{
+                        id: 'table1',
+                        name: 'table1',
+                        columns: [
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+
+                    const errorResponse = new Error('Export failed: Table not found');
+                    postSpy.mockReturnValue(throwError(() => errorResponse));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['voltage-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'NONE',
+                        filterNulls: false,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
+
+                    const result = await lastValueFrom(datasource.runQuery(query, options));
+
+                    // Error is caught and returns empty data
+                    expect(result.refId).toBe('A');
+                    const voltageField = findField(result.fields, 'voltage');
+                    expect(voltageField?.values).toEqual([]);
+
+                    expect(publishMock).toHaveBeenCalledWith({
+                        type: 'alert-error',
+                        payload: [
+                            'Error fetching undecimated table data',
+                            expect.any(String)
+                        ],
+                    });
                 });
 
                 it('should handle CSV with only headers (no data rows)', async () => {
@@ -3493,6 +3545,49 @@ describe('DataFrameDataSourceV2', () => {
                         expect(postSpy.mock.calls.length).toEqual(6);
                         expect(result.refId).toBe('A');
                     });
+
+                    it('should handle exactly REQUESTS_PER_SECOND (6) tables within a batch concurrently for undecimated data', async () => {
+                        // Create exactly 6 tables (one full batch, no second batch)
+                        const mockTables = Array.from({ length: 6 }, (_, i) => ({
+                            id: `table${i}`,
+                            name: `table${i}`,
+                            columns: [
+                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }));
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const callOrder: number[] = [];
+                        postSpy.mockImplementation((url) => {
+                            const tableIdMatch = url.match(/table(\d+)/);
+                            const tableIndex = tableIdMatch ? parseInt(tableIdMatch[1], 10) : 0;
+                            callOrder.push(tableIndex);
+                            return of('voltage\n1.0');
+                        });
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['voltage-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'NONE',
+                            filterNulls: false,
+                            applyTimeFilters: false,
+                            undecimatedRecordCount: 10000
+
+                        } as DataFrameQueryV2;
+
+                        const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                        
+                        await jest.runAllTimersAsync();
+                        
+                        await queryPromise;
+
+                        // Should make exactly 6 requests (one complete batch)
+                        expect(postSpy).toHaveBeenCalledTimes(6);
+                        expect(callOrder).toEqual(expect.arrayContaining([0, 1, 2, 3, 4, 5]));
+                    });
+                    
                 });
             });
         });
