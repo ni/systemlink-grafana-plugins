@@ -4,7 +4,6 @@ import {
   Column,
   DataFrameDataQuery,
   DataFrameDataSourceOptions,
-  DataFrameFeatureTogglesDefaults,
   DataFrameVariableQuery,
   DataTableProjections,
   TableDataRows,
@@ -15,14 +14,12 @@ import {
   ColumnOptions
 } from "./types";
 import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
-import { DataFrameDataSourceV1 } from "./datasources/v1/DataFrameDataSourceV1";
 import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
 import { Observable } from "rxjs";
 import { DataQuery } from "@grafana/schema";
 import _ from "lodash";
 
 export class DataFrameDataSource extends DataFrameDataSourceBase {
-  private queryByTablePropertiesFeatureEnabled = false;
   private datasource: DataFrameDataSourceBase;
   public variablesCache: Record<string, string> = {};
 
@@ -33,19 +30,11 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
   ) {
     super(instanceSettings, backendSrv, templateSrv);
 
-    const featureToggles = instanceSettings.jsonData?.featureToggles;
-    this.queryByTablePropertiesFeatureEnabled = featureToggles?.queryByDataTableProperties ?? DataFrameFeatureTogglesDefaults.queryByDataTableProperties;
-
-    if (this.queryByTablePropertiesFeatureEnabled) {
-      this.datasource = new DataFrameDataSourceV2(
+    this.datasource = new DataFrameDataSourceV2(
         instanceSettings,
         backendSrv,
-        templateSrv,
-        featureToggles
+        templateSrv
       );
-    } else {
-      this.datasource = new DataFrameDataSourceV1(instanceSettings, backendSrv, templateSrv);
-    }
   }
 
   public get defaultQuery(): Required<Omit<DataFrameQuery, keyof DataQuery>> {

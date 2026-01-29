@@ -14,7 +14,7 @@ export const getValuesInPixels = (valueInGrafanaUnits: number) => {
  * The following values are multiples of 8 to align with Grafana's grid system.
  * For example, 25 in Grafana units is equal to 25*8 = 200px.
  */
-export const INLINE_LABEL_WIDTH = 25;
+export const INLINE_LABEL_WIDTH = 31;
 export const VALUE_FIELD_WIDTH = 65.5;
 export const INLINE_MARGIN_BETWEEN_LABEL_AND_FIELD = 0.5;
 export const DEFAULT_MARGIN_BOTTOM = 1;
@@ -39,6 +39,7 @@ export const labels = {
     decimationMethod: 'Decimation method',
     xColumn: 'X-column',
     useTimeRange: 'Use time range',
+    filterXRangeOnZoomPan: 'Filter for x-axis range on zoom/pan',
     take: 'Take',
 };
 
@@ -60,6 +61,7 @@ export const tooltips = {
     decimationMethod: 'Specifies the method used to decimate the data.',
     xColumn: `Specifies the column to use as the x-axis when decimating the data. If this field is left blank, INDEX column will be used.`,
     useTimeRange: `Applies the dashboard time range to the selected x-column or alternatively to INDEX column (if either is a timestamp).`,
+    filterXRangeOnZoomPan: 'Filters the data based on the x-axis range during zoom or pan actions when x-column is selected.',
 };
 
 /**
