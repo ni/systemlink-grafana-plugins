@@ -4,10 +4,6 @@ import { DataFrameVariableQueryEditorWrapper } from './DataFrameVariableQueryEdi
 import { DataFrameDataSource } from '../DataFrameDataSource';
 import { DataFrameQuery, DataFrameQueryType, Props } from '../types';
 
-jest.mock('./v1/DataFrameVariableQueryEditorV1', () => ({
-    DataFrameVariableQueryEditorV1: () => <div className="data-frame-variable-query-editor-v1" />,
-}));
-
 jest.mock('./v2/DataFrameVariableQueryEditorV2', () => ({
     DataFrameVariableQueryEditorV2: () => <div className="data-frame-variable-query-editor-v2" />,
 }));
@@ -32,29 +28,11 @@ describe('DataFrameVariableQueryEditorWrapper', () => {
         return props;
     };
 
-    it('renders DataFrameVariableQueryEditorV1 when queryByDataTableProperties toggle is disabled', () => {
-        const props = createProps({
-            featureToggles: {
-                queryByDataTableProperties: false,
-            },
-        });
-
-        const { container } = render(<DataFrameVariableQueryEditorWrapper {...props} />);
-
-        expect(container.querySelector('.data-frame-variable-query-editor-v1')).toBeInTheDocument();
-        expect(container.querySelector('.data-frame-variable-query-editor-v2')).not.toBeInTheDocument();
-    });
-
-    it('renders DataFrameVariableQueryEditorV2 when queryByDataTableProperties toggle is enabled', () => {
-        const props = createProps({
-            featureToggles: {
-                queryByDataTableProperties: true,
-            },
-        });
+    it('renders DataFrameVariableQueryEditorV2 by default', () => {
+        const props = createProps({});
 
         const { container } = render(<DataFrameVariableQueryEditorWrapper {...props} />);
 
         expect(container.querySelector('.data-frame-variable-query-editor-v2')).toBeInTheDocument();
-        expect(container.querySelector('.data-frame-variable-query-editor-v1')).not.toBeInTheDocument();
     });
 });

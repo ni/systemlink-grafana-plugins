@@ -1,3 +1,21 @@
+## [4.124.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.123.0...v4.124.0) (2026-01-29)
+
+### Features
+
+* **dataframe:** add dynamic take based on the number of columns selected ([#655](https://github.com/ni/systemlink-grafana-plugins/issues/655)) ([dcde120](https://github.com/ni/systemlink-grafana-plugins/commit/dcde120954e5e3186a58fa5b08d4b69e2d4f7f66))
+
+## [4.123.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.122.1...v4.123.0) (2026-01-29)
+
+### Features
+
+* **dataframes:** Add support for querying undecimated data  ([#652](https://github.com/ni/systemlink-grafana-plugins/issues/652)) ([689b2c0](https://github.com/ni/systemlink-grafana-plugins/commit/689b2c083e67c47c3012b9f9f4be3630f89f9657))
+
+## [4.122.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.122.0...v4.122.1) (2026-01-29)
+
+### Bug Fixes
+
+* **dataframe:** Remove queryByDataTableProperties and queryByResultAndColumnProperties feature flags ([#658](https://github.com/ni/systemlink-grafana-plugins/issues/658)) ([b719e2b](https://github.com/ni/systemlink-grafana-plugins/commit/b719e2b0b347eaae08e915e2a1dbb409e94ad923))
+
 ## [4.122.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.121.0...v4.122.0) (2026-01-29)
 
 ### Features

@@ -71,8 +71,6 @@ export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
 };
 
 export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
-  queryByDataTableProperties: false,
-  queryByResultAndColumnProperties: false,
   queryUndecimatedData: false,
   highResolutionZoom: false
 };
@@ -353,8 +351,6 @@ export interface TableDataRows {
 }
 
 export interface DataFrameFeatureToggles {
-  queryByDataTableProperties: boolean;
-  queryByResultAndColumnProperties: boolean;
   queryUndecimatedData: boolean;
   highResolutionZoom: boolean;
 }
@@ -386,6 +382,14 @@ export interface DecimatedDataRequest {
   columns: string[];
   filters: ColumnFilter[];
   decimation: DecimationOptions;
+}
+
+export interface UndecimatedDataRequest {
+  tableId: string;
+  columns: string[];
+  orderBy?: Array<{ column: string; descending?: boolean }>;
+  filters: ColumnFilter[];
+  take: number;
 }
 
 export interface TableColumnsData {
