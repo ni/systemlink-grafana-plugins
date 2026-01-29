@@ -356,19 +356,39 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 const dataPointsToAdd = rowsInRetrievedDataFrame * columnsInRetrievedDataFrame;
                 
                 acc.processedTables++;
-                acc.totalDataPoints += dataPointsToAdd;
 
-                // Only accumulate data if within limit
-                if (acc.totalDataPoints <= TOTAL_ROWS_LIMIT) {
+                const dataPointsRemaining = TOTAL_ROWS_LIMIT - acc.totalDataPoints;
+
+                if (dataPointsToAdd <= dataPointsRemaining) {
                     acc.data[result.tableId] = result.data;
+                    acc.totalDataPoints += dataPointsToAdd;
+                } else if (dataPointsRemaining > 0 && rowsInRetrievedDataFrame > 0) {
+                    const rowsToInclude = Math.floor(dataPointsRemaining / columnsInRetrievedDataFrame);
+                    if (rowsToInclude > 0) {
+                        acc.data[result.tableId] = {
+                            frame: {
+                                columns: retrievedDataFrame.columns,
+                                data: retrievedDataFrame.data.slice(0, rowsToInclude)
+                            }
+                        };
+                        acc.totalDataPoints += rowsToInclude * columnsInRetrievedDataFrame;
+                    }
+
+                    if (acc.totalDataPoints >= TOTAL_ROWS_LIMIT) {
+                        acc.isLimitExceeded = true;
+                        stopSignal$.next();
+                        stopSignal$.complete();
+                    }
+                } else {
+                    // No more room for data
+                    acc.isLimitExceeded = true;
+                    stopSignal$.next();
+                    stopSignal$.complete();
                 }
 
-                // Signal to stop if limit reached
-                if (acc.totalDataPoints >= TOTAL_ROWS_LIMIT) {
-                    // Mark as exceeded if there are more tables to process OR if a single table exceeded the limit
-                    if (acc.processedTables < totalRequests || acc.totalDataPoints > TOTAL_ROWS_LIMIT) {
-                        acc.isLimitExceeded = true;
-                    }
+                // Check if limit reached after adding full table data
+                if (acc.totalDataPoints >= TOTAL_ROWS_LIMIT && acc.processedTables < totalRequests) {
+                    acc.isLimitExceeded = true;
                     stopSignal$.next();
                     stopSignal$.complete();
                 }
@@ -376,7 +396,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 return acc;
             }, 
             { 
-                totalDataPoints: 0, 
+                totalDataPoints: 0,
+                dataPointsRemaining: TOTAL_ROWS_LIMIT,
                 data: {} as Record<string, TableDataRows>, 
                 processedTables: 0, 
                 isLimitExceeded: false 
