@@ -1,7 +1,7 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
-import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureToggles, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
+import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { COLUMN_SELECTION_LIMIT, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
@@ -56,7 +56,12 @@ describe('DataFrameDataSourceV2', () => {
             name: 'test',
             type: 'test',
             url: '',
-            jsonData: {}
+            jsonData: {
+                featureToggles:  {
+                    ...DataFrameFeatureTogglesDefaults,
+                    highResolutionZoom: true
+                }
+            },
         } as any;
         backendSrv = {
             fetch: jest.fn().mockReturnValue(of({
@@ -77,11 +82,7 @@ describe('DataFrameDataSourceV2', () => {
         ds = new DataFrameDataSourceV2(
             instanceSettings,
             backendSrv,
-            templateSrv,
-            {
-                ...DataFrameFeatureTogglesDefaults,
-                highResolutionZoom: true
-            }
+            templateSrv
         );
     });
 
@@ -182,13 +183,14 @@ describe('DataFrameDataSourceV2', () => {
 
                 beforeEach(() => {
                     dsWithHighResZoomDisabled = new DataFrameDataSourceV2(
-                        instanceSettings,
-                        backendSrv,
-                        templateSrv,
                         {
-                            ...DataFrameFeatureTogglesDefaults,
-                            highResolutionZoom: false
-                        }
+                            ...instanceSettings,
+                            jsonData: {
+                                featureToggles:  DataFrameFeatureTogglesDefaults
+                            },
+                        },
+                        backendSrv,
+                        templateSrv
                     );
                 });
 
@@ -280,7 +282,6 @@ describe('DataFrameDataSourceV2', () => {
                 instanceSettings,
                 backendSrv,
                 templateSrv,
-                DataFrameFeatureTogglesDefaults
             );
 
             await lastValueFrom(ds.runQuery(query, options));
@@ -2866,7 +2867,6 @@ describe('DataFrameDataSourceV2', () => {
                         undecimatedInstanceSettings,
                         backendSrv,
                         templateSrv,
-                        featureToggles as DataFrameFeatureToggles
                     );
                     queryTablesSpy = jest.spyOn(datasource, 'queryTables$');
                     postSpy = jest.spyOn(datasource, 'post$');
@@ -4562,7 +4562,6 @@ describe('DataFrameDataSourceV2', () => {
                 instanceSettings,
                 backendSrv,
                 templateSrv,
-                DataFrameFeatureTogglesDefaults
             );
             queryTablesSpy$ = jest.spyOn(ds, 'queryTables$').mockReturnValue(of([]));
 
@@ -5458,13 +5457,14 @@ describe('DataFrameDataSourceV2', () => {
 
                 beforeEach(() => {
                     dsWithHighResZoomDisabled = new DataFrameDataSourceV2(
-                        instanceSettings,
-                        backendSrv,
-                        templateSrv,
                         {
-                            ...DataFrameFeatureTogglesDefaults,
-                            highResolutionZoom: false
-                        }
+                            ...instanceSettings,
+                            jsonData: {
+                                featureToggles:  DataFrameFeatureTogglesDefaults
+                            },
+                        },
+                        backendSrv,
+                        templateSrv
                     );
                 });
 
