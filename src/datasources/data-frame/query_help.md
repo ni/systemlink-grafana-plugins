@@ -42,12 +42,12 @@ When using **Filter for x-axis range on zoom/pan** with numeric columns, excessi
 - Limit the number of panels with this feature enabled.
 - Avoid zoom/pan on many unique **X-columns**.
 
-### Troubleshooting "URI Too Large" Error
+### Troubleshooting "URI Too Long" Error
 
 If you encounter a **"414 URI Too Long"** error, try one of the following:
 
 - Remove some URL query parameters from your browser's address bar **or**
-- Navigate to the dashboard via the navigation menu
+- Navigate to the dashboard via the navigation menu.
 
 ---
 
