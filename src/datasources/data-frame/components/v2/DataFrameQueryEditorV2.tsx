@@ -26,6 +26,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         datasource.instanceSettings.jsonData?.featureToggles?.queryUndecimatedData ?? false,
         [datasource]
     );
+
+    const isHighResolutionZoomFeatureEnabled = useMemo(() =>
+        datasource.instanceSettings.jsonData?.featureToggles?.highResolutionZoom ?? false,
+        [datasource]
+    );
+
     const migratedQuery = datasource.processQuery(
         query as DataFrameDataQuery,
         queries as DataFrameDataQuery[]
@@ -525,9 +531,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                             />
                         </InlineField>
                         <InlineField
-                            label={labels.useTimeRange}
+                            label={isHighResolutionZoomFeatureEnabled ? labels.filterXRangeOnZoomPan : labels.useTimeRange}
                             labelWidth={INLINE_LABEL_WIDTH}
-                            tooltip={tooltips.useTimeRange}
+                            tooltip={isHighResolutionZoomFeatureEnabled ? tooltips.filterXRangeOnZoomPan : tooltips.useTimeRange}
                         >
                             <InlineSwitch
                                 value={migratedQuery.filterXRangeOnZoomPan}
