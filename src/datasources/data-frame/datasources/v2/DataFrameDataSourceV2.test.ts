@@ -2853,7 +2853,6 @@ describe('DataFrameDataSourceV2', () => {
                 let postSpy: jest.SpyInstance;
                 let datasource: DataFrameDataSourceV2;
                 let featureToggles = {
-                    queryByResultAndColumnProperties: true,
                     queryUndecimatedData: true
                 }
                 const undecimatedInstanceSettings = {
@@ -2867,7 +2866,12 @@ describe('DataFrameDataSourceV2', () => {
                 } as any;
 
                 beforeEach(() => {
-                    datasource = new DataFrameDataSourceV2(undecimatedInstanceSettings, backendSrv, templateSrv, featureToggles as DataFrameFeatureToggles);
+                    datasource = new DataFrameDataSourceV2(
+                        undecimatedInstanceSettings,
+                        backendSrv,
+                        templateSrv,
+                        featureToggles as DataFrameFeatureToggles
+                    );
                     queryTablesSpy = jest.spyOn(datasource, 'queryTables$');
                     postSpy = jest.spyOn(datasource, 'post$');
                 });
@@ -3077,6 +3081,42 @@ describe('DataFrameDataSourceV2', () => {
                     );
                 });
 
+                it('should not apply orderBy when xColumn is not specified for undecimated data', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        name: 'table1',
+                        columns: [
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }];
+
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+
+                    const csvResponse = 'voltage\n10.5';
+                    postSpy.mockReturnValue(of(csvResponse));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['voltage-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'NONE',
+                        filterNulls: false,
+                        applyTimeFilters: false
+                    } as DataFrameQueryV2;
+
+                    await lastValueFrom(datasource.runQuery(query, options));
+
+                    expect(postSpy).toHaveBeenCalledWith(
+                        expect.any(String),
+                        expect.objectContaining({
+                            orderBy: undefined
+                        }),
+                        expect.any(Object)
+                    );
+            
+                })
+
                 it('should limit undecimatedRecordCount to UNDECIMATED_RECORDS_LIMIT', async () => {
                     const mockTables = [{
                         id: 'table1',
@@ -3184,7 +3224,7 @@ describe('DataFrameDataSourceV2', () => {
                     expect(voltageField?.values).toEqual([]);
                 });
 
-                it('should handle CSV with delimiter mismatch in data rows', async () => {
+                it('should handle CSV with no delimiters to parse', async () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
