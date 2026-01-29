@@ -15,7 +15,6 @@ const defaultProps: DataSourcePluginOptionsEditorProps<any> = {
     options: {
         jsonData: {
             featureToggles: {
-                queryByDataTableProperties: false,
                 queryUndecimatedData: false,
                 highResolutionZoom: false
             },
@@ -41,33 +40,11 @@ describe('DataFrameConfigEditor', () => {
         expect(dataTableQueryBuilderToggle).toBeInTheDocument();
     });
 
-    test('should update the queryByDataTableProperties feature toggles option when it is toggled', async () => {
-        const expecteJsonData = {
-            "jsonData": { 
-                "featureToggles": { 
-                    "queryByDataTableProperties": true,
-                    "queryUndecimatedData": false,
-                    "highResolutionZoom": false
-                } 
-            }
-        };
-
-        expect(dataTableQueryBuilderToggle).not.toBeChecked();
-
-        await userEvent.click(dataTableQueryBuilderToggle);
-        await waitFor(() => {
-            expect(mockOnOptionsChange).toHaveBeenCalledWith(
-                expect.objectContaining(expecteJsonData)
-            );
-        });
-    });
-
     test('should update the queryUndecimatedData feature toggles option when it is toggled', async () => {
-        const queryUndecimatedDataToggle = screen.getAllByRole('switch')[2];
+        const queryUndecimatedDataToggle = screen.getAllByRole('switch')[0];
         const expectedJsonData = {
             "jsonData": { 
                 "featureToggles": { 
-                    "queryByDataTableProperties": false,
                     "queryUndecimatedData": true,
                     "highResolutionZoom": false
                 } 
@@ -84,11 +61,10 @@ describe('DataFrameConfigEditor', () => {
     });
 
     test('should update the highResolutionZoom feature toggles option when it is toggled', async () => {
-        const highResolutionZoomToggle = screen.getAllByRole('switch')[3];
+        const highResolutionZoomToggle = screen.getAllByRole('switch')[1];
         const expectedJsonData = {
             "jsonData": { 
                 "featureToggles": { 
-                    "queryByDataTableProperties": false,
                     "queryUndecimatedData": false,
                     "highResolutionZoom": true
                 } 

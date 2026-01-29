@@ -2,7 +2,7 @@ import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureToggles, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
-import { COLUMN_SELECTION_LIMIT, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_SELECTION_LIMIT, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
 import { Workspace } from 'core/types';
@@ -56,11 +56,7 @@ describe('DataFrameDataSourceV2', () => {
             name: 'test',
             type: 'test',
             url: '',
-            jsonData: {
-                featureToggles: {
-                    queryByResultAndColumnProperties: true
-                }
-            }
+            jsonData: {}
         } as any;
         backendSrv = {
             fetch: jest.fn().mockReturnValue(of({
@@ -3273,7 +3269,6 @@ describe('DataFrameDataSourceV2', () => {
                 });
 
                 it('should fall back to decimated data when feature toggle is disabled', async () => {
-                    // Use the default ds which doesn't have queryUndecimatedData enabled
                     queryTablesSpy = jest.spyOn(ds, 'queryTables$');
                     postSpy = jest.spyOn(ds, 'post$');
 
@@ -3306,7 +3301,6 @@ describe('DataFrameDataSourceV2', () => {
 
                     await lastValueFrom(ds.runQuery(query, options));
 
-                    // Should call query-decimated-data, not export-data
                     expect(postSpy).toHaveBeenCalledWith(
                         expect.stringContaining('query-decimated-data'),
                         expect.any(Object),
@@ -3354,7 +3348,6 @@ describe('DataFrameDataSourceV2', () => {
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
 
-                    // CSV with just one column (delimiter error)
                     const csvResponse = 'voltage\n10.5\n20.3\n30.1';
                     postSpy.mockReturnValue(of(csvResponse));
 
@@ -3372,7 +3365,6 @@ describe('DataFrameDataSourceV2', () => {
 
                     const voltageField = findField(result.fields, 'voltage');
                     
-                    // Should still parse available data
                     expect(voltageField?.values).toEqual([10.5, 20.3, 30.1]);
                 });
 
@@ -3389,7 +3381,6 @@ describe('DataFrameDataSourceV2', () => {
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
 
-                    // Save original and mock PapaParse to simulate parsing error
                     const originalPapaParse = Papa.parse;
                     (Papa.parse as any) = jest.fn().mockReturnValue({
                         data: [],
@@ -3409,10 +3400,8 @@ describe('DataFrameDataSourceV2', () => {
                         applyTimeFilters: false
                     } as DataFrameQueryV2;
 
-                    // CSV parsing errors are handled gracefully by returning empty result
                     const result = await lastValueFrom(datasource.runQuery(query, options));
 
-                    // The implementation catches parsing errors and returns empty data
                     expect(result.refId).toBe('A');
                     const voltageField = findField(result.fields, 'voltage');
                     expect(voltageField?.values).toEqual([]);
@@ -3425,7 +3414,6 @@ describe('DataFrameDataSourceV2', () => {
                         ],
                     });
 
-                    // Restore original PapaParse
                     (Papa.parse as any) = originalPapaParse;
                 });
 
@@ -3456,7 +3444,6 @@ describe('DataFrameDataSourceV2', () => {
 
                     const result = await lastValueFrom(datasource.runQuery(query, options));
 
-                    // Error is caught and returns empty data
                     expect(result.refId).toBe('A');
                     const voltageField = findField(result.fields, 'voltage');
                     expect(voltageField?.values).toEqual([]);
@@ -3510,7 +3497,6 @@ describe('DataFrameDataSourceV2', () => {
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
 
-                    // CSV with inconsistent columns (first row has 2, second row has 3)
                     const csvResponse = 'voltage,current\n10.5,20.3\n15.2,25.8,35.0';
                     postSpy.mockReturnValue(of(csvResponse));
 
@@ -3527,7 +3513,6 @@ describe('DataFrameDataSourceV2', () => {
 
                     const result = await lastValueFrom(datasource.runQuery(query, options));
 
-                    // Should still parse available data
                     const voltageField = findField(result.fields, 'voltage');
                     expect(voltageField?.values).toHaveLength(2);
                 });
@@ -3639,7 +3624,6 @@ describe('DataFrameDataSourceV2', () => {
                         }));
                         queryTablesSpy.mockReturnValue(of(mockTables));
 
-                        // Generate large CSV data
                         const largeDataRows = Array.from({ length: 300000 }, () => '1.0').join('\n');
                         const largeCsvResponse = 'voltage\n' + largeDataRows;
                         postSpy.mockImplementation(() => of(largeCsvResponse));
@@ -3666,9 +3650,8 @@ describe('DataFrameDataSourceV2', () => {
                         expect(result.refId).toBe('A');
                     });
 
-                    it('should handle exactly REQUESTS_PER_SECOND (6) tables within a batch concurrently for undecimated data', async () => {
-                        // Create exactly 6 tables (one full batch, no second batch)
-                        const mockTables = Array.from({ length: 6 }, (_, i) => ({
+                    it('should handle exactly REQUESTS_PER_SECOND tables within a batch concurrently for undecimated data', async () => {
+                        const mockTables = Array.from({ length: REQUESTS_PER_SECOND }, (_, i) => ({
                             id: `table${i}`,
                             name: `table${i}`,
                             columns: [
@@ -3703,8 +3686,7 @@ describe('DataFrameDataSourceV2', () => {
                         
                         await queryPromise;
 
-                        // Should make exactly 6 requests (one complete batch)
-                        expect(postSpy).toHaveBeenCalledTimes(6);
+                        expect(postSpy).toHaveBeenCalledTimes(REQUESTS_PER_SECOND);
                         expect(callOrder).toEqual(expect.arrayContaining([0, 1, 2, 3, 4, 5]));
                     });
                 });
@@ -5826,39 +5808,6 @@ describe('DataFrameDataSourceV2', () => {
 
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
-                {
-                    interactive: true,
-                    orderBy: 'ROWS_MODIFIED_AT',
-                    orderByDescending: true,
-                    filter: 'name = "Table1"',
-                    take: 10,
-                    projection: [DataTableProjections.RowsModifiedAt],
-                    substitutions: undefined
-                },
-                { useApiIngress: true, showErrorAlert: false }
-            );
-            expect(result).toBe(mockTables);
-        });
-
-        it('should not query result IDs when feature flag is disabled', async () => {
-            const dsWithoutFeature = new DataFrameDataSourceV2(
-                { ...instanceSettings, jsonData: {} } as any,
-                backendSrv,
-                templateSrv,
-                DataFrameFeatureTogglesDefaults
-            );
-            const postMockWithoutFeature$ = jest.spyOn(dsWithoutFeature, 'post$').mockReturnValue(of({ tables: mockTables }));
-            const filters = {
-                resultFilter: 'status = "Passed"',
-                dataTableFilter: 'name = "Table1"'
-            };
-
-            const result = await lastValueFrom(dsWithoutFeature.queryTables$(filters, 10));
-
-            // Should only call query-tables, not query-results
-            expect(postMockWithoutFeature$).toHaveBeenCalledTimes(1);
-            expect(postMockWithoutFeature$).toHaveBeenCalledWith(
-                expect.stringContaining('query-tables'),
                 {
                     interactive: true,
                     orderBy: 'ROWS_MODIFIED_AT',

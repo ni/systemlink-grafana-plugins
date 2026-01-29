@@ -1,3 +1,15 @@
+## [4.122.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.122.0...v4.122.1) (2026-01-29)
+
+### Bug Fixes
+
+* **dataframe:** Remove queryByDataTableProperties and queryByResultAndColumnProperties feature flags ([#658](https://github.com/ni/systemlink-grafana-plugins/issues/658)) ([b719e2b](https://github.com/ni/systemlink-grafana-plugins/commit/b719e2b0b347eaae08e915e2a1dbb409e94ad923))
+
+## [4.122.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.121.0...v4.122.0) (2026-01-29)
+
+### Features
+
+* **plotly:** Synchronize dashboard time range with time-based x-axis ([#654](https://github.com/ni/systemlink-grafana-plugins/issues/654)) ([fde5d41](https://github.com/ni/systemlink-grafana-plugins/commit/fde5d41783e93deef42ab54efa494e6470509db5))
+
 ## [4.121.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.120.0...v4.121.0) (2026-01-28)
 
 ### Features

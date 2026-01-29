@@ -30,13 +30,53 @@ interface MenuState {
 interface Props extends PanelProps<PanelOptions> {}
 
 export const PlotlyPanel: React.FC<Props> = (props) => {
-  const { data, width, height, options } = props;
+  const { data, width, height, options, timeRange, onOptionsChange } = props;
   const [menu, setMenu] = useState<MenuState>({ x: 0, y: 0, show: false, items: [] });
   const theme = useTheme2();
 
   const traceColors = useTraceColors(theme);
   const debounceDelayInMs = 300;
   const xAxisPrecisionDecimals = 6;
+
+  const xFields = useMemo(
+    () => _.attempt(() => getXFields(data.series, options.xAxis.field)),
+    [data.series, options.xAxis.field]
+  );
+  const isTimeBasedXAxis =
+    !_.isError(xFields) &&
+    xFields.length > 0 &&
+    xFields[0].type === FieldType.time;
+
+  const dashboardTimeFrom = timeRange.from.isValid() ? timeRange.from.valueOf() : undefined;
+  const dashboardTimeTo = timeRange.to.isValid() ? timeRange.to.valueOf() : undefined;
+  const panelXAxisMin = options.xAxis.min;
+  const panelXAxisMax = options.xAxis.max;
+
+  useEffect(() => {
+    if (
+      !isTimeBasedXAxis ||
+      !Number.isFinite(dashboardTimeFrom) ||
+      !Number.isFinite(dashboardTimeTo)
+    ) {
+      return;
+    }
+
+    if (
+      panelXAxisMin !== dashboardTimeFrom ||
+      panelXAxisMax !== dashboardTimeTo
+    ) {
+      onOptionsChange({
+        ...options,
+        xAxis: {
+          ...options.xAxis,
+          min: dashboardTimeFrom,
+          max: dashboardTimeTo,
+        },
+      });
+    }
+    // options excluded from dependencies to prevent infinite loop as onOptionsChange updates options
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dashboardTimeFrom, dashboardTimeTo, isTimeBasedXAxis]);
 
   const publishXAxisRangeUpdate = useMemo(
     () =>
@@ -66,7 +106,6 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     yAxis2: [],
   };
 
-  const xFields = _.attempt(() => getXFields(data.series, options.xAxis.field));
   if (_.isError(xFields)) {
     return renderErrorView(props, xFields.message);
   }
@@ -161,7 +200,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     const { "xaxis.range[0]": xAxisMin, "xaxis.range[1]": xAxisMax, "xaxis.autorange": autoRange } = event;
 
     if (autoRange) {
-      props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: undefined, max: undefined }});
+      onOptionsChange({...options, xAxis: { ...options.xAxis, min: undefined, max: undefined }});
       return;
     }
 
@@ -175,7 +214,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
 
       if (from.isValid() && to.isValid()) {
         props.onChangeTimeRange({ from: from.valueOf(), to: to.valueOf() });
-        props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: from.valueOf(), max: to.valueOf() } });
+        onOptionsChange({...options, xAxis: { ...options.xAxis, min: from.valueOf(), max: to.valueOf() } });
       }
     } else {
       if (!Number.isFinite(xAxisMin) || !Number.isFinite(xAxisMax)) {
