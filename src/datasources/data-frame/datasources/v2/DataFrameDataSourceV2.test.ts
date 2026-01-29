@@ -3587,7 +3587,6 @@ describe('DataFrameDataSourceV2', () => {
                         expect(postSpy).toHaveBeenCalledTimes(6);
                         expect(callOrder).toEqual(expect.arrayContaining([0, 1, 2, 3, 4, 5]));
                     });
-                    
                 });
             });
         });
