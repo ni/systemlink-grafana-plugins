@@ -34,6 +34,23 @@ The **SystemLink Data Frames** data source allows you to display data table prop
 
 ---
 
+## 🔗 URL Length Limits
+
+When using **Filter for x-axis range on zoom/pan** with numeric columns, excessive zoom/pan operations on different **X-columns** can result in a **"414 URI Too Long"** error. To avoid this:
+
+- Minimize multi-value dashboard variables.
+- Limit the number of panels with this feature enabled.
+- Avoid zoom/pan on many unique **X-columns**.
+
+### Troubleshooting "URI Too Large" Error
+
+If you encounter a **"414 URI Too Long"** error, try one of the following:
+
+- Remove some URL query parameters from your browser's address bar **or**
+- Navigate to the dashboard via the navigation menu
+
+---
+
 ## Additional Resources
 
 - **Query Optimization:** <a href="https://www.ni.com/r/dfs-db-query-performance" target="_blank" rel="noopener noreferrer">Optimizing Data Frame Queries</a>
