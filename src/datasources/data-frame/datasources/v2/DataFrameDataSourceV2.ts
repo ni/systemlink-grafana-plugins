@@ -565,7 +565,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private parseCsvToTableDataRows(csvData: string): TableDataRows {
         const parseResult = Papa.parse<string[]>(csvData, {
             header: false,
-            skipEmptyLines: true
+            skipEmptyLines: true,
+            transform: (value: string) => textUtil.sanitize(value)
         });
         if (parseResult.errors && parseResult.errors.length > 0) {
             const fatalErrors = parseResult.errors.filter(
