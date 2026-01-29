@@ -456,16 +456,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             />
                         </InlineField>
                         <InlineField
-                            label={labels.appendColumnUnitInFieldName}
-                            labelWidth={INLINE_LABEL_WIDTH}
-                            tooltip={tooltips.appendColumnUnitInFieldName}
-                        >
-                            <InlineSwitch
-                                value={migratedQuery.appendColumnUnitInFieldName}
-                                onChange={onAppendColumnUnitInFieldNameChange}
-                            />
-                        </InlineField>
-                        <InlineField
                             label={labels.filterNulls}
                             labelWidth={INLINE_LABEL_WIDTH}
                             tooltip={tooltips.filterNulls}
@@ -473,6 +463,16 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             <InlineSwitch
                                 value={migratedQuery.filterNulls}
                                 onChange={onFilterNullsChange}
+                            />
+                        </InlineField>
+                        <InlineField
+                            label={labels.appendColumnUnitInFieldName}
+                            labelWidth={INLINE_LABEL_WIDTH}
+                            tooltip={tooltips.appendColumnUnitInFieldName}
+                        >
+                            <InlineSwitch
+                                value={migratedQuery.appendColumnUnitInFieldName}
+                                onChange={onAppendColumnUnitInFieldNameChange}
                             />
                         </InlineField>
                     </Collapse>
