@@ -1,3 +1,9 @@
+## [4.124.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.123.0...v4.124.0) (2026-01-29)
+
+### Features
+
+* **dataframe:** add dynamic take based on the number of columns selected ([#655](https://github.com/ni/systemlink-grafana-plugins/issues/655)) ([dcde120](https://github.com/ni/systemlink-grafana-plugins/commit/dcde120954e5e3186a58fa5b08d4b69e2d4f7f66))
+
 ## [4.123.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.122.1...v4.123.0) (2026-01-29)
 
 ### Features
