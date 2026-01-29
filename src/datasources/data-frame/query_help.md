@@ -34,7 +34,7 @@ The **SystemLink Data Frames** data source allows you to display data table prop
 
 ---
 
-## 🔗 URL Length Limits
+## 🔗 URL Length Considerations
 
 When using **Filter for x-axis range on zoom/pan** with numeric columns, excessive zoom/pan operations on different **X-columns** can result in a **"414 URI Too Long"** error. To avoid this:
 
