@@ -19,6 +19,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
     private scopedVars: ScopedVars = {};
 
+    private syncXAxisRangeTargetsQueryParamInitializedPanelIds: Set<string> = new Set();
+
     public constructor(
         public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
         public readonly backendSrv: BackendSrv = getBackendSrv(),
@@ -36,11 +38,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const processedQuery = this.processQuery(query, options.targets);
         const transformedQuery = this.transformQuery(processedQuery, options.scopedVars);
 
-        if (this.featureToggles.highResolutionZoom) {
+        const panelId = options.panelId?.toString() ?? '';
+        if (
+            this.featureToggles.highResolutionZoom
+            && !this.syncXAxisRangeTargetsQueryParamInitializedPanelIds.has(panelId)
+        ) {
             DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam(
                 transformedQuery.filterXRangeOnZoomPan,
-                options.panelId?.toString(),
+                panelId,
             );
+            this.syncXAxisRangeTargetsQueryParamInitializedPanelIds.add(panelId);
         }
 
         if (this.shouldQueryForData(transformedQuery)) {
