@@ -562,7 +562,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             skipEmptyLines: true
         });
         if (parseResult.errors && parseResult.errors.length > 0) {
-            // Only treat actual parsing errors as fatal, not warnings like delimiter auto-detection
             const fatalErrors = parseResult.errors.filter(
                 error => error.type !== 'Delimiter'
             );
@@ -578,9 +577,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return { frame: { columns: [], data: [] } };
         }
 
-        // First row contains column headers
         const columns = rows[0];
-        // Remaining rows are data
         const data = rows.slice(1);
 
         return {
