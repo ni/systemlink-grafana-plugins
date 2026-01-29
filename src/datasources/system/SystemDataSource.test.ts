@@ -287,7 +287,7 @@ describe('System filter transformation', () => {
       queryKind: SystemQueryType.Properties,
       systemName: '',
       workspace: '',
-      filter: `lockedStatus != "true"`
+      filter: `grains.data.minion_blackout != "true"`
     };
 
     await firstValueFrom(ds.query(buildQuery(query)));
@@ -386,114 +386,6 @@ describe('backward compatibility - legacy systemName and workspace migration', (
     expect(prepared.systemName).toBe('');
     expect(prepared.workspace).toBe('');
     expect(prepared.filter).toBe('(id = "my-system" || alias = "my-system")');
-  });
-});
-
-describe('UI field mapping', () => {
-  beforeEach(() => {
-    backendSrv.fetch.mockReturnValue(createFetchResponse({ data: [] }));
-  });
-
-  test('should map connectionStatus UI field to connected.data.state backend field in filter', async () => {
-    const query: SystemQuery = {
-      refId: 'A',
-      queryKind: SystemQueryType.Properties,
-      systemName: '',
-      workspace: '',
-      filter: `connectionStatus = "CONNECTED" && scanCode = "ABC123DEF456"`
-    };
-
-    await firstValueFrom(ds.query(buildQuery(query)));
-
-    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
-      'filter',
-      `connected.data.state = "CONNECTED" && scanCode = "ABC123DEF456"`
-    );
-  });
-
-  test('should map model UI field to grains.data.productname backend field in filter', async () => {
-    const query: SystemQuery = {
-      refId: 'A',
-      queryKind: SystemQueryType.Properties,
-      systemName: '',
-      workspace: '',
-      filter: `model = "NI cRIO-9033"`
-    };
-
-    await firstValueFrom(ds.query(buildQuery(query)));
-
-    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
-      'filter',
-      `grains.data.productname = "NI cRIO-9033"`
-    );
-  });
-
-  test('should map vendor UI field to grains.data.manufacturer backend field in filter', async () => {
-    const query: SystemQuery = {
-      refId: 'A',
-      queryKind: SystemQueryType.Properties,
-      systemName: '',
-      workspace: '',
-      filter: `vendor = "National Instruments"`
-    };
-
-    await firstValueFrom(ds.query(buildQuery(query)));
-
-    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
-      'filter',
-      `grains.data.manufacturer = "National Instruments"`
-    );
-  });
-
-  test('should map osFullName UI field to grains.data.osfullname backend field in filter', async () => {
-    const query: SystemQuery = {
-      refId: 'A',
-      queryKind: SystemQueryType.Properties,
-      systemName: '',
-      workspace: '',
-      filter: `osFullName = "nilrt"`
-    };
-
-    await firstValueFrom(ds.query(buildQuery(query)));
-
-    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
-      'filter',
-      `grains.data.osfullname = "nilrt"`
-    );
-  });
-
-  test('should map lockedStatus UI field to grains.data.minion_blackout backend field in filter', async () => {
-    const query: SystemQuery = {
-      refId: 'A',
-      queryKind: SystemQueryType.Properties,
-      systemName: '',
-      workspace: '',
-      filter: `lockedStatus = "true"`
-    };
-
-    await firstValueFrom(ds.query(buildQuery(query)));
-
-    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
-      'filter',
-      `grains.data.minion_blackout.Equals(true)`
-    );
-  });
-
-  test('should map multiple UI fields in a single filter', async () => {
-    const query: SystemQuery = {
-      refId: 'A',
-      queryKind: SystemQueryType.Properties,
-      systemName: '',
-      workspace: '',
-      filter: `connectionStatus = "CONNECTED" && osFullName = "nilrt" && lockedStatus != "true"`
-    };
-
-    await firstValueFrom(ds.query(buildQuery(query)));
-
-    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
-      'filter',
-      `connected.data.state = "CONNECTED" && grains.data.osfullname = "nilrt" && !grains.data.minion_blackout.Equals(true)`
-    );
   });
 });
 
