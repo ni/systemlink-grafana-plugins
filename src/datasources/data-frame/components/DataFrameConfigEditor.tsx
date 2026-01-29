@@ -26,28 +26,6 @@ export const DataFrameConfigEditor: React.FC<Props> = ({ options, onOptionsChang
                 <div style={{ paddingBottom: '10px' }}>
                     <Text element="h6">{labels.features}</Text>
                 </div>
-                <InlineSegmentGroup>
-                    <InlineField label={labels.datatableQueryBuilder} labelWidth={30}>
-                        <InlineSwitch
-                            value={
-                                options.jsonData?.featureToggles?.queryByDataTableProperties
-                                ?? DataFrameFeatureTogglesDefaults.queryByDataTableProperties
-                            }
-                            onChange={handleFeatureChange('queryByDataTableProperties')}
-                        />
-                    </InlineField>
-                </InlineSegmentGroup>
-                <InlineSegmentGroup>
-                    <InlineField label={labels.resultAndColumnQueryBuilder} labelWidth={30}>
-                        <InlineSwitch
-                            value={
-                                options.jsonData?.featureToggles?.queryByResultAndColumnProperties
-                                ?? DataFrameFeatureTogglesDefaults.queryByResultAndColumnProperties
-                            }
-                            onChange={handleFeatureChange('queryByResultAndColumnProperties')}
-                    />
-                    </InlineField>
-                </InlineSegmentGroup>
                 <InlineSegmentGroup> 
                     <InlineField
                         label={labels.queryUndecimatedData}
@@ -83,8 +61,6 @@ export const DataFrameConfigEditor: React.FC<Props> = ({ options, onOptionsChang
 
 const labels = {
     features: 'Features',
-    datatableQueryBuilder: 'Datatable query builder',
-    resultAndColumnQueryBuilder: 'Results and columns query builders',
     queryUndecimatedData: 'Query undecimated data',
     highResolutionZoom: 'Filter for x-axis range on zoom/pan',
 };
