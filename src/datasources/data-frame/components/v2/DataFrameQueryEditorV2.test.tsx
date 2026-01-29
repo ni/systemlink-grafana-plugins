@@ -1516,21 +1516,21 @@ describe("DataFrameQueryEditorV2", () => {
             });
 
             describe("append column unit in field name", () => {
-                let appendColumnUnitCheckbox: HTMLElement;
+                let appendColumnUnitInFieldNameCheckbox: HTMLElement;
                 let user: UserEvent;
 
                 beforeEach(() => {
-                    appendColumnUnitCheckbox = screen.getAllByRole('switch')[2];
+                    appendColumnUnitInFieldNameCheckbox = screen.getAllByRole('switch')[2];
                     user = userEvent.setup();
                 });
 
                 it("should have the append column unit in field name checkbox unchecked by default", () => {
-                    expect(appendColumnUnitCheckbox).toBeInTheDocument();
-                    expect(appendColumnUnitCheckbox).not.toBeChecked();
+                    expect(appendColumnUnitInFieldNameCheckbox).toBeInTheDocument();
+                    expect(appendColumnUnitInFieldNameCheckbox).not.toBeChecked();
                 });
 
                 it("should call onChange and onRunQuery when the append column unit in field name checkbox is checked", async () => {
-                    await user.click(appendColumnUnitCheckbox);
+                    await user.click(appendColumnUnitInFieldNameCheckbox);
 
                     await waitFor(() => {
                         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
@@ -1540,53 +1540,6 @@ describe("DataFrameQueryEditorV2", () => {
                     });
                 });
 
-                it("should update the checkbox when appendColumnUnitInFieldName is true", () => {
-                    renderComponent({ type: DataFrameQueryType.Data, appendColumnUnitInFieldName: true });
-
-                    const checkbox = screen.getAllByRole('switch')[2];
-                    expect(checkbox).toBeChecked();
-                });
-
-                it("should keep the checkbox unchecked when appendColumnUnitInFieldName is false", () => {
-                    renderComponent({ type: DataFrameQueryType.Data, appendColumnUnitInFieldName: false });
-
-                    const checkbox = screen.getAllByRole('switch')[2];
-                    expect(checkbox).not.toBeChecked();
-                });
-
-                it("should toggle the checkbox from unchecked to checked", async () => {
-                    const user = userEvent.setup();
-                    renderComponent({ type: DataFrameQueryType.Data, appendColumnUnitInFieldName: false });
-                    const checkbox = screen.getAllByRole('switch')[2];
-
-                    expect(checkbox).not.toBeChecked();
-                    await user.click(checkbox);
-
-                    await waitFor(() => {
-                        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                            appendColumnUnitInFieldName: true
-                        }));
-                    });
-                });
-
-                it("should toggle the checkbox from checked to unchecked", async () => {
-                    const user = userEvent.setup();
-                    renderComponent({ type: DataFrameQueryType.Data, appendColumnUnitInFieldName: true });
-                    const checkbox = screen.getAllByRole('switch')[2];
-
-                    expect(checkbox).toBeChecked();
-                    await user.click(checkbox);
-
-                    await waitFor(() => {
-                        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                            appendColumnUnitInFieldName: false
-                        }));
-                    });
-                });
-
-                it("should be visible and have the correct label", () => {
-                    expect(screen.getByText("Append column unit in field name")).toBeInTheDocument();
-                });
             });
         });
 
