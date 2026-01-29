@@ -2,6 +2,7 @@ import React, { ReactNode } from 'react';
 import { SystemsQueryBuilder } from './SystemsQueryBuilder';
 import { render } from '@testing-library/react';
 import { QueryBuilderOption, Workspace } from 'core/types';
+import { SystemFields } from 'datasources/system/SystemsQueryBuilder.constants';
 
 describe('SystemsQueryBuilder', () => {
     describe('useEffects', () => {
@@ -37,68 +38,68 @@ describe('SystemsQueryBuilder', () => {
         });
 
         it('should select workspace in query builder', () => {
-            const { conditionsContainer } = renderElement([workspace], 'workspace = "1"');
+            const { conditionsContainer } = renderElement([workspace], `${SystemFields.WORKSPACE.dataField} = "1"`);
 
             expect(conditionsContainer?.length).toBe(1);
             expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name);
         });
 
         it('should select connection status with equals operator in query builder', () => {
-            const { conditionsContainer } = renderElement([workspace], 'connectionStatus = "CONNECTED"');
+            const { conditionsContainer } = renderElement([workspace], `${SystemFields.CONNECTION_STATUS.dataField} = "CONNECTED"`);
 
             expect(conditionsContainer?.length).toBe(1);
-            expect(conditionsContainer.item(0)?.textContent).toContain('Connection status');
+            expect(conditionsContainer.item(0)?.textContent).toContain(SystemFields.CONNECTION_STATUS.label);
             expect(conditionsContainer.item(0)?.textContent).toContain('equals');
             expect(conditionsContainer.item(0)?.textContent).toContain('Connected');
         });
 
         it('should select connection status with does not equal operator in query builder', () => {
-            const { conditionsContainer } = renderElement([workspace], 'connectionStatus != "DISCONNECTED"');
+            const { conditionsContainer } = renderElement([workspace], `${SystemFields.CONNECTION_STATUS.dataField} != "DISCONNECTED"`);
 
             expect(conditionsContainer?.length).toBe(1);
-            expect(conditionsContainer.item(0)?.textContent).toContain('Connection status');
+            expect(conditionsContainer.item(0)?.textContent).toContain(SystemFields.CONNECTION_STATUS.label);
             expect(conditionsContainer.item(0)?.textContent).toContain('does not equal');
             expect(conditionsContainer.item(0)?.textContent).toContain('Disconnected');
         });
 
         it('should select locked status in query builder', () => {
-            const { conditionsContainer } = renderElement([workspace], 'lockedStatus = "true"');
+            const { conditionsContainer } = renderElement([workspace], `${SystemFields.LOCKED_STATUS.dataField} = "true"`);
 
             expect(conditionsContainer?.length).toBe(1);
-            expect(conditionsContainer.item(0)?.textContent).toContain('Locked status');
+            expect(conditionsContainer.item(0)?.textContent).toContain(SystemFields.LOCKED_STATUS.label);
             expect(conditionsContainer.item(0)?.textContent).toContain('equals');
             expect(conditionsContainer.item(0)?.textContent).toContain('True');
         });
 
         it('should select os full name in query builder', () => {
-            const { conditionsContainer } = renderElement([workspace], 'osFullName = "nilrt"');
+            const { conditionsContainer } = renderElement([workspace], `${SystemFields.OS_FULL_NAME.dataField} = "nilrt"`);
 
             expect(conditionsContainer?.length).toBe(1);
-            expect(conditionsContainer.item(0)?.textContent).toContain('Operating system');
+            expect(conditionsContainer.item(0)?.textContent).toContain(SystemFields.OS_FULL_NAME.label);
             expect(conditionsContainer.item(0)?.textContent).toContain('nilrt');
         });
 
         it('should select model in query builder', () => {
-            const { conditionsContainer } = renderElement([workspace], 'model = "NI cRIO-9033"');
+            const { conditionsContainer } = renderElement([workspace], `${SystemFields.MODEL.dataField} = "NI cRIO-9033"`);
 
             expect(conditionsContainer?.length).toBe(1);
-            expect(conditionsContainer.item(0)?.textContent).toContain('Model');
+            expect(conditionsContainer.item(0)?.textContent).toContain(SystemFields.MODEL.label);
             expect(conditionsContainer.item(0)?.textContent).toContain('NI cRIO-9033');
         });
 
         it('should select vendor in query builder', () => {
-            const { conditionsContainer } = renderElement([workspace], 'vendor = "National Instruments"');
+            const { conditionsContainer } = renderElement([workspace], `${SystemFields.VENDOR.dataField} = "National Instruments"`);
 
             expect(conditionsContainer?.length).toBe(1);
-            expect(conditionsContainer.item(0)?.textContent).toContain('Vendor');
+            expect(conditionsContainer.item(0)?.textContent).toContain(SystemFields.VENDOR.label);
             expect(conditionsContainer.item(0)?.textContent).toContain('National Instruments');
         });
 
         it('should select scan code in query builder', () => {
-            const { conditionsContainer } = renderElement([workspace], 'scanCode = "ABC123DEF456"');
+            const { conditionsContainer } = renderElement([workspace], `${SystemFields.SCAN_CODE.dataField} = "ABC123DEF456"`);
 
             expect(conditionsContainer?.length).toBe(1);
-            expect(conditionsContainer.item(0)?.textContent).toContain('Scan code');
+            expect(conditionsContainer.item(0)?.textContent).toContain(SystemFields.SCAN_CODE.label);
             expect(conditionsContainer.item(0)?.textContent).toContain('ABC123DEF456');
         });
 
@@ -107,7 +108,7 @@ describe('SystemsQueryBuilder', () => {
 
             const { conditionsContainer } = renderElement(
                 [workspace],
-                'scanCode = "$system_id"',
+                `${SystemFields.SCAN_CODE.dataField} = "$system_id"`,
                 [globalVariableOption]
             );
 

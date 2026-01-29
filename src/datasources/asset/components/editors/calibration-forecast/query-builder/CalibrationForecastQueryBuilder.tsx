@@ -87,17 +87,9 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
 
       setFields(fields);
 
-      const options = Object.values(fields).reduce((accumulator, fieldConfig) => {
-        if (fieldConfig.lookup) {
-          accumulator[fieldConfig.dataField!] = fieldConfig.lookup.dataSource;
-        }
-
-        return accumulator;
-      }, {} as Record<string, QueryBuilderOption[]>);
-
       const callbacks = {
-        expressionBuilderCallback: expressionBuilderCallback(options),
-        expressionReaderCallback: expressionReaderCallback(options),
+        expressionBuilderCallback: expressionBuilderCallback(fields),
+        expressionReaderCallback: expressionReaderCallback(fields),
       };
 
       setOperations([
