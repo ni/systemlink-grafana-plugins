@@ -15,8 +15,8 @@ const defaultProps: DataSourcePluginOptionsEditorProps<any> = {
     options: {
         jsonData: {
             featureToggles: {
-                queryByDataTableProperties: false,
-                queryUndecimatedData: false
+                queryUndecimatedData: false,
+                highResolutionZoom: false
             },
         },
         id: 0,
@@ -40,39 +40,39 @@ describe('DataFrameConfigEditor', () => {
         expect(dataTableQueryBuilderToggle).toBeInTheDocument();
     });
 
-    test('should update the queryByDataTableProperties feature toggles option when it is toggled', async () => {
-        const expecteJsonData = {
-            "jsonData": { 
-                "featureToggles": { 
-                    "queryByDataTableProperties": true,
-                    "queryUndecimatedData": false
-                } 
-            }
-        };
-
-        expect(dataTableQueryBuilderToggle).not.toBeChecked();
-
-        await userEvent.click(dataTableQueryBuilderToggle);
-        await waitFor(() => {
-            expect(mockOnOptionsChange).toHaveBeenCalledWith(
-                expect.objectContaining(expecteJsonData)
-            );
-        });
-    });
-
     test('should update the queryUndecimatedData feature toggles option when it is toggled', async () => {
-        const queryUndecimatedDataToggle = screen.getAllByRole('switch')[2];
+        const queryUndecimatedDataToggle = screen.getAllByRole('switch')[0];
         const expectedJsonData = {
             "jsonData": { 
                 "featureToggles": { 
-                    "queryByDataTableProperties": false,
-                    "queryUndecimatedData": true
+                    "queryUndecimatedData": true,
+                    "highResolutionZoom": false
                 } 
             }
         };  
         expect(queryUndecimatedDataToggle).not.toBeChecked();
 
         await userEvent.click(queryUndecimatedDataToggle);
+        await waitFor(() => {
+            expect(mockOnOptionsChange).toHaveBeenCalledWith(
+                expect.objectContaining(expectedJsonData)
+            );
+        });
+    });
+
+    test('should update the highResolutionZoom feature toggles option when it is toggled', async () => {
+        const highResolutionZoomToggle = screen.getAllByRole('switch')[1];
+        const expectedJsonData = {
+            "jsonData": { 
+                "featureToggles": { 
+                    "queryUndecimatedData": false,
+                    "highResolutionZoom": true
+                } 
+            }
+        };  
+        expect(highResolutionZoomToggle).not.toBeChecked();
+
+        await userEvent.click(highResolutionZoomToggle);
         await waitFor(() => {
             expect(mockOnOptionsChange).toHaveBeenCalledWith(
                 expect.objectContaining(expectedJsonData)
