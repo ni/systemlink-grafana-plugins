@@ -3,6 +3,19 @@ jest.mock('datasources/data-frame/constants', () => {
     return { ...actual, COLUMN_OPTIONS_LIMIT: 10 }; // reduce column option limit for tests
 });
 
+jest.mock('@grafana/runtime', () => ({
+    ...jest.requireActual('@grafana/runtime'),
+    locationService: {
+        getSearchObject: jest.fn(),
+        partial: jest.fn(),
+    },
+}));
+
+jest.mock('react-router', () => ({
+    ...jest.requireActual('react-router'),
+    useLocation: jest.fn(),
+}));
+
 import React from "react";
 import { cleanup, render, RenderResult, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
@@ -14,6 +27,9 @@ import { COLUMN_OPTIONS_LIMIT } from "datasources/data-frame/constants";
 import { ComboboxOption } from "@grafana/ui";
 import { errorMessages, infoMessage } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
 import { of } from "rxjs";
+import { locationService } from '@grafana/runtime';
+import { useLocation } from 'react-router';
+import { DataFrameQueryParamsHandler } from 'datasources/data-frame/datasources/v2/DataFrameQueryParamsHandler';
 
 jest.mock("./query-builders/DataFrameQueryBuilderWrapper", () => ({
     DataFrameQueryBuilderWrapper: jest.fn(() => <div data-testid="mock-data-frame-query-builder-wrapper" />)
@@ -78,7 +94,8 @@ const renderComponent = (
         instanceSettings: {
             jsonData: {
                 featureToggles: {
-                    queryUndecimatedData: true
+                    queryUndecimatedData: true,
+                    highResolutionZoom: true
                 }
             }
         },
@@ -116,6 +133,24 @@ const renderComponent = (
 };
 
 describe("DataFrameQueryEditorV2", () => {
+    let mockGetSearchObject: jest.Mock;
+    let mockPartial: jest.Mock;
+    let mockUseLocation: jest.Mock;
+
+    beforeEach(() => {
+        mockGetSearchObject = locationService.getSearchObject as jest.Mock;
+        mockPartial = locationService.partial as jest.Mock;
+        mockUseLocation = useLocation as jest.Mock;
+
+        mockGetSearchObject.mockReturnValue({});
+        mockPartial.mockImplementation(() => {});
+        mockUseLocation.mockReturnValue({ search: '' });
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
     it("should call processQuery with the initial query and queries array", () => {
         const query1: DataFrameDataQuery = {
             type: DataFrameQueryType.Data,
@@ -2745,14 +2780,72 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(useTimeRangeCheckbox).not.toBeChecked();
                 });
 
-                it("should call onChange and onRunQuery when the use time range checkbox is checked", async () => {
+                it("should call DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam when the use time range checkbox is checked", async () => {
+                    const mockUpdateSyncXAxisRangeTargetsQueryParam = jest
+                        .spyOn(DataFrameQueryParamsHandler, 'updateSyncXAxisRangeTargetsQueryParam');
+                    const mockGetSearchObject = locationService
+                        .getSearchObject as jest.Mock;
+                    mockGetSearchObject.mockReturnValue({ editPanel: '42' });
+
                     await user.click(useTimeRangeCheckbox);
 
                     await waitFor(() => {
-                        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                            filterXRangeOnZoomPan: true
-                        }));
-                        expect(onRunQuery).toHaveBeenCalled();
+                        expect(mockUpdateSyncXAxisRangeTargetsQueryParam).toHaveBeenCalledWith(true, '42');
+                    });
+                });
+
+                describe('when high resolution zoom feature is disabled', () => {
+                    let mockDatasource: Partial<DataFrameDataSource>;
+                    let onChange: jest.Mock;
+                    let onRunQuery: jest.Mock;
+
+                    beforeEach(() => {
+                        cleanup();
+                        jest.clearAllMocks();
+                        mockDatasource = {
+                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                            getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                                uniqueColumnsAcrossTables: [],
+                                commonColumnsAcrossTables: []
+                            }),
+                            transformDataTableQuery: jest.fn((filter: string) => filter),
+                            transformResultQuery: jest.fn((filter: string) => filter),
+                            transformColumnQuery: jest.fn((filter: string) => filter),
+                            hasRequiredFilters: mockHasRequiredFilters,
+                            parseColumnIdentifier: mockParseColumnIdentifier,
+                            instanceSettings: {
+                                jsonData: {
+                                    featureToggles: {
+                                        highResolutionZoom: false
+                                    }
+                                }
+                            }
+                        } as unknown as Partial<DataFrameDataSource>;
+                    });
+
+                    it("should call onChange and onRunQuery when the use time range checkbox is checked", async () => {
+                        const result = renderComponent(
+                            { type: DataFrameQueryType.Data },
+                            '',
+                            '',
+                            [],
+                            [],
+                            undefined,
+                            {},
+                            mockDatasource
+                        );
+                        onChange = result.onChange;
+                        onRunQuery = result.onRunQuery;
+                        useTimeRangeCheckbox = screen.getAllByRole('switch')[2];
+
+                        await user.click(useTimeRangeCheckbox);
+
+                        await waitFor(() => {
+                            expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                                filterXRangeOnZoomPan: true
+                            }));
+                            expect(onRunQuery).toHaveBeenCalled();
+                        });
                     });
                 });
             });

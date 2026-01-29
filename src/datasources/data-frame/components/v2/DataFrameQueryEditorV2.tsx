@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2, metadataFieldOptions } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2, metadataFieldOptions, DataFrameQuery } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT, UNDECIMATED_RECORDS_LIMIT,decimationNoneOption } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
@@ -18,6 +18,9 @@ import {
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { isObservable, lastValueFrom } from 'rxjs';
 import _ from 'lodash';
+import { DataFrameQueryParamsHandler } from 'datasources/data-frame/datasources/v2/DataFrameQueryParamsHandler';
+import { locationService } from '@grafana/runtime';
+import { useLocation } from 'react-router';
 
 export const DataFrameQueryEditorV2: React.FC<Props> = (
     { query, onChange, onRunQuery, datasource, queries }: Props
@@ -26,6 +29,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         datasource.instanceSettings.jsonData?.featureToggles?.queryUndecimatedData ?? false,
         [datasource]
     );
+
+    const isHighResolutionZoomFeatureEnabled = useMemo(() =>
+        datasource.instanceSettings.jsonData?.featureToggles?.highResolutionZoom ?? false,
+        [datasource]
+    );
+
     const migratedQuery = datasource.processQuery(
         query as DataFrameDataQuery,
         queries as DataFrameDataQuery[]
@@ -251,6 +260,47 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [migratedQuery.columns]);
 
+    // To sync the `filterXRangeOnZoomPan` state across queries.
+    const location = useLocation();
+    useEffect(() => {
+        if (!isHighResolutionZoomFeatureEnabled) {
+            return;
+        }
+
+        const queryParams = locationService.getSearchObject();
+        const panelId = DataFrameQueryParamsHandler.getEditPanelId(queryParams);
+        if (!panelId) {
+            return;
+        }
+
+        const syncXAxisRangeTargets: string[] = DataFrameQueryParamsHandler.getSyncXAxisRangeTargets(
+            queryParams
+        );
+        const updatedFilterXRangeOnZoomPan = syncXAxisRangeTargets.includes(panelId);
+
+        const getFilterXRangeOnZoomPanValue = (query: DataFrameQuery): boolean | undefined => {
+            if ('filterXRangeOnZoomPan' in query) {
+                return query.filterXRangeOnZoomPan;
+            }
+
+            return undefined;
+        };
+
+        const savedFilterXRangeOnZoomPan = getFilterXRangeOnZoomPanValue(query);
+        if (updatedFilterXRangeOnZoomPan !== savedFilterXRangeOnZoomPan) {
+            handleQueryChange({ 
+                ...migratedQuery,
+                filterXRangeOnZoomPan: updatedFilterXRangeOnZoomPan
+            });
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        isHighResolutionZoomFeatureEnabled,
+        location.search,
+        handleQueryChange,
+    ]);
+
+    
     const onQueryTypeChange = (queryType: DataFrameQueryType) => {
         handleQueryChange({ ...migratedQuery, type: queryType });
     };
@@ -351,10 +401,21 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         handleQueryChange({ ...migratedQuery, xColumn });
     };
 
-    const onFilterXRangeOnZoomPanChange = (event: React.FormEvent<HTMLInputElement>) => {
-        const filterXRangeOnZoomPan = event.currentTarget.checked;
-        handleQueryChange({ ...migratedQuery, filterXRangeOnZoomPan });
-    };
+    const onFilterXRangeOnZoomPanChange = useCallback((event: React.FormEvent<HTMLInputElement>) => {
+            const filterXRangeOnZoomPan = event.currentTarget.checked;
+
+            handleQueryChange({ ...migratedQuery, filterXRangeOnZoomPan });
+
+            if (isHighResolutionZoomFeatureEnabled) {
+                const panelId = DataFrameQueryParamsHandler.getEditPanelId(locationService.getSearchObject());
+                DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam(
+                    filterXRangeOnZoomPan,
+                    panelId
+                );
+            }
+        },
+        [migratedQuery, handleQueryChange, isHighResolutionZoomFeatureEnabled]
+    );
 
     function validateTakeValue(value: number, TAKE_LIMIT: number) {
         if (isNaN(value) || value <= 0) {
