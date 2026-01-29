@@ -1,3 +1,9 @@
+## [4.122.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.121.0...v4.122.0) (2026-01-29)
+
+### Features
+
+* **plotly:** Synchronize dashboard time range with time-based x-axis ([#654](https://github.com/ni/systemlink-grafana-plugins/issues/654)) ([fde5d41](https://github.com/ni/systemlink-grafana-plugins/commit/fde5d41783e93deef42ab54efa494e6470509db5))
+
 ## [4.121.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.120.0...v4.121.0) (2026-01-28)
 
 ### Features
