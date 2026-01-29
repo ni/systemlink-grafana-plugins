@@ -428,15 +428,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         timeRange: TimeRange
     ): UndecimatedDataRequest[] {
         return Object.entries(tableColumnsMap)
-            .filter(columnsMap => columnsMap.length > 0)
+            .filter(([_, columnsMap]) => columnsMap.selectedColumns.length > 0)
             .map(([tableId, columnsMap]) => {
-                const numberOfColumns = columnsMap.selectedColumns.length;
-                const maxRowsPerColumn = Math.floor(
-                    UNDECIMATED_RECORDS_LIMIT / numberOfColumns
+                const numberOfSelectedColumns = columnsMap.selectedColumns.length;
+                const maximumRecordCount = Math.floor(
+                    UNDECIMATED_RECORDS_LIMIT / numberOfSelectedColumns
                 );
                 const take = Math.min(
-                    query.undecimatedRecordCount ?? maxRowsPerColumn,
-                    maxRowsPerColumn
+                    query.undecimatedRecordCount ?? maximumRecordCount,
+                    maximumRecordCount
                 );
                 const filters = this.constructColumnFilters(
                     query,

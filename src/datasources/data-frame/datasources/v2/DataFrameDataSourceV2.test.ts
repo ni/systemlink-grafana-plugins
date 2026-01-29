@@ -3179,13 +3179,11 @@ describe('DataFrameDataSourceV2', () => {
                         decimationMethod: 'NONE',
                         filterNulls: false,
                         applyTimeFilters: false,
-                        undecimatedRecordCount: 500000 // User requests 500k but with 10 columns, max is 100k
+                        undecimatedRecordCount: 500000
                     } as DataFrameQueryV2;
 
                     await lastValueFrom(datasource.runQuery(query, options));
 
-                    // With 10 columns, max rows should be floor(1,000,000 / 10) = 100,000
-                    // User requested 500,000 but should be capped at 100,000
                     expect(postSpy).toHaveBeenCalledWith(
                         expect.any(String),
                         expect.objectContaining({
@@ -3216,12 +3214,11 @@ describe('DataFrameDataSourceV2', () => {
                         decimationMethod: 'NONE',
                         filterNulls: false,
                         applyTimeFilters: false,
-                        undecimatedRecordCount: 2000000 // User requests 2M but max is 1M with 1 column
+                        undecimatedRecordCount: 2000000
                     } as DataFrameQueryV2;
 
                     await lastValueFrom(datasource.runQuery(query, options));
 
-                    // With 1 column, max rows should be 1,000,000
                     expect(postSpy).toHaveBeenCalledWith(
                         expect.any(String),
                         expect.objectContaining({
@@ -3253,12 +3250,11 @@ describe('DataFrameDataSourceV2', () => {
                         decimationMethod: 'NONE',
                         filterNulls: false,
                         applyTimeFilters: false,
-                        undecimatedRecordCount: 5000 // User specifies 5000, which is less than calculated max (500,000)
+                        undecimatedRecordCount: 5000
                     } as DataFrameQueryV2;
 
                     await lastValueFrom(datasource.runQuery(query, options));
 
-                    // Should respect user's preference since it's less than the calculated max
                     expect(postSpy).toHaveBeenCalledWith(
                         expect.any(String),
                         expect.objectContaining({
