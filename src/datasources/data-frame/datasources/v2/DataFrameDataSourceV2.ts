@@ -427,28 +427,35 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange
     ): UndecimatedDataRequest[] {
-        const take = Math.min(
-            query.undecimatedRecordCount ?? UNDECIMATED_RECORDS_LIMIT, 
-            UNDECIMATED_RECORDS_LIMIT
-        );
-        return Object.entries(tableColumnsMap).map(([tableId, columnsMap]) => {
-            const filters = this.constructColumnFilters(
-                query,
-                columnsMap,
-                timeRange
-            );
-            const orderBy = query.xColumn 
-                ? [{ column: this.parseColumnIdentifier(query.xColumn).columnName }]
-                : undefined;
+        return Object.entries(tableColumnsMap)
+            .filter(([_, columnsMap]) => columnsMap.selectedColumns.length > 0)
+            .map(([tableId, columnsMap]) => {
+                const numberOfSelectedColumns = columnsMap.selectedColumns.length;
+                const maximumRecordCount = Math.floor(
+                    UNDECIMATED_RECORDS_LIMIT / numberOfSelectedColumns
+                );
+                const take = Math.min(
+                    query.undecimatedRecordCount ?? maximumRecordCount,
+                    maximumRecordCount
+                );
+                const filters = this.constructColumnFilters(
+                    query,
+                    columnsMap,
+                    timeRange
+                );
+                const orderBy = query.xColumn 
+                    ? [{ column: this.parseColumnIdentifier(query.xColumn).columnName }]
+                    : undefined;
 
-            return {
-                tableId,
-                columns: columnsMap.selectedColumns.map(column => column.name),
-                orderBy,
-                filters,
-                take
-            };
-        });
+                return {
+                    tableId,
+                    columns: columnsMap.selectedColumns.map(column => column.name),
+                    orderBy,
+                    filters,
+                    take
+                };
+            }
+        );
     }
 
     private constructColumnFilters(
