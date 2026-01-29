@@ -319,9 +319,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         handleQueryChange({ ...migratedQuery, includeIndexColumns });
     };
 
-    const onIncludeColumnUnitsChange = (event: React.FormEvent<HTMLInputElement>) => {
-        const includeColumnUnits = event.currentTarget.checked;
-        handleQueryChange({ ...migratedQuery, includeColumnUnits });
+    const onAppendColumnUnitInFieldNameChange = (event: React.FormEvent<HTMLInputElement>) => {
+        const appendColumnUnitInFieldName = event.currentTarget.checked;
+        handleQueryChange({ 
+            ...migratedQuery,
+            appendColumnUnitInFieldName
+        });
     };
 
     const onFilterNullsChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -453,13 +456,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             />
                         </InlineField>
                         <InlineField
-                            label={labels.includeColumnUnits}
+                            label={labels.appendColumnUnitInFieldName}
                             labelWidth={INLINE_LABEL_WIDTH}
-                            tooltip={tooltips.includeColumnUnits}
+                            tooltip={tooltips.appendColumnUnitInFieldName}
                         >
                             <InlineSwitch
-                                value={migratedQuery.includeColumnUnits}
-                                onChange={onIncludeColumnUnitsChange}
+                                value={migratedQuery.appendColumnUnitInFieldName}
+                                onChange={onAppendColumnUnitInFieldNameChange}
                             />
                         </InlineField>
                         <InlineField
