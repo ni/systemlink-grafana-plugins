@@ -25,7 +25,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     public constructor(
         public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
         public readonly backendSrv: BackendSrv = getBackendSrv(),
-        public readonly templateSrv: TemplateSrv = getTemplateSrv(),
+        public readonly templateSrv: TemplateSrv = getTemplateSrv()
     ) {
         super(instanceSettings, backendSrv, templateSrv);
         this.isQueryUndecimatedDataFeatureEnabled = this.instanceSettings

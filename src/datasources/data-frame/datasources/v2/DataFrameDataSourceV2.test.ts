@@ -185,7 +185,6 @@ describe('DataFrameDataSourceV2', () => {
                     dsWithHighResZoomDisabled = new DataFrameDataSourceV2(
                         {
                             ...instanceSettings,
-                            
                             jsonData: {
                                 featureToggles:  DataFrameFeatureTogglesDefaults
                             },
@@ -5460,7 +5459,6 @@ describe('DataFrameDataSourceV2', () => {
                     dsWithHighResZoomDisabled = new DataFrameDataSourceV2(
                         {
                             ...instanceSettings,
-                            
                             jsonData: {
                                 featureToggles:  DataFrameFeatureTogglesDefaults
                             },
