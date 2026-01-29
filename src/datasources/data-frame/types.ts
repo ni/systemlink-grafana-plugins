@@ -39,8 +39,8 @@ export interface DataFrameQueryV2 extends DataQuery {
   columnProperties?: DataTableProperties[];
   columns?: string[] | Observable<string[]>;
   includeIndexColumns?: boolean;
-  appendColumnUnitInFieldName?: boolean;
   filterNulls?: boolean;
+  appendColumnUnitInFieldName?: boolean;
   decimationMethod?: string;
   xColumn?: string | null;
   applyTimeFilters?: boolean;
@@ -141,8 +141,8 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   columnProperties: [],
   columns: [],
   includeIndexColumns: false,
-  appendColumnUnitInFieldName: false,
   filterNulls: false,
+  appendColumnUnitInFieldName: false,
   decimationMethod: 'LOSSY',
   xColumn: null,
   applyTimeFilters: false,
