@@ -7060,18 +7060,6 @@ describe('DataFrameDataSourceV2', () => {
 
         describe('when showUnits is true', () => {
             it('should append unit to column display name and set unit in field config', async () => {
-                const query = {
-                    type: DataFrameQueryType.Data,
-                    dataTableFilter: 'name = "Test Table"',
-                    refId: 'A',
-                    columns: ['Temperature-Numeric'],
-                    showUnits: true
-                } as DataFrameQueryV2;
-
-                const queryOptions = {
-                    scopedVars: {}
-                } as unknown as DataQueryRequest<DataFrameQueryV2>;
-
                 const mockTables = [
                     {
                         id: 'table-1',
@@ -7086,14 +7074,23 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }
                 ];
-
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['Temperature-Numeric'],
+                    showUnits: true
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
                 const mockDecimatedData = {
                     frame: {
                         columns: ['Temperature'],
                         data: [['20.5'], ['21.0']]
                     }
                 };
-
                 queryTablesSpy$.mockReturnValue(of(mockTables));
                 postSpy$.mockReturnValue(of(mockDecimatedData));
 
@@ -7105,18 +7102,6 @@ describe('DataFrameDataSourceV2', () => {
             });
 
             it('should extract unit from column properties with lowercase "unit" key', async () => {
-                const query = {
-                    type: DataFrameQueryType.Data,
-                    dataTableFilter: 'name = "Test Table"',
-                    refId: 'A',
-                    columns: ['Temperature-Numeric'],
-                    showUnits: true
-                } as DataFrameQueryV2;
-
-                const queryOptions = {
-                    scopedVars: {}
-                } as unknown as DataQueryRequest<DataFrameQueryV2>;
-
                 const mockTables = [
                     {
                         id: 'table-1',
@@ -7131,14 +7116,23 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }
                 ];
-
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['Temperature-Numeric'],
+                    showUnits: true
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
                 const mockDecimatedData = {
                     frame: {
                         columns: ['Temperature'],
                         data: [['20.5']]
                     }
                 };
-
                 queryTablesSpy$.mockReturnValue(of(mockTables));
                 postSpy$.mockReturnValue(of(mockDecimatedData));
 
@@ -7148,18 +7142,6 @@ describe('DataFrameDataSourceV2', () => {
             });
 
             it('should extract unit from column properties with uppercase "Unit" key', async () => {
-                const query = {
-                    type: DataFrameQueryType.Data,
-                    dataTableFilter: 'name = "Test Table"',
-                    refId: 'A',
-                    columns: ['Temperature-Numeric'],
-                    showUnits: true
-                } as DataFrameQueryV2;
-
-                const queryOptions = {
-                    scopedVars: {}
-                } as unknown as DataQueryRequest<DataFrameQueryV2>;
-
                 const mockTables = [
                     {
                         id: 'table-1',
@@ -7174,14 +7156,23 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }
                 ];
-
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['Temperature-Numeric'],
+                    showUnits: true
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
                 const mockDecimatedData = {
                     frame: {
                         columns: ['Temperature'],
                         data: [['68.9']]
                     }
                 };
-
                 queryTablesSpy$.mockReturnValue(of(mockTables));
                 postSpy$.mockReturnValue(of(mockDecimatedData));
 
@@ -7193,18 +7184,6 @@ describe('DataFrameDataSourceV2', () => {
             });
 
             it('should extract unit from column properties with lowercase "units" key', async () => {
-                const query = {
-                    type: DataFrameQueryType.Data,
-                    dataTableFilter: 'name = "Test Table"',
-                    refId: 'A',
-                    columns: ['Distance-Numeric'],
-                    showUnits: true
-                } as DataFrameQueryV2;
-
-                const queryOptions = {
-                    scopedVars: {}
-                } as unknown as DataQueryRequest<DataFrameQueryV2>;
-
                 const mockTables = [
                     {
                         id: 'table-1',
@@ -7219,14 +7198,23 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }
                 ];
-
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['Distance-Numeric'],
+                    showUnits: true
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
                 const mockDecimatedData = {
                     frame: {
                         columns: ['Distance'],
                         data: [['100.5']]
                     }
                 };
-
                 queryTablesSpy$.mockReturnValue(of(mockTables));
                 postSpy$.mockReturnValue(of(mockDecimatedData));
 
@@ -7238,18 +7226,6 @@ describe('DataFrameDataSourceV2', () => {
             });
 
             it('should extract unit from column properties with uppercase "Units" key', async () => {
-                const query = {
-                    type: DataFrameQueryType.Data,
-                    dataTableFilter: 'name = "Test Table"',
-                    refId: 'A',
-                    columns: ['Speed-Numeric'],
-                    showUnits: true
-                } as DataFrameQueryV2;
-
-                const queryOptions = {
-                    scopedVars: {}
-                } as unknown as DataQueryRequest<DataFrameQueryV2>;
-
                 const mockTables = [
                     {
                         id: 'table-1',
@@ -7264,14 +7240,23 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }
                 ];
-
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['Speed-Numeric'],
+                    showUnits: true
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
                 const mockDecimatedData = {
                     frame: {
                         columns: ['Speed'],
                         data: [['55.5']]
                     }
                 };
-
                 queryTablesSpy$.mockReturnValue(of(mockTables));
                 postSpy$.mockReturnValue(of(mockDecimatedData));
 
@@ -7283,18 +7268,6 @@ describe('DataFrameDataSourceV2', () => {
             });
 
             it('should handle columns with empty unit values', async () => {
-                const query = {
-                    type: DataFrameQueryType.Data,
-                    dataTableFilter: 'name = "Test Table"',
-                    refId: 'A',
-                    columns: ['Count-Numeric'],
-                    showUnits: true
-                } as DataFrameQueryV2;
-
-                const queryOptions = {
-                    scopedVars: {}
-                } as unknown as DataQueryRequest<DataFrameQueryV2>;
-
                 const mockTables = [
                     {
                         id: 'table-1',
@@ -7309,37 +7282,34 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }
                 ];
-
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['Count-Numeric'],
+                    showUnits: true
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
                 const mockDecimatedData = {
                     frame: {
                         columns: ['Count'],
                         data: [['100'], ['200']]
                     }
                 };
-
                 queryTablesSpy$.mockReturnValue(of(mockTables));
                 postSpy$.mockReturnValue(of(mockDecimatedData));
 
                 const result = await lastValueFrom(ds.runQuery(query, queryOptions));
 
-                const countField = findField(result.fields, 'Count ()');
+                const countField = findField(result.fields, 'Count');
                 expect(countField).toBeDefined();
-                expect(countField?.config?.unit).toBe('');
+                expect(countField?.config?.unit).toBe(undefined);
             });
 
             it('should prioritize "unit" over other unit property keys', async () => {
-                const query = {
-                    type: DataFrameQueryType.Data,
-                    dataTableFilter: 'name = "Test Table"',
-                    refId: 'A',
-                    columns: ['Measurement-Numeric'],
-                    showUnits: true
-                } as DataFrameQueryV2;
-
-                const queryOptions = {
-                    scopedVars: {}
-                } as unknown as DataQueryRequest<DataFrameQueryV2>;
-
                 const mockTables = [
                     {
                         id: 'table-1',
@@ -7354,14 +7324,22 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }
                 ];
-
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['Measurement-Numeric'],
+                    showUnits: true
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {}
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
                 const mockDecimatedData = {
                     frame: {
                         columns: ['Measurement'],
                         data: [['5.5']]
                     }
                 };
-
                 queryTablesSpy$.mockReturnValue(of(mockTables));
                 postSpy$.mockReturnValue(of(mockDecimatedData));
 
@@ -7373,18 +7351,6 @@ describe('DataFrameDataSourceV2', () => {
             });
 
             it('should handle columns with different units separately', async () => {
-                const query = {
-                    type: DataFrameQueryType.Data,
-                    dataTableFilter: 'name = "Test Table"',
-                    refId: 'A',
-                    columns: ['Temperature-Numeric', 'Pressure-Numeric'],
-                    showUnits: true
-                } as DataFrameQueryV2;
-
-                const queryOptions = {
-                    scopedVars: {}
-                } as unknown as DataQueryRequest<DataFrameQueryV2>;
-
                 const mockTables = [
                     {
                         id: 'table-1',
@@ -7405,14 +7371,22 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }
                 ];
-
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['Temperature-Numeric', 'Pressure-Numeric'],
+                    showUnits: true
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {}
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
                 const mockDecimatedData = {
                     frame: {
                         columns: ['Temperature', 'Pressure'],
                         data: [['20.5', '1.0'], ['21.0', '1.1']]
                     }
                 };
-
                 queryTablesSpy$.mockReturnValue(of(mockTables));
                 postSpy$.mockReturnValue(of(mockDecimatedData));
 
@@ -7435,11 +7409,10 @@ describe('DataFrameDataSourceV2', () => {
                     columns: ['Temperature-Numeric'],
                     showUnits: true
                 } as DataFrameQueryV2;
-
                 const queryOptions = {
-                    scopedVars: {}
+                    scopedVars: {},
+                    targets: [query]
                 } as unknown as DataQueryRequest<DataFrameQueryV2>;
-
                 const mockTables = [
                     {
                         id: 'table-1',
@@ -7466,21 +7439,18 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }
                 ];
-
                 const mockDecimatedDataTable1 = {
                     frame: {
                         columns: ['Temperature'],
                         data: [['20.5']]
                     }
                 };
-
                 const mockDecimatedDataTable2 = {
                     frame: {
                         columns: ['Temperature'],
                         data: [['68.9']]
                     }
                 };
-
                 queryTablesSpy$.mockReturnValue(of(mockTables));
                 postSpy$.mockImplementation((url: string) => {
                     return url.includes('table-1')
@@ -7492,27 +7462,13 @@ describe('DataFrameDataSourceV2', () => {
 
                 const celsiusField = findField(result.fields, 'Temperature (Celsius)');
                 const fahrenheitField = findField(result.fields, 'Temperature (Fahrenheit)');
-
                 expect(celsiusField).toBeDefined();
                 expect(fahrenheitField).toBeDefined();
-                expect(result.fields.length).toBeGreaterThanOrEqual(2);
             });
         });
 
         describe('when showUnits is false', () => {
-            it('should not append unit to column display name', async () => {
-                const query = {
-                    type: DataFrameQueryType.Data,
-                    dataTableFilter: 'name = "Test Table"',
-                    refId: 'A',
-                    columns: ['Temperature-Numeric'],
-                    showUnits: false
-                } as DataFrameQueryV2;
-
-                const queryOptions = {
-                    scopedVars: {}
-                } as unknown as DataQueryRequest<DataFrameQueryV2>;
-
+            it('should not append unit to column display name and set unit in field config', async () => {
                 const mockTables = [
                     {
                         id: 'table-1',
@@ -7527,14 +7483,23 @@ describe('DataFrameDataSourceV2', () => {
                         ]
                     }
                 ];
-
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['Temperature-Numeric'],
+                    showUnits: false
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
                 const mockDecimatedData = {
                     frame: {
                         columns: ['Temperature'],
                         data: [['20.5'], ['21.0']]
                     }
                 };
-
                 queryTablesSpy$.mockReturnValue(of(mockTables));
                 postSpy$.mockReturnValue(of(mockDecimatedData));
 
@@ -7543,123 +7508,6 @@ describe('DataFrameDataSourceV2', () => {
                 const temperatureField = findField(result.fields, 'Temperature');
                 expect(temperatureField).toBeDefined();
                 expect(temperatureField?.config?.unit).toBeUndefined();
-            });
-
-            it('should not set unit in field config when showUnits is false', async () => {
-                const query = {
-                    type: DataFrameQueryType.Data,
-                    dataTableFilter: 'name = "Test Table"',
-                    refId: 'A',
-                    columns: ['Temperature-Numeric'],
-                    showUnits: false
-                } as DataFrameQueryV2;
-
-                const queryOptions = {
-                    scopedVars: {}
-                } as unknown as DataQueryRequest<DataFrameQueryV2>;
-
-                const mockTables = [
-                    {
-                        id: 'table-1',
-                        name: 'Table 1',
-                        columns: [
-                            {
-                                name: 'Temperature',
-                                dataType: 'FLOAT64',
-                                columnType: ColumnType.Normal,
-                                properties: { unit: 'Celsius' }
-                            }
-                        ]
-                    }
-                ];
-
-                const mockDecimatedData = {
-                    frame: {
-                        columns: ['Temperature'],
-                        data: [['20.5']]
-                    }
-                };
-
-                queryTablesSpy$.mockReturnValue(of(mockTables));
-                postSpy$.mockReturnValue(of(mockDecimatedData));
-
-                const result = await lastValueFrom(ds.runQuery(query, queryOptions));
-
-                const temperatureField = findField(result.fields, 'Temperature');
-                expect(temperatureField?.config?.unit).toBeUndefined();
-            });
-        });
-
-        describe('with same column name but different units', () => {
-            it('should create separate fields for columns with same name but different units', async () => {
-                const query = {
-                    type: DataFrameQueryType.Data,
-                    dataTableFilter: 'id = "table-1" OR id = "table-2"',
-                    refId: 'A',
-                    columns: ['Temperature-Numeric'],
-                    showUnits: true
-                } as DataFrameQueryV2;
-
-                const queryOptions = {
-                    scopedVars: {}
-                } as unknown as DataQueryRequest<DataFrameQueryV2>;
-
-                const mockTables = [
-                    {
-                        id: 'table-1',
-                        name: 'Table 1',
-                        columns: [
-                            {
-                                name: 'Temperature',
-                                dataType: 'FLOAT64',
-                                columnType: ColumnType.Normal,
-                                properties: { unit: 'Celsius' }
-                            }
-                        ]
-                    },
-                    {
-                        id: 'table-2',
-                        name: 'Table 2',
-                        columns: [
-                            {
-                                name: 'Temperature',
-                                dataType: 'FLOAT64',
-                                columnType: ColumnType.Normal,
-                                properties: { unit: 'Fahrenheit' }
-                            }
-                        ]
-                    }
-                ];
-
-                const mockDecimatedDataTable1 = {
-                    frame: {
-                        columns: ['Temperature'],
-                        data: [['20.5']]
-                    }
-                };
-
-                const mockDecimatedDataTable2 = {
-                    frame: {
-                        columns: ['Temperature'],
-                        data: [['68.9']]
-                    }
-                };
-
-                queryTablesSpy$.mockReturnValue(of(mockTables));
-                postSpy$.mockImplementation((url: string) => {
-                    return url.includes('table-1')
-                        ? of(mockDecimatedDataTable1)
-                        : of(mockDecimatedDataTable2);
-                });
-
-                const result = await lastValueFrom(ds.runQuery(query, queryOptions));
-
-                const celsiusField = findField(result.fields, 'Temperature (Celsius)');
-                const fahrenheitField = findField(result.fields, 'Temperature (Fahrenheit)');
-
-                expect(celsiusField).toBeDefined();
-                expect(fahrenheitField).toBeDefined();
-                expect(result.fields.length).toBeGreaterThanOrEqual(2);
             });
         });
     });

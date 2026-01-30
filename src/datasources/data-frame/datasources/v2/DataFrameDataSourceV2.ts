@@ -1075,7 +1075,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 const config: FieldDTO['config'] = {};
 
                 if (showUnits) {
-                    config.unit = this.getUnitForColumn(column);
+                    const unit = this.getUnitForColumn(column);
+                    if (unit) {
+                        config.unit = unit;
+                    }
                 }
 
                 return this.createField({
@@ -1138,7 +1141,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             ? columnIndexByName.get(actualColumnName)
                             : undefined;
 
-                        const areUnitsMatching = showUnits && this.getUnitForColumn(columnDetails) === field.config?.unit;
+                        let areUnitsMatching = true;
+                        if (showUnits) {
+                            const unit = this.getUnitForColumn(columnDetails);
+                            if (unit) {
+                                areUnitsMatching = unit === field.config?.unit;
+                            }
+                        }
+
                         if (
                             actualColumnName === undefined
                             || columnDataType === undefined
@@ -1270,7 +1280,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 )?.label || '';
 
                 if (showUnits) {
-                    displayName += ` (${this.getUnitForColumn(column)})`;
+                    const unit = this.getUnitForColumn(column);
+                    if (unit) {
+                        displayName += ` (${unit})`;
+                    }
                 }
 
                 return {
