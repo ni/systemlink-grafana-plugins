@@ -1,3 +1,9 @@
+## [4.127.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.126.0...v4.127.0) (2026-01-30)
+
+### Features
+
+* **dataframe:** version 2: update "use time range" migration ([#665](https://github.com/ni/systemlink-grafana-plugins/issues/665)) ([e845c33](https://github.com/ni/systemlink-grafana-plugins/commit/e845c33dcee6408218e0b9d2d25c754a99d76c9f))
+
 ## [4.126.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.125.0...v4.126.0) (2026-01-30)
 
 ### Features
