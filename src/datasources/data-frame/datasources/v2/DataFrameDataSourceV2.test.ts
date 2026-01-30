@@ -5413,6 +5413,7 @@ describe('DataFrameDataSourceV2', () => {
                     filterXRangeOnZoomPan: true,
                     take: 1000,
                     undecimatedRecordCount: 10000,
+                    showUnits: false,
                     refId: 'E'
                 });
             });
@@ -5431,6 +5432,7 @@ describe('DataFrameDataSourceV2', () => {
                     decimationMethod: 'LOSSY',
                     xColumn: 'time',
                     filterXRangeOnZoomPan: true,
+                    showUnits: false,
                     take: 100,
                     undecimatedRecordCount: 10000,
                     refId: 'F'
@@ -6935,6 +6937,785 @@ describe('DataFrameDataSourceV2', () => {
             } as ValidDataFrameQueryV2;
 
             expect(ds.hasRequiredFilters(query)).toBe(false);
+        });
+    });
+
+    describe('showUnits', () => {
+        let queryTablesSpy$: jest.SpyInstance;
+        let postSpy$: jest.SpyInstance;
+
+        beforeEach(() => {
+            queryTablesSpy$ = jest.spyOn(ds, 'queryTables$');
+            postSpy$ = jest.spyOn(ds, 'post$');
+        });
+
+        describe('when showUnits is true', () => {
+            it('should call query tables API with ColumnProperties in projection', async () => {
+                const mockTables = [
+                    {
+                        id: 'table-1',
+                        name: 'Table 1',
+                        columns: [
+                            {
+                                name: 'Temperature',
+                                dataType: 'FLOAT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'Celsius' }
+                            }
+                        ]
+                    }
+                ];
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['Temperature-Numeric'],
+                    showUnits: true
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                const mockDecimatedData = {
+                    frame: {
+                        columns: ['Temperature'],
+                        data: [['20.5'], ['21.0']]
+                    }
+                };
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                postSpy$.mockReturnValue(of(mockDecimatedData));
+
+                await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    {
+                        "dataTableFilter": "name = \"Test Table\"",
+                        "columnFilter": "",
+                        "resultFilter": ""
+                    },
+                    TAKE_LIMIT,
+                    [
+                        DataTableProjections.ColumnName,
+                        DataTableProjections.ColumnDataType,
+                        DataTableProjections.ColumnType,
+                        DataTableProjections.ColumnProperties
+                    ]
+                );
+            });
+
+            it('should append unit to column display name and set unit in field config', async () => {
+                const mockTables = [
+                    {
+                        id: 'table-1',
+                        name: 'Table 1',
+                        columns: [
+                            {
+                                name: 'Temperature',
+                                dataType: 'FLOAT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'Celsius' }
+                            }
+                        ]
+                    }
+                ];
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['Temperature-Numeric'],
+                    showUnits: true
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                const mockDecimatedData = {
+                    frame: {
+                        columns: ['Temperature'],
+                        data: [['20.5'], ['21.0']]
+                    }
+                };
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                postSpy$.mockReturnValue(of(mockDecimatedData));
+
+                const result = await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                const temperatureField = findField(result.fields, 'Temperature (Celsius)');
+                expect(temperatureField).toBeDefined();
+                expect(temperatureField?.config?.unit).toBe('Celsius');
+            });
+
+            it('should handle columns with empty unit values', async () => {
+                const mockTables = [
+                    {
+                        id: 'table-1',
+                        name: 'Table 1',
+                        columns: [
+                            {
+                                name: 'Count',
+                                dataType: 'INT64',
+                                columnType: ColumnType.Normal,
+                                properties: {}
+                            }
+                        ]
+                    }
+                ];
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['Count-Numeric'],
+                    showUnits: true
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                const mockDecimatedData = {
+                    frame: {
+                        columns: ['Count'],
+                        data: [['100'], ['200']]
+                    }
+                };
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                postSpy$.mockReturnValue(of(mockDecimatedData));
+
+                const result = await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                const countField = findField(result.fields, 'Count');
+                expect(countField).toBeDefined();
+                expect(countField?.config?.unit).toBe(undefined);
+            });
+
+            it('should handle columns with different units separately', async () => {
+                const mockTables = [
+                    {
+                        id: 'table-1',
+                        name: 'Table 1',
+                        columns: [
+                            {
+                                name: 'Temperature',
+                                dataType: 'FLOAT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'Celsius' }
+                            },
+                            {
+                                name: 'Pressure',
+                                dataType: 'FLOAT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'atm' }
+                            }
+                        ]
+                    }
+                ];
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['Temperature-Numeric', 'Pressure-Numeric'],
+                    showUnits: true
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {}
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                const mockDecimatedData = {
+                    frame: {
+                        columns: ['Temperature', 'Pressure'],
+                        data: [['20.5', '1.0'], ['21.0', '1.1']]
+                    }
+                };
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                postSpy$.mockReturnValue(of(mockDecimatedData));
+
+                const result = await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                const temperatureField = findField(result.fields, 'Temperature (Celsius)');
+                const pressureField = findField(result.fields, 'Pressure (atm)');
+                expect(temperatureField).toBeDefined();
+                expect(temperatureField?.config?.unit).toBe('Celsius');
+                expect(pressureField).toBeDefined();
+                expect(pressureField?.config?.unit).toBe('atm');
+            });
+
+            it('should create separate fields for same column name with different units', async () => {
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'id = "table-1" OR id = "table-2"',
+                    refId: 'A',
+                    columns: ['Temperature-Numeric'],
+                    showUnits: true
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                const mockTables = [
+                    {
+                        id: 'table-1',
+                        name: 'Table 1',
+                        columns: [
+                            {
+                                name: 'Temperature',
+                                dataType: 'FLOAT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'Celsius' }
+                            }
+                        ]
+                    },
+                    {
+                        id: 'table-2',
+                        name: 'Table 2',
+                        columns: [
+                            {
+                                name: 'Temperature',
+                                dataType: 'FLOAT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'Fahrenheit' }
+                            }
+                        ]
+                    }
+                ];
+                const mockDecimatedDataTable1 = {
+                    frame: {
+                        columns: ['Temperature'],
+                        data: [['20.5']]
+                    }
+                };
+                const mockDecimatedDataTable2 = {
+                    frame: {
+                        columns: ['Temperature'],
+                        data: [['68.9']]
+                    }
+                };
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                postSpy$.mockImplementation((url: string) => {
+                    return url.includes('table-1')
+                        ? of(mockDecimatedDataTable1)
+                        : of(mockDecimatedDataTable2);
+                });
+
+                const result = await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                const celsiusField = findField(result.fields, 'Temperature (Celsius)');
+                const fahrenheitField = findField(result.fields, 'Temperature (Fahrenheit)');
+                expect(celsiusField).toBeDefined();
+                expect(fahrenheitField).toBeDefined();
+                expect(celsiusField?.config?.unit).toBe('Celsius');
+                expect(fahrenheitField?.config?.unit).toBe('Fahrenheit');
+                expect(celsiusField?.values).toEqual([20.5, null]);
+                expect(fahrenheitField?.values).toEqual([null, 68.9]);
+            });
+
+            it('should append the data type to column name if columns in different tables have the same name but different data types along with unit', async () => {
+                const mockTables = [
+                    {
+                        id: 'table-1',
+                        name: 'Table 1',
+                        columns: [
+                            {
+                                name: 'Value',
+                                dataType: 'INT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'unit1' }
+                            }
+                        ]
+                    },
+                    {
+                        id: 'table-2',
+                        name: 'Table 2',
+                        columns: [
+                            {
+                                name: 'Value',
+                                dataType: 'STRING',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'unit2' }
+                            }
+                        ]
+                    }
+                ];
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'id = "table-1" OR id = "table-2"',
+                    refId: 'A',
+                    columns: ['Value-String', 'Value-Numeric'],
+                    showUnits: true
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                const mockDecimatedDataTable1 = {
+                    frame: {
+                        columns: ['Value'],
+                        data: [['100']]
+                    }
+                };
+                const mockDecimatedDataTable2 = {
+                    frame: {
+                        columns: ['Value'],
+                        data: [['200.5']]
+                    }
+                };
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                postSpy$.mockImplementation((url: string) => {
+                    return url.includes('table-1')
+                        ? of(mockDecimatedDataTable1)
+                        : of(mockDecimatedDataTable2);
+                });
+
+                const result = await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                const intField = findField(result.fields, 'Value (Numeric) (unit1)');
+                const floatField = findField(result.fields, 'Value (String) (unit2)');
+                expect(intField).toBeDefined();
+                expect(floatField).toBeDefined();
+                expect(intField?.config?.unit).toBe('unit1');
+                expect(floatField?.config?.unit).toBe('unit2');
+                expect(intField?.values).toEqual([100, null]);
+                expect(floatField?.values).toEqual([null, "200.5"]);
+            });
+
+            describe('different unit conventions', () => {
+                it('should extract unit from column properties with lowercase "unit" key', async () => {
+                    const mockTables = [
+                        {
+                            id: 'table-1',
+                            name: 'Table 1',
+                            columns: [
+                                {
+                                    name: 'Temperature',
+                                    dataType: 'FLOAT64',
+                                    columnType: ColumnType.Normal,
+                                    properties: { unit: 'Celsius' }
+                                }
+                            ]
+                        }
+                    ];
+                    const query = {
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: 'name = "Test Table"',
+                        refId: 'A',
+                        columns: ['Temperature-Numeric'],
+                        showUnits: true
+                    } as DataFrameQueryV2;
+                    const queryOptions = {
+                        scopedVars: {},
+                        targets: [query]
+                    } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                    const mockDecimatedData = {
+                        frame: {
+                            columns: ['Temperature'],
+                            data: [['20.5']]
+                        }
+                    };
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    postSpy$.mockReturnValue(of(mockDecimatedData));
+
+                    const result = await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                    const temperatureField = findField(result.fields, 'Temperature (Celsius)');
+                    expect(temperatureField).toBeDefined();
+                    expect(temperatureField?.config?.unit).toBe('Celsius');
+                });
+
+                it('should extract unit from column properties with uppercase "Unit" key', async () => {
+                    const mockTables = [
+                        {
+                            id: 'table-1',
+                            name: 'Table 1',
+                            columns: [
+                                {
+                                    name: 'Temperature',
+                                    dataType: 'FLOAT64',
+                                    columnType: ColumnType.Normal,
+                                    properties: { Unit: 'Fahrenheit' }
+                                }
+                            ]
+                        }
+                    ];
+                    const query = {
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: 'name = "Test Table"',
+                        refId: 'A',
+                        columns: ['Temperature-Numeric'],
+                        showUnits: true
+                    } as DataFrameQueryV2;
+                    const queryOptions = {
+                        scopedVars: {},
+                        targets: [query]
+                    } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                    const mockDecimatedData = {
+                        frame: {
+                            columns: ['Temperature'],
+                            data: [['68.9']]
+                        }
+                    };
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    postSpy$.mockReturnValue(of(mockDecimatedData));
+
+                    const result = await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                    const temperatureField = findField(result.fields, 'Temperature (Fahrenheit)');
+                    expect(temperatureField).toBeDefined();
+                    expect(temperatureField?.config?.unit).toBe('Fahrenheit');
+                });
+
+                it('should extract unit from column properties with lowercase "units" key', async () => {
+                    const mockTables = [
+                        {
+                            id: 'table-1',
+                            name: 'Table 1',
+                            columns: [
+                                {
+                                    name: 'Distance',
+                                    dataType: 'FLOAT64',
+                                    columnType: ColumnType.Normal,
+                                    properties: { units: 'meters' }
+                                }
+                            ]
+                        }
+                    ];
+                    const query = {
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: 'name = "Test Table"',
+                        refId: 'A',
+                        columns: ['Distance-Numeric'],
+                        showUnits: true
+                    } as DataFrameQueryV2;
+                    const queryOptions = {
+                        scopedVars: {},
+                        targets: [query]
+                    } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                    const mockDecimatedData = {
+                        frame: {
+                            columns: ['Distance'],
+                            data: [['100.5']]
+                        }
+                    };
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    postSpy$.mockReturnValue(of(mockDecimatedData));
+
+                    const result = await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                    const distanceField = findField(result.fields, 'Distance (meters)');
+                    expect(distanceField).toBeDefined();
+                    expect(distanceField?.config?.unit).toBe('meters');
+                });
+
+                it('should extract unit from column properties with uppercase "Units" key', async () => {
+                    const mockTables = [
+                        {
+                            id: 'table-1',
+                            name: 'Table 1',
+                            columns: [
+                                {
+                                    name: 'Speed',
+                                    dataType: 'FLOAT64',
+                                    columnType: ColumnType.Normal,
+                                    properties: { Units: 'mph' }
+                                }
+                            ]
+                        }
+                    ];
+                    const query = {
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: 'name = "Test Table"',
+                        refId: 'A',
+                        columns: ['Speed-Numeric'],
+                        showUnits: true
+                    } as DataFrameQueryV2;
+                    const queryOptions = {
+                        scopedVars: {},
+                        targets: [query]
+                    } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                    const mockDecimatedData = {
+                        frame: {
+                            columns: ['Speed'],
+                            data: [['55.5']]
+                        }
+                    };
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    postSpy$.mockReturnValue(of(mockDecimatedData));
+
+                    const result = await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                    const speedField = findField(result.fields, 'Speed (mph)');
+                    expect(speedField).toBeDefined();
+                    expect(speedField?.config?.unit).toBe('mph');
+                });
+
+                it('should prioritize "unit" over other unit property keys', async () => {
+                    const mockTables = [
+                        {
+                            id: 'table-1',
+                            name: 'Table 1',
+                            columns: [
+                                {
+                                    name: 'Measurement',
+                                    dataType: 'FLOAT64',
+                                    columnType: ColumnType.Normal,
+                                    properties: { unit: 'kg', units: 'grams' }
+                                }
+                            ]
+                        }
+                    ];
+                    const query = {
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: 'name = "Test Table"',
+                        refId: 'A',
+                        columns: ['Measurement-Numeric'],
+                        showUnits: true
+                    } as DataFrameQueryV2;
+                    const queryOptions = {
+                        scopedVars: {}
+                    } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                    const mockDecimatedData = {
+                        frame: {
+                            columns: ['Measurement'],
+                            data: [['5.5']]
+                        }
+                    };
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    postSpy$.mockReturnValue(of(mockDecimatedData));
+
+                    const result = await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                    const measurementField = findField(result.fields, 'Measurement (kg)');
+                    expect(measurementField).toBeDefined();
+                    expect(measurementField?.config?.unit).toBe('kg');
+                });
+            });
+        });
+
+        describe('when showUnits is false', () => {
+            it('should call query tables API without ColumnProperties in projection', async () => {
+                const mockTables = [
+                    {
+                        id: 'table-1',
+                        name: 'Table 1',
+                        columns: [
+                            {
+                                name: 'Temperature',
+                                dataType: 'FLOAT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'Celsius' }
+                            }
+                        ]
+                    }
+                ];
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['Temperature-Numeric'],
+                    showUnits: false
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                const mockDecimatedData = {
+                    frame: {
+                        columns: ['Temperature'],
+                        data: [['20.5'], ['21.0']]
+                    }
+                };
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                postSpy$.mockReturnValue(of(mockDecimatedData));
+
+                await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    {
+                        "dataTableFilter": "name = \"Test Table\"",
+                        "columnFilter": "",
+                        "resultFilter": ""
+                    },
+                    TAKE_LIMIT,
+                    [
+                        DataTableProjections.ColumnName,
+                        DataTableProjections.ColumnDataType,
+                        DataTableProjections.ColumnType,
+                    ]
+                );
+            });
+
+            it('should not append unit to column display name and set unit in field config', async () => {
+                const mockTables = [
+                    {
+                        id: 'table-1',
+                        name: 'Table 1',
+                        columns: [
+                            {
+                                name: 'Temperature',
+                                dataType: 'FLOAT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'Celsius' }
+                            }
+                        ]
+                    }
+                ];
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['Temperature-Numeric'],
+                    showUnits: false
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                const mockDecimatedData = {
+                    frame: {
+                        columns: ['Temperature'],
+                        data: [['20.5'], ['21.0']]
+                    }
+                };
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                postSpy$.mockReturnValue(of(mockDecimatedData));
+
+                const result = await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                const temperatureField = findField(result.fields, 'Temperature');
+                expect(temperatureField).toBeDefined();
+                expect(temperatureField?.config?.unit).toBeUndefined();
+                expect(temperatureField?.values).toEqual([20.5, 21.0]);
+            });
+
+            it('should create only one field for same column name with different units', async () => {
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'id = "table-1" OR id = "table-2"',
+                    refId: 'A',
+                    columns: ['Temperature-Numeric'],
+                    showUnits: false
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                const mockTables = [
+                    {
+                        id: 'table-1',
+                        name: 'Table 1',
+                        columns: [
+                            {
+                                name: 'Temperature',
+                                dataType: 'FLOAT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'Celsius' }
+                            }
+                        ]
+                    },
+                    {
+                        id: 'table-2',
+                        name: 'Table 2',
+                        columns: [
+                            {
+                                name: 'Temperature',
+                                dataType: 'FLOAT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'Fahrenheit' }
+                            }
+                        ]
+                    }
+                ];
+                const mockDecimatedDataTable1 = {
+                    frame: {
+                        columns: ['Temperature'],
+                        data: [['20.5']]
+                    }
+                };
+                const mockDecimatedDataTable2 = {
+                    frame: {
+                        columns: ['Temperature'],
+                        data: [['68.9']]
+                    }
+                };
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                postSpy$.mockImplementation((url: string) => {
+                    return url.includes('table-1')
+                        ? of(mockDecimatedDataTable1)
+                        : of(mockDecimatedDataTable2);
+                });
+
+                const result = await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                const temperatureField = findField(result.fields, 'Temperature');
+                expect(temperatureField).toBeDefined();
+                expect(temperatureField?.config?.unit).toBe(undefined);
+                expect(temperatureField?.values).toEqual([20.5, 68.9]);
+            });
+
+            it('should append only the data type to column name if columns in different tables have the same name but different data types', async () => {
+                const mockTables = [
+                    {
+                        id: 'table-1',
+                        name: 'Table 1',
+                        columns: [
+                            {
+                                name: 'Value',
+                                dataType: 'INT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'unit1' }
+                            }
+                        ]
+                    },
+                    {
+                        id: 'table-2',
+                        name: 'Table 2',
+                        columns: [
+                            {
+                                name: 'Value',
+                                dataType: 'STRING',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'unit2' }
+                            }
+                        ]
+                    }
+                ];
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'id = "table-1" OR id = "table-2"',
+                    refId: 'A',
+                    columns: ['Value-String', 'Value-Numeric'],
+                    showUnits: false
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                const mockDecimatedDataTable1 = {
+                    frame: {
+                        columns: ['Value'],
+                        data: [['100']]
+                    }
+                };
+                const mockDecimatedDataTable2 = {
+                    frame: {
+                        columns: ['Value'],
+                        data: [['200.5']]
+                    }
+                };
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                postSpy$.mockImplementation((url: string) => {
+                    return url.includes('table-1')
+                        ? of(mockDecimatedDataTable1)
+                        : of(mockDecimatedDataTable2);
+                });
+
+                const result = await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                const intField = findField(result.fields, 'Value (Numeric)');
+                const floatField = findField(result.fields, 'Value (String)');
+                expect(intField).toBeDefined();
+                expect(floatField).toBeDefined();
+                expect(intField?.config?.unit).toBe(undefined);
+                expect(floatField?.config?.unit).toBe(undefined);
+                expect(intField?.values).toEqual([100, null]);
+                expect(floatField?.values).toEqual([null, "200.5"]);
+            });
         });
     });
 });

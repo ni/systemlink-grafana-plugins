@@ -1541,6 +1541,32 @@ describe("DataFrameQueryEditorV2", () => {
                     });
                 });
             });
+
+            describe("show units", () => {
+                let showUnitsCheckbox: HTMLElement;
+                let user: UserEvent;
+
+                beforeEach(() => {
+                    showUnitsCheckbox = screen.getAllByRole('switch')[2];
+                    user = userEvent.setup();
+                });
+
+                it("should have the show units checkbox unchecked by default", () => {
+                    expect(showUnitsCheckbox).toBeInTheDocument();
+                    expect(showUnitsCheckbox).not.toBeChecked();
+                });
+
+                it("should call onChange and onRunQuery when the show units checkbox is checked", async () => {
+                    await user.click(showUnitsCheckbox);
+
+                    await waitFor(() => {
+                        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                            showUnits: true
+                        }));
+                        expect(onRunQuery).toHaveBeenCalled();
+                    });
+                });
+            });
         });
 
         describe("decimation settings controls", () => {
@@ -2721,22 +2747,22 @@ describe("DataFrameQueryEditorV2", () => {
                 });
             });
 
-            describe("use time range", () => {
-                let useTimeRangeCheckbox: HTMLElement;
+            describe("filter for x-axis range on zoom/pan", () => {
+                let filterXRangeOnZoomPanCheckbox: HTMLElement;
                 let user: UserEvent;
 
                 beforeEach(() => {
-                    useTimeRangeCheckbox = screen.getAllByRole('switch')[2];
+                    filterXRangeOnZoomPanCheckbox = screen.getAllByRole('switch')[3];
                     user = userEvent.setup();
                 });
 
-                it("should have the use time range checkbox unchecked by default", () => {
-                    expect(useTimeRangeCheckbox).toBeInTheDocument();
-                    expect(useTimeRangeCheckbox).not.toBeChecked();
+                it("should have the filter for x-axis range on zoom/pan checkbox unchecked by default", () => {
+                    expect(filterXRangeOnZoomPanCheckbox).toBeInTheDocument();
+                    expect(filterXRangeOnZoomPanCheckbox).not.toBeChecked();
                 });
 
-                it("should call onChange and onRunQuery when the use time range checkbox is checked", async () => {
-                    await user.click(useTimeRangeCheckbox);
+                it("should call onChange and onRunQuery when the filter for x-axis range on zoom/pan checkbox is checked", async () => {
+                    await user.click(filterXRangeOnZoomPanCheckbox);
 
                     await waitFor(() => {
                         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
