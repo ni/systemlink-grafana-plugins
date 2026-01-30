@@ -114,7 +114,7 @@ describe('DataFrameDataSourceV2', () => {
             const processQuerySpy = jest.spyOn(ds, 'processQuery');
             await lastValueFrom(ds.runQuery(query, options));
 
-            expect(processQuerySpy).toHaveBeenCalledWith(query, options.targets);
+            expect(processQuerySpy).toHaveBeenCalledWith(query);
         });
 
         describe('syncXAxisRangeTargets query param initialization', () => {
@@ -496,7 +496,9 @@ describe('DataFrameDataSourceV2', () => {
                         dataTableFilter: 'name = "Test"',
                     } as DataFrameQueryV2;
 
-                    const result = await lastValueFrom(ds.runQuery(query, options));
+                    const result = await lastValueFrom(
+                        ds.runQuery(query, { ...options, targets: [query] })
+                    );
 
                     expect(coreUtils.replaceVariables).toHaveBeenCalledWith(
                         ['${colName1}', 'col2-String', '${colName2}'], templateSrv
@@ -514,7 +516,7 @@ describe('DataFrameDataSourceV2', () => {
                         } as DataFrameQueryV2;
 
                         const result = await lastValueFrom(
-                            ds.runQuery(query, options)
+                            ds.runQuery(query, { ...options, targets: [query] })
                         );
 
                         expect(result).toEqual(
@@ -535,7 +537,7 @@ describe('DataFrameDataSourceV2', () => {
                         };
 
                         const result = await lastValueFrom(
-                            ds.runQuery(query, options)
+                            ds.runQuery(query, { ...options, targets: [query] })
                         );
 
                         expect(result).toEqual(
@@ -567,7 +569,7 @@ describe('DataFrameDataSourceV2', () => {
                         } as DataFrameQueryV2;
 
                         await expect(
-                            lastValueFrom(ds.runQuery(query, options))
+                            lastValueFrom(ds.runQuery(query, { ...options, targets: [query] }))
                         ).rejects.toThrow(
                             `The number of columns you selected (${(COLUMN_SELECTION_LIMIT + 1).toLocaleString()}) exceeds the column limit (${COLUMN_SELECTION_LIMIT.toLocaleString()}). Reduce your number of selected columns and try again.`
                         );
@@ -609,7 +611,9 @@ describe('DataFrameDataSourceV2', () => {
                         };
                         jest.spyOn(ds, 'post$').mockReturnValue(of(mockDecimatedData));
                         
-                        const result = await lastValueFrom(ds.runQuery(query, options));
+                        const result = await lastValueFrom(
+                            ds.runQuery(query, { ...options, targets: [query] })
+                        );
                         
                         expect(result.refId).toBe('A');
                         expect(result.fields).toBeDefined();
@@ -653,7 +657,9 @@ describe('DataFrameDataSourceV2', () => {
                         }];
                         queryTablesSpy.mockReturnValue(of(mockTables));
                         
-                        const result = await lastValueFrom(ds.runQuery(query, options));
+                        const result = await lastValueFrom(
+                            ds.runQuery(query, { ...options, targets: [query] })
+                        );
 
                         expect(result.refId).toBe('A');
                         expect(result.fields).toHaveLength(2);
@@ -688,7 +694,9 @@ describe('DataFrameDataSourceV2', () => {
                         }];
                         queryTablesSpy.mockReturnValue(of(mockTables));
                         
-                        const result = await lastValueFrom(ds.runQuery(query, options));
+                        const result = await lastValueFrom(
+                            ds.runQuery(query, { ...options, targets: [query] })
+                        );
 
                         expect(result.fields).toHaveLength(1);
                         const idField = findField(result.fields, 'Data table ID');
@@ -716,7 +724,9 @@ describe('DataFrameDataSourceV2', () => {
                         }];
                         queryTablesSpy.mockReturnValue(of(mockTables));
                         
-                        const result = await lastValueFrom(ds.runQuery(query, options));
+                        const result = await lastValueFrom(
+                            ds.runQuery(query, { ...options, targets: [query] })
+                        );
 
                         expect(result.fields).toHaveLength(1);
                         const nameField = findField(result.fields, 'Data table name');
@@ -755,7 +765,9 @@ describe('DataFrameDataSourceV2', () => {
                         };
                         jest.spyOn(ds, 'post$').mockReturnValue(of(mockDecimatedData));
                         
-                        const result = await lastValueFrom(ds.runQuery(query, options));
+                        const result = await lastValueFrom(
+                            ds.runQuery(query, { ...options, targets: [query] })
+                        );
 
                         expect(result.fields).toHaveLength(3);
                         expect(findField(result.fields, 'Data table ID')).toBeDefined();
@@ -820,7 +832,9 @@ describe('DataFrameDataSourceV2', () => {
                             return of({});
                         });
                         
-                        const result = await lastValueFrom(ds.runQuery(query, options));
+                        const result = await lastValueFrom(
+                            ds.runQuery(query, { ...options, targets: [query] })
+                        );
 
                         const idField = findField(result.fields, 'Data table ID');
                         expect(idField?.values).toEqual(['table-A', 'table-B', 'table-C']);
@@ -858,7 +872,9 @@ describe('DataFrameDataSourceV2', () => {
                         queryTablesSpy.mockReturnValue(of(mockTables));
                         const decimatedDataSpy = jest.spyOn(ds, 'post$');
                 
-                        await lastValueFrom(ds.runQuery(query, options));
+                        await lastValueFrom(
+                            ds.runQuery(query, { ...options, targets: [query] })
+                        );
                         
                         expect(decimatedDataSpy).not.toHaveBeenCalled();
                     });
@@ -894,7 +910,9 @@ describe('DataFrameDataSourceV2', () => {
                         };
                         jest.spyOn(ds, 'post$').mockReturnValue(of(mockDecimatedData));
 
-                        await lastValueFrom(ds.runQuery(query, options));
+                        await lastValueFrom(
+                            ds.runQuery(query, { ...options, targets: [query] })
+                        );
 
                         expect(queryTablesSpy).toHaveBeenCalledWith(
                             {
@@ -951,7 +969,9 @@ describe('DataFrameDataSourceV2', () => {
                             columnFilter: 'name = "colA"'
                         } as DataFrameQueryV2;
 
-                        const result = await lastValueFrom(ds.runQuery(query, options));
+                        const result = await lastValueFrom(
+                            ds.runQuery(query, { ...options, targets: [query] })
+                        );
 
                         expect(queryTablesSpy).toHaveBeenCalledWith(
                             {
@@ -995,7 +1015,9 @@ describe('DataFrameDataSourceV2', () => {
                             columnFilter: 'name = "colX"'
                         };
 
-                        const result = await lastValueFrom(ds.runQuery(query, options));
+                        const result = await lastValueFrom(
+                            ds.runQuery(query, { ...options, targets: [query] })
+                        );
 
                         expect(queryTablesSpy).toHaveBeenCalledWith(
                             {
@@ -1019,7 +1041,9 @@ describe('DataFrameDataSourceV2', () => {
                         } as DataFrameQueryV2;
 
                         await expect(
-                            lastValueFrom(ds.runQuery(query, options))
+                            lastValueFrom(
+                                ds.runQuery(query, { ...options, targets: [query] })
+                            )
                         ).rejects.toThrow(
                             'One or more selected columns are invalid. Please update your column selection or refine your filters.'
                         );
@@ -1041,7 +1065,9 @@ describe('DataFrameDataSourceV2', () => {
                         } as DataFrameQueryV2;
 
                         await expect(
-                            lastValueFrom(ds.runQuery(query, options))
+                            lastValueFrom(
+                                ds.runQuery(query, { ...options, targets: [query] })
+                            )
                         ).rejects.toThrow(
                             'One or more selected columns are invalid. Please update your column selection or refine your filters.'
                         );
@@ -1063,7 +1089,7 @@ describe('DataFrameDataSourceV2', () => {
                         } as DataFrameQueryV2;
 
                         await expect(
-                            lastValueFrom(ds.runQuery(query, options))
+                            lastValueFrom(ds.runQuery(query, { ...options, targets: [query] }))
                         ).rejects.toThrow(
                             'One or more selected columns are invalid. Please update your column selection or refine your filters.'
                         );
@@ -1089,7 +1115,7 @@ describe('DataFrameDataSourceV2', () => {
                         } as DataFrameQueryV2;
 
                         await expect(
-                            lastValueFrom(ds.runQuery(query, options))
+                            lastValueFrom(ds.runQuery(query, { ...options, targets: [query] }))
                         ).rejects.toThrow();
 
                         expect(publishMock).toHaveBeenCalledWith({
@@ -1137,7 +1163,7 @@ describe('DataFrameDataSourceV2', () => {
                         } as DataFrameQueryV2;
 
                         await expect(
-                            lastValueFrom(ds.runQuery(query, options))
+                            lastValueFrom(ds.runQuery(query, { ...options, targets: [query] }))
                         ).rejects.toThrow(errorMessage);
                     });
 
@@ -1165,7 +1191,7 @@ describe('DataFrameDataSourceV2', () => {
                         };
 
                         await expect(
-                            lastValueFrom(ds.runQuery(query, options))
+                            lastValueFrom(ds.runQuery(query, { ...options, targets: [query] }))
                         ).rejects.toThrow(errorMessage);
 
                         expect(publishMock).toHaveBeenCalledWith({
@@ -5017,7 +5043,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'A'
                 } as DataFrameDataQuery;
 
-                const result = ds.processQuery(query, [query]);
+                const result = ds.processQuery(query);
 
                 expect(result.type).toBe(DataFrameQueryType.Properties);
             });
@@ -5037,7 +5063,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'A'
                 } as DataFrameDataQuery;
 
-                const result = ds.processQuery(query, [query]);
+                const result = ds.processQuery(query);
 
                 expect(result.columns).toEqual(['col1', 'col2']);
             });
@@ -5050,7 +5076,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'A'
                 } as DataFrameDataQuery;
 
-                const result = ds.processQuery(query, [query]);
+                const result = ds.processQuery(query);
 
                 expect(result.columns).toEqual([]);
             });
@@ -5063,7 +5089,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'A'
                 } as DataFrameDataQuery;
 
-                const result = ds.processQuery(query, [query]);
+                const result = ds.processQuery(query);
 
                 expect(result.columns).toEqual([]);
             });
@@ -5088,7 +5114,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'E'
                 } as DataFrameQueryV1;
 
-                const result = ds.processQuery(v1Query, [v1Query]);
+                const result = ds.processQuery(v1Query);
 
                 expect(getSpy$).toHaveBeenCalledWith(
                     expect.stringContaining('tables/table-789')
@@ -5108,7 +5134,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'E'
                 } as DataFrameQueryV1;
 
-                ds.processQuery(v1Query, [v1Query]);
+                ds.processQuery(v1Query);
 
                 expect(templateSrv.replace).toHaveBeenCalledWith('$table', {});
                 expect(getSpy$).toHaveBeenCalledWith(
@@ -5124,7 +5150,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'E'
                 } as DataFrameQueryV1;
 
-                ds.processQuery(v1Query, [v1Query]);
+                ds.processQuery(v1Query);
 
                 expect(getSpy$).not.toHaveBeenCalled();
             });
@@ -5137,7 +5163,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'E'
                 } as DataFrameQueryV1;
 
-                ds.processQuery(v1Query, [v1Query]);
+                ds.processQuery(v1Query);
 
                 expect(getSpy$).not.toHaveBeenCalled();
             });
@@ -5158,7 +5184,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'E'
                 } as DataFrameQueryV1;
 
-                const result = ds.processQuery(v1Query, [v1Query]);
+                const result = ds.processQuery(v1Query);
 
                 expect(isObservable(result.columns)).toBe(true);
                 expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
@@ -5185,7 +5211,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'E'
                 } as DataFrameQueryV1;
 
-                const result = ds.processQuery(v1Query, [v1Query]);
+                const result = ds.processQuery(v1Query);
 
                 expect(isObservable(result.columns)).toBe(true);
                 expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
@@ -5202,7 +5228,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'E'
                 } as DataFrameQueryV1;
 
-                const result = ds.processQuery(v1Query, [v1Query]);
+                const result = ds.processQuery(v1Query);
 
                 expect(isObservable(result.columns)).toBe(true);
                 expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
@@ -5222,7 +5248,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'E'
                 } as DataFrameQueryV1;
 
-                const result = ds.processQuery(v1Query, [v1Query]);
+                const result = ds.processQuery(v1Query);
 
                 expect(isObservable(result.columns)).toBe(true);
                 expect(await lastValueFrom(result.columns as Observable<string[]>)).toEqual(
@@ -5243,7 +5269,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'E'
                 } as DataFrameQueryV1;
 
-                const result = ds.processQuery(v1Query, [v1Query]);
+                const result = ds.processQuery(v1Query);
                 await lastValueFrom(result.columns as Observable<string[]>);
 
                 expect(publishMock).toHaveBeenCalledWith({
@@ -5264,7 +5290,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'A'
                 } as DataFrameQueryV1;
 
-                const result = ds.processQuery(v1Query, [v1Query]);
+                const result = ds.processQuery(v1Query);
 
                 expect(result.dataTableFilter).toBe('id = "table-123"');
                 expect(result).not.toHaveProperty('tableId');
@@ -5277,7 +5303,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'B'
                 } as DataFrameQueryV1;
 
-                const result = ds.processQuery(v1Query, [v1Query]);
+                const result = ds.processQuery(v1Query);
 
                 expect(result.dataTableFilter).toBe('id = "table-456"');
                 expect(result).not.toHaveProperty('tableId');
@@ -5290,7 +5316,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'C'
                 } as any;
 
-                const result = ds.processQuery(v1Query, [v1Query]);
+                const result = ds.processQuery(v1Query);
 
                 expect(result.dataTableFilter).toBe('');
                 expect(result).not.toHaveProperty('tableId');
@@ -5303,7 +5329,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'D'
                 } as any;
 
-                const result = ds.processQuery(v1Query, [v1Query]);
+                const result = ds.processQuery(v1Query);
 
                 expect(result.dataTableFilter).toBe('');
                 expect(result).not.toHaveProperty('tableId');
@@ -5318,7 +5344,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'A'
                 } as DataFrameQueryV1;
 
-                const result = ds.processQuery(v1Query, [v1Query]);
+                const result = ds.processQuery(v1Query);
 
                 expect(result.dataTableProperties).toEqual([DataTableProperties.Properties]);
             });
@@ -5330,7 +5356,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'B'
                 } as DataFrameQueryV1;
 
-                const result = ds.processQuery(v1Query, [v1Query]);
+                const result = ds.processQuery(v1Query);
 
                 expect(result.dataTableProperties).toEqual([
                     DataTableProperties.Name,
@@ -5352,147 +5378,10 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'A'
                 } as DataFrameQueryV1;
 
-                const result = ds.processQuery(v1Query, [v1Query]);
+                const result = ds.processQuery(v1Query);
 
                 expect(result.filterXRangeOnZoomPan).toBe(true);
                 expect(result).not.toHaveProperty('applyTimeFilters');
-            });
-
-            it('should set filterXRangeOnZoomPan to true when any query in queries array has filterXRangeOnZoomPan as true', () => {
-                const v1Query1 = {
-                    type: DataFrameQueryType.Data,
-                    tableId: 'table-456',
-                    decimationMethod: 'LOSSY',
-                    filterNulls: true,
-                    filterXRangeOnZoomPan: false,
-                    refId: 'A'
-                } as DataFrameQueryV1;
-
-                const v1Query2 = {
-                    type: DataFrameQueryType.Data,
-                    tableId: 'table-789',
-                    decimationMethod: 'LOSSY',
-                    filterNulls: false,
-                    filterXRangeOnZoomPan: true,
-                    refId: 'B'
-                } as DataFrameQueryV1;
-
-                const result = ds.processQuery(v1Query1, [v1Query1, v1Query2]);
-
-                expect(result.filterXRangeOnZoomPan).toBe(true);
-            });
-
-            it('should set filterXRangeOnZoomPan to false when all queries in queries array have filterXRangeOnZoomPan as false or undefined', () => {
-                const v1Query1 = {
-                    type: DataFrameQueryType.Data,
-                    tableId: 'table-456',
-                    decimationMethod: 'LOSSY',
-                    filterNulls: true,
-                    filterXRangeOnZoomPan: false,
-                    refId: 'A'
-                } as DataFrameQueryV1;
-
-                const v1Query2 = {
-                    type: DataFrameQueryType.Data,
-                    tableId: 'table-789',
-                    decimationMethod: 'LOSSY',
-                    filterNulls: false,
-                    refId: 'B'
-                } as DataFrameQueryV1;
-
-                const result = ds.processQuery(v1Query1, [v1Query1, v1Query2]);
-
-                expect(result.filterXRangeOnZoomPan).toBe(false);
-            });
-
-            it('should set filterXRangeOnZoomPan to true when any query in queries array has applyTimeFilters as true', () => {
-                const v1Query1 = {
-                    type: DataFrameQueryType.Data,
-                    tableId: 'table-456',
-                    decimationMethod: 'LOSSY',
-                    filterNulls: true,
-                    applyTimeFilters: false,
-                    refId: 'A'
-                } as DataFrameQueryV1;
-
-                const v1Query2 = {
-                    type: DataFrameQueryType.Data,
-                    tableId: 'table-789',
-                    decimationMethod: 'LOSSY',
-                    filterNulls: false,
-                    applyTimeFilters: true,
-                    refId: 'B'
-                } as DataFrameQueryV1;
-
-                const result = ds.processQuery(v1Query1, [v1Query1, v1Query2]);
-
-                expect(result.filterXRangeOnZoomPan).toBe(true);
-            });
-
-            it('should set filterXRangeOnZoomPan to false when all queries in queries array have applyTimeFilters as false or undefined', () => {
-                const v1Query1 = {
-                    type: DataFrameQueryType.Data,
-                    tableId: 'table-456',
-                    decimationMethod: 'LOSSY',
-                    filterNulls: true,
-                    applyTimeFilters: false,
-                    refId: 'A'
-                } as DataFrameQueryV1;
-
-                const v1Query2 = {
-                    type: DataFrameQueryType.Data,
-                    tableId: 'table-789',
-                    decimationMethod: 'LOSSY',
-                    filterNulls: false,
-                    refId: 'B'
-                } as DataFrameQueryV1;
-
-                const result = ds.processQuery(v1Query1, [v1Query1, v1Query2]);
-
-                expect(result.filterXRangeOnZoomPan).toBe(false);
-            });
-
-            describe('when high resolution zoom feature is disabled', () => {
-                let dsWithHighResZoomDisabled: DataFrameDataSourceV2;
-
-                beforeEach(() => {
-                    dsWithHighResZoomDisabled = new DataFrameDataSourceV2(
-                        {
-                            ...instanceSettings,
-                            jsonData: {
-                                featureToggles:  DataFrameFeatureTogglesDefaults
-                            },
-                        },
-                        backendSrv,
-                        templateSrv
-                    );
-                });
-
-                it('should set filterXRangeOnZoomPan to given query\'s applyTimeFilters value', () => {
-                    const v1Query1 = {
-                        type: DataFrameQueryType.Data,
-                        tableId: 'table-456',
-                        decimationMethod: 'LOSSY',
-                        filterNulls: true,
-                        applyTimeFilters: false,
-                        refId: 'A'
-                    } as DataFrameQueryV1;
-
-                    const v1Query2 = {
-                        type: DataFrameQueryType.Data,
-                        tableId: 'table-789',
-                        decimationMethod: 'LOSSY',
-                        filterNulls: false,
-                        applyTimeFilters: true,
-                        refId: 'B'
-                    } as DataFrameQueryV1;
-
-                    const result1 = dsWithHighResZoomDisabled.processQuery(v1Query1, [v1Query1, v1Query2]);
-                    const result2 = dsWithHighResZoomDisabled.processQuery(v1Query2, [v1Query1, v1Query2]);
-
-                    expect(result1.filterXRangeOnZoomPan).toBe(false);
-                    expect(result2.filterXRangeOnZoomPan).toBe(true);
-                });
             });
         });
 
@@ -5507,7 +5396,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'E'
                 };
 
-                const result = ds.processQuery(v2Query, [v2Query]);
+                const result = ds.processQuery(v2Query);
 
                 expect(result).toEqual({
                     type: DataFrameQueryType.Properties,
@@ -5547,7 +5436,7 @@ describe('DataFrameDataSourceV2', () => {
                     refId: 'F'
                 };
 
-                const result = ds.processQuery(v2Query, [v2Query]);
+                const result = ds.processQuery(v2Query);
 
                 expect(result).toEqual(v2Query);
             });
@@ -6726,7 +6615,8 @@ describe('DataFrameDataSourceV2', () => {
                 dataTableFilter: '',
             } as DataFrameQueryV2;
             const options = {
-                scopedVars: scopedVars
+                scopedVars: scopedVars,
+                targets: [query],
             } as unknown as DataQueryRequest<DataFrameQueryV2>;
             await lastValueFrom(ds.runQuery(query, options));
             const input = 'name = "${Table}" AND id != "abc"';
@@ -6784,7 +6674,8 @@ describe('DataFrameDataSourceV2', () => {
                 dataTableFilter: '',
             } as DataFrameQueryV2;
             const options = {
-                scopedVars: scopedVars
+                scopedVars: scopedVars,
+                targets: [query],
             } as unknown as DataQueryRequest<DataFrameQueryV2>;
             await lastValueFrom(ds.runQuery(query, options));
             const input = 'Name = "${Result}" AND Id != "abc"';
@@ -6840,7 +6731,8 @@ describe('DataFrameDataSourceV2', () => {
                 dataTableFilter: '',
             } as DataFrameQueryV2;
             const options = {
-                scopedVars: scopedVars
+                scopedVars: scopedVars,
+                targets: [query],
             } as unknown as DataQueryRequest<DataFrameQueryV2>;
             await lastValueFrom(ds.runQuery(query, options));
         });

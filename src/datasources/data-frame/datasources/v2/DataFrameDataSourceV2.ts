@@ -39,12 +39,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         options: DataQueryRequest<DataFrameQueryV2>
     ): Observable<DataFrameDTO> {
         this.scopedVars = options.scopedVars;
-        const processedQuery = this.processQuery(query, options.targets);
+        const processedQuery = this.processQuery(query);
         const transformedQuery = this.transformQuery(processedQuery, options.scopedVars);
 
         if (this.isHighResolutionZoomFeatureEnabled) {
+            const filterXRangeOnZoomPan = options.targets.some(target => this.resolveFilterXRangeOnZoomPan(target));
             DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam(
-                transformedQuery.filterXRangeOnZoomPan,
+                filterXRangeOnZoomPan,
                 options.panelId?.toString(),
             );
         }
@@ -126,8 +127,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     processQuery(
-        query: DataFrameDataQuery,
-        queries: DataFrameDataQuery[]
+        query: DataFrameDataQuery
     ): ValidDataFrameQueryV2 {
         // Handle existing dashboards with 'MetaData' type
         if ((query.type as any) === LEGACY_METADATA_TYPE) {
@@ -142,7 +142,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const dataTableFilter = this.resolveDataTableFilter(query);
         const columns = this.resolveColumns(query);
         const dataTableProperties = this.resolveDataTableProperties(query);
-        const filterXRangeOnZoomPan = this.resolveFilterXRangeOnZoomPan(query, queries);
+        const filterXRangeOnZoomPan = this.resolveFilterXRangeOnZoomPan(query);
 
         const { tableId, applyTimeFilters, ...v2SpecificProperties } = query as DataFrameQueryV1;
         return {
@@ -1767,17 +1767,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private resolveFilterXRangeOnZoomPan(
         query: DataFrameDataQuery,
-        queries: DataFrameDataQuery[]
     ): boolean {
         if ('filterXRangeOnZoomPan' in query && query.filterXRangeOnZoomPan !== undefined) {
-            return queries.some(q => (q as DataFrameQueryV2).filterXRangeOnZoomPan);
+            return query.filterXRangeOnZoomPan;
         }
 
         if ('applyTimeFilters' in query && query.applyTimeFilters !== undefined) {
-            if (this.isHighResolutionZoomFeatureEnabled) {
-                return queries.some(q => (q as DataFrameQueryV1).applyTimeFilters);
-            }
-
             return query.applyTimeFilters;
         }
 

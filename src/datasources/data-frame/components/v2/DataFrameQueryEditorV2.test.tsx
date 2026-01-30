@@ -41,7 +41,7 @@ const renderComponent = (
     errorDescription = '',
     columnOptions: ComboboxOption[] = [],
     xColumnOptions: ComboboxOption[] = [],
-    processQueryOverride?: jest.Mock<ValidDataFrameQuery, [DataFrameDataQuery, DataFrameDataQuery[]]>,
+    processQueryOverride?: jest.Mock<ValidDataFrameQuery, [DataFrameDataQuery]>,
     variablesCache: Record<string, string> = {},
     mockDatasource: Partial<DataFrameDataSource> = {},
     queries: DataFrameDataQuery[] = []
@@ -49,8 +49,8 @@ const renderComponent = (
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
     const processQuery = processQueryOverride ?? jest
-        .fn<ValidDataFrameQuery, [DataFrameDataQuery, DataFrameDataQuery[]]>()
-        .mockImplementation((query, _queries) => ({ ...defaultQueryV2, ...query }));
+        .fn<ValidDataFrameQuery, [DataFrameDataQuery]>()
+        .mockImplementation((query) => ({ ...defaultQueryV2, ...query }));
     const datasource = {
         errorTitle,
         errorDescription,
@@ -117,20 +117,14 @@ const renderComponent = (
 
 describe("DataFrameQueryEditorV2", () => {
     it("should call processQuery with the initial query and queries array", () => {
-        const query1: DataFrameDataQuery = {
+        const query: DataFrameDataQuery = {
             type: DataFrameQueryType.Data,
             tableId: 'Table1',
             refId: 'A',
         };
 
-        const query2: DataFrameDataQuery = {
-            type: DataFrameQueryType.Data,
-            tableId: 'Table2',
-            refId: 'B',
-        };
-
         const { processQuery } = renderComponent(
-            query1,
+            query,
             '',
             '',
             [],
@@ -138,13 +132,9 @@ describe("DataFrameQueryEditorV2", () => {
             undefined,
             {},
             undefined,
-            [query1, query2]
         );
 
-        expect(processQuery).toHaveBeenCalledWith(
-            query1,
-            [query1, query2]
-        );
+        expect(processQuery).toHaveBeenCalledWith(query);
     });
 
     it("should render query type options", () => {
@@ -249,7 +239,7 @@ describe("DataFrameQueryEditorV2", () => {
                 let columnsField: HTMLElement;
                 let datasource: DataFrameDataSource;
 
-                const processQuery = jest.fn((query, _queries) => ({ ...defaultQueryV2, ...query }));
+                const processQuery = jest.fn((query) => ({ ...defaultQueryV2, ...query }));
 
                 async function changeFilterValue(filterValue = 'NewFilter') {
                     // Get the onDataTableFilterChange callback from the mock
@@ -986,7 +976,7 @@ describe("DataFrameQueryEditorV2", () => {
                     it("should call onChange with a list of columns when processQuery returns an observable", async () => {
                         const columns = of(['ColumnB-Numeric', 'ColumnD-String']);
                         const processQueryOverride = jest
-                            .fn<ValidDataFrameQuery, [DataFrameDataQuery, DataFrameDataQuery[]]>()
+                            .fn<ValidDataFrameQuery, [DataFrameDataQuery]>()
                             .mockImplementation(query => ({
                                 ...defaultQueryV2,
                                 ...query,
@@ -1016,7 +1006,7 @@ describe("DataFrameQueryEditorV2", () => {
                     it("should call onRunQuery with a list of columns when processQuery returns an observable", async () => {
                         const columns = of(['ColumnB-Numeric', 'ColumnD-String']);
                         const processQueryOverride = jest
-                            .fn<ValidDataFrameQuery, [DataFrameDataQuery, DataFrameDataQuery[]]>()
+                            .fn<ValidDataFrameQuery, [DataFrameDataQuery]>()
                             .mockImplementation(query => ({
                                 ...defaultQueryV2,
                                 ...query,
@@ -1851,7 +1841,7 @@ describe("DataFrameQueryEditorV2", () => {
                 let xColumnField: HTMLElement;
                 let datasource: DataFrameDataSource;
 
-                const processQuery = jest.fn((query, _queries) => ({ ...defaultQueryV2, ...query }));
+                const processQuery = jest.fn((query) => ({ ...defaultQueryV2, ...query }));
 
                 async function changeFilterValue(filterValue = 'NewFilter') {
                     // Get the onDataTableFilterChange callback from the mock
