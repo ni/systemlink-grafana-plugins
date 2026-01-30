@@ -1110,7 +1110,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             const data = tableRowData.frame.data;
             const rowCount = data.length;
 
-            const columnInfoByDisplayName: Map<string,ColumnWithDisplayName> = tableColumnsData 
+            const columnInfoByDisplayName: Map<string, ColumnWithDisplayName> = tableColumnsData 
                 ? new Map(tableColumnsData.selectedColumns.map(column => [column.displayName, column]))
                 : new Map(); // Handle case where only metadata fields are selected
             const columnIndexByName = new Map(
