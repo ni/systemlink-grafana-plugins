@@ -953,7 +953,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     DataTableProjections.ColumnType,
                 ];
 
-                if (processedQuery.showUnits) {  
+                if (processedQuery.showUnits) {
                     projections.push(DataTableProjections.ColumnProperties);  
                 }
 
@@ -1144,19 +1144,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             ? columnIndexByName.get(actualColumnName)
                             : undefined;
 
-                        let areUnitsMatching = true;
-                        if (showUnits) {
-                            const unit = this.getUnitForColumn(columnDetails);
-                            if (unit) {
-                                areUnitsMatching = unit === field.config?.unit;
-                            }
-                        }
-
                         if (
                             actualColumnName === undefined
                             || columnDataType === undefined
                             || columnIndex === undefined
-                            || !areUnitsMatching
                         ) {
                             const emptyValues = Array(rowCount).fill(null);
                             field.values = field.values!.concat(emptyValues);
