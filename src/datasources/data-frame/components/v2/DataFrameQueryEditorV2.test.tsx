@@ -2758,21 +2758,21 @@ describe("DataFrameQueryEditorV2", () => {
             });
 
             describe("filter for x-axis range on zoom/pan", () => {
-                let useTimeRangeCheckbox: HTMLElement;
+                let filterXRangeOnZoomPanCheckbox: HTMLElement;
                 let user: UserEvent;
 
                 beforeEach(() => {
-                    useTimeRangeCheckbox = screen.getAllByRole('switch')[3];
+                    filterXRangeOnZoomPanCheckbox = screen.getAllByRole('switch')[3];
                     user = userEvent.setup();
                 });
 
                 it("should have the filter for x-axis range on zoom/pan checkbox unchecked by default", () => {
-                    expect(useTimeRangeCheckbox).toBeInTheDocument();
-                    expect(useTimeRangeCheckbox).not.toBeChecked();
+                    expect(filterXRangeOnZoomPanCheckbox).toBeInTheDocument();
+                    expect(filterXRangeOnZoomPanCheckbox).not.toBeChecked();
                 });
 
                 it("should call onChange and onRunQuery when the filter for x-axis range on zoom/pan checkbox is checked", async () => {
-                    await user.click(useTimeRangeCheckbox);
+                    await user.click(filterXRangeOnZoomPanCheckbox);
 
                     await waitFor(() => {
                         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({

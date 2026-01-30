@@ -951,8 +951,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     DataTableProjections.ColumnName,
                     DataTableProjections.ColumnDataType,
                     DataTableProjections.ColumnType,
-                    DataTableProjections.ColumnProperties
                 ];
+
+                if (processedQuery.showUnits) {  
+                    projections.push(DataTableProjections.ColumnProperties);  
+                }
 
                 if (selectedColumnIdentifiers.includes(DATA_TABLE_NAME_FIELD)) {
                     projections.push(DataTableProjections.Name);
