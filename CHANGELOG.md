@@ -1,3 +1,9 @@
+## [4.126.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.125.0...v4.126.0) (2026-01-30)
+
+### Features
+
+* **dataframe:** version 2: show units ([#663](https://github.com/ni/systemlink-grafana-plugins/issues/663)) ([30f5ce9](https://github.com/ni/systemlink-grafana-plugins/commit/30f5ce936a33b5acdb5b06f8d00d17071884ec5e))
+
 ## [4.125.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.124.0...v4.125.0) (2026-01-29)
 
 ### Features
