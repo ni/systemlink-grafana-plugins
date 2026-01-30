@@ -7310,6 +7310,8 @@ describe('DataFrameDataSourceV2', () => {
                 expect(fahrenheitField).toBeDefined();
                 expect(celsiusField?.config?.unit).toBe('Celsius');
                 expect(fahrenheitField?.config?.unit).toBe('Fahrenheit');
+                expect(celsiusField?.values).toEqual([20.5, null]);
+                expect(fahrenheitField?.values).toEqual([null, 68.9]);
             });
 
             describe('different unit conventions', () => {
@@ -7617,6 +7619,72 @@ describe('DataFrameDataSourceV2', () => {
                 const temperatureField = findField(result.fields, 'Temperature');
                 expect(temperatureField).toBeDefined();
                 expect(temperatureField?.config?.unit).toBeUndefined();
+                expect(temperatureField?.values).toEqual([20.5, 21.0]);
+            });
+
+            it('should create only one field for same column name with different units', async () => {
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'id = "table-1" OR id = "table-2"',
+                    refId: 'A',
+                    columns: ['Temperature-Numeric'],
+                    showUnits: false
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                const mockTables = [
+                    {
+                        id: 'table-1',
+                        name: 'Table 1',
+                        columns: [
+                            {
+                                name: 'Temperature',
+                                dataType: 'FLOAT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'Celsius' }
+                            }
+                        ]
+                    },
+                    {
+                        id: 'table-2',
+                        name: 'Table 2',
+                        columns: [
+                            {
+                                name: 'Temperature',
+                                dataType: 'FLOAT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'Fahrenheit' }
+                            }
+                        ]
+                    }
+                ];
+                const mockDecimatedDataTable1 = {
+                    frame: {
+                        columns: ['Temperature'],
+                        data: [['20.5']]
+                    }
+                };
+                const mockDecimatedDataTable2 = {
+                    frame: {
+                        columns: ['Temperature'],
+                        data: [['68.9']]
+                    }
+                };
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                postSpy$.mockImplementation((url: string) => {
+                    return url.includes('table-1')
+                        ? of(mockDecimatedDataTable1)
+                        : of(mockDecimatedDataTable2);
+                });
+
+                const result = await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                const temperatureField = findField(result.fields, 'Temperature');
+                expect(temperatureField).toBeDefined();
+                expect(temperatureField?.config?.unit).toBe(undefined);
+                expect(temperatureField?.values).toEqual([20.5, 68.9]);
             });
         });
     });
