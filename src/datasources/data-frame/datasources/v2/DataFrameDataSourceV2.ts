@@ -1066,8 +1066,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     ): FieldDTO[] {
         let uniqueOutputColumns = this.getUniqueColumns(
             Object.values(tableColumnsMap)
-                .flatMap(columnsData => columnsData.selectedColumns),
-            showUnits
+                .flatMap(columnsData => columnsData.selectedColumns)
         );
         uniqueOutputColumns = this.sortColumnsByType(uniqueOutputColumns, xColumn);
 
@@ -1133,14 +1132,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
                         const { 
                             name: actualColumnName,
-                            dataType: columnDataType,
+                            dataType: columnDataType
                         } = columnDetails;
                         const columnIndex = actualColumnName !== undefined
                             ? columnIndexByName.get(actualColumnName)
                             : undefined;
 
-                        const areUnitsMatching = !showUnits 
-                            || this.getUnitForColumn(columnDetails) === field.config?.unit;
+                        const areUnitsMatching = showUnits && this.getUnitForColumn(columnDetails) === field.config?.unit;
                         if (
                             actualColumnName === undefined
                             || columnDataType === undefined
@@ -1200,18 +1198,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
     }
 
-    private getUniqueColumns(
-        columns: ColumnWithDisplayName[],
-        showUnits: boolean
-    ): ColumnWithDisplayName[] {
+    private getUniqueColumns(columns: ColumnWithDisplayName[]): ColumnWithDisplayName[] {
         const uniqueColumnsMap: Map<string, ColumnWithDisplayName> = new Map();
         columns.forEach(column => {
-            let key = this.getColumnIdentifier(column.name, column.dataType);
-
-            if (showUnits) {
-                key += `-${this.getUnitForColumn(column)}`;
-            }
-
+            const key = this.getColumnIdentifier(column.displayName, column.dataType);
             if (!uniqueColumnsMap.has(key)) {
                 uniqueColumnsMap.set(key, column);
             }
