@@ -102,11 +102,9 @@ describe('DataFrameDataSource', () => {
         await expect(ds.queryTables('query')).resolves.toEqual(['v2-tables']);
         expect(v2Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined);
 
-        const query1 = { refId: '1' };
-        const query2 = { refId: '2' };
-        const queries = [query1, query2];
-        expect(ds.processQuery(query1 as any, queries as any)).toBe('v2-processed');
-        expect(v2Mock.processQuery).toHaveBeenCalledWith(query1, queries);
+        const query = { refId: '1' };
+        expect(ds.processQuery(query as any)).toBe('v2-processed');
+        expect(v2Mock.processQuery).toHaveBeenCalledWith(query);
 
         expect(ds.processVariableQuery({} as any)).toBe('v2-processed');
         expect(v2Mock.processVariableQuery).toHaveBeenCalled();

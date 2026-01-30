@@ -50,7 +50,6 @@ export abstract class DataFrameDataSourceBase<
 
     public abstract processQuery(
         query: DataFrameDataQuery,
-        queries: DataFrameDataQuery[]
     ): ValidDataFrameQuery;
 
     public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {

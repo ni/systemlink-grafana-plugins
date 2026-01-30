@@ -20,7 +20,7 @@ import { isObservable, lastValueFrom } from 'rxjs';
 import _ from 'lodash';
 
 export const DataFrameQueryEditorV2: React.FC<Props> = (
-    { query, onChange, onRunQuery, datasource, queries }: Props
+    { query, onChange, onRunQuery, datasource }: Props
 ) => {
     const isQueryUndecimatedDataFeatureEnabled = useMemo(() => 
         datasource.instanceSettings.jsonData?.featureToggles?.queryUndecimatedData ?? false,
@@ -34,7 +34,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
 
     const migratedQuery = datasource.processQuery(
         query as DataFrameDataQuery,
-        queries as DataFrameDataQuery[]
     ) as ValidDataFrameQueryV2;
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
