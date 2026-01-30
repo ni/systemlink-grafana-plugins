@@ -178,6 +178,34 @@ describe('DataFrameDataSourceV2', () => {
                 expect(DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam).toHaveBeenCalledTimes(2);
             });
 
+            it('should call updateSyncXAxisRangeTargetsQueryParam with false when filterXRangeOnZoomPan is disabled in all the queries in a panel', async () => {
+                const optionsWithFilterXRangeOnZoomPanDisabled = {
+                    ...optionsWithPanelId,
+                    targets: [
+                        {
+                            ...query,
+                            applyTimeFilters: false,
+                        },
+                        {
+                            ...query,
+                            applyTimeFilters: false,
+                        }
+                    ],
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                
+                await lastValueFrom(
+                    ds.runQuery(
+                        optionsWithFilterXRangeOnZoomPanDisabled.targets[0],
+                        optionsWithFilterXRangeOnZoomPanDisabled
+                    )
+                );
+                
+                expect(DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam).toHaveBeenCalledWith(
+                    false,
+                    '42'
+                );
+            });
+
             describe('when high resolution zoom feature is disabled', () => {
                 let dsWithHighResZoomDisabled: DataFrameDataSourceV2;
 
