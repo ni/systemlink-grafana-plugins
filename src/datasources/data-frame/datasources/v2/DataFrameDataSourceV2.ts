@@ -1319,7 +1319,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     name: column.name,
                     dataType: column.dataType,
                     columnType: column.columnType,
-                    properties: column.properties
+                    properties: column.properties ?? {}
                 });
             }
         });
