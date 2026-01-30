@@ -1552,26 +1552,26 @@ describe("DataFrameQueryEditorV2", () => {
                 });
             });
 
-            describe("append column unit in field name", () => {
-                let appendColumnUnitInFieldNameCheckbox: HTMLElement;
+            describe("show units", () => {
+                let showUnitsCheckbox: HTMLElement;
                 let user: UserEvent;
 
                 beforeEach(() => {
-                    appendColumnUnitInFieldNameCheckbox = screen.getAllByRole('switch')[2];
+                    showUnitsCheckbox = screen.getAllByRole('switch')[2];
                     user = userEvent.setup();
                 });
 
-                it("should have the append column unit in field name checkbox unchecked by default", () => {
-                    expect(appendColumnUnitInFieldNameCheckbox).toBeInTheDocument();
-                    expect(appendColumnUnitInFieldNameCheckbox).not.toBeChecked();
+                it("should have the show units checkbox unchecked by default", () => {
+                    expect(showUnitsCheckbox).toBeInTheDocument();
+                    expect(showUnitsCheckbox).not.toBeChecked();
                 });
 
-                it("should call onChange and onRunQuery when the append column unit in field name checkbox is checked", async () => {
-                    await user.click(appendColumnUnitInFieldNameCheckbox);
+                it("should call onChange and onRunQuery when the show units checkbox is checked", async () => {
+                    await user.click(showUnitsCheckbox);
 
                     await waitFor(() => {
                         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                            appendColumnUnitInFieldName: true
+                            showUnits: true
                         }));
                         expect(onRunQuery).toHaveBeenCalled();
                     });

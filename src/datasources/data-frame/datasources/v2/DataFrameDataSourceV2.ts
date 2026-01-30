@@ -995,7 +995,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             nonMetadataColumnIdentifiers,
                             tables,
                             processedQuery.includeIndexColumns,
-                            processedQuery.appendColumnUnitInFieldName
+                            processedQuery.showUnits
                         );
 
                         const hasOnlyMetadataFields = selectedColumnIdentifiers.every(
@@ -1032,7 +1032,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                         result.data,
                                         processedQuery.xColumn,
                                         selectedColumnIdentifiers,
-                                        processedQuery.appendColumnUnitInFieldName
+                                        processedQuery.showUnits
                                     );
                                     const notices = result.isLimitExceeded ? [
                                         {
@@ -1062,12 +1062,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tableRowDataMap: Record<string, TableDataRows>,
         xColumn: string | null,
         selectedColumnIdentifiers: string[],
-        appendColumnUnitInFieldName: boolean
+        showUnits: boolean
     ): FieldDTO[] {
         let uniqueOutputColumns = this.getUniqueColumns(
             Object.values(tableColumnsMap)
                 .flatMap(columnsData => columnsData.selectedColumns),
-            appendColumnUnitInFieldName
+            showUnits
         );
         uniqueOutputColumns = this.sortColumnsByType(uniqueOutputColumns, xColumn);
 
@@ -1075,7 +1075,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             ...uniqueOutputColumns.map(column => {
                 const config: FieldDTO['config'] = {};
 
-                if (appendColumnUnitInFieldName) {
+                if (showUnits) {
                     config.unit = this.getUnitForColumn(column);
                 }
 
@@ -1139,7 +1139,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             ? columnIndexByName.get(actualColumnName)
                             : undefined;
 
-                        const areUnitsMatching = !appendColumnUnitInFieldName 
+                        const areUnitsMatching = !showUnits 
                             || this.getUnitForColumn(columnDetails) === field.config?.unit;
                         if (
                             actualColumnName === undefined
@@ -1202,13 +1202,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private getUniqueColumns(
         columns: ColumnWithDisplayName[],
-        appendColumnUnitInFieldName: boolean
+        showUnits: boolean
     ): ColumnWithDisplayName[] {
         const uniqueColumnsMap: Map<string, ColumnWithDisplayName> = new Map();
         columns.forEach(column => {
             let key = this.getColumnIdentifier(column.name, column.dataType);
 
-            if (appendColumnUnitInFieldName) {
+            if (showUnits) {
                 key += `-${this.getUnitForColumn(column)}`;
             }
 
@@ -1265,7 +1265,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         selectedColumnIdentifiers: string[],
         tables: TableProperties[],
         includeIndexColumns: boolean,
-        appendColumnUnitInFieldName: boolean
+        showUnits: boolean
     ): Record<string, TableColumnsData> {
         const selectedTableColumnsMap: Record<string, TableColumnsData> = {};
         const uniqueColumnsAcrossTables = this.getUniqueColumnsAcrossTables(tables);
@@ -1279,7 +1279,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     uniqueColumn => uniqueColumn.value === this.getColumnIdentifier(column.name, column.dataType)
                 )?.label || '';
 
-                if (appendColumnUnitInFieldName) {
+                if (showUnits) {
                     displayName += ` (${this.getUnitForColumn(column)})`;
                 }
 

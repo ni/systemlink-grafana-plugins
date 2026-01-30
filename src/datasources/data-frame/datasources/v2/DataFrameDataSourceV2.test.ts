@@ -5525,7 +5525,7 @@ describe('DataFrameDataSourceV2', () => {
                     filterXRangeOnZoomPan: true,
                     take: 1000,
                     undecimatedRecordCount: 10000,
-                    appendColumnUnitInFieldName: false,
+                    showUnits: false,
                     refId: 'E'
                 });
             });
@@ -5544,7 +5544,7 @@ describe('DataFrameDataSourceV2', () => {
                     decimationMethod: 'LOSSY',
                     xColumn: 'time',
                     filterXRangeOnZoomPan: true,
-                    appendColumnUnitInFieldName: false,
+                    showUnits: false,
                     take: 100,
                     undecimatedRecordCount: 10000,
                     refId: 'F'
@@ -7049,7 +7049,7 @@ describe('DataFrameDataSourceV2', () => {
         });
     });
 
-    describe('appendColumnUnitInFieldName', () => {
+    describe('showUnits', () => {
         let queryTablesSpy$: jest.SpyInstance;
         let postSpy$: jest.SpyInstance;
 
@@ -7058,14 +7058,14 @@ describe('DataFrameDataSourceV2', () => {
             postSpy$ = jest.spyOn(ds, 'post$');
         });
 
-        describe('when appendColumnUnitInFieldName is true', () => {
+        describe('when showUnits is true', () => {
             it('should append unit to column display name and set unit in field config', async () => {
                 const query = {
                     type: DataFrameQueryType.Data,
                     dataTableFilter: 'name = "Test Table"',
                     refId: 'A',
                     columns: ['Temperature-Numeric'],
-                    appendColumnUnitInFieldName: true
+                    showUnits: true
                 } as DataFrameQueryV2;
 
                 const queryOptions = {
@@ -7110,7 +7110,7 @@ describe('DataFrameDataSourceV2', () => {
                     dataTableFilter: 'name = "Test Table"',
                     refId: 'A',
                     columns: ['Temperature-Numeric'],
-                    appendColumnUnitInFieldName: true
+                    showUnits: true
                 } as DataFrameQueryV2;
 
                 const queryOptions = {
@@ -7153,7 +7153,7 @@ describe('DataFrameDataSourceV2', () => {
                     dataTableFilter: 'name = "Test Table"',
                     refId: 'A',
                     columns: ['Temperature-Numeric'],
-                    appendColumnUnitInFieldName: true
+                    showUnits: true
                 } as DataFrameQueryV2;
 
                 const queryOptions = {
@@ -7198,7 +7198,7 @@ describe('DataFrameDataSourceV2', () => {
                     dataTableFilter: 'name = "Test Table"',
                     refId: 'A',
                     columns: ['Distance-Numeric'],
-                    appendColumnUnitInFieldName: true
+                    showUnits: true
                 } as DataFrameQueryV2;
 
                 const queryOptions = {
@@ -7243,7 +7243,7 @@ describe('DataFrameDataSourceV2', () => {
                     dataTableFilter: 'name = "Test Table"',
                     refId: 'A',
                     columns: ['Speed-Numeric'],
-                    appendColumnUnitInFieldName: true
+                    showUnits: true
                 } as DataFrameQueryV2;
 
                 const queryOptions = {
@@ -7288,7 +7288,7 @@ describe('DataFrameDataSourceV2', () => {
                     dataTableFilter: 'name = "Test Table"',
                     refId: 'A',
                     columns: ['Count-Numeric'],
-                    appendColumnUnitInFieldName: true
+                    showUnits: true
                 } as DataFrameQueryV2;
 
                 const queryOptions = {
@@ -7333,7 +7333,7 @@ describe('DataFrameDataSourceV2', () => {
                     dataTableFilter: 'name = "Test Table"',
                     refId: 'A',
                     columns: ['Measurement-Numeric'],
-                    appendColumnUnitInFieldName: true
+                    showUnits: true
                 } as DataFrameQueryV2;
 
                 const queryOptions = {
@@ -7378,7 +7378,7 @@ describe('DataFrameDataSourceV2', () => {
                     dataTableFilter: 'name = "Test Table"',
                     refId: 'A',
                     columns: ['Temperature-Numeric', 'Pressure-Numeric'],
-                    appendColumnUnitInFieldName: true
+                    showUnits: true
                 } as DataFrameQueryV2;
 
                 const queryOptions = {
@@ -7433,7 +7433,7 @@ describe('DataFrameDataSourceV2', () => {
                     dataTableFilter: 'id = "table-1" OR id = "table-2"',
                     refId: 'A',
                     columns: ['Temperature-Numeric'],
-                    appendColumnUnitInFieldName: true
+                    showUnits: true
                 } as DataFrameQueryV2;
 
                 const queryOptions = {
@@ -7499,14 +7499,14 @@ describe('DataFrameDataSourceV2', () => {
             });
         });
 
-        describe('when appendColumnUnitInFieldName is false', () => {
+        describe('when showUnits is false', () => {
             it('should not append unit to column display name', async () => {
                 const query = {
                     type: DataFrameQueryType.Data,
                     dataTableFilter: 'name = "Test Table"',
                     refId: 'A',
                     columns: ['Temperature-Numeric'],
-                    appendColumnUnitInFieldName: false
+                    showUnits: false
                 } as DataFrameQueryV2;
 
                 const queryOptions = {
@@ -7545,13 +7545,13 @@ describe('DataFrameDataSourceV2', () => {
                 expect(temperatureField?.config?.unit).toBeUndefined();
             });
 
-            it('should not set unit in field config when appendColumnUnitInFieldName is false', async () => {
+            it('should not set unit in field config when showUnits is false', async () => {
                 const query = {
                     type: DataFrameQueryType.Data,
                     dataTableFilter: 'name = "Test Table"',
                     refId: 'A',
                     columns: ['Temperature-Numeric'],
-                    appendColumnUnitInFieldName: false
+                    showUnits: false
                 } as DataFrameQueryV2;
 
                 const queryOptions = {
@@ -7597,7 +7597,7 @@ describe('DataFrameDataSourceV2', () => {
                     dataTableFilter: 'id = "table-1" OR id = "table-2"',
                     refId: 'A',
                     columns: ['Temperature-Numeric'],
-                    appendColumnUnitInFieldName: true
+                    showUnits: true
                 } as DataFrameQueryV2;
 
                 const queryOptions = {
