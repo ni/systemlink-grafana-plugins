@@ -7153,6 +7153,75 @@ describe('DataFrameDataSourceV2', () => {
                 expect(temperatureField?.config?.unit).toBe('Celsius');
             });
 
+            it('should append the data type to column name if columns in different tables have the same name but different data types along with unit', async () => {
+                const mockTables = [
+                    {
+                        id: 'table-1',
+                        name: 'Table 1',
+                        columns: [
+                            {
+                                name: 'Value',
+                                dataType: 'INT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'unit1' }
+                            }
+                        ]
+                    },
+                    {
+                        id: 'table-2',
+                        name: 'Table 2',
+                        columns: [
+                            {
+                                name: 'Value',
+                                dataType: 'STRING',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'unit2' }
+                            }
+                        ]
+                    }
+                ];
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'id = "table-1" OR id = "table-2"',
+                    refId: 'A',
+                    columns: ['Value-String', 'Value-Numeric'],
+                    showUnits: true
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                const mockDecimatedDataTable1 = {
+                    frame: {
+                        columns: ['Value'],
+                        data: [['100']]
+                    }
+                };
+                const mockDecimatedDataTable2 = {
+                    frame: {
+                        columns: ['Value'],
+                        data: [['200.5']]
+                    }
+                };
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                postSpy$.mockImplementation((url: string) => {
+                    return url.includes('table-1')
+                        ? of(mockDecimatedDataTable1)
+                        : of(mockDecimatedDataTable2);
+                });
+
+                const result = await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                const intField = findField(result.fields, 'Value (Numeric) (unit1)');
+                const floatField = findField(result.fields, 'Value (String) (unit2)');
+                expect(intField).toBeDefined();
+                expect(floatField).toBeDefined();
+                expect(intField?.config?.unit).toBe('unit1');
+                expect(floatField?.config?.unit).toBe('unit2');
+                expect(intField?.values).toEqual([100, null]);
+                expect(floatField?.values).toEqual([null, "200.5"]);
+            });
+
             it('should handle columns with empty unit values', async () => {
                 const mockTables = [
                     {
@@ -7685,6 +7754,75 @@ describe('DataFrameDataSourceV2', () => {
                 expect(temperatureField).toBeDefined();
                 expect(temperatureField?.config?.unit).toBe(undefined);
                 expect(temperatureField?.values).toEqual([20.5, 68.9]);
+            });
+
+            it('should append only the data type to column name if columns in different tables have the same name but different data types', async () => {
+                const mockTables = [
+                    {
+                        id: 'table-1',
+                        name: 'Table 1',
+                        columns: [
+                            {
+                                name: 'Value',
+                                dataType: 'INT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'unit1' }
+                            }
+                        ]
+                    },
+                    {
+                        id: 'table-2',
+                        name: 'Table 2',
+                        columns: [
+                            {
+                                name: 'Value',
+                                dataType: 'STRING',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'unit2' }
+                            }
+                        ]
+                    }
+                ];
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'id = "table-1" OR id = "table-2"',
+                    refId: 'A',
+                    columns: ['Value-String', 'Value-Numeric'],
+                    showUnits: false
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                const mockDecimatedDataTable1 = {
+                    frame: {
+                        columns: ['Value'],
+                        data: [['100']]
+                    }
+                };
+                const mockDecimatedDataTable2 = {
+                    frame: {
+                        columns: ['Value'],
+                        data: [['200.5']]
+                    }
+                };
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                postSpy$.mockImplementation((url: string) => {
+                    return url.includes('table-1')
+                        ? of(mockDecimatedDataTable1)
+                        : of(mockDecimatedDataTable2);
+                });
+
+                const result = await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                const intField = findField(result.fields, 'Value (Numeric)');
+                const floatField = findField(result.fields, 'Value (String)');
+                expect(intField).toBeDefined();
+                expect(floatField).toBeDefined();
+                expect(intField?.config?.unit).toBe(undefined);
+                expect(floatField?.config?.unit).toBe(undefined);
+                expect(intField?.values).toEqual([100, null]);
+                expect(floatField?.values).toEqual([null, "200.5"]);
             });
         });
     });
