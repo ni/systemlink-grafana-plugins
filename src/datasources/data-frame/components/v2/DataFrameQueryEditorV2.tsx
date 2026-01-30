@@ -345,10 +345,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
 
     const onShowUnitsChange = (event: React.FormEvent<HTMLInputElement>) => {
         const showUnits = event.currentTarget.checked;
-        handleQueryChange({ 
-            ...migratedQuery,
-            showUnits
-        });
+        handleQueryChange({ ...migratedQuery, showUnits });
     };
 
     const onFilterNullsChange = (event: React.FormEvent<HTMLInputElement>) => {
