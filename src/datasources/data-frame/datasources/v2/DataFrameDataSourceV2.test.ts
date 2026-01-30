@@ -7058,6 +7058,59 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         describe('when showUnits is true', () => {
+            it('should call query tables API with ColumnProperties in projection', async () => {
+                const mockTables = [
+                    {
+                        id: 'table-1',
+                        name: 'Table 1',
+                        columns: [
+                            {
+                                name: 'Temperature',
+                                dataType: 'FLOAT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'Celsius' }
+                            }
+                        ]
+                    }
+                ];
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['Temperature-Numeric'],
+                    showUnits: true
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                const mockDecimatedData = {
+                    frame: {
+                        columns: ['Temperature'],
+                        data: [['20.5'], ['21.0']]
+                    }
+                };
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                postSpy$.mockReturnValue(of(mockDecimatedData));
+
+                await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    {
+                        "dataTableFilter": "name = \"Test Table\"",
+                        "columnFilter": "",
+                        "resultFilter": ""
+                    },
+                    TAKE_LIMIT,
+                    [
+                        DataTableProjections.ColumnName,
+                        DataTableProjections.ColumnDataType,
+                        DataTableProjections.ColumnType,
+                        DataTableProjections.ColumnProperties
+                    ]
+                );
+            });
+
             it('should append unit to column display name and set unit in field config', async () => {
                 const mockTables = [
                     {
@@ -7468,6 +7521,58 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         describe('when showUnits is false', () => {
+            it('should call query tables API without ColumnProperties in projection', async () => {
+                const mockTables = [
+                    {
+                        id: 'table-1',
+                        name: 'Table 1',
+                        columns: [
+                            {
+                                name: 'Temperature',
+                                dataType: 'FLOAT64',
+                                columnType: ColumnType.Normal,
+                                properties: { unit: 'Celsius' }
+                            }
+                        ]
+                    }
+                ];
+                const query = {
+                    type: DataFrameQueryType.Data,
+                    dataTableFilter: 'name = "Test Table"',
+                    refId: 'A',
+                    columns: ['Temperature-Numeric'],
+                    showUnits: true
+                } as DataFrameQueryV2;
+                const queryOptions = {
+                    scopedVars: {},
+                    targets: [query]
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+                const mockDecimatedData = {
+                    frame: {
+                        columns: ['Temperature'],
+                        data: [['20.5'], ['21.0']]
+                    }
+                };
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                postSpy$.mockReturnValue(of(mockDecimatedData));
+
+                await lastValueFrom(ds.runQuery(query, queryOptions));
+
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    {
+                        "dataTableFilter": "name = \"Test Table\"",
+                        "columnFilter": "",
+                        "resultFilter": ""
+                    },
+                    TAKE_LIMIT,
+                    [
+                        DataTableProjections.ColumnName,
+                        DataTableProjections.ColumnDataType,
+                        DataTableProjections.ColumnType,
+                    ]
+                );
+            });
+
             it('should not append unit to column display name and set unit in field config', async () => {
                 const mockTables = [
                     {
