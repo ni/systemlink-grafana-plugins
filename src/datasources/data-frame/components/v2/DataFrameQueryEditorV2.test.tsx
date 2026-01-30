@@ -116,23 +116,14 @@ const renderComponent = (
 };
 
 describe("DataFrameQueryEditorV2", () => {
-    it("should call processQuery with the initial query and queries array", () => {
+    it("should call processQuery with the initial query", () => {
         const query: DataFrameDataQuery = {
             type: DataFrameQueryType.Data,
             tableId: 'Table1',
             refId: 'A',
         };
 
-        const { processQuery } = renderComponent(
-            query,
-            '',
-            '',
-            [],
-            [],
-            undefined,
-            {},
-            undefined,
-        );
+        const { processQuery } = renderComponent(query);
 
         expect(processQuery).toHaveBeenCalledWith(query);
     });
