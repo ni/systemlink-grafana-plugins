@@ -450,8 +450,7 @@ describe('DataFrameDataSourceV2', () => {
                 const projections = [
                     DataTableProjections.ColumnName,
                     DataTableProjections.ColumnDataType,
-                    DataTableProjections.ColumnType,
-                    DataTableProjections.ColumnProperties
+                    DataTableProjections.ColumnType
                 ];
 
                 beforeEach(() => {
