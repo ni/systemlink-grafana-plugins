@@ -14,18 +14,50 @@ server.get('/up', (_req, res) => {
 });
 
 server.get('/niapm/v1/assets', (req, res) => {
-    const take = parseInt(req.query.take) || 5;
     res.json({
-        assets: db.assets.slice(0, take),
+        assets: db.assets,
         totalCount: db.assets.length
     });
 });
 
 server.post('/niapm/v1/query-assets', (req, res) => {
-    const take = req.body?.take || 100;
+    const filter = req.body.filter;
+    let filteredAssets = db.assets;
+
+    if (filter) {
+        const propertyMap = {
+            'AssetIdentifier': 'id',
+            'ScanCode': 'scanCode',
+        };
+
+        const match = filter.match(/(\w+)\s*(==|!=|=)\s*"([^"]+)"/);
+
+        if (match) {
+            const [, property, operator, value] = match;
+
+            const dbField = propertyMap[property] || property;
+
+            filteredAssets = db.assets.filter(asset => {
+                const assetValue = asset[dbField];
+
+                switch (operator) {
+                    case '=':
+                    case '==':
+                        return assetValue === value;
+
+                    case '!=':
+                        return assetValue !== value;
+
+                    default:
+                        return true;
+                }
+            });
+        }
+    }
+
     res.json({
-        assets: db.assets.slice(0, take),
-        totalCount: db.assets.length
+        assets: filteredAssets,
+        totalCount: filteredAssets.length
     });
 });
 
