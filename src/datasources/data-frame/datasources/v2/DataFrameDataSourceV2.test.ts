@@ -484,6 +484,7 @@ describe('DataFrameDataSourceV2', () => {
                 beforeEach(() => {
                     options = {
                         scopedVars: {},
+                        targets: []
                     } as any;
                     queryTablesSpy = jest.spyOn(ds, 'queryTables$');
                 });
@@ -2253,7 +2254,8 @@ describe('DataFrameDataSourceV2', () => {
 
                     beforeEach(() => {
                         options = {
-                            scopedVars: {}
+                            scopedVars: {},
+                            targets: []
                         } as any;
                     });
 
@@ -7144,7 +7146,8 @@ describe('DataFrameDataSourceV2', () => {
                     showUnits: true
                 } as DataFrameQueryV2;
                 const queryOptions = {
-                    scopedVars: {}
+                    scopedVars: {},
+                    targets: [query]
                 } as unknown as DataQueryRequest<DataFrameQueryV2>;
                 const mockDecimatedData = {
                     frame: {
@@ -7495,7 +7498,8 @@ describe('DataFrameDataSourceV2', () => {
                         showUnits: true
                     } as DataFrameQueryV2;
                     const queryOptions = {
-                        scopedVars: {}
+                        scopedVars: {},
+                        targets: [query]
                     } as unknown as DataQueryRequest<DataFrameQueryV2>;
                     const mockDecimatedData = {
                         frame: {
