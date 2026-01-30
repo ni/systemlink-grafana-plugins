@@ -40,6 +40,7 @@ export interface DataFrameQueryV2 extends DataQuery {
   columns?: string[] | Observable<string[]>;
   includeIndexColumns?: boolean;
   filterNulls?: boolean;
+  showUnits?: boolean;
   decimationMethod?: string;
   xColumn?: string | null;
   filterXRangeOnZoomPan?: boolean;
@@ -141,6 +142,7 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   columns: [],
   includeIndexColumns: false,
   filterNulls: false,
+  showUnits: false,
   decimationMethod: 'LOSSY',
   xColumn: null,
   filterXRangeOnZoomPan: false,

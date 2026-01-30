@@ -343,6 +343,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         handleQueryChange({ ...migratedQuery, includeIndexColumns });
     };
 
+    const onShowUnitsChange = (event: React.FormEvent<HTMLInputElement>) => {
+        const showUnits = event.currentTarget.checked;
+        handleQueryChange({ ...migratedQuery, showUnits });
+    };
+
     const onFilterNullsChange = (event: React.FormEvent<HTMLInputElement>) => {
         const filterNulls = event.currentTarget.checked;
         handleQueryChange({ ...migratedQuery, filterNulls });
@@ -490,6 +495,16 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                             <InlineSwitch
                                 value={migratedQuery.filterNulls}
                                 onChange={onFilterNullsChange}
+                            />
+                        </InlineField>
+                        <InlineField
+                            label={labels.showUnits}
+                            labelWidth={INLINE_LABEL_WIDTH}
+                            tooltip={tooltips.showUnits}
+                        >
+                            <InlineSwitch
+                                value={migratedQuery.showUnits}
+                                onChange={onShowUnitsChange}
                             />
                         </InlineField>
                     </Collapse>

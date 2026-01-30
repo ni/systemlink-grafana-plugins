@@ -2,7 +2,7 @@ import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceI
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, DataTableFirstClassPropertyLabels, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT, UNDECIMATED_RECORDS_LIMIT } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT, UNDECIMATED_RECORDS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -953,6 +953,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     DataTableProjections.ColumnType,
                 ];
 
+                if (processedQuery.showUnits) {
+                    projections.push(DataTableProjections.ColumnProperties);  
+                }
+
                 if (selectedColumnIdentifiers.includes(DATA_TABLE_NAME_FIELD)) {
                     projections.push(DataTableProjections.Name);
                 }
@@ -993,7 +997,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         const tableColumnsMap = this.buildTableColumnsMap(
                             nonMetadataColumnIdentifiers,
                             tables,
-                            processedQuery.includeIndexColumns
+                            processedQuery.includeIndexColumns,
+                            processedQuery.showUnits
                         );
 
                         const hasOnlyMetadataFields = selectedColumnIdentifiers.every(
@@ -1029,7 +1034,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                         tableNamesMap,
                                         result.data,
                                         processedQuery.xColumn,
-                                        selectedColumnIdentifiers
+                                        selectedColumnIdentifiers,
+                                        processedQuery.showUnits
                                     );
                                     const notices = result.isLimitExceeded ? [
                                         {
@@ -1058,7 +1064,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tableNamesMap: Record<string, string>,
         tableRowDataMap: Record<string, TableDataRows>,
         xColumn: string | null,
-        selectedColumnIdentifiers: string[]
+        selectedColumnIdentifiers: string[],
+        showUnits: boolean
     ): FieldDTO[] {
         let uniqueOutputColumns = this.getUniqueColumns(
             Object.values(tableColumnsMap)
@@ -1067,11 +1074,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         uniqueOutputColumns = this.sortColumnsByType(uniqueOutputColumns, xColumn);
 
         const fields: FieldDTO[] = [
-            ...uniqueOutputColumns.map(column => (this.createField({
-                name: column.displayName,
-                type: this.getFieldTypeForDataType(column.dataType),
-                values: [],
-            })))
+            ...uniqueOutputColumns.map(column => {
+                const config: FieldDTO['config'] = {};
+
+                if (showUnits) {
+                    const unit = this.getUnitForColumn(column);
+                    if (unit) {
+                        config.unit = unit;
+                    }
+                }
+
+                return this.createField({
+                    name: column.displayName,
+                    type: this.getFieldTypeForDataType(column.dataType),
+                    values: [],
+                    config
+                })
+            }),
         ];
 
         metadataFieldOptions.forEach(({ label, value }) => {
@@ -1091,7 +1110,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             const data = tableRowData.frame.data;
             const rowCount = data.length;
 
-            const columnInfoByDisplayName = tableColumnsData 
+            const columnInfoByDisplayName: Map<string, ColumnWithDisplayName> = tableColumnsData 
                 ? new Map(tableColumnsData.selectedColumns.map(column => [column.displayName, column]))
                 : new Map(); // Handle case where only metadata fields are selected
             const columnIndexByName = new Map(
@@ -1109,13 +1128,22 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         field.values = field.values!.concat(tableNameColumnValues);
                         break;
                     default:
+                        const columnDetails = columnInfoByDisplayName.get(field.name);
+
+                        if (!columnDetails) {
+                            const emptyValues = Array(rowCount).fill(null);
+                            field.values = field.values!.concat(emptyValues);
+                            break;
+                        }
+
                         const { 
                             name: actualColumnName,
                             dataType: columnDataType
-                        } = columnInfoByDisplayName.get(field.name) || {};
+                        } = columnDetails;
                         const columnIndex = actualColumnName !== undefined
                             ? columnIndexByName.get(actualColumnName)
                             : undefined;
+
                         if (
                             actualColumnName === undefined
                             || columnDataType === undefined
@@ -1177,12 +1205,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private getUniqueColumns(columns: ColumnWithDisplayName[]): ColumnWithDisplayName[] {
         const uniqueColumnsMap: Map<string, ColumnWithDisplayName> = new Map();
         columns.forEach(column => {
-            const key = this.getColumnIdentifier(column.name, column.dataType);
+            const key = this.getColumnIdentifier(column.displayName, column.dataType);
             if (!uniqueColumnsMap.has(key)) {
                 uniqueColumnsMap.set(key, column);
             }
         });
         return Array.from(uniqueColumnsMap.values());
+    }
+
+    private getUnitForColumn(column?: Column): string {
+        const properties = column?.properties ?? {};
+        const matchedUnitPropertyKey = POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS.find(name => properties[name]);
+        return matchedUnitPropertyKey ? properties[matchedUnitPropertyKey] : '';
     }
 
     private buildTableNamesMap(tables: TableProperties[]) {
@@ -1223,7 +1257,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private buildTableColumnsMap(
         selectedColumnIdentifiers: string[],
         tables: TableProperties[],
-        includeIndexColumns: boolean
+        includeIndexColumns: boolean,
+        showUnits: boolean
     ): Record<string, TableColumnsData> {
         const selectedTableColumnsMap: Record<string, TableColumnsData> = {};
         const uniqueColumnsAcrossTables = this.getUniqueColumnsAcrossTables(tables);
@@ -1233,9 +1268,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 table,
                 includeIndexColumns
             ).map(column => {
-                const displayName = uniqueColumnsAcrossTables.find(
+                let displayName = uniqueColumnsAcrossTables.find(
                     uniqueColumn => uniqueColumn.value === this.getColumnIdentifier(column.name, column.dataType)
                 )?.label || '';
+
+                if (showUnits) {
+                    const unit = this.getUnitForColumn(column);
+                    if (unit) {
+                        displayName += ` (${unit})`;
+                    }
+                }
+
                 return {
                     ...column,
                     displayName
@@ -1276,7 +1319,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     name: column.name,
                     dataType: column.dataType,
                     columnType: column.columnType,
-                    properties: {}
+                    properties: column.properties ?? {}
                 });
             }
         });
