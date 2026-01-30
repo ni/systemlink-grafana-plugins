@@ -57,7 +57,7 @@ export const tooltips = {
     columns: 'Specifies the columns to include in the response data.',
     filterNulls: `Specifies whether to filter out null and NaN values before decimating the data.`,
     includeIndexColumns: 'Specifies whether to include index columns in the response data.',
-    showUnits: 'Specifies whether to append units to column display names and configure field units',
+    showUnits: 'Specifies whether to append units to column display names and configure field units.',
     dataTableProperties: 'This field specifies the data table properties to be queried.',
     columnProperties: 'This field specifies the column properties to be queried.',
     decimationMethod: 'Specifies the method used to decimate the data.',
