@@ -7394,7 +7394,6 @@ describe('DataFrameDataSourceV2', () => {
 
                 const temperatureField = findField(result.fields, 'Temperature (Celsius)');
                 const pressureField = findField(result.fields, 'Pressure (atm)');
-
                 expect(temperatureField).toBeDefined();
                 expect(temperatureField?.config?.unit).toBe('Celsius');
                 expect(pressureField).toBeDefined();
@@ -7464,6 +7463,8 @@ describe('DataFrameDataSourceV2', () => {
                 const fahrenheitField = findField(result.fields, 'Temperature (Fahrenheit)');
                 expect(celsiusField).toBeDefined();
                 expect(fahrenheitField).toBeDefined();
+                expect(celsiusField?.config?.unit).toBe('Celsius');
+                expect(fahrenheitField?.config?.unit).toBe('Fahrenheit');
             });
         });
 
