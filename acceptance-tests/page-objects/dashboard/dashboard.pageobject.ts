@@ -2,17 +2,18 @@ import { Page, Locator } from '@playwright/test';
 import { ToolbarComponent } from './components/toolbar.component';
 import { AssetQueryEditorComponent } from './components/asset-query-editor.component';
 import { Settings } from './components/settings.component';
+import { Panel } from './components/panel.component';
 
 export class DashboardPage {
     readonly page: Page;
     readonly toolbar: ToolbarComponent;
-    readonly assetQueryEditor: AssetQueryEditorComponent;
+    readonly panel: Panel;
     readonly settings: Settings;
 
     constructor(page: Page) {
         this.page = page;
         this.toolbar = new ToolbarComponent(page);
-        this.assetQueryEditor = new AssetQueryEditorComponent(page);
+        this.panel = new Panel(page);
         this.settings = new Settings(page);
     }
 

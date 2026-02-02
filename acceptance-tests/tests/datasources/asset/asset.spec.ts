@@ -44,40 +44,40 @@ test.describe('Asset data source with asset var iable', () => {
             await dashboard.addVisualizationButton.waitFor();
             await dashboard.addVisualization();
             await dashboard.selectDataSource('ni-slasset-datasource default');
-            await dashboard.assetQueryEditor.switchToTableView();
+            await dashboard.panel.assetQueryEditor.switchToTableView();
 
             await expect(dashboard.dataSourcePicker).toHaveAttribute('placeholder', 'ni-slasset-datasource');
         });
 
         test('should add filter by minionId using the asset variable', async () => {
-            await dashboard.assetQueryEditor.addFilter('Asset Identifier', 'equals', '$id');
+            await dashboard.panel.assetQueryEditor.addFilter('Asset Identifier', 'equals', '$id');
 
-            await expect(dashboard.assetQueryEditor.firstFilterRow).toContainText('Asset Identifier');
-            await expect(dashboard.assetQueryEditor.firstFilterRow).toContainText('equals');
-            await expect(dashboard.assetQueryEditor.firstFilterRow).toContainText('$id');
+            await expect(dashboard.panel.table.firstFilterRow).toContainText('Asset Identifier');
+            await expect(dashboard.panel.table.firstFilterRow).toContainText('equals');
+            await expect(dashboard.panel.table.firstFilterRow).toContainText('$id');
         });
 
         test('should verify that table data changes as the variable value changes', async () => {
-            await dashboard.assetQueryEditor.table.first().waitFor({ state: 'visible', timeout: 10000 });
+            await dashboard.panel.table.getTable.first().waitFor({ state: 'visible', timeout: 10000 });
 
-            let cellCount = await dashboard.assetQueryEditor.getTableCellCount();
-
-            expect(cellCount).toBe(5);
-            await expect(dashboard.assetQueryEditor.cellValue('Acme')).toBeVisible();
-            await expect(dashboard.assetQueryEditor.cellValue('SDFGSDFG234')).toBeVisible();
-            await expect(dashboard.assetQueryEditor.cellValue('ABCD')).toBeVisible();
-            await expect(dashboard.assetQueryEditor.cellValue('2300760d-38c4-48a1-9acb-800260812337')).toBeVisible();
-
-            await dashboard.assetQueryEditor.openVariableDropdown('SDFGSDFG234 (SDFGSDFG234)', 'rsctest-9047 (01CEE362)');
-            await dashboard.assetQueryEditor.refreshData();
-
-            cellCount = await dashboard.assetQueryEditor.getTableCellCount();
+            let cellCount = await dashboard.panel.table.getTableCellCount();
 
             expect(cellCount).toBe(5);
-            await expect(dashboard.assetQueryEditor.cellValue('National Instruments')).toBeVisible();
-            await expect(dashboard.assetQueryEditor.cellValue('rsctest-9047')).toBeVisible();
-            await expect(dashboard.assetQueryEditor.cellValue('cRIO-9047')).toBeVisible();
-            await expect(dashboard.assetQueryEditor.cellValue('2300760d-38c4-48a1-9acb-800260812337')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('Acme')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('SDFGSDFG234')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('ABCD')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('2300760d-38c4-48a1-9acb-800260812337')).toBeVisible();
+
+            await dashboard.panel.assetQueryEditor.openVariableDropdown('SDFGSDFG234 (SDFGSDFG234)', 'rsctest-9047 (01CEE362)');
+            await dashboard.panel.assetQueryEditor.refreshData();
+
+            cellCount = await dashboard.panel.table.getTableCellCount();
+
+            expect(cellCount).toBe(5);
+            await expect(dashboard.panel.table.cellValue('National Instruments')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('rsctest-9047')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('cRIO-9047')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('2300760d-38c4-48a1-9acb-800260812337')).toBeVisible();
         });
     });
 
@@ -102,47 +102,47 @@ test.describe('Asset data source with asset var iable', () => {
             await dashboard.addVisualizationButton.waitFor();
             await dashboard.addVisualization();
             await dashboard.selectDataSource('ni-slasset-datasource default');
-            await dashboard.assetQueryEditor.switchToTableView();
+            await dashboard.panel.assetQueryEditor.switchToTableView();
 
             await expect(dashboard.dataSourcePicker).toHaveAttribute('placeholder', 'ni-slasset-datasource');
         });
 
         test('should add scan code property to the table', async () => {
-            await dashboard.assetQueryEditor.openQueryProperties();
-            await dashboard.assetQueryEditor.selectQueryProperty('scan code');
+            await dashboard.panel.assetQueryEditor.openQueryProperties();
+            await dashboard.panel.assetQueryEditor.selectQueryProperty('scan code');
         });
 
         test('should add filter by scanCode using the asset variable', async () => {
-            await dashboard.assetQueryEditor.addFilter('Scan Code', 'equals', '$scanCode');
+            await dashboard.panel.assetQueryEditor.addFilter('Scan Code', 'equals', '$scanCode');
 
-            await expect(dashboard.assetQueryEditor.firstFilterRow).toContainText('Scan Code');
-            await expect(dashboard.assetQueryEditor.firstFilterRow).toContainText('equals');
-            await expect(dashboard.assetQueryEditor.firstFilterRow).toContainText('$scanCode');
+            await expect(dashboard.panel.table.firstFilterRow).toContainText('Scan Code');
+            await expect(dashboard.panel.table.firstFilterRow).toContainText('equals');
+            await expect(dashboard.panel.table.firstFilterRow).toContainText('$scanCode');
         });
 
         test('should verify that table data changes as the variable value changes', async () => {
-            await dashboard.assetQueryEditor.table.first().waitFor({ state: 'visible', timeout: 10000 });
+            await dashboard.panel.table.getTable.first().waitFor({ state: 'visible', timeout: 10000 });
 
-            let cellCount = await dashboard.assetQueryEditor.getTableCellCount();
-
-            expect(cellCount).toBe(6);
-            await expect(dashboard.assetQueryEditor.cellValue('Acme')).toBeVisible();
-            await expect(dashboard.assetQueryEditor.cellValue('SDFGSDFG234')).toBeVisible();
-            await expect(dashboard.assetQueryEditor.cellValue('ABCD')).toBeVisible();
-            await expect(dashboard.assetQueryEditor.cellValue('2300760d-38c4-48a1-9acb-800260812337')).toBeVisible();
-            await expect(dashboard.assetQueryEditor.cellValue('c44750b7-1f22-4fec-b475-73b10e966217')).toBeVisible();
-
-            await dashboard.assetQueryEditor.openVariableDropdown('SDFGSDFG234 (SDFGSDFG234)', 'Energizer MAX AA DUT 5 (1238)');
-            await dashboard.assetQueryEditor.refreshData();
-
-            cellCount = await dashboard.assetQueryEditor.getTableCellCount();
+            let cellCount = await dashboard.panel.table.getTableCellCount();
 
             expect(cellCount).toBe(6);
-            await expect(dashboard.assetQueryEditor.cellValue('GM')).toBeVisible();
-            await expect(dashboard.assetQueryEditor.cellValue('Energizer MAX AA DUT 5')).toBeVisible();
-            await expect(dashboard.assetQueryEditor.cellValue('HR-3UTG-AMZN')).toBeVisible();
-            await expect(dashboard.assetQueryEditor.cellValue('2300760d-38c4-48a1-9acb-800260812337')).toBeVisible();
-            await expect(dashboard.assetQueryEditor.cellValue('1b5c6cfa-2c89-4f12-894b-c07106c04848')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('Acme')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('SDFGSDFG234')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('ABCD')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('2300760d-38c4-48a1-9acb-800260812337')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('c44750b7-1f22-4fec-b475-73b10e966217')).toBeVisible();
+
+            await dashboard.panel.assetQueryEditor.openVariableDropdown('SDFGSDFG234 (SDFGSDFG234)', 'Energizer MAX AA DUT 5 (1238)');
+            await dashboard.panel.assetQueryEditor.refreshData();
+
+            cellCount = await dashboard.panel.table.getTableCellCount();
+
+            expect(cellCount).toBe(6);
+            await expect(dashboard.panel.table.cellValue('GM')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('Energizer MAX AA DUT 5')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('HR-3UTG-AMZN')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('2300760d-38c4-48a1-9acb-800260812337')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('1b5c6cfa-2c89-4f12-894b-c07106c04848')).toBeVisible();
         });
     });
 

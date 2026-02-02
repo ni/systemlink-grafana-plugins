@@ -28,29 +28,34 @@ server.post('/niapm/v1/query-assets', (req, res) => {
         const propertyMap = {
             'AssetIdentifier': 'id',
             'ScanCode': 'scanCode',
+            'Workspace': 'workspace',
+            'Location': 'location.minionId',
         };
 
-        const match = filter.match(/(\w+)\s*(==|!=|=)\s*"([^"]+)"/);
+        const filterRegex = /(\w+)\s*(==|!=|=)\s*"([^"]+)"/g;
+        const matches = [...filter.matchAll(filterRegex)];
 
-        if (match) {
-            const [, property, operator, value] = match;
-
-            const dbField = propertyMap[property] || property;
+        if (matches.length > 0) {
+            const isOrLogic = filter.includes(' || ');
 
             filteredAssets = db.assets.filter(asset => {
-                const assetValue = asset[dbField];
+                const checkFunction = isOrLogic ? matches.some : matches.every;
 
-                switch (operator) {
-                    case '=':
-                    case '==':
-                        return assetValue === value;
+                return checkFunction.call(matches, match => {
+                    const [, property, operator, value] = match;
+                    const dbField = propertyMap[property] || property;
+                    const assetValue = asset[dbField];
 
-                    case '!=':
-                        return assetValue !== value;
-
-                    default:
-                        return true;
-                }
+                    switch (operator) {
+                        case '=':
+                        case '==':
+                            return assetValue === value;
+                        case '!=':
+                            return assetValue !== value;
+                        default:
+                            return true;
+                    }
+                });
             });
         }
     }

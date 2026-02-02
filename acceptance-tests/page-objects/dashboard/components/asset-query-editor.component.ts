@@ -29,18 +29,6 @@ export class AssetQueryEditorComponent {
         return this.page.getByTestId('query-editor-row').getByText('Value');
     }
 
-    public get firstFilterRow(): Locator {
-        return this.page.getByRole('group').first();
-    }
-
-    public get table(): Locator {
-        return this.page.getByTestId('data-testid panel content');
-    }
-
-    public get tableCell(): Locator {
-        return this.table.getByRole('cell');
-    }
-
     public get switchToTableViewButton(): Locator {
         return this.page.getByRole('button', { name: 'Switch to table' });
     }
@@ -69,10 +57,6 @@ export class AssetQueryEditorComponent {
         return this.page.getByRole('checkbox', { name: optionName });
     }
 
-    public cellValue(value: string): Locator {
-        return this.table.getByRole('cell', { name: value });
-    }
-
     public getQueryTypeOption(optionName: string): Locator {
         return this.selectMenu.getByText(optionName, { exact: true });
     }
@@ -95,10 +79,6 @@ export class AssetQueryEditorComponent {
         await this.queryBuilderValueField.click();
         await this.page.keyboard.type(value);
         await this.page.keyboard.press('Enter');
-    }
-
-    async getTableCellCount(): Promise<number> {
-        return await this.tableCell.count();
     }
 
     async switchToTableView(): Promise<void> {
