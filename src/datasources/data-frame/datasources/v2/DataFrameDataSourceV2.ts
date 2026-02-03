@@ -354,15 +354,29 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 const rowsInRetrievedDataFrame = retrievedDataFrame.data.length;
                 const columnsInRetrievedDataFrame = retrievedDataFrame.columns.length;
                 const dataPointsToAdd = rowsInRetrievedDataFrame * columnsInRetrievedDataFrame;
+                const dataPointsRemaining = TOTAL_ROWS_LIMIT - acc.totalDataPoints;
                 
                 acc.processedTables++;
 
-                const dataPointsRemaining = TOTAL_ROWS_LIMIT - acc.totalDataPoints;
+                const setLimitExceededFlag = () => {
+                    acc.isLimitExceeded = true;
+                    stopSignal$.next();
+                    stopSignal$.complete();
+                };
+
+                if (dataPointsRemaining <= 0) {
+                    setLimitExceededFlag();
+                    return acc;
+                }
 
                 if (dataPointsToAdd <= dataPointsRemaining) {
                     acc.data[result.tableId] = result.data;
                     acc.totalDataPoints += dataPointsToAdd;
-                } else if (dataPointsRemaining > 0 && rowsInRetrievedDataFrame > 0) {
+
+                    if (acc.totalDataPoints >= TOTAL_ROWS_LIMIT && acc.processedTables < totalRequests) {
+                        setLimitExceededFlag();
+                    }
+                } else {
                     const rowsToInclude = Math.floor(dataPointsRemaining / columnsInRetrievedDataFrame);
                     if (rowsToInclude > 0) {
                         acc.data[result.tableId] = {
@@ -373,31 +387,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         };
                         acc.totalDataPoints += rowsToInclude * columnsInRetrievedDataFrame;
                     }
-
-                    if (acc.totalDataPoints >= TOTAL_ROWS_LIMIT) {
-                        acc.isLimitExceeded = true;
-                        stopSignal$.next();
-                        stopSignal$.complete();
-                    }
-                } else {
-                    // No more room for data
-                    acc.isLimitExceeded = true;
-                    stopSignal$.next();
-                    stopSignal$.complete();
-                }
-
-                // Check if limit reached after adding full table data
-                if (acc.totalDataPoints >= TOTAL_ROWS_LIMIT && acc.processedTables < totalRequests) {
-                    acc.isLimitExceeded = true;
-                    stopSignal$.next();
-                    stopSignal$.complete();
+                    setLimitExceededFlag();
                 }
 
                 return acc;
             }, 
             { 
                 totalDataPoints: 0,
-                dataPointsRemaining: TOTAL_ROWS_LIMIT,
                 data: {} as Record<string, TableDataRows>, 
                 processedTables: 0, 
                 isLimitExceeded: false 
