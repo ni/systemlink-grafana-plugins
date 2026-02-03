@@ -19,12 +19,22 @@ import {
 import { isObservable, lastValueFrom } from 'rxjs';
 import _ from 'lodash';
 
-export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRunQuery, datasource }: Props) => {
+export const DataFrameQueryEditorV2: React.FC<Props> = (
+    { query, onChange, onRunQuery, datasource }: Props
+) => {
     const isQueryUndecimatedDataFeatureEnabled = useMemo(() => 
         datasource.instanceSettings.jsonData?.featureToggles?.queryUndecimatedData ?? false,
         [datasource]
     );
-    const migratedQuery = datasource.processQuery(query as DataFrameDataQuery) as ValidDataFrameQueryV2;
+
+    const isHighResolutionZoomFeatureEnabled = useMemo(() =>
+        datasource.instanceSettings.jsonData?.featureToggles?.highResolutionZoom ?? false,
+        [datasource]
+    );
+
+    const migratedQuery = datasource.processQuery(
+        query as DataFrameDataQuery,
+    ) as ValidDataFrameQueryV2;
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
     const [isColumnConfigurationSectionOpen, setIsColumnConfigurationSectionOpen] = useState(true);
@@ -332,6 +342,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         handleQueryChange({ ...migratedQuery, includeIndexColumns });
     };
 
+    const onShowUnitsChange = (event: React.FormEvent<HTMLInputElement>) => {
+        const showUnits = event.currentTarget.checked;
+        handleQueryChange({ ...migratedQuery, showUnits });
+    };
+
     const onFilterNullsChange = (event: React.FormEvent<HTMLInputElement>) => {
         const filterNulls = event.currentTarget.checked;
         handleQueryChange({ ...migratedQuery, filterNulls });
@@ -346,9 +361,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
         handleQueryChange({ ...migratedQuery, xColumn });
     };
 
-    const onUseTimeRangeChange = (event: React.FormEvent<HTMLInputElement>) => {
-        const applyTimeFilters = event.currentTarget.checked;
-        handleQueryChange({ ...migratedQuery, applyTimeFilters });
+    const onFilterXRangeOnZoomPanChange = (event: React.FormEvent<HTMLInputElement>) => {
+        const filterXRangeOnZoomPan = event.currentTarget.checked;
+        handleQueryChange({ ...migratedQuery, filterXRangeOnZoomPan });
     };
 
     function validateTakeValue(value: number, TAKE_LIMIT: number) {
@@ -481,6 +496,16 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                                 onChange={onFilterNullsChange}
                             />
                         </InlineField>
+                        <InlineField
+                            label={labels.showUnits}
+                            labelWidth={INLINE_LABEL_WIDTH}
+                            tooltip={tooltips.showUnits}
+                        >
+                            <InlineSwitch
+                                value={migratedQuery.showUnits}
+                                onChange={onShowUnitsChange}
+                            />
+                        </InlineField>
                     </Collapse>
 
                     <Collapse
@@ -520,13 +545,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = ({ query, onChange, onRun
                             />
                         </InlineField>
                         <InlineField
-                            label={labels.useTimeRange}
+                            label={isHighResolutionZoomFeatureEnabled ? labels.filterXRangeOnZoomPan : labels.useTimeRange}
                             labelWidth={INLINE_LABEL_WIDTH}
-                            tooltip={tooltips.useTimeRange}
+                            tooltip={isHighResolutionZoomFeatureEnabled ? tooltips.filterXRangeOnZoomPan : tooltips.useTimeRange}
                         >
                             <InlineSwitch
-                                value={migratedQuery.applyTimeFilters}
-                                onChange={onUseTimeRangeChange}
+                                value={migratedQuery.filterXRangeOnZoomPan}
+                                onChange={onFilterXRangeOnZoomPanChange}
                             />
                         </InlineField>
                         { 

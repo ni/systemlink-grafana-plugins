@@ -40,9 +40,10 @@ export interface DataFrameQueryV2 extends DataQuery {
   columns?: string[] | Observable<string[]>;
   includeIndexColumns?: boolean;
   filterNulls?: boolean;
+  showUnits?: boolean;
   decimationMethod?: string;
   xColumn?: string | null;
-  applyTimeFilters?: boolean;
+  filterXRangeOnZoomPan?: boolean;
   take?: number;
   undecimatedRecordCount?: number;
 }
@@ -71,8 +72,6 @@ export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
 };
 
 export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
-  queryByDataTableProperties: false,
-  queryByResultAndColumnProperties: false,
   queryUndecimatedData: false,
   highResolutionZoom: false
 };
@@ -143,9 +142,10 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   columns: [],
   includeIndexColumns: false,
   filterNulls: false,
+  showUnits: false,
   decimationMethod: 'LOSSY',
   xColumn: null,
-  applyTimeFilters: false,
+  filterXRangeOnZoomPan: false,
   take: TAKE_LIMIT,
   undecimatedRecordCount: 10_000
 };
@@ -353,8 +353,6 @@ export interface TableDataRows {
 }
 
 export interface DataFrameFeatureToggles {
-  queryByDataTableProperties: boolean;
-  queryByResultAndColumnProperties: boolean;
   queryUndecimatedData: boolean;
   highResolutionZoom: boolean;
 }
@@ -391,7 +389,7 @@ export interface DecimatedDataRequest {
 export interface UndecimatedDataRequest {
   tableId: string;
   columns: string[];
-  orderBy: Array<{ column: string; descending: boolean }> | undefined;
+  orderBy?: Array<{ column: string; descending?: boolean }>;
   filters: ColumnFilter[];
   take: number;
 }

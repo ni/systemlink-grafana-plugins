@@ -71,7 +71,6 @@ const renderComponent = (
     resultFilter = '',
     dataTableFilter = '',
     columnFilter = '',
-    queryByResultAndColumnProperties = true,
     throwErrorFromQueryTables = false,
     additionalInfoMessage = '',
     infoMessageWidth = VALUE_FIELD_WIDTH,
@@ -103,7 +102,7 @@ const renderComponent = (
         ),
         transformResultQuery: jest.fn((filter: string) => `test $${filter}`),
         instanceSettings: {
-            jsonData: { featureToggles: { queryByResultAndColumnProperties } },
+            jsonData: {}
         },
     } as unknown as DataFrameDataSource;
 
@@ -161,7 +160,7 @@ const renderComponent = (
 describe('DataFrameQueryBuilderWrapper', () => {
     describe('Info Banner', () => {
         it('should show with additional info message', async () => {
-            renderComponent('', '', '', true, true, 'Some info message');
+            renderComponent('', '', '', true, 'Some info message');
             await waitFor(() => {
                 const infoAlert = screen.getByLabelText('Query optimization');
                 expect(infoAlert).toBeInTheDocument();
@@ -192,7 +191,7 @@ describe('DataFrameQueryBuilderWrapper', () => {
 
         it('should set width to custom value when infoMessageWidth is provided', async () => {
             const customWidth = 80;
-            renderComponent('', '', '', true, false, 'Some info message', customWidth)
+            renderComponent('', '', '', false, 'Some info message', customWidth)
 
             await waitFor(() => {
                 const infoAlert = screen.getByLabelText('Query optimization');
@@ -255,7 +254,7 @@ describe('DataFrameQueryBuilderWrapper', () => {
         });
 
         it('should handle error from queryTables in the DataTableQueryBuilder component', async () => {
-            renderComponent('', '', '', true, true);
+            renderComponent('', '', '', true);
 
             await waitFor(() => {
                 const optionsList = screen.getByTestId('data-table-name-options-list');
@@ -363,15 +362,6 @@ describe('DataFrameQueryBuilderWrapper', () => {
                expect(onColumnFilterChange).toHaveBeenCalledWith({ detail: eventDetail });
            });
         });
-
-        it('should not render the ColumnsQueryBuilder when feature flag is false', async () => {
-            renderComponent('', '', '', false);
-
-            await waitFor(() => {
-                expect(screen.queryByTestId('mock-columns-query-builder')).not.toBeInTheDocument();
-            });
-        });
-
         
         it('should pass disabled=true to ColumnsQueryBuilder when resultFilter is empty', async () => {
             renderComponent('', '', 'column filter');
@@ -516,14 +506,6 @@ describe('DataFrameQueryBuilderWrapper', () => {
 
             await waitFor(() => {
                 expect(datasource.loadPartNumbers).toHaveBeenCalled();
-            });
-        });
-
-        it('should not render the ResultsQueryBuilder when feature flag is false', async () => {
-            renderComponent('', '', '', false);
-
-            await waitFor(() => {
-                expect(screen.queryByTestId('mock-results-query-builder')).not.toBeInTheDocument();
             });
         });
     });

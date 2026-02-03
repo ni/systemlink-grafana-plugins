@@ -7,7 +7,7 @@ import React from "react";
 import { cleanup, render, RenderResult, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
-import { DataFrameQueryV2, DataFrameQueryType, DataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties, DataFrameDataQuery } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties, DataFrameDataQuery } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { COLUMN_OPTIONS_LIMIT } from "datasources/data-frame/constants";
@@ -41,15 +41,16 @@ const renderComponent = (
     errorDescription = '',
     columnOptions: ComboboxOption[] = [],
     xColumnOptions: ComboboxOption[] = [],
-    processQueryOverride?: jest.Mock<DataFrameQuery, [ValidDataFrameQueryV2]>,
+    processQueryOverride?: jest.Mock<ValidDataFrameQuery, [DataFrameDataQuery]>,
     variablesCache: Record<string, string> = {},
-    mockDatasource: Partial<DataFrameDataSource> = {}
+    mockDatasource: Partial<DataFrameDataSource> = {},
+    queries: DataFrameDataQuery[] = []
 ) => {
     const onChange = jest.fn();
     const onRunQuery = jest.fn();
     const processQuery = processQueryOverride ?? jest
-        .fn<DataFrameQuery, [ValidDataFrameQueryV2]>()
-        .mockImplementation(query => ({ ...defaultQueryV2, ...query }));
+        .fn<ValidDataFrameQuery, [DataFrameDataQuery]>()
+        .mockImplementation((query) => ({ ...defaultQueryV2, ...query }));
     const datasource = {
         errorTitle,
         errorDescription,
@@ -93,6 +94,7 @@ const renderComponent = (
         <DataFrameQueryEditorV2
             datasource={datasource}
             query={initialQuery}
+            queries={queries}
             onChange={onChange}
             onRunQuery={onRunQuery}
         />
@@ -103,6 +105,7 @@ const renderComponent = (
             <DataFrameQueryEditorV2
                 datasource={datasource}
                 query={newQuery}
+                queries={queries}
                 onChange={onChange}
                 onRunQuery={onRunQuery}
             />
@@ -114,15 +117,15 @@ const renderComponent = (
 
 describe("DataFrameQueryEditorV2", () => {
     it("should call processQuery with the initial query", () => {
-        const { processQuery } = renderComponent({
+        const query: DataFrameDataQuery = {
             type: DataFrameQueryType.Data,
-            tableId: 'ExistingFilter',
-        });
+            tableId: 'Table1',
+            refId: 'A',
+        };
 
-        expect(processQuery).toHaveBeenCalledWith(expect.objectContaining({
-            type: DataFrameQueryType.Data,
-            tableId: 'ExistingFilter',
-        }));
+        const { processQuery } = renderComponent(query);
+
+        expect(processQuery).toHaveBeenCalledWith(query);
     });
 
     it("should render query type options", () => {
@@ -227,7 +230,7 @@ describe("DataFrameQueryEditorV2", () => {
                 let columnsField: HTMLElement;
                 let datasource: DataFrameDataSource;
 
-                const processQuery = jest.fn(query => ({ ...defaultQueryV2, ...query }));
+                const processQuery = jest.fn((query) => ({ ...defaultQueryV2, ...query }));
 
                 async function changeFilterValue(filterValue = 'NewFilter') {
                     // Get the onDataTableFilterChange callback from the mock
@@ -964,7 +967,7 @@ describe("DataFrameQueryEditorV2", () => {
                     it("should call onChange with a list of columns when processQuery returns an observable", async () => {
                         const columns = of(['ColumnB-Numeric', 'ColumnD-String']);
                         const processQueryOverride = jest
-                            .fn<DataFrameQuery, [ValidDataFrameQueryV2]>()
+                            .fn<ValidDataFrameQuery, [DataFrameDataQuery]>()
                             .mockImplementation(query => ({
                                 ...defaultQueryV2,
                                 ...query,
@@ -994,7 +997,7 @@ describe("DataFrameQueryEditorV2", () => {
                     it("should call onRunQuery with a list of columns when processQuery returns an observable", async () => {
                         const columns = of(['ColumnB-Numeric', 'ColumnD-String']);
                         const processQueryOverride = jest
-                            .fn<DataFrameQuery, [ValidDataFrameQueryV2]>()
+                            .fn<ValidDataFrameQuery, [DataFrameDataQuery]>()
                             .mockImplementation(query => ({
                                 ...defaultQueryV2,
                                 ...query,
@@ -1529,6 +1532,32 @@ describe("DataFrameQueryEditorV2", () => {
                     });
                 });
             });
+
+            describe("show units", () => {
+                let showUnitsCheckbox: HTMLElement;
+                let user: UserEvent;
+
+                beforeEach(() => {
+                    showUnitsCheckbox = screen.getAllByRole('switch')[2];
+                    user = userEvent.setup();
+                });
+
+                it("should have the show units checkbox unchecked by default", () => {
+                    expect(showUnitsCheckbox).toBeInTheDocument();
+                    expect(showUnitsCheckbox).not.toBeChecked();
+                });
+
+                it("should call onChange and onRunQuery when the show units checkbox is checked", async () => {
+                    await user.click(showUnitsCheckbox);
+
+                    await waitFor(() => {
+                        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                            showUnits: true
+                        }));
+                        expect(onRunQuery).toHaveBeenCalled();
+                    });
+                });
+            });
         });
 
         describe("decimation settings controls", () => {
@@ -1829,7 +1858,7 @@ describe("DataFrameQueryEditorV2", () => {
                 let xColumnField: HTMLElement;
                 let datasource: DataFrameDataSource;
 
-                const processQuery = jest.fn(query => ({ ...defaultQueryV2, ...query }));
+                const processQuery = jest.fn((query) => ({ ...defaultQueryV2, ...query }));
 
                 async function changeFilterValue(filterValue = 'NewFilter') {
                     // Get the onDataTableFilterChange callback from the mock
@@ -2709,26 +2738,26 @@ describe("DataFrameQueryEditorV2", () => {
                 });
             });
 
-            describe("use time range", () => {
-                let useTimeRangeCheckbox: HTMLElement;
+            describe("filter for x-axis range on zoom/pan", () => {
+                let filterXRangeOnZoomPanCheckbox: HTMLElement;
                 let user: UserEvent;
 
                 beforeEach(() => {
-                    useTimeRangeCheckbox = screen.getAllByRole('switch')[2];
+                    filterXRangeOnZoomPanCheckbox = screen.getAllByRole('switch')[3];
                     user = userEvent.setup();
                 });
 
-                it("should have the use time range checkbox unchecked by default", () => {
-                    expect(useTimeRangeCheckbox).toBeInTheDocument();
-                    expect(useTimeRangeCheckbox).not.toBeChecked();
+                it("should have the filter for x-axis range on zoom/pan checkbox unchecked by default", () => {
+                    expect(filterXRangeOnZoomPanCheckbox).toBeInTheDocument();
+                    expect(filterXRangeOnZoomPanCheckbox).not.toBeChecked();
                 });
 
-                it("should call onChange and onRunQuery when the use time range checkbox is checked", async () => {
-                    await user.click(useTimeRangeCheckbox);
+                it("should call onChange and onRunQuery when the filter for x-axis range on zoom/pan checkbox is checked", async () => {
+                    await user.click(filterXRangeOnZoomPanCheckbox);
 
                     await waitFor(() => {
                         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                            applyTimeFilters: true
+                            filterXRangeOnZoomPan: true
                         }));
                         expect(onRunQuery).toHaveBeenCalled();
                     });
