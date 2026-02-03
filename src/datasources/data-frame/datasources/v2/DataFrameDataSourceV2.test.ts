@@ -3721,7 +3721,8 @@ describe('DataFrameDataSourceV2', () => {
 
                         // textUtil.sanitize should strip dangerous HTML
                         expect(column1Field?.values?.[0]).not.toContain('<script>');
-                        expect(column1Field?.values?.[1]).not.toContain('onerror');
+                        expect(column1Field?.values?.[1]).toBe('');
+
                         expect(column2Field?.values?.[0]).toBe('normalValue');
                         expect(column2Field?.values?.[1]).toBe('test');
                     });
