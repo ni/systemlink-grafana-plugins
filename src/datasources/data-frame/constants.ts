@@ -21,7 +21,7 @@ export const decimationMethods = [
 export const decimationNoneOption = {
   value: 'NONE',
   label: 'None',
-  description: nbsp`No decimation applied`,
+  description: nbsp`Full resolution data with no decimation applied`,
 };
 
 export const errorCodes: { [key: number]: string; } = {
