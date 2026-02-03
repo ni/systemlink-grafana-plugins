@@ -14,7 +14,7 @@ export const assets = [
         "isNIAsset": false,
         "id": "c44750b7-1f22-4fec-b475-73b10e966217",
         "location": {
-            "physicalLocation": "8ff66ed3-1955-449a-8616-2e870562d400",
+            "minionId": "SYSTEM-1",
             "parent": "",
             "resourceUri": "c44750b7-1f22-4fec-b475-73b10e966217",
             "slotNumber": -1,
@@ -25,7 +25,7 @@ export const assets = [
         },
         "calibrationStatus": "OK",
         "isSystemController": false,
-        "workspace": "2300760d-38c4-48a1-9acb-800260812337",
+        "workspace": "default-workspace",
         "properties": {},
         "keywords": [],
         "lastUpdatedTimestamp": "2025-09-03T15:05:46.116Z",
@@ -47,7 +47,7 @@ export const assets = [
         "isNIAsset": true,
         "id": "4aa6c0de-c256-4f5b-9d7f-0e2d3aa20edc",
         "location": {
-            "parent": "",
+            "minionId": "SYSTEM-2",
             "resourceUri": "4aa6c0de-c256-4f5b-9d7f-0e2d3aa20edc",
             "slotNumber": -1,
             "state": {
@@ -57,7 +57,7 @@ export const assets = [
         },
         "calibrationStatus": "OK",
         "isSystemController": true,
-        "workspace": "2300760d-38c4-48a1-9acb-800260812337",
+        "workspace": "workspace-2",
         "properties": {},
         "keywords": [],
         "lastUpdatedTimestamp": "2025-09-03T14:58:04.394Z",
@@ -82,7 +82,7 @@ export const assets = [
         "isNIAsset": false,
         "id": "aea354a5-2ccc-4910-9293-fa93cf8fcf90",
         "location": {
-            "physicalLocation": "815925e1-5ac9-4e37-8bb3-f89c276f1e3e",
+            "minionId": "SYSTEM-3",
             "parent": "",
             "resourceUri": "",
             "slotNumber": -1,
@@ -93,7 +93,7 @@ export const assets = [
         },
         "calibrationStatus": "OK",
         "isSystemController": false,
-        "workspace": "2300760d-38c4-48a1-9acb-800260812337",
+        "workspace": "default-workspace",
         "properties": {
             "aaa": "123",
             "a": "b"
@@ -120,7 +120,7 @@ export const assets = [
         "isNIAsset": false,
         "id": "9f315f8f-23e3-48cd-b695-14b1961bdbcc",
         "location": {
-            "physicalLocation": "9085b24f-0676-4311-8381-bff39f497045",
+            "physicalLocation": "LOCATION-2",
             "parent": "",
             "resourceUri": "9f315f8f-23e3-48cd-b695-14b1961bdbcc",
             "slotNumber": -1,
@@ -131,7 +131,7 @@ export const assets = [
         },
         "calibrationStatus": "OK",
         "isSystemController": false,
-        "workspace": "2300760d-38c4-48a1-9acb-800260812337",
+        "workspace": "default-workspace",
         "properties": {},
         "keywords": [],
         "lastUpdatedTimestamp": "2023-10-05T21:36:14.139Z",
@@ -153,7 +153,7 @@ export const assets = [
         "isNIAsset": false,
         "id": "ed55f044-0480-43e1-830a-75d799f09ecb",
         "location": {
-            "physicalLocation": "9085b24f-0676-4311-8381-bff39f497045",
+            "physicalLocation": "LOCATION-3",
             "parent": "",
             "resourceUri": "ed55f044-0480-43e1-830a-75d799f09ecb",
             "slotNumber": -1,
@@ -164,7 +164,7 @@ export const assets = [
         },
         "calibrationStatus": "OK",
         "isSystemController": false,
-        "workspace": "2300760d-38c4-48a1-9acb-800260812337",
+        "workspace": "workspace-2",
         "properties": {},
         "keywords": [],
         "lastUpdatedTimestamp": "2023-10-05T21:36:14.154Z",
@@ -186,7 +186,7 @@ export const assets = [
         "isNIAsset": false,
         "id": "1b5c6cfa-2c89-4f12-894b-c07106c04848",
         "location": {
-            "physicalLocation": "9085b24f-0676-4311-8381-bff39f497045",
+            "physicalLocation": "LOCATION-1",
             "parent": "",
             "resourceUri": "1b5c6cfa-2c89-4f12-894b-c07106c04848",
             "slotNumber": -1,
@@ -197,7 +197,7 @@ export const assets = [
         },
         "calibrationStatus": "OK",
         "isSystemController": false,
-        "workspace": "2300760d-38c4-48a1-9acb-800260812337",
+        "workspace": "default-workspace",
         "properties": {},
         "keywords": [],
         "lastUpdatedTimestamp": "2023-10-05T21:36:14.169Z",

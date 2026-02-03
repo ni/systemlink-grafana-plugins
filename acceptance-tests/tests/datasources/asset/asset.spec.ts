@@ -66,7 +66,7 @@ test.describe('Asset data source with asset var iable', () => {
             await expect(dashboard.panel.table.cellValue('Acme')).toBeVisible();
             await expect(dashboard.panel.table.cellValue('SDFGSDFG234')).toBeVisible();
             await expect(dashboard.panel.table.cellValue('ABCD')).toBeVisible();
-            await expect(dashboard.panel.table.cellValue('2300760d-38c4-48a1-9acb-800260812337')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('Default')).toBeVisible();
 
             await dashboard.panel.assetQueryEditor.openVariableDropdown('SDFGSDFG234 (SDFGSDFG234)', 'rsctest-9047 (01CEE362)');
             await dashboard.panel.assetQueryEditor.refreshData();
@@ -77,7 +77,7 @@ test.describe('Asset data source with asset var iable', () => {
             await expect(dashboard.panel.table.cellValue('National Instruments')).toBeVisible();
             await expect(dashboard.panel.table.cellValue('rsctest-9047')).toBeVisible();
             await expect(dashboard.panel.table.cellValue('cRIO-9047')).toBeVisible();
-            await expect(dashboard.panel.table.cellValue('2300760d-38c4-48a1-9acb-800260812337')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('Workspace 2')).toBeVisible();
         });
     });
 
@@ -129,7 +129,7 @@ test.describe('Asset data source with asset var iable', () => {
             await expect(dashboard.panel.table.cellValue('Acme')).toBeVisible();
             await expect(dashboard.panel.table.cellValue('SDFGSDFG234')).toBeVisible();
             await expect(dashboard.panel.table.cellValue('ABCD')).toBeVisible();
-            await expect(dashboard.panel.table.cellValue('2300760d-38c4-48a1-9acb-800260812337')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('Default')).toBeVisible();
             await expect(dashboard.panel.table.cellValue('c44750b7-1f22-4fec-b475-73b10e966217')).toBeVisible();
 
             await dashboard.panel.assetQueryEditor.openVariableDropdown('SDFGSDFG234 (SDFGSDFG234)', 'Energizer MAX AA DUT 5 (1238)');
@@ -141,7 +141,7 @@ test.describe('Asset data source with asset var iable', () => {
             await expect(dashboard.panel.table.cellValue('GM')).toBeVisible();
             await expect(dashboard.panel.table.cellValue('Energizer MAX AA DUT 5')).toBeVisible();
             await expect(dashboard.panel.table.cellValue('HR-3UTG-AMZN')).toBeVisible();
-            await expect(dashboard.panel.table.cellValue('2300760d-38c4-48a1-9acb-800260812337')).toBeVisible();
+            await expect(dashboard.panel.table.cellValue('Default')).toBeVisible();
             await expect(dashboard.panel.table.cellValue('1b5c6cfa-2c89-4f12-894b-c07106c04848')).toBeVisible();
         });
     });

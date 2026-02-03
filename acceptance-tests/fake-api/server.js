@@ -44,7 +44,9 @@ server.post('/niapm/v1/query-assets', (req, res) => {
                 return checkFunction.call(matches, match => {
                     const [, property, operator, value] = match;
                     const dbField = propertyMap[property] || property;
-                    const assetValue = asset[dbField];
+                    const assetValue = dbField.includes('.')
+                        ? dbField.split('.').reduce((obj, key) => obj?.[key], asset)
+                        : asset[dbField];
 
                     switch (operator) {
                         case '=':
@@ -63,6 +65,63 @@ server.post('/niapm/v1/query-assets', (req, res) => {
     res.json({
         assets: filteredAssets,
         totalCount: filteredAssets.length
+    });
+});
+
+server.get('/niauth/v1/user', (_req, res) => {
+    res.json({
+        workspaces: [
+            {
+                id: 'default-workspace',
+                name: 'Default',
+                default: true,
+                enabled: true
+            },
+            {
+                id: 'workspace-2',
+                name: 'Workspace 2',
+                default: false,
+                enabled: true
+            }
+        ]
+    });
+});
+
+server.post('/nisysmgmt/v1/query-systems', (_req, res) => {
+    res.json({
+        data: [
+            {
+                alias: 'System-1',
+                id: 'SYSTEM-1',
+            },
+            {
+                alias: 'System-2',
+                id: 'SYSTEM-2',
+            },
+            {
+                alias: 'System-3',
+                id: 'SYSTEM-3',
+            }
+        ]
+    });
+});
+
+server.get('/nilocation/v1/locations', (_req, res) => {
+    res.json({
+        locations: [
+            {
+                id: 'LOCATION-1',
+                name: 'Location 1'
+            },
+            {
+                id: 'LOCATION-2',
+                name: 'Location 2'
+            },
+            {
+                id: 'LOCATION-3',
+                name: 'Location 3'
+            }
+        ]
     });
 });
 
