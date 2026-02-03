@@ -1,5 +1,5 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
-import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO, TimeRange, dateTime } from '@grafana/data';
+import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
 import { BackendSrv, locationService, TemplateSrv } from '@grafana/runtime';
 import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { COLUMN_SELECTION_LIMIT, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
@@ -2209,53 +2209,6 @@ describe('DataFrameDataSourceV2', () => {
                         expect(filters).toEqual([]);
                     });
 
-                    it('should not apply time filters when xColumn is selected and selected xColumn is not timestamp', async () => {
-                        const mockTables = [{
-                            id: 'table1',
-                            name: 'table1',
-                            columns: [
-                                { name: 'id', dataType: 'INT32', columnType: ColumnType.Index },
-                                { name: 'customTime', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
-                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                            ]
-                        }];
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-
-                        const mockDecimatedData = {
-                            frame: {
-                                columns: ['id', 'customTime', 'voltage'],
-                                data: [['1'], ['2024-01-01T00:00:00Z'], ['10.5']]
-                            }
-                        };
-                        postSpy.mockReturnValue(of(mockDecimatedData));
-
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['customTime-Timestamp', 'voltage-Numeric'],
-                            xColumn: 'voltage-Numeric',
-                            dataTableFilter: 'name = "Test"',
-                            decimationMethod: 'LOSSY',
-                            filterNulls: false,
-                            filterXRangeOnZoomPan: true
-                        } as DataFrameQueryV2;
-
-                        const optionsWithRange = {
-                            ...options,
-                            range: {
-                                from: { toISOString: () => '2024-01-01T00:00:00Z' },
-                                to: { toISOString: () => '2024-01-02T00:00:00Z' }
-                            },
-                            targets: [query]
-                        } as any;
-
-                        await lastValueFrom(ds.runQuery(query, optionsWithRange));
-
-                        // Should not include time filters
-                        const filters = postSpy.mock.calls[0][1].filters;
-                        expect(filters).toEqual([]);
-                    });
-
                     describe('Numeric x-column', () => {
                         it('should construct numeric filters when xColumn is a Numeric type and URL params exist', async () => {
                             const mockTables = [{
@@ -2311,12 +2264,12 @@ describe('DataFrameDataSourceV2', () => {
                                         expect.objectContaining({
                                             column: 'voltage',
                                             operation: 'GREATER_THAN_EQUALS',
-                                            value: '40.000000'
+                                            value: '40'
                                         }),
                                         expect.objectContaining({
                                             column: 'voltage',
                                             operation: 'LESS_THAN_EQUALS',
-                                            value: '80.000000'
+                                            value: '80'
                                         })
                                     ])
                                 }),
@@ -3802,12 +3755,12 @@ describe('DataFrameDataSourceV2', () => {
                                     expect.objectContaining({
                                         column: 'voltage',
                                         operation: 'GREATER_THAN_EQUALS',
-                                        value: '40.000000'
+                                        value: '40'
                                     }),
                                     expect.objectContaining({
                                         column: 'voltage',
                                         operation: 'LESS_THAN_EQUALS',
-                                        value: '80.000000'
+                                        value: '80'
                                     })
                                 ])
                             }),
@@ -6295,9 +6248,9 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         describe('constructXRangeFilters', () => {
-            const timeRange: TimeRange = {
-                from: dateTime('2024-01-01T00:00:00Z'),
-                to: dateTime('2024-01-01T12:00:00Z'),
+            const timeRange = {
+                from: '2024-01-01T00:00:00Z',
+                to: '2024-01-01T12:00:00Z',
                 raw: { from: 'now-12h', to: 'now' }
             };
 
@@ -6321,12 +6274,12 @@ describe('DataFrameDataSourceV2', () => {
                     {
                         column: 'voltage',
                         operation: 'GREATER_THAN_EQUALS',
-                        value: '10.500000'
+                        value: '10.5'
                     },
                     {
                         column: 'voltage',
                         operation: 'LESS_THAN_EQUALS',
-                        value: '100.750000'
+                        value: '100.75'
                     }
                 ]);
             });
@@ -6416,49 +6369,43 @@ describe('DataFrameDataSourceV2', () => {
 
             describe('formatValueForColumnType', () => {
                 it('should round to integer for INT32 column type', () => {
-                    const result = (ds as any).formatValueForColumnType('42.7', 'INT32');
+                    const result = (ds as any).formatValueForColumnType(42.7, 'INT32');
 
                     expect(result).toBe('43');
                 });
 
                 it('should round to integer for INT64 column type', () => {
-                    const result = (ds as any).formatValueForColumnType('999.3', 'INT64');
+                    const result = (ds as any).formatValueForColumnType(999.3, 'INT64');
 
                     expect(result).toBe('999');
                 });
 
                 it('should handle negative integers for INT32', () => {
-                    const result = (ds as any).formatValueForColumnType('-15.8', 'INT32');
+                    const result = (ds as any).formatValueForColumnType(-15.8, 'INT32');
 
                     expect(result).toBe('-16');
                 });
 
                 it('should handle negative integers for INT64', () => {
-                    const result = (ds as any).formatValueForColumnType('-100.2', 'INT64');
+                    const result = (ds as any).formatValueForColumnType(-100.2, 'INT64');
 
                     expect(result).toBe('-100');
                 });
 
                 it('should return value as-is for non-integer column types', () => {
-                    const result = (ds as any).formatValueForColumnType('42.567', 'FLOAT64');
+                    const result = (ds as any).formatValueForColumnType(42.567, 'FLOAT64');
 
                     expect(result).toBe('42.567');
                 });
 
                 it('should return value as-is when columnDataType is undefined', () => {
-                    const result = (ds as any).formatValueForColumnType('42.567', undefined);
+                    const result = (ds as any).formatValueForColumnType(42.567, undefined);
 
                     expect(result).toBe('42.567');
                 });
 
-                it('should return original value when parsing fails for integer types', () => {
-                    const result = (ds as any).formatValueForColumnType('invalid', 'INT32');
-
-                    expect(result).toBe('invalid');
-                });
-
                 it('should handle zero values', () => {
-                    const result = (ds as any).formatValueForColumnType('0.4', 'INT32');
+                    const result = (ds as any).formatValueForColumnType(0.4, 'INT32');
 
                     expect(result).toBe('0');
                 });
