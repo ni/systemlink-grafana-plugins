@@ -1,6 +1,6 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
-import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
-import { BackendSrv, TemplateSrv } from '@grafana/runtime';
+import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO, TimeRange, dateTime } from '@grafana/data';
+import { BackendSrv, locationService, TemplateSrv } from '@grafana/runtime';
 import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { COLUMN_SELECTION_LIMIT, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
@@ -10,6 +10,14 @@ import { isObservable, lastValueFrom, Observable, of, throwError } from 'rxjs';
 import * as coreUtils from 'core/utils';
 import { DataFrameQueryParamsHandler } from './DataFrameQueryParamsHandler';
 import Papa from 'papaparse';
+
+jest.mock('@grafana/runtime', () => ({
+    ...jest.requireActual('@grafana/runtime'),
+    locationService: {
+        getSearchObject: jest.fn(),
+        partial: jest.fn(),
+    },
+}));
 
 jest.mock('core/query-builder.utils', () => {
     const actualQueryBuilderUtils = jest.requireActual('core/query-builder.utils');
@@ -2247,6 +2255,124 @@ describe('DataFrameDataSourceV2', () => {
                         const filters = postSpy.mock.calls[0][1].filters;
                         expect(filters).toEqual([]);
                     });
+
+                    describe('Numeric x-column', () => {
+                        it('should construct numeric filters when xColumn is a Numeric type and URL params exist', async () => {
+                            const mockTables = [{
+                                id: 'table1',
+                                name: 'table1',
+                                columns: [
+                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                ]
+                            }];
+                            queryTablesSpy.mockReturnValue(of(mockTables));
+
+                            const mockDecimatedData = {
+                                frame: {
+                                    columns: ['voltage', 'current'],
+                                    data: [['50.5'], ['10.5']]
+                                }
+                            };
+                            postSpy.mockReturnValue(of(mockDecimatedData));
+
+                            (locationService.getSearchObject as jest.Mock).mockReturnValue({
+                                editPanel: '1',
+                                'nisl-voltage-min': '40.000000',
+                                'nisl-voltage-max': '80.000000'
+                            });
+
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['voltage-Numeric', 'current-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'LOSSY',
+                                xColumn: 'voltage-Numeric',
+                                filterNulls: false,
+                                filterXRangeOnZoomPan: true
+                            } as DataFrameQueryV2;
+
+                            const optionsWithRange = {
+                                ...options,
+                                range: {
+                                    from: { toISOString: () => '2024-01-01T00:00:00Z' },
+                                    to: { toISOString: () => '2024-01-02T00:00:00Z' }
+                                },
+                                targets: [query]
+                            } as any;
+
+                            await lastValueFrom(ds.runQuery(query, optionsWithRange));
+
+                            expect(postSpy).toHaveBeenCalledWith(
+                                expect.any(String),
+                                expect.objectContaining({
+                                    filters: expect.arrayContaining([
+                                        expect.objectContaining({
+                                            column: 'voltage',
+                                            operation: 'GREATER_THAN_EQUALS',
+                                            value: '40.000000'
+                                        }),
+                                        expect.objectContaining({
+                                            column: 'voltage',
+                                            operation: 'LESS_THAN_EQUALS',
+                                            value: '80.000000'
+                                        })
+                                    ])
+                                }),
+                                expect.any(Object)
+                            );
+                        });
+
+                        it('should not apply filters when xColumn is Numeric type but URL params are missing', async () => {
+                            const mockTables = [{
+                                id: 'table1',
+                                name: 'table1',
+                                columns: [
+                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                ]
+                            }];
+                            queryTablesSpy.mockReturnValue(of(mockTables));
+
+                            const mockDecimatedData = {
+                                frame: {
+                                    columns: ['voltage', 'current'],
+                                    data: [['50.5'], ['10.5']]
+                                }
+                            };
+                            postSpy.mockReturnValue(of(mockDecimatedData));
+
+                            // Mock locationService to return no zoom/pan URL params
+                            (locationService.getSearchObject as jest.Mock).mockReturnValue({});
+
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['voltage-Numeric', 'current-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'LOSSY',
+                                xColumn: 'voltage-Numeric',
+                                filterNulls: false,
+                                filterXRangeOnZoomPan: true
+                            } as DataFrameQueryV2;
+
+                            const optionsWithRange = {
+                                ...options,
+                                range: {
+                                    from: { toISOString: () => '2024-01-01T00:00:00Z' },
+                                    to: { toISOString: () => '2024-01-02T00:00:00Z' }
+                                },
+                                targets: [query]
+                            } as any;
+
+                            await lastValueFrom(ds.runQuery(query, optionsWithRange));
+
+                            // Should not include numeric filters when URL params are missing
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([]);
+                        });
+                    });
                 });
 
                 describe('yColumns behaviour', () => {
@@ -3624,6 +3750,117 @@ describe('DataFrameDataSourceV2', () => {
 
                     const tableNameField = findField(result.fields, 'Data table name');
                     expect(tableNameField?.values).toEqual(['Table 1', 'Table 1', 'Table 2', 'Table 2']);
+                });
+
+                describe('Numeric x-column', () => {
+                    it('should apply numeric x-column filters for undecimated data when xColumn is numeric and URL params exist', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            name: 'table1',
+                            columns: [
+                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const csvResponse = 'voltage,current\n50.5,10.5';
+                        postSpy.mockReturnValue(of(csvResponse));
+
+                        (locationService.getSearchObject as jest.Mock).mockReturnValue({
+                            editPanel: '1',
+                            'nisl-voltage-min': '40.000000',
+                            'nisl-voltage-max': '80.000000'
+                        });
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['voltage-Numeric', 'current-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'NONE',
+                            xColumn: 'voltage-Numeric',
+                            filterNulls: false,
+                            filterXRangeOnZoomPan: true
+                        } as DataFrameQueryV2;
+
+                        const optionsWithRange = {
+                            ...options,
+                            range: {
+                                from: { toISOString: () => '2024-01-01T00:00:00Z' },
+                                to: { toISOString: () => '2024-01-02T00:00:00Z' }
+                            },
+                            targets: [query]
+                        } as any;
+
+                        await lastValueFrom(datasource.runQuery(query, optionsWithRange));
+
+                        expect(postSpy).toHaveBeenCalledWith(
+                            expect.any(String),
+                            expect.objectContaining({
+                                filters: expect.arrayContaining([
+                                    expect.objectContaining({
+                                        column: 'voltage',
+                                        operation: 'GREATER_THAN_EQUALS',
+                                        value: '40.000000'
+                                    }),
+                                    expect.objectContaining({
+                                        column: 'voltage',
+                                        operation: 'LESS_THAN_EQUALS',
+                                        value: '80.000000'
+                                    })
+                                ])
+                            }),
+                            expect.any(Object)
+                        );
+                    });
+
+                    it('should not apply numeric filters for undecimated data when URL params are missing', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            name: 'table1',
+                            columns: [
+                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const csvResponse = 'voltage,current\n50.5,10.5';
+                        postSpy.mockReturnValue(of(csvResponse));
+
+                        (locationService.getSearchObject as jest.Mock).mockReturnValue({});
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['voltage-Numeric', 'current-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'NONE',
+                            xColumn: 'voltage-Numeric',
+                            filterNulls: false,
+                            filterXRangeOnZoomPan: true
+                        } as DataFrameQueryV2;
+
+                        const optionsWithRange = {
+                            ...options,
+                            range: {
+                                from: { toISOString: () => '2024-01-01T00:00:00Z' },
+                                to: { toISOString: () => '2024-01-02T00:00:00Z' }
+                            },
+                            targets: [query]
+                        } as any;
+
+                        await lastValueFrom(datasource.runQuery(query, optionsWithRange));
+
+                        expect(postSpy).toHaveBeenCalledWith(
+                            expect.any(String),
+                            expect.objectContaining({
+                                filters: undefined
+                            }),
+                            expect.any(Object)
+                        );
+                    });
                 });
 
                 describe('batching undecimated data requests', () => {
@@ -6047,6 +6284,191 @@ describe('DataFrameDataSourceV2', () => {
                 DataTableProjections.Name,
             ]);
             expect(result).toEqual([]);
+        });
+    });
+
+    describe('High Resolution Zoom Filter Methods', () => {
+        let mockGetSearchObject: jest.Mock;
+
+        beforeEach(() => {
+            mockGetSearchObject = locationService.getSearchObject as jest.Mock;
+        });
+
+        describe('constructXRangeFilters', () => {
+            const timeRange: TimeRange = {
+                from: dateTime('2024-01-01T00:00:00Z'),
+                to: dateTime('2024-01-01T12:00:00Z'),
+                raw: { from: 'now-12h', to: 'now' }
+            };
+
+            it('should construct numeric filters when xColumn is a Numeric type and URL params exist', () => {
+                mockGetSearchObject.mockReturnValue({
+                    editPanel: '1',
+                    'nisl-voltage-min': '10.500000',
+                    'nisl-voltage-max': '100.750000'
+                });
+                const columns = [
+                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                ];
+
+                const result = (ds as any).constructXRangeFilters(
+                    'voltage-Numeric',
+                    columns,
+                    timeRange
+                );
+
+                expect(result).toEqual([
+                    {
+                        column: 'voltage',
+                        operation: 'GREATER_THAN_EQUALS',
+                        value: '10.500000'
+                    },
+                    {
+                        column: 'voltage',
+                        operation: 'LESS_THAN_EQUALS',
+                        value: '100.750000'
+                    }
+                ]);
+            });
+
+            it('should return empty array when xColumn is Numeric type but URL params are missing', () => {
+                mockGetSearchObject.mockReturnValue({});
+                const columns = [
+                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                ];
+
+                const result = (ds as any).constructXRangeFilters(
+                    'voltage-Numeric',
+                    columns,
+                    timeRange
+                );
+
+                expect(result).toEqual([]);
+            });
+
+            it('should return empty array when xColumn has unsupported data type', () => {
+                const columns = [
+                    { name: 'label', dataType: 'STRING', columnType: ColumnType.Normal }
+                ];
+
+                const result = (ds as any).constructXRangeFilters(
+                    'label-String',
+                    columns,
+                    timeRange
+                );
+
+                expect(result).toEqual([]);
+            });
+        });
+
+        describe('constructNumericRangeFilters', () => {
+            it('should format integer values correctly for INT32 columns', () => {
+                mockGetSearchObject.mockReturnValue({
+                    editPanel: '1',
+                    'nisl-count-min': '10.7',
+                    'nisl-count-max': '99.3'
+                });
+                const columns = [
+                    { name: 'count', dataType: 'INT32', columnType: ColumnType.Normal }
+                ];
+
+                const result = (ds as any).constructNumericRangeFilters('count', columns);
+
+                expect(result).toEqual([
+                    {
+                        column: 'count',
+                        operation: 'GREATER_THAN_EQUALS',
+                        value: '11'
+                    },
+                    {
+                        column: 'count',
+                        operation: 'LESS_THAN_EQUALS',
+                        value: '99'
+                    }
+                ]);
+            });
+
+            it('should format integer values correctly for INT64 columns', () => {
+                mockGetSearchObject.mockReturnValue({
+                    editPanel: '1',
+                    'nisl-id-min': '1000.2',
+                    'nisl-id-max': '2000.4'
+                });
+                const columns = [
+                    { name: 'id', dataType: 'INT64', columnType: ColumnType.Normal }
+                ];
+
+                const result = (ds as any).constructNumericRangeFilters('id', columns);
+
+                expect(result).toEqual([
+                    {
+                        column: 'id',
+                        operation: 'GREATER_THAN_EQUALS',
+                        value: '1000'
+                    },
+                    {
+                        column: 'id',
+                        operation: 'LESS_THAN_EQUALS',
+                        value: '2000'
+                    }
+                ]);
+            });
+
+            describe('formatValueForColumnType', () => {
+                it('should round to integer for INT32 column type', () => {
+                    const result = (ds as any).formatValueForColumnType('42.7', 'INT32');
+
+                    expect(result).toBe('43');
+                });
+
+                it('should round to integer for INT64 column type', () => {
+                    const result = (ds as any).formatValueForColumnType('999.3', 'INT64');
+
+                    expect(result).toBe('999');
+                });
+
+                it('should handle negative integers for INT32', () => {
+                    const result = (ds as any).formatValueForColumnType('-15.8', 'INT32');
+
+                    expect(result).toBe('-16');
+                });
+
+                it('should handle negative integers for INT64', () => {
+                    const result = (ds as any).formatValueForColumnType('-100.2', 'INT64');
+
+                    expect(result).toBe('-100');
+                });
+
+                it('should return value as-is for non-integer column types', () => {
+                    const result = (ds as any).formatValueForColumnType('42.567', 'FLOAT64');
+
+                    expect(result).toBe('42.567');
+                });
+
+                it('should return value as-is when columnDataType is undefined', () => {
+                    const result = (ds as any).formatValueForColumnType('42.567', undefined);
+
+                    expect(result).toBe('42.567');
+                });
+
+                it('should return original value when parsing fails for integer types', () => {
+                    const result = (ds as any).formatValueForColumnType('invalid', 'INT32');
+
+                    expect(result).toBe('invalid');
+                });
+
+                it('should handle zero values', () => {
+                    const result = (ds as any).formatValueForColumnType('0.4', 'INT32');
+
+                    expect(result).toBe('0');
+                });
+
+                it('should handle values that are already integers', () => {
+                    const result = (ds as any).formatValueForColumnType('42', 'INT32');
+
+                    expect(result).toBe('42');
+                });
+            });
         });
     });
 
