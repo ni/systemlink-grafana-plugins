@@ -44,10 +44,7 @@ export const DELAY_BETWEEN_REQUESTS_MS = 1000;
 
 export const PART_NUMBER_FIELD = 'partNumber';
 
-export const INTEGER_DATA_TYPES = [
-    'INT32',
-    'INT64',
-];
+export const INTEGER_DATA_TYPES = ['INT32', 'INT64'];
 
 export const NUMERIC_DATA_TYPES = [
     ...INTEGER_DATA_TYPES,

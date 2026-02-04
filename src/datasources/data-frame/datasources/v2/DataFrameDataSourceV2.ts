@@ -502,7 +502,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
         
         const timeIndexColumnName = columns.find(
-          column => column.dataType === 'TIMESTAMP' && column.columnType === 'INDEX'
+            column => column.dataType === 'TIMESTAMP' && column.columnType === 'INDEX'
         )?.name;
 
         if (!timeIndexColumnName) {
