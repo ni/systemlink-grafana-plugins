@@ -6411,7 +6411,7 @@ describe('DataFrameDataSourceV2', () => {
             ]);
         });
 
-        it('should truncate float values to 6 decimal places when URL params exceed 6 digits', () => {
+        it('should round float values to 6 decimal places when URL params exceed 6 digits', () => {
             mockGetParams.mockReturnValue({
                 min: 10.123456789012,
                 max: 99.987654321098

@@ -1,6 +1,6 @@
 import { UrlQueryMap, UrlQueryValue } from "@grafana/data";
 import { locationService } from "@grafana/runtime";
-import { xColumnRangeParamPrefix, syncXAxisRangeTargets } from "datasources/data-frame/constants/v2/route-query-parameters";
+import { queryParamPrefix, syncXAxisRangeTargets } from "datasources/data-frame/constants/v2/route-query-parameters";
 
 export class DataFrameQueryParamsHandler {
     public static updateSyncXAxisRangeTargetsQueryParam(
@@ -53,8 +53,8 @@ export class DataFrameQueryParamsHandler {
         columnName: string
     ): { min: number; max: number } | null {
         const queryParams = locationService.getSearchObject();
-        const minParamKey = `${xColumnRangeParamPrefix}-${columnName}-min`;
-        const maxParamKey = `${xColumnRangeParamPrefix}-${columnName}-max`;
+        const minParamKey = `${queryParamPrefix}-${columnName}-min`;
+        const maxParamKey = `${queryParamPrefix}-${columnName}-max`;
         const minParamValue = this.getParamValue(queryParams[minParamKey]);
         const maxParamValue = this.getParamValue(queryParams[maxParamKey]);
 
