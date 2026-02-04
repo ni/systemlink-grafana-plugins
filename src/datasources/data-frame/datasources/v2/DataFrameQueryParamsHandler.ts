@@ -59,8 +59,8 @@ export class DataFrameQueryParamsHandler {
         const maxParamValue = this.getParamValue(queryParams[maxParamKey]);
 
         if (
-            !this.isValidNumericValue(minParamValue) 
-            || !this.isValidNumericValue(maxParamValue)
+            !this.isValidNumericValue(minParamValue) ||
+            !this.isValidNumericValue(maxParamValue)
         ) {
             return null;
         }
