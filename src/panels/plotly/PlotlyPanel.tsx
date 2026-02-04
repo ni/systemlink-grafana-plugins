@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   PanelProps,
   DataFrame,
@@ -35,8 +35,13 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const theme = useTheme2();
 
   const traceColors = useTraceColors(theme);
-  const debounceDelayInMs = 300;
+  const debounceDelayInMs = 700; // 1s to account for 800ms-1s zoom gesture duration
   const xAxisPrecisionDecimals = 6;
+
+  // Debounce tracking metrics using refs to avoid stale closures
+  const attemptedCallsRef = useRef(0);
+  const executedCallsRef = useRef(0);
+  const firstAttemptTimeRef = useRef<number | null>(null);
 
   const xFields = useMemo(
     () => _.attempt(() => getXFields(data.series, options.xAxis.field)),
@@ -81,6 +86,22 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const publishXAxisRangeUpdate = useMemo(
     () =>
       _.debounce((xAxisMin: number, xAxisMax: number, xAxisField: string) => {
+        const now = Date.now();
+        const elapsedTime = firstAttemptTimeRef.current ? (now - firstAttemptTimeRef.current) / 1000 : 0;
+        
+        executedCallsRef.current += 1;
+        const rejectedCalls = attemptedCallsRef.current - executedCallsRef.current;
+        
+        console.log('✅ [API CALL EXECUTED - Passed Debounce]', {
+          debounceTime: `${debounceDelayInMs}ms`,
+          attemptedCalls: attemptedCallsRef.current,
+          executedCalls: executedCallsRef.current,
+          rejectedCalls,
+          rejectionRate: `${((rejectedCalls / attemptedCallsRef.current) * 100).toFixed(1)}%`,
+          elapsedTime: `${elapsedTime.toFixed(2)}s`,
+          timestamp: new Date().toISOString()
+        });
+        
         locationService.partial(
           {
             [`nisl-${xAxisField}-min`]: xAxisMin,
@@ -88,9 +109,11 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           },
           true,
         );
-        getAppEvents().publish(new NIRefreshDashboardEvent());
+        // getAppEvents().publish(new NIRefreshDashboardEvent());
+        props.onChangeTimeRange({ from: timeRange.from.valueOf() + 1, to: timeRange.to.valueOf() + 1 });
+        props.onChangeTimeRange({ from: timeRange.from.valueOf(), to: timeRange.to.valueOf() });
       }, debounceDelayInMs),
-    []
+    [debounceDelayInMs]
   );
 
   useEffect(() => {
@@ -256,6 +279,20 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       updatedXAxisMin !== existingXAxisMin ||
       updatedXAxisMax !== existingXAxisMax
     ) {
+      // Track attempt
+      attemptedCallsRef.current += 1;
+      if (firstAttemptTimeRef.current === null) {
+        firstAttemptTimeRef.current = Date.now();
+      }
+      
+      console.log('🔄 [API Call Attempted]', {
+        attemptNumber: attemptedCallsRef.current,
+        willDebounceFor: `${debounceDelayInMs}ms`,
+        xAxisMin: updatedXAxisMin,
+        xAxisMax: updatedXAxisMax,
+        timestamp: new Date().toISOString()
+      });
+      
       publishXAxisRangeUpdate(
         updatedXAxisMin, 
         updatedXAxisMax, 
