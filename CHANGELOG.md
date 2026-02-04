@@ -1,3 +1,9 @@
+## [4.128.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.127.1...v4.128.0) (2026-02-04)
+
+### Features
+
+* **acceptance-tests:** setup for acceptance tests ([#642](https://github.com/ni/systemlink-grafana-plugins/issues/642)) ([53bfd13](https://github.com/ni/systemlink-grafana-plugins/commit/53bfd13b07eaeeb25c1a5b1b6b4479886d3a1206))
+
 ## [4.127.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.127.0...v4.127.1) (2026-02-04)
 
 ### Bug Fixes
