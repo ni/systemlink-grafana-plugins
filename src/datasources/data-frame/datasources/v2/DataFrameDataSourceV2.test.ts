@@ -6357,7 +6357,7 @@ describe('DataFrameDataSourceV2', () => {
                     {
                         column: 'id',
                         operation: 'GREATER_THAN_EQUALS',
-                        value: '1000'
+                        value: '1001'
                     },
                     {
                         column: 'id',
@@ -6368,50 +6368,92 @@ describe('DataFrameDataSourceV2', () => {
             });
 
             describe('formatValueForColumnType', () => {
-                it('should round to integer for INT32 column type', () => {
+                it('should use Math.ceil for INT32 min bound', () => {
+                    const result = (ds as any).formatValueForColumnType(42.7, 'INT32', Math.ceil);
+
+                    expect(result).toBe('43');
+                });
+
+                it('should use Math.floor for INT32 max bound', () => {
+                    const result = (ds as any).formatValueForColumnType(42.7, 'INT32', Math.floor);
+
+                    expect(result).toBe('42');
+                });
+
+                it('should use Math.ceil for INT64 min bound', () => {
+                    const result = (ds as any).formatValueForColumnType(999.3, 'INT64', Math.ceil);
+
+                    expect(result).toBe('1000');
+                });
+
+                it('should use Math.floor for INT64 max bound', () => {
+                    const result = (ds as any).formatValueForColumnType(999.3, 'INT64', Math.floor);
+
+                    expect(result).toBe('999');
+                });
+
+                it('should handle negative integers for INT32 min bound with ceil', () => {
+                    const result = (ds as any).formatValueForColumnType(-15.8, 'INT32', Math.ceil);
+
+                    expect(result).toBe('-15');
+                });
+
+                it('should handle negative integers for INT32 max bound with floor', () => {
+                    const result = (ds as any).formatValueForColumnType(-15.8, 'INT32', Math.floor);
+
+                    expect(result).toBe('-16');
+                });
+
+                it('should handle negative integers for INT64 min bound with ceil', () => {
+                    const result = (ds as any).formatValueForColumnType(-100.2, 'INT64', Math.ceil);
+
+                    expect(result).toBe('-100');
+                });
+
+                it('should handle negative integers for INT64 max bound with floor', () => {
+                    const result = (ds as any).formatValueForColumnType(-100.2, 'INT64', Math.floor);
+
+                    expect(result).toBe('-101');
+                });
+
+                it('should use Math.round when rounding function is not specified for INT32', () => {
                     const result = (ds as any).formatValueForColumnType(42.7, 'INT32');
 
                     expect(result).toBe('43');
                 });
 
-                it('should round to integer for INT64 column type', () => {
+                it('should use Math.round when rounding function is not specified for INT64', () => {
                     const result = (ds as any).formatValueForColumnType(999.3, 'INT64');
 
                     expect(result).toBe('999');
                 });
 
-                it('should handle negative integers for INT32', () => {
-                    const result = (ds as any).formatValueForColumnType(-15.8, 'INT32');
-
-                    expect(result).toBe('-16');
-                });
-
-                it('should handle negative integers for INT64', () => {
-                    const result = (ds as any).formatValueForColumnType(-100.2, 'INT64');
-
-                    expect(result).toBe('-100');
-                });
-
-                it('should return value as-is for non-integer column types', () => {
+                it('should return value as-is for FLOAT64 column types', () => {
                     const result = (ds as any).formatValueForColumnType(42.567, 'FLOAT64');
 
                     expect(result).toBe('42.567');
                 });
 
-                it('should return value as-is when columnDataType is undefined', () => {
-                    const result = (ds as any).formatValueForColumnType(42.567, undefined);
+                it('should return value as-is for FLOAT32 column types', () => {
+                    const result = (ds as any).formatValueForColumnType(42.567, 'FLOAT32');
 
                     expect(result).toBe('42.567');
                 });
 
-                it('should handle zero values', () => {
-                    const result = (ds as any).formatValueForColumnType(0.4, 'INT32');
+                it('should handle zero values with ceil rounding', () => {
+                    const result = (ds as any).formatValueForColumnType(0.4, 'INT32', Math.ceil);
+
+                    expect(result).toBe('1');
+                });
+
+                it('should handle zero values with floor rounding', () => {
+                    const result = (ds as any).formatValueForColumnType(0.4, 'INT32', Math.floor);
 
                     expect(result).toBe('0');
                 });
 
                 it('should handle values that are already integers', () => {
-                    const result = (ds as any).formatValueForColumnType('42', 'INT32');
+                    const result = (ds as any).formatValueForColumnType(42, 'INT32', Math.ceil);
 
                     expect(result).toBe('42');
                 });
