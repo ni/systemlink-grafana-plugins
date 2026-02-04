@@ -35,7 +35,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const theme = useTheme2();
 
   const traceColors = useTraceColors(theme);
-  const debounceDelayInMs = 300;
+  const debounceDelayInMs = 700;
   const xAxisPrecisionDecimals = 6;
 
   const xFields = useMemo(
