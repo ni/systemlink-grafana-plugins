@@ -53,3 +53,5 @@ export const NUMERIC_DATA_TYPES = [
 
 export const COLUMNS_GROUP = 'Columns';
 export const METADATA_GROUP = 'Metadata';
+
+export const POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS = ['unit', 'units', 'Unit', 'Units'];
