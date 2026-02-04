@@ -59,3 +59,5 @@ export const COLUMNS_GROUP = 'Columns';
 export const METADATA_GROUP = 'Metadata';
 
 export const POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS = ['unit', 'units', 'Unit', 'Units'];
+
+export const X_COLUMN_RANGE_DECIMAL_PRECISION = 6;

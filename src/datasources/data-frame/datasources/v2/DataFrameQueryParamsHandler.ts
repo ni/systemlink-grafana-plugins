@@ -1,6 +1,6 @@
 import { UrlQueryMap } from "@grafana/data";
 import { locationService } from "@grafana/runtime";
-import { syncXAxisRangeTargets } from "datasources/data-frame/constants/v2/route-query-parameters";
+import { xColumnRangeParamPrefix, syncXAxisRangeTargets } from "datasources/data-frame/constants/v2/route-query-parameters";
 
 export class DataFrameQueryParamsHandler {
     public static updateSyncXAxisRangeTargetsQueryParam(
@@ -54,8 +54,8 @@ export class DataFrameQueryParamsHandler {
     ): { min: number; max: number } | null {
         const queryParams = locationService.getSearchObject();
         
-        const minParamKey = `nisl-${columnName}-min`;
-        const maxParamKey = `nisl-${columnName}-max`;
+        const minParamKey = `${xColumnRangeParamPrefix}-${columnName}-min`;
+        const maxParamKey = `${xColumnRangeParamPrefix}-${columnName}-max`;
         
         // Handle potential arrays from duplicate URL params - take the last value
         const minParam = queryParams[minParamKey];
