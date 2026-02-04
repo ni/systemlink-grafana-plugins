@@ -1,3 +1,9 @@
+## [4.127.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.127.0...v4.127.1) (2026-02-04)
+
+### Bug Fixes
+
+* **querybuilder:** fixed nested properties issue ([#664](https://github.com/ni/systemlink-grafana-plugins/issues/664)) ([ed51f49](https://github.com/ni/systemlink-grafana-plugins/commit/ed51f497dc8be767d48ae5f854c7e095fd52fc81))
+
 ## [4.127.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.126.0...v4.127.0) (2026-01-30)
 
 ### Features
