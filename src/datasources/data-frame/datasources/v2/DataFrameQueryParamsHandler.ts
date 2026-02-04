@@ -1,4 +1,4 @@
-import { UrlQueryMap } from "@grafana/data";
+import { UrlQueryMap, UrlQueryValue } from "@grafana/data";
 import { locationService } from "@grafana/runtime";
 import { xColumnRangeParamPrefix, syncXAxisRangeTargets } from "datasources/data-frame/constants/v2/route-query-parameters";
 
@@ -53,47 +53,46 @@ export class DataFrameQueryParamsHandler {
         columnName: string
     ): { min: number; max: number } | null {
         const queryParams = locationService.getSearchObject();
-        
         const minParamKey = `${xColumnRangeParamPrefix}-${columnName}-min`;
         const maxParamKey = `${xColumnRangeParamPrefix}-${columnName}-max`;
-        
-        // Handle potential arrays from duplicate URL params - take the last value
-        const minParam = queryParams[minParamKey];
-        const maxParam = queryParams[maxParamKey];
-        const minValue = Array.isArray(minParam) 
-            ? minParam[minParam.length - 1]?.toString() 
-            : minParam?.toString();
-        const maxValue = Array.isArray(maxParam) 
-            ? maxParam[maxParam.length - 1]?.toString() 
-            : maxParam?.toString();
+        const minParamValue = this.getParamValue(queryParams[minParamKey]);
+        const maxParamValue = this.getParamValue(queryParams[maxParamKey]);
 
-        if (minValue !== undefined && maxValue !== undefined) {
-            if (!this.isValidNumericValue(minValue) || !this.isValidNumericValue(maxValue)) {
-                return null;
-            }
-
-            const minNum = Number(minValue);
-            const maxNum = Number(maxValue);
-            
-            if (minNum > maxNum) {
-                return null;
-            }
-            
-            return {
-                min: minNum,
-                max: maxNum
-            };
+        if (
+            !this.isValidNumericValue(minParamValue) 
+            || !this.isValidNumericValue(maxParamValue)
+        ) {
+            return null;
         }
 
-        return null;
+        const parsedMinParamValue = Number(minParamValue);
+        const parsedMaxParamValue = Number(maxParamValue);
+        
+        if (parsedMinParamValue > parsedMaxParamValue) {
+            return null;
+        }
+        
+        return {
+            min: parsedMinParamValue,
+            max: parsedMaxParamValue
+        };
     }
 
-    private static isValidNumericValue(value: string): boolean {
+    private static getParamValue(param: UrlQueryValue): string | undefined {
+        if (Array.isArray(param)) {
+            return param[param.length - 1]?.toString();
+        }
+
+        return param?.toString();
+    }
+
+    private static isValidNumericValue(value?: string): boolean {
         if (!value || value.trim() === '') {
             return false;
         }
 
-        const num = Number(value);
-        return Number.isFinite(num);
+        const parsedNumber = Number(value);
+
+        return Number.isFinite(parsedNumber);
     }
 }
