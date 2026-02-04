@@ -6460,6 +6460,62 @@ describe('DataFrameDataSourceV2', () => {
 
             expect(result).toEqual([]);
         });
+
+        it('should return empty array when INT32 value exceeds bounds', () => {
+            mockGetParams.mockReturnValue({
+                min: -2147483649,
+                max: 2147483648
+            });
+            const columns = [
+                { name: 'count', dataType: 'INT32', columnType: ColumnType.Normal }
+            ];
+
+            const result = (ds as any).constructNumericRangeFilters('count', columns);
+
+            expect(result).toEqual([]);
+        });
+
+        it('should return empty array when INT64 value exceeds safe integer bounds', () => {
+            mockGetParams.mockReturnValue({
+                min: -9007199254740992,
+                max: 100
+            });
+            const columns = [
+                { name: 'id', dataType: 'INT64', columnType: ColumnType.Normal }
+            ];
+
+            const result = (ds as any).constructNumericRangeFilters('id', columns);
+
+            expect(result).toEqual([]);
+        });
+
+        it('should return empty array when FLOAT32 value exceeds bounds', () => {
+            mockGetParams.mockReturnValue({
+                min: -3.5e38,
+                max: 100.5
+            });
+            const columns = [
+                { name: 'voltage', dataType: 'FLOAT32', columnType: ColumnType.Normal }
+            ];
+
+            const result = (ds as any).constructNumericRangeFilters('voltage', columns);
+
+            expect(result).toEqual([]);
+        });
+
+        it('should return empty array when FLOAT64 value exceeds bounds', () => {
+            mockGetParams.mockReturnValue({
+                min: 50.5,
+                max: 2e308
+            });
+            const columns = [
+                { name: 'measurement', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+            ];
+
+            const result = (ds as any).constructNumericRangeFilters('measurement', columns);
+
+            expect(result).toEqual([]);
+        });
     });
 
     describe('getColumnOptionsWithVariables', () => {
