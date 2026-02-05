@@ -908,8 +908,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             && query.decimationMethod === 'NONE';
 
         if (isUndecimatedDataQuery) {
-            const isUndecimatedRecordCountValid = query.undecimatedRecordCount > 0 
-                && query.undecimatedRecordCount <= UNDECIMATED_RECORDS_LIMIT;
+            const recordCount =  
+                query.undecimatedRecordCount ?? this.defaultQuery.undecimatedRecordCount;  
+            const isUndecimatedRecordCountValid =  
+                typeof recordCount === 'number'  
+                && recordCount > 0  
+                && recordCount <= UNDECIMATED_RECORDS_LIMIT;
+
             return isUndecimatedRecordCountValid;
         }
 
