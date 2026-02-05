@@ -2,7 +2,7 @@ import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceI
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, DataTableFirstClassPropertyLabels, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT, UNDECIMATED_RECORDS_LIMIT } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT, UNDECIMATED_RECORDS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -468,50 +468,136 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const nullFilters: ColumnFilter[] = query.filterNulls
             ? this.constructNullFilters(columnsMap.selectedColumns)
             : [];
-        const timeFilters: ColumnFilter[] = query.filterXRangeOnZoomPan
-            ? this.constructTimeFilters(query.xColumn, columnsMap.columns, timeRange)
+        const xRangeFilters: ColumnFilter[] = query.filterXRangeOnZoomPan
+            ? this.constructXRangeFilters(query.xColumn, columnsMap.columns, timeRange)
             : [];
         return [
             ...nullFilters,
-            ...timeFilters
+            ...xRangeFilters
         ];
     }
 
-    private constructTimeFilters(
+    private constructXRangeFilters(
         xColumn: string | null,
         columns: Column[],
         timeRange: TimeRange
     ): ColumnFilter[] {
-        let columnName: string | undefined;
-
         if (xColumn) {
             const parsedColumnIdentifier = this.parseColumnIdentifier(xColumn);
-            columnName = parsedColumnIdentifier.transformedDataType === 'Timestamp'
-                ? parsedColumnIdentifier.columnName
-                : undefined;
-        } else {
-            const timeIndexColumn = columns.find(column =>
-                column.dataType === 'TIMESTAMP' && column.columnType === 'INDEX'
-            );
-            columnName = timeIndexColumn?.name;
-        }
 
-        if (!columnName) {
+            switch (parsedColumnIdentifier.transformedDataType) {
+                case 'Timestamp':
+                    return this.constructTimestampRangeFilters(
+                        parsedColumnIdentifier.columnName, 
+                        timeRange
+                    );
+                case 'Numeric':
+                    return this.constructNumericRangeFilters(
+                        parsedColumnIdentifier.columnName, 
+                        columns
+                    );
+                default:
+                    return [];
+            }
+        }
+        
+        const timeIndexColumnName = columns.find(
+            column => column.dataType === 'TIMESTAMP' && column.columnType === 'INDEX'
+        )?.name;
+
+        if (!timeIndexColumnName) {
             return [];
         }
 
+        return this.constructTimestampRangeFilters(timeIndexColumnName, timeRange);
+    }
+
+    private constructTimestampRangeFilters(
+        columnName: string,
+        timeRange: TimeRange
+    ): ColumnFilter[] {
+        return this.constructRangeFilters(
+            columnName,
+            timeRange.from.toISOString(),
+            timeRange.to.toISOString()
+        );
+    }
+
+    private constructNumericRangeFilters(
+        columnName: string,
+        columns: Column[]
+    ): ColumnFilter[] {
+        const column = columns.find(column => column.name === columnName);
+        const columnDataType = column?.dataType;
+
+        if(!columnDataType) {
+            return [];
+        }
+
+        const rangeFromUrlParams = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams(columnName);
+
+        if (
+          !rangeFromUrlParams ||
+          !this.isValueInBounds(rangeFromUrlParams.min, columnDataType) ||
+          !this.isValueInBounds(rangeFromUrlParams.max, columnDataType)
+        ) {
+          return [];
+        }
+
+        const formattedMin = this.formatValueForColumnType(rangeFromUrlParams.min, columnDataType, Math.ceil);
+        const formattedMax = this.formatValueForColumnType(rangeFromUrlParams.max, columnDataType, Math.floor);
+
+        return this.constructRangeFilters(
+            columnName,
+            formattedMin,
+            formattedMax
+        );
+    }
+
+    private constructRangeFilters(
+        columnName: string,
+        minValue: string,
+        maxValue: string
+    ): ColumnFilter[] {
         return [
             {
                 column: columnName,
                 operation: 'GREATER_THAN_EQUALS',
-                value: timeRange.from.toISOString()
+                value: minValue
             },
             {
                 column: columnName,
                 operation: 'LESS_THAN_EQUALS',
-                value: timeRange.to.toISOString()
+                value: maxValue
             },
         ];
+    }
+
+    private isValueInBounds(value: number, columnDataType: string): boolean {
+        switch (columnDataType) {
+            case 'INT32':
+                return value >= INT32_MIN && value <= INT32_MAX;
+            case 'INT64':
+                return value >= INT64_MIN && value <= INT64_MAX;
+            case 'FLOAT32':
+                return value >= FLOAT32_MIN && value <= FLOAT32_MAX;
+            case 'FLOAT64':
+                return value >= FLOAT64_MIN && value <= FLOAT64_MAX;
+            default:
+                return false;
+        }
+    }
+
+    private formatValueForColumnType(
+        value: number,
+        columnDataType: string,
+        roundingFn: (value: number) => number = Math.round
+    ): string {
+        if (INTEGER_DATA_TYPES.includes(columnDataType)) {
+            return roundingFn(value).toString();
+        }
+
+        return value.toFixed(X_COLUMN_RANGE_DECIMAL_PRECISION);
     }
 
     private getDecimatedTableData$(request: DecimatedDataRequest): Observable<TableDataRows> {
