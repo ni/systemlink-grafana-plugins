@@ -1,3 +1,9 @@
+## [4.128.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.128.0...v4.128.1) (2026-02-05)
+
+### Bug Fixes
+
+* **dataframe:** handle invalid undecimated take values ([#657](https://github.com/ni/systemlink-grafana-plugins/issues/657)) ([5607b07](https://github.com/ni/systemlink-grafana-plugins/commit/5607b0772a02446372739e415b0e2b3329da90c5))
+
 ## [4.128.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.127.1...v4.128.0) (2026-02-04)
 
 ### Features
