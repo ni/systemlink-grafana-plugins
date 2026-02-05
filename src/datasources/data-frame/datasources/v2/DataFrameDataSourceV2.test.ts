@@ -3169,41 +3169,6 @@ describe('DataFrameDataSourceV2', () => {
             
                 })
 
-                it('should limit undecimatedRecordCount to UNDECIMATED_RECORDS_LIMIT', async () => {
-                    const mockTables = [{
-                        id: 'table1',
-                        name: 'table1',
-                        columns: [
-                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                        ]
-                    }];
-                    queryTablesSpy.mockReturnValue(of(mockTables));
-
-                    const csvResponse = 'voltage\n10.5';
-                    postSpy.mockReturnValue(of(csvResponse));
-
-                    const query = {
-                        refId: 'A',
-                        type: DataFrameQueryType.Data,
-                        columns: ['voltage-Numeric'],
-                        dataTableFilter: 'name = "Test"',
-                        decimationMethod: 'NONE',
-                        filterNulls: false,
-                        applyTimeFilters: false,
-                        undecimatedRecordCount: 2000000 // Exceeds limit of 1,000,000
-                    } as DataFrameQueryV2;
-
-                    await lastValueFrom(datasource.runQuery(query, options));
-
-                    expect(postSpy).toHaveBeenCalledWith(
-                        expect.any(String),
-                        expect.objectContaining({
-                            take: 1000000 // Should be capped at UNDECIMATED_RECORDS_LIMIT
-                        }),
-                        expect.any(Object)
-                    );
-                });
-
                 it('should calculate take based on number of columns to ensure total data points <= 1M', async () => {
                     const mockTables = [{
                         id: 'table1',
@@ -3270,7 +3235,7 @@ describe('DataFrameDataSourceV2', () => {
                         decimationMethod: 'NONE',
                         filterNulls: false,
                         applyTimeFilters: false,
-                        undecimatedRecordCount: 2000000
+                        undecimatedRecordCount: 1000000
                     } as DataFrameQueryV2;
 
                     await lastValueFrom(datasource.runQuery(query, options));
@@ -3318,6 +3283,56 @@ describe('DataFrameDataSourceV2', () => {
                         }),
                         expect.any(Object)
                     );
+                });
+
+                it('should return empty DataFrame when undecimatedRecordCount is 0', async () => {
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['voltage-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'NONE',
+                        filterNulls: false,
+                        applyTimeFilters: false,
+                        undecimatedRecordCount: 0
+                    } as DataFrameQueryV2;
+
+                    const result = await lastValueFrom(datasource.runQuery(query, options));
+
+                    expect(result).toEqual(
+                        expect.objectContaining({
+                            refId: 'A',
+                            name: 'A',
+                            fields: []
+                        })
+                    );
+                    expect(queryTablesSpy).not.toHaveBeenCalled();
+                    expect(postSpy).not.toHaveBeenCalled();
+                });
+
+                it('should return empty DataFrame when undecimatedRecordCount exceeds limit', async () => {
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['voltage-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'NONE',
+                        filterNulls: false,
+                        applyTimeFilters: false,
+                        undecimatedRecordCount: 1000001
+                    } as DataFrameQueryV2;
+
+                    const result = await lastValueFrom(datasource.runQuery(query, options));
+
+                    expect(result).toEqual(
+                        expect.objectContaining({
+                            refId: 'A',
+                            name: 'A',
+                            fields: []
+                        })
+                    );
+                    expect(queryTablesSpy).not.toHaveBeenCalled();
+                    expect(postSpy).not.toHaveBeenCalled();
                 });
 
                 it('should fall back to decimated data when feature toggle is disabled', async () => {
