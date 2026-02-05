@@ -46,6 +46,9 @@ export class AssetQueryEditorComponent {
     }
 
     public propertiesOptions(optionName: string): Locator {
+        if (optionName === 'id') {
+            return this.page.getByRole('option', { name: optionName, exact: true });
+        }
         return this.page.getByRole('option', { name: optionName });
     }
 
@@ -100,6 +103,9 @@ export class AssetQueryEditorComponent {
 
     async selectQueryProperty(optionName: string): Promise<void> {
         await this.propertiesOptions(optionName).click();
+    }
+
+    async pressEscapeKey(): Promise<void> {
         await this.page.keyboard.press('Escape');
     }
 }

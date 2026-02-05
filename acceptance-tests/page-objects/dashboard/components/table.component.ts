@@ -12,19 +12,37 @@ export class Table {
     }
 
     public get getTable(): Locator {
-        return this.page.getByTestId('data-testid panel content');
+        return this.page.getByTestId('data-testid table body');
     }
 
-    public get tableCell(): Locator {
-        return this.getTable.getByRole('cell');
+    public get tableRow(): Locator {
+        return this.getTable.getByRole('row');
     }
 
     public cellValue(value: string): Locator {
         return this.getTable.getByRole('cell', { name: value });
     }
 
-    async getTableCellCount(): Promise<number> {
-        return await this.tableCell.count();
+    async getTableRowCount(): Promise<number> {
+        return await this.tableRow.count();
     }
 
+    public getColumnName(columnName: string): Locator {
+        if (columnName === 'id' || columnName === 'name' || columnName === 'self calibration') {
+            return this.page.getByRole('columnheader', { name: columnName, exact: true });
+        }
+        return this.page.getByRole('columnheader', { name: columnName });
+    };
+
+    public getColumnHeaderByIndex(index: number): Locator {
+        return this.page.getByRole('columnheader').nth(index);
+    }
+
+    async getColumnHeaderText(index: number): Promise<string> {
+        return await this.getColumnHeaderByIndex(index).textContent() || '';
+    }
+
+    async getCellInRowByIndex(rowIndex: number, cellIndex: number): Promise<string> {
+        return await this.tableRow.nth(rowIndex).getByRole('cell').nth(cellIndex).textContent() || '';
+    }
 }

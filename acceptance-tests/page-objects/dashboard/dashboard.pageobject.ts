@@ -1,6 +1,5 @@
 import { Page, Locator } from '@playwright/test';
 import { ToolbarComponent } from './components/toolbar.component';
-import { AssetQueryEditorComponent } from './components/asset-query-editor.component';
 import { Settings } from './components/settings.component';
 import { Panel } from './components/panel.component';
 
@@ -32,6 +31,12 @@ export class DashboardPage {
 
     async waitForQueryEditor(): Promise<void> {
         await this.page.waitForSelector('text=Query type');
+    }
+
+    async createFirstVisualization(datasource: string): Promise<void> {
+        await this.addVisualizationButton.waitFor();
+        await this.addVisualization();
+        await this.selectDataSource(datasource);
     }
 
     getPanel(title: string): Locator {
