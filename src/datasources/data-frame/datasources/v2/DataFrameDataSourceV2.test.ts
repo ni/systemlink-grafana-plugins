@@ -2943,7 +2943,7 @@ describe('DataFrameDataSourceV2', () => {
                         expect(result.meta?.notices?.[0].text).toContain('1,000,000');
                     });
 
-                    it('should never exceed TOTAL_ROWS_LIMIT total data points', async () => {
+                    it('should never exceed TOTAL_ROWS_LIMIT when multiple data tables are queried', async () => {
                         const mockTables = Array.from({ length: 5 }, (_, i) => ({
                             id: `table${i}`,
                             name: `table${i}`,
@@ -3886,7 +3886,7 @@ describe('DataFrameDataSourceV2', () => {
                         expect(voltageField?.values?.length).toBe(500000);
                     });
 
-                    it('should never exceed TOTAL_ROWS_LIMIT for undecimated data', async () => {
+                    it('should never exceed TOTAL_ROWS_LIMIT  when multiple data tables are queried', async () => {
                         const mockTables = Array.from({ length: 5 }, (_, i) => ({
                             id: `table${i}`,
                             name: `table${i}`,
