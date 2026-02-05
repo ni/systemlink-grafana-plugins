@@ -2516,7 +2516,7 @@ describe('DataFrameDataSourceV2', () => {
                         );
                     });
 
-                    it('should cap maxDataPoints at TOTAL_ROWS_LIMIT when it exceeds the limit', async () => {
+                    it('should cap maxDataPoints at TOTAL_DATA_POINTS_LIMIT when it exceeds the limit', async () => {
                         const mockTables = [{
                             id: 'table1',
                             columns: [
@@ -2536,7 +2536,7 @@ describe('DataFrameDataSourceV2', () => {
 
                         const optionsWithLargeMaxDataPoints = {
                             ...options,
-                            maxDataPoints: 2000000 // Greater than TOTAL_ROWS_LIMIT
+                            maxDataPoints: 2000000
                         } as unknown as DataQueryRequest<DataFrameQueryV2>;
 
                         await lastValueFrom(ds.runQuery(query, optionsWithLargeMaxDataPoints));
@@ -2545,7 +2545,7 @@ describe('DataFrameDataSourceV2', () => {
                             expect.stringContaining('query-decimated-data'),
                             expect.objectContaining({
                                 decimation: expect.objectContaining({
-                                    intervals: 1000000 // TOTAL_ROWS_LIMIT
+                                    intervals: 1000000
                                 })
                             }),
                             expect.any(Object)
@@ -2809,8 +2809,7 @@ describe('DataFrameDataSourceV2', () => {
                         expect(postSpy).toHaveBeenCalledTimes(8);
                     });
 
-                    it('should stop fetching when TOTAL_ROWS_LIMIT is reached', async () => {
-                        // Create 10 tables but have them return enough data to exceed the limit
+                    it('should stop fetching when TOTAL_DATA_POINTS_LIMIT is reached', async () => {
                         const mockTables = Array.from({ length: 10 }, (_, i) => ({
                             id: `table${i}`,
                             name: `table${i}`,
@@ -2821,8 +2820,6 @@ describe('DataFrameDataSourceV2', () => {
                         queryTablesSpy.mockReturnValue(of(mockTables));
                         
                         const largeDataArray = Array.from({ length: 300000 }, () => ['1.0']);
-                        // Each table returns 300k rows with 1 column = 300k data points
-                        // After 4 tables, we'll have 1.2M data points (exceeds TOTAL_ROWS_LIMIT of 1M)
                         postSpy.mockImplementation(() => {
                             return of({
                                 frame: {
@@ -3681,7 +3678,7 @@ describe('DataFrameDataSourceV2', () => {
                         expect(postSpy).toHaveBeenCalledTimes(8);
                     });
 
-                    it('should stop fetching undecimated data when TOTAL_ROWS_LIMIT is reached', async () => {
+                    it('should stop fetching undecimated data when TOTAL_DATA_POINTS_LIMIT is reached', async () => {
                         const mockTables = Array.from({ length: 10 }, (_, i) => ({
                             id: `table${i}`,
                             name: `table${i}`,
