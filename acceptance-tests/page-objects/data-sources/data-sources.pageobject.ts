@@ -1,5 +1,5 @@
 import { Page, Locator } from '@playwright/test';
-import { BASE_URL, FAKE_API_URL } from '../../config/environment';
+import { GRAFANA_URL, FAKE_API_URL } from '../../config/environment';
 
 export class DataSourcesPage {
     readonly page: Page;
@@ -9,11 +9,7 @@ export class DataSourcesPage {
     }
 
     public get addDataSourceButton(): Locator {
-        return this.page.getByRole('link', { name: 'Add data source' });
-    }
-
-    public get addNewDataSourceButton(): Locator {
-        return this.page.getByRole('link', { name: 'Add new data source' });
+        return this.page.getByRole('link', { name: 'Add data source' }).or(this.page.getByRole('link', { name: 'Add new data source' }));
     }
 
     public dataSource(dataSourceName: string): Locator {
@@ -57,24 +53,17 @@ export class DataSourcesPage {
     }
 
     async navigateToDatasourcesPage(): Promise<void> {
-        await this.page.goto(`${BASE_URL}/connections/datasources`)
+        await this.page.goto(`${GRAFANA_URL}/connections/datasources`)
     }
 
-    async addDataSource(dataSourceName: string): Promise<string> {
-        let createdName = '';
+    async addDataSource(dataSource: string, dataSourceNameField: string): Promise<void> {
         await this.navigateToDatasourcesPage();
-        const hasAddDataSource = await this.addDataSourceButton.isVisible({ timeout: 1000 }).catch(() => false);
-        if (hasAddDataSource) {
-            await this.addDataSourceButton.click();
-        } else {
-            await this.addNewDataSourceButton.click();
-        }
-        await this.dataSource(dataSourceName).click();
+        await this.addDataSourceButton.click();
+        await this.dataSource(dataSource).click();
         await this.page.waitForSelector('text=HTTP');
+        await this.changeNameInputFieldValue(dataSourceNameField);
         await this.httpSettingsURL.fill(FAKE_API_URL);
-        createdName = await this.getNameInputFieldValue();
         await this.saveAndTestButton.click();
-        return createdName;
     }
 
     async deleteDataSource(dataSourceName: string): Promise<void> {
@@ -84,7 +73,11 @@ export class DataSourcesPage {
         await this.deletePopUpButton.click();
     }
 
-    async getNameInputFieldValue(): Promise<string> {
+    async nameInputFieldValue(): Promise<string> {
         return await this.nameSettingsInputField.inputValue();
+    }
+
+    async changeNameInputFieldValue(newValue: string): Promise<void> {
+        await this.nameSettingsInputField.fill(newValue);
     }
 }

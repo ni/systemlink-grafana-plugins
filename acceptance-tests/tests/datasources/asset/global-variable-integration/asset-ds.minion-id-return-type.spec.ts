@@ -1,19 +1,19 @@
 import { test, expect } from '@playwright/test';
-import { BASE_URL } from '../../../../config/environment';
+import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 
 test.describe('Asset data source with minion id return type', () => {
     let dashboard: DashboardPage;
     let dataSources: DataSourcesPage;
-    let createdDataSourceName = '';
+    let createdDataSourceName = 'Systemlink Assets Minion Id Return Type';
 
     test.beforeAll(async ({ browser }) => {
         const context = await browser.newContext();
         const page = await context.newPage();
         dataSources = new DataSourcesPage(page);
         dashboard = new DashboardPage(page);
-        createdDataSourceName = await dataSources.addDataSource('SystemLink Assets');
+        await dataSources.addDataSource('SystemLink Assets', createdDataSourceName);
     });
 
     test.afterAll(async () => {
@@ -22,13 +22,13 @@ test.describe('Asset data source with minion id return type', () => {
 
     test.describe.serial('Minion id variable return type', () => {
         test('create an asset variable with minionId return type', async () => {
-            await dashboard.page.goto(`${BASE_URL}/dashboard/new`);
+            await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
 
             await dashboard.toolbar.openSettings();
             await dashboard.settings.goToVariablesTab();
             await dashboard.settings.addNewVariable();
             await dashboard.settings.variable.setVariableName('id');
-            await dashboard.settings.variable.selectDataSource('ni-slasset-datasource default');
+            await dashboard.settings.variable.selectDataSource(createdDataSourceName);
             await dashboard.settings.variable.selectQueryReturnType('Asset Id');
             await dashboard.settings.variable.applyVariableChanges();
 
@@ -40,10 +40,10 @@ test.describe('Asset data source with minion id return type', () => {
             await dashboard.settings.goBackToDashboardPage();
             await dashboard.addVisualizationButton.waitFor();
             await dashboard.addVisualization();
-            await dashboard.selectDataSource('ni-slasset-datasource default');
+            await dashboard.selectDataSource(createdDataSourceName);
             await dashboard.panel.assetQueryEditor.switchToTableView();
 
-            await expect(dashboard.dataSourcePicker).toHaveAttribute('placeholder', 'ni-slasset-datasource');
+            await expect(dashboard.dataSourcePicker).toHaveAttribute('placeholder', createdDataSourceName);
         });
 
         test('should add filter by minionId using the asset variable', async () => {

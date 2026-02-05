@@ -1,19 +1,19 @@
 import { test, expect } from '@playwright/test';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
-import { BASE_URL } from '../../../../config/environment';
+import { GRAFANA_URL } from '../../../../config/environment';
 
 test.describe('Asset data source with asset variable', () => {
     let dashboard: DashboardPage;
     let dataSources: DataSourcesPage;
-    let createdDataSourceName = '';
+    const createdDataSourceName = 'Systemlink Assets General';
 
     test.beforeAll(async ({ browser }) => {
         const context = await browser.newContext();
         const page = await context.newPage();
         dataSources = new DataSourcesPage(page);
         dashboard = new DashboardPage(page);
-        createdDataSourceName = await dataSources.addDataSource('SystemLink Assets');
+        await dataSources.addDataSource('SystemLink Assets', createdDataSourceName);
     });
 
     test.afterAll(async () => {
@@ -21,8 +21,8 @@ test.describe('Asset data source with asset variable', () => {
     });
 
     test('should verify all table data properties are correct', async () => {
-        await dashboard.page.goto(`${BASE_URL}/dashboard/new`);
-        await dashboard.createFirstVisualization('ni-slasset-datasource default');
+        await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
+        await dashboard.createFirstVisualization(createdDataSourceName);
         await dashboard.panel.assetQueryEditor.switchToTableView();
         await dashboard.panel.assetQueryEditor.addFilter('Scan Code', 'equals', '1b5c6cfa-2c89-4f12-894b-c07106c04848');
 

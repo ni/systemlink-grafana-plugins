@@ -4,6 +4,7 @@ import { FAKE_API_URL } from '../../../config/environment';
 
 test.describe('Datasource Configuration', () => {
     let dataSource: DataSourcesPage;
+    const dataSourceName = 'Systemlink Assets Configuration';
 
     test.beforeAll(async ({ browser }) => {
         const context = await browser.newContext();
@@ -12,20 +13,12 @@ test.describe('Datasource Configuration', () => {
     });
 
     test.describe.serial('Creation and Deletion of SystemLink Assets data source', () => {
-        let dataSourceName = '';
         test('should create a SystemLink Assets data source', async () => {
             await dataSource.navigateToDatasourcesPage();
-            const hasAddDataSource = await dataSource.addDataSourceButton.isVisible({ timeout: 1000 }).catch(() => false);
-            if (hasAddDataSource) {
-                await dataSource.addDataSourceButton.click();
-            } else {
-                await dataSource.addNewDataSourceButton.click();
-            }
+            await dataSource.addDataSourceButton.click();
             await dataSource.dataSource('SystemLink Assets').click();
             await dataSource.page.waitForSelector('text=HTTP');
-            dataSourceName = await dataSource.getNameInputFieldValue();
-
-            expect(await dataSource.getNameInputFieldValue()).toContain('ni-slasset-datasource');
+            await dataSource.changeNameInputFieldValue(dataSourceName);
 
             await dataSource.httpSettingsURL.fill(FAKE_API_URL);
             await dataSource.saveAndTestButton.click();
@@ -41,17 +34,11 @@ test.describe('Datasource Configuration', () => {
     });
 
     test('should show error message when trying to connect with wrong URL', async () => {
-        let dataSourceName = '';
         await dataSource.navigateToDatasourcesPage();
-        const hasAdd = await dataSource.addDataSourceButton;
-        if (!hasAdd) {
-            await dataSource.addNewDataSourceButton.click();
-        } else {
-            await dataSource.addDataSourceButton.click();
-        }
+        await dataSource.addDataSourceButton.click();
         await dataSource.dataSource('SystemLink Assets').click();
         await dataSource.page.waitForSelector('text=HTTP');
-        dataSourceName = await dataSource.getNameInputFieldValue();
+        await dataSource.changeNameInputFieldValue(dataSourceName);
         await dataSource.httpSettingsURL.fill('http://wrong-url.com');
         await dataSource.saveAndTestButton.click();
         await expect(dataSource.dataSourceErrorMessage).toContainText("failed with status code: 502", { timeout: 10000 });
