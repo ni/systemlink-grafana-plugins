@@ -26,25 +26,31 @@ export const DataFrameConfigEditor: React.FC<Props> = ({ options, onOptionsChang
                 <div style={{ paddingBottom: '10px' }}>
                     <Text element="h6">{labels.features}</Text>
                 </div>
-                <InlineSegmentGroup>
-                    <InlineField label={labels.datatableQueryBuilder} labelWidth={30}>
+                <InlineSegmentGroup> 
+                    <InlineField
+                        label={labels.queryUndecimatedData}
+                        labelWidth={30}
+                    >
                         <InlineSwitch
                             value={
-                                options.jsonData?.featureToggles?.queryByDataTableProperties
-                                ?? DataFrameFeatureTogglesDefaults.queryByDataTableProperties
+                                options.jsonData?.featureToggles?.queryUndecimatedData
+                                ?? DataFrameFeatureTogglesDefaults.queryUndecimatedData
                             }
-                            onChange={handleFeatureChange('queryByDataTableProperties')}
-                        />
+                            onChange={handleFeatureChange('queryUndecimatedData')}
+                    />
                     </InlineField>
                 </InlineSegmentGroup>
-                <InlineSegmentGroup>
-                    <InlineField label={labels.resultAndColumnQueryBuilder} labelWidth={30}>
+                <InlineSegmentGroup> 
+                    <InlineField
+                        label={labels.highResolutionZoom}
+                        labelWidth={30}
+                    >
                         <InlineSwitch
                             value={
-                                options.jsonData?.featureToggles?.queryByResultAndColumnProperties
-                                ?? DataFrameFeatureTogglesDefaults.queryByResultAndColumnProperties
+                                options.jsonData?.featureToggles?.highResolutionZoom
+                                ?? DataFrameFeatureTogglesDefaults.highResolutionZoom
                             }
-                            onChange={handleFeatureChange('queryByResultAndColumnProperties')}
+                            onChange={handleFeatureChange('highResolutionZoom')}
                     />
                     </InlineField>
                 </InlineSegmentGroup>
@@ -55,6 +61,6 @@ export const DataFrameConfigEditor: React.FC<Props> = ({ options, onOptionsChang
 
 const labels = {
     features: 'Features',
-    datatableQueryBuilder: 'Datatable query builder',
-    resultAndColumnQueryBuilder: 'Results and columns query builders',
+    queryUndecimatedData: 'Query undecimated data',
+    highResolutionZoom: 'Filter for x-axis range on zoom/pan',
 };

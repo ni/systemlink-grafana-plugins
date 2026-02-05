@@ -1,8 +1,8 @@
-version: '3.0'
+version: "3.0"
 
 services:
   grafana:
-    container_name: 'ni-systemlink-app-tests'
+    container_name: "ni-systemlink-app-tests"
     build:
       context: ./.config
       args:
@@ -11,14 +11,14 @@ services:
     environment:
       - GF_USERS_DEFAULT_THEME=system
     ports:
-      - 3002:3000/tcp
+      - 4000:3000/tcp
     volumes:
       - ./dist:/var/lib/grafana/plugins/ni-systemlink-app
       - ./grafana.ini:/etc/grafana/grafana.ini
       - ./provisioning:/etc/grafana/provisioning
 
   fake-api:
-    container_name: 'ni-systemlink-fake-api'
+    container_name: "ni-systemlink-fake-api"
     build:
       context: ./acceptance-tests
     ports:

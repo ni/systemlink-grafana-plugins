@@ -1,6 +1,6 @@
 {
   "name": "systemlink-grafana-plugins",
-  "version": "4.113.0",
+  "version": "4.128.1",
   "description": "Plugins for visualizing data from SystemLink services",
   "private": true,
   "scripts": {
@@ -37,6 +37,7 @@
     "@types/jest": "^29.5.0",
     "@types/lodash": "^4.14.194",
     "@types/node": "^20.8.7",
+    "@types/papaparse": "^5.5.2",
     "@types/plotly.js-basic-dist-min": "^2.12.1",
     "@types/react-plotly.js": "^2.6.0",
     "@types/react-router-dom": "^5.3.3",
@@ -84,6 +85,7 @@
     "ajv": "^8.12.0",
     "file-saver": "^2.0.5",
     "jsdom-testing-mocks": "^1.13.1",
+    "papaparse": "^5.5.3",
     "plotly.js-basic-dist-min": "^2.24.3",
     "qrcode.react": "^4.2.0",
     "react": "18.2.0",

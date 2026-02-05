@@ -1,4 +1,3 @@
-const PORT = 3002;
-export const BASE_URL = `http://localhost:${PORT}`;
-
-export const FAKE_API_URL = `http://localhost:5000`;
+const GRAFANA_PORT = 4000;
+export const GRAFANA_URL = `http://localhost:${GRAFANA_PORT}`;
+export const FAKE_API_URL = 'http://localhost:5000';

@@ -147,17 +147,9 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
 
     setFields(updatedFields);
 
-    const options = Object.values(updatedFields).reduce((accumulator, fieldConfig) => {
-      if (fieldConfig.lookup) {
-        accumulator[fieldConfig.dataField!] = fieldConfig.lookup.dataSource;
-      }
-
-      return accumulator;
-    }, {} as Record<string, QueryBuilderOption[]>);
-
     const callbacks = {
-      expressionBuilderCallback: expressionBuilderCallback(options),
-      expressionReaderCallback: expressionReaderCallback(options),
+      expressionBuilderCallback: expressionBuilderCallback(updatedFields),
+      expressionReaderCallback: expressionReaderCallback(updatedFields),
     };
 
     const customOperations = [

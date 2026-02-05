@@ -15,7 +15,8 @@ const defaultProps: DataSourcePluginOptionsEditorProps<any> = {
     options: {
         jsonData: {
             featureToggles: {
-                queryByDataTableProperties: false
+                queryUndecimatedData: false,
+                highResolutionZoom: false
             },
         },
         id: 0,
@@ -39,17 +40,42 @@ describe('DataFrameConfigEditor', () => {
         expect(dataTableQueryBuilderToggle).toBeInTheDocument();
     });
 
-    test('should update the queryByDataTableProperties feature toggles option when it is toggled', async () => {
-        const expecteJsonData = {
-            "jsonData": { "featureToggles": { "queryByDataTableProperties": true } }
-        };
+    test('should update the queryUndecimatedData feature toggles option when it is toggled', async () => {
+        const queryUndecimatedDataToggle = screen.getAllByRole('switch')[0];
+        const expectedJsonData = {
+            "jsonData": { 
+                "featureToggles": { 
+                    "queryUndecimatedData": true,
+                    "highResolutionZoom": false
+                } 
+            }
+        };  
+        expect(queryUndecimatedDataToggle).not.toBeChecked();
 
-        expect(dataTableQueryBuilderToggle).not.toBeChecked();
-
-        await userEvent.click(dataTableQueryBuilderToggle);
+        await userEvent.click(queryUndecimatedDataToggle);
         await waitFor(() => {
             expect(mockOnOptionsChange).toHaveBeenCalledWith(
-                expect.objectContaining(expecteJsonData)
+                expect.objectContaining(expectedJsonData)
+            );
+        });
+    });
+
+    test('should update the highResolutionZoom feature toggles option when it is toggled', async () => {
+        const highResolutionZoomToggle = screen.getAllByRole('switch')[1];
+        const expectedJsonData = {
+            "jsonData": { 
+                "featureToggles": { 
+                    "queryUndecimatedData": false,
+                    "highResolutionZoom": true
+                } 
+            }
+        };  
+        expect(highResolutionZoomToggle).not.toBeChecked();
+
+        await userEvent.click(highResolutionZoomToggle);
+        await waitFor(() => {
+            expect(mockOnOptionsChange).toHaveBeenCalledWith(
+                expect.objectContaining(expectedJsonData)
             );
         });
     });

@@ -1,4 +1,4 @@
-* @rajsite @m-akinc @cameronwaterman
+* @ni/grafana-codeowners-team
 
 /.snyk @chris468 @cameronwaterman @BKnight760 @rbell517 @jattasNI @prestwick
 
@@ -6,11 +6,26 @@
 /src/datasources/tag @CiprianAnton @kkerezsi @saradei-ni
 /src/datasources/asset @CiprianAnton @kkerezsi @saradei-ni @BlankaOnodi
 /src/datasources/asset-common @CiprianAnton @kkerezsi @saradei-ni @BlankaOnodi
+/acceptance-tests/tests/datasources/notebook @CiprianAnton @kkerezsi @saradei-ni
+/acceptance-tests/tests/datasources/tag @CiprianAnton @kkerezsi @saradei-ni
+/acceptance-tests/tests/datasources/asset @CiprianAnton @kkerezsi @saradei-ni @BlankaOnodi
+
 /src/datasources/products @richie-ni @hemkumarrao-ni @kartheeswaran-ni
 /src/datasources/results @richie-ni @hemkumarrao-ni @kartheeswaran-ni
 /src/datasources/work-orders @priya-ni @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni
 /src/datasources/test-plans @priya-ni @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni
 /src/datasources/alarms @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni
+/acceptance-tests/tests/datasources/products @richie-ni @hemkumarrao-ni @kartheeswaran-ni
+/acceptance-tests/tests/datasources/results @richie-ni @hemkumarrao-ni @kartheeswaran-ni
+/acceptance-tests/tests/datasources/work-orders @priya-ni @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni
+/acceptance-tests/tests/datasources/test-plans @priya-ni @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni
+/acceptance-tests/tests/datasources/alarms @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni
+
 /src/datasources/data-frame @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni @cameronwaterman
+/acceptance-tests/tests/datasources/data-frame @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni @cameronwaterman
+
 /src/datasources/system @chotea @stefanc18
+/acceptance-tests/tests/datasources/system @chotea @stefanc18
+
 /src/panels/qr-code @CiprianAnton @kkerezsi @saradei-ni @BlankaOnodi @OliverCosma
+/acceptance-tests/tests/panels/qr-code @CiprianAnton @kkerezsi @saradei-ni @BlankaOnodi @OliverCosma

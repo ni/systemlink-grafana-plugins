@@ -1,5 +1,6 @@
 import { QueryBuilderOperations } from "./query-builder.constants";
 import { buildExpressionFromTemplate, expressionBuilderCallback, expressionBuilderCallbackWithRef, expressionReaderCallback, expressionReaderCallbackWithRef, ExpressionTransformFunction, getConcatOperatorForMultiExpression, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "./query-builder.utils"
+import { QBField } from "./types";
 
 describe('QueryBuilderUtils', () => {
   describe('transformComputedFieldsQuery', () => {
@@ -156,67 +157,102 @@ describe('QueryBuilderUtils', () => {
   });
 
   describe('expressionBuilderCallback', () => {
-    const mockQueryBuilderCustomOperation = {
+    const queryBuilderCustomOperation = {
       expressionTemplate: '{0} = {1}'
     };
 
-    it('should build a valid expression for a single field', () => {
-      const options = {
-        'field1': [{ label: 'Option A', value: 'ValueA' }],
-      };
+    const fields: QBField[] = [
+      {
+        label: 'Field 1',
+        dataField: 'field1',
+        lookup: {
+          dataSource: [{ label: 'Option A', value: 'ValueA' }]
+        }
+      },
+      {
+        label: 'Nested Field',
+        dataField: 'grains.data.osfullname',
+        filterOperations: ['=']
+      }
+    ];
 
-      const result = expressionBuilderCallback(options).call(mockQueryBuilderCustomOperation, 'field1', 'someOperation', 'Option A');
+    it('should build a valid expression for a single field', () => {
+      const result = expressionBuilderCallback(fields).call(queryBuilderCustomOperation, 'field1', 'someOperation', 'Option A');
 
       expect(result).toBe('field1 = ValueA');
     });
 
     it('should return original value if no matching label found', () => {
-      const options = {
-        'field1': [{ label: 'Option A', value: 'ValueA' }],
-      };
-
-      const callback = expressionBuilderCallback(options).bind(mockQueryBuilderCustomOperation);
+      const callback = expressionBuilderCallback(fields).bind(queryBuilderCustomOperation);
       const result = callback('field1', 'someOperation', 'Option B');
 
       expect(result).toBe('field1 = Option B');
     });
 
-    it('should return original expression if no options are provided', () => {
-      const options = {};
+    it('should return original expression if field has no lookup options', () => {
+      const callback = expressionBuilderCallback(fields).bind(queryBuilderCustomOperation);
+      const result = callback('grains.data.osfullname', 'someOperation', 'Any Value');
 
-      const callback = expressionBuilderCallback(options).bind(mockQueryBuilderCustomOperation);
-      const result = callback('field1', 'someOperation', 'Any Value');
-
-      expect(result).toBe('field1 = Any Value');
+      expect(result).toBe('grains.data.osfullname = Any Value');
     });
   })
 
   describe('expressionReaderCallback', () => {
-    const options = {
-      'optionsObject1': [{ label: 'Label A', value: 'ValueA' }],
-      'optionsObject2': [{ label: 'Label B', value: 'ValueB' }],
-    };
+    const fields: QBField[] = [
+      {
+        label: 'Field 1',
+        dataField: 'optionsObject1',
+        lookup: {
+          dataSource: [{ label: 'Label A', value: 'ValueA' }]
+        }
+      },
+      {
+        label: 'Operating System',
+        dataField: 'grains.data.osfullname',
+        lookup: {
+          dataSource: [{ label: 'Windows 10', value: 'win10' }]
+        }
+      },
+      {
+        label: 'Simple Field',
+        dataField: 'simpleField',
+        filterOperations: ['=']
+      }
+    ];
 
     it('should map value to label for a given field', () => {
-      const callback = expressionReaderCallback(options);
+      const callback = expressionReaderCallback(fields);
       const result = callback('someExpression', ['optionsObject1', 'ValueA']);
 
       expect(result).toEqual({ fieldName: 'optionsObject1', value: 'Label A' });
     });
 
-    it('should return original field name and value if no matching label is found', () => {
-      const callback = expressionReaderCallback(options);
-      const result = callback('someExpression', ['field1', 'NonExistentValue']);
+    it('should resolve truncated nested field names and map values', () => {
+      const callback = expressionReaderCallback(fields);
+      const result = callback('data.osfullname = "win10"', ['data.osfullname', 'win10']);
 
-      expect(result).toEqual({ fieldName: 'field1', value: 'NonExistentValue' });
+      expect(result).toEqual({ fieldName: 'grains.data.osfullname', value: 'Windows 10' });
     });
 
-    it('should return original field name and value if no options are provided for the field', () => {
-      const emptyOptions = {};
-      const callback = expressionReaderCallback(emptyOptions);
-      const result = callback('someExpression', ['field1', 'ValueA']);
+    it('should return original field name if no truncation match found', () => {
+      const callback = expressionReaderCallback(fields);
+      const result = callback('someExpression', ['unknownField', 'someValue']);
 
-      expect(result).toEqual({ fieldName: 'field1', value: 'ValueA' });
+      expect(result).toEqual({ fieldName: 'unknownField', value: 'someValue' });
+    });
+
+    it('should return original field name and value if no matching label is found', () => {
+      const callback = expressionReaderCallback(fields);
+      const result = callback('someExpression', ['optionsObject1', 'NonExistentValue']);
+
+      expect(result).toEqual({ fieldName: 'optionsObject1', value: 'NonExistentValue' });
+    });
+
+    it('should return original field name and value if field has no lookup options', () => {
+      const callback = expressionReaderCallback(fields);
+      const result = callback('someExpression', ['simpleField', 'someValue']);
+
+      expect(result).toEqual({ fieldName: 'simpleField', value: 'someValue' });
     });
   })
 

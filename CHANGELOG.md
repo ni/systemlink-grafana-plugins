@@ -1,3 +1,117 @@
+## [4.128.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.128.0...v4.128.1) (2026-02-05)
+
+### Bug Fixes
+
+* **dataframe:** handle invalid undecimated take values ([#657](https://github.com/ni/systemlink-grafana-plugins/issues/657)) ([5607b07](https://github.com/ni/systemlink-grafana-plugins/commit/5607b0772a02446372739e415b0e2b3329da90c5))
+
+## [4.128.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.127.1...v4.128.0) (2026-02-04)
+
+### Features
+
+* **acceptance-tests:** setup for acceptance tests ([#642](https://github.com/ni/systemlink-grafana-plugins/issues/642)) ([53bfd13](https://github.com/ni/systemlink-grafana-plugins/commit/53bfd13b07eaeeb25c1a5b1b6b4479886d3a1206))
+
+## [4.127.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.127.0...v4.127.1) (2026-02-04)
+
+### Bug Fixes
+
+* **querybuilder:** fixed nested properties issue ([#664](https://github.com/ni/systemlink-grafana-plugins/issues/664)) ([ed51f49](https://github.com/ni/systemlink-grafana-plugins/commit/ed51f497dc8be767d48ae5f854c7e095fd52fc81))
+
+## [4.127.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.126.0...v4.127.0) (2026-01-30)
+
+### Features
+
+* **dataframe:** version 2: update "use time range" migration ([#665](https://github.com/ni/systemlink-grafana-plugins/issues/665)) ([e845c33](https://github.com/ni/systemlink-grafana-plugins/commit/e845c33dcee6408218e0b9d2d25c754a99d76c9f))
+
+## [4.126.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.125.0...v4.126.0) (2026-01-30)
+
+### Features
+
+* **dataframe:** version 2: show units ([#663](https://github.com/ni/systemlink-grafana-plugins/issues/663)) ([30f5ce9](https://github.com/ni/systemlink-grafana-plugins/commit/30f5ce936a33b5acdb5b06f8d00d17071884ec5e))
+
+## [4.125.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.124.0...v4.125.0) (2026-01-29)
+
+### Features
+
+* **dataframe:** version 2: rename "Use time range" control label based on feature flag ([#661](https://github.com/ni/systemlink-grafana-plugins/issues/661)) ([9939605](https://github.com/ni/systemlink-grafana-plugins/commit/993960562b3fd56ab9d244b2c661fa57dd0b1e3a))
+
+## [4.124.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.123.0...v4.124.0) (2026-01-29)
+
+### Features
+
+* **dataframe:** add dynamic take based on the number of columns selected ([#655](https://github.com/ni/systemlink-grafana-plugins/issues/655)) ([dcde120](https://github.com/ni/systemlink-grafana-plugins/commit/dcde120954e5e3186a58fa5b08d4b69e2d4f7f66))
+
+## [4.123.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.122.1...v4.123.0) (2026-01-29)
+
+### Features
+
+* **dataframes:** Add support for querying undecimated data  ([#652](https://github.com/ni/systemlink-grafana-plugins/issues/652)) ([689b2c0](https://github.com/ni/systemlink-grafana-plugins/commit/689b2c083e67c47c3012b9f9f4be3630f89f9657))
+
+## [4.122.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.122.0...v4.122.1) (2026-01-29)
+
+### Bug Fixes
+
+* **dataframe:** Remove queryByDataTableProperties and queryByResultAndColumnProperties feature flags ([#658](https://github.com/ni/systemlink-grafana-plugins/issues/658)) ([b719e2b](https://github.com/ni/systemlink-grafana-plugins/commit/b719e2b0b347eaae08e915e2a1dbb409e94ad923))
+
+## [4.122.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.121.0...v4.122.0) (2026-01-29)
+
+### Features
+
+* **plotly:** Synchronize dashboard time range with time-based x-axis ([#654](https://github.com/ni/systemlink-grafana-plugins/issues/654)) ([fde5d41](https://github.com/ni/systemlink-grafana-plugins/commit/fde5d41783e93deef42ab54efa494e6470509db5))
+
+## [4.121.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.120.0...v4.121.0) (2026-01-28)
+
+### Features
+
+* **dataframe:** version 2: initialize nisl-syncXAxisRangeTargets based on filterXRangeOnZoomPan ([#659](https://github.com/ni/systemlink-grafana-plugins/issues/659)) ([89502a5](https://github.com/ni/systemlink-grafana-plugins/commit/89502a509ea197e1a77cf68dc42cbced6bdbfd74))
+
+## [4.120.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.119.1...v4.120.0) (2026-01-28)
+
+### Features
+
+* **dataframe:** version 2: migrate applyTimeFilters based on multiple queries in a panel ([#649](https://github.com/ni/systemlink-grafana-plugins/issues/649)) ([b0f9cf2](https://github.com/ni/systemlink-grafana-plugins/commit/b0f9cf2b7d6172d2c43d735ad92d94c345fc049a))
+
+## [4.119.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.119.0...v4.119.1) (2026-01-27)
+
+### Bug Fixes
+
+* **systems:** Cancel ongoing requests when refreshing query ([#526](https://github.com/ni/systemlink-grafana-plugins/issues/526)) ([bafcefa](https://github.com/ni/systemlink-grafana-plugins/commit/bafcefa9ab9867b29027bce74bd87c6443cdf1e3))
+
+## [4.119.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.118.0...v4.119.0) (2026-01-27)
+
+### Features
+
+* **plotly:** sync numerical x-axis range in URL query params ([#637](https://github.com/ni/systemlink-grafana-plugins/issues/637)) ([5f251a1](https://github.com/ni/systemlink-grafana-plugins/commit/5f251a1c7fe047300579c519a351757a593457ce))
+
+## [4.118.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.117.0...v4.118.0) (2026-01-26)
+
+### Features
+
+* **system:** Implement query builder for systems data source filtering ([#560](https://github.com/ni/systemlink-grafana-plugins/issues/560)) ([573dece](https://github.com/ni/systemlink-grafana-plugins/commit/573decedc476abcf0158be4fe10e15c791ded85a))
+
+## [4.117.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.116.0...v4.117.0) (2026-01-21)
+
+### Features
+
+* **dataframe:** version 2: rename applyTimeFilters as filterXRangeOnZoomPan ([#648](https://github.com/ni/systemlink-grafana-plugins/issues/648)) ([cfd3131](https://github.com/ni/systemlink-grafana-plugins/commit/cfd31318415ccbbbcef4536fb015f54f2acfcdc0))
+
+## [4.116.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.115.0...v4.116.0) (2026-01-19)
+
+### Features
+
+* **dataframe:** add high resolution zoom feature toggle ([#644](https://github.com/ni/systemlink-grafana-plugins/issues/644)) ([fa03e3d](https://github.com/ni/systemlink-grafana-plugins/commit/fa03e3d88a9ace9a85d93381ab1b38aed4883551))
+
+## [4.115.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.114.0...v4.115.0) (2026-01-19)
+
+### Features
+
+* **dataframes:** Add take and None to the decimation setting ([#643](https://github.com/ni/systemlink-grafana-plugins/issues/643)) ([ba26143](https://github.com/ni/systemlink-grafana-plugins/commit/ba261433751b0c6c87af575d730ef841031cad47))
+
+## [4.114.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.113.0...v4.114.0) (2026-01-16)
+
+### Features
+
+* **dataframe:** Add undecimated data feature flag options ([#641](https://github.com/ni/systemlink-grafana-plugins/issues/641)) ([fd23fd0](https://github.com/ni/systemlink-grafana-plugins/commit/fd23fd0a4f07918465b5cc51e25169ba8298b600))
+
 ## [4.113.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.112.0...v4.113.0) (2026-01-06)
 
 ### Features
