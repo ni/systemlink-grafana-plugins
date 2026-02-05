@@ -557,7 +557,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 const errorMessage = this.getErrorMessage(error, 'undecimated table data');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
-                    payload: ['Error fetching undecimated table data', errorMessage],
+                    payload: ['Error While Fetching Undecimated Table Data', errorMessage],
                 });
                 return of({ frame: { columns: [], data: [] } });
             })
@@ -576,7 +576,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
             if (fatalErrors.length > 0) {
                 const errorMessages = fatalErrors.map(error => error.message).join(', ');
-                throw new Error(`Failed to parse CSV data: ${errorMessages}`);
+                throw new Error(`SystemLink failed to parse the CSV data: ${errorMessages}`);
             }
         }
 
