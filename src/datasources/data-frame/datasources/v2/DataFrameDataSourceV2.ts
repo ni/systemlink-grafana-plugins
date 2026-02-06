@@ -393,7 +393,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 return acc;
             }, 
             { 
-                totalDataPoints: 0,
+                totalDataPoints: 0, 
                 data: {} as Record<string, TableDataRows>, 
                 processedTables: 0, 
                 isLimitExceeded: false 
