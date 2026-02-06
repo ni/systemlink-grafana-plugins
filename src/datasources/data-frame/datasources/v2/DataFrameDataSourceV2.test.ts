@@ -2953,7 +2953,12 @@ describe('DataFrameDataSourceV2', () => {
                         const result = await queryPromise;
 
                         const col1Field = findField(result.fields, 'col1');
+                        const col2Field = findField(result.fields, 'col2');
+                        const col3Field = findField(result.fields, 'col3');
+
                         expect(col1Field?.values?.length).toBe(999999);
+                        expect(col2Field?.values?.every((value: null) => value === null)).toBe(true);
+                        expect(col3Field?.values?.every((value: null) => value === null)).toBe(true);
                     });
 
                     it('should set isLimitExceeded flag and show notice when data is truncated', async () => {
@@ -4053,7 +4058,12 @@ describe('DataFrameDataSourceV2', () => {
                         const result = await queryPromise;
 
                         const col1Field = findField(result.fields, 'col1');
+                        const col2Field = findField(result.fields, 'col2');
+                        const col3Field = findField(result.fields, 'col3');
+
                         expect(col1Field?.values?.length).toBe(999999);
+                        expect(col2Field?.values?.every((value: null) => value === null)).toBe(true);
+                        expect(col3Field?.values?.every((value: null) => value === null)).toBe(true);
                     });
 
                     it('should set isLimitExceeded flag and show notice when undecimated data is truncated', async () => {
