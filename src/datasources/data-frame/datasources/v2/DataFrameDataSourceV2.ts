@@ -450,7 +450,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     : [
                         { 
                             column: columnsMap.columns.find(
-                                column => column.columnType === 'INDEX'
+                                column => column.columnType === ColumnType.Index
                             )!.name
                         }
                     ];
