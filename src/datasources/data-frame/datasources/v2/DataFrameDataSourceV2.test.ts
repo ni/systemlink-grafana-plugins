@@ -2851,7 +2851,7 @@ describe('DataFrameDataSourceV2', () => {
                         expect(result.refId).toBe('A');
                     });
 
-                    it('should truncate data when total data points exceed TOTAL_ROWS_LIMIT', async () => {
+                    it('should truncate data when total data points exceed MAXIMUM_DATA_POINTS', async () => {
                         const mockTables = [
                             {
                                 id: 'table1',
@@ -3000,19 +3000,21 @@ describe('DataFrameDataSourceV2', () => {
                         expect(result.meta?.notices?.[0].text).toContain('1,000,000');
                     });
 
-                    it('should never exceed TOTAL_ROWS_LIMIT when multiple data tables are queried', async () => {
-                        const mockTables = Array.from({ length: 5 }, (_, i) => ({
-                            id: `table${i}`,
-                            name: `table${i}`,
-                            columns: [
-                                { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                                { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                                { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                            ]
-                        }));
+                    it('should never exceed MAXIMUM_DATA_POINTS when one data tables has more than MAXIMUM_DATA_POINTS', async () => {
+                        const mockTables =  [
+                            {
+                                id: 'table1',
+                                name: 'table1',
+                                columns: [
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                ]
+                            }
+                        ];
                         queryTablesSpy.mockReturnValue(of(mockTables));
 
-                        const tableData = Array.from({ length: 250000 }, () => ['1.0', '2.0', '3.0']);
+                        const tableData = Array.from({ length: 2000000 }, () => ['1.0', '2.0', '3.0']);
                         postSpy.mockImplementation(() => {
                             return of({ frame: { columns: ['col1', 'col2', 'col3'], data: tableData } });
                         });
@@ -3030,13 +3032,13 @@ describe('DataFrameDataSourceV2', () => {
                         const queryPromise = lastValueFrom(ds.runQuery(query, options));
                         await jest.runAllTimersAsync();
                         const result = await queryPromise;
+                        expect(result.fields.length).toBe(3);
 
                         const col1Field = findField(result.fields, 'col1');
-                        
                         const totalRows = col1Field?.values?.length ?? 0;
                         const totalDataPoints = totalRows * 3;
 
-                        expect(totalDataPoints).toBeLessThanOrEqual(1000000);
+                        expect(totalDataPoints).toBeLessThanOrEqual(MAXIMUM_DATA_POINTS);
                     });
 
                     it('should handle exactly REQUESTS_PER_SECOND (6) tables within a batch concurrently', async () => {
@@ -3902,7 +3904,7 @@ describe('DataFrameDataSourceV2', () => {
                         expect(result.refId).toBe('A');
                     });
 
-                    it('should truncate undecimated data when total data points exceed TOTAL_ROWS_LIMIT', async () => {
+                    it('should truncate undecimated data when total data points exceed MAXIMUM_DATA_POINTS', async () => {
                         const mockTables = [
                             {
                                 id: 'table1',
@@ -3952,24 +3954,27 @@ describe('DataFrameDataSourceV2', () => {
                         const queryPromise = lastValueFrom(datasource.runQuery(query, options));
                         await jest.runAllTimersAsync();
                         const result = await queryPromise;
+                        expect(result.fields.length).toBe(2);
 
                         const voltageField = findField(result.fields, 'voltage');
+                        const currentField = findField(result.fields, 'current');
                         expect(voltageField?.values?.length).toBe(500000);
+                        expect(currentField?.values?.length).toBe(500000);
                     });
 
-                    it('should never exceed TOTAL_ROWS_LIMIT  when multiple data tables are queried', async () => {
-                        const mockTables = Array.from({ length: 5 }, (_, i) => ({
-                            id: `table${i}`,
-                            name: `table${i}`,
+                    it('should never exceed MAXIMUM_DATA_POINTS when single data tables exceeds MAXIMUM_DATA_POINTS', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            name: 'table1',
                             columns: [
                                 { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
                                 { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
                                 { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal }
                             ]
-                        }));
+                        }];
                         queryTablesSpy.mockReturnValue(of(mockTables));
 
-                        const csvRows = Array.from({ length: 250000 }, () => '1.0,2.0,3.0').join('\n');
+                        const csvRows = Array.from({ length: 2000000 }, () => '1.0,2.0,3.0').join('\n');
                         const csvResponse = 'col1,col2,col3\n' + csvRows;
                         postSpy.mockImplementation(() => of(csvResponse));
 
@@ -3987,12 +3992,13 @@ describe('DataFrameDataSourceV2', () => {
                         const queryPromise = lastValueFrom(datasource.runQuery(query, options));
                         await jest.runAllTimersAsync();
                         const result = await queryPromise;
+                        expect(result.fields.length).toBe(3);
 
                         const col1Field = findField(result.fields, 'col1');
                         const totalRows = col1Field?.values?.length ?? 0;
                         const totalDataPoints = totalRows * 3;
 
-                        expect(totalDataPoints).toBeLessThanOrEqual(1000000);
+                        expect(totalDataPoints).toBeLessThanOrEqual(MAXIMUM_DATA_POINTS);
                     });
 
                     it('should not include any undecimated data from a table when remaining capacity is less than columns count', async () => {

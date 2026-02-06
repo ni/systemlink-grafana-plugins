@@ -360,16 +360,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 const rowsInRetrievedDataFrame = retrievedDataFrame.data.length;
                 const columnsInRetrievedDataFrame = retrievedDataFrame.columns.length;
                 const dataPointsInRetrievedDataFrame = rowsInRetrievedDataFrame * columnsInRetrievedDataFrame;
-                const totalAvailableDataPoints = MAXIMUM_DATA_POINTS - acc.totalDataPoints;
+                const remainingDataPointCapacity = MAXIMUM_DATA_POINTS - acc.totalDataPoints;
 
                 acc.processedTables++;
 
-                const canFitAllDataPoints = dataPointsInRetrievedDataFrame <= totalAvailableDataPoints;
+                const canFitAllDataPoints = dataPointsInRetrievedDataFrame <= remainingDataPointCapacity;
                 if (canFitAllDataPoints) {
                     acc.data[result.tableId] = result.data;
                     acc.totalDataPoints += dataPointsInRetrievedDataFrame;
                 } else {
-                    const numberOfRowsToInclude = Math.floor(totalAvailableDataPoints / columnsInRetrievedDataFrame);
+                    const numberOfRowsToInclude = Math.floor(remainingDataPointCapacity / columnsInRetrievedDataFrame);
                     if (numberOfRowsToInclude > 0) {
                         acc.data[result.tableId] = {
                             frame: {
@@ -381,10 +381,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     }
                 }
 
-                // Signal to stop if limit reached  
                 if (acc.totalDataPoints === MAXIMUM_DATA_POINTS) {
-                    const areMoreTablesToProcess = acc.processedTables < totalRequests;
-                    if (areMoreTablesToProcess || !canFitAllDataPoints) {
+                    const hasMoreTablesToProcess = acc.processedTables < totalRequests;
+                    if (hasMoreTablesToProcess || !canFitAllDataPoints) {
                         acc.isLimitExceeded = true;
                     }
                     stopSignal$.next();
