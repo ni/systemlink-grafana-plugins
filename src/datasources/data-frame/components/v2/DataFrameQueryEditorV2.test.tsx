@@ -2738,7 +2738,7 @@ describe("DataFrameQueryEditorV2", () => {
                 });
             });
 
-            describe("filter for x-axis range on zoom/pan", () => {
+            describe("filter x-axis range on zoom/pan", () => {
                 let filterXRangeOnZoomPanCheckbox: HTMLElement;
                 let user: UserEvent;
 
@@ -2747,12 +2747,12 @@ describe("DataFrameQueryEditorV2", () => {
                     user = userEvent.setup();
                 });
 
-                it("should have the filter for x-axis range on zoom/pan checkbox unchecked by default", () => {
+                it("should have the filter x-axis range on zoom/pan checkbox unchecked by default", () => {
                     expect(filterXRangeOnZoomPanCheckbox).toBeInTheDocument();
                     expect(filterXRangeOnZoomPanCheckbox).not.toBeChecked();
                 });
 
-                it("should call onChange and onRunQuery when the filter for x-axis range on zoom/pan checkbox is checked", async () => {
+                it("should call onChange and onRunQuery when the filter x-axis range on zoom/pan checkbox is checked", async () => {
                     await user.click(filterXRangeOnZoomPanCheckbox);
 
                     await waitFor(() => {
