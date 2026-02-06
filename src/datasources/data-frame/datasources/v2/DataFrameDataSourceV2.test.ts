@@ -2,7 +2,7 @@ import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
-import { COLUMN_SELECTION_LIMIT, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_SELECTION_LIMIT, MAXIMUM_DATA_POINTS, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
 import { Workspace } from 'core/types';
@@ -2516,7 +2516,7 @@ describe('DataFrameDataSourceV2', () => {
                         );
                     });
 
-                    it('should cap maxDataPoints at TOTAL_ROWS_LIMIT when it exceeds the limit', async () => {
+                    it('should cap maxDataPoints at MAXIMUM_DATA_POINTS when it exceeds the limit', async () => {
                         const mockTables = [{
                             id: 'table1',
                             columns: [
@@ -2536,7 +2536,7 @@ describe('DataFrameDataSourceV2', () => {
 
                         const optionsWithLargeMaxDataPoints = {
                             ...options,
-                            maxDataPoints: 2000000 // Greater than TOTAL_ROWS_LIMIT
+                            maxDataPoints: 2000000
                         } as unknown as DataQueryRequest<DataFrameQueryV2>;
 
                         await lastValueFrom(ds.runQuery(query, optionsWithLargeMaxDataPoints));
@@ -2545,7 +2545,7 @@ describe('DataFrameDataSourceV2', () => {
                             expect.stringContaining('query-decimated-data'),
                             expect.objectContaining({
                                 decimation: expect.objectContaining({
-                                    intervals: 1000000 // TOTAL_ROWS_LIMIT
+                                    intervals: MAXIMUM_DATA_POINTS
                                 })
                             }),
                             expect.any(Object)
@@ -2809,8 +2809,7 @@ describe('DataFrameDataSourceV2', () => {
                         expect(postSpy).toHaveBeenCalledTimes(8);
                     });
 
-                    it('should stop fetching when TOTAL_ROWS_LIMIT is reached', async () => {
-                        // Create 10 tables but have them return enough data to exceed the limit
+                    it('should stop fetching when MAXIMUM_DATA_POINTS is reached', async () => {
                         const mockTables = Array.from({ length: 10 }, (_, i) => ({
                             id: `table${i}`,
                             name: `table${i}`,
@@ -2821,8 +2820,6 @@ describe('DataFrameDataSourceV2', () => {
                         queryTablesSpy.mockReturnValue(of(mockTables));
                         
                         const largeDataArray = Array.from({ length: 300000 }, () => ['1.0']);
-                        // Each table returns 300k rows with 1 column = 300k data points
-                        // After 4 tables, we'll have 1.2M data points (exceeds TOTAL_ROWS_LIMIT of 1M)
                         postSpy.mockImplementation(() => {
                             return of({
                                 frame: {
@@ -3681,7 +3678,7 @@ describe('DataFrameDataSourceV2', () => {
                         expect(postSpy).toHaveBeenCalledTimes(8);
                     });
 
-                    it('should stop fetching undecimated data when TOTAL_ROWS_LIMIT is reached', async () => {
+                    it('should stop fetching undecimated data when MAXIMUM_DATA_POINTS is reached', async () => {
                         const mockTables = Array.from({ length: 10 }, (_, i) => ({
                             id: `table${i}`,
                             name: `table${i}`,
