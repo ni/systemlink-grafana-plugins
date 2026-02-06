@@ -36,7 +36,7 @@ export const labels = {
     columns: 'Columns',
     filterNulls: 'Filter nulls',
     includeIndexColumns: 'Include index columns',
-    showUnits: 'Show units',
+    showUnits: 'Show units in the column headers',
     decimationMethod: 'Decimation method',
     xColumn: 'X-column',
     useTimeRange: 'Use time range',

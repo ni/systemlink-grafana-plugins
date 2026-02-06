@@ -1533,7 +1533,7 @@ describe("DataFrameQueryEditorV2", () => {
                 });
             });
 
-            describe("show units", () => {
+            describe("show units in column headers", () => {
                 let showUnitsCheckbox: HTMLElement;
                 let user: UserEvent;
 
@@ -1542,12 +1542,12 @@ describe("DataFrameQueryEditorV2", () => {
                     user = userEvent.setup();
                 });
 
-                it("should have the show units checkbox unchecked by default", () => {
+                it("should have the show units in column headers checkbox unchecked by default", () => {
                     expect(showUnitsCheckbox).toBeInTheDocument();
                     expect(showUnitsCheckbox).not.toBeChecked();
                 });
 
-                it("should call onChange and onRunQuery when the show units checkbox is checked", async () => {
+                it("should call onChange and onRunQuery when the show units in column headers checkbox is checked", async () => {
                     await user.click(showUnitsCheckbox);
 
                     await waitFor(() => {
