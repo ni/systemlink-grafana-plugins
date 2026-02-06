@@ -3473,7 +3473,7 @@ describe('DataFrameDataSourceV2', () => {
                     expect(publishMock).toHaveBeenCalledWith({
                         type: 'alert-error',
                         payload: [
-                            'Error fetching undecimated table data',
+                            'Error While Fetching Undecimated Table Data',
                             expect.any(String)
                         ],
                     });
@@ -3515,7 +3515,7 @@ describe('DataFrameDataSourceV2', () => {
                     expect(publishMock).toHaveBeenCalledWith({
                         type: 'alert-error',
                         payload: [
-                            'Error fetching undecimated table data',
+                            'Error While Fetching Undecimated Table Data',
                             expect.any(String)
                         ],
                     });
