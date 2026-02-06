@@ -34,20 +34,20 @@ The **SystemLink Data Frames** data source allows you to display data table prop
 
 ---
 
-## 🔗 URL Length Considerations
+## URL Length Considerations
 
-When using **Filter for x-axis range on zoom/pan** with numeric columns, excessive zoom/pan operations on different numeric **X-columns** can result in a **"414 URI Too Long"** error. To avoid this:
+When using **Filter x-axis range on zoom/pan** feature on data tables with numeric columns, excessive use of zoom and pan operations can cause a URI Length error.
+Use the following methods to avoid a URI Length error.
 
-- Minimize multi-value dashboard variables.
-- Avoid zoom/pan on many unique numeric **X-columns**.
-- Limit the number of panels with this feature enabled.
+- Minimize your use of multi-value dashboard variables.
+- Avoid the zoom and pan operations on too many unique numeric **X-columns**.
 
-### Troubleshooting "URI Too Long" Error
+### Troubleshooting a URI Length Error
 
-If you encounter a **"414 URI Too Long"** error, try one of the following:
+If your system returns a "414 URI Too Long" error, use one of the following methods to resolve the error.
 
-- Remove some URL query parameters from your browser's address bar **or**
-- Navigate to the dashboard via the navigation menu.
+- Remove one or more URL query parameters from the browser address bar.
+- Navigate to the dashboard through the navigation menu.
 
 ---
 
