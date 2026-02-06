@@ -11,7 +11,7 @@ import { SystemQuery, SystemQueryType, SystemSummary, SystemVariableQuery, Syste
 import { getWorkspaceName } from 'core/utils';
 import { SystemsDataSourceBase } from './SystemsDataSourceBase';
 import { transformComputedFieldsQuery } from 'core/query-builder.utils';
-import { defaultOrderBy, defaultProjection, SystemBackendFieldNames, SystemFieldMapping } from './SystemsQueryBuilder.constants';
+import { defaultOrderBy, defaultProjection, SystemBackendFieldNames } from './SystemsQueryBuilder.constants';
 import { from, map, Observable, switchMap } from 'rxjs';
 import { QuerySystemsResponse } from 'core/types';
 
@@ -51,29 +51,6 @@ export class SystemDataSource extends SystemsDataSourceBase {
     return prepared;
   }
 
-  private backwardCompatibility(query: SystemQuery): string {
-    const parts: string[] = [];
-
-    if (query.filter?.trim()) {
-      parts.push(query.filter);
-    }
-
-    if (query.systemName?.trim()) {
-      const idPart = `id = "${query.systemName}"`;
-      const aliasPart = `alias = "${query.systemName}"`;
-      parts.push(`(${idPart} || ${aliasPart})`);
-    }
-
-    if (query.workspace?.trim() && !query.systemName) {
-      const workspacePart = `workspace = "${query.workspace}"`;
-      if (!query.filter?.includes('workspace =')) {
-        parts.push(workspacePart);
-      }
-    }
-
-    return parts.join(' && ');
-  }
-
   runQuery(query: SystemQuery, options: DataQueryRequest): Observable<DataFrameDTO> {
     return from(this.dependenciesLoadedPromise).pipe(
       switchMap(() => {
@@ -84,6 +61,28 @@ export class SystemDataSource extends SystemsDataSourceBase {
         }
       })
     );
+  }
+
+  shouldRunQuery(query: SystemQuery): boolean {
+    return !query.hide;
+  }
+
+  async testDatasource(): Promise<TestDataSourceResponse> {
+    await this.get(this.baseUrl + '/get-systems-summary');
+    return { status: 'success', message: 'Data source connected and authentication successful!' };
+  }
+
+  async metricFindQuery({ queryReturnType, workspace }: SystemVariableQuery): Promise<MetricFindValue[]> {
+    await this.dependenciesLoadedPromise;
+
+    let filter = '';
+    if (workspace) {
+      const resolvedWorkspace = this.templateSrv.replace(workspace);
+      filter = `workspace = "${resolvedWorkspace}"`;
+    }
+
+    const properties = await this.getSystemProperties(filter, [SystemBackendFieldNames.ID, SystemBackendFieldNames.ALIAS, SystemBackendFieldNames.SCAN_CODE]);
+    return properties.map(system => this.getSystemNameForMetricQuery({ queryReturnType }, system));
   }
 
   private runSummaryQuery(query: SystemQuery): Observable<DataFrameDTO> {
@@ -137,18 +136,7 @@ export class SystemDataSource extends SystemsDataSourceBase {
 
   private processFilter(filter: string, scopedVars: any): string {
     let tempFilter = this.templateSrv.replace(filter, scopedVars);
-    tempFilter = this.mapUIFieldsToBackendFields(tempFilter);
     return transformComputedFieldsQuery(tempFilter, this.systemsComputedDataFields);
-  }
-
-  private mapUIFieldsToBackendFields(filter: string): string {
-    let mappedFilter = filter;
-    Object.entries(SystemFieldMapping).forEach(([uiField, backendField]) => {
-      const regex = new RegExp(`\\b${uiField}\\b`, 'g');
-      mappedFilter = mappedFilter.replace(regex, backendField);
-    });
-
-    return mappedFilter;
   }
 
   async getSystemProperties(filter?: string, projection = defaultProjection): Promise<SystemProperties[]> {
@@ -158,19 +146,6 @@ export class SystemDataSource extends SystemsDataSourceBase {
       orderBy: defaultOrderBy,
     });
     return response.data;
-  }
-
-  async metricFindQuery({ queryReturnType, workspace }: SystemVariableQuery): Promise<MetricFindValue[]> {
-    await this.dependenciesLoadedPromise;
-
-    let filter = '';
-    if (workspace) {
-      const resolvedWorkspace = this.templateSrv.replace(workspace);
-      filter = `workspace = "${resolvedWorkspace}"`;
-    }
-
-    const properties = await this.getSystemProperties(filter, [SystemBackendFieldNames.ID, SystemBackendFieldNames.ALIAS, SystemBackendFieldNames.SCAN_CODE]);
-    return properties.map(system => this.getSystemNameForMetricQuery({ queryReturnType }, system));
   }
 
   private getSystemNameForMetricQuery(query: { queryReturnType?: SystemQueryReturnType }, system: SystemProperties): MetricFindValue {
@@ -186,12 +161,26 @@ export class SystemDataSource extends SystemsDataSourceBase {
     return { text: displayName, value: systemValue };
   }
 
-  shouldRunQuery(query: SystemQuery): boolean {
-    return !query.hide;
-  }
+  private backwardCompatibility(query: SystemQuery): string {
+    const parts: string[] = [];
 
-  async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.get(this.baseUrl + '/get-systems-summary');
-    return { status: 'success', message: 'Data source connected and authentication successful!' };
+    if (query.filter?.trim()) {
+      parts.push(query.filter);
+    }
+
+    if (query.systemName?.trim()) {
+      const idPart = `id = "${query.systemName}"`;
+      const aliasPart = `alias = "${query.systemName}"`;
+      parts.push(`(${idPart} || ${aliasPart})`);
+    }
+
+    if (query.workspace?.trim() && !query.systemName) {
+      const workspacePart = `workspace = "${query.workspace}"`;
+      if (!query.filter?.includes('workspace =')) {
+        parts.push(workspacePart);
+      }
+    }
+
+    return parts.join(' && ');
   }
 }

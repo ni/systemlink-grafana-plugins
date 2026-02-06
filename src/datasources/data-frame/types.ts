@@ -40,6 +40,7 @@ export interface DataFrameQueryV2 extends DataQuery {
   columns?: string[] | Observable<string[]>;
   includeIndexColumns?: boolean;
   filterNulls?: boolean;
+  showUnits?: boolean;
   decimationMethod?: string;
   xColumn?: string | null;
   filterXRangeOnZoomPan?: boolean;
@@ -141,6 +142,7 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   columns: [],
   includeIndexColumns: false,
   filterNulls: false,
+  showUnits: false,
   decimationMethod: 'LOSSY',
   xColumn: null,
   filterXRangeOnZoomPan: false,
@@ -382,6 +384,14 @@ export interface DecimatedDataRequest {
   columns: string[];
   filters: ColumnFilter[];
   decimation: DecimationOptions;
+}
+
+export interface UndecimatedDataRequest {
+  tableId: string;
+  columns: string[];
+  orderBy?: Array<{ column: string; descending?: boolean }>;
+  filters: ColumnFilter[];
+  take: number;
 }
 
 export interface TableColumnsData {

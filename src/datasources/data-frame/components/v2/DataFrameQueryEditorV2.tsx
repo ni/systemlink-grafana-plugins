@@ -20,15 +20,20 @@ import { isObservable, lastValueFrom } from 'rxjs';
 import _ from 'lodash';
 
 export const DataFrameQueryEditorV2: React.FC<Props> = (
-    { query, onChange, onRunQuery, datasource, queries }: Props
+    { query, onChange, onRunQuery, datasource }: Props
 ) => {
     const isQueryUndecimatedDataFeatureEnabled = useMemo(() => 
         datasource.instanceSettings.jsonData?.featureToggles?.queryUndecimatedData ?? false,
         [datasource]
     );
+
+    const isHighResolutionZoomFeatureEnabled = useMemo(() =>
+        datasource.instanceSettings.jsonData?.featureToggles?.highResolutionZoom ?? false,
+        [datasource]
+    );
+
     const migratedQuery = datasource.processQuery(
         query as DataFrameDataQuery,
-        queries as DataFrameDataQuery[]
     ) as ValidDataFrameQueryV2;
 
     const [isQueryConfigurationSectionOpen, setIsQueryConfigurationSectionOpen] = useState(true);
@@ -337,6 +342,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         handleQueryChange({ ...migratedQuery, includeIndexColumns });
     };
 
+    const onShowUnitsChange = (event: React.FormEvent<HTMLInputElement>) => {
+        const showUnits = event.currentTarget.checked;
+        handleQueryChange({ ...migratedQuery, showUnits });
+    };
+
     const onFilterNullsChange = (event: React.FormEvent<HTMLInputElement>) => {
         const filterNulls = event.currentTarget.checked;
         handleQueryChange({ ...migratedQuery, filterNulls });
@@ -486,6 +496,16 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                                 onChange={onFilterNullsChange}
                             />
                         </InlineField>
+                        <InlineField
+                            label={labels.showUnits}
+                            labelWidth={INLINE_LABEL_WIDTH}
+                            tooltip={tooltips.showUnits}
+                        >
+                            <InlineSwitch
+                                value={migratedQuery.showUnits}
+                                onChange={onShowUnitsChange}
+                            />
+                        </InlineField>
                     </Collapse>
 
                     <Collapse
@@ -525,9 +545,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                             />
                         </InlineField>
                         <InlineField
-                            label={labels.useTimeRange}
+                            label={isHighResolutionZoomFeatureEnabled ? labels.filterXRangeOnZoomPan : labels.useTimeRange}
                             labelWidth={INLINE_LABEL_WIDTH}
-                            tooltip={tooltips.useTimeRange}
+                            tooltip={isHighResolutionZoomFeatureEnabled ? tooltips.filterXRangeOnZoomPan : tooltips.useTimeRange}
                         >
                             <InlineSwitch
                                 value={migratedQuery.filterXRangeOnZoomPan}
