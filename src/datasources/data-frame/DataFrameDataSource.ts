@@ -30,13 +30,10 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
   ) {
     super(instanceSettings, backendSrv, templateSrv);
 
-    const featureToggles = instanceSettings.jsonData?.featureToggles;
-
     this.datasource = new DataFrameDataSourceV2(
         instanceSettings,
         backendSrv,
-        templateSrv,
-        featureToggles
+        templateSrv
       );
   }
 
@@ -113,9 +110,8 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
 
   public processQuery(
     query: DataFrameDataQuery,
-    queries: DataFrameDataQuery[] = []
   ): ValidDataFrameQuery {
-    return this.datasource.processQuery(query, queries);
+    return this.datasource.processQuery(query);
   }
 
   public processVariableQuery(query: DataFrameVariableQuery): ValidDataFrameVariableQuery {

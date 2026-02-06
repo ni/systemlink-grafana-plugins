@@ -1,3 +1,39 @@
+## [4.128.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.128.0...v4.128.1) (2026-02-05)
+
+### Bug Fixes
+
+* **dataframe:** handle invalid undecimated take values ([#657](https://github.com/ni/systemlink-grafana-plugins/issues/657)) ([5607b07](https://github.com/ni/systemlink-grafana-plugins/commit/5607b0772a02446372739e415b0e2b3329da90c5))
+
+## [4.128.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.127.1...v4.128.0) (2026-02-04)
+
+### Features
+
+* **acceptance-tests:** setup for acceptance tests ([#642](https://github.com/ni/systemlink-grafana-plugins/issues/642)) ([53bfd13](https://github.com/ni/systemlink-grafana-plugins/commit/53bfd13b07eaeeb25c1a5b1b6b4479886d3a1206))
+
+## [4.127.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.127.0...v4.127.1) (2026-02-04)
+
+### Bug Fixes
+
+* **querybuilder:** fixed nested properties issue ([#664](https://github.com/ni/systemlink-grafana-plugins/issues/664)) ([ed51f49](https://github.com/ni/systemlink-grafana-plugins/commit/ed51f497dc8be767d48ae5f854c7e095fd52fc81))
+
+## [4.127.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.126.0...v4.127.0) (2026-01-30)
+
+### Features
+
+* **dataframe:** version 2: update "use time range" migration ([#665](https://github.com/ni/systemlink-grafana-plugins/issues/665)) ([e845c33](https://github.com/ni/systemlink-grafana-plugins/commit/e845c33dcee6408218e0b9d2d25c754a99d76c9f))
+
+## [4.126.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.125.0...v4.126.0) (2026-01-30)
+
+### Features
+
+* **dataframe:** version 2: show units ([#663](https://github.com/ni/systemlink-grafana-plugins/issues/663)) ([30f5ce9](https://github.com/ni/systemlink-grafana-plugins/commit/30f5ce936a33b5acdb5b06f8d00d17071884ec5e))
+
+## [4.125.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.124.0...v4.125.0) (2026-01-29)
+
+### Features
+
+* **dataframe:** version 2: rename "Use time range" control label based on feature flag ([#661](https://github.com/ni/systemlink-grafana-plugins/issues/661)) ([9939605](https://github.com/ni/systemlink-grafana-plugins/commit/993960562b3fd56ab9d244b2c661fa57dd0b1e3a))
+
 ## [4.124.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.123.0...v4.124.0) (2026-01-29)
 
 ### Features

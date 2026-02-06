@@ -37,3 +37,7 @@ e2e-results/
 .eslintcache
 
 provisioning/datasources/datasources.yaml
+
+# acceptance-tests
+acceptance-tests/playwright-report
+acceptance-tests/playwright-results

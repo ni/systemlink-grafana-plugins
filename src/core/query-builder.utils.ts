@@ -1,5 +1,5 @@
 import { QueryBuilderCustomOperation } from "smart-webcomponents-react";
-import { QueryBuilderOption } from "./types";
+import { QBField, QueryBuilderOption } from "./types";
 import { QueryBuilderOperations } from "./query-builder.constants";
 
 /**
@@ -43,36 +43,36 @@ export function transformComputedFieldsQuery(
 }
 
 function transformBasedOnComputedFieldSupportedOperations(query: string, field: string, transformation: ExpressionTransformFunction, options?: Map<string, Map<string, unknown>>) {
-    const regex = new RegExp(String.raw`\b${field}\s*(${computedFieldsupportedOperations.join('|')})\s*"([^"]*)"`, 'g');
+  const regex = new RegExp(String.raw`\b${field}\s*(${computedFieldsupportedOperations.join('|')})\s*"([^"]*)"`, 'g');
 
-    return query.replace(regex, (_match, operation, value) => {
-      return transformation(value, operation, options?.get(field));
-    });
+  return query.replace(regex, (_match, operation, value) => {
+    return transformation(value, operation, options?.get(field));
+  });
 }
 
 function transformBasedOnBlankOperations(query: string, field: string, transformation: ExpressionTransformFunction, options?: Map<string, Map<string, unknown>>) {
-    const nullOrEmptyRegex = new RegExp(String.raw`(!)?string\.IsNullOrEmpty\(${field}\)`, 'g');
+  const nullOrEmptyRegex = new RegExp(String.raw`(!)?string\.IsNullOrEmpty\(${field}\)`, 'g');
 
-    return query.replace(nullOrEmptyRegex, (_match, negation) => {
-      const operation = negation
-        ? QueryBuilderOperations.IS_NOT_BLANK.name
-        : QueryBuilderOperations.IS_BLANK.name;
-      return transformation(field, operation, options?.get(field));
-    });
+  return query.replace(nullOrEmptyRegex, (_match, negation) => {
+    const operation = negation
+      ? QueryBuilderOperations.IS_NOT_BLANK.name
+      : QueryBuilderOperations.IS_BLANK.name;
+    return transformation(field, operation, options?.get(field));
+  });
 }
 
 function transformBasedOnContainsOperations(query: string, field: string, transformation: ExpressionTransformFunction, options?: Map<string, Map<string, unknown>>) {
-    const containsRegex = new RegExp(String.raw`(?:!(\(${field}\.Contains\("([^"]*)"\)\))|(${field}\.Contains\("([^"]*)"\)))`, 'g');
+  const containsRegex = new RegExp(String.raw`(?:!(\(${field}\.Contains\("([^"]*)"\)\))|(${field}\.Contains\("([^"]*)"\)))`, 'g');
 
-    return query.replace(containsRegex, (_match, _negatedMatch, negatedValue, _positiveMatch, positiveValue) => {
-        const isNegated = negatedValue !== undefined;
-        const extractedValue = negatedValue || positiveValue;
-        
-        const operation = isNegated
-          ? QueryBuilderOperations.DOES_NOT_CONTAIN.name
-          : QueryBuilderOperations.CONTAINS.name;
-      return transformation(extractedValue, operation, options?.get(field));
-    });
+  return query.replace(containsRegex, (_match, _negatedMatch, negatedValue, _positiveMatch, positiveValue) => {
+    const isNegated = negatedValue !== undefined;
+    const extractedValue = negatedValue || positiveValue;
+
+    const operation = isNegated
+      ? QueryBuilderOperations.DOES_NOT_CONTAIN.name
+      : QueryBuilderOperations.CONTAINS.name;
+    return transformation(extractedValue, operation, options?.get(field));
+  });
 }
 
 /** 
@@ -102,10 +102,10 @@ function transformListContainsOperations(
 
   return query.replace(listOperationRegex, (_match, innerPredicate: string) => {
     const containsRegex = /(?:!(it\.Contains\("([^"]*)"\))|(it\.Contains\("([^"]*)"\)))/g;
-    
+
     const transformedPredicate = innerPredicate.replace(containsRegex, (_match, _negatedMatch, negatedValue, _positiveMatch, positiveValue) => {
-        const extractedValue = negatedValue || positiveValue;
-        return transformation(extractedValue, QueryBuilderOperations.LIST_CONTAINS.name, options?.get(field));
+      const extractedValue = negatedValue || positiveValue;
+      return transformation(extractedValue, QueryBuilderOperations.LIST_CONTAINS.name, options?.get(field));
     });
 
     const isNegated = /^!/.test(innerPredicate.trim());
@@ -151,13 +151,14 @@ export function buildExpressionFromTemplate(expressionTemplate: string | undefin
 
 /**
  * The callback will replace the option's label with it's value
- * @param options Object with value, label object properties, that hold the dropdown values
+ * @param fields Array of QBField objects representing all fields
  * @returns callback to be used by query builder when building the query
  */
-export function expressionBuilderCallback(options: Record<string, QueryBuilderOption[]>) {
+export function expressionBuilderCallback(fields: QBField[]) {
   return function (this: QueryBuilderCustomOperation, fieldName: string, _operation: string, value: string) {
     const buildExpression = (field: string, value: string) => {
-      const fieldOptions = options[fieldName];
+      const options = getOptionsFromFields(fields);
+      const fieldOptions = options[field];
       if (fieldOptions?.length) {
         const labelValue = fieldOptions.find(option => option.label === value);
 
@@ -175,24 +176,27 @@ export function expressionBuilderCallback(options: Record<string, QueryBuilderOp
 
 /**
  * The callback will replace the option's value with it's label
- * @param options Object with value, label object properties, that hold the dropdown values
+ * @param fields Array of QBField objects representing all fields
  * @returns callback to be used by query builder when reading the query
  */
-export function expressionReaderCallback(options: Record<string, QueryBuilderOption[]>) {
+export function expressionReaderCallback(fields: QBField[]) {
   return function (_expression: string, [fieldName, value]: string[]) {
-    const fieldOptions = options[fieldName];
+    const resolvedFieldName = resolveFieldName(fields, fieldName);
+    const options = getOptionsFromFields(fields);
+    const fieldOptions = options[resolvedFieldName];
+    let resolvedValue = value;
 
     if (fieldOptions?.length) {
       const valueLabel = fieldOptions.find(option => option.value === value);
 
       if (valueLabel) {
-        value = valueLabel.label;
+        resolvedValue = valueLabel.label;
       }
     }
 
-    return { fieldName, value };
-  }
-};
+    return { fieldName: resolvedFieldName, value: resolvedValue };
+  };
+}
 
 /**
  * Replaces the label with its corresponding value using the latest options from the reference.
@@ -258,7 +262,7 @@ export function listFieldsQuery(field: string): ExpressionTransformFunction {
     const [updatedFieldName, updatedOperation] = operation === QueryBuilderOperations.LIST_CONTAINS.name
       ? ['it', QueryBuilderOperations.CONTAINS.name]
       : [field, operation];
-    
+
     return multipleValuesQuery(updatedFieldName)(value, updatedOperation);
   };
 }
@@ -374,4 +378,32 @@ function getOptionMappedValue(
   const option = options.find(option => option[matchKey] === matchValue);
 
   return option ? option[returnKey] : undefined;
+}
+
+/**
+ * Finds the matching field name from the list of fields based on the provided fieldName.
+ * This is useful for handling truncated nested field names in the QueryBuilder library.
+ * example: 'grains.data.osfullname' becomes 'data.osfullname'
+ * @param fields - Array of QBField objects representing all fields.
+ * @param fieldName - The field name to be matched (may be truncated).
+ * @returns The full matching field name if found, otherwise returns the original fieldName.
+ */
+function resolveFieldName(fields: QBField[], fieldName: string): string {
+  const matchingField = fields.find(field => field.dataField?.endsWith(fieldName));
+  return matchingField?.dataField || fieldName;;
+}
+
+/**
+ * Generates a mapping of field dataField names to their corresponding lookup dataSource options.
+ * @param fields - Array of QBField objects.
+ * @returns A record mapping each field's dataField to its lookup dataSource array.
+ */
+function getOptionsFromFields(fields: QBField[]) {
+  return Object.values(fields).reduce((accumulator, fieldConfig) => {
+    if (fieldConfig.lookup) {
+      accumulator[fieldConfig.dataField!] = fieldConfig.lookup.dataSource;
+    }
+
+    return accumulator;
+  }, {} as Record<string, QueryBuilderOption[]>);
 }
