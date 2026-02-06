@@ -2,7 +2,7 @@ import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
-import { COLUMN_SELECTION_LIMIT, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_SELECTION_LIMIT, MAXIMUM_DATA_POINTS, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
 import { Workspace } from 'core/types';
@@ -2516,7 +2516,7 @@ describe('DataFrameDataSourceV2', () => {
                         );
                     });
 
-                    it('should cap maxDataPoints at TOTAL_DATA_POINTS_LIMIT when it exceeds the limit', async () => {
+                    it('should cap maxDataPoints at MAXIMUM_DATA_POINTS when it exceeds the limit', async () => {
                         const mockTables = [{
                             id: 'table1',
                             columns: [
@@ -2545,7 +2545,7 @@ describe('DataFrameDataSourceV2', () => {
                             expect.stringContaining('query-decimated-data'),
                             expect.objectContaining({
                                 decimation: expect.objectContaining({
-                                    intervals: 1000000
+                                    intervals: MAXIMUM_DATA_POINTS
                                 })
                             }),
                             expect.any(Object)
@@ -2809,7 +2809,7 @@ describe('DataFrameDataSourceV2', () => {
                         expect(postSpy).toHaveBeenCalledTimes(8);
                     });
 
-                    it('should stop fetching when TOTAL_DATA_POINTS_LIMIT is reached', async () => {
+                    it('should stop fetching when MAXIMUM_DATA_POINTS is reached', async () => {
                         const mockTables = Array.from({ length: 10 }, (_, i) => ({
                             id: `table${i}`,
                             name: `table${i}`,
@@ -3678,7 +3678,7 @@ describe('DataFrameDataSourceV2', () => {
                         expect(postSpy).toHaveBeenCalledTimes(8);
                     });
 
-                    it('should stop fetching undecimated data when TOTAL_DATA_POINTS_LIMIT is reached', async () => {
+                    it('should stop fetching undecimated data when MAXIMUM_DATA_POINTS is reached', async () => {
                         const mockTables = Array.from({ length: 10 }, (_, i) => ({
                             id: `table${i}`,
                             name: `table${i}`,
