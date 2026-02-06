@@ -44,6 +44,10 @@ export class DataSourcesPage {
         return this.page.getByTestId('data-testid Alert success');
     }
 
+    public get dataSourceConnectedSuccessMessage(): Locator {
+        return this.page.getByTestId('data-testid Alert success').getByText('Data source connected and authentication successful!Next, you can start to');
+    }
+
     public existentDataSourceLink(dataSourceName: string): Locator {
         return this.page.getByRole('link', { name: dataSourceName, exact: true });
     }

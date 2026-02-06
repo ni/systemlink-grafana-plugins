@@ -23,7 +23,7 @@ test.describe('Datasource Configuration', () => {
             await dataSource.httpSettingsURL.fill(FAKE_API_URL);
             await dataSource.saveAndTestButton.click();
 
-            await expect(dataSource.dataSourceSuccessMessage).toHaveText('Data source connected and authentication successful!', { timeout: 10000 });
+            await expect(dataSource.dataSourceConnectedSuccessMessage).toBeVisible({ timeout: 10000 });
 
         });
 

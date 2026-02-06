@@ -26,7 +26,7 @@ export class DashboardPage {
 
     async selectDataSource(datasourceName: string): Promise<void> {
         await this.page.waitForSelector(`text=${datasourceName}`);
-        await this.page.click(`text=${datasourceName}`);
+        await this.page.getByRole('button', { name: datasourceName }).click();
     }
 
     async waitForQueryEditor(): Promise<void> {
