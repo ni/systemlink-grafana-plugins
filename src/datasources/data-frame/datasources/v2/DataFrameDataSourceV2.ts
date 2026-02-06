@@ -352,44 +352,43 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 )
             ),
             reduce((acc, result) => {
-                const retrievedDataFrame = result.data.frame;
-                const rowsInRetrievedDataFrame = retrievedDataFrame.data.length;
-                const columnsInRetrievedDataFrame = retrievedDataFrame.columns.length;
-                const dataPointsToAdd = rowsInRetrievedDataFrame * columnsInRetrievedDataFrame;
-                const dataPointsRemaining = MAXIMUM_DATA_POINTS - acc.totalDataPoints;
-                
-                acc.processedTables++;
-
-                const setLimitExceededFlag = () => {
-                    acc.isLimitExceeded = true;
-                    stopSignal$.next();
-                    stopSignal$.complete();
-                };
-
-                if (dataPointsRemaining <= 0) {
-                    setLimitExceededFlag();
+                if (acc.isLimitExceeded) {
                     return acc;
                 }
 
-                if (dataPointsToAdd <= dataPointsRemaining) {
-                    acc.data[result.tableId] = result.data;
-                    acc.totalDataPoints += dataPointsToAdd;
+                const retrievedDataFrame = result.data.frame;
+                const rowsInRetrievedDataFrame = retrievedDataFrame.data.length;
+                const columnsInRetrievedDataFrame = retrievedDataFrame.columns.length;
+                const dataPointsInRetrievedDataFrame = rowsInRetrievedDataFrame * columnsInRetrievedDataFrame;
+                const totalAvailableDataPoints = MAXIMUM_DATA_POINTS - acc.totalDataPoints;
 
-                    if (acc.totalDataPoints >= MAXIMUM_DATA_POINTS && acc.processedTables < totalRequests) {
-                        setLimitExceededFlag();
-                    }
+                acc.processedTables++;
+
+                const canFitAllDataPoints = dataPointsInRetrievedDataFrame <= totalAvailableDataPoints;
+                if (canFitAllDataPoints) {
+                    acc.data[result.tableId] = result.data;
+                    acc.totalDataPoints += dataPointsInRetrievedDataFrame;
                 } else {
-                    const rowsToInclude = Math.floor(dataPointsRemaining / columnsInRetrievedDataFrame);
-                    if (rowsToInclude > 0) {
+                    const numberOfRowsToInclude = Math.floor(totalAvailableDataPoints / columnsInRetrievedDataFrame);
+                    if (numberOfRowsToInclude > 0) {
                         acc.data[result.tableId] = {
                             frame: {
                                 columns: retrievedDataFrame.columns,
-                                data: retrievedDataFrame.data.slice(0, rowsToInclude)
+                                data: retrievedDataFrame.data.slice(0, numberOfRowsToInclude)
                             }
                         };
-                        acc.totalDataPoints += rowsToInclude * columnsInRetrievedDataFrame;
+                        acc.totalDataPoints += numberOfRowsToInclude * columnsInRetrievedDataFrame;
                     }
-                    setLimitExceededFlag();
+                }
+
+                // Signal to stop if limit reached  
+                if (acc.totalDataPoints === MAXIMUM_DATA_POINTS) {
+                    const areMoreTablesToProcess = acc.processedTables < totalRequests;
+                    if (areMoreTablesToProcess || !canFitAllDataPoints) {
+                        acc.isLimitExceeded = true;
+                    }
+                    stopSignal$.next();
+                    stopSignal$.complete();
                 }
 
                 return acc;

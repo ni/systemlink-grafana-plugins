@@ -2897,8 +2897,11 @@ describe('DataFrameDataSourceV2', () => {
                         const queryPromise = lastValueFrom(ds.runQuery(query, options));
                         await jest.runAllTimersAsync();
                         const result = await queryPromise;
-
+                        expect(result.fields.length).toBe(2);
+                        
                         const voltageField = findField(result.fields, 'voltage');
+                        const currentField = findField(result.fields, 'current');
+                        expect(currentField?.values?.length).toBe(500000);
                         expect(voltageField?.values?.length).toBe(500000);
                     });
 
