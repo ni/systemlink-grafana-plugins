@@ -2905,6 +2905,47 @@ describe('DataFrameDataSourceV2', () => {
                         expect(voltageField?.values?.length).toBe(500000);
                     });
 
+                    it('should never exceed MAXIMUM_DATA_POINTS when one data tables has more than MAXIMUM_DATA_POINTS', async () => {
+                        const mockTables =  [
+                            {
+                                id: 'table1',
+                                name: 'table1',
+                                columns: [
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const tableData = Array.from({ length: 2000000 }, () => ['1.0', '2.0', '3.0']);
+                        postSpy.mockImplementation(() => {
+                            return of({ frame: { columns: ['col1', 'col2', 'col3'], data: tableData } });
+                        });
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric', 'col2-Numeric', 'col3-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'LOSSY',
+                            filterNulls: false,
+                            filterXRangeOnZoomPan: false
+                        } as DataFrameQueryV2;
+
+                        const queryPromise = lastValueFrom(ds.runQuery(query, options));
+                        await jest.runAllTimersAsync();
+                        const result = await queryPromise;
+                        expect(result.fields.length).toBe(3);
+
+                        const col1Field = findField(result.fields, 'col1');
+                        const totalRowsFetched = col1Field?.values?.length ?? 0;
+                        const totalDataPoints = totalRowsFetched * 3;
+
+                        expect(totalDataPoints).toBeLessThanOrEqual(MAXIMUM_DATA_POINTS);
+                    });
+
                     it('should not include any data from a table when remaining capacity is less than columns count', async () => {
                         const mockTables = [
                             {
@@ -3003,47 +3044,6 @@ describe('DataFrameDataSourceV2', () => {
                         expect(result.meta?.notices?.length).toBeGreaterThan(0);
                         expect(result.meta?.notices?.[0].severity).toBe('warning');
                         expect(result.meta?.notices?.[0].text).toContain('1,000,000');
-                    });
-
-                    it('should never exceed MAXIMUM_DATA_POINTS when one data tables has more than MAXIMUM_DATA_POINTS', async () => {
-                        const mockTables =  [
-                            {
-                                id: 'table1',
-                                name: 'table1',
-                                columns: [
-                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                                    { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                                    { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                ]
-                            }
-                        ];
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-
-                        const tableData = Array.from({ length: 2000000 }, () => ['1.0', '2.0', '3.0']);
-                        postSpy.mockImplementation(() => {
-                            return of({ frame: { columns: ['col1', 'col2', 'col3'], data: tableData } });
-                        });
-
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['col1-Numeric', 'col2-Numeric', 'col3-Numeric'],
-                            dataTableFilter: 'name = "Test"',
-                            decimationMethod: 'LOSSY',
-                            filterNulls: false,
-                            filterXRangeOnZoomPan: false
-                        } as DataFrameQueryV2;
-
-                        const queryPromise = lastValueFrom(ds.runQuery(query, options));
-                        await jest.runAllTimersAsync();
-                        const result = await queryPromise;
-                        expect(result.fields.length).toBe(3);
-
-                        const col1Field = findField(result.fields, 'col1');
-                        const totalRows = col1Field?.values?.length ?? 0;
-                        const totalDataPoints = totalRows * 3;
-
-                        expect(totalDataPoints).toBeLessThanOrEqual(MAXIMUM_DATA_POINTS);
                     });
 
                     it('should handle exactly REQUESTS_PER_SECOND (6) tables within a batch concurrently', async () => {
@@ -4000,8 +4000,8 @@ describe('DataFrameDataSourceV2', () => {
                         expect(result.fields.length).toBe(3);
 
                         const col1Field = findField(result.fields, 'col1');
-                        const totalRows = col1Field?.values?.length ?? 0;
-                        const totalDataPoints = totalRows * 3;
+                        const totalRowsFetched = col1Field?.values?.length ?? 0;
+                        const totalDataPoints = totalRowsFetched * 3;
 
                         expect(totalDataPoints).toBeLessThanOrEqual(MAXIMUM_DATA_POINTS);
                     });
