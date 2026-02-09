@@ -2211,16 +2211,22 @@ describe('DataFrameDataSourceV2', () => {
 
                     describe('Numeric x-column', () => {
                         it('should not apply numeric filters when feature flag is disabled even if URL params exist', async () => {
-                            const dsWithHighResolutionZoomDisabled = new DataFrameDataSourceV2({
-                                ...instanceSettings,
-                                jsonData: {
-                                    ...instanceSettings.jsonData,
-                                    featureToggles: {
-                                        queryUndecimatedData: false,
-                                        highResolutionZoom: false
+                            const dsWithHighResolutionZoomDisabled = new DataFrameDataSourceV2(
+                                {
+                                    ...instanceSettings,
+                                    jsonData: {
+                                        ...instanceSettings.jsonData,
+                                        featureToggles: {
+                                            queryUndecimatedData: false,
+                                            highResolutionZoom: false
+                                        }
                                     }
-                                }
-                            });
+                                },
+                                backendSrv,
+                                templateSrv
+                            );
+                            const queryTablesSpy: jest.SpyInstance = jest.spyOn(dsWithHighResolutionZoomDisabled, 'queryTables$');
+                            const postSpy: jest.SpyInstance = jest.spyOn(dsWithHighResolutionZoomDisabled, 'post$');
 
                             const mockTables = [{
                                 id: 'table1',
@@ -3016,7 +3022,8 @@ describe('DataFrameDataSourceV2', () => {
                 let postSpy: jest.SpyInstance;
                 let datasource: DataFrameDataSourceV2;
                 let featureToggles = {
-                    queryUndecimatedData: true
+                    queryUndecimatedData: true,
+                    highResolutionZoom: true
                 }
                 const undecimatedInstanceSettings = {
                     id: 1,
@@ -3752,17 +3759,24 @@ describe('DataFrameDataSourceV2', () => {
                 });
 
                 describe('Numeric x-column', () => {
-                    it('should not apply numeric filters for undecimated data when feature flag is disabled even if URL params exist', async () => {
-                        const dsWithHighResolutionZoomDisabled = new DataFrameDataSourceV2({
-                            ...instanceSettings,
-                            jsonData: {
-                                ...instanceSettings.jsonData,
-                                featureToggles: {
-                                    queryUndecimatedData: true,
-                                    highResolutionZoom: false
+                    it('should not apply numeric filters when feature flag is disabled even if URL params exist', async () => {
+                        const dsWithHighResolutionZoomDisabled = new DataFrameDataSourceV2(
+                            {
+                                ...instanceSettings,
+                                jsonData: {
+                                    ...instanceSettings.jsonData,
+                                    featureToggles: {
+                                        queryUndecimatedData: true,
+                                        highResolutionZoom: false
+                                    }
                                 }
-                            }
-                        });
+                            },
+                            backendSrv,
+                            templateSrv
+                        );
+
+                        const queryTablesSpy: jest.SpyInstance = jest.spyOn(dsWithHighResolutionZoomDisabled, 'queryTables$');
+                        const postSpy: jest.SpyInstance = jest.spyOn(dsWithHighResolutionZoomDisabled, 'post$');
 
                         const mockTables = [{
                             id: 'table1',
@@ -6338,7 +6352,7 @@ describe('DataFrameDataSourceV2', () => {
                 { name: 'count', dataType: 'INT32', columnType: ColumnType.Normal }
             ];
 
-            const result = (ds as any).constructNumericRangeFilters('count', columns);
+            const result = (ds as any).constructNumericRangeFilters(columns, 'count');
 
             expect(result).toEqual([
                 {
@@ -6363,7 +6377,7 @@ describe('DataFrameDataSourceV2', () => {
                 { name: 'id', dataType: 'INT64', columnType: ColumnType.Normal }
             ];
 
-            const result = (ds as any).constructNumericRangeFilters('id', columns);
+            const result = (ds as any).constructNumericRangeFilters(columns, 'id');
 
             expect(result).toEqual([
                 {
@@ -6388,7 +6402,7 @@ describe('DataFrameDataSourceV2', () => {
                 { name: 'temperature', dataType: 'INT32', columnType: ColumnType.Normal }
             ];
 
-            const result = (ds as any).constructNumericRangeFilters('temperature', columns);
+            const result = (ds as any).constructNumericRangeFilters(columns, 'temperature');
 
             expect(result).toEqual([
                 {
@@ -6413,7 +6427,7 @@ describe('DataFrameDataSourceV2', () => {
                 { name: 'offset', dataType: 'INT64', columnType: ColumnType.Normal }
             ];
 
-            const result = (ds as any).constructNumericRangeFilters('offset', columns);
+            const result = (ds as any).constructNumericRangeFilters(columns, 'offset');
 
             expect(result).toEqual([
                 {
@@ -6438,7 +6452,7 @@ describe('DataFrameDataSourceV2', () => {
                 { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
             ];
 
-            const result = (ds as any).constructNumericRangeFilters('voltage', columns);
+            const result = (ds as any).constructNumericRangeFilters(columns, 'voltage');
 
             expect(result).toEqual([
                 {
@@ -6463,7 +6477,7 @@ describe('DataFrameDataSourceV2', () => {
                 { name: 'current', dataType: 'FLOAT32', columnType: ColumnType.Normal }
             ];
 
-            const result = (ds as any).constructNumericRangeFilters('current', columns);
+            const result = (ds as any).constructNumericRangeFilters(columns, 'current');
 
             expect(result).toEqual([
                 {
@@ -6488,7 +6502,7 @@ describe('DataFrameDataSourceV2', () => {
                 { name: 'count', dataType: 'INT32', columnType: ColumnType.Normal }
             ];
 
-            const result = (ds as any).constructNumericRangeFilters('count', columns);
+            const result = (ds as any).constructNumericRangeFilters(columns, 'count');
 
             expect(result).toEqual([
                 {
@@ -6513,7 +6527,7 @@ describe('DataFrameDataSourceV2', () => {
                 { name: 'delta', dataType: 'INT32', columnType: ColumnType.Normal }
             ];
 
-            const result = (ds as any).constructNumericRangeFilters('delta', columns);
+            const result = (ds as any).constructNumericRangeFilters(columns, 'delta');
 
             expect(result).toEqual([
                 {
@@ -6538,7 +6552,7 @@ describe('DataFrameDataSourceV2', () => {
                 { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
             ];
 
-            const result = (ds as any).constructNumericRangeFilters('voltage', columns);
+            const result = (ds as any).constructNumericRangeFilters(columns, 'voltage');
 
             expect(result).toEqual([
                 {
@@ -6563,7 +6577,7 @@ describe('DataFrameDataSourceV2', () => {
                 { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
             ];
 
-            const result = (ds as any).constructNumericRangeFilters('missing', columns);
+            const result = (ds as any).constructNumericRangeFilters(columns, 'missing');
 
             expect(result).toEqual([]);
         });
@@ -6574,7 +6588,7 @@ describe('DataFrameDataSourceV2', () => {
                 { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
             ];
 
-            const result = (ds as any).constructNumericRangeFilters('voltage', columns);
+            const result = (ds as any).constructNumericRangeFilters(columns, 'voltage');
 
             expect(result).toEqual([]);
         });
@@ -6588,7 +6602,7 @@ describe('DataFrameDataSourceV2', () => {
                 { name: 'count', dataType: 'INT32', columnType: ColumnType.Normal }
             ];
 
-            const result = (ds as any).constructNumericRangeFilters('count', columns);
+            const result = (ds as any).constructNumericRangeFilters(columns, 'count');
 
             expect(result).toEqual([]);
         });
@@ -6602,7 +6616,7 @@ describe('DataFrameDataSourceV2', () => {
                 { name: 'id', dataType: 'INT64', columnType: ColumnType.Normal }
             ];
 
-            const result = (ds as any).constructNumericRangeFilters('id', columns);
+            const result = (ds as any).constructNumericRangeFilters(columns, 'id');
 
             expect(result).toEqual([]);
         });
@@ -6616,7 +6630,7 @@ describe('DataFrameDataSourceV2', () => {
                 { name: 'voltage', dataType: 'FLOAT32', columnType: ColumnType.Normal }
             ];
 
-            const result = (ds as any).constructNumericRangeFilters('voltage', columns);
+            const result = (ds as any).constructNumericRangeFilters(columns, 'voltage');
 
             expect(result).toEqual([]);
         });
@@ -6630,7 +6644,7 @@ describe('DataFrameDataSourceV2', () => {
                 { name: 'measurement', dataType: 'FLOAT64', columnType: ColumnType.Normal }
             ];
 
-            const result = (ds as any).constructNumericRangeFilters('measurement', columns);
+            const result = (ds as any).constructNumericRangeFilters(columns, 'measurement');
 
             expect(result).toEqual([]);
         });
