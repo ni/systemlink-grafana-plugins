@@ -3130,7 +3130,7 @@ describe('DataFrameDataSourceV2', () => {
                     );
                 });
 
-                it('should apply Index column to orderBy when xColumn is not specified for undecimated data', async () => {
+                it('should apply orderBy with Index column when xColumn is not specified for undecimated data', async () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
