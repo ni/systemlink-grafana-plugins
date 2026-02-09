@@ -33,6 +33,5 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Install acceptance test dependencies
-        working-directory: acceptance-tests
-        run: npm ci
+      - name: Acceptance tests
+        run: npm run test:acceptance
