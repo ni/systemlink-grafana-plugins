@@ -64,7 +64,8 @@ export class DataSourcesPage {
         await this.navigateToDatasourcesPage();
         await this.addDataSourceButton.click();
         await this.dataSource(dataSource).click();
-        await this.page.waitForSelector('text=HTTP');
+        await this.nameSettingsInputField.waitFor({ state: 'visible', timeout: 20000 });
+        await this.httpSettingsURL.waitFor({ state: 'visible', timeout: 20000 });
         await this.changeNameInputFieldValue(dataSourceNameField);
         await this.httpSettingsURL.fill(FAKE_API_URL);
         await this.saveAndTestButton.click();

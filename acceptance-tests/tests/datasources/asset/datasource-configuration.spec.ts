@@ -17,7 +17,8 @@ test.describe('Datasource Configuration', () => {
             await dataSource.navigateToDatasourcesPage();
             await dataSource.addDataSourceButton.click();
             await dataSource.dataSource('SystemLink Assets').click();
-            await dataSource.page.waitForSelector('text=HTTP');
+            await dataSource.nameSettingsInputField.waitFor({ state: 'visible', timeout: 20000 });
+            await dataSource.httpSettingsURL.waitFor({ state: 'visible', timeout: 20000 });
             await dataSource.changeNameInputFieldValue(dataSourceName);
 
             await dataSource.httpSettingsURL.fill(FAKE_API_URL);
@@ -37,7 +38,8 @@ test.describe('Datasource Configuration', () => {
         await dataSource.navigateToDatasourcesPage();
         await dataSource.addDataSourceButton.click();
         await dataSource.dataSource('SystemLink Assets').click();
-        await dataSource.page.waitForSelector('text=HTTP');
+        await dataSource.nameSettingsInputField.waitFor({ state: 'visible', timeout: 20000 });
+        await dataSource.httpSettingsURL.waitFor({ state: 'visible', timeout: 20000 });
         await dataSource.changeNameInputFieldValue(dataSourceName);
         await dataSource.httpSettingsURL.fill('http://wrong-url.com');
         await dataSource.saveAndTestButton.click();

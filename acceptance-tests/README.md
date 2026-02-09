@@ -40,6 +40,15 @@ docker-compose -f docker-compose.tests.yaml up -d
 - Grafana: `http://localhost:4000` (admin/admin)
 - Fake API health check: `http://localhost:5000/up`
 
+### Why FAKE_API_URL is `http://fake-api:8080`
+
+Grafana runs inside Docker in the test setup. Inside a container, `localhost` refers to the container itself.  
+The fake API is reachable using the Docker service name and container port:
+
+- `http://fake-api:8080`
+
+The service name comes from the `fake-api` entry in [docker-compose.tests.yaml](docker-compose.tests.yaml) and `8080` is the port exposed inside the fake‑api container.
+
 ## Running Tests
 
 ```bash
