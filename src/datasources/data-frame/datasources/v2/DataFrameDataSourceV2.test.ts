@@ -3198,7 +3198,7 @@ describe('DataFrameDataSourceV2', () => {
                         id: 'table1',
                         name: 'table1',
                         columns: [
-                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
                             { name: 'current', dataType: 'INT32', columnType: ColumnType.Nullable }
                         ]
                     }];
@@ -3239,7 +3239,7 @@ describe('DataFrameDataSourceV2', () => {
                         id: 'table1',
                         name: 'table1',
                         columns: [
-                            { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                            { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
                         ]
                     }];
@@ -3294,7 +3294,7 @@ describe('DataFrameDataSourceV2', () => {
                         id: 'table1',
                         name: 'table1',
                         columns: [
-                            { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                            { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
                         ]
                     }];
@@ -3325,18 +3325,19 @@ describe('DataFrameDataSourceV2', () => {
                     );
                 });
 
-                it('should not apply orderBy when xColumn is not specified for undecimated data', async () => {
+                it('should apply orderBy with Index column when xColumn is not specified for undecimated data', async () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
                         columns: [
+                            { name: 'index', dataType: 'INT32', columnType: ColumnType.Index },
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
                         ]
                     }];
 
                     queryTablesSpy.mockReturnValue(of(mockTables));
 
-                    const csvResponse = 'voltage\n10.5';
+                    const csvResponse = 'index,voltage\n1,10.5';
                     postSpy.mockReturnValue(of(csvResponse));
 
                     const query = {
@@ -3354,7 +3355,7 @@ describe('DataFrameDataSourceV2', () => {
                     expect(postSpy).toHaveBeenCalledWith(
                         expect.any(String),
                         expect.objectContaining({
-                            orderBy: undefined
+                            orderBy: [{ column: 'index' }]
                         }),
                         expect.any(Object)
                     );
@@ -3366,7 +3367,7 @@ describe('DataFrameDataSourceV2', () => {
                         id: 'table1',
                         name: 'table1',
                         columns: [
-                            { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                             { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
                             { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal },
                             { name: 'col4', dataType: 'FLOAT64', columnType: ColumnType.Normal },
@@ -3411,7 +3412,7 @@ describe('DataFrameDataSourceV2', () => {
                         id: 'table1',
                         name: 'table1',
                         columns: [
-                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
@@ -3446,7 +3447,7 @@ describe('DataFrameDataSourceV2', () => {
                         id: 'table1',
                         name: 'table1',
                         columns: [
-                            { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                             { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
                         ]
                     }];
@@ -3535,7 +3536,7 @@ describe('DataFrameDataSourceV2', () => {
                         id: 'table1',
                         name: 'table1',
                         columns: [
-                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
@@ -3572,7 +3573,7 @@ describe('DataFrameDataSourceV2', () => {
                         id: 'table1',
                         name: 'table1',
                         columns: [
-                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
@@ -3602,7 +3603,7 @@ describe('DataFrameDataSourceV2', () => {
                         id: 'table1',
                         name: 'table1',
                         columns: [
-                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
@@ -3635,7 +3636,7 @@ describe('DataFrameDataSourceV2', () => {
                         id: 'table1',
                         name: 'table1',
                         columns: [
-                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
@@ -3683,7 +3684,7 @@ describe('DataFrameDataSourceV2', () => {
                         id: 'table1',
                         name: 'table1',
                         columns: [
-                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
@@ -3721,7 +3722,7 @@ describe('DataFrameDataSourceV2', () => {
                         id: 'table1',
                         name: 'table1',
                         columns: [
-                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                         ]
                     }];
                     queryTablesSpy.mockReturnValue(of(mockTables));
@@ -3847,7 +3848,7 @@ describe('DataFrameDataSourceV2', () => {
                             id: `table${i}`,
                             name: `table${i}`,
                             columns: [
-                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                             ]
                         }));
                         queryTablesSpy.mockReturnValue(of(mockTables));
@@ -3878,7 +3879,7 @@ describe('DataFrameDataSourceV2', () => {
                             id: `table${i}`,
                             name: `table${i}`,
                             columns: [
-                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                             ]
                         }));
                         queryTablesSpy.mockReturnValue(of(mockTables));
@@ -4115,7 +4116,7 @@ describe('DataFrameDataSourceV2', () => {
                             id: `table${i}`,
                             name: `table${i}`,
                             columns: [
-                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                             ]
                         }));
                         queryTablesSpy.mockReturnValue(of(mockTables));
