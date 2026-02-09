@@ -34,7 +34,7 @@ jobs:
         run: npm run build
 
       - name: Start test environment
-        run: docker-compose -f docker-compose.tests.yaml up -d
+        run: docker compose -f docker-compose.tests.yaml up -d
 
       - name: Wait for services
         run: |
@@ -62,4 +62,4 @@ jobs:
 
       - name: Stop test environment
         if: always()
-        run: docker-compose -f docker-compose.tests.yaml down
+        run: docker compose -f docker-compose.tests.yaml down
