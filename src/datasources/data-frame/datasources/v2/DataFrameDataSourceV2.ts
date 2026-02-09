@@ -477,21 +477,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         ];
     }
 
-    private constructTimestampRangeFilters(
-        timeRange: TimeRange,
-        columnName?: string
-    ): ColumnFilter[] {
-        if (!columnName) {
-            return [];
-        }
-
-        return this.constructRangeFilters(
-            columnName,
-            timeRange.from.toISOString(),
-            timeRange.to.toISOString()
-        );
-    }
-
     private constructXRangeFilters(
         xColumn: string | null,
         columns: Column[],
@@ -524,6 +509,21 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             default:
                 return [];
         }
+    }
+
+    private constructTimestampRangeFilters(
+        timeRange: TimeRange,
+        columnName?: string
+    ): ColumnFilter[] {
+        if (!columnName) {
+            return [];
+        }
+
+        return this.constructRangeFilters(
+            columnName,
+            timeRange.from.toISOString(),
+            timeRange.to.toISOString()
+        );
     }
 
     private constructNumericRangeFilters(
