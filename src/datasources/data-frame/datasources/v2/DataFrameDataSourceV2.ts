@@ -447,7 +447,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 );
                 const orderBy = query.xColumn 
                     ? [{ column: this.parseColumnIdentifier(query.xColumn).columnName }]
-                    : undefined;
+                    : [
+                        { 
+                            column: columnsMap.columns.find(
+                                column => column.columnType === ColumnType.Index
+                            )!.name
+                        }
+                    ];
 
                 return {
                     tableId,
