@@ -65,8 +65,8 @@ export const INT32_MAX = 2_147_483_647;
 export const INT64_MIN = Number.MIN_SAFE_INTEGER;
 export const INT64_MAX = Number.MAX_SAFE_INTEGER;
 
-export const FLOAT32_MIN = -3.40282347e38;
-export const FLOAT32_MAX = 3.40282347e38;
+export const FLOAT32_MIN = -3.402_823_47e38;
+export const FLOAT32_MAX = 3.402_823_47e38;
 
 export const FLOAT64_MIN = -Number.MAX_VALUE;
 export const FLOAT64_MAX = Number.MAX_VALUE;
