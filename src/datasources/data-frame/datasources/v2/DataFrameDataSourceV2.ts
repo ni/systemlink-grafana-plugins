@@ -477,45 +477,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         ];
     }
 
-    private constructXRangeFilters(
-        xColumn: string | null,
-        columns: Column[],
-        timeRange: TimeRange
+    private constructTimestampRangeFilters(
+        timeRange: TimeRange,
+        columnName?: string
     ): ColumnFilter[] {
-        if (xColumn) {
-            const parsedColumnIdentifier = this.parseColumnIdentifier(xColumn);
-
-            switch (parsedColumnIdentifier.transformedDataType) {
-                case 'Timestamp':
-                    return this.constructTimestampRangeFilters(
-                        parsedColumnIdentifier.columnName, 
-                        timeRange
-                    );
-                case 'Numeric':
-                    return this.constructNumericRangeFilters(
-                        parsedColumnIdentifier.columnName, 
-                        columns
-                    );
-                default:
-                    return [];
-            }
-        }
-        
-        const timeIndexColumnName = columns.find(
-            column => column.dataType === 'TIMESTAMP' && column.columnType === 'INDEX'
-        )?.name;
-
-        if (!timeIndexColumnName) {
+        if (!columnName) {
             return [];
         }
 
-        return this.constructTimestampRangeFilters(timeIndexColumnName, timeRange);
-    }
-
-    private constructTimestampRangeFilters(
-        columnName: string,
-        timeRange: TimeRange
-    ): ColumnFilter[] {
         return this.constructRangeFilters(
             columnName,
             timeRange.from.toISOString(),
@@ -523,9 +492,43 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
+    private constructXRangeFilters(
+        xColumn: string | null,
+        columns: Column[],
+        timeRange: TimeRange
+    ): ColumnFilter[] {
+        if (!xColumn) {
+            const timeIndexColumnName = columns.find(
+                column => column.dataType === 'TIMESTAMP' && column.columnType === 'INDEX'
+            )?.name;
+
+            return this.constructTimestampRangeFilters(timeRange, timeIndexColumnName);
+        }
+
+        const parsedColumnIdentifier = this.parseColumnIdentifier(xColumn);
+
+        switch (parsedColumnIdentifier.transformedDataType) {
+            case 'Timestamp':
+                return this.constructTimestampRangeFilters(
+                    timeRange,
+                    parsedColumnIdentifier.columnName
+                );
+            case 'Numeric':
+                if (!this.isHighResolutionZoomFeatureEnabled) {
+                    return [];
+                }
+                return this.constructNumericRangeFilters(
+                    columns,
+                    parsedColumnIdentifier.columnName
+                );
+            default:
+                return [];
+        }
+    }
+
     private constructNumericRangeFilters(
-        columnName: string,
-        columns: Column[]
+        columns: Column[],
+        columnName: string
     ): ColumnFilter[] {
         const column = columns.find(column => column.name === columnName);
         const columnDataType = column?.dataType;
@@ -544,8 +547,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
           return [];
         }
 
-        const formattedMin = this.formatValueForColumnType(rangeFromUrlParams.min, columnDataType, Math.ceil);
-        const formattedMax = this.formatValueForColumnType(rangeFromUrlParams.max, columnDataType, Math.floor);
+        const formattedMin = this.formatValueForColumnType(
+            rangeFromUrlParams.min,
+            columnDataType,
+            Math.ceil
+        );
+        const formattedMax = this.formatValueForColumnType(
+            rangeFromUrlParams.max,
+            columnDataType,
+            Math.floor
+        );
 
         return this.constructRangeFilters(
             columnName,

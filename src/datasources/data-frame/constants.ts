@@ -59,14 +59,14 @@ export const POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS = ['unit', 'units', 'Unit', 'Uni
 
 export const X_COLUMN_RANGE_DECIMAL_PRECISION = 6;
 
-export const INT32_MIN = -2147483648;
-export const INT32_MAX = 2147483647;
+export const INT32_MIN = -2_147_483_648;
+export const INT32_MAX = 2_147_483_647;
 
 export const INT64_MIN = Number.MIN_SAFE_INTEGER;
 export const INT64_MAX = Number.MAX_SAFE_INTEGER;
 
-export const FLOAT32_MIN = -3.4028234663852886e38;
-export const FLOAT32_MAX = 3.4028234663852886e38;
+export const FLOAT32_MIN = -3.40282347e38;
+export const FLOAT32_MAX = 3.40282347e38;
 
 export const FLOAT64_MIN = -Number.MAX_VALUE;
 export const FLOAT64_MAX = Number.MAX_VALUE;

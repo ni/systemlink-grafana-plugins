@@ -53,37 +53,37 @@ export class DataFrameQueryParamsHandler {
         columnName: string
     ): { min: number; max: number } | null {
         const queryParams = locationService.getSearchObject();
-        const minParamKey = `${queryParamPrefix}-${columnName}-min`;
-        const maxParamKey = `${queryParamPrefix}-${columnName}-max`;
-        const minParamValue = this.getParamValue(queryParams[minParamKey]);
-        const maxParamValue = this.getParamValue(queryParams[maxParamKey]);
+        const minKey = `${queryParamPrefix}-${columnName}-min`;
+        const maxKey = `${queryParamPrefix}-${columnName}-max`;
+        const minValue = this.getParamValue(queryParams[minKey]);
+        const maxValue = this.getParamValue(queryParams[maxKey]);
 
         if (
-            !this.isValidNumericValue(minParamValue) ||
-            !this.isValidNumericValue(maxParamValue)
+            !this.isValidNumericValue(minValue) ||
+            !this.isValidNumericValue(maxValue)
         ) {
             return null;
         }
 
-        const parsedMinParamValue = Number(minParamValue);
-        const parsedMaxParamValue = Number(maxParamValue);
+        const parsedMinValue = Number(minValue);
+        const parsedMaxValue = Number(maxValue);
         
-        if (parsedMinParamValue > parsedMaxParamValue) {
+        if (parsedMinValue > parsedMaxValue) {
             return null;
         }
         
         return {
-            min: parsedMinParamValue,
-            max: parsedMaxParamValue
+            min: parsedMinValue,
+            max: parsedMaxValue
         };
     }
 
-    private static getParamValue(param: UrlQueryValue): string | undefined {
-        if (Array.isArray(param)) {
-            return param[param.length - 1]?.toString();
+    private static getParamValue(paramValue: UrlQueryValue): string | undefined {
+        if (Array.isArray(paramValue)) {
+            return paramValue[paramValue.length - 1]?.toString();
         }
 
-        return param?.toString();
+        return paramValue?.toString();
     }
 
     private static isValidNumericValue(value?: string): boolean {
