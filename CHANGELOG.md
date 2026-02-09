@@ -1,3 +1,9 @@
+## [4.128.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.128.1...v4.128.2) (2026-02-09)
+
+### Bug Fixes
+
+* **dataframe:** update default orderBy to use Index column for undecimated data ([#672](https://github.com/ni/systemlink-grafana-plugins/issues/672)) ([c3e8546](https://github.com/ni/systemlink-grafana-plugins/commit/c3e8546f7a18c455c61b1584329255d409ded134))
+
 ## [4.128.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.128.0...v4.128.1) (2026-02-05)
 
 ### Bug Fixes
