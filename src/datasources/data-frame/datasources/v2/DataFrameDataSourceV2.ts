@@ -381,7 +381,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     }
                 }
 
-                if (acc.totalDataPoints === MAXIMUM_DATA_POINTS) {
+                if (acc.totalDataPoints === MAXIMUM_DATA_POINTS || !canFitAllDataPoints) {
                     const hasMoreTablesToProcess = acc.processedTables < totalRequests;
                     if (hasMoreTablesToProcess || !canFitAllDataPoints) {
                         acc.isLimitExceeded = true;

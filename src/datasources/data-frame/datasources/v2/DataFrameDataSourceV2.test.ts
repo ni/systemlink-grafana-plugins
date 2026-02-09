@@ -3046,6 +3046,66 @@ describe('DataFrameDataSourceV2', () => {
                         expect(result.meta?.notices?.[0].text).toContain('1,000,000');
                     });
 
+                    it('should show limit exceeded when data is truncated even if total points is not exactly MAXIMUM_DATA_POINTS', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                name: 'table1',
+                                columns: [
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index }
+                                ]
+                            },
+                            {
+                                id: 'table2',
+                                name: 'table2',
+                                columns: [
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                    { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const firstTableData = Array.from({ length: 999997 }, () => ['1.0']);
+                        const secondTableData = Array.from({ length: 100 }, () => ['2.0', '3.0']);
+                        let callCount = 0;
+                        postSpy.mockImplementation(() => {
+                            callCount++;
+                            if (callCount === 1) {
+                                return of({ frame: { columns: ['col1'], data: firstTableData } });
+                            }
+                            return of({ frame: { columns: ['col1', 'col2'], data: secondTableData } });
+                        });
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric', 'col2-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'LOSSY',
+                            filterNulls: false,
+                            filterXRangeOnZoomPan: false
+                        } as DataFrameQueryV2;
+
+                        const queryPromise = lastValueFrom(ds.runQuery(query, options));
+                        await jest.runAllTimersAsync();
+                        const result = await queryPromise;
+
+                        const col1Field = findField(result.fields, 'col1');
+                        const col2Field = findField(result.fields, 'col2');
+
+                        expect(col1Field?.values?.length).toBe(999998);
+                        
+                        const col2Values = col2Field?.values as Array<number | null>;
+                        const nonNullCol2Values = col2Values.filter(v => v !== null);
+                        expect(nonNullCol2Values).toHaveLength(1);
+                        expect(nonNullCol2Values[0]).toBe(3.0);
+                        
+                        expect(result.meta?.notices).toBeDefined();
+                        expect(result.meta?.notices?.length).toBeGreaterThan(0);
+                        expect(result.meta?.notices?.[0].severity).toBe('warning');
+                    });
+
                     it('should handle exactly REQUESTS_PER_SECOND (6) tables within a batch concurrently', async () => {
                         // Create exactly 6 tables (one full batch, no second batch)
                         const mockTables = Array.from({ length: 6 }, (_, i) => ({
@@ -4109,6 +4169,71 @@ describe('DataFrameDataSourceV2', () => {
                         expect(result.meta?.notices?.length).toBeGreaterThan(0);
                         expect(result.meta?.notices?.[0].severity).toBe('warning');
                         expect(result.meta?.notices?.[0].text).toContain('1,000,000');
+                    });
+
+                    it('should show limit exceeded when undecimated data is truncated even if total points is not exactly MAXIMUM_DATA_POINTS', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                name: 'table1',
+                                columns: [
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index }
+                                ]
+                            },
+                            {
+                                id: 'table2',
+                                name: 'table2',
+                                columns: [
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                    { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const firstTableCsvRows = Array.from({ length: 999997 }, () => '1.0').join('\n');
+                        const firstTableCsv = 'col1\n' + firstTableCsvRows;
+
+                        const secondTableCsvRows = Array.from({ length: 100 }, () => '2.0,3.0').join('\n');
+                        const secondTableCsv = 'col1,col2\n' + secondTableCsvRows;
+
+                        let callCount = 0;
+                        postSpy.mockImplementation(() => {
+                            callCount++;
+                            if (callCount === 1) {
+                                return of(firstTableCsv);
+                            }
+                            return of(secondTableCsv);
+                        });
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric', 'col2-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'NONE',
+                            filterNulls: false,
+                            applyTimeFilters: false,
+                            undecimatedRecordCount: 1000000
+                        } as DataFrameQueryV2;
+
+                        const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                        await jest.runAllTimersAsync();
+                        const result = await queryPromise;
+
+                        const col1Field = findField(result.fields, 'col1');
+                        const col2Field = findField(result.fields, 'col2');
+
+                        expect(col1Field?.values?.length).toBe(999998);
+                        
+                        const col2Values = col2Field?.values as Array<number | null>;
+                        const nonNullCol2Values = col2Values.filter(v => v !== null);
+                        expect(nonNullCol2Values).toHaveLength(1);
+                        expect(nonNullCol2Values[0]).toBe(3.0);
+                        
+                        expect(result.meta?.notices).toBeDefined();
+                        expect(result.meta?.notices?.length).toBeGreaterThan(0);
+                        expect(result.meta?.notices?.[0].severity).toBe('warning');
                     });
 
                     it('should handle exactly REQUESTS_PER_SECOND tables within a batch concurrently for undecimated data', async () => {
