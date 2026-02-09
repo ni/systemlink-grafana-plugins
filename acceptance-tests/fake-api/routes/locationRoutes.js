@@ -7,5 +7,4 @@ class LocationsRoutes {
         });
     }
 }
-
 export const locationsRoutes = new LocationsRoutes();

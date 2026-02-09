@@ -7,5 +7,4 @@ class SystemsRoutes {
         });
     }
 }
-
 export const systemsRoutes = new SystemsRoutes();
