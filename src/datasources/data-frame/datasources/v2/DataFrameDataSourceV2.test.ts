@@ -2857,7 +2857,7 @@ describe('DataFrameDataSourceV2', () => {
                                 id: 'table1',
                                 name: 'table1',
                                 columns: [
-                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                     { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
                                 ]
                             },
@@ -2865,7 +2865,7 @@ describe('DataFrameDataSourceV2', () => {
                                 id: 'table2',
                                 name: 'table2',
                                 columns: [
-                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                     { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
                                 ]
                             }
@@ -2911,7 +2911,7 @@ describe('DataFrameDataSourceV2', () => {
                                 id: 'table1',
                                 name: 'table1',
                                 columns: [
-                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                     { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
                                     { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal }
                                 ]
@@ -2952,14 +2952,14 @@ describe('DataFrameDataSourceV2', () => {
                                 id: 'table1',
                                 name: 'table1',
                                 columns: [
-                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                 ]
                             },
                             {
                                 id: 'table2',
                                 name: 'table2',
                                 columns: [
-                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                     { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
                                     { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal },
                                 ]
@@ -3008,14 +3008,14 @@ describe('DataFrameDataSourceV2', () => {
                                 id: 'table1',
                                 name: 'table1',
                                 columns: [
-                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                                 ]
                             },
                             {
                                 id: 'table2',
                                 name: 'table2',
                                 columns: [
-                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                                 ]
                             }
                         ];
@@ -3916,7 +3916,7 @@ describe('DataFrameDataSourceV2', () => {
                                 id: 'table1',
                                 name: 'table1',
                                 columns: [
-                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                     { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
                                 ]
                             },
@@ -3924,7 +3924,7 @@ describe('DataFrameDataSourceV2', () => {
                                 id: 'table2',
                                 name: 'table2',
                                 columns: [
-                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                     { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
                                 ]
                             }
@@ -3973,7 +3973,7 @@ describe('DataFrameDataSourceV2', () => {
                             id: 'table1',
                             name: 'table1',
                             columns: [
-                                { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                 { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
                                 { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal }
                             ]
@@ -4013,14 +4013,14 @@ describe('DataFrameDataSourceV2', () => {
                                 id: 'table1',
                                 name: 'table1',
                                 columns: [
-                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                 ]
                             },
                             {
                                 id: 'table2',
                                 name: 'table2',
                                 columns: [
-                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                     { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
                                     { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal },
                                 ]
@@ -4073,14 +4073,14 @@ describe('DataFrameDataSourceV2', () => {
                                 id: 'table1',
                                 name: 'table1',
                                 columns: [
-                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                                 ]
                             },
                             {
                                 id: 'table2',
                                 name: 'table2',
                                 columns: [
-                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                                 ]
                             }
                         ];
