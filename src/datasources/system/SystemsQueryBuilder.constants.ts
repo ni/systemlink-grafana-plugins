@@ -2,19 +2,6 @@ import { QBField } from "core/types";
 import { QueryBuilderOperations } from "../../core/query-builder.constants";
 import { ConnectionStatusOptions } from "./types";
 
-export enum SystemUIFieldNames {
-    ID = 'id',
-    ALIAS = 'alias',
-    CONNECTION_STATUS = 'connectionStatus',
-    WORKSPACE = 'workspace',
-    MODEL = 'model',
-    VENDOR = 'vendor',
-    OS_FULL_NAME = 'osFullName',
-    SCAN_CODE = 'scanCode',
-    SYSTEM_START_TIME = 'systemStartTime',
-    LOCKED_STATUS = 'lockedStatus',
-}
-
 export enum SystemBackendFieldNames {
     ID = 'id',
     ALIAS = 'alias',
@@ -28,23 +15,10 @@ export enum SystemBackendFieldNames {
     LOCKED_STATUS = 'grains.data.minion_blackout',
 }
 
-export const SystemFieldMapping: Record<string, string> = {
-    [SystemUIFieldNames.ID]: SystemBackendFieldNames.ID,
-    [SystemUIFieldNames.ALIAS]: SystemBackendFieldNames.ALIAS,
-    [SystemUIFieldNames.CONNECTION_STATUS]: SystemBackendFieldNames.CONNECTION_STATUS,
-    [SystemUIFieldNames.WORKSPACE]: SystemBackendFieldNames.WORKSPACE,
-    [SystemUIFieldNames.MODEL]: SystemBackendFieldNames.MODEL,
-    [SystemUIFieldNames.VENDOR]: SystemBackendFieldNames.VENDOR,
-    [SystemUIFieldNames.OS_FULL_NAME]: SystemBackendFieldNames.OS_FULL_NAME,
-    [SystemUIFieldNames.SCAN_CODE]: SystemBackendFieldNames.SCAN_CODE,
-    [SystemUIFieldNames.SYSTEM_START_TIME]: SystemBackendFieldNames.SYSTEM_START_TIME,
-    [SystemUIFieldNames.LOCKED_STATUS]: SystemBackendFieldNames.LOCKED_STATUS,
-};
-
 export const SystemFields: Record<string, QBField> = {
     ID: {
         label: 'Minion ID',
-        dataField: SystemUIFieldNames.ID,
+        dataField: SystemBackendFieldNames.ID,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -52,7 +26,7 @@ export const SystemFields: Record<string, QBField> = {
     },
     ALIAS: {
         label: 'Alias',
-        dataField: SystemUIFieldNames.ALIAS,
+        dataField: SystemBackendFieldNames.ALIAS,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -60,7 +34,7 @@ export const SystemFields: Record<string, QBField> = {
     },
     WORKSPACE: {
         label: 'Workspace',
-        dataField: SystemUIFieldNames.WORKSPACE,
+        dataField: SystemBackendFieldNames.WORKSPACE,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -71,7 +45,7 @@ export const SystemFields: Record<string, QBField> = {
     },
     CONNECTION_STATUS: {
         label: 'Connection status',
-        dataField: SystemUIFieldNames.CONNECTION_STATUS,
+        dataField: SystemBackendFieldNames.CONNECTION_STATUS,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name
@@ -82,7 +56,7 @@ export const SystemFields: Record<string, QBField> = {
     },
     MODEL: {
         label: 'Model',
-        dataField: SystemUIFieldNames.MODEL,
+        dataField: SystemBackendFieldNames.MODEL,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -90,7 +64,7 @@ export const SystemFields: Record<string, QBField> = {
     },
     VENDOR: {
         label: 'Vendor',
-        dataField: SystemUIFieldNames.VENDOR,
+        dataField: SystemBackendFieldNames.VENDOR,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -98,7 +72,7 @@ export const SystemFields: Record<string, QBField> = {
     },
     OS_FULL_NAME: {
         label: 'Operating system',
-        dataField: SystemUIFieldNames.OS_FULL_NAME,
+        dataField: SystemBackendFieldNames.OS_FULL_NAME,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -106,7 +80,7 @@ export const SystemFields: Record<string, QBField> = {
     },
     SCAN_CODE: {
         label: 'Scan code',
-        dataField: SystemUIFieldNames.SCAN_CODE,
+        dataField: SystemBackendFieldNames.SCAN_CODE,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -114,7 +88,7 @@ export const SystemFields: Record<string, QBField> = {
     },
     LOCKED_STATUS: {
         label: 'Locked status',
-        dataField: SystemUIFieldNames.LOCKED_STATUS,
+        dataField: SystemBackendFieldNames.LOCKED_STATUS,
         filterOperations: [
             QueryBuilderOperations.EQUALS.name,
             QueryBuilderOperations.DOES_NOT_EQUAL.name,

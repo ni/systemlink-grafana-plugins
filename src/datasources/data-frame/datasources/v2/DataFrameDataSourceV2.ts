@@ -2,7 +2,7 @@ import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceI
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, DataTableFirstClassPropertyLabels, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, TOTAL_ROWS_LIMIT, UNDECIMATED_RECORDS_LIMIT } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -361,14 +361,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 acc.totalDataPoints += dataPointsToAdd;
 
                 // Only accumulate data if within limit
-                if (acc.totalDataPoints <= TOTAL_ROWS_LIMIT) {
+                if (acc.totalDataPoints <= MAXIMUM_DATA_POINTS) {
                     acc.data[result.tableId] = result.data;
                 }
 
                 // Signal to stop if limit reached
-                if (acc.totalDataPoints >= TOTAL_ROWS_LIMIT) {
+                if (acc.totalDataPoints >= MAXIMUM_DATA_POINTS) {
                     // Mark as exceeded if there are more tables to process OR if a single table exceeded the limit
-                    if (acc.processedTables < totalRequests || acc.totalDataPoints > TOTAL_ROWS_LIMIT) {
+                    if (acc.processedTables < totalRequests || acc.totalDataPoints > MAXIMUM_DATA_POINTS) {
                         acc.isLimitExceeded = true;
                     }
                     stopSignal$.next();
@@ -395,7 +395,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     ): DecimatedDataRequest[] {
         const intervals = maxDataPoints < 0 
             ? 0 
-            : Math.min(maxDataPoints, TOTAL_ROWS_LIMIT);
+            : Math.min(maxDataPoints, MAXIMUM_DATA_POINTS);
 
         return Object.entries(tableColumnsMap).map(([tableId, columnsMap]) => {
             const filters = this.constructColumnFilters(
@@ -995,10 +995,27 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private shouldQueryForData(query: ValidDataFrameQueryV2): boolean {
-        return (
-            query.type === DataFrameQueryType.Data
-            && this.hasRequiredFilters(query)
-        );
+        const isDataQueryType = query.type === DataFrameQueryType.Data;
+        
+        if (!isDataQueryType || !this.hasRequiredFilters(query)) {
+            return false;
+        }
+
+        const isUndecimatedDataQuery = this.isQueryUndecimatedDataFeatureEnabled
+            && query.decimationMethod === 'NONE';
+
+        if (isUndecimatedDataQuery) {
+            const recordCount =  
+                query.undecimatedRecordCount ?? this.defaultQuery.undecimatedRecordCount;  
+            const isUndecimatedRecordCountValid =  
+                typeof recordCount === 'number'  
+                && recordCount > 0  
+                && recordCount <= UNDECIMATED_RECORDS_LIMIT;
+
+            return isUndecimatedRecordCountValid;
+        }
+
+        return true;
     }
 
     public hasRequiredFilters(query: ValidDataFrameQueryV2): boolean {
@@ -1137,7 +1154,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                     const notices = result.isLimitExceeded ? [
                                         {
                                             severity: 'warning' as const,
-                                            text: `Data limited to ${TOTAL_ROWS_LIMIT.toLocaleString()} data points. Some data is not displayed. Refine your filters or reduce the number of selected columns to see all data.`
+                                            text: `Data limited to ${MAXIMUM_DATA_POINTS.toLocaleString()} data points. Some data is not displayed. Refine your filters or reduce the number of selected columns to see all data.`
                                         }
                                     ] : undefined;
                                     const dataFrame = this.buildDataFrame(
@@ -1682,7 +1699,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 : [baseData];
         });
 
-        return flattenedData.slice(0, TOTAL_ROWS_LIMIT);
+        return flattenedData.slice(0, MAXIMUM_DATA_POINTS);
     }
 
     private getFieldValues(
