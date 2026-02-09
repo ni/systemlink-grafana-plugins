@@ -9,6 +9,7 @@
     "dev": "webpack -w -c ./.config/webpack/webpack.config.ts --env development",
     "test": "jest --watch --onlyChanged",
     "test:ci": "jest --passWithNoTests --maxWorkers 4",
+    "test:acceptance": "cd acceptance-tests && npm run test:ci",
     "test:template": "npx plop datasource Test && npx tsc --noEmit && rimraf src/datasources/test",
     "typecheck": "tsc --noEmit",
     "lint": "eslint --cache --ignore-path ./.gitignore --ext .js,.jsx,.ts,.tsx .",
