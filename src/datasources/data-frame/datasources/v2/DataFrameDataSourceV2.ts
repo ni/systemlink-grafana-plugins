@@ -483,11 +483,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         timeRange: TimeRange
     ): ColumnFilter[] {
         if (!xColumn) {
-            const timeIndexColumnName = columns.find(
-                column => column.dataType === 'TIMESTAMP' && column.columnType === 'INDEX'
-            )?.name;
+            const timeIndexColumn = columns.find(column =>
+                column.dataType === 'TIMESTAMP' && column.columnType === 'INDEX'
+            );
 
-            return this.constructTimestampRangeFilters(timeRange, timeIndexColumnName);
+            return this.constructTimestampRangeFilters(timeRange, timeIndexColumn?.name);
         }
 
         const parsedColumnIdentifier = this.parseColumnIdentifier(xColumn);
