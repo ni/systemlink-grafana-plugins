@@ -1,3 +1,9 @@
+## [4.129.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.128.3...v4.129.0) (2026-02-10)
+
+### Features
+
+* **dataframes:** truncate and merge data when data points exceed limit ([#667](https://github.com/ni/systemlink-grafana-plugins/issues/667)) ([fa24488](https://github.com/ni/systemlink-grafana-plugins/commit/fa244880f1139cda61db7a83b96f60aadee94172))
+
 ## [4.128.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.128.2...v4.128.3) (2026-02-10)
 
 ### Bug Fixes
