@@ -3624,7 +3624,7 @@ describe('DataFrameDataSourceV2', () => {
                         type: 'alert-info',
                         payload: [
                             'Record limit was adjusted',
-                            `The record limit was automatically reduced to ${(333333).toLocaleString()} to keep the total data points within the maximum allowed limit of ${(1000000).toLocaleString()}.`
+                            `The record limit was automatically reduced for one or more tables to keep the total data points within the maximum allowed limit of ${(1000000).toLocaleString()}.`
                         ]
                     });
                 });

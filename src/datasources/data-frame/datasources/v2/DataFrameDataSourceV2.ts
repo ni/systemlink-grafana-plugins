@@ -304,16 +304,20 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private getTableData$(
         tableColumnsMap: Record<string, TableColumnsData>,
+        tableRowCountMap: Record<string, number>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
         maxDataPoints = 1000,
-        tableRowCountMap: Record<string, number>
     ): Observable<{ data: Record<string, TableDataRows>; isLimitExceeded: boolean }> {
-        const queryUndecimatedData = this.isQueryUndecimatedDataFeatureEnabled 
-            && query.decimationMethod === 'NONE';
+        const queryUndecimatedData = this.isUndecimatedDataQuery(query);
 
         if (queryUndecimatedData) {
-            const requests = this.getUndecimatedDataRequests(tableColumnsMap, query, timeRange, tableRowCountMap);
+            const requests = this.getUndecimatedDataRequests(
+                tableColumnsMap,
+                query,
+                timeRange,
+                tableRowCountMap
+            );
             return this.queryTableDataInBatches$(
                 requests,
                 request => this.getUndecimatedTableData$(request)
@@ -469,7 +473,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         type: AppEvents.alertInfo.name,
                         payload: [
                             'Record limit was adjusted',
-                            `The record limit was automatically reduced to ${take.toLocaleString()} to keep the total data points within the maximum allowed limit of ${UNDECIMATED_RECORDS_LIMIT.toLocaleString()}.`
+                            `The record limit was automatically  reduced for one or more tables to keep the total data points within the maximum allowed limit of ${UNDECIMATED_RECORDS_LIMIT.toLocaleString()}.`
                         ],
                     });
                 }
@@ -968,8 +972,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private isUndecimatedDataQuery(query: ValidDataFrameQueryV2): boolean {
-        return this.isQueryUndecimatedDataFeatureEnabled
-            && query.decimationMethod === 'NONE';
+        return (this.isQueryUndecimatedDataFeatureEnabled
+            && query.decimationMethod === 'NONE');
     }
 
     private getFieldsForDataQuery$(
@@ -1066,10 +1070,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             processedQuery.showUnits
                         );
 
-                        const tableRowCountMap = tables.reduce((acc, table) => {
-                            acc[table.id] = table.rowCount ?? 0;
-                            return acc;
-                        }, {} as Record<string, number>);
+                        const tableRowCountMap: Record<string, number> = Object.fromEntries(
+                            tables.map(table => [table.id, table.rowCount ?? 0])
+                        );
 
                         const hasOnlyMetadataFields = selectedColumnIdentifiers.every(
                             selectedColumnIdentifier => selectedColumnIdentifier === DATA_TABLE_ID_FIELD || selectedColumnIdentifier === DATA_TABLE_NAME_FIELD
@@ -1092,10 +1095,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                 })
                                 : this.getTableData$(
                                     tableColumnsMap,
+                                    tableRowCountMap,
                                     processedQuery,
                                     options.range,
-                                    options.maxDataPoints,
-                                    tableRowCountMap
+                                    options.maxDataPoints
                                 );
 
                             return tableDataMap$.pipe(
