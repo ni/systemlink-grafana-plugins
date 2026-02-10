@@ -498,11 +498,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         timeRange: TimeRange
     ): ColumnFilter[] {
         if (!xColumn) {
-            const timeIndexColumnName = columns.find(
-                column => column.dataType === 'TIMESTAMP' && column.columnType === 'INDEX'
-            )?.name;
+            const indexColumn = columns.find(column => column.columnType === 'INDEX');
+            if (!indexColumn) {
+                return [];
+            }
 
-            return this.constructTimestampRangeFilters(timeRange, timeIndexColumnName);
+            if (indexColumn.dataType === 'TIMESTAMP') {
+                return this.constructTimestampRangeFilters(timeRange, indexColumn.name);
+            }
+
+            if (
+                this.isHighResolutionZoomFeatureEnabled &&
+                INTEGER_DATA_TYPES.includes(indexColumn.dataType)
+            ) {
+                return this.constructNumericRangeFilters(columns, indexColumn.name);
+            }
+
+            return [];
         }
 
         const parsedColumnIdentifier = this.parseColumnIdentifier(xColumn);
