@@ -55,7 +55,8 @@ jobs:
         run: npx playwright install chromium
 
       - name: Acceptance tests
-        run: npm run test:acceptance
+        working-directory: acceptance-tests
+        run: npm test
 
       - name: Upload test results
         if: always()
