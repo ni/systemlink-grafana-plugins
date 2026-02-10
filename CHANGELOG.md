@@ -1,3 +1,9 @@
+## [4.128.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.128.2...v4.128.3) (2026-02-10)
+
+### Bug Fixes
+
+* **dataframe:** Document URL length considerations for zoom/pan synchronization ([#662](https://github.com/ni/systemlink-grafana-plugins/issues/662)) ([28c32bb](https://github.com/ni/systemlink-grafana-plugins/commit/28c32bb3522caf8f21c0d051476429487df921e5))
+
 ## [4.128.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.128.1...v4.128.2) (2026-02-09)
 
 ### Bug Fixes
