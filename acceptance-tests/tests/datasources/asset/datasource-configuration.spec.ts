@@ -30,7 +30,7 @@ test.describe('Datasource Configuration', () => {
 
         test('delete a SystemLink Assets data source', async () => {
             await dataSource.deleteDataSource(dataSourceName);
-            await expect(dataSource.dataSourceSuccessMessage).toHaveText('Data source added', { timeout: 10000 });
+            await expect(dataSource.dataSourceSuccessMessage).toHaveText('Data source deleted', { timeout: 10000 });
         });
     });
 
@@ -43,7 +43,7 @@ test.describe('Datasource Configuration', () => {
         await dataSource.changeNameInputFieldValue(dataSourceName);
         await dataSource.httpSettingsURL.fill('http://wrong-url.com');
         await dataSource.saveAndTestButton.click();
-        await expect(dataSource.dataSourceErrorMessage).toContainText("failed with status code: 500", { timeout: 10000 });
+        await expect(dataSource.dataSourceErrorMessage).toContainText("failed with status code: 502", { timeout: 10000 });
         await dataSource.deleteDataSource(dataSourceName);
     });
 });
