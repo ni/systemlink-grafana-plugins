@@ -33,6 +33,10 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Install acceptance test dependencies
+        working-directory: acceptance-tests
+        run: npm ci
+
       - name: Start test environment
         run: docker compose -f docker-compose.tests.yaml up -d
 
@@ -45,10 +49,6 @@ jobs:
           echo "Waiting for Fake API..."
           timeout 120 sh -c 'until curl -f http://localhost:5000/up > /dev/null 2>&1; do echo "Waiting for Fake API..."; sleep 2; done' || (echo "Fake API logs:" && docker compose -f docker-compose.tests.yaml logs fake-api && exit 1)
           echo "Fake API is ready!"
-
-      - name: Install acceptance test dependencies
-        working-directory: acceptance-tests
-        run: npm ci
 
       - name: Install Playwright browsers
         working-directory: acceptance-tests
