@@ -482,34 +482,21 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         columns: Column[],
         timeRange: TimeRange
     ): ColumnFilter[] {
-        if (!xColumn) {
-            return this.constructXRangeFiltersFromIndexColumn(columns, timeRange);
+        let xColumnIdentifier = xColumn;
+
+        if (!xColumnIdentifier) {
+            const indexColumn = columns.find(column => column.columnType === 'INDEX');
+            if (!indexColumn) {
+                return [];
+            }
+
+            xColumnIdentifier = this.getColumnIdentifier(
+                indexColumn.name,
+                indexColumn.dataType
+            );
         }
 
-        return this.constructXRangeFiltersFromXColumn(xColumn, columns, timeRange);
-    }
-
-    private constructXRangeFiltersFromIndexColumn(
-        columns: Column[],
-        timeRange: TimeRange
-    ): ColumnFilter[] {
-        const indexColumn = columns.find(column => column.columnType === 'INDEX');
-        if (!indexColumn) {
-            return [];
-        }
-
-        if (indexColumn.dataType === 'TIMESTAMP') {
-            return this.constructTimestampRangeFilters(timeRange, indexColumn.name);
-        }
-
-        if (
-            this.isHighResolutionZoomFeatureEnabled &&
-            INTEGER_DATA_TYPES.includes(indexColumn.dataType)
-        ) {
-            return this.constructNumericRangeFilters(columns, indexColumn.name);
-        }
-
-        return [];
+        return this.constructXRangeFiltersFromXColumn(xColumnIdentifier, columns, timeRange);
     }
 
     private constructXRangeFiltersFromXColumn(
