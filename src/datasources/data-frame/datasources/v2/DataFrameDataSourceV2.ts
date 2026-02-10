@@ -473,7 +473,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         type: AppEvents.alertInfo.name,
                         payload: [
                             'Record limit was adjusted',
-                            `The record limit was automatically  reduced for one or more tables to keep the total data points within the maximum allowed limit of ${UNDECIMATED_RECORDS_LIMIT.toLocaleString()}.`
+                            `The record limit was automatically reduced for one or more tables to keep the total data points within the maximum allowed limit of ${UNDECIMATED_RECORDS_LIMIT.toLocaleString()}.`
                         ],
                     });
                 }
