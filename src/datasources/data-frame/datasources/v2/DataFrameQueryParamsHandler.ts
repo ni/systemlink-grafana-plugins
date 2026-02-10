@@ -55,8 +55,8 @@ export class DataFrameQueryParamsHandler {
         const queryParams = locationService.getSearchObject();
         const minKey = `${queryParamPrefix}-${columnName}-min`;
         const maxKey = `${queryParamPrefix}-${columnName}-max`;
-        const minValue = this.getParamValue(queryParams[minKey]);
-        const maxValue = this.getParamValue(queryParams[maxKey]);
+        const minValue = this.normalizeParamValue(queryParams[minKey]);
+        const maxValue = this.normalizeParamValue(queryParams[maxKey]);
 
         if (
             !this.isValidNumericValue(minValue) ||
@@ -78,7 +78,7 @@ export class DataFrameQueryParamsHandler {
         };
     }
 
-    private static getParamValue(paramValue: UrlQueryValue): string | undefined {
+    private static normalizeParamValue(paramValue: UrlQueryValue): string | undefined {
         if (Array.isArray(paramValue)) {
             return paramValue[paramValue.length - 1]?.toString();
         }
