@@ -53,6 +53,10 @@ jobs:
         working-directory: acceptance-tests
         run: npm test
 
+      - name: Show Docker logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.tests.yaml logs
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
