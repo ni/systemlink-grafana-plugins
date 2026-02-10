@@ -40,7 +40,7 @@ export const labels = {
     decimationMethod: 'Decimation method',
     xColumn: 'X-column',
     useTimeRange: 'Use time range',
-    filterXRangeOnZoomPan: 'Filter x-axis range on zoom/pan',
+    filterXRangeOnZoomPan: 'Filter for x-axis range on zoom/pan',
     take: 'Take',
 };
 
