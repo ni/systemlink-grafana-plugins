@@ -6600,7 +6600,6 @@ describe('DataFrameDataSourceV2', () => {
         });
     });
 
-    
     describe('constructNumericRangeFilters', () => {
         let mockGetParams: jest.SpyInstance;
 
@@ -6855,6 +6854,31 @@ describe('DataFrameDataSourceV2', () => {
                     column: 'voltage',
                     operation: 'LESS_THAN_EQUALS',
                     value: '99.987654'
+                }
+            ]);
+        });
+
+        it('should handle when both formatted min and max are equal for FLOAT64 columns', () => {
+            mockGetParams.mockReturnValue({
+                min: 10.123456789012,
+                max: 10.123456891234
+            });
+            const columns = [
+                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+            ];
+
+            const result = (ds as any).constructNumericRangeFilters(columns, 'voltage');
+
+            expect(result).toEqual([
+                {
+                    column: 'voltage',
+                    operation: 'GREATER_THAN_EQUALS',
+                    value: '10.123457'
+                },
+                {
+                    column: 'voltage',
+                    operation: 'LESS_THAN_EQUALS',
+                    value: '10.123457'
                 }
             ]);
         });

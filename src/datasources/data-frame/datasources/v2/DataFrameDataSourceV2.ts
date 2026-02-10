@@ -483,25 +483,40 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         timeRange: TimeRange
     ): ColumnFilter[] {
         if (!xColumn) {
-            const indexColumn = columns.find(column => column.columnType === 'INDEX');
-            if (!indexColumn) {
-                return [];
-            }
+            return this.constructXRangeFiltersFromIndexColumn(columns, timeRange);
+        }
 
-            if (indexColumn.dataType === 'TIMESTAMP') {
-                return this.constructTimestampRangeFilters(timeRange, indexColumn.name);
-            }
+        return this.constructXRangeFiltersFromXColumn(xColumn, columns, timeRange);
+    }
 
-            if (
-                this.isHighResolutionZoomFeatureEnabled &&
-                INTEGER_DATA_TYPES.includes(indexColumn.dataType)
-            ) {
-                return this.constructNumericRangeFilters(columns, indexColumn.name);
-            }
-
+    private constructXRangeFiltersFromIndexColumn(
+        columns: Column[],
+        timeRange: TimeRange
+    ): ColumnFilter[] {
+        const indexColumn = columns.find(column => column.columnType === 'INDEX');
+        if (!indexColumn) {
             return [];
         }
 
+        if (indexColumn.dataType === 'TIMESTAMP') {
+            return this.constructTimestampRangeFilters(timeRange, indexColumn.name);
+        }
+
+        if (
+            this.isHighResolutionZoomFeatureEnabled &&
+            INTEGER_DATA_TYPES.includes(indexColumn.dataType)
+        ) {
+            return this.constructNumericRangeFilters(columns, indexColumn.name);
+        }
+
+        return [];
+    }
+
+    private constructXRangeFiltersFromXColumn(
+        xColumn: string,
+        columns: Column[],
+        timeRange: TimeRange
+    ): ColumnFilter[] {
         const parsedColumnIdentifier = this.parseColumnIdentifier(xColumn);
 
         switch (parsedColumnIdentifier.transformedDataType) {
