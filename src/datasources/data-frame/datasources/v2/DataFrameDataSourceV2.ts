@@ -468,8 +468,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     this.appEvents?.publish?.({
                         type: AppEvents.alertInfo.name,
                         payload: [
-                            'Take was dynamically adjusted!',
-                            `The \`Take\` was reduced to ${take.toLocaleString()} to stay within the data point limits.`
+                            'Record limit was adjusted',
+                            `The record limit was automatically reduced to ${take.toLocaleString()} to keep the total data points within the maximum allowed limit of ${UNDECIMATED_RECORDS_LIMIT.toLocaleString()}.`
                         ],
                     });
                 }

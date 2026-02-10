@@ -3623,8 +3623,8 @@ describe('DataFrameDataSourceV2', () => {
                     expect(publishMock).toHaveBeenCalledWith({
                         type: 'alert-info',
                         payload: [
-                            'Take was dynamically adjusted!',
-                            `The \`Take\` was reduced to ${(333333).toLocaleString()} to stay within the data point limits.`
+                            'Record limit was adjusted',
+                            `The record limit was automatically reduced to ${(333333).toLocaleString()} to keep the total data points within the maximum allowed limit of ${(1000000).toLocaleString()}.`
                         ]
                     });
                 });
