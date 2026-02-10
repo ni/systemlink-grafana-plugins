@@ -533,14 +533,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const column = columns.find(column => column.name === columnName);
         const columnDataType = column?.dataType;
 
-        if(!columnDataType) {
+        if (!columnDataType) {
             return [];
         }
 
         const rangeFromUrlParams = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams(columnName);
 
         if (!rangeFromUrlParams) {
-          return [];
+            return [];
         }
 
         const formattedMin = this.formatValueForColumnType(
@@ -555,11 +555,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
 
         if (
-          !this.isValueInBounds(formattedMin, columnDataType) ||
-          !this.isValueInBounds(formattedMax, columnDataType) ||
-          formattedMin > formattedMax
+            !this.isValueInBounds(formattedMin, columnDataType) ||
+            !this.isValueInBounds(formattedMax, columnDataType) ||
+            formattedMin > formattedMax
         ) {
-          return [];
+            return [];
         }
 
         return this.constructRangeFilters(
