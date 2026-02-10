@@ -3588,6 +3588,85 @@ describe('DataFrameDataSourceV2', () => {
                     expect(postSpy).not.toHaveBeenCalled();
                 });
 
+                it('should publish info alert when take is dynamically adjusted due to column count', async () => {
+                    const publishMock = jest.fn();
+                    (datasource as any).appEvents = { publish: publishMock };
+
+                    const mockTables = [{
+                        id: 'table1',
+                        name: 'table1',
+                        rowCount: 500000,
+                        columns: [
+                            { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                            { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                            { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+
+                    const csvResponse = 'col1,col2,col3\n1,2,3';
+                    postSpy.mockReturnValue(of(csvResponse));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['col1-Numeric', 'col2-Numeric', 'col3-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'NONE',
+                        filterNulls: false,
+                        applyTimeFilters: false,
+                        undecimatedRecordCount: 500000
+                    } as DataFrameQueryV2;
+
+                    await lastValueFrom(datasource.runQuery(query, options));
+
+                    expect(publishMock).toHaveBeenCalledWith({
+                        type: 'alert-info',
+                        payload: [
+                            'Take was dynamically adjusted!',
+                            `The \`Take\` was reduced to ${(333333).toLocaleString()} to stay within the data point limits.`
+                        ]
+                    });
+                });
+
+                it('should not publish info alert when take does not need adjustment', async () => {
+                    const publishMock = jest.fn();
+                    (datasource as any).appEvents = { publish: publishMock };
+
+                    const mockTables = [{
+                        id: 'table1',
+                        name: 'table1',
+                        rowCount: 500000,
+                        columns: [
+                            { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                            { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+
+                    const csvResponse = 'col1,col2\n1,2';
+                    postSpy.mockReturnValue(of(csvResponse));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['col1-Numeric', 'col2-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'NONE',
+                        filterNulls: false,
+                        applyTimeFilters: false,
+                        undecimatedRecordCount: 500000
+                    } as DataFrameQueryV2;
+
+                    await lastValueFrom(datasource.runQuery(query, options));
+
+                    expect(publishMock).not.toHaveBeenCalledWith(
+                        expect.objectContaining({
+                            type: 'alert-info'
+                        })
+                    );
+                });
+
                 it('should fall back to decimated data when feature toggle is disabled', async () => {
                     queryTablesSpy = jest.spyOn(ds, 'queryTables$');
                     postSpy = jest.spyOn(ds, 'post$');

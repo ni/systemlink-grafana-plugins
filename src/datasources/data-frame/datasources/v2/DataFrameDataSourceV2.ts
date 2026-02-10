@@ -306,13 +306,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tableColumnsMap: Record<string, TableColumnsData>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
-        maxDataPoints = 1000
+        maxDataPoints = 1000,
+        tableRowCountMap: Record<string, number>
     ): Observable<{ data: Record<string, TableDataRows>; isLimitExceeded: boolean }> {
         const queryUndecimatedData = this.isQueryUndecimatedDataFeatureEnabled 
             && query.decimationMethod === 'NONE';
 
         if (queryUndecimatedData) {
-            const requests = this.getUndecimatedDataRequests(tableColumnsMap, query, timeRange);
+            const requests = this.getUndecimatedDataRequests(tableColumnsMap, query, timeRange, tableRowCountMap);
             return this.queryTableDataInBatches$(
                 requests,
                 request => this.getUndecimatedTableData$(request)
@@ -442,8 +443,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private getUndecimatedDataRequests(
         tableColumnsMap: Record<string, TableColumnsData>,
         query: ValidDataFrameQueryV2,
-        timeRange: TimeRange
+        timeRange: TimeRange,
+        tableRowCountMap: Record<string, number>
     ): UndecimatedDataRequest[] {
+        let isRowCountTruncatedForAnyTable = false;
         return Object.entries(tableColumnsMap)
             .filter(([_, columnsMap]) => columnsMap.selectedColumns.length > 0)
             .map(([tableId, columnsMap]) => {
@@ -455,6 +458,22 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     query.undecimatedRecordCount ?? maximumRecordCount,
                     maximumRecordCount
                 );
+
+                const wasRecordCountReduced = take !== query.undecimatedRecordCount;
+                const tableHasMoreRows = take < (tableRowCountMap[tableId] ?? 0);
+                const isRowCountTruncated = wasRecordCountReduced && tableHasMoreRows;
+
+                if (isRowCountTruncated && !isRowCountTruncatedForAnyTable) {
+                    isRowCountTruncatedForAnyTable = true;
+                    this.appEvents?.publish?.({
+                        type: AppEvents.alertInfo.name,
+                        payload: [
+                            'Take was dynamically adjusted!',
+                            `The \`Take\` was reduced to ${take.toLocaleString()} to stay within the data point limits.`
+                        ],
+                    });
+                }
+
                 const filters = this.constructColumnFilters(
                     query,
                     columnsMap,
@@ -925,8 +944,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return false;
         }
 
-        const isUndecimatedDataQuery = this.isQueryUndecimatedDataFeatureEnabled
-            && query.decimationMethod === 'NONE';
+        const isUndecimatedDataQuery = this.isUndecimatedDataQuery(query);
 
         if (isUndecimatedDataQuery) {
             const recordCount =  
@@ -947,6 +965,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             query.resultFilter !== ''
             || query.dataTableFilter !== ''
         );
+    }
+
+    private isUndecimatedDataQuery(query: ValidDataFrameQueryV2): boolean {
+        return this.isQueryUndecimatedDataFeatureEnabled
+            && query.decimationMethod === 'NONE';
     }
 
     private getFieldsForDataQuery$(
@@ -990,6 +1013,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     DataTableProjections.ColumnDataType,
                     DataTableProjections.ColumnType,
                 ];
+
+                if (this.isUndecimatedDataQuery(processedQuery)) {
+                    projections.push(DataTableProjections.RowCount);
+                }
 
                 if (processedQuery.showUnits) {
                     projections.push(DataTableProjections.ColumnProperties);  
@@ -1039,6 +1066,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             processedQuery.showUnits
                         );
 
+                        const tableRowCountMap = tables.reduce((acc, table) => {
+                            acc[table.id] = table.rowCount ?? 0;
+                            return acc;
+                        }, {} as Record<string, number>);
+
                         const hasOnlyMetadataFields = selectedColumnIdentifiers.every(
                             selectedColumnIdentifier => selectedColumnIdentifier === DATA_TABLE_ID_FIELD || selectedColumnIdentifier === DATA_TABLE_NAME_FIELD
                         );
@@ -1062,7 +1094,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                     tableColumnsMap,
                                     processedQuery,
                                     options.range,
-                                    options.maxDataPoints
+                                    options.maxDataPoints,
+                                    tableRowCountMap
                                 );
 
                             return tableDataMap$.pipe(
