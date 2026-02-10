@@ -13,6 +13,13 @@ server.get('/up', (_req, res) => {
     res.status(200).json({ status: 'ok' });
 });
 
+server.get('/niapm/v1/assets', (_req, res) => {
+    res.json({
+        assets: db.assets,
+        totalCount: db.assets.length
+    });
+});
+
 server.use(router);
 server.listen(port);
 

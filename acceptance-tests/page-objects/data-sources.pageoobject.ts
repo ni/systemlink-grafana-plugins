@@ -1,5 +1,5 @@
 import { Page, Locator } from '@playwright/test';
-import { FAKE_API_URL, GRAFANA_URL } from '../../../config/environment';
+import { FAKE_API_URL, GRAFANA_URL } from '../config/environment';
 
 export class DataSourcesPage {
     readonly page: Page;

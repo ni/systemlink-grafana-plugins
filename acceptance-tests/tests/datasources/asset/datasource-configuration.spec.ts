@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { FAKE_API_URL } from '../../../config/environment';
-import { DataSourcesPage } from './data-sources.pageoobject';
+import { DataSourcesPage } from '../../../page-objects/data-sources.pageoobject';
 
 test.describe('Datasource Configuration', () => {
     let dataSource: DataSourcesPage;
