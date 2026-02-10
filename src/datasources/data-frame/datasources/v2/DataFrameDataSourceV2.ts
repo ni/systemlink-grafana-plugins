@@ -352,23 +352,38 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 )
             ),
             reduce((acc, result) => {
+                if (acc.isLimitExceeded) {
+                    return acc;
+                }
+
                 const retrievedDataFrame = result.data.frame;
                 const rowsInRetrievedDataFrame = retrievedDataFrame.data.length;
                 const columnsInRetrievedDataFrame = retrievedDataFrame.columns.length;
-                const dataPointsToAdd = rowsInRetrievedDataFrame * columnsInRetrievedDataFrame;
-                
-                acc.processedTables++;
-                acc.totalDataPoints += dataPointsToAdd;
+                const dataPointsInRetrievedDataFrame = rowsInRetrievedDataFrame * columnsInRetrievedDataFrame;
+                const remainingDataPointCapacity = MAXIMUM_DATA_POINTS - acc.totalDataPoints;
 
-                // Only accumulate data if within limit
-                if (acc.totalDataPoints <= MAXIMUM_DATA_POINTS) {
+                acc.processedTables++;
+
+                const canFitAllDataPoints = dataPointsInRetrievedDataFrame <= remainingDataPointCapacity;
+                if (canFitAllDataPoints) {
                     acc.data[result.tableId] = result.data;
+                    acc.totalDataPoints += dataPointsInRetrievedDataFrame;
+                } else {
+                    const numberOfRowsToInclude = Math.floor(remainingDataPointCapacity / columnsInRetrievedDataFrame);
+                    if (numberOfRowsToInclude > 0) {
+                        acc.data[result.tableId] = {
+                            frame: {
+                                columns: retrievedDataFrame.columns,
+                                data: retrievedDataFrame.data.slice(0, numberOfRowsToInclude)
+                            }
+                        };
+                        acc.totalDataPoints += numberOfRowsToInclude * columnsInRetrievedDataFrame;
+                    }
                 }
 
-                // Signal to stop if limit reached
-                if (acc.totalDataPoints >= MAXIMUM_DATA_POINTS) {
-                    // Mark as exceeded if there are more tables to process OR if a single table exceeded the limit
-                    if (acc.processedTables < totalRequests || acc.totalDataPoints > MAXIMUM_DATA_POINTS) {
+                if (acc.totalDataPoints === MAXIMUM_DATA_POINTS || !canFitAllDataPoints) {
+                    const hasMoreTablesToProcess = acc.processedTables < totalRequests;
+                    if (hasMoreTablesToProcess || !canFitAllDataPoints) {
                         acc.isLimitExceeded = true;
                     }
                     stopSignal$.next();
