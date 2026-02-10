@@ -6443,7 +6443,7 @@ describe('DataFrameDataSourceV2', () => {
             ]);
         });
 
-        it('should format decimal values to 6 decimal places for FLOAT64 columns', () => {
+        it('should format decimal values for FLOAT64 columns', () => {
             mockGetParams.mockReturnValue({
                 min: 10.567,
                 max: 99.432
@@ -6458,17 +6458,18 @@ describe('DataFrameDataSourceV2', () => {
                 {
                     column: 'voltage',
                     operation: 'GREATER_THAN_EQUALS',
-                    value: '10.567000'
+                    value: '10.567'
                 },
                 {
                     column: 'voltage',
                     operation: 'LESS_THAN_EQUALS',
-                    value: '99.432000'
+                    value: '99.432'
+
                 }
             ]);
         });
 
-        it('should format decimal values to 6 decimal places for FLOAT32 columns', () => {
+        it('should format decimal values for FLOAT32 columns', () => {
             mockGetParams.mockReturnValue({
                 min: 5.123,
                 max: 25.987
@@ -6483,12 +6484,12 @@ describe('DataFrameDataSourceV2', () => {
                 {
                     column: 'current',
                     operation: 'GREATER_THAN_EQUALS',
-                    value: '5.123000'
+                    value: '5.123'
                 },
                 {
                     column: 'current',
                     operation: 'LESS_THAN_EQUALS',
-                    value: '25.987000'
+                    value: '25.987'
                 }
             ]);
         });
@@ -6539,6 +6540,31 @@ describe('DataFrameDataSourceV2', () => {
                     column: 'delta',
                     operation: 'LESS_THAN_EQUALS',
                     value: '0'
+                }
+            ]);
+        });
+
+        it('should accept INT32 max value slightly outside bounds that floors to valid value', () => {
+            mockGetParams.mockReturnValue({
+                min: 2147483646.2,
+                max: 2147483647.5  // INT32_MAX + 0.5, floors to INT32_MAX
+            });
+            const columns = [
+                { name: 'count', dataType: 'INT32', columnType: ColumnType.Normal }
+            ];
+
+            const result = (ds as any).constructNumericRangeFilters(columns, 'count');
+
+            expect(result).toEqual([
+                {
+                    column: 'count',
+                    operation: 'GREATER_THAN_EQUALS',
+                    value: '2147483647'
+                },
+                {
+                    column: 'count',
+                    operation: 'LESS_THAN_EQUALS',
+                    value: '2147483647'
                 }
             ]);
         });
@@ -6621,6 +6647,20 @@ describe('DataFrameDataSourceV2', () => {
             expect(result).toEqual([]);
         });
 
+        it('should return empty array when INT64 value with decimals slightly beyond bounds exceeds JavaScript precision limits', () => {
+            mockGetParams.mockReturnValue({
+                min: 9007199254740990,
+                max: 9007199254740991.8  // INT64_MAX (safe int) + 0.8
+            });
+            const columns = [
+                { name: 'id', dataType: 'INT64', columnType: ColumnType.Normal }
+            ];
+
+            const result = (ds as any).constructNumericRangeFilters(columns, 'id');
+
+            expect(result).toEqual([]);
+        });
+
         it('should return empty array when FLOAT32 value exceeds bounds', () => {
             mockGetParams.mockReturnValue({
                 min: -3.5e38,
@@ -6645,6 +6685,20 @@ describe('DataFrameDataSourceV2', () => {
             ];
 
             const result = (ds as any).constructNumericRangeFilters(columns, 'measurement');
+
+            expect(result).toEqual([]);
+        });
+
+        it('should return empty array when formatted min exceeds formatted max', () => {
+            mockGetParams.mockReturnValue({
+                min: 10.9,  // ceils to 11
+                max: 10.1   // floors to 10, resulting in min > max
+            });
+            const columns = [
+                { name: 'count', dataType: 'INT32', columnType: ColumnType.Normal }
+            ];
+
+            const result = (ds as any).constructNumericRangeFilters(columns, 'count');
 
             expect(result).toEqual([]);
         });

@@ -539,11 +539,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         const rangeFromUrlParams = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams(columnName);
 
-        if (
-          !rangeFromUrlParams ||
-          !this.isValueInBounds(rangeFromUrlParams.min, columnDataType) ||
-          !this.isValueInBounds(rangeFromUrlParams.max, columnDataType)
-        ) {
+        if (!rangeFromUrlParams) {
           return [];
         }
 
@@ -558,10 +554,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             Math.floor
         );
 
+        if (
+          !this.isValueInBounds(formattedMin, columnDataType) ||
+          !this.isValueInBounds(formattedMax, columnDataType) ||
+          formattedMin > formattedMax
+        ) {
+          return [];
+        }
+
         return this.constructRangeFilters(
             columnName,
-            formattedMin,
-            formattedMax
+            formattedMin.toString(),
+            formattedMax.toString()
         );
     }
 
@@ -603,12 +607,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         value: number,
         columnDataType: string,
         roundingFn: (value: number) => number = Math.round
-    ): string {
+    ): number {
         if (INTEGER_DATA_TYPES.includes(columnDataType)) {
-            return roundingFn(value).toString();
+            return roundingFn(value);
         }
 
-        return value.toFixed(X_COLUMN_RANGE_DECIMAL_PRECISION);
+        return parseFloat(value.toFixed(X_COLUMN_RANGE_DECIMAL_PRECISION));
     }
 
     private getDecimatedTableData$(request: DecimatedDataRequest): Observable<TableDataRows> {
