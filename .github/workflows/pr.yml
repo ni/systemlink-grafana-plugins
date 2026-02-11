@@ -43,4 +43,4 @@ jobs:
           timeout 60 sh -c 'until curl -f http://localhost:5000/up > /dev/null 2>&1; do sleep 2; done'
 
       - name: Acceptance tests
-        run: npm run test:acceptance --pass-with-no-tests
+        run: npm run test:acceptance
