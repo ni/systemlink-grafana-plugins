@@ -45,4 +45,20 @@ export class Table {
     async getCellInRowByIndex(rowIndex: number, cellIndex: number): Promise<string> {
         return await this.tableRow.nth(rowIndex).getByRole('cell').nth(cellIndex).textContent() || '';
     }
+
+    async getSelectedColumnIndex(propertyName: string): Promise<number> {
+        const columnHeaders = await this.page.getByRole('columnheader').allTextContents();
+        return columnHeaders.indexOf(propertyName);
+    };
+
+    async checkColumnsValues(columnNames: Array<string>, expectedValue: Array<string>): Promise<boolean> {
+        for (let i = 0; i < columnNames.length; i++) {
+            const columnIndex = await this.getSelectedColumnIndex(columnNames[i]);
+            const cellValue = await this.getCellInRowByIndex(0, columnIndex);
+            if (cellValue !== expectedValue[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

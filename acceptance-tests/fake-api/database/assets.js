@@ -1,12 +1,12 @@
 export const assets = [
     {
-        "modelName": "ABCD",
+        "modelName": "model1",
         "modelNumber": 0,
-        "serialNumber": "SDFGSDFG234",
-        "vendorName": "Acme",
+        "serialNumber": "serial1",
+        "vendorName": "vendor1",
         "vendorNumber": 0,
         "busType": "BUILT_IN_SYSTEM",
-        "name": "SDFGSDFG234",
+        "name": "name1",
         "supportsExternalCalibration": false,
         "selfCalibration": {
             "date": "2022-06-07T18:58:05.000Z"
@@ -17,11 +17,11 @@ export const assets = [
         "visaResourceName": "visa resource name 1",
         "supportsSelfCalibration": false,
         "isNIAsset": false,
-        "id": "c44750b7-1f22-4fec-b475-73b10e966217",
+        "id": "id1",
         "location": {
             "minionId": "SYSTEM-1",
             "parent": "parent 1",
-            "resourceUri": "c44750b7-1f22-4fec-b475-73b10e966217",
+            "resourceUri": "uri1",
             "slotNumber": -1,
             "state": {
                 "assetPresence": "PRESENT",
@@ -39,17 +39,17 @@ export const assets = [
         "properties": { "i": "j" },
         "keywords": ["keyword1", "keyword2"],
         "lastUpdatedTimestamp": "2025-09-03T15:05:46.116Z",
-        "partNumber": "ALK AA48FFP-U AMZ",
-        "scanCode": "c44750b7-1f22-4fec-b475-73b10e966217"
+        "partNumber": "partNumber1",
+        "scanCode": "scanCode1"
     },
     {
-        "modelName": "cRIO-9047",
-        "modelNumber": 30953,
-        "serialNumber": "01CEE362",
-        "vendorName": "National Instruments",
-        "vendorNumber": 4243,
+        "modelName": "model2",
+        "modelNumber": 1,
+        "serialNumber": "serial2",
+        "vendorName": "vendor2",
+        "vendorNumber": 1,
         "busType": "BUILT_IN_SYSTEM",
-        "name": "rsctest-9047",
+        "name": "name2",
         "supportsExternalCalibration": false,
         "selfCalibration": {
             "date": "2022-06-07T18:58:05.000Z"
@@ -60,11 +60,11 @@ export const assets = [
         "visaResourceName": "visa resource name 2",
         "supportsSelfCalibration": false,
         "isNIAsset": true,
-        "id": "4aa6c0de-c256-4f5b-9d7f-0e2d3aa20edc",
+        "id": "id2",
         "location": {
             "minionId": "SYSTEM-2",
             "parent": "parent 2",
-            "resourceUri": "4aa6c0de-c256-4f5b-9d7f-0e2d3aa20edc",
+            "resourceUri": "uri2",
             "slotNumber": -1,
             "state": {
                 "assetPresence": "PRESENT",
@@ -85,16 +85,16 @@ export const assets = [
         "supportsSelfTest": false,
         "supportsReset": false,
         "partNumber": "",
-        "scanCode": "4aa6c0de-c256-4f5b-9d7f-0e2d3aa20edc"
+        "scanCode": "scanCode2"
     },
     {
-        "modelName": "43f3",
+        "modelName": "model3",
         "modelNumber": 0,
-        "serialNumber": "asd123",
-        "vendorName": "f43f3f",
+        "serialNumber": "serial3",
+        "vendorName": "vendor3",
         "vendorNumber": 0,
         "busType": "BUILT_IN_SYSTEM",
-        "name": "assetincabinet edit this 10 times af",
+        "name": "name3",
         "supportsExternalCalibration": false,
         "selfCalibration": {
             "date": "2022-06-07T18:58:05.000Z"
@@ -106,7 +106,7 @@ export const assets = [
         "supportsSelfCalibration": true,
         "supportsExternalCalibration": false,
         "isNIAsset": false,
-        "id": "aea354a5-2ccc-4910-9293-fa93cf8fcf90",
+        "id": "id3",
         "location": {
             "physicalLocation": "LOCATION-2",
             "parent": "parent 3",
@@ -132,16 +132,16 @@ export const assets = [
         "keywords": ["aaaaa aaaa", "bbbbb", "ccccc"],
         "lastUpdatedTimestamp": "2025-10-27T15:09:28.795Z",
         "partNumber": "",
-        "scanCode": "aea354a5-2ccc-4910-9293-fa93cf8fcf90"
+        "scanCode": "scanCode3"
     },
     {
-        "modelName": "HR-3UTG-AMZN",
+        "modelName": "model4",
         "modelNumber": 0,
-        "serialNumber": "1236",
-        "vendorName": "GM",
+        "serialNumber": "serial4",
+        "vendorName": "vendor4",
         "vendorNumber": 0,
         "busType": "BUILT_IN_SYSTEM",
-        "name": "Energizer MAX AA DUT 3",
+        "name": "name4",
         "supportsExternalCalibration": true,
         "selfCalibration": {
             "date": "2022-06-07T18:58:05.000Z"
@@ -152,11 +152,11 @@ export const assets = [
         "visaResourceName": "visa resource name 4",
         "supportsSelfCalibration": false,
         "isNIAsset": false,
-        "id": "9f315f8f-23e3-48cd-b695-14b1961bdbcc",
+        "id": "id4",
         "location": {
             "physicalLocation": "LOCATION-1",
             "parent": "parent 4",
-            "resourceUri": "9f315f8f-23e3-48cd-b695-14b1961bdbcc",
+            "resourceUri": "uri4",
             "slotNumber": -1,
             "state": {
                 "assetPresence": "PRESENT",
@@ -177,17 +177,17 @@ export const assets = [
         },
         "keywords": ["bb"],
         "lastUpdatedTimestamp": "2023-10-05T21:36:14.139Z",
-        "partNumber": "HR-3UTG-AMZN",
-        "scanCode": "9f315f8f-23e3-48cd-b695-14b1961bdbcc"
+        "partNumber": "partNumber4",
+        "scanCode": "scanCode4"
     },
     {
-        "modelName": "HR-3",
+        "modelName": "model5",
         "modelNumber": 0,
-        "serialNumber": "1237",
-        "vendorName": "bbb",
+        "serialNumber": "serial5",
+        "vendorName": "vendor5",
         "vendorNumber": 0,
         "busType": "BUILT_IN_SYSTEM",
-        "name": "Energizer MAX AA DUT 4",
+        "name": "name5",
         "supportsExternalCalibration": false,
         "selfCalibration": {
             "date": "2023-08-14T18:14:04.182Z"
@@ -198,11 +198,11 @@ export const assets = [
         "visaResourceName": "visa resource name 5",
         "supportsSelfCalibration": true,
         "isNIAsset": false,
-        "id": "ed55f044-0480-43e1-830a-75d799f09ecb",
+        "id": "id5",
         "location": {
             "physicalLocation": "LOCATION-3",
             "parent": "parent 5",
-            "resourceUri": "ed55f044-0480-43e1-830a-75d799f09ecb",
+            "resourceUri": "uri5",
             "slotNumber": -1,
             "state": {
                 "assetPresence": "PRESENT",
@@ -220,17 +220,17 @@ export const assets = [
         "properties": { "1": "2" },
         "keywords": ["aaa"],
         "lastUpdatedTimestamp": "2023-10-05T21:36:14.154Z",
-        "partNumber": "HR-3",
-        "scanCode": "ed55f044-0480-43e1-830a-75d799f09ecb"
+        "partNumber": "partNumber5",
+        "scanCode": "scanCode5"
     },
     {
-        "modelName": "HR-3",
+        "modelName": "model6",
         "modelNumber": 0,
-        "serialNumber": "1238",
-        "vendorName": "vendor 5",
+        "serialNumber": "serial6",
+        "vendorName": "vendor6",
         "vendorNumber": 0,
         "busType": "BUILT_IN_SYSTEM",
-        "name": "Energizer MAX AA DUT 5",
+        "name": "name6",
         "supportsExternalCalibration": true,
         "selfCalibration": {
             "date": "2022-06-07T18:58:05.000Z"
@@ -241,11 +241,11 @@ export const assets = [
         "visaResourceName": "visa resource name 6",
         "supportsSelfCalibration": true,
         "isNIAsset": false,
-        "id": "1b5c6cfa-2c89-4f12-894b-c07106c04848",
+        "id": "id6",
         "location": {
             "minionId": "SYSTEM-3",
             "parent": "parent 6",
-            "resourceUri": "1b5c6cfa-2c89-4f12-894b-c07106c04848",
+            "resourceUri": "uri6",
             "slotNumber": -1,
             "state": {
                 "assetPresence": "PRESENT",
@@ -263,7 +263,7 @@ export const assets = [
         "properties": { "x": "y", "a": "b" },
         "keywords": ["aaaaaaa", "cccccc", "a", "test keyword"],
         "lastUpdatedTimestamp": "2023-10-05T21:36:14.169Z",
-        "partNumber": "HR-3",
-        "scanCode": "1b5c6cfa-2c89-4f12-894b-c07106c04848"
+        "partNumber": "partNumber6",
+        "scanCode": "scanCode6"
     }
 ];

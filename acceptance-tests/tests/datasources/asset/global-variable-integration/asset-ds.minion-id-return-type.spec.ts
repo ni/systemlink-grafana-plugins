@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
+import { defaultAssetListProperties } from '../../../../utils/asset-list-properties.constant';
 
 test.describe('Asset data source with minion id return type', () => {
     let dashboard: DashboardPage;
@@ -60,21 +61,15 @@ test.describe('Asset data source with minion id return type', () => {
             let rowCount = await dashboard.panel.table.getTableRowCount();
 
             expect(rowCount).toBe(1);
-            await expect(dashboard.panel.table.cellValue('Acme')).toBeVisible();
-            await expect(dashboard.panel.table.cellValue('SDFGSDFG234')).toBeVisible();
-            await expect(dashboard.panel.table.cellValue('ABCD')).toBeVisible();
-            await expect(dashboard.panel.table.cellValue('Default')).toBeVisible();
+            expect(await dashboard.panel.table.checkColumnsValues([...defaultAssetListProperties], ['vendor1', 'name1', 'model1', 'Default', 'System-1'])).toBeTruthy();
 
-            await dashboard.panel.assetQueryEditor.openVariableDropdown('SDFGSDFG234 (SDFGSDFG234)', 'rsctest-9047 (01CEE362)');
+            await dashboard.panel.assetQueryEditor.openVariableDropdown('name1 (serial1)', 'name2 (serial2)');
             await dashboard.panel.assetQueryEditor.refreshData();
 
             rowCount = await dashboard.panel.table.getTableRowCount();
 
             expect(rowCount).toBe(1);
-            await expect(dashboard.panel.table.cellValue('National Instruments')).toBeVisible();
-            await expect(dashboard.panel.table.cellValue('rsctest-9047')).toBeVisible();
-            await expect(dashboard.panel.table.cellValue('cRIO-9047')).toBeVisible();
-            await expect(dashboard.panel.table.cellValue('Workspace 2')).toBeVisible();
+            expect(await dashboard.panel.table.checkColumnsValues([...defaultAssetListProperties], ['vendor2', 'name2', 'model2', 'Workspace 2', 'System-2'])).toBeTruthy();
         });
     });
 });
