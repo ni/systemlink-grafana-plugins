@@ -42,6 +42,10 @@ jobs:
           timeout 60 sh -c 'until curl -f http://localhost:4000/api/health > /dev/null 2>&1; do sleep 2; done'
           timeout 60 sh -c 'until curl -f http://localhost:5000/up > /dev/null 2>&1; do sleep 2; done'
 
+      - name: Show docker logs on failure
+        if: failure()
+        run: docker compose logs --tail=200
+
       - name: Acceptance tests
         run: npm run test:acceptance
 

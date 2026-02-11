@@ -10,7 +10,7 @@ const port = process.env.PORT;
 server.use(jsonServer.bodyParser);
 server.use(middlewares);
 server.get('/up', (_req, res) => {
-    res.status(200).json({ status: 'ok' });
+    res.status(500).json({ status: 'unhealthy' });
 });
 
 server.use(router);
