@@ -51,7 +51,7 @@ export class Table {
         return columnHeaders.indexOf(propertyName);
     };
 
-    async checkColumnsValues(columnNames: Array<string>, expectedValue: Array<string>): Promise<boolean> {
+    async checkColumnsValues(columnNames: string[], expectedValue: string[]): Promise<boolean> {
         for (let i = 0; i < columnNames.length; i++) {
             const columnIndex = await this.getSelectedColumnIndex(columnNames[i]);
             const cellValue = await this.getCellInRowByIndex(0, columnIndex);
