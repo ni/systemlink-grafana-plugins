@@ -29,7 +29,6 @@ export class GlobalVariableComponent {
 
     async selectDataSource(dataSourceName: string): Promise<void> {
         await this.dataSourceDropdown.click();
-        //await this.page.getByRole('button', { name: dataSourceName }).click();
         await this.page.click(`text=${dataSourceName}`);
     }
 
