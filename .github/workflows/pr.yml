@@ -44,7 +44,7 @@ jobs:
 
       - name: Show docker logs on failure
         if: failure()
-        run: docker compose logs --tail=200
+        run: docker compose -f docker-compose.tests.yaml logs --tail=200
 
       - name: Acceptance tests
         run: npm run test:acceptance
