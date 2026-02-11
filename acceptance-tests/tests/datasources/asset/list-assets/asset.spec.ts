@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { GRAFANA_URL } from '../../../../config/environment';
+import { nonDefaultAssetListProperties } from '../../../../utils/asset-list-properties.constant';
 
 test.describe('Asset data source with asset variable', () => {
     let dashboard: DashboardPage;
@@ -27,31 +28,7 @@ test.describe('Asset data source with asset variable', () => {
         await dashboard.panel.assetQueryEditor.addFilter('Scan Code', 'equals', '1b5c6cfa-2c89-4f12-894b-c07106c04848');
 
         await dashboard.panel.assetQueryEditor.openQueryProperties();
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('id');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('serial number');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('model number');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('vendor number');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('asset type');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('firmware version');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('visa resource name');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('part number');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('last updated timestamp');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('bus type');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('is NI asset');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('keywords');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('properties');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('minionId');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('parent name');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('supports self calibration');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('supports self test');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('supports reset');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('discovery type');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('self calibration');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('supports external calibration');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('calibration due date');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('is system controller');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('calibration status');
-        await dashboard.panel.assetQueryEditor.selectQueryProperty('scan code');
+        await dashboard.panel.assetQueryEditor.addSelectedPropertyToTable([...nonDefaultAssetListProperties]);
         await dashboard.panel.assetQueryEditor.pressEscapeKey();
 
         await expect(dashboard.panel.table.getColumnHeaderByIndex(0)).toHaveText('vendor name');
