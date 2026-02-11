@@ -3623,8 +3623,8 @@ describe('DataFrameDataSourceV2', () => {
                     expect(publishMock).toHaveBeenCalledWith({
                         type: 'alert-info',
                         payload: [
-                            'Record limit was adjusted',
-                            `The record limit was automatically reduced for one or more tables to keep the total data points within the maximum allowed limit of ${(1000000).toLocaleString()}.`
+                            'Take has been reduced for some tables',
+                            `The take has been automatically reduced for some tables to keep the total data points within the maximum allowed limit of ${(1000000).toLocaleString()}.`
                         ]
                     });
                 });

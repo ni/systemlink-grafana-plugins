@@ -463,17 +463,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     maximumRecordCount
                 );
 
-                const wasRecordCountReduced = take !== query.undecimatedRecordCount;
-                const tableHasMoreRows = take < (tableRowCountMap[tableId] ?? 0);
-                const isRowCountTruncated = wasRecordCountReduced && tableHasMoreRows;
+                const recordCountReduced = take !== query.undecimatedRecordCount;
+                const hasUnfetchedRows = take < (tableRowCountMap[tableId] ?? 0);
+                const isRowCountTruncated = recordCountReduced && hasUnfetchedRows;
 
                 if (isRowCountTruncated && !isRowCountTruncatedForAnyTable) {
                     isRowCountTruncatedForAnyTable = true;
                     this.appEvents?.publish?.({
                         type: AppEvents.alertInfo.name,
                         payload: [
-                            'Record limit was adjusted',
-                            `The record limit was automatically reduced for one or more tables to keep the total data points within the maximum allowed limit of ${UNDECIMATED_RECORDS_LIMIT.toLocaleString()}.`
+                            'Take has been reduced for some tables',
+                            `The take has been automatically reduced for some tables to keep the total data points within the maximum allowed limit of ${UNDECIMATED_RECORDS_LIMIT.toLocaleString()}.`
                         ],
                     });
                 }
@@ -972,8 +972,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private isUndecimatedDataQuery(query: ValidDataFrameQueryV2): boolean {
-        return (this.isQueryUndecimatedDataFeatureEnabled
-            && query.decimationMethod === 'NONE');
+        return this.isQueryUndecimatedDataFeatureEnabled
+            && query.decimationMethod === 'NONE';
     }
 
     private getFieldsForDataQuery$(
@@ -1071,7 +1071,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         );
 
                         const tableRowCountMap: Record<string, number> = Object.fromEntries(
-                            tables.map(table => [table.id, table.rowCount ?? 0])
+                            tables.map(table => [table.id, table.rowCount])
                         );
 
                         const hasOnlyMetadataFields = selectedColumnIdentifiers.every(
