@@ -1,3 +1,9 @@
+## [4.129.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.129.0...v4.129.1) (2026-02-11)
+
+### Bug Fixes
+
+* **plotly:** Update debounce wait time ([#670](https://github.com/ni/systemlink-grafana-plugins/issues/670)) ([b0b4d89](https://github.com/ni/systemlink-grafana-plugins/commit/b0b4d8967ac713a2cb6e7c22301a0ab9d878380e))
+
 ## [4.129.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.128.3...v4.129.0) (2026-02-10)
 
 ### Features
