@@ -28,8 +28,8 @@ jobs:
       - name: Lint
         run: npm run lint -- --quiet
 
-      # - name: Unit tests
-      #   run: npm run test:ci
+      - name: Unit tests
+        run: npm run test:ci
 
       - name: Build
         run: npm run build
