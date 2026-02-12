@@ -72,16 +72,16 @@ export class SystemDataSource extends SystemsDataSourceBase {
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 
-  async metricFindQuery({ queryReturnType, workspace }: SystemVariableQuery): Promise<MetricFindValue[]> {
+  async metricFindQuery({ queryReturnType, workspace, filter }: SystemVariableQuery): Promise<MetricFindValue[]> {
     await this.dependenciesLoadedPromise;
 
-    let filter = '';
-    if (workspace) {
+    let finalFilter = filter || '';
+    if (!finalFilter && workspace) {
       const resolvedWorkspace = this.templateSrv.replace(workspace);
-      filter = `workspace = "${resolvedWorkspace}"`;
+      finalFilter = `workspace = "${resolvedWorkspace}"`;
     }
 
-    const properties = await this.getSystemProperties(filter, [SystemBackendFieldNames.ID, SystemBackendFieldNames.ALIAS, SystemBackendFieldNames.SCAN_CODE]);
+    const properties = await this.getSystemProperties(finalFilter, [SystemBackendFieldNames.ID, SystemBackendFieldNames.ALIAS, SystemBackendFieldNames.SCAN_CODE]);
     return properties.map(system => this.getSystemNameForMetricQuery({ queryReturnType }, system));
   }
 
