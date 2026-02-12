@@ -29,11 +29,7 @@ export function SystemVariableQueryEditor({ onChange, query, datasource }: Props
   }, [datasource]);
 
   useEffect(() => {
-    console.log('filter1', query.filter);
-    console.log('workspace1', query.workspace);
     if (query.workspace && !query.filter) {
-      console.log('filter2', query.filter);
-      console.log('workspace2', query.workspace);
       const migratedFilter = `workspace = "${query.workspace}"`;
       onChange({ ...query, filter: migratedFilter, workspace: '' });
     }

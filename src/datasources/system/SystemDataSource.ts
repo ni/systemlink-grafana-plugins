@@ -78,8 +78,7 @@ export class SystemDataSource extends SystemsDataSourceBase {
 
     let finalFilter = filter || '';
     if (!finalFilter && workspace) {
-      const resolvedWorkspace = this.templateSrv.replace(workspace, options?.scopedVars);
-      finalFilter = `workspace = "${resolvedWorkspace}"`;
+      finalFilter = `workspace = "${workspace}"`;
     }
     const processedFilter = finalFilter ? this.processFilter(finalFilter, options?.scopedVars || {}) : '';
 
