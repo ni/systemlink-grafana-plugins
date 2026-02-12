@@ -28,20 +28,32 @@ export function SystemVariableQueryEditor({ onChange, query, datasource }: Props
     });
   }, [datasource]);
 
+  useEffect(() => {
+    console.log('filter1', query.filter);
+    console.log('workspace1', query.workspace);
+    if (query.workspace && !query.filter) {
+      console.log('filter2', query.filter);
+      console.log('workspace2', query.workspace);
+      const migratedFilter = `workspace = "${query.workspace}"`;
+      onChange({ ...query, filter: migratedFilter, workspace: '' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
+
   function changeQueryReturnType(queryReturnType: SystemQueryReturnType) {
     onChange({ ...SystemVariableQuery, queryReturnType: queryReturnType } as SystemVariableQuery);
   }
 
   function onParameterChange(ev: CustomEvent) {
     if (query.filter !== ev.detail.linq) {
-      onChange({ ...query, filter: ev.detail.linq });
+      onChange({ ...query, filter: ev.detail.linq, workspace: '' });
     }
   }
   return (
-    <Stack direction="column">
+    <>
       <InlineField label="Filter" tooltip="Filter the systems by various properties.">
         <SystemsQueryBuilder
-          filter={query.filter}
+          filter={query.filter || ''}
           onChange={(event: any) => onParameterChange(event)}
           globalVariableOptions={datasource.getVariableOptions()}
           workspaces={workspaces}
@@ -61,6 +73,6 @@ export function SystemVariableQueryEditor({ onChange, query, datasource }: Props
           }}
         />
       </InlineField>
-    </Stack>
+    </>
   );
 }
