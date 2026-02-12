@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { SystemQueryReturnType, SystemVariableQuery } from '../types';
-import { Select, Stack } from '@grafana/ui';
+import { Select } from '@grafana/ui';
 import { SystemDataSource } from '../SystemDataSource';
 import { InlineField } from 'core/components/InlineField';
 import { Workspace } from 'core/types';
