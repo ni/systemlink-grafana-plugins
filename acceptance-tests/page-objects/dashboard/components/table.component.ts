@@ -51,14 +51,9 @@ export class Table {
         return columnHeaders.indexOf(propertyName);
     };
 
-    async checkColumnsValues(columnNames: string[], expectedValue: string[]): Promise<boolean> {
-        for (let i = 0; i < columnNames.length; i++) {
-            const columnIndex = await this.getSelectedColumnIndex(columnNames[i]);
-            const cellValue = await this.getCellInRowByIndex(0, columnIndex);
-            if (cellValue !== expectedValue[i]) {
-                return false;
-            }
-        }
-        return true;
+    async checkColumnValue(columnName: string, expectedValue: string): Promise<boolean> {
+        const columnIndex = await this.getSelectedColumnIndex(columnName);
+        const cellValue = await this.getCellInRowByIndex(0, columnIndex);
+        return cellValue === expectedValue;
     }
 }

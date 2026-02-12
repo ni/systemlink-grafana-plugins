@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
-import { defaultAssetListProperties, nonDefaultAssetListProperties } from '../../../../utils/asset-list-properties.constant';
+import { allAssetListProperties } from '../../../../utils/asset-list-properties.constant';
 
 test.describe('Asset data source with scan code return type', () => {
     let dashboard: DashboardPage;
@@ -67,7 +67,12 @@ test.describe('Asset data source with scan code return type', () => {
             let rowCount = await dashboard.panel.table.getTableRowCount();
 
             expect(rowCount).toBe(1);
-            expect(await dashboard.panel.table.checkColumnsValues([...defaultAssetListProperties, nonDefaultAssetListProperties[24]], ['vendor1', 'name1', 'model1', 'Default', 'System-1', 'scanCode1'])).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.vendor_name, 'vendor1')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.name, 'name1')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.model_name, 'model1')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.workspace, 'Default')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.location, 'System-1')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.scan_code, 'scanCode1')).toBeTruthy();
 
             await dashboard.panel.assetQueryEditor.openVariableDropdown('name1 (serial1)', 'name6 (serial6)');
             await dashboard.panel.assetQueryEditor.refreshData();
@@ -75,7 +80,12 @@ test.describe('Asset data source with scan code return type', () => {
             rowCount = await dashboard.panel.table.getTableRowCount();
 
             expect(rowCount).toBe(1);
-            expect(await dashboard.panel.table.checkColumnsValues([...defaultAssetListProperties, nonDefaultAssetListProperties[24]], ['vendor6', 'name6', 'model6', 'Default', 'System-3', 'scanCode6'])).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.vendor_name, 'vendor6')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.name, 'name6')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.model_name, 'model6')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.workspace, 'Default')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.location, 'System-3')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.scan_code, 'scanCode6')).toBeTruthy();
         });
     });
 });
