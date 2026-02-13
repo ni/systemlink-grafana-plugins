@@ -3,7 +3,7 @@ import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { allAssetListProperties, timeOutPeriod } from '../../../../constants/asset-list-properties.constant';
-import { time } from 'console';
+import { pressEscape } from '../../../../utils/keyboard-utilities';
 
 test.describe('Asset data source with scan code return type', () => {
     let dashboard: DashboardPage;
@@ -51,7 +51,7 @@ test.describe('Asset data source with scan code return type', () => {
         test('should add scan code property to the table', async () => {
             await dashboard.panel.assetQueryEditor.openQueryProperties();
             await dashboard.panel.assetQueryEditor.selectQueryProperty('scan code');
-            await dashboard.page.keyboard.press('Escape');
+            await pressEscape(dashboard.page);
         });
 
         test('should add filter by scanCode using the asset variable', async () => {

@@ -3,6 +3,7 @@ import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.page
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { GRAFANA_URL } from '../../../../config/environment';
 import { allAssetListProperties, nonDefaultAssetListProperties } from '../../../../constants/asset-list-properties.constant';
+import { pressEscape } from '../../../../utils/keyboard-utilities';
 
 test.describe('Asset data source with asset variable', () => {
     let dashboard: DashboardPage;
@@ -29,7 +30,7 @@ test.describe('Asset data source with asset variable', () => {
 
         await dashboard.panel.assetQueryEditor.openQueryProperties();
         await dashboard.panel.assetQueryEditor.addSelectedPropertyToTable([...nonDefaultAssetListProperties]);
-        await dashboard.page.keyboard.press('Escape');
+        await pressEscape(dashboard.page);
 
         expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.vendor_name, 'vendor6')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.name, 'name6')).toBeTruthy();

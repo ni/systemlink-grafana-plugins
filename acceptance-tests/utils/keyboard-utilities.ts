@@ -1,0 +1,5 @@
+import { Page } from '@playwright/test';
+
+export async function pressEscape(page: Page) {
+    await page.keyboard.press('Escape');
+}
