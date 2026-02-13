@@ -509,16 +509,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         switch (parsedColumnIdentifier.transformedDataType) {
             case 'Timestamp':
                 return this.constructTimestampRangeFilters(
+                    parsedColumnIdentifier.columnName,
                     timeRange,
-                    parsedColumnIdentifier.columnName
                 );
             case 'Numeric':
                 if (!this.isHighResolutionZoomFeatureEnabled) {
                     return [];
                 }
                 return this.constructNumericRangeFilters(
+                    parsedColumnIdentifier.columnName,
                     columns,
-                    parsedColumnIdentifier.columnName
                 );
             default:
                 return [];
@@ -526,8 +526,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private constructTimestampRangeFilters(
+        columnName: string,
         timeRange: TimeRange,
-        columnName?: string
     ): ColumnFilter[] {
         if (!columnName) {
             return [];
@@ -541,8 +541,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private constructNumericRangeFilters(
+        columnName: string,
         columns: Column[],
-        columnName: string
     ): ColumnFilter[] {
         const column = columns.find(column => column.name === columnName);
         const columnDataType = column?.dataType;
