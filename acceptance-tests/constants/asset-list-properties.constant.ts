@@ -1,4 +1,4 @@
-export enum allAssetListProperties {
+export enum assetColumn {
     vendor_name = 'vendor name',
     name = 'name',
     model_name = 'model name',
@@ -32,31 +32,31 @@ export enum allAssetListProperties {
 };
 
 export const nonDefaultAssetListProperties = [
-    allAssetListProperties.id,
-    allAssetListProperties.serial_number,
-    allAssetListProperties.model_number,
-    allAssetListProperties.vendor_number,
-    allAssetListProperties.asset_type,
-    allAssetListProperties.firmware_version,
-    allAssetListProperties.visa_resource_name,
-    allAssetListProperties.part_number,
-    allAssetListProperties.last_updated_timestamp,
-    allAssetListProperties.bus_type,
-    allAssetListProperties.is_NI_asset,
-    allAssetListProperties.keywords,
-    allAssetListProperties.properties,
-    allAssetListProperties.minionId,
-    allAssetListProperties.parent_name,
-    allAssetListProperties.supports_self_calibration,
-    allAssetListProperties.supports_self_test,
-    allAssetListProperties.supports_reset,
-    allAssetListProperties.discovery_type,
-    allAssetListProperties.self_calibration,
-    allAssetListProperties.supports_external_calibration,
-    allAssetListProperties.calibration_due_date,
-    allAssetListProperties.is_system_controller,
-    allAssetListProperties.calibration_status,
-    allAssetListProperties.scan_code
+    assetColumn.id,
+    assetColumn.serial_number,
+    assetColumn.model_number,
+    assetColumn.vendor_number,
+    assetColumn.asset_type,
+    assetColumn.firmware_version,
+    assetColumn.visa_resource_name,
+    assetColumn.part_number,
+    assetColumn.last_updated_timestamp,
+    assetColumn.bus_type,
+    assetColumn.is_NI_asset,
+    assetColumn.keywords,
+    assetColumn.properties,
+    assetColumn.minionId,
+    assetColumn.parent_name,
+    assetColumn.supports_self_calibration,
+    assetColumn.supports_self_test,
+    assetColumn.supports_reset,
+    assetColumn.discovery_type,
+    assetColumn.self_calibration,
+    assetColumn.supports_external_calibration,
+    assetColumn.calibration_due_date,
+    assetColumn.is_system_controller,
+    assetColumn.calibration_status,
+    assetColumn.scan_code
 ];
 
 export const timeOutPeriod = 10000;

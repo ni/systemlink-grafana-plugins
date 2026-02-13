@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
-import { allAssetListProperties, timeOutPeriod } from '../../../../constants/asset-list-properties.constant';
+import { assetColumn, timeOutPeriod } from '../../../../constants/asset-list-properties.constant';
 
 test.describe('Asset data source with minion id return type', () => {
     let dashboard: DashboardPage;
@@ -61,11 +61,11 @@ test.describe('Asset data source with minion id return type', () => {
             let rowCount = await dashboard.panel.table.getTableRowCount();
 
             expect(rowCount).toBe(1);
-            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.vendor_name, 'vendor1')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.name, 'name1')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.model_name, 'model1')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.workspace, 'Default')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.location, 'System-1')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.vendor_name, 'vendor1')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.name, 'name1')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.model_name, 'model1')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.workspace, 'Default')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.location, 'System-1')).toBeTruthy();
 
             await dashboard.panel.assetQueryEditor.openVariableDropdown('name1 (serial1)', 'name2 (serial2)');
             await dashboard.panel.assetQueryEditor.refreshData();
@@ -73,11 +73,11 @@ test.describe('Asset data source with minion id return type', () => {
             rowCount = await dashboard.panel.table.getTableRowCount();
 
             expect(rowCount).toBe(1);
-            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.vendor_name, 'vendor2')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.name, 'name2')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.model_name, 'model2')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.workspace, 'Workspace 2')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.location, 'System-2')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.vendor_name, 'vendor2')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.name, 'name2')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.model_name, 'model2')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.workspace, 'Workspace 2')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.location, 'System-2')).toBeTruthy();
         });
     });
 });
