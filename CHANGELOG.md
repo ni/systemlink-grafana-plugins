@@ -1,3 +1,9 @@
+## [4.131.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.130.0...v4.131.0) (2026-02-13)
+
+### Features
+
+* **plotly:** add support for box and violin plot types ([#676](https://github.com/ni/systemlink-grafana-plugins/issues/676)) ([23dd10a](https://github.com/ni/systemlink-grafana-plugins/commit/23dd10a5b158f8c97f0d827dcce84f4967ab9dc6))
+
 ## [4.130.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.129.1...v4.130.0) (2026-02-13)
 
 ### Features
