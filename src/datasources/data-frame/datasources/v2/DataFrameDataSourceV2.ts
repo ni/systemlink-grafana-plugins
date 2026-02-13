@@ -496,15 +496,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             );
         }
 
-        return this.constructXRangeFiltersFromXColumn(xColumnIdentifier, columns, timeRange);
+        return this.constructRangeFilters(xColumnIdentifier, columns, timeRange);
     }
 
-    private constructXRangeFiltersFromXColumn(
-        xColumn: string,
+    private constructRangeFilters(
+        columnIdentifier: string,
         columns: Column[],
         timeRange: TimeRange
     ): ColumnFilter[] {
-        const parsedColumnIdentifier = this.parseColumnIdentifier(xColumn);
+        const parsedColumnIdentifier = this.parseColumnIdentifier(columnIdentifier);
 
         switch (parsedColumnIdentifier.transformedDataType) {
             case 'Timestamp':
@@ -533,7 +533,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return [];
         }
 
-        return this.constructRangeFilters(
+        return this.createRangeFilters(
             columnName,
             timeRange.from.toISOString(),
             timeRange.to.toISOString()
@@ -576,14 +576,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return [];
         }
 
-        return this.constructRangeFilters(
+        return this.createRangeFilters(
             columnName,
             formattedMin.toString(),
             formattedMax.toString()
         );
     }
 
-    private constructRangeFilters(
+    private createRangeFilters(
         columnName: string,
         minValue: string,
         maxValue: string
