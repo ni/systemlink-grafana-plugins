@@ -58,3 +58,5 @@ export const nonDefaultAssetListProperties = [
     allAssetListProperties.calibration_status,
     allAssetListProperties.scan_code
 ];
+
+export const timeOutPeriod = 10000;

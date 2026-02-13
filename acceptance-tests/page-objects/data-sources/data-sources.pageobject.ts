@@ -1,5 +1,6 @@
 import { Page, Locator } from '@playwright/test';
 import { GRAFANA_URL, FAKE_API_URL } from '../../config/environment';
+import { timeOutPeriod } from '../../constants/asset-list-properties.constant';
 
 export class DataSourcesPage {
     readonly page: Page;
@@ -64,8 +65,8 @@ export class DataSourcesPage {
         await this.navigateToDatasourcesPage();
         await this.addDataSourceButton.click();
         await this.dataSource(dataSource).click();
-        await this.nameSettingsInputField.waitFor({ state: 'visible', timeout: 20000 });
-        await this.httpSettingsURL.waitFor({ state: 'visible', timeout: 20000 });
+        await this.nameSettingsInputField.waitFor({ state: 'visible', timeout: timeOutPeriod });
+        await this.httpSettingsURL.waitFor({ state: 'visible', timeout: timeOutPeriod });
         await this.changeNameInputFieldValue(dataSourceNameField);
         await this.httpSettingsURL.fill(FAKE_API_URL);
         await this.saveAndTestButton.click();

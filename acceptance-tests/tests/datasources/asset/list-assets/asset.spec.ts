@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { GRAFANA_URL } from '../../../../config/environment';
-import { allAssetListProperties, nonDefaultAssetListProperties } from '../../../../utils/asset-list-properties.constant';
+import { allAssetListProperties, nonDefaultAssetListProperties } from '../../../../constants/asset-list-properties.constant';
 
 test.describe('Asset data source with asset variable', () => {
     let dashboard: DashboardPage;

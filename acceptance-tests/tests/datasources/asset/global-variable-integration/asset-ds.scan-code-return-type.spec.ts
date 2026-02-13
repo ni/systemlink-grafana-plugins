@@ -2,7 +2,8 @@ import { test, expect } from '@playwright/test';
 import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
-import { allAssetListProperties } from '../../../../utils/asset-list-properties.constant';
+import { allAssetListProperties, timeOutPeriod } from '../../../../constants/asset-list-properties.constant';
+import { time } from 'console';
 
 test.describe('Asset data source with scan code return type', () => {
     let dashboard: DashboardPage;
@@ -62,7 +63,7 @@ test.describe('Asset data source with scan code return type', () => {
         });
 
         test('should verify that table data changes as the variable value changes', async () => {
-            await dashboard.panel.table.getTable.first().waitFor({ state: 'visible', timeout: 10000 });
+            await dashboard.panel.table.getTable.first().waitFor({ state: 'visible', timeout: timeOutPeriod });
 
             let rowCount = await dashboard.panel.table.getTableRowCount();
 
