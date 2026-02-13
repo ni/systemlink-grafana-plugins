@@ -2202,322 +2202,6 @@ describe('DataFrameDataSourceV2', () => {
                                     expect.any(Object)
                                 );
                             });
-
-                            describe('constructNumericRangeFilters', () => {
-                                function setupNumericRangeTest(
-                                    columnName: string,
-                                    dataType: string,
-                                    urlMin: string,
-                                    urlMax: string,
-                                    columnType = ColumnType.Normal,
-                                ) {
-                                    const mockTables = [{
-                                        id: 'table1',
-                                        name: 'table1',
-                                        columns: [
-                                            { name: columnName, dataType, columnType },
-                                            { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                        ]
-                                    }];
-                                    queryTablesSpy.mockReturnValue(of(mockTables));
-                                    postSpy.mockReturnValue(of({
-                                        frame: { columns: [columnName, 'value'], data: [['1'], ['1.0']] }
-                                    }));
-
-                                    (locationService.getSearchObject as jest.Mock).mockReturnValue({
-                                        editPanel: '1',
-                                        [`nisl-${columnName}-min`]: urlMin,
-                                        [`nisl-${columnName}-max`]: urlMax,
-                                    });
-
-                                    const query = {
-                                        refId: 'A',
-                                        type: DataFrameQueryType.Data,
-                                        columns: [`${columnName}-Numeric`, 'value-Numeric'],
-                                        dataTableFilter: 'name = "Test"',
-                                        decimationMethod: 'LOSSY',
-                                        xColumn: `${columnName}-Numeric`,
-                                        filterNulls: false,
-                                        filterXRangeOnZoomPan: true
-                                    } as DataFrameQueryV2;
-
-                                    return query;
-                                }
-
-                                it('should use ceil for min and floor for max with INT32 decimal values', async () => {
-                                    const query = setupNumericRangeTest('count', 'INT32', '10.7', '99.3');
-
-                                    await lastValueFrom(ds.runQuery(query, options));
-
-                                    const filters = postSpy.mock.calls[0][1].filters;
-                                    expect(filters).toEqual([
-                                        {
-                                            column: 'count',
-                                            operation: 'GREATER_THAN_EQUALS',
-                                            value: '11'
-                                        },
-                                        {
-                                            column: 'count',
-                                            operation: 'LESS_THAN_EQUALS',
-                                            value: '99'
-                                        }
-                                    ]);
-                                });
-
-                                it('should use ceil for min and floor for max with INT64 decimal values', async () => {
-                                    const query = setupNumericRangeTest('id', 'INT64', '1000.2', '2000.4');
-
-                                    await lastValueFrom(ds.runQuery(query, options));
-
-                                    const filters = postSpy.mock.calls[0][1].filters;
-                                    expect(filters).toEqual([
-                                        {
-                                            column: 'id',
-                                            operation: 'GREATER_THAN_EQUALS',
-                                            value: '1001'
-                                        },
-                                        {
-                                            column: 'id',
-                                            operation: 'LESS_THAN_EQUALS',
-                                            value: '2000'
-                                        }
-                                    ]);
-                                });
-
-                                it('should handle negative decimal values for INT32 columns', async () => {
-                                    const query = setupNumericRangeTest('temperature', 'INT32', '-15.8', '-5.2');
-
-                                    await lastValueFrom(ds.runQuery(query, options));
-
-                                    const filters = postSpy.mock.calls[0][1].filters;
-                                    expect(filters).toEqual([
-                                        {
-                                            column: 'temperature',
-                                            operation: 'GREATER_THAN_EQUALS',
-                                            value: '-15'
-                                        },
-                                        {
-                                            column: 'temperature',
-                                            operation: 'LESS_THAN_EQUALS',
-                                            value: '-6'
-                                        }
-                                    ]);
-                                });
-
-                                it('should handle negative decimal values for INT64 columns', async () => {
-                                    const query = setupNumericRangeTest('offset', 'INT64', '-100.2', '-50.9');
-
-                                    await lastValueFrom(ds.runQuery(query, options));
-
-                                    const filters = postSpy.mock.calls[0][1].filters;
-                                    expect(filters).toEqual([
-                                        {
-                                            column: 'offset',
-                                            operation: 'GREATER_THAN_EQUALS',
-                                            value: '-100'
-                                        },
-                                        {
-                                            column: 'offset',
-                                            operation: 'LESS_THAN_EQUALS',
-                                            value: '-51'
-                                        }
-                                    ]);
-                                });
-
-                                it('should format decimal values for FLOAT64 columns', async () => {
-                                    const query = setupNumericRangeTest('voltage', 'FLOAT64', '10.567', '99.432');
-
-                                    await lastValueFrom(ds.runQuery(query, options));
-
-                                    const filters = postSpy.mock.calls[0][1].filters;
-                                    expect(filters).toEqual([
-                                        {
-                                            column: 'voltage',
-                                            operation: 'GREATER_THAN_EQUALS',
-                                            value: '10.567'
-                                        },
-                                        {
-                                            column: 'voltage',
-                                            operation: 'LESS_THAN_EQUALS',
-                                            value: '99.432'
-                                        }
-                                    ]);
-                                });
-
-                                it('should format decimal values for FLOAT32 columns', async () => {
-                                    const query = setupNumericRangeTest('current', 'FLOAT32', '5.123', '25.987');
-
-                                    await lastValueFrom(ds.runQuery(query, options));
-
-                                    const filters = postSpy.mock.calls[0][1].filters;
-                                    expect(filters).toEqual([
-                                        {
-                                            column: 'current',
-                                            operation: 'GREATER_THAN_EQUALS',
-                                            value: '5.123'
-                                        },
-                                        {
-                                            column: 'current',
-                                            operation: 'LESS_THAN_EQUALS',
-                                            value: '25.987'
-                                        }
-                                    ]);
-                                });
-
-                                it('should handle integer values that do not need rounding for INT32', async () => {
-                                    const query = setupNumericRangeTest('count', 'INT32', '10', '100');
-
-                                    await lastValueFrom(ds.runQuery(query, options));
-
-                                    const filters = postSpy.mock.calls[0][1].filters;
-                                    expect(filters).toEqual([
-                                        {
-                                            column: 'count',
-                                            operation: 'GREATER_THAN_EQUALS',
-                                            value: '10'
-                                        },
-                                        {
-                                            column: 'count',
-                                            operation: 'LESS_THAN_EQUALS',
-                                            value: '100'
-                                        }
-                                    ]);
-                                });
-
-                                it('should handle values near zero for INT32 columns', async () => {
-                                    const query = setupNumericRangeTest('delta', 'INT32', '-0.8', '0.4');
-
-                                    await lastValueFrom(ds.runQuery(query, options));
-
-                                    const filters = postSpy.mock.calls[0][1].filters;
-                                    expect(filters).toEqual([
-                                        {
-                                            column: 'delta',
-                                            operation: 'GREATER_THAN_EQUALS',
-                                            value: '0'
-                                        },
-                                        {
-                                            column: 'delta',
-                                            operation: 'LESS_THAN_EQUALS',
-                                            value: '0'
-                                        }
-                                    ]);
-                                });
-
-                                it('should accept INT32 max value slightly outside bounds that floors to valid value', async () => {
-                                    const query = setupNumericRangeTest('count', 'INT32', '2147483646.2', '2147483647.5');
-
-                                    await lastValueFrom(ds.runQuery(query, options));
-
-                                    const filters = postSpy.mock.calls[0][1].filters;
-                                    expect(filters).toEqual([
-                                        {
-                                            column: 'count',
-                                            operation: 'GREATER_THAN_EQUALS',
-                                            value: '2147483647'
-                                        },
-                                        {
-                                            column: 'count',
-                                            operation: 'LESS_THAN_EQUALS',
-                                            value: '2147483647'
-                                        }
-                                    ]);
-                                });
-
-                                it('should round float values to 6 decimal places when URL params exceed 6 digits', async () => {
-                                    const query = setupNumericRangeTest('voltage', 'FLOAT64', '10.123456789012', '99.987654321098');
-
-                                    await lastValueFrom(ds.runQuery(query, options));
-
-                                    const filters = postSpy.mock.calls[0][1].filters;
-                                    expect(filters).toEqual([
-                                        {
-                                            column: 'voltage',
-                                            operation: 'GREATER_THAN_EQUALS',
-                                            value: '10.123457'
-                                        },
-                                        {
-                                            column: 'voltage',
-                                            operation: 'LESS_THAN_EQUALS',
-                                            value: '99.987654'
-                                        }
-                                    ]);
-                                });
-
-                                it('should handle when both formatted min and max are equal for FLOAT64 columns', async () => {
-                                    const query = setupNumericRangeTest('voltage', 'FLOAT64', '10.123456789012', '10.123456891234');
-
-                                    await lastValueFrom(ds.runQuery(query, options));
-
-                                    const filters = postSpy.mock.calls[0][1].filters;
-                                    expect(filters).toEqual([
-                                        {
-                                            column: 'voltage',
-                                            operation: 'GREATER_THAN_EQUALS',
-                                            value: '10.123457'
-                                        },
-                                        {
-                                            column: 'voltage',
-                                            operation: 'LESS_THAN_EQUALS',
-                                            value: '10.123457'
-                                        }
-                                    ]);
-                                });
-
-                                it('should return empty filters when INT32 value exceeds bounds', async () => {
-                                    const query = setupNumericRangeTest('count', 'INT32', '-2147483649', '2147483648');
-
-                                    await lastValueFrom(ds.runQuery(query, options));
-
-                                    const filters = postSpy.mock.calls[0][1].filters;
-                                    expect(filters).toEqual([]);
-                                });
-
-                                it('should return empty filters when INT64 value exceeds safe integer bounds', async () => {
-                                    const query = setupNumericRangeTest('id', 'INT64', '-9007199254740992', '100');
-
-                                    await lastValueFrom(ds.runQuery(query, options));
-
-                                    const filters = postSpy.mock.calls[0][1].filters;
-                                    expect(filters).toEqual([]);
-                                });
-
-                                it('should return empty filters when INT64 value with decimals slightly beyond bounds exceeds JavaScript precision limits', async () => {
-                                    const query = setupNumericRangeTest('id', 'INT64', '9007199254740990', '9007199254740991.8');
-
-                                    await lastValueFrom(ds.runQuery(query, options));
-
-                                    const filters = postSpy.mock.calls[0][1].filters;
-                                    expect(filters).toEqual([]);
-                                });
-
-                                it('should return empty filters when FLOAT32 value exceeds bounds', async () => {
-                                    const query = setupNumericRangeTest('voltage', 'FLOAT32', '-3.5e38', '100.5');
-
-                                    await lastValueFrom(ds.runQuery(query, options));
-
-                                    const filters = postSpy.mock.calls[0][1].filters;
-                                    expect(filters).toEqual([]);
-                                });
-
-                                it('should return empty filters when FLOAT64 value exceeds bounds', async () => {
-                                    const query = setupNumericRangeTest('measurement', 'FLOAT64', '50.5', '2e308');
-
-                                    await lastValueFrom(ds.runQuery(query, options));
-
-                                    const filters = postSpy.mock.calls[0][1].filters;
-                                    expect(filters).toEqual([]);
-                                });
-
-                                it('should return empty filters when formatted min exceeds formatted max', async () => {
-                                    const query = setupNumericRangeTest('count', 'INT32', '10.9', '10.1');
-
-                                    await lastValueFrom(ds.runQuery(query, options));
-
-                                    const filters = postSpy.mock.calls[0][1].filters;
-                                    expect(filters).toEqual([]);
-                                });
-                            });
                         });
                     });
 
@@ -2681,6 +2365,322 @@ describe('DataFrameDataSourceV2', () => {
                                     expect.any(Object)
                                 );
                             });
+                        });
+                    });
+
+                    describe('constructNumericRangeFilters', () => {
+                        function setupNumericRangeTest(
+                            columnName: string,
+                            dataType: string,
+                            urlMin: string,
+                            urlMax: string,
+                            columnType = ColumnType.Normal,
+                        ) {
+                            const mockTables = [{
+                                id: 'table1',
+                                name: 'table1',
+                                columns: [
+                                    { name: columnName, dataType, columnType },
+                                    { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                ]
+                            }];
+                            queryTablesSpy.mockReturnValue(of(mockTables));
+                            postSpy.mockReturnValue(of({
+                                frame: { columns: [columnName, 'value'], data: [['1'], ['1.0']] }
+                            }));
+
+                            (locationService.getSearchObject as jest.Mock).mockReturnValue({
+                                editPanel: '1',
+                                [`nisl-${columnName}-min`]: urlMin,
+                                [`nisl-${columnName}-max`]: urlMax,
+                            });
+
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: [`${columnName}-Numeric`, 'value-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'LOSSY',
+                                xColumn: `${columnName}-Numeric`,
+                                filterNulls: false,
+                                filterXRangeOnZoomPan: true
+                            } as DataFrameQueryV2;
+
+                            return query;
+                        }
+
+                        it('should use ceil for min and floor for max with INT32 decimal values', async () => {
+                            const query = setupNumericRangeTest('count', 'INT32', '10.7', '99.3');
+
+                            await lastValueFrom(ds.runQuery(query, options));
+
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([
+                                {
+                                    column: 'count',
+                                    operation: 'GREATER_THAN_EQUALS',
+                                    value: '11'
+                                },
+                                {
+                                    column: 'count',
+                                    operation: 'LESS_THAN_EQUALS',
+                                    value: '99'
+                                }
+                            ]);
+                        });
+
+                        it('should use ceil for min and floor for max with INT64 decimal values', async () => {
+                            const query = setupNumericRangeTest('id', 'INT64', '1000.2', '2000.4');
+
+                            await lastValueFrom(ds.runQuery(query, options));
+
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([
+                                {
+                                    column: 'id',
+                                    operation: 'GREATER_THAN_EQUALS',
+                                    value: '1001'
+                                },
+                                {
+                                    column: 'id',
+                                    operation: 'LESS_THAN_EQUALS',
+                                    value: '2000'
+                                }
+                            ]);
+                        });
+
+                        it('should handle negative decimal values for INT32 columns', async () => {
+                            const query = setupNumericRangeTest('temperature', 'INT32', '-15.8', '-5.2');
+
+                            await lastValueFrom(ds.runQuery(query, options));
+
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([
+                                {
+                                    column: 'temperature',
+                                    operation: 'GREATER_THAN_EQUALS',
+                                    value: '-15'
+                                },
+                                {
+                                    column: 'temperature',
+                                    operation: 'LESS_THAN_EQUALS',
+                                    value: '-6'
+                                }
+                            ]);
+                        });
+
+                        it('should handle negative decimal values for INT64 columns', async () => {
+                            const query = setupNumericRangeTest('offset', 'INT64', '-100.2', '-50.9');
+
+                            await lastValueFrom(ds.runQuery(query, options));
+
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([
+                                {
+                                    column: 'offset',
+                                    operation: 'GREATER_THAN_EQUALS',
+                                    value: '-100'
+                                },
+                                {
+                                    column: 'offset',
+                                    operation: 'LESS_THAN_EQUALS',
+                                    value: '-51'
+                                }
+                            ]);
+                        });
+
+                        it('should format decimal values for FLOAT64 columns', async () => {
+                            const query = setupNumericRangeTest('voltage', 'FLOAT64', '10.567', '99.432');
+
+                            await lastValueFrom(ds.runQuery(query, options));
+
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([
+                                {
+                                    column: 'voltage',
+                                    operation: 'GREATER_THAN_EQUALS',
+                                    value: '10.567'
+                                },
+                                {
+                                    column: 'voltage',
+                                    operation: 'LESS_THAN_EQUALS',
+                                    value: '99.432'
+                                }
+                            ]);
+                        });
+
+                        it('should format decimal values for FLOAT32 columns', async () => {
+                            const query = setupNumericRangeTest('current', 'FLOAT32', '5.123', '25.987');
+
+                            await lastValueFrom(ds.runQuery(query, options));
+
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([
+                                {
+                                    column: 'current',
+                                    operation: 'GREATER_THAN_EQUALS',
+                                    value: '5.123'
+                                },
+                                {
+                                    column: 'current',
+                                    operation: 'LESS_THAN_EQUALS',
+                                    value: '25.987'
+                                }
+                            ]);
+                        });
+
+                        it('should handle integer values that do not need rounding for INT32', async () => {
+                            const query = setupNumericRangeTest('count', 'INT32', '10', '100');
+
+                            await lastValueFrom(ds.runQuery(query, options));
+
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([
+                                {
+                                    column: 'count',
+                                    operation: 'GREATER_THAN_EQUALS',
+                                    value: '10'
+                                },
+                                {
+                                    column: 'count',
+                                    operation: 'LESS_THAN_EQUALS',
+                                    value: '100'
+                                }
+                            ]);
+                        });
+
+                        it('should handle values near zero for INT32 columns', async () => {
+                            const query = setupNumericRangeTest('delta', 'INT32', '-0.8', '0.4');
+
+                            await lastValueFrom(ds.runQuery(query, options));
+
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([
+                                {
+                                    column: 'delta',
+                                    operation: 'GREATER_THAN_EQUALS',
+                                    value: '0'
+                                },
+                                {
+                                    column: 'delta',
+                                    operation: 'LESS_THAN_EQUALS',
+                                    value: '0'
+                                }
+                            ]);
+                        });
+
+                        it('should accept INT32 max value slightly outside bounds that floors to valid value', async () => {
+                            const query = setupNumericRangeTest('count', 'INT32', '2147483646.2', '2147483647.5');
+
+                            await lastValueFrom(ds.runQuery(query, options));
+
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([
+                                {
+                                    column: 'count',
+                                    operation: 'GREATER_THAN_EQUALS',
+                                    value: '2147483647'
+                                },
+                                {
+                                    column: 'count',
+                                    operation: 'LESS_THAN_EQUALS',
+                                    value: '2147483647'
+                                }
+                            ]);
+                        });
+
+                        it('should round float values to 6 decimal places when URL params exceed 6 digits', async () => {
+                            const query = setupNumericRangeTest('voltage', 'FLOAT64', '10.123456789012', '99.987654321098');
+
+                            await lastValueFrom(ds.runQuery(query, options));
+
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([
+                                {
+                                    column: 'voltage',
+                                    operation: 'GREATER_THAN_EQUALS',
+                                    value: '10.123457'
+                                },
+                                {
+                                    column: 'voltage',
+                                    operation: 'LESS_THAN_EQUALS',
+                                    value: '99.987654'
+                                }
+                            ]);
+                        });
+
+                        it('should handle when both formatted min and max are equal for FLOAT64 columns', async () => {
+                            const query = setupNumericRangeTest('voltage', 'FLOAT64', '10.123456789012', '10.123456891234');
+
+                            await lastValueFrom(ds.runQuery(query, options));
+
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([
+                                {
+                                    column: 'voltage',
+                                    operation: 'GREATER_THAN_EQUALS',
+                                    value: '10.123457'
+                                },
+                                {
+                                    column: 'voltage',
+                                    operation: 'LESS_THAN_EQUALS',
+                                    value: '10.123457'
+                                }
+                            ]);
+                        });
+
+                        it('should return empty filters when INT32 value exceeds bounds', async () => {
+                            const query = setupNumericRangeTest('count', 'INT32', '-2147483649', '2147483648');
+
+                            await lastValueFrom(ds.runQuery(query, options));
+
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([]);
+                        });
+
+                        it('should return empty filters when INT64 value exceeds safe integer bounds', async () => {
+                            const query = setupNumericRangeTest('id', 'INT64', '-9007199254740992', '100');
+
+                            await lastValueFrom(ds.runQuery(query, options));
+
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([]);
+                        });
+
+                        it('should return empty filters when INT64 value with decimals slightly beyond bounds exceeds JavaScript precision limits', async () => {
+                            const query = setupNumericRangeTest('id', 'INT64', '9007199254740990', '9007199254740991.8');
+
+                            await lastValueFrom(ds.runQuery(query, options));
+
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([]);
+                        });
+
+                        it('should return empty filters when FLOAT32 value exceeds bounds', async () => {
+                            const query = setupNumericRangeTest('voltage', 'FLOAT32', '-3.5e38', '100.5');
+
+                            await lastValueFrom(ds.runQuery(query, options));
+
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([]);
+                        });
+
+                        it('should return empty filters when FLOAT64 value exceeds bounds', async () => {
+                            const query = setupNumericRangeTest('measurement', 'FLOAT64', '50.5', '2e308');
+
+                            await lastValueFrom(ds.runQuery(query, options));
+
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([]);
+                        });
+
+                        it('should return empty filters when formatted min exceeds formatted max', async () => {
+                            const query = setupNumericRangeTest('count', 'INT32', '10.9', '10.1');
+
+                            await lastValueFrom(ds.runQuery(query, options));
+
+                            const filters = postSpy.mock.calls[0][1].filters;
+                            expect(filters).toEqual([]);
                         });
                     });
 
