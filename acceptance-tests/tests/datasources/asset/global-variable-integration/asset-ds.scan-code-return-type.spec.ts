@@ -51,13 +51,15 @@ test.describe('Asset data source with scan code return type', () => {
         test('should add scan code property to the table', async () => {
             await dashboard.panel.assetQueryEditor.openQueryProperties();
             await dashboard.panel.assetQueryEditor.selectQueryProperty('scan code');
-            await dashboard.panel.assetQueryEditor.pressEscapeKey();
+            await dashboard.page.keyboard.press('Escape');
         });
 
         test('should add filter by scanCode using the asset variable', async () => {
             await dashboard.panel.assetQueryEditor.addFilter('Scan Code', 'equals', '$scanCode');
 
-            await expect(dashboard.panel.table.firstFilterRow).toContainText(['Scan Code', 'equals', '$scanCode']);
+            await expect(dashboard.panel.table.firstFilterRow).toContainText('Scan Code');
+            await expect(dashboard.panel.table.firstFilterRow).toContainText('equals');
+            await expect(dashboard.panel.table.firstFilterRow).toContainText('$scanCode');
         });
 
         test('should verify that table data changes as the variable value changes', async () => {

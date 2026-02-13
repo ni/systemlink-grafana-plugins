@@ -50,7 +50,9 @@ test.describe('Asset data source with minion id return type', () => {
         test('should add filter by minionId using the asset variable', async () => {
             await dashboard.panel.assetQueryEditor.addFilter('Asset Identifier', 'equals', '$id');
 
-            await expect(dashboard.panel.table.firstFilterRow).toContainText(['Asset Identifier', 'equals', '$id']);
+            await expect(dashboard.panel.table.firstFilterRow).toContainText('Asset Identifier');
+            await expect(dashboard.panel.table.firstFilterRow).toContainText('equals');
+            await expect(dashboard.panel.table.firstFilterRow).toContainText('$id');
         });
 
         test('should verify that table data changes as the variable value changes', async () => {

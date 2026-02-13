@@ -29,7 +29,7 @@ test.describe('Asset data source with asset variable', () => {
 
         await dashboard.panel.assetQueryEditor.openQueryProperties();
         await dashboard.panel.assetQueryEditor.addSelectedPropertyToTable([...nonDefaultAssetListProperties]);
-        await dashboard.panel.assetQueryEditor.pressEscapeKey();
+        await dashboard.page.keyboard.press('Escape');
 
         expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.vendor_name, 'vendor6')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue(allAssetListProperties.name, 'name6')).toBeTruthy();

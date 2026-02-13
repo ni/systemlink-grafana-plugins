@@ -103,10 +103,6 @@ export class AssetQueryEditorComponent {
         await this.propertiesOptions(optionName).click();
     }
 
-    async pressEscapeKey(): Promise<void> {
-        await this.page.keyboard.press('Escape');
-    }
-
     async addSelectedPropertyToTable(propertiesList: string[]): Promise<void> {
         for (const property of propertiesList) {
             await this.selectQueryProperty(property);
