@@ -15,6 +15,7 @@ export interface SystemQuery extends DataQuery {
 export interface SystemVariableQuery {
   workspace: string;
   queryReturnType?: SystemQueryReturnType;
+  filter?: string;
 }
 
 export interface SystemSummary {

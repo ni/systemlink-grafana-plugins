@@ -37,16 +37,16 @@ describe('queries', () => {
   describe('query for summary counts', () => {
     test('should return summary counts', async () => {
       backendSrv.fetch
-      .calledWith(requestMatching({ url: '/nisysmgmt/v1/get-systems-summary' }))
-      .mockReturnValue(createFetchResponse({ connectedCount: 1, disconnectedCount: 2 }));
+        .calledWith(requestMatching({ url: '/nisysmgmt/v1/get-systems-summary' }))
+        .mockReturnValue(createFetchResponse({ connectedCount: 1, disconnectedCount: 2 }));
 
       const result = await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Summary })));
 
       expect(result.data).toEqual([
         {
           fields: [
-              { name: 'Connected', values: [1] },
-              { name: 'Disconnected', values: [2] },
+            { name: 'Connected', values: [1] },
+            { name: 'Disconnected', values: [2] },
           ],
           refId: 'A',
         },
@@ -55,8 +55,8 @@ describe('queries', () => {
 
     test('should handle API errors gracefully', async () => {
       backendSrv.fetch
-      .calledWith(requestMatching({ url: '/nisysmgmt/v1/get-systems-summary' }))
-      .mockReturnValue(createFetchError(500));
+        .calledWith(requestMatching({ url: '/nisysmgmt/v1/get-systems-summary' }))
+        .mockReturnValue(createFetchError(500));
 
       await expect(firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Summary })))).rejects.toThrow('Request to url \"/nisysmgmt/v1/get-systems-summary\" failed with status code: 500. Error message: \"Error\"');
     });
@@ -68,26 +68,26 @@ describe('queries', () => {
         .calledWith(requestMatching({ url: '/nisysmgmt/v1/query-systems', data: { filter: '' } }))
         .mockReturnValue(createFetchResponse({ data: fakeSystems }));
 
-        const result = await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties })));
+      const result = await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Properties })));
 
-        expect(result.data).toEqual([
-          {
-            fields: [
-              { name: 'id', values: ['system-1', 'system-2'] },
-              { name: 'alias', values: ['my system', 'Cool system 😎'] },
-              { name: 'connection status', values: ['CONNECTED', 'DISCONNECTED'] },
-              { name: 'locked status', values: [false, true] },
-              { name: 'system start time', values: ['2023-07-18T10:19:46Z', '2023-03-02T18:48:09Z'] },
-              { name: 'model', values: ['NI cRIO-9033', '20LCS0X700'] },
-              { name: 'vendor', values: ['National Instruments', 'LENOVO'] },
-              { name: 'operating system', values: ['nilrt', 'Microsoft Windows 10 Enterprise'] },
-              { name: 'ip address', values: ['172.17.0.1', 'fe80::280:2fff:fe24:fcfa'] },
-              { name: 'workspace', values: ['Default workspace', 'Other workspace'] },
-              { name: 'scan code', values: ['ABC123DEF456', 'ABC123DEF457'] },
-            ],
-            refId: 'A',
-          },
-        ]);
+      expect(result.data).toEqual([
+        {
+          fields: [
+            { name: 'id', values: ['system-1', 'system-2'] },
+            { name: 'alias', values: ['my system', 'Cool system 😎'] },
+            { name: 'connection status', values: ['CONNECTED', 'DISCONNECTED'] },
+            { name: 'locked status', values: [false, true] },
+            { name: 'system start time', values: ['2023-07-18T10:19:46Z', '2023-03-02T18:48:09Z'] },
+            { name: 'model', values: ['NI cRIO-9033', '20LCS0X700'] },
+            { name: 'vendor', values: ['National Instruments', 'LENOVO'] },
+            { name: 'operating system', values: ['nilrt', 'Microsoft Windows 10 Enterprise'] },
+            { name: 'ip address', values: ['172.17.0.1', 'fe80::280:2fff:fe24:fcfa'] },
+            { name: 'workspace', values: ['Default workspace', 'Other workspace'] },
+            { name: 'scan code', values: ['ABC123DEF456', 'ABC123DEF457'] },
+          ],
+          refId: 'A',
+        },
+      ]);
     });
 
     test('should return properties for single system', async () => {
@@ -196,15 +196,29 @@ describe('metricFindQuery', () => {
     expect(templateSrv.replace.mock.calls[0][0]).toContain(workspaceVariable);
   });
 
-  test('should replace template variables in workspace filter', async () => {
+  test('should replace template variables in workspace filter (backward compatibility)', async () => {
     const workspaceVariable = '$workspace';
-    backendSrv.fetch.mockReturnValue(createFetchResponse({ data: fakeSystems.map(({ id, alias }) => ({ id, alias })) }));
-    templateSrv.replace.calledWith(workspaceVariable).mockReturnValue('1');
+    backendSrv.fetch.mockReturnValue(createFetchResponse({ data: fakeSystems.map(({ id, alias, scanCode }) => ({ id, alias, scanCode })) }));
 
-    await ds.metricFindQuery({ workspace: workspaceVariable });
+    templateSrv.replace.mockReturnValue('workspace = "1"');
+
+    await ds.metricFindQuery({ workspace: workspaceVariable, filter: '' });
 
     expect(templateSrv.replace).toHaveBeenCalledTimes(1);
-    expect(templateSrv.replace.mock.calls[0][0]).toBe(workspaceVariable);
+    expect(templateSrv.replace).toHaveBeenCalledWith('workspace = "$workspace"', {});
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('filter', 'workspace = "1"');
+  });
+
+  test('should handle scopedVars in options parameter', async () => {
+    const workspaceVariable = '$workspace';
+    const scopedVars = { workspace: { text: '2', value: '2' } };
+    backendSrv.fetch.mockReturnValue(createFetchResponse({ data: fakeSystems.map(({ id, alias, scanCode }) => ({ id, alias, scanCode })) }));
+    templateSrv.replace.calledWith(`workspace = "${workspaceVariable}"`, scopedVars).mockReturnValue('workspace = "2"');
+
+    await ds.metricFindQuery({ workspace: '', filter: `workspace = "${workspaceVariable}"` }, { scopedVars });
+
+    expect(templateSrv.replace).toHaveBeenCalledWith(expect.stringContaining(workspaceVariable), scopedVars);
+    expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty('filter', 'workspace = "2"');
   });
 });
 
