@@ -47,7 +47,7 @@ export function SystemVariableQueryEditor({ onChange, query, datasource }: Props
   }
   return (
     <>
-      <InlineField label="Filter" tooltip="Filter the systems by various properties.">
+      <InlineField label="Filter" labelWidth={25} tooltip={"Filter the systems by various properties."}>
         <SystemsQueryBuilder
           filter={query.filter || ''}
           onChange={(event: any) => onParameterChange(event)}
@@ -58,6 +58,7 @@ export function SystemVariableQueryEditor({ onChange, query, datasource }: Props
       </InlineField>
       <InlineField
         label="Return Type"
+        labelWidth={25}
         tooltip={"This field specifies the return type of the query."}
       >
         <Select
