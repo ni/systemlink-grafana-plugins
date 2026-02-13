@@ -470,7 +470,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 if (isRowCountTruncated && !isRowCountTruncatedForAnyTable) {
                     isRowCountTruncatedForAnyTable = true;
                     this.appEvents?.publish?.({
-                        type: AppEvents.alertInfo.name,
+                        type: AppEvents.alertWarning.name,
                         payload: [
                             'Take has been reduced for some tables',
                             `The take has been automatically reduced for some tables to keep the total data points within the maximum allowed limit of ${UNDECIMATED_RECORDS_LIMIT.toLocaleString()}.`

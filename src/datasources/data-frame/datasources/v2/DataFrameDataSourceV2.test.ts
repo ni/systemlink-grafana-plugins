@@ -3588,83 +3588,183 @@ describe('DataFrameDataSourceV2', () => {
                     expect(postSpy).not.toHaveBeenCalled();
                 });
 
-                it('should publish info alert when take is dynamically adjusted due to column count', async () => {
-                    const publishMock = jest.fn();
-                    (datasource as any).appEvents = { publish: publishMock };
+                describe('warning alert for take adjustment', () => {
+                    let publishMock: jest.Mock;
 
-                    const mockTables = [{
-                        id: 'table1',
-                        name: 'table1',
-                        rowCount: 500000,
-                        columns: [
-                            { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                            { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                            { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                        ]
-                    }];
-                    queryTablesSpy.mockReturnValue(of(mockTables));
-
-                    const csvResponse = 'col1,col2,col3\n1,2,3';
-                    postSpy.mockReturnValue(of(csvResponse));
-
-                    const query = {
-                        refId: 'A',
-                        type: DataFrameQueryType.Data,
-                        columns: ['col1-Numeric', 'col2-Numeric', 'col3-Numeric'],
-                        dataTableFilter: 'name = "Test"',
-                        decimationMethod: 'NONE',
-                        filterNulls: false,
-                        applyTimeFilters: false,
-                        undecimatedRecordCount: 500000
-                    } as DataFrameQueryV2;
-
-                    await lastValueFrom(datasource.runQuery(query, options));
-
-                    expect(publishMock).toHaveBeenCalledWith({
-                        type: 'alert-info',
-                        payload: [
-                            'Take has been reduced for some tables',
-                            `The take has been automatically reduced for some tables to keep the total data points within the maximum allowed limit of ${(1000000).toLocaleString()}.`
-                        ]
+                    beforeEach(() => {
+                        publishMock = jest.fn();
+                        (datasource as any).appEvents = { publish: publishMock };
                     });
-                });
 
-                it('should not publish info alert when take does not need adjustment', async () => {
-                    const publishMock = jest.fn();
-                    (datasource as any).appEvents = { publish: publishMock };
-
-                    const mockTables = [{
-                        id: 'table1',
-                        name: 'table1',
-                        rowCount: 500000,
-                        columns: [
-                            { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                            { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                        ]
-                    }];
-                    queryTablesSpy.mockReturnValue(of(mockTables));
-
-                    const csvResponse = 'col1,col2\n1,2';
-                    postSpy.mockReturnValue(of(csvResponse));
-
-                    const query = {
-                        refId: 'A',
-                        type: DataFrameQueryType.Data,
-                        columns: ['col1-Numeric', 'col2-Numeric'],
-                        dataTableFilter: 'name = "Test"',
-                        decimationMethod: 'NONE',
-                        filterNulls: false,
-                        applyTimeFilters: false,
-                        undecimatedRecordCount: 500000
-                    } as DataFrameQueryV2;
-
-                    await lastValueFrom(datasource.runQuery(query, options));
-
-                    expect(publishMock).not.toHaveBeenCalledWith(
-                        expect.objectContaining({
-                            type: 'alert-info'
-                        })
-                    );
+                    it('should publish warning alert when take is dynamically adjusted due to column count', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            name: 'table1',
+                            rowCount: 500000,
+                            columns: [
+                                { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+    
+                        const csvResponse = 'col1,col2,col3\n1,2,3';
+                        postSpy.mockReturnValue(of(csvResponse));
+    
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric', 'col2-Numeric', 'col3-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'NONE',
+                            filterNulls: false,
+                            applyTimeFilters: false,
+                            undecimatedRecordCount: 500000
+                        } as DataFrameQueryV2;
+    
+                        await lastValueFrom(datasource.runQuery(query, options));
+    
+                        expect(publishMock).toHaveBeenCalledWith({
+                            type: 'alert-warning',
+                            payload: [
+                                'Take has been reduced for some tables',
+                                `The take has been automatically reduced for some tables to keep the total data points within the maximum allowed limit of ${(1000000).toLocaleString()}.`
+                            ]
+                        });
+                    });
+    
+                    it('should publish warning alert only once when take is reduced for multiple tables', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                name: 'table1',
+                                rowCount: 500000,
+                                columns: [
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                    { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                ]
+                            },
+                            {
+                                id: 'table2',
+                                name: 'table2',
+                                rowCount: 400000,
+                                columns: [
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                    { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                ]
+                            },
+                            {
+                                id: 'table3',
+                                name: 'table3',
+                                rowCount: 300000,
+                                columns: [
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                    { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+    
+                        const csvResponse = 'col1,col2,col3\n1,2,3';
+                        postSpy.mockReturnValue(of(csvResponse));
+    
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric', 'col2-Numeric', 'col3-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'NONE',
+                            filterNulls: false,
+                            applyTimeFilters: false,
+                            undecimatedRecordCount: 500000
+                        } as DataFrameQueryV2;
+    
+                        await lastValueFrom(datasource.runQuery(query, options));
+    
+                        expect(publishMock).toHaveBeenCalledWith({
+                            type: 'alert-warning',
+                            payload: [
+                                'Take has been reduced for some tables',
+                                `The take has been automatically reduced for some tables to keep the total data points within the maximum allowed limit of ${(1000000).toLocaleString()}.`
+                            ]
+                        });
+                        expect(publishMock).toHaveBeenCalledTimes(1);
+                    });
+    
+                    it('should not publish warning alert when take does not need adjustment', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            name: 'table1',
+                            rowCount: 500000,
+                            columns: [
+                                { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+    
+                        const csvResponse = 'col1,col2\n1,2';
+                        postSpy.mockReturnValue(of(csvResponse));
+    
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric', 'col2-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'NONE',
+                            filterNulls: false,
+                            applyTimeFilters: false,
+                            undecimatedRecordCount: 500000
+                        } as DataFrameQueryV2;
+    
+                        await lastValueFrom(datasource.runQuery(query, options));
+    
+                        expect(publishMock).not.toHaveBeenCalledWith(
+                            expect.objectContaining({
+                                type: 'alert-warning'
+                            })
+                        );
+                    });
+    
+                    it('should not publish warning alert when take is adjusted but not less than actual row count', async () => {
+                        const mockTables = [{
+                            id: 'table1',
+                            name: 'table1',
+                            rowCount: 200000,
+                            columns: [
+                                { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+    
+                        const csvResponse = 'col1,col2,col3\n1,2,3';
+                        postSpy.mockReturnValue(of(csvResponse));
+    
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric', 'col2-Numeric', 'col3-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'NONE',
+                            filterNulls: false,
+                            applyTimeFilters: false,
+                            undecimatedRecordCount: 500000
+                        } as DataFrameQueryV2;
+    
+                        await lastValueFrom(datasource.runQuery(query, options));
+    
+                        expect(publishMock).not.toHaveBeenCalledWith(
+                            expect.objectContaining({
+                                type: 'alert-warning'
+                            })
+                        );
+                    });
                 });
 
                 it('should fall back to decimated data when feature toggle is disabled', async () => {
