@@ -27,13 +27,6 @@ export class Table {
         return await this.tableRow.count();
     }
 
-    public getColumnName(columnName: string): Locator {
-        if (columnName === 'id' || columnName === 'name' || columnName === 'self calibration') {
-            return this.page.getByRole('columnheader', { name: columnName, exact: true });
-        }
-        return this.page.getByRole('columnheader', { name: columnName });
-    };
-
     public getColumnHeaderByIndex(index: number): Locator {
         return this.page.getByRole('columnheader').nth(index);
     }
