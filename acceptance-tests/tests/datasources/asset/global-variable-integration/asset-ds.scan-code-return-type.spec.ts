@@ -57,9 +57,7 @@ test.describe('Asset data source with scan code return type', () => {
         test('should add filter by scanCode using the asset variable', async () => {
             await dashboard.panel.assetQueryEditor.addFilter('Scan Code', 'equals', '$scanCode');
 
-            await expect(dashboard.panel.table.firstFilterRow).toContainText('Scan Code');
-            await expect(dashboard.panel.table.firstFilterRow).toContainText('equals');
-            await expect(dashboard.panel.table.firstFilterRow).toContainText('$scanCode');
+            await expect(dashboard.panel.table.firstFilterRow).toContainText(['Scan Code', 'equals', '$scanCode']);
         });
 
         test('should verify that table data changes as the variable value changes', async () => {
