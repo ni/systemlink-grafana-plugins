@@ -1,3 +1,9 @@
+## [4.130.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.129.1...v4.130.0) (2026-02-13)
+
+### Features
+
+* Add acceptance tests to PR workflow ([#673](https://github.com/ni/systemlink-grafana-plugins/issues/673)) ([766f8a1](https://github.com/ni/systemlink-grafana-plugins/commit/766f8a1107597b48edea354b4a209509e084e63e))
+
 ## [4.129.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.129.0...v4.129.1) (2026-02-11)
 
 ### Bug Fixes
