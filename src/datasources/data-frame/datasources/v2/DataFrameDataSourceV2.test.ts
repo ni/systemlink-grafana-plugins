@@ -2040,49 +2040,86 @@ describe('DataFrameDataSourceV2', () => {
                 });
 
                 describe('Filter x-range on zoom/pan', () => {
+                    function setupXRangeFilterTest(config: {
+                        columnName: string;
+                        dataType: string;
+                        columnType?: ColumnType;
+                        isXColumnSelected?: boolean;
+                        xAxisMin?: string;
+                        xAxisMax?: string;
+                        timeRange?: { from: string; to: string };
+                    }) {
+                        const {
+                            columnName,
+                            dataType,
+                            columnType = ColumnType.Normal,
+                            isXColumnSelected = true,
+                            xAxisMin,
+                            xAxisMax,
+                            timeRange,
+                        } = config;
+                        const isTimestamp = dataType === 'TIMESTAMP';
+                        const columnSuffix = isTimestamp ? 'Timestamp' : 'Numeric';
+
+                        const mockTables = [{
+                            id: 'table1',
+                            name: 'table1',
+                            columns: [
+                                { name: columnName, dataType, columnType },
+                                { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                            ]
+                        }];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+                        postSpy.mockReturnValue(of({
+                            frame: { columns: [columnName, 'value'], data: [['1'], ['1.0']] }
+                        }));
+
+                        if (xAxisMin !== undefined && xAxisMax !== undefined) {
+                            (locationService.getSearchObject as jest.Mock).mockReturnValue({
+                                editPanel: '1',
+                                [`nisl-${columnName}-min`]: xAxisMin,
+                                [`nisl-${columnName}-max`]: xAxisMax,
+                            });
+                        } else {
+                            (locationService.getSearchObject as jest.Mock).mockReturnValue({});
+                        }
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: [`${columnName}-${columnSuffix}`, 'value-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'LOSSY',
+                            xColumn: isXColumnSelected ? `${columnName}-${columnSuffix}` : null,
+                            filterNulls: false,
+                            filterXRangeOnZoomPan: true
+                        } as DataFrameQueryV2;
+
+                        let queryOptions = options;
+                        if (timeRange) {
+                            queryOptions = {
+                                ...options,
+                                range: {
+                                    from: { toISOString: () => timeRange.from },
+                                    to: { toISOString: () => timeRange.to }
+                                },
+                                targets: [query]
+                            } as any;
+                        }
+
+                        return { query, options: queryOptions };
+                    }
+
                     describe('X-column selected', () => {
                         describe('Timestamp', () => {
                             it('should use xColumn for filter when timestamp xColumn is selected', async () => {
-                                const mockTables = [{
-                                    id: 'table1',
-                                    name: 'table1',
-                                    columns: [
-                                        { name: 'timestamp', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
-                                        { name: 'customTime', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
-                                        { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                    ]
-                                }];
-                                queryTablesSpy.mockReturnValue(of(mockTables));
+                                const { query, options } = setupXRangeFilterTest({
+                                    columnName: 'customTime',
+                                    dataType: 'TIMESTAMP',
+                                    timeRange: { from: '2024-01-01T00:00:00Z', to: '2024-01-02T00:00:00Z' },
+                                });
 
-                                const mockDecimatedData = {
-                                    frame: {
-                                        columns: ['timestamp', 'customTime', 'voltage'],
-                                        data: [['2024-01-01T00:00:00Z'], ['2024-01-01T01:00:00Z'], ['10.5']]
-                                    }
-                                };
-                                postSpy.mockReturnValue(of(mockDecimatedData));
-
-                                const query = {
-                                    refId: 'A',
-                                    type: DataFrameQueryType.Data,
-                                    columns: ['customTime-Timestamp', 'voltage-Numeric'],
-                                    xColumn: 'customTime-Timestamp',
-                                    dataTableFilter: 'name = "Test"',
-                                    decimationMethod: 'LOSSY',
-                                    filterNulls: false,
-                                    filterXRangeOnZoomPan: true
-                                } as DataFrameQueryV2;
-
-                                const optionsWithRange = {
-                                    ...options,
-                                    range: {
-                                        from: { toISOString: () => '2024-01-01T00:00:00Z' },
-                                        to: { toISOString: () => '2024-01-02T00:00:00Z' }
-                                    },
-                                    targets: [query]
-                                } as any;
-
-                                await lastValueFrom(ds.runQuery(query, optionsWithRange));
+                                await lastValueFrom(ds.runQuery(query, options));
 
                                 expect(postSpy).toHaveBeenCalledWith(
                                     expect.any(String),
@@ -2106,80 +2143,25 @@ describe('DataFrameDataSourceV2', () => {
                         });
 
                         describe('Numeric', () => {
-                            it('should return empty filters when highResolutionZoom feature flag is enabled but URL params are missing', async () => {
-                                const mockTables = [{
-                                    id: 'table1',
-                                    name: 'table1',
-                                    columns: [
-                                        { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                                        { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                    ]
-                                }];
-                                queryTablesSpy.mockReturnValue(of(mockTables));
-
-                                const mockDecimatedData = {
-                                    frame: {
-                                        columns: ['voltage', 'current'],
-                                        data: [['50.5'], ['10.5']]
-                                    }
-                                };
-                                postSpy.mockReturnValue(of(mockDecimatedData));
-
-                                (locationService.getSearchObject as jest.Mock).mockReturnValue({});
-
-                                const query = {
-                                    refId: 'A',
-                                    type: DataFrameQueryType.Data,
-                                    columns: ['voltage-Numeric', 'current-Numeric'],
-                                    dataTableFilter: 'name = "Test"',
-                                    decimationMethod: 'LOSSY',
-                                    xColumn: 'voltage-Numeric',
-                                    filterNulls: false,
-                                    filterXRangeOnZoomPan: true
-                                } as DataFrameQueryV2;
+                            it('should return empty filters when URL params are missing', async () => {
+                                const { query, options } = setupXRangeFilterTest({
+                                    columnName: 'voltage',
+                                    dataType: 'FLOAT64',
+                                });
 
                                 await lastValueFrom(ds.runQuery(query, options));
 
-                                // Should not include numeric filters when URL params are missing
                                 const filters = postSpy.mock.calls[0][1].filters;
                                 expect(filters).toEqual([]);
                             });
 
-                            it('should apply numeric filters when xColumn highResolutionZoom feature flag is enabled and URL params exist', async () => {
-                                const mockTables = [{
-                                    id: 'table1',
-                                    name: 'table1',
-                                    columns: [
-                                        { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                                        { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                    ]
-                                }];
-                                queryTablesSpy.mockReturnValue(of(mockTables));
-
-                                const mockDecimatedData = {
-                                    frame: {
-                                        columns: ['voltage', 'current'],
-                                        data: [['50.5'], ['10.5']]
-                                    }
-                                };
-                                postSpy.mockReturnValue(of(mockDecimatedData));
-
-                                (locationService.getSearchObject as jest.Mock).mockReturnValue({
-                                    editPanel: '1',
-                                    'nisl-voltage-min': '40.123456',
-                                    'nisl-voltage-max': '80.654321'
+                            it('should apply numeric filters when URL params exist', async () => {
+                                const { query, options } = setupXRangeFilterTest({
+                                    columnName: 'voltage',
+                                    dataType: 'FLOAT64',
+                                    xAxisMin: '40.123456',
+                                    xAxisMax: '80.654321',
                                 });
-
-                                const query = {
-                                    refId: 'A',
-                                    type: DataFrameQueryType.Data,
-                                    columns: ['voltage-Numeric', 'current-Numeric'],
-                                    dataTableFilter: 'name = "Test"',
-                                    decimationMethod: 'LOSSY',
-                                    xColumn: 'voltage-Numeric',
-                                    filterNulls: false,
-                                    filterXRangeOnZoomPan: true
-                                } as DataFrameQueryV2;
 
                                 await lastValueFrom(ds.runQuery(query, options));
 
@@ -2208,45 +2190,15 @@ describe('DataFrameDataSourceV2', () => {
                     describe('X-column not selected', () => {
                         describe('Timestamp (Index column)', () => {
                             it('should apply time range filters using the TIMESTAMP INDEX column', async () => {
-                                const mockTables = [{
-                                    id: 'table1',
-                                    name: 'table1',
-                                    columns: [
-                                        { name: 'timestamp', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
-                                        { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                    ]
-                                }];
-                                queryTablesSpy.mockReturnValue(of(mockTables));
+                                const { query, options } = setupXRangeFilterTest({
+                                    columnName: 'timestamp',
+                                    dataType: 'TIMESTAMP',
+                                    columnType: ColumnType.Index,
+                                    isXColumnSelected: false,
+                                    timeRange: { from: '2024-01-01T00:00:00Z', to: '2024-01-02T00:00:00Z' },
+                                });
 
-                                const mockDecimatedData = {
-                                    frame: {
-                                        columns: ['timestamp', 'voltage'],
-                                        data: [['2024-01-01T00:00:00Z'], ['10.5']]
-                                    }
-                                };
-                                postSpy.mockReturnValue(of(mockDecimatedData));
-
-                                const query = {
-                                    refId: 'A',
-                                    type: DataFrameQueryType.Data,
-                                    columns: ['timestamp-Timestamp', 'voltage-Numeric'],
-                                    xColumn: null,
-                                    dataTableFilter: 'name = "Test"',
-                                    decimationMethod: 'LOSSY',
-                                    filterNulls: false,
-                                    filterXRangeOnZoomPan: true
-                                } as DataFrameQueryV2;
-
-                                const optionsWithRange = {
-                                    ...options,
-                                    range: {
-                                        from: { toISOString: () => '2024-01-01T00:00:00Z' },
-                                        to: { toISOString: () => '2024-01-02T00:00:00Z' }
-                                    },
-                                    targets: [query]
-                                } as any;
-
-                                await lastValueFrom(ds.runQuery(query, optionsWithRange));
+                                await lastValueFrom(ds.runQuery(query, options));
 
                                 expect(postSpy).toHaveBeenCalledWith(
                                     expect.any(String),
@@ -2271,36 +2223,12 @@ describe('DataFrameDataSourceV2', () => {
 
                         describe('Numeric (Index column)', () => {
                             it('should return empty filters when URL params are missing', async () => {
-                                const mockTables = [{
-                                    id: 'table1',
-                                    name: 'table1',
-                                    columns: [
-                                        { name: 'id', dataType: 'INT64', columnType: ColumnType.Index },
-                                        { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                    ]
-                                }];
-                                queryTablesSpy.mockReturnValue(of(mockTables));
-
-                                const mockDecimatedData = {
-                                    frame: {
-                                        columns: ['id', 'voltage'],
-                                        data: [['10'], ['10.5']]
-                                    }
-                                };
-                                postSpy.mockReturnValue(of(mockDecimatedData));
-
-                                (locationService.getSearchObject as jest.Mock).mockReturnValue({});
-
-                                const query = {
-                                    refId: 'A',
-                                    type: DataFrameQueryType.Data,
-                                    columns: ['id-Numeric', 'voltage-Numeric'],
-                                    xColumn: null,
-                                    dataTableFilter: 'name = "Test"',
-                                    decimationMethod: 'LOSSY',
-                                    filterNulls: false,
-                                    filterXRangeOnZoomPan: true
-                                } as DataFrameQueryV2;
+                                const { query, options } = setupXRangeFilterTest({
+                                    columnName: 'id',
+                                    dataType: 'INT64',
+                                    columnType: ColumnType.Index,
+                                    isXColumnSelected: false,
+                                });
 
                                 await lastValueFrom(ds.runQuery(query, options));
 
@@ -2309,40 +2237,14 @@ describe('DataFrameDataSourceV2', () => {
                             });
 
                             it('should apply numeric range filters using the NUMERIC INDEX column', async () => {
-                                const mockTables = [{
-                                    id: 'table1',
-                                    name: 'table1',
-                                    columns: [
-                                        { name: 'id', dataType: 'INT32', columnType: ColumnType.Index },
-                                        { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                    ]
-                                }];
-                                queryTablesSpy.mockReturnValue(of(mockTables));
-
-                                const mockDecimatedData = {
-                                    frame: {
-                                        columns: ['id', 'voltage'],
-                                        data: [['10'], ['100']]
-                                    }
-                                };
-                                postSpy.mockReturnValue(of(mockDecimatedData));
-
-                                (locationService.getSearchObject as jest.Mock).mockReturnValue({
-                                    editPanel: '1',
-                                    'nisl-id-min': '5.123456',
-                                    'nisl-id-max': '100.654321'
+                                const { query, options } = setupXRangeFilterTest({
+                                    columnName: 'id',
+                                    dataType: 'INT32',
+                                    columnType: ColumnType.Index,
+                                    isXColumnSelected: false,
+                                    xAxisMin: '5.123456',
+                                    xAxisMax: '100.654321',
                                 });
-
-                                const query = {
-                                    refId: 'A',
-                                    type: DataFrameQueryType.Data,
-                                    columns: ['id-Numeric', 'voltage-Numeric'],
-                                    xColumn: null,
-                                    dataTableFilter: 'name = "Test"',
-                                    decimationMethod: 'LOSSY',
-                                    filterNulls: false,
-                                    filterXRangeOnZoomPan: true
-                                } as DataFrameQueryV2;
 
                                 await lastValueFrom(ds.runQuery(query, options));
 
@@ -2369,48 +2271,13 @@ describe('DataFrameDataSourceV2', () => {
                     });
 
                     describe('constructNumericRangeFilters', () => {
-                        function setupNumericRangeTest(
-                            columnName: string,
-                            dataType: string,
-                            urlMin: string,
-                            urlMax: string,
-                            columnType = ColumnType.Normal,
-                        ) {
-                            const mockTables = [{
-                                id: 'table1',
-                                name: 'table1',
-                                columns: [
-                                    { name: columnName, dataType, columnType },
-                                    { name: 'value', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                ]
-                            }];
-                            queryTablesSpy.mockReturnValue(of(mockTables));
-                            postSpy.mockReturnValue(of({
-                                frame: { columns: [columnName, 'value'], data: [['1'], ['1.0']] }
-                            }));
-
-                            (locationService.getSearchObject as jest.Mock).mockReturnValue({
-                                editPanel: '1',
-                                [`nisl-${columnName}-min`]: urlMin,
-                                [`nisl-${columnName}-max`]: urlMax,
-                            });
-
-                            const query = {
-                                refId: 'A',
-                                type: DataFrameQueryType.Data,
-                                columns: [`${columnName}-Numeric`, 'value-Numeric'],
-                                dataTableFilter: 'name = "Test"',
-                                decimationMethod: 'LOSSY',
-                                xColumn: `${columnName}-Numeric`,
-                                filterNulls: false,
-                                filterXRangeOnZoomPan: true
-                            } as DataFrameQueryV2;
-
-                            return query;
-                        }
-
                         it('should use ceil for min and floor for max with INT32 decimal values', async () => {
-                            const query = setupNumericRangeTest('count', 'INT32', '10.7', '99.3');
+                            const { query, options } = setupXRangeFilterTest({
+                                columnName: 'count',
+                                dataType: 'INT32',
+                                xAxisMin: '10.7',
+                                xAxisMax: '99.3',
+                            });
 
                             await lastValueFrom(ds.runQuery(query, options));
 
@@ -2430,7 +2297,12 @@ describe('DataFrameDataSourceV2', () => {
                         });
 
                         it('should use ceil for min and floor for max with INT64 decimal values', async () => {
-                            const query = setupNumericRangeTest('id', 'INT64', '1000.2', '2000.4');
+                            const { query, options } = setupXRangeFilterTest({
+                                columnName: 'id',
+                                dataType: 'INT64',
+                                xAxisMin: '1000.2',
+                                xAxisMax: '2000.4',
+                            });
 
                             await lastValueFrom(ds.runQuery(query, options));
 
@@ -2450,7 +2322,12 @@ describe('DataFrameDataSourceV2', () => {
                         });
 
                         it('should handle negative decimal values for INT32 columns', async () => {
-                            const query = setupNumericRangeTest('temperature', 'INT32', '-15.8', '-5.2');
+                            const { query, options } = setupXRangeFilterTest({
+                                columnName: 'temperature',
+                                dataType: 'INT32',
+                                xAxisMin: '-15.8',
+                                xAxisMax: '-5.2',
+                            });
 
                             await lastValueFrom(ds.runQuery(query, options));
 
@@ -2470,7 +2347,12 @@ describe('DataFrameDataSourceV2', () => {
                         });
 
                         it('should handle negative decimal values for INT64 columns', async () => {
-                            const query = setupNumericRangeTest('offset', 'INT64', '-100.2', '-50.9');
+                            const { query, options } = setupXRangeFilterTest({
+                                columnName: 'offset',
+                                dataType: 'INT64',
+                                xAxisMin: '-100.2',
+                                xAxisMax: '-50.9',
+                            });
 
                             await lastValueFrom(ds.runQuery(query, options));
 
@@ -2490,7 +2372,12 @@ describe('DataFrameDataSourceV2', () => {
                         });
 
                         it('should format decimal values for FLOAT64 columns', async () => {
-                            const query = setupNumericRangeTest('voltage', 'FLOAT64', '10.567', '99.432');
+                            const { query, options } = setupXRangeFilterTest({
+                                columnName: 'voltage',
+                                dataType: 'FLOAT64',
+                                xAxisMin: '10.567',
+                                xAxisMax: '99.432',
+                            });
 
                             await lastValueFrom(ds.runQuery(query, options));
 
@@ -2510,7 +2397,12 @@ describe('DataFrameDataSourceV2', () => {
                         });
 
                         it('should format decimal values for FLOAT32 columns', async () => {
-                            const query = setupNumericRangeTest('current', 'FLOAT32', '5.123', '25.987');
+                            const { query, options } = setupXRangeFilterTest({
+                                columnName: 'current',
+                                dataType: 'FLOAT32',
+                                xAxisMin: '5.123',
+                                xAxisMax: '25.987',
+                            });
 
                             await lastValueFrom(ds.runQuery(query, options));
 
@@ -2530,7 +2422,12 @@ describe('DataFrameDataSourceV2', () => {
                         });
 
                         it('should handle integer values that do not need rounding for INT32', async () => {
-                            const query = setupNumericRangeTest('count', 'INT32', '10', '100');
+                            const { query, options } = setupXRangeFilterTest({
+                                columnName: 'count',
+                                dataType: 'INT32',
+                                xAxisMin: '10',
+                                xAxisMax: '100',
+                            });
 
                             await lastValueFrom(ds.runQuery(query, options));
 
@@ -2550,7 +2447,12 @@ describe('DataFrameDataSourceV2', () => {
                         });
 
                         it('should handle values near zero for INT32 columns', async () => {
-                            const query = setupNumericRangeTest('delta', 'INT32', '-0.8', '0.4');
+                            const { query, options } = setupXRangeFilterTest({
+                                columnName: 'delta',
+                                dataType: 'INT32',
+                                xAxisMin: '-0.8',
+                                xAxisMax: '0.4',
+                            });
 
                             await lastValueFrom(ds.runQuery(query, options));
 
@@ -2570,7 +2472,12 @@ describe('DataFrameDataSourceV2', () => {
                         });
 
                         it('should accept INT32 max value slightly outside bounds that floors to valid value', async () => {
-                            const query = setupNumericRangeTest('count', 'INT32', '2147483646.2', '2147483647.5');
+                            const { query, options } = setupXRangeFilterTest({
+                                columnName: 'count',
+                                dataType: 'INT32',
+                                xAxisMin: '2147483646.2',
+                                xAxisMax: '2147483647.5',
+                            });
 
                             await lastValueFrom(ds.runQuery(query, options));
 
@@ -2590,7 +2497,12 @@ describe('DataFrameDataSourceV2', () => {
                         });
 
                         it('should round float values to 6 decimal places when URL params exceed 6 digits', async () => {
-                            const query = setupNumericRangeTest('voltage', 'FLOAT64', '10.123456789012', '99.987654321098');
+                            const { query, options } = setupXRangeFilterTest({
+                                columnName: 'voltage',
+                                dataType: 'FLOAT64',
+                                xAxisMin: '10.123456789012',
+                                xAxisMax: '99.987654321098',
+                            });
 
                             await lastValueFrom(ds.runQuery(query, options));
 
@@ -2610,7 +2522,12 @@ describe('DataFrameDataSourceV2', () => {
                         });
 
                         it('should handle when both formatted min and max are equal for FLOAT64 columns', async () => {
-                            const query = setupNumericRangeTest('voltage', 'FLOAT64', '10.123456789012', '10.123456891234');
+                            const { query, options } = setupXRangeFilterTest({
+                                columnName: 'voltage',
+                                dataType: 'FLOAT64',
+                                xAxisMin: '10.123456789012',
+                                xAxisMax: '10.123456891234',
+                            });
 
                             await lastValueFrom(ds.runQuery(query, options));
 
@@ -2630,7 +2547,12 @@ describe('DataFrameDataSourceV2', () => {
                         });
 
                         it('should return empty filters when INT32 value exceeds bounds', async () => {
-                            const query = setupNumericRangeTest('count', 'INT32', '-2147483649', '2147483648');
+                            const { query, options } = setupXRangeFilterTest({
+                                columnName: 'count',
+                                dataType: 'INT32',
+                                xAxisMin: '-2147483649',
+                                xAxisMax: '2147483648',
+                            });
 
                             await lastValueFrom(ds.runQuery(query, options));
 
@@ -2639,7 +2561,12 @@ describe('DataFrameDataSourceV2', () => {
                         });
 
                         it('should return empty filters when INT64 value exceeds safe integer bounds', async () => {
-                            const query = setupNumericRangeTest('id', 'INT64', '-9007199254740992', '100');
+                            const { query, options } = setupXRangeFilterTest({
+                                columnName: 'id',
+                                dataType: 'INT64',
+                                xAxisMin: '-9007199254740992',
+                                xAxisMax: '100',
+                            });
 
                             await lastValueFrom(ds.runQuery(query, options));
 
@@ -2648,7 +2575,12 @@ describe('DataFrameDataSourceV2', () => {
                         });
 
                         it('should return empty filters when INT64 value with decimals slightly beyond bounds exceeds JavaScript precision limits', async () => {
-                            const query = setupNumericRangeTest('id', 'INT64', '9007199254740990', '9007199254740991.8');
+                            const { query, options } = setupXRangeFilterTest({
+                                columnName: 'id',
+                                dataType: 'INT64',
+                                xAxisMin: '9007199254740990',
+                                xAxisMax: '9007199254740991.8',
+                            });
 
                             await lastValueFrom(ds.runQuery(query, options));
 
@@ -2657,7 +2589,12 @@ describe('DataFrameDataSourceV2', () => {
                         });
 
                         it('should return empty filters when FLOAT32 value exceeds bounds', async () => {
-                            const query = setupNumericRangeTest('voltage', 'FLOAT32', '-3.5e38', '100.5');
+                            const { query, options } = setupXRangeFilterTest({
+                                columnName: 'voltage',
+                                dataType: 'FLOAT32',
+                                xAxisMin: '-3.5e38',
+                                xAxisMax: '100.5',
+                            });
 
                             await lastValueFrom(ds.runQuery(query, options));
 
@@ -2666,7 +2603,12 @@ describe('DataFrameDataSourceV2', () => {
                         });
 
                         it('should return empty filters when FLOAT64 value exceeds bounds', async () => {
-                            const query = setupNumericRangeTest('measurement', 'FLOAT64', '50.5', '2e308');
+                            const { query, options } = setupXRangeFilterTest({
+                                columnName: 'measurement',
+                                dataType: 'FLOAT64',
+                                xAxisMin: '50.5',
+                                xAxisMax: '2e308',
+                            });
 
                             await lastValueFrom(ds.runQuery(query, options));
 
@@ -2675,7 +2617,12 @@ describe('DataFrameDataSourceV2', () => {
                         });
 
                         it('should return empty filters when formatted min exceeds formatted max', async () => {
-                            const query = setupNumericRangeTest('count', 'INT32', '10.9', '10.1');
+                            const { query, options } = setupXRangeFilterTest({
+                                columnName: 'count',
+                                dataType: 'INT32',
+                                xAxisMin: '10.9',
+                                xAxisMax: '10.1',
+                            });
 
                             await lastValueFrom(ds.runQuery(query, options));
 
