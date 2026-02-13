@@ -1,4 +1,6 @@
 import { Page, Locator } from '@playwright/test';
+import { pressEnter } from '../../../utils/keyboard-utilities';
+import { assetColumn } from '../../../constants/asset-list-properties.constant';
 
 export class AssetQueryEditorComponent {
     readonly page: Page;
@@ -44,7 +46,7 @@ export class AssetQueryEditorComponent {
     }
 
     public propertiesOptions(optionName: string): Locator {
-        if (optionName === 'id') {
+        if (optionName === assetColumn.id) {
             return this.page.getByRole('option', { name: optionName, exact: true });
         }
         return this.page.getByRole('option', { name: optionName });
@@ -74,12 +76,12 @@ export class AssetQueryEditorComponent {
     async addFilter(property: string, operation: string, value: string): Promise<void> {
         await this.queryBuilderPropertyField.click();
         await this.selectQueryBuilderPropertyOption(property).click();
-        await this.page.keyboard.press('Enter');
+        await pressEnter(this.page);
         await this.queryBuilderOperationField.click();
         await this.page.getByText(operation).click();
         await this.queryBuilderValueField.click();
         await this.page.keyboard.type(value);
-        await this.page.keyboard.press('Enter');
+        await pressEnter(this.page);
     }
 
     async switchToTableView(): Promise<void> {
