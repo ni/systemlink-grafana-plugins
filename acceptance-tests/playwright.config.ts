@@ -1,4 +1,4 @@
-import {type  PlaywrightTestConfig, devices } from '@playwright/test';
+import { type PlaywrightTestConfig, devices } from '@playwright/test';
 
 const isCI = !!process.env.CI;
 

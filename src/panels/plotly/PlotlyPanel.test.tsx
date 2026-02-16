@@ -244,7 +244,7 @@ describe('PlotlyPanel', () => {
           expect(eventArg.constructor.name).toBe('NIRefreshDashboardEvent');
         });
 
-        it('should debounce rapid x-axis range changes and only trigger one URL update after 300ms delay', () => {
+        it('should debounce rapid x-axis range changes and only trigger one URL update after 700ms delay', () => {
           mockSearchObject('?nisl-syncXAxisRangeTargets=1');
           const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
@@ -256,7 +256,7 @@ describe('PlotlyPanel', () => {
 
           expect(locationService.partial).toHaveBeenCalledTimes(0);
 
-          jest.advanceTimersByTime(300);
+          jest.advanceTimersByTime(700);
           
           expect(locationService.partial).toHaveBeenCalledTimes(1);
           expect(locationService.partial).toHaveBeenCalledWith(

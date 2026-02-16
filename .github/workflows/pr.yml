@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - alpha
+  workflow_dispatch:
 
 jobs:
   build_and_test:
@@ -32,3 +33,22 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Start test environment
+        run: docker compose -f docker-compose.tests.yaml up -d
+
+      - name: Wait for services
+        run: |
+          timeout 60 sh -c 'until curl -f http://localhost:4000/api/health > /dev/null 2>&1; do sleep 2; done'
+          timeout 60 sh -c 'until curl -f http://localhost:5000/up > /dev/null 2>&1; do sleep 2; done'
+
+      - name: Show docker logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.tests.yaml logs --tail=200
+
+      - name: Acceptance tests
+        run: npm run test:acceptance
+
+      - name: Stop test environment
+        if: always()
+        run: docker compose -f docker-compose.tests.yaml down
