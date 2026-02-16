@@ -44,9 +44,7 @@ class AssetRoutes {
     getAssetSummary(_req, res) {
         const now = new Date('2026-02-13T00:00:00.000Z');
         const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-
         const totalCount = db.assets.length;
-
         const activeCount = db.assets.filter(asset =>
             asset.location?.state?.assetPresence === 'PRESENT' &&
             asset.location?.state?.systemConnection === 'CONNECTED'
