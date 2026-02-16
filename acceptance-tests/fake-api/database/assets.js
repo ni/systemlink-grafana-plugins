@@ -265,5 +265,177 @@ export const assets = [
         "lastUpdatedTimestamp": "2023-10-05T21:36:14.169Z",
         "partNumber": "partNumber6",
         "scanCode": "scanCode6"
+    },
+    {
+        "modelName": "model7",
+        "modelNumber": 0,
+        "serialNumber": "serial7",
+        "vendorName": "vendor7",
+        "vendorNumber": 0,
+        "busType": "BUILT_IN_SYSTEM",
+        "name": "name7",
+        "supportsExternalCalibration": true,
+        "selfCalibration": {
+            "date": "2022-06-07T18:58:05.000Z"
+        },
+        "assetType": "DEVICE_UNDER_TEST",
+        "discoveryType": "MANUAL",
+        "firmwareVersion": "1.2f",
+        "visaResourceName": "visa resource name 7",
+        "supportsSelfCalibration": true,
+        "isNIAsset": false,
+        "id": "id7",
+        "location": {
+            "minionId": "SYSTEM-3",
+            "parent": "parent 7",
+            "resourceUri": "uri7",
+            "slotNumber": -1,
+            "state": {
+                "assetPresence": "PRESENT",
+                "systemConnection": "CONNECTED"
+            }
+        },
+        "externalCalibration": {
+            "resolvedDueDate": "2026-03-01T21:00:00.000Z"
+        },
+        "calibrationStatus": "OK",
+        "isSystemController": false,
+        "workspace": "default-workspace",
+        "supportsSelfTest": true,
+        "supportsReset": false,
+        "properties": { "x": "y", "a": "b" },
+        "keywords": ["aaaaaaa", "cccccc"],
+        "lastUpdatedTimestamp": "2023-10-05T21:36:14.169Z",
+        "partNumber": "partNumber7",
+        "scanCode": "scanCode7"
+    },
+    {
+        "modelName": "model8",
+        "modelNumber": 0,
+        "serialNumber": "serial8",
+        "vendorName": "vendor8",
+        "vendorNumber": 0,
+        "busType": "BUILT_IN_SYSTEM",
+        "name": "name8",
+        "supportsExternalCalibration": true,
+        "selfCalibration": {
+            "date": "2022-06-07T18:58:05.000Z"
+        },
+        "assetType": "DEVICE_UNDER_TEST",
+        "discoveryType": "MANUAL",
+        "firmwareVersion": "1.2f",
+        "visaResourceName": "visa resource name 8",
+        "supportsSelfCalibration": true,
+        "isNIAsset": false,
+        "id": "id8",
+        "location": {
+            "minionId": "SYSTEM-3",
+            "parent": "parent 8",
+            "resourceUri": "uri8",
+            "slotNumber": -1,
+            "state": {
+                "assetPresence": "PRESENT",
+                "systemConnection": "CONNECTED"
+            }
+        },
+        "externalCalibration": {
+            "resolvedDueDate": "2026-03-15T21:00:00.000Z"
+        },
+        "calibrationStatus": "OK",
+        "isSystemController": false,
+        "workspace": "default-workspace",
+        "supportsSelfTest": true,
+        "supportsReset": false,
+        "properties": { "x": "y" },
+        "keywords": ["aaaaaaa", "nnnnn"],
+        "lastUpdatedTimestamp": "2023-10-29T21:36:14.169Z",
+        "partNumber": "partNumber8",
+        "scanCode": "scanCode8"
+    },
+    {
+        "modelName": "model9",
+        "modelNumber": 0,
+        "serialNumber": "serial9",
+        "vendorName": "vendor9",
+        "vendorNumber": 0,
+        "busType": "BUILT_IN_SYSTEM",
+        "name": "name9",
+        "supportsExternalCalibration": true,
+        "selfCalibration": {
+            "date": "2022-06-07T18:58:05.000Z"
+        },
+        "assetType": "DEVICE_UNDER_TEST",
+        "discoveryType": "MANUAL",
+        "firmwareVersion": "1.2f",
+        "visaResourceName": "visa resource name 9",
+        "supportsSelfCalibration": true,
+        "isNIAsset": false,
+        "id": "id9",
+        "location": {
+            "minionId": "SYSTEM-3",
+            "parent": "parent 9",
+            "resourceUri": "uri9",
+            "slotNumber": -1,
+            "state": {
+                "assetPresence": "NOT_PRESENT",
+                "systemConnection": "DISCONNECTED"
+            }
+        },
+        "externalCalibration": {
+            "resolvedDueDate": "2026-03-07T21:00:00.000Z"
+        },
+        "calibrationStatus": "OK",
+        "isSystemController": false,
+        "workspace": "default-workspace",
+        "supportsSelfTest": true,
+        "supportsReset": false,
+        "properties": { "x": "y", "a": "b" },
+        "keywords": ["aaaaaaa", "cccccc"],
+        "lastUpdatedTimestamp": "2023-10-05T21:36:14.169Z",
+        "partNumber": "partNumber9",
+        "scanCode": "scanCode9"
+    },
+    {
+        "modelName": "model10",
+        "modelNumber": 0,
+        "serialNumber": "serial10",
+        "vendorName": "vendor10",
+        "vendorNumber": 0,
+        "busType": "BUILT_IN_SYSTEM",
+        "name": "name10",
+        "supportsExternalCalibration": true,
+        "selfCalibration": {
+            "date": "2022-06-07T18:58:05.000Z"
+        },
+        "assetType": "DEVICE_UNDER_TEST",
+        "discoveryType": "MANUAL",
+        "firmwareVersion": "1.2f",
+        "visaResourceName": "visa resource name 10",
+        "supportsSelfCalibration": true,
+        "isNIAsset": false,
+        "id": "id10",
+        "location": {
+            "minionId": "SYSTEM-2",
+            "parent": "parent 10",
+            "resourceUri": "uri10",
+            "slotNumber": -1,
+            "state": {
+                "assetPresence": "PRESENT",
+                "systemConnection": "CONNECTED"
+            }
+        },
+        "externalCalibration": {
+            "resolvedDueDate": "2026-03-08T21:00:00.000Z"
+        },
+        "calibrationStatus": "OK",
+        "isSystemController": false,
+        "workspace": "default-workspace",
+        "supportsSelfTest": true,
+        "supportsReset": false,
+        "properties": { "x": "y", "a": "b" },
+        "keywords": ["ppppp", "cccccc"],
+        "lastUpdatedTimestamp": "2023-10-05T21:36:14.169Z",
+        "partNumber": "partNumber10",
+        "scanCode": "scanCode10"
     }
 ];

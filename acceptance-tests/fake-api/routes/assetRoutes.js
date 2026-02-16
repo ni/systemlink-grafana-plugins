@@ -40,6 +40,34 @@ class AssetRoutes {
 
         res.status(200).json({ assets: db.assets, totalCount: db.assets.length });
     }
+
+    getAssetSummary(_req, res) {
+        const now = new Date('2026-02-13T00:00:00.000Z');
+        const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+        const totalCount = db.assets.length;
+
+        const activeCount = db.assets.filter(asset =>
+            asset.location?.state?.assetPresence === 'PRESENT' &&
+            asset.location?.state?.systemConnection === 'CONNECTED'
+        ).length;
+
+        res.status(200).json({
+            total: totalCount,
+            active: activeCount,
+            notActive: totalCount - activeCount,
+            approachingRecommendedDueDate: db.assets.filter(asset => {
+                if (!asset.externalCalibration?.resolvedDueDate) return false;
+                const dueDate = new Date(asset.externalCalibration.resolvedDueDate);
+                return dueDate >= now && dueDate < thirtyDaysFromNow;
+            }).length,
+            pastRecommendedDueDate: db.assets.filter(asset => {
+                if (!asset.externalCalibration?.resolvedDueDate) return false;
+                const dueDate = new Date(asset.externalCalibration.resolvedDueDate);
+                return dueDate < now;
+            }).length
+        });
+    }
 }
 
 export const assetRoutes = new AssetRoutes();
