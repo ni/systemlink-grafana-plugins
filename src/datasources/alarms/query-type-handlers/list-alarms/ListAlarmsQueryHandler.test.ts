@@ -2094,6 +2094,110 @@ describe('ListAlarmsQueryHandler', () => {
     });
   });
 
+  describe('alarms query caching', () => {
+    it('should not call the API again when only properties change', async () => {
+      const query1 = buildAlarmsQuery({ filter: 'test', properties: [AlarmsSpecificProperties.displayName] });
+      const query2 = buildAlarmsQuery({ filter: 'test', properties: [AlarmsSpecificProperties.displayName, AlarmsSpecificProperties.workspace] });
+
+      await datastore.runQuery(query1, options);
+      backendServer.fetch.mockClear();
+
+      await datastore.runQuery(query2, options);
+
+      expect(backendServer.fetch).not.toHaveBeenCalledWith(
+        requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH })
+      );
+    });
+
+    it('should call the API again when filter changes', async () => {
+      const query1 = buildAlarmsQuery({ filter: 'filter-1' });
+      const query2 = buildAlarmsQuery({ filter: 'filter-2' });
+
+      await datastore.runQuery(query1, options);
+      backendServer.fetch.mockClear();
+
+      await datastore.runQuery(query2, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH })
+      );
+    });
+
+    it('should call the API again when take changes', async () => {
+      const query1 = buildAlarmsQuery({ take: 500 });
+      const query2 = buildAlarmsQuery({ take: 100 });
+
+      await datastore.runQuery(query1, options);
+      backendServer.fetch.mockClear();
+
+      await datastore.runQuery(query2, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH })
+      );
+    });
+
+    it('should call the API again when descending changes', async () => {
+      const query1 = buildAlarmsQuery({ descending: true });
+      const query2 = buildAlarmsQuery({ descending: false });
+
+      await datastore.runQuery(query1, options);
+      backendServer.fetch.mockClear();
+
+      await datastore.runQuery(query2, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH })
+      );
+    });
+
+    it('should call the API again when transitionInclusionOption changes', async () => {
+      const query1 = buildAlarmsQuery({ transitionInclusionOption: TransitionInclusionOption.None });
+      const query2 = buildAlarmsQuery({ transitionInclusionOption: TransitionInclusionOption.MostRecentOnly });
+
+      await datastore.runQuery(query1, options);
+      backendServer.fetch.mockClear();
+
+      await datastore.runQuery(query2, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH })
+      );
+    });
+
+    it('should not thrash cache when multiple query editors have different filters', async () => {
+      const queryA = buildAlarmsQuery({ refId: 'A', filter: 'filter-A', properties: [AlarmsSpecificProperties.displayName] });
+      const queryB = buildAlarmsQuery({ refId: 'B', filter: 'filter-B', properties: [AlarmsSpecificProperties.displayName] });
+
+      await datastore.runQuery(queryA, options);
+      await datastore.runQuery(queryB, options);
+      backendServer.fetch.mockClear();
+
+      const queryA2 = buildAlarmsQuery({ refId: 'A', filter: 'filter-A', properties: [AlarmsSpecificProperties.displayName, AlarmsSpecificProperties.workspace] });
+      const queryB2 = buildAlarmsQuery({ refId: 'B', filter: 'filter-B', properties: [AlarmsSpecificProperties.displayName, AlarmsSpecificProperties.workspace] });
+
+      await datastore.runQuery(queryA2, options);
+      await datastore.runQuery(queryB2, options);
+
+      expect(backendServer.fetch).not.toHaveBeenCalledWith(
+        requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH })
+      );
+    });
+
+    it('should call the API again on refresh when query is identical', async () => {
+      const query = buildAlarmsQuery({ filter: 'test', properties: [AlarmsSpecificProperties.displayName] });
+
+      await datastore.runQuery(query, options);
+      backendServer.fetch.mockClear();
+
+      await datastore.runQuery(query, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH })
+      );
+    });
+  });
+
   describe('metricFindQuery', () => {
     let options: LegacyMetricFindQueryOptions;
 

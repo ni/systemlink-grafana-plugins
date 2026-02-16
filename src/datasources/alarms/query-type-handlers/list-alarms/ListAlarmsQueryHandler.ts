@@ -15,6 +15,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
 
   private readonly usersUtils: UsersUtils;
+  private cachedAlarmsMap = new Map<string, { alarmQueryParameters: string; propertiesSelected: string; response: Alarm[] }>();
 
   public constructor(
     instanceSettings: DataSourceInstanceSettings,
@@ -89,7 +90,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       this.isTakeValid(query.take, query.transitionInclusionOption) &&
       this.isPropertiesValid(query.properties)
     ) {
-      const alarmsResponse = await this.queryAlarmsData(query);
+      const alarmsResponse = await this.getAlarms(query);
 
       const flattenedAlarms  =
         query.transitionInclusionOption === TransitionInclusionOption.All
@@ -105,6 +106,37 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       name: query.refId,
       fields: mappedFields ?? [],
     };
+  }
+
+  private buildQueryParameter(query: ListAlarmsQuery): string {
+    return JSON.stringify({
+      filter: query.filter ?? '',
+      take: query.take,
+      descending: query.descending ?? DEFAULT_QUERY_EDITOR_DESCENDING,
+      transitionInclusionOption: query.transitionInclusionOption ?? DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION,
+    });
+  }
+
+  private async getAlarms(query: ListAlarmsQuery): Promise<Alarm[]> {
+    const alarmQueryParameters = this.buildQueryParameter(query);
+    const propertiesSelected = JSON.stringify(query.properties);
+    const cachedAlarmsData = this.cachedAlarmsMap.get(query.refId);
+
+    if (cachedAlarmsData
+      && cachedAlarmsData.alarmQueryParameters === alarmQueryParameters
+      && cachedAlarmsData.propertiesSelected !== propertiesSelected
+    ) {
+      cachedAlarmsData.propertiesSelected = propertiesSelected;
+      return cachedAlarmsData.response;
+    }
+
+    const alarmsResponse = await this.queryAlarmsData(query);
+    this.cachedAlarmsMap.set(query.refId, {
+      alarmQueryParameters: alarmQueryParameters,
+      propertiesSelected: propertiesSelected,
+      response: alarmsResponse
+    });
+    return alarmsResponse;
   }
 
 
