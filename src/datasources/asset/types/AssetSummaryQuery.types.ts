@@ -9,5 +9,6 @@ export interface AssetSummaryResponse {
   notActive: number;
   approachingRecommendedDueDate: number;
   pastRecommendedDueDate: number;
+  outForCalibration: number;
 }
 
