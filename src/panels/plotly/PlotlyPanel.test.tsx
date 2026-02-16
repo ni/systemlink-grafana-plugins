@@ -23,16 +23,18 @@ jest.mock('@grafana/runtime', () => ({
   PanelDataErrorView: ({ message }: any) => <div data-testid="error-view">{message}</div>,
 }));
 
-jest.mock('./utils', () => ({
-  getFieldsByName: jest.fn((frames, name) => frames.map((f: any) => f.fields[0])),
-  notEmpty: jest.fn((val) => val !== null && val !== undefined),
-  Plot: ({ onRelayout }: any) => {
-    plotlyOnRelayout = onRelayout;
-    return <div data-testid="plotly-plot">Plot</div>;
-  },
-  renderMenuItems: jest.fn(),
-  useTraceColors: jest.fn(() => ['#color1', '#color2']),
-}));
+jest.mock('./utils', () => {
+  const actual = jest.requireActual('./utils');
+  return {
+    ...actual,
+    Plot: ({ onRelayout }: any) => {
+      plotlyOnRelayout = onRelayout;
+      return <div data-testid="plotly-plot">Plot</div>;
+    },
+    renderMenuItems: jest.fn(),
+    useTraceColors: jest.fn(() => ['#color1', '#color2']),
+  };
+});
 
 describe('PlotlyPanel', () => {
   const mockSearchObject = (search: string) => {
@@ -50,8 +52,10 @@ describe('PlotlyPanel', () => {
     options: Partial<PanelOptions> = {},
     panelId = 1,
     fieldType = 'number',
-    fieldName = 'temperature'
-  ): PanelProps<PanelOptions> => ({
+    fieldName?: string
+  ): PanelProps<PanelOptions> => {
+    const resolvedFieldName = fieldName || (options.xAxis?.field) || 'temperature';
+    return {
     options: {
       xAxis: { field: 'temperature', min: undefined, max: undefined },
       yAxis: { fields: [], min: undefined, max: undefined },
@@ -86,7 +90,7 @@ describe('PlotlyPanel', () => {
           name: 'Series 1',
           fields: [
             {
-              name: fieldName,
+              name: resolvedFieldName,
               type: fieldType,
               values: { toArray: () => [1, 2, 3] },
               config: {},
@@ -120,7 +124,8 @@ describe('PlotlyPanel', () => {
     replaceVariables: jest.fn((str) => str),
     onChangeTimeRange: jest.fn(),
     eventBus: {} as any,
-  });
+    };
+  };
 
   const renderPlotlyElement = (props: PanelProps<PanelOptions>) => {
     return render(<PlotlyPanel {...props} />);
@@ -483,8 +488,8 @@ describe('PlotlyPanel', () => {
       });
     });
 
-    describe('when x-axis field is invalid', () => {
-      it('should not update route parameters when field is undefined', () => {
+    describe('when x-axis field is undefined or empty', () => {
+      it('should update route parameters using auto-resolved field name when field is undefined', () => {
         mockSearchObject('?nisl-syncXAxisRangeTargets=1');
         const props = createMockProps({ xAxis: { field: undefined } }, 1);
 
@@ -492,10 +497,16 @@ describe('PlotlyPanel', () => {
         triggerRelayout(10.3472639485726394, 99.7938475629384756);
         jest.runOnlyPendingTimers();
 
-        expect(locationService.partial).not.toHaveBeenCalled();
+        expect(locationService.partial).toHaveBeenCalledWith(
+          {
+            'nisl-temperature-min': 10.347264,
+            'nisl-temperature-max': 99.793848,
+          },
+          true
+        );
       });
 
-      it('should not update route parameters when field is an empty string', () => {
+      it('should update route parameters using auto-resolved field name when field is an empty string', () => {
         mockSearchObject('?nisl-syncXAxisRangeTargets=1');
         const props = createMockProps({ xAxis: { field: '' } }, 1);
 
@@ -503,7 +514,13 @@ describe('PlotlyPanel', () => {
         triggerRelayout(10.3472639485726394, 99.7938475629384756);
         jest.runOnlyPendingTimers();
 
-        expect(locationService.partial).not.toHaveBeenCalled();
+        expect(locationService.partial).toHaveBeenCalledWith(
+          {
+            'nisl-temperature-min': 10.347264,
+            'nisl-temperature-max': 99.793848,
+          },
+          true
+        );
       });
     });
 
@@ -527,8 +544,7 @@ describe('PlotlyPanel', () => {
               xAxis: { field: 'Updated at', min: xAxisMin, max: xAxisMax },
             },
             1,
-            FieldType.time,
-            'Updated at'
+            FieldType.time
           );
         };
 
@@ -697,8 +713,7 @@ describe('PlotlyPanel', () => {
                 xAxis: { field: fieldName, min: undefined, max: undefined },
               },
               1,
-              fieldType,
-              fieldName
+              fieldType
             );
             props.timeRange = {
               from: { isValid: () => true, valueOf: () => timeFrom },
