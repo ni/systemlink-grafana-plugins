@@ -23,18 +23,16 @@ jest.mock('@grafana/runtime', () => ({
   PanelDataErrorView: ({ message }: any) => <div data-testid="error-view">{message}</div>,
 }));
 
-jest.mock('./utils', () => {
-  const actual = jest.requireActual('./utils');
-  return {
-    ...actual,
-    Plot: ({ onRelayout }: any) => {
-      plotlyOnRelayout = onRelayout;
-      return <div data-testid="plotly-plot">Plot</div>;
-    },
-    renderMenuItems: jest.fn(),
-    useTraceColors: jest.fn(() => ['#color1', '#color2']),
-  };
-});
+jest.mock('./utils', () => ({
+  getFieldsByName: jest.fn((frames, name) => frames.map((f: any) => f.fields[0])),
+  notEmpty: jest.fn((val) => val !== null && val !== undefined),
+  Plot: ({ onRelayout }: any) => {
+    plotlyOnRelayout = onRelayout;
+    return <div data-testid="plotly-plot">Plot</div>;
+  },
+  renderMenuItems: jest.fn(),
+  useTraceColors: jest.fn(() => ['#color1', '#color2']),
+}));
 
 describe('PlotlyPanel', () => {
   const mockSearchObject = (search: string) => {
@@ -54,7 +52,7 @@ describe('PlotlyPanel', () => {
     fieldType = 'number',
     fieldName?: string
   ): PanelProps<PanelOptions> => {
-    const resolvedFieldName = fieldName || (options.xAxis?.field) || 'temperature';
+    const xAxisFieldName = fieldName || (options.xAxis?.field) || 'temperature';
     return {
     options: {
       xAxis: { field: 'temperature', min: undefined, max: undefined },
@@ -90,7 +88,7 @@ describe('PlotlyPanel', () => {
           name: 'Series 1',
           fields: [
             {
-              name: resolvedFieldName,
+              name: xAxisFieldName,
               type: fieldType,
               values: { toArray: () => [1, 2, 3] },
               config: {},
