@@ -57,12 +57,16 @@ class AssetRoutes {
             active: activeCount,
             notActive: totalCount - activeCount,
             approachingRecommendedDueDate: db.assets.filter(asset => {
-                if (!asset.externalCalibration?.resolvedDueDate) return false;
+                if (!asset.externalCalibration?.resolvedDueDate) {
+                    return false;
+                }
                 const dueDate = new Date(asset.externalCalibration.resolvedDueDate);
                 return dueDate >= now && dueDate < thirtyDaysFromNow;
             }).length,
             pastRecommendedDueDate: db.assets.filter(asset => {
-                if (!asset.externalCalibration?.resolvedDueDate) return false;
+                if (!asset.externalCalibration?.resolvedDueDate) {
+                    return false;
+                }
                 const dueDate = new Date(asset.externalCalibration.resolvedDueDate);
                 return dueDate < now;
             }).length
