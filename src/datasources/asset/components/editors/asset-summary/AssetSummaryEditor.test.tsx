@@ -18,7 +18,8 @@ describe('AssetSummaryDataSource', () => {
     active: 5,
     notActive: 3,
     approachingRecommendedDueDate: 1,
-    pastRecommendedDueDate: 1
+    pastRecommendedDueDate: 1,
+    outForCalibration: 2
   };
 
   beforeEach(() => {
@@ -37,6 +38,7 @@ describe('AssetSummaryDataSource', () => {
         { name: assetSummaryFields.NOT_ACTIVE, values: [3] },
         { name: assetSummaryFields.APPROACHING_DUE_DATE, values: [1] },
         { name: assetSummaryFields.PAST_DUE_DATE, values: [1] },
+        { name: assetSummaryFields.OUT_FOR_CALIBRATION, values: [2] }
       ],
     });
   });

@@ -6,6 +6,10 @@ import { TextEncoder, TextDecoder } from 'util';
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
+if (typeof window.URL.createObjectURL === 'undefined') {
+  window.URL.createObjectURL = jest.fn();
+}
+
 // Called by @grafana/ui AutoSizeInput
 HTMLCanvasElement.prototype.getContext = () => ({
   measureText: text => ({ width: text.length * 8 }),

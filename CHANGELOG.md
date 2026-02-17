@@ -1,3 +1,43 @@
+## [4.132.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.131.0...v4.132.0) (2026-02-17)
+
+### Features
+
+* **asset:** Add acceptance tests for list asset query type ([#666](https://github.com/ni/systemlink-grafana-plugins/issues/666)) ([39b29e1](https://github.com/ni/systemlink-grafana-plugins/commit/39b29e1c3a837df7e92f67a68702865d22771b46))
+
+### Bug Fixes
+
+* **asset:** Add "outForCalibration" property to asset summary table ([#681](https://github.com/ni/systemlink-grafana-plugins/issues/681)) ([ac31b03](https://github.com/ni/systemlink-grafana-plugins/commit/ac31b03c56a91141bfe3473c0de2417ee0046de5))
+
+## [4.131.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.130.0...v4.131.0) (2026-02-13)
+
+### Features
+
+* **plotly:** add support for box and violin plot types ([#676](https://github.com/ni/systemlink-grafana-plugins/issues/676)) ([23dd10a](https://github.com/ni/systemlink-grafana-plugins/commit/23dd10a5b158f8c97f0d827dcce84f4967ab9dc6))
+
+## [4.130.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.129.1...v4.130.0) (2026-02-13)
+
+### Features
+
+* Add acceptance tests to PR workflow ([#673](https://github.com/ni/systemlink-grafana-plugins/issues/673)) ([766f8a1](https://github.com/ni/systemlink-grafana-plugins/commit/766f8a1107597b48edea354b4a209509e084e63e))
+
+## [4.129.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.129.0...v4.129.1) (2026-02-11)
+
+### Bug Fixes
+
+* **plotly:** Update debounce wait time ([#670](https://github.com/ni/systemlink-grafana-plugins/issues/670)) ([b0b4d89](https://github.com/ni/systemlink-grafana-plugins/commit/b0b4d8967ac713a2cb6e7c22301a0ab9d878380e))
+
+## [4.129.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.128.3...v4.129.0) (2026-02-10)
+
+### Features
+
+* **dataframes:** truncate and merge data when data points exceed limit ([#667](https://github.com/ni/systemlink-grafana-plugins/issues/667)) ([fa24488](https://github.com/ni/systemlink-grafana-plugins/commit/fa244880f1139cda61db7a83b96f60aadee94172))
+
+## [4.128.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.128.2...v4.128.3) (2026-02-10)
+
+### Bug Fixes
+
+* **dataframe:** Document URL length considerations for zoom/pan synchronization ([#662](https://github.com/ni/systemlink-grafana-plugins/issues/662)) ([28c32bb](https://github.com/ni/systemlink-grafana-plugins/commit/28c32bb3522caf8f21c0d051476429487df921e5))
+
 ## [4.128.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.128.1...v4.128.2) (2026-02-09)
 
 ### Bug Fixes
