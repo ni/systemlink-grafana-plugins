@@ -1,3 +1,19 @@
+## [4.133.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.132.0...v4.133.0) (2026-02-17)
+
+### Features
+
+* **dataframe:** Fetch high resolution zoom data ([#669](https://github.com/ni/systemlink-grafana-plugins/issues/669)) ([8cf1c3d](https://github.com/ni/systemlink-grafana-plugins/commit/8cf1c3d247bc6b8a2483f0e044cfe415d7acd2b7))
+
+## [4.132.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.131.0...v4.132.0) (2026-02-17)
+
+### Features
+
+* **asset:** Add acceptance tests for list asset query type ([#666](https://github.com/ni/systemlink-grafana-plugins/issues/666)) ([39b29e1](https://github.com/ni/systemlink-grafana-plugins/commit/39b29e1c3a837df7e92f67a68702865d22771b46))
+
+### Bug Fixes
+
+* **asset:** Add "outForCalibration" property to asset summary table ([#681](https://github.com/ni/systemlink-grafana-plugins/issues/681)) ([ac31b03](https://github.com/ni/systemlink-grafana-plugins/commit/ac31b03c56a91141bfe3473c0de2417ee0046de5))
+
 ## [4.131.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.130.0...v4.131.0) (2026-02-13)
 
 ### Features
