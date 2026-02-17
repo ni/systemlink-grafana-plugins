@@ -3,7 +3,7 @@
   "main": "fake-api/server.js",
   "type": "module",
   "scripts": {
-    "test": "playwright test --pass-with-no-tests",
+    "test": "playwright test",
     "test:debug": "playwright test --headed --debug",
     "test:ci": "cross-env CI=1 playwright test",
     "playwright:setup": "playwright install --with-deps chromium",
