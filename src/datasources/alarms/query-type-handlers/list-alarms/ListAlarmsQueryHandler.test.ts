@@ -6,7 +6,7 @@ import { QUERY_ALARMS_RELATIVE_PATH } from 'datasources/alarms/constants/QueryAl
 import { BackendSrv } from '@grafana/runtime';
 import { MockProxy } from 'jest-mock-extended';
 import { User } from 'shared/types/QueryUsers.types';
-import { AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType } from 'datasources/alarms/types/ListAlarms.types';
+import { alarmsCacheTTL, AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType } from 'datasources/alarms/types/ListAlarms.types';
 import { Workspace } from 'core/types';
 import { AlarmsPropertiesOptions, TRANSITION_SPECIFIC_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
 
@@ -2195,6 +2195,40 @@ describe('ListAlarmsQueryHandler', () => {
       expect(backendServer.fetch).toHaveBeenCalledWith(
         requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH })
       );
+    });
+
+    it('should call the API again when cache has expired after TTL', async () => {
+      const originalPerformance = performance;
+      jest.useFakeTimers();
+
+      const startTime = 1000;
+      const performanceNowSpy = jest.spyOn(originalPerformance, 'now');
+      performanceNowSpy.mockReturnValue(startTime);
+
+      const query1 = buildAlarmsQuery({ filter: 'test', properties: [AlarmsSpecificProperties.displayName] });
+      await datastore.runQuery(query1, options);
+      backendServer.fetch.mockClear();
+
+      const query2 = buildAlarmsQuery({ filter: 'test', properties: [AlarmsSpecificProperties.displayName, AlarmsSpecificProperties.workspace] });
+      await datastore.runQuery(query2, options);
+
+      expect(backendServer.fetch).not.toHaveBeenCalledWith(
+        requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH })
+      );
+      backendServer.fetch.mockClear();
+
+      performanceNowSpy.mockReturnValue(startTime + alarmsCacheTTL + 1);
+      jest.advanceTimersByTime(alarmsCacheTTL + 1);
+
+      const query3 = buildAlarmsQuery({ filter: 'test', properties: [AlarmsSpecificProperties.workspace] });
+      await datastore.runQuery(query3, options);
+
+      expect(backendServer.fetch).toHaveBeenCalledWith(
+        requestMatching({ url: QUERY_ALARMS_RELATIVE_PATH })
+      );
+
+      performanceNowSpy.mockRestore();
+      jest.useRealTimers();
     });
   });
 

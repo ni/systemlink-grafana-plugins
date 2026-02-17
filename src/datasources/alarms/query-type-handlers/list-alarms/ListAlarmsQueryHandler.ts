@@ -1,5 +1,5 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
-import { AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType } from '../../types/ListAlarms.types';
+import { AlarmsCacheProperties, alarmsCacheTTL, AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery, QueryAlarmsRequest, TransitionInclusionOption } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 import { AlarmPropertyKeyMap, AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TransitionPropertyKeyMap, QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL, TRANSITION_SPECIFIC_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
@@ -10,12 +10,17 @@ import { User } from 'shared/types/QueryUsers.types';
 import { UsersUtils } from 'shared/users.utils';
 import { MINION_ID_CUSTOM_PROPERTY, PROPERTY_PREFIX_TO_EXCLUDE, SYSTEM_CUSTOM_PROPERTY } from 'datasources/alarms/constants/AlarmProperties.constants';
 import { MINIMUM_TAKE } from 'datasources/alarms/constants/QueryAlarms.constants';
+import TTLCache from '@isaacs/ttlcache';
 
 export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
 
   private readonly usersUtils: UsersUtils;
-  private cachedAlarmsMap = new Map<string, { alarmQueryParameters: string; propertiesSelected: string; response: Alarm[] }>();
+  private readonly alarmsResponseCache: TTLCache<string, AlarmsCacheProperties> = new TTLCache(
+    {
+      ttl: alarmsCacheTTL
+    }
+  );
 
   public constructor(
     instanceSettings: DataSourceInstanceSettings,
@@ -110,35 +115,50 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
 
   private buildQueryParameter(query: ListAlarmsQuery): string {
     return JSON.stringify({
-      filter: query.filter ?? '',
+      filter: query.filter,
       take: query.take,
-      descending: query.descending ?? DEFAULT_QUERY_EDITOR_DESCENDING,
-      transitionInclusionOption: query.transitionInclusionOption ?? DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION,
+      descending: query.descending,
+      transitionInclusionOption: query.transitionInclusionOption,
     });
   }
 
   private async getAlarms(query: ListAlarmsQuery): Promise<Alarm[]> {
     const alarmQueryParameters = this.buildQueryParameter(query);
     const propertiesSelected = JSON.stringify(query.properties);
-    const cachedAlarmsData = this.cachedAlarmsMap.get(query.refId);
+    const cachedAlarmsData = this.alarmsResponseCache.get(query.refId);
 
     if (cachedAlarmsData
       && cachedAlarmsData.alarmQueryParameters === alarmQueryParameters
       && cachedAlarmsData.propertiesSelected !== propertiesSelected
     ) {
-      cachedAlarmsData.propertiesSelected = propertiesSelected;
+      this.updateAlarmsCache(
+        query.refId, 
+        alarmQueryParameters,
+        propertiesSelected,
+        cachedAlarmsData.response
+      );
       return cachedAlarmsData.response;
     }
 
     const alarmsResponse = await this.queryAlarmsData(query);
-    this.cachedAlarmsMap.set(query.refId, {
-      alarmQueryParameters: alarmQueryParameters,
-      propertiesSelected: propertiesSelected,
-      response: alarmsResponse
-    });
+    this.updateAlarmsCache(
+      query.refId, 
+      alarmQueryParameters,
+      propertiesSelected,
+      alarmsResponse
+    );
     return alarmsResponse;
   }
 
+  private updateAlarmsCache(
+    refId: string, 
+    alarmQueryParameters: string, 
+    propertiesSelected: string, 
+    response: Alarm[]
+  ) {
+    const updatedCacheEntry = { alarmQueryParameters, propertiesSelected, response };
+    this.alarmsResponseCache.set(refId, updatedCacheEntry);
+  }
 
   private isTakeValid(take?: number, transitionInclusionOption?: TransitionInclusionOption): boolean {
     if (!take || take < QUERY_EDITOR_MIN_TAKE) {
