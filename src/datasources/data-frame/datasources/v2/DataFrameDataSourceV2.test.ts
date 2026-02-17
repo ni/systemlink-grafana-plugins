@@ -4398,158 +4398,368 @@ describe('DataFrameDataSourceV2', () => {
                     expect(tableNameField?.values).toEqual(['Table 1', 'Table 1', 'Table 2', 'Table 2']);
                 });
 
-                describe('Numeric x-column', () => {
-                    describe('x-column is not selected', () => {
-                        it('should not apply filters when index column type is NUMERIC and high resolution feature flag is disabled', async () => {
-                            const dsWithHighResolutionZoomDisabled = new DataFrameDataSourceV2(
-                                {
-                                    ...instanceSettings,
-                                    jsonData: {
-                                        ...instanceSettings.jsonData,
-                                        featureToggles: {
-                                            queryUndecimatedData: true,
-                                            highResolutionZoom: false
-                                        }
+                describe('Filter x-range on zoom/pan', () => {
+                    describe('X-column selected', () => {
+                        describe('Time stamp', () => {
+                            it('should use xColumn for filter when timestamp xColumn is selected', async () => {
+                                const mockTables = [{
+                                    id: 'table1',
+                                    name: 'table1',
+                                    columns: [
+                                        { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
+                                        { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                    ]
+                                }];
+                                queryTablesSpy.mockReturnValue(of(mockTables));
+
+                                const csvResponse = 'time,voltage\n2024-01-01T12:00:00Z,10.5';
+                                postSpy.mockReturnValue(of(csvResponse));
+
+                                const query = {
+                                    refId: 'A',
+                                    type: DataFrameQueryType.Data,
+                                    columns: ['time-Timestamp', 'voltage-Numeric'],
+                                    dataTableFilter: 'name = "Test"',
+                                    decimationMethod: 'NONE',
+                                    xColumn: 'time-Timestamp',
+                                    filterNulls: false,
+                                    filterXRangeOnZoomPan: true
+                                } as DataFrameQueryV2;
+
+                                const optionsWithRange = {
+                                    ...options,
+                                    range: {
+                                        from: { toISOString: () => '2024-01-01T00:00:00Z' },
+                                        to: { toISOString: () => '2024-01-02T00:00:00Z' }
                                     }
-                                },
-                                backendSrv,
-                                templateSrv
-                            );
-    
-                            const queryTablesSpy: jest.SpyInstance = jest.spyOn(dsWithHighResolutionZoomDisabled, 'queryTables$');
-                            const postSpy: jest.SpyInstance = jest.spyOn(dsWithHighResolutionZoomDisabled, 'post$');
-    
-                            const mockTables = [{
-                                id: 'table1',
-                                name: 'table1',
-                                columns: [
-                                    { name: 'voltage', dataType: 'INT64', columnType: ColumnType.Index },
-                                    { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                ]
-                            }];
-                            queryTablesSpy.mockReturnValue(of(mockTables));
-    
-                            const csvResponse = 'voltage,current\n50.5,10.5';
-                            postSpy.mockReturnValue(of(csvResponse));
-    
-                            (locationService.getSearchObject as jest.Mock).mockReturnValue({
-                                editPanel: '1',
-                                'nisl-voltage-min': '40.123456',
-                                'nisl-voltage-max': '80.654321'
+                                } as any;
+
+                                await lastValueFrom(datasource.runQuery(query, optionsWithRange));
+
+                                expect(postSpy).toHaveBeenCalledWith(
+                                    expect.any(String),
+                                    expect.objectContaining({
+                                        filters: expect.arrayContaining([
+                                            expect.objectContaining({
+                                                column: 'time',
+                                                operation: 'GREATER_THAN_EQUALS',
+                                                value: '2024-01-01T00:00:00Z'
+                                            }),
+                                            expect.objectContaining({
+                                                column: 'time',
+                                                operation: 'LESS_THAN_EQUALS',
+                                                value: '2024-01-02T00:00:00Z'
+                                            })
+                                        ])
+                                    }),
+                                    expect.any(Object)
+                                );
                             });
-    
-                            const query = {
-                                refId: 'A',
-                                type: DataFrameQueryType.Data,
-                                columns: ['voltage-Numeric', 'current-Numeric'],
-                                dataTableFilter: 'name = "Test"',
-                                decimationMethod: 'NONE',
-                                filterNulls: false,
-                                filterXRangeOnZoomPan: true
-                            } as DataFrameQueryV2;
-    
-                            await lastValueFrom(dsWithHighResolutionZoomDisabled.runQuery(query, options));
-    
-                            expect(postSpy).toHaveBeenCalledWith(
-                                expect.any(String),
-                                expect.objectContaining({
-                                    filters: undefined
-                                }),
-                                expect.any(Object)
-                            );
                         });
 
-                        it('should not apply filters when index column type is NUMERIC and high resolution zoom feature flag is enabled but URL params are missing', async () => {
-                            const mockTables = [{
-                                id: 'table1',
-                                name: 'table1',
-                                columns: [
-                                    { name: 'voltage', dataType: 'INT64', columnType: ColumnType.Index },
-                                    { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                ]
-                            }];
-                            queryTablesSpy.mockReturnValue(of(mockTables));
-    
-                            const csvResponse = 'voltage,current\n50.5,10.5';
-                            postSpy.mockReturnValue(of(csvResponse));
-    
-                            (locationService.getSearchObject as jest.Mock).mockReturnValue({});
-    
-                            const query = {
-                                refId: 'A',
-                                type: DataFrameQueryType.Data,
-                                columns: ['voltage-Numeric', 'current-Numeric'],
-                                dataTableFilter: 'name = "Test"',
-                                decimationMethod: 'NONE',
-                                filterNulls: false,
-                                filterXRangeOnZoomPan: true
-                            } as DataFrameQueryV2;
-    
-                            await lastValueFrom(datasource.runQuery(query, options));
-    
-                            expect(postSpy).toHaveBeenCalledWith(
-                                expect.any(String),
-                                expect.objectContaining({
-                                    filters: undefined
-                                }),
-                                expect.any(Object)
-                            );
-                        });
-
-                        it('should apply filters with NUMERIC INDEX column when index column type is NUMERIC and high resolution feature flag is enabled', async () => {
-                            const mockTables = [{
-                                id: 'table1',
-                                name: 'table1',
-                                columns: [
-                                    { name: 'voltage', dataType: 'INT64', columnType: ColumnType.Index },
-                                    { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                ]
-                            }];
-                            queryTablesSpy.mockReturnValue(of(mockTables));
-    
-                            const csvResponse = 'voltage,current\n50,10';
-                            postSpy.mockReturnValue(of(csvResponse));
-    
-                            (locationService.getSearchObject as jest.Mock).mockReturnValue({
-                                editPanel: '1',
-                                'nisl-voltage-min': '40.123456',
-                                'nisl-voltage-max': '80.654321'
+                        describe('Numeric', () => {
+                            it('should not apply filters when URL params are missing', async () => {
+                                const mockTables = [{
+                                    id: 'table1',
+                                    name: 'table1',
+                                    columns: [
+                                        { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                        { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                    ]
+                                }];
+                                queryTablesSpy.mockReturnValue(of(mockTables));
+        
+                                const csvResponse = 'voltage,current\n50.5,10.5';
+                                postSpy.mockReturnValue(of(csvResponse));
+        
+                                (locationService.getSearchObject as jest.Mock).mockReturnValue({});
+        
+                                const query = {
+                                    refId: 'A',
+                                    type: DataFrameQueryType.Data,
+                                    columns: ['voltage-Numeric', 'current-Numeric'],
+                                    dataTableFilter: 'name = "Test"',
+                                    decimationMethod: 'NONE',
+                                    xColumn: 'voltage-Numeric',
+                                    filterNulls: false,
+                                    filterXRangeOnZoomPan: true
+                                } as DataFrameQueryV2;
+        
+                                await lastValueFrom(datasource.runQuery(query, options));
+        
+                                expect(postSpy).toHaveBeenCalledWith(
+                                    expect.any(String),
+                                    expect.objectContaining({
+                                        filters: undefined
+                                    }),
+                                    expect.any(Object)
+                                );
                             });
-    
-                            const query = {
-                                refId: 'A',
-                                type: DataFrameQueryType.Data,
-                                columns: ['voltage-Numeric', 'current-Numeric'],
-                                dataTableFilter: 'name = "Test"',
-                                decimationMethod: 'NONE',
-                                filterNulls: false,
-                                filterXRangeOnZoomPan: true
-                            } as DataFrameQueryV2;
-    
-                            await lastValueFrom(datasource.runQuery(query, options));
-    
-                            expect(postSpy).toHaveBeenCalledWith(
-                                expect.any(String),
-                                expect.objectContaining({
-                                    filters: expect.arrayContaining([
-                                        expect.objectContaining({
-                                            column: 'voltage',
-                                            operation: 'GREATER_THAN_EQUALS',
-                                            value: '41'
-                                        }),
-                                        expect.objectContaining({
-                                            column: 'voltage',
-                                            operation: 'LESS_THAN_EQUALS',
-                                            value: '80'
-                                        })
-                                    ])
-                                }),
-                                expect.any(Object)
-                            );
+        
+                            it('should apply numeric filters when URL params exist', async () => {
+                                const mockTables = [{
+                                    id: 'table1',
+                                    columns: [
+                                        { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                        { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                    ]
+                                }];
+                                queryTablesSpy.mockReturnValue(of(mockTables));
+        
+                                const csvResponse = 'voltage,current\n50.5,10.5';
+                                postSpy.mockReturnValue(of(csvResponse));
+        
+                                (locationService.getSearchObject as jest.Mock).mockReturnValue({
+                                    editPanel: '1',
+                                    'nisl-voltage-min': '40.123456',
+                                    'nisl-voltage-max': '80.654321'
+                                });
+        
+                                const query = {
+                                    refId: 'A',
+                                    type: DataFrameQueryType.Data,
+                                    columns: ['voltage-Numeric', 'current-Numeric'],
+                                    dataTableFilter: 'name = "Test"',
+                                    decimationMethod: 'NONE',
+                                    xColumn: 'voltage-Numeric',
+                                    filterNulls: false,
+                                    filterXRangeOnZoomPan: true
+                                } as DataFrameQueryV2;
+        
+                                await lastValueFrom(datasource.runQuery(query, options));
+        
+                                expect(postSpy).toHaveBeenCalledWith(
+                                    expect.any(String),
+                                    expect.objectContaining({
+                                        filters: expect.arrayContaining([
+                                            expect.objectContaining({
+                                                column: 'voltage',
+                                                operation: 'GREATER_THAN_EQUALS',
+                                                value: '40.123456'
+                                            }),
+                                            expect.objectContaining({
+                                                column: 'voltage',
+                                                operation: 'LESS_THAN_EQUALS',
+                                                value: '80.654321'
+                                            })
+                                        ])
+                                    }),
+                                    expect.any(Object)
+                                );
+                            });
                         });
                     });
-                    describe('x-column is selected', () => {
-                        it('should return empty filters when highResolutionZoom feature flag is disabled even if URL params exist', async () => {
+
+                    describe('X-column not selected', () => {
+                        describe('Time stamp', () => {
+                            it('should apply time range filters using the TIMESTAMP INDEX column', async () => {
+                                const mockTables = [{
+                                    id: 'table1',
+                                    name: 'table1',
+                                    columns: [
+                                        { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
+                                        { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                    ]
+                                }];
+                                queryTablesSpy.mockReturnValue(of(mockTables));
+
+                                const csvResponse = 'time,voltage\n2024-01-01T12:00:00Z,10.5';
+                                postSpy.mockReturnValue(of(csvResponse));
+
+                                const query = {
+                                    refId: 'A',
+                                    type: DataFrameQueryType.Data,
+                                    columns: ['time-Timestamp', 'voltage-Numeric'],
+                                    dataTableFilter: 'name = "Test"',
+                                    decimationMethod: 'NONE',
+                                    filterNulls: false,
+                                    filterXRangeOnZoomPan: true
+                                } as DataFrameQueryV2;
+
+                                const optionsWithRange = {
+                                    ...options,
+                                    range: {
+                                        from: { toISOString: () => '2024-01-01T00:00:00Z' },
+                                        to: { toISOString: () => '2024-01-02T00:00:00Z' }
+                                    }
+                                } as any;
+
+                                await lastValueFrom(datasource.runQuery(query, optionsWithRange));
+
+                                expect(postSpy).toHaveBeenCalledWith(
+                                    expect.any(String),
+                                    expect.objectContaining({
+                                        filters: expect.arrayContaining([
+                                            expect.objectContaining({
+                                                column: 'time',
+                                                operation: 'GREATER_THAN_EQUALS',
+                                                value: '2024-01-01T00:00:00Z'
+                                            }),
+                                            expect.objectContaining({
+                                                column: 'time',
+                                                operation: 'LESS_THAN_EQUALS',
+                                                value: '2024-01-02T00:00:00Z'
+                                            })
+                                        ])
+                                    }),
+                                    expect.any(Object)
+                                );
+                            });
+                        });
+
+                        describe('Numeric', () => {
+                            it('should not apply filters when index column type is NUMERIC but URL params are missing', async () => {
+                            const mockTables = [{
+                                id: 'table1',
+                                name: 'table1',
+                                columns: [
+                                    { name: 'voltage', dataType: 'INT64', columnType: ColumnType.Index },
+                                    { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                ]
+                            }];
+                            queryTablesSpy.mockReturnValue(of(mockTables));
+    
+                            const csvResponse = 'voltage,current\n50.5,10.5';
+                            postSpy.mockReturnValue(of(csvResponse));
+    
+                            (locationService.getSearchObject as jest.Mock).mockReturnValue({});
+    
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['voltage-Numeric', 'current-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'NONE',
+                                filterNulls: false,
+                                filterXRangeOnZoomPan: true
+                            } as DataFrameQueryV2;
+    
+                            await lastValueFrom(datasource.runQuery(query, options));
+    
+                            expect(postSpy).toHaveBeenCalledWith(
+                                expect.any(String),
+                                expect.objectContaining({
+                                    filters: undefined
+                                }),
+                                expect.any(Object)
+                            );
+                            });
+
+                            it('should apply filters with NUMERIC INDEX column when index column type is NUMERIC and url params exist', async () => {
+                                const mockTables = [{
+                                    id: 'table1',
+                                    name: 'table1',
+                                    columns: [
+                                        { name: 'voltage', dataType: 'INT64', columnType: ColumnType.Index },
+                                        { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                    ]
+                                }];
+                                queryTablesSpy.mockReturnValue(of(mockTables));
+        
+                                const csvResponse = 'voltage,current\n50,10';
+                                postSpy.mockReturnValue(of(csvResponse));
+        
+                                (locationService.getSearchObject as jest.Mock).mockReturnValue({
+                                    editPanel: '1',
+                                    'nisl-voltage-min': '40.123456',
+                                    'nisl-voltage-max': '80.654321'
+                                });
+        
+                                const query = {
+                                    refId: 'A',
+                                    type: DataFrameQueryType.Data,
+                                    columns: ['voltage-Numeric', 'current-Numeric'],
+                                    dataTableFilter: 'name = "Test"',
+                                    decimationMethod: 'NONE',
+                                    filterNulls: false,
+                                    filterXRangeOnZoomPan: true
+                                } as DataFrameQueryV2;
+        
+                                await lastValueFrom(datasource.runQuery(query, options));
+        
+                                expect(postSpy).toHaveBeenCalledWith(
+                                    expect.any(String),
+                                    expect.objectContaining({
+                                        filters: expect.arrayContaining([
+                                            expect.objectContaining({
+                                                column: 'voltage',
+                                                operation: 'GREATER_THAN_EQUALS',
+                                                value: '41'
+                                            }),
+                                            expect.objectContaining({
+                                                column: 'voltage',
+                                                operation: 'LESS_THAN_EQUALS',
+                                                value: '80'
+                                            })
+                                        ])
+                                    }),
+                                    expect.any(Object)
+                                );
+                            });
+                        });
+                    });
+
+                    describe('When the feature flag is disabled', () => {
+                        it('should not apply filters when xColumn is not selected, index column type is NUMERIC and high resolution feature flag is disabled', async () => {
+                            const dsWithHighResolutionZoomDisabled = new DataFrameDataSourceV2(
+                                {
+                                    ...instanceSettings,
+                                    jsonData: {
+                                        ...instanceSettings.jsonData,
+                                        featureToggles: {
+                                            queryUndecimatedData: true,
+                                            highResolutionZoom: false
+                                        }
+                                    }
+                                },
+                                backendSrv,
+                                templateSrv
+                            );
+    
+                            const queryTablesSpy: jest.SpyInstance = jest.spyOn(dsWithHighResolutionZoomDisabled, 'queryTables$');
+                            const postSpy: jest.SpyInstance = jest.spyOn(dsWithHighResolutionZoomDisabled, 'post$');
+    
+                            const mockTables = [{
+                                id: 'table1',
+                                name: 'table1',
+                                columns: [
+                                    { name: 'voltage', dataType: 'INT64', columnType: ColumnType.Index },
+                                    { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                ]
+                            }];
+                            queryTablesSpy.mockReturnValue(of(mockTables));
+    
+                            const csvResponse = 'voltage,current\n50.5,10.5';
+                            postSpy.mockReturnValue(of(csvResponse));
+    
+                            (locationService.getSearchObject as jest.Mock).mockReturnValue({
+                                editPanel: '1',
+                                'nisl-voltage-min': '40.123456',
+                                'nisl-voltage-max': '80.654321'
+                            });
+    
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['voltage-Numeric', 'current-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'NONE',
+                                filterNulls: false,
+                                filterXRangeOnZoomPan: true
+                            } as DataFrameQueryV2;
+    
+                            await lastValueFrom(dsWithHighResolutionZoomDisabled.runQuery(query, options));
+    
+                            expect(postSpy).toHaveBeenCalledWith(
+                                expect.any(String),
+                                expect.objectContaining({
+                                    filters: undefined
+                                }),
+                                expect.any(Object)
+                            );
+                        });
+    
+                        it('should not apply filters when xColumn is selected, URL params exist and highResolutionZoom feature flag is disabled', async () => {
                             const dsWithHighResolutionZoomDisabled = new DataFrameDataSourceV2(
                                 {
                                     ...instanceSettings,
@@ -4604,97 +4814,6 @@ describe('DataFrameDataSourceV2', () => {
                                 expect.any(String),
                                 expect.objectContaining({
                                     filters: undefined
-                                }),
-                                expect.any(Object)
-                            );
-                        });
-    
-                        it('should return empty filters when highResolutionZoom feature flag is disabled but URL params are missing', async () => {
-                            const mockTables = [{
-                                id: 'table1',
-                                name: 'table1',
-                                columns: [
-                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                                    { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                ]
-                            }];
-                            queryTablesSpy.mockReturnValue(of(mockTables));
-    
-                            const csvResponse = 'voltage,current\n50.5,10.5';
-                            postSpy.mockReturnValue(of(csvResponse));
-    
-                            (locationService.getSearchObject as jest.Mock).mockReturnValue({});
-    
-                            const query = {
-                                refId: 'A',
-                                type: DataFrameQueryType.Data,
-                                columns: ['voltage-Numeric', 'current-Numeric'],
-                                dataTableFilter: 'name = "Test"',
-                                decimationMethod: 'NONE',
-                                xColumn: 'voltage-Numeric',
-                                filterNulls: false,
-                                filterXRangeOnZoomPan: true
-                            } as DataFrameQueryV2;
-    
-                            await lastValueFrom(datasource.runQuery(query, options));
-    
-                            expect(postSpy).toHaveBeenCalledWith(
-                                expect.any(String),
-                                expect.objectContaining({
-                                    filters: undefined
-                                }),
-                                expect.any(Object)
-                            );
-                        });
-    
-                        it('should apply numeric filters when highResolutionZoom feature flag is enabled and URL params exist', async () => {
-                            const mockTables = [{
-                                id: 'table1',
-                                name: 'table1',
-                                columns: [
-                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                                    { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                ]
-                            }];
-                            queryTablesSpy.mockReturnValue(of(mockTables));
-    
-                            const csvResponse = 'voltage,current\n50.5,10.5';
-                            postSpy.mockReturnValue(of(csvResponse));
-    
-                            (locationService.getSearchObject as jest.Mock).mockReturnValue({
-                                editPanel: '1',
-                                'nisl-voltage-min': '40.123456',
-                                'nisl-voltage-max': '80.654321'
-                            });
-    
-                            const query = {
-                                refId: 'A',
-                                type: DataFrameQueryType.Data,
-                                columns: ['voltage-Numeric', 'current-Numeric'],
-                                dataTableFilter: 'name = "Test"',
-                                decimationMethod: 'NONE',
-                                xColumn: 'voltage-Numeric',
-                                filterNulls: false,
-                                filterXRangeOnZoomPan: true
-                            } as DataFrameQueryV2;
-    
-                            await lastValueFrom(datasource.runQuery(query, options));
-    
-                            expect(postSpy).toHaveBeenCalledWith(
-                                expect.any(String),
-                                expect.objectContaining({
-                                    filters: expect.arrayContaining([
-                                        expect.objectContaining({
-                                            column: 'voltage',
-                                            operation: 'GREATER_THAN_EQUALS',
-                                            value: '40.123456'
-                                        }),
-                                        expect.objectContaining({
-                                            column: 'voltage',
-                                            operation: 'LESS_THAN_EQUALS',
-                                            value: '80.654321'
-                                        })
-                                    ])
                                 }),
                                 expect.any(Object)
                             );
