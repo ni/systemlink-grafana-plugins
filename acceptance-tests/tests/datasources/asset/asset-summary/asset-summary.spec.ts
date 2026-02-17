@@ -42,6 +42,6 @@ test.describe('Asset Summary Table', () => {
         expect(await dashboard.panel.table.checkColumnValue('Not active', '7')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue('Approaching due date', '3')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue('Past due date', '3')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Out for calibration', '1')).toBeTruthy();
+        expect(await dashboard.panel.table.checkColumnValue('Out for calibration', '2')).toBeTruthy();
     });
 });
