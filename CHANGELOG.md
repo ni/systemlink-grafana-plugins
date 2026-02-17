@@ -1,3 +1,9 @@
+## [4.133.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.132.0...v4.133.0) (2026-02-17)
+
+### Features
+
+* **dataframe:** Fetch high resolution zoom data ([#669](https://github.com/ni/systemlink-grafana-plugins/issues/669)) ([8cf1c3d](https://github.com/ni/systemlink-grafana-plugins/commit/8cf1c3d247bc6b8a2483f0e044cfe415d7acd2b7))
+
 ## [4.132.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.131.0...v4.132.0) (2026-02-17)
 
 ### Features
