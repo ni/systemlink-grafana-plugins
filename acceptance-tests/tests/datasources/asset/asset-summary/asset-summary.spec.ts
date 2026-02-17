@@ -32,13 +32,16 @@ test.describe('Asset Summary Table', () => {
 
     test('should display correct asset summary values', async () => {
         await dashboard.panel.assetQueryEditor.selectQueryType('Asset Summary');
-
         await dashboard.panel.table.getTable.waitFor({ timeout: 10000 });
 
+        let rowCount = await dashboard.panel.table.getTableRowCount();
+
+        expect(rowCount).toBe(1);
         expect(await dashboard.panel.table.checkColumnValue('Total', '10')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue('Active', '3')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue('Not active', '7')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue('Approaching due date', '3')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue('Past due date', '3')).toBeTruthy();
+        expect(await dashboard.panel.table.checkColumnValue('Out for calibration', '1')).toBeTruthy();
     });
 });

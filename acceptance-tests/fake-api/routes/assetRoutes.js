@@ -67,7 +67,11 @@ class AssetRoutes {
                 }
                 const dueDate = new Date(asset.externalCalibration.resolvedDueDate);
                 return dueDate < now;
-            }).length
+            }).length,
+            outForCalibration: db.assets.filter(asset =>
+                asset.outForCalibration === true,
+            ).length
+
         });
     }
 }

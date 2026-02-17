@@ -258,6 +258,7 @@ export const assets = [
         "calibrationStatus": "OK",
         "isSystemController": false,
         "workspace": "default-workspace",
+        "outForCalibration": true,
         "supportsSelfTest": true,
         "supportsReset": false,
         "properties": { "x": "y", "a": "b" },
