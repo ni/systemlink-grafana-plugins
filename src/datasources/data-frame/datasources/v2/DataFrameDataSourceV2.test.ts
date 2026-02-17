@@ -2632,7 +2632,7 @@ describe('DataFrameDataSourceV2', () => {
                     });
 
                     describe('when the feature flag is disabled', () => {
-                        it('should return empty filters when highResolutionZoom feature flag is disabled even if URL params exist', async () => {
+                        it('should return empty filters when xColumn is selected and URL params exist', async () => {
                             const dsWithHighResolutionZoomDisabled = new DataFrameDataSourceV2(
                                 {
                                     ...instanceSettings,
@@ -2691,7 +2691,7 @@ describe('DataFrameDataSourceV2', () => {
                             expect(filters).toEqual([]);
                         });
 
-                        it('should return empty filters when index column type is NUMERIC and high resolution feature flag is disabled', async () => {
+                        it('should return empty filters when xColumn is not selected and index column type is NUMERIC', async () => {
                             const dsWithHighResolutionZoomDisabled = new DataFrameDataSourceV2(
                                 {
                                     ...instanceSettings,
@@ -4700,66 +4700,7 @@ describe('DataFrameDataSourceV2', () => {
                     });
 
                     describe('When the feature flag is disabled', () => {
-                        it('should not apply filters when xColumn is not selected, index column type is NUMERIC and high resolution feature flag is disabled', async () => {
-                            const dsWithHighResolutionZoomDisabled = new DataFrameDataSourceV2(
-                                {
-                                    ...instanceSettings,
-                                    jsonData: {
-                                        ...instanceSettings.jsonData,
-                                        featureToggles: {
-                                            queryUndecimatedData: true,
-                                            highResolutionZoom: false
-                                        }
-                                    }
-                                },
-                                backendSrv,
-                                templateSrv
-                            );
-    
-                            const queryTablesSpy: jest.SpyInstance = jest.spyOn(dsWithHighResolutionZoomDisabled, 'queryTables$');
-                            const postSpy: jest.SpyInstance = jest.spyOn(dsWithHighResolutionZoomDisabled, 'post$');
-    
-                            const mockTables = [{
-                                id: 'table1',
-                                name: 'table1',
-                                columns: [
-                                    { name: 'voltage', dataType: 'INT64', columnType: ColumnType.Index },
-                                    { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                ]
-                            }];
-                            queryTablesSpy.mockReturnValue(of(mockTables));
-    
-                            const csvResponse = 'voltage,current\n50.5,10.5';
-                            postSpy.mockReturnValue(of(csvResponse));
-    
-                            (locationService.getSearchObject as jest.Mock).mockReturnValue({
-                                editPanel: '1',
-                                'nisl-voltage-min': '40.123456',
-                                'nisl-voltage-max': '80.654321'
-                            });
-    
-                            const query = {
-                                refId: 'A',
-                                type: DataFrameQueryType.Data,
-                                columns: ['voltage-Numeric', 'current-Numeric'],
-                                dataTableFilter: 'name = "Test"',
-                                decimationMethod: 'NONE',
-                                filterNulls: false,
-                                filterXRangeOnZoomPan: true
-                            } as DataFrameQueryV2;
-    
-                            await lastValueFrom(dsWithHighResolutionZoomDisabled.runQuery(query, options));
-    
-                            expect(postSpy).toHaveBeenCalledWith(
-                                expect.any(String),
-                                expect.objectContaining({
-                                    filters: undefined
-                                }),
-                                expect.any(Object)
-                            );
-                        });
-    
-                        it('should not apply filters when xColumn is selected, URL params exist and highResolutionZoom feature flag is disabled', async () => {
+                        it('should not apply filters when xColumn is selected and URL params exist', async () => {
                             const dsWithHighResolutionZoomDisabled = new DataFrameDataSourceV2(
                                 {
                                     ...instanceSettings,
@@ -4804,6 +4745,65 @@ describe('DataFrameDataSourceV2', () => {
                                 dataTableFilter: 'name = "Test"',
                                 decimationMethod: 'NONE',
                                 xColumn: 'voltage-Numeric',
+                                filterNulls: false,
+                                filterXRangeOnZoomPan: true
+                            } as DataFrameQueryV2;
+    
+                            await lastValueFrom(dsWithHighResolutionZoomDisabled.runQuery(query, options));
+    
+                            expect(postSpy).toHaveBeenCalledWith(
+                                expect.any(String),
+                                expect.objectContaining({
+                                    filters: undefined
+                                }),
+                                expect.any(Object)
+                            );
+                        });
+
+                        it('should not apply filters when xColumn is not selected and index column type is NUMERIC', async () => {
+                            const dsWithHighResolutionZoomDisabled = new DataFrameDataSourceV2(
+                                {
+                                    ...instanceSettings,
+                                    jsonData: {
+                                        ...instanceSettings.jsonData,
+                                        featureToggles: {
+                                            queryUndecimatedData: true,
+                                            highResolutionZoom: false
+                                        }
+                                    }
+                                },
+                                backendSrv,
+                                templateSrv
+                            );
+    
+                            const queryTablesSpy: jest.SpyInstance = jest.spyOn(dsWithHighResolutionZoomDisabled, 'queryTables$');
+                            const postSpy: jest.SpyInstance = jest.spyOn(dsWithHighResolutionZoomDisabled, 'post$');
+    
+                            const mockTables = [{
+                                id: 'table1',
+                                name: 'table1',
+                                columns: [
+                                    { name: 'voltage', dataType: 'INT64', columnType: ColumnType.Index },
+                                    { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                ]
+                            }];
+                            queryTablesSpy.mockReturnValue(of(mockTables));
+    
+                            const csvResponse = 'voltage,current\n50.5,10.5';
+                            postSpy.mockReturnValue(of(csvResponse));
+    
+                            (locationService.getSearchObject as jest.Mock).mockReturnValue({
+                                editPanel: '1',
+                                'nisl-voltage-min': '40.123456',
+                                'nisl-voltage-max': '80.654321'
+                            });
+    
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['voltage-Numeric', 'current-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'NONE',
                                 filterNulls: false,
                                 filterXRangeOnZoomPan: true
                             } as DataFrameQueryV2;
