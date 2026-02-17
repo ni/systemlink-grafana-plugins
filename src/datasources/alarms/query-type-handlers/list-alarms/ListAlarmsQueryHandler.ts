@@ -156,7 +156,11 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     propertiesSelected: string, 
     response: Alarm[]
   ) {
-    const updatedCacheEntry = { alarmQueryParameters, propertiesSelected, response };
+    const updatedCacheEntry = { 
+      alarmQueryParameters, 
+      propertiesSelected,
+      response
+    };
     this.alarmsResponseCache.set(refId, updatedCacheEntry);
   }
 
