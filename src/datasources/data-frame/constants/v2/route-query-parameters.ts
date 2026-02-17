@@ -1,1 +1,2 @@
-export const syncXAxisRangeTargets = 'nisl-syncXAxisRangeTargets';
+export const queryParamPrefix = 'nisl';
+export const syncXAxisRangeTargets = `${queryParamPrefix}-syncXAxisRangeTargets`;
