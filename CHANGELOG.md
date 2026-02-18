@@ -1,3 +1,9 @@
+## [4.133.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.133.0...v4.133.1) (2026-02-18)
+
+### Bug Fixes
+
+* **dataframe:** User visible strings for high resolution zoom feature ([#675](https://github.com/ni/systemlink-grafana-plugins/issues/675)) ([975f2c9](https://github.com/ni/systemlink-grafana-plugins/commit/975f2c924dfdebeeafb431552a29beeef66cc990))
+
 ## [4.133.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.132.0...v4.133.0) (2026-02-17)
 
 ### Features
