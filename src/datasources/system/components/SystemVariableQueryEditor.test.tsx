@@ -84,3 +84,23 @@ test('should call onChange when return type is changed', async () => {
     expect.objectContaining({ queryReturnType: SystemQueryReturnType.ScanCode })
   );
 });
+
+test('should call onChange with new filter when query builder changes', async () => {
+  const { container } = render(
+    <SystemVariableQueryEditor {...{ onChange, datasource, query: { workspace: '', filter: 'state = "CONNECTED"' } }} />
+  );
+
+  const queryBuilderElement = container.querySelector('smart-query-builder');
+  const changeEvent = new CustomEvent('change', {
+    detail: { linq: 'workspace = "1"' }
+  });
+
+  await waitFor(() => {
+    queryBuilderElement?.dispatchEvent(changeEvent);
+  });
+
+  expect(onChange).toHaveBeenCalledWith({
+    workspace: '',
+    filter: 'workspace = "1"'
+  });
+});

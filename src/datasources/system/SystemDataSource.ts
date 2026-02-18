@@ -76,11 +76,11 @@ export class SystemDataSource extends SystemsDataSourceBase {
   async metricFindQuery({ queryReturnType, workspace, filter }: SystemVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     await this.dependenciesLoadedPromise;
 
-    let finalFilter = filter || '';
-    if (!finalFilter && workspace) {
-      finalFilter = `workspace = "${workspace}"`;
+    let migratedFilter = filter || '';
+    if (!migratedFilter && workspace) {
+      migratedFilter = `workspace = "${workspace}"`;
     }
-    const processedFilter = finalFilter ? this.processFilter(finalFilter, options?.scopedVars || {}) : '';
+    const processedFilter = migratedFilter ? this.processFilter(migratedFilter, options?.scopedVars || {}) : '';
 
     const properties = await this.getSystemProperties(processedFilter, [SystemBackendFieldNames.ID, SystemBackendFieldNames.ALIAS, SystemBackendFieldNames.SCAN_CODE]);
     return properties.map(system => this.getSystemNameForMetricQuery({ queryReturnType }, system));
