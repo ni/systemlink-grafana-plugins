@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { MenuGroup, MenuItem, MenuItemsGroup } from '@grafana/ui';
-import Plotly from 'plotly.js-basic-dist-min';
+import Plotly from 'plotly.js-dist-min';
 import createPlotlyComponent from 'react-plotly.js/factory';
 import { DataFrame, GrafanaTheme2 } from '@grafana/data';
 import _ from 'lodash';

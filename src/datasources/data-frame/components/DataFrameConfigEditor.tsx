@@ -62,5 +62,5 @@ export const DataFrameConfigEditor: React.FC<Props> = ({ options, onOptionsChang
 const labels = {
     features: 'Features',
     queryUndecimatedData: 'Query undecimated data',
-    highResolutionZoom: 'Filter for x-axis range on zoom/pan',
+    highResolutionZoom: 'Filter by x-axis range on zoom or pan',
 };

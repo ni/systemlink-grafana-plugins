@@ -1,8 +1,8 @@
-version: '3.0'
+version: "3.0"
 
 services:
   grafana:
-    container_name: 'ni-systemlink-app-tests'
+    container_name: "ni-systemlink-app-tests"
     build:
       context: ./.config
       args:
@@ -18,7 +18,7 @@ services:
       - ./provisioning:/etc/grafana/provisioning
 
   fake-api:
-    container_name: 'ni-systemlink-fake-api'
+    container_name: "ni-systemlink-fake-api"
     build:
       context: ./acceptance-tests
     ports:
