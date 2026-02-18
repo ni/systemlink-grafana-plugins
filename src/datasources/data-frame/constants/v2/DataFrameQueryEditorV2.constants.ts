@@ -1,4 +1,4 @@
-import { COLUMN_OPTIONS_LIMIT, MAXIMUM_DATA_POINTS } from 'datasources/data-frame/constants';
+import { COLUMN_OPTIONS_LIMIT } from 'datasources/data-frame/constants';
 
 /**
  * Converts Grafana grid units to pixels
@@ -53,7 +53,7 @@ export const tooltips = {
     queryByResultProperties: 'This field applies a results filter while searching data tables.',
     queryByColumnProperties: 'This field applies a column filter while searching data tables.',
     take: 'This field sets the maximum number of records to return from the query.',
-    undecimatedRecordCount: `This field sets the maximum number of rows to return per data table. If the total data points exceeds 1M, this value is dynamically reduced to keep the total data points under the limit.`,
+    undecimatedRecordCount: `This field sets the maximum number of rows to return per data table. If the total data points exceed 1M, this value is dynamically reduced to keep the total under the limit.`,
     columns: 'Specifies the columns to include in the response data.',
     filterNulls: `Specifies whether to filter out null and NaN values before decimating the data.`,
     includeIndexColumns: 'Specifies whether to include index columns in the response data.',
