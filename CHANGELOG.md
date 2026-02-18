@@ -1,3 +1,9 @@
+## [4.133.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.133.2...v4.133.3) (2026-02-18)
+
+### Bug Fixes
+
+* **dataframe:** update tooltip description for undecimated take ([#682](https://github.com/ni/systemlink-grafana-plugins/issues/682)) ([d18f0eb](https://github.com/ni/systemlink-grafana-plugins/commit/d18f0ebdf231659ea6646e683e00528fde044c58))
+
 ## [4.133.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.133.1...v4.133.2) (2026-02-18)
 
 ### Bug Fixes
