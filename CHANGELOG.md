@@ -1,3 +1,9 @@
+## [4.133.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.133.1...v4.133.2) (2026-02-18)
+
+### Bug Fixes
+
+* **dataframe:** User visible string review for Undecimated data support and units  ([#668](https://github.com/ni/systemlink-grafana-plugins/issues/668)) ([f7539fb](https://github.com/ni/systemlink-grafana-plugins/commit/f7539fb00dad8c18ed05ab18fb6c5b211f75c1c8))
+
 ## [4.133.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.133.0...v4.133.1) (2026-02-18)
 
 ### Bug Fixes
