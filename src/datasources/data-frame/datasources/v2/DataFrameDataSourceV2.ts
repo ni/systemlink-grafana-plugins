@@ -307,16 +307,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tableRowCountMap: Record<string, number>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
-        maxDataPoints = 1000,
+        maxDataPoints = 1000
     ): Observable<{ data: Record<string, TableDataRows>; isLimitExceeded: boolean }> {
         const queryUndecimatedData = this.isUndecimatedDataQuery(query);
 
         if (queryUndecimatedData) {
             const requests = this.getUndecimatedDataRequests(
                 tableColumnsMap,
+                tableRowCountMap,
                 query,
                 timeRange,
-                tableRowCountMap
             );
             return this.queryTableDataInBatches$(
                 requests,
@@ -446,9 +446,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private getUndecimatedDataRequests(
         tableColumnsMap: Record<string, TableColumnsData>,
+        tableRowCountMap: Record<string, number>,
         query: ValidDataFrameQueryV2,
-        timeRange: TimeRange,
-        tableRowCountMap: Record<string, number>
+        timeRange: TimeRange
     ): UndecimatedDataRequest[] {
         let isRowCountTruncatedForAnyTable = false;
         return Object.entries(tableColumnsMap)
