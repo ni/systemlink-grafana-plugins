@@ -15,7 +15,6 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
-
   const legacyWorkspaces = useWorkspaceOptions(datasource);
 
   //Handle existing dashboards with MetaData queries
