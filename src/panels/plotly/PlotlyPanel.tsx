@@ -227,7 +227,9 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   };
 
   const syncNumericXAxisRange = (xAxisMin: number, xAxisMax: number) => {
-    if(!options.xAxis.field) {
+    const xAxisFieldName = xFields[0].name;
+
+    if (!xAxisFieldName) {
       return;
     }
 
@@ -247,8 +249,8 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     
     const updatedXAxisMin = Number(xAxisMin.toFixed(xAxisPrecisionDecimals));
     const updatedXAxisMax = Number(xAxisMax.toFixed(xAxisPrecisionDecimals));
-    const existingXAxisMinParam = queryParams[`nisl-${options.xAxis.field}-min`];
-    const existingXAxisMaxParam = queryParams[`nisl-${options.xAxis.field}-max`];
+    const existingXAxisMinParam = queryParams[`nisl-${xAxisFieldName}-min`];
+    const existingXAxisMaxParam = queryParams[`nisl-${xAxisFieldName}-max`];
     const existingXAxisMin = parseNumericQueryParam(existingXAxisMinParam);
     const existingXAxisMax = parseNumericQueryParam(existingXAxisMaxParam);
 
@@ -259,7 +261,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       publishXAxisRangeUpdate(
         updatedXAxisMin, 
         updatedXAxisMax, 
-        options.xAxis.field
+        xAxisFieldName
       );
     }
   };
