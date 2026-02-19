@@ -1,4 +1,4 @@
-import { DataQuery } from '@grafana/schema'
+import { DataQuery, DataSourceJsonData } from '@grafana/schema'
 
 export enum SystemQueryType {
   Properties = "Properties",
@@ -62,3 +62,21 @@ export const ConnectionStatusOptions = [
   { label: 'Connected refresh pending', value: ConnectionStatus.CONNECTED_REFRESH_PENDING },
   { label: 'Activated without connection', value: ConnectionStatus.ACTIVATED_WITHOUT_CONNECTION },
 ];
+
+export const systemFields = {
+  ID: 'id',
+  ALIAS: 'alias',
+  SCAN_CODE: 'scanCode',
+} as const;
+
+export interface SystemFeatureToggles {
+  systemQueryBuilder?: boolean;
+}
+
+export const SystemFeatureTogglesDefaults: SystemFeatureToggles = {
+  systemQueryBuilder: false,
+};
+
+export interface SystemDataSourceOptions extends DataSourceJsonData {
+  featureToggles?: SystemFeatureToggles;
+}
