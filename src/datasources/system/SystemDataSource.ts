@@ -123,7 +123,7 @@ export class SystemDataSource extends SystemsDataSourceBase {
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 
-  async metricFindQuery({ queryReturnType, workspace }: SystemVariableQuery): Promise<MetricFindValue[]> {
+  async metricFindQuery({ workspace, queryReturnType }: SystemVariableQuery): Promise<MetricFindValue[]> {
     if (this.isQueryBuilderActive() && this.dependenciesLoadedPromise) {
       await this.dependenciesLoadedPromise;
 
