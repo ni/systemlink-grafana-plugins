@@ -1,3 +1,7 @@
+/**
+ * SystemConfigEditor is a React component that implements the UI for editing the system
+ * datasource configuration options.
+ */
 import React, { ChangeEvent, useCallback } from 'react';
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
 import { DataSourceHttpSettings, InlineField, InlineSegmentGroup, InlineSwitch, Tag, Text } from '@grafana/ui';
