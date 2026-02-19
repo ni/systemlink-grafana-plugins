@@ -90,7 +90,7 @@ describe('with query builder enabled', () => {
   });
 });
 
-describe('with query builder disabled', () => {
+describe('with query builder disabled (legacy mode)', () => {
   const render = setupRenderer(SystemQueryEditor, SystemDataSource, () => ({
     featureToggles: {
       systemQueryBuilder: false,
