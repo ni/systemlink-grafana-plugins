@@ -1,3 +1,9 @@
+## [4.133.4](https://github.com/ni/systemlink-grafana-plugins/compare/v4.133.3...v4.133.4) (2026-02-19)
+
+### Bug Fixes
+
+* **plotly:** Sync numerical x-axis range on auto selection ([#678](https://github.com/ni/systemlink-grafana-plugins/issues/678)) ([8e09c88](https://github.com/ni/systemlink-grafana-plugins/commit/8e09c8857b51fb2cc2ce517fc6106e9039cbc7fe))
+
 ## [4.133.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.133.2...v4.133.3) (2026-02-18)
 
 ### Bug Fixes
