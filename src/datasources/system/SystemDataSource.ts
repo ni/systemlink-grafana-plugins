@@ -79,7 +79,6 @@ export class SystemDataSource extends SystemsDataSourceBase {
       defaultProjection,
       this.templateSrv.replace(query.workspace, options.scopedVars)
     );
-
     const workspaces = await this.getWorkspaces();
     return {
       refId: query.refId,
