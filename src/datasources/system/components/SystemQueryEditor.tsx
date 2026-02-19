@@ -3,7 +3,7 @@ import { AutoSizeInput, RadioButtonGroup, Select } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { SystemDataSource } from '../SystemDataSource';
 import { SystemQueryType, SystemQuery } from '../types';
-import { enumToOptions } from 'core/utils';
+import { enumToOptions, useWorkspaceOptions } from 'core/utils';
 import { InlineField } from 'core/components/InlineField';
 import { LEGACY_METADATA_TYPE, Workspace } from 'core/types';
 import { SystemsQueryBuilder } from './query-builder/SystemsQueryBuilder';
@@ -15,7 +15,8 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
-  const [workspaceOptions, setWorkspaceOptions] = useState<Array<SelectableValue<string>>>([]);
+
+  const legacyWorkspaces = useWorkspaceOptions(datasource);
 
   //Handle existing dashboards with MetaData queries
   if ((query.queryKind as any) === LEGACY_METADATA_TYPE) {
@@ -31,18 +32,13 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
   }, []); // Only run on mount
 
   useEffect(() => {
-    Promise.all([datasource.areWorkspacesLoaded$]).then(() => {
-      const loadedWorkspaces = Array.from(datasource.workspacesCache.values());
-      setWorkspaces(loadedWorkspaces);
-
-      const options = loadedWorkspaces.map(w => ({
-        label: w.name,
-        value: w.id
-      }));
-      setWorkspaceOptions(options);
-
-      setAreDependenciesLoaded(true);
-    });
+    if (datasource.isQueryBuilderActive()) {
+      Promise.all([datasource.areWorkspacesLoaded$]).then(() => {
+        const loadedWorkspaces = Array.from(datasource.workspacesCache.values());
+        setWorkspaces(loadedWorkspaces);
+        setAreDependenciesLoaded(true);
+      });
+    }
   }, [datasource]);
 
   const onQueryTypeChange = (value: SystemQueryType) => {
@@ -100,13 +96,13 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
                   placeholder="All systems"
                 />
               </InlineField>
-              {(query.systemName === '' || query.systemName === undefined) && (
+              {query.systemName === '' && (
                 <InlineField label="Workspace" labelWidth={14} tooltip={tooltips.workspace}>
                   <Select
                     isClearable
-                    isLoading={!areDependenciesLoaded}
+                    isLoading={legacyWorkspaces.loading}
                     onChange={onWorkspaceChange}
-                    options={workspaceOptions}
+                    options={legacyWorkspaces.value}
                     placeholder="Any workspace"
                     value={query.workspace}
                   />

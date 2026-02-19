@@ -16,7 +16,7 @@ import { from, map, Observable, switchMap } from 'rxjs';
 import { QuerySystemsResponse } from 'core/types';
 
 export class SystemDataSource extends SystemsDataSourceBase {
-  private dependenciesLoadedPromise: Promise<void>;
+  private dependenciesLoadedPromise?: Promise<void>;
 
   constructor(
     readonly instanceSettings: DataSourceInstanceSettings<SystemDataSourceOptions>,
@@ -24,7 +24,9 @@ export class SystemDataSource extends SystemsDataSourceBase {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
-    this.dependenciesLoadedPromise = this.loadDependencies();
+    if (this.isQueryBuilderActive()) {
+      this.dependenciesLoadedPromise = this.loadDependencies();
+    }
   }
 
   baseUrl = this.instanceSettings.url + '/nisysmgmt/v1';
@@ -52,57 +54,52 @@ export class SystemDataSource extends SystemsDataSourceBase {
   }
 
   runQuery(query: SystemQuery, options: DataQueryRequest): Observable<DataFrameDTO> {
-    return from(this.dependenciesLoadedPromise).pipe(
-      switchMap(() => {
-        if (query.queryKind === SystemQueryType.Summary) {
-          return this.runSummaryQuery(query);
-        } else if (this.isQueryBuilderActive()) {
-          return this.runDataQueryWithFilter(query, options);
-        } else {
-          return this.runQueryLegacy(query, options);
-        }
-      })
-    );
+    if (this.isQueryBuilderActive() && this.dependenciesLoadedPromise) {
+      return from(this.dependenciesLoadedPromise).pipe(
+        switchMap(() => {
+          if (query.queryKind === SystemQueryType.Summary) {
+            return this.runSummaryQuery(query);
+          } else {
+            return this.runDataQueryWithFilter(query, options);
+          }
+        })
+      );
+    }
+
+    if (query.queryKind === SystemQueryType.Summary) {
+      return this.runSummaryQuery(query);
+    } else {
+      return from(this.runQueryLegacy(query, options));
+    }
   }
 
   private async runQueryLegacy(query: SystemQuery, options: DataQueryRequest): Promise<DataFrameDTO> {
-    if (query.queryKind === SystemQueryType.Summary) {
-      const summary = await this.get<SystemSummary>(this.baseUrl + '/get-systems-summary');
-      return {
-        refId: query.refId,
-        fields: [
-          { name: 'Connected', values: [summary.connectedCount] },
-          { name: 'Disconnected', values: [summary.disconnectedCount] },
-        ],
-      };
-    } else {
-      const properties = await this.getSystemPropertiesLegacy(
-        this.templateSrv.replace(query.systemName, options.scopedVars),
-        defaultProjection,
-        this.templateSrv.replace(query.workspace, options.scopedVars)
-      );
+    const properties = await this.getSystemPropertiesLegacy(
+      this.templateSrv.replace(query.systemName, options.scopedVars),
+      defaultProjection,
+      this.templateSrv.replace(query.workspace, options.scopedVars)
+    );
 
-      const workspaces = this.getCachedWorkspaces();
-      return {
-        refId: query.refId,
-        fields: [
-          { name: 'id', values: properties.map(m => m.id) },
-          { name: 'alias', values: properties.map(m => m.alias) },
-          { name: 'connection status', values: properties.map(m => m.state) },
-          { name: 'locked status', values: properties.map(m => m.locked) },
-          { name: 'system start time', values: properties.map(m => m.systemStartTime) },
-          { name: 'model', values: properties.map(m => m.model) },
-          { name: 'vendor', values: properties.map(m => m.vendor) },
-          { name: 'operating system', values: properties.map(m => m.osFullName) },
-          {
-            name: 'ip address',
-            values: properties.map(m => NetworkUtils.getIpAddressFromInterfaces(m.ip4Interfaces, m.ip6Interfaces)),
-          },
-          { name: 'workspace', values: properties.map(m => getWorkspaceName(workspaces, m.workspace)) },
-          { name: 'scan code', values: properties.map(m => m.scanCode) }
-        ],
-      };
-    }
+    const workspaces = await this.getWorkspaces();
+    return {
+      refId: query.refId,
+      fields: [
+        { name: 'id', values: properties.map(m => m.id) },
+        { name: 'alias', values: properties.map(m => m.alias) },
+        { name: 'connection status', values: properties.map(m => m.state) },
+        { name: 'locked status', values: properties.map(m => m.locked) },
+        { name: 'system start time', values: properties.map(m => m.systemStartTime) },
+        { name: 'model', values: properties.map(m => m.model) },
+        { name: 'vendor', values: properties.map(m => m.vendor) },
+        { name: 'operating system', values: properties.map(m => m.osFullName) },
+        {
+          name: 'ip address',
+          values: properties.map(m => NetworkUtils.getIpAddressFromInterfaces(m.ip4Interfaces, m.ip6Interfaces)),
+        },
+        { name: 'workspace', values: properties.map(m => getWorkspaceName(workspaces, m.workspace)) },
+        { name: 'scan code', values: properties.map(m => m.scanCode) }
+      ],
+    };
   }
 
   private async getSystemPropertiesLegacy(systemFilter: string, projection = defaultProjection, workspace?: string) {
@@ -128,7 +125,7 @@ export class SystemDataSource extends SystemsDataSourceBase {
   }
 
   async metricFindQuery({ queryReturnType, workspace }: SystemVariableQuery): Promise<MetricFindValue[]> {
-    if (this.isQueryBuilderActive()) {
+    if (this.isQueryBuilderActive() && this.dependenciesLoadedPromise) {
       await this.dependenciesLoadedPromise;
 
       let filter = '';
@@ -140,8 +137,6 @@ export class SystemDataSource extends SystemsDataSourceBase {
       const properties = await this.getSystemProperties(filter, [SystemBackendFieldNames.ID, SystemBackendFieldNames.ALIAS, SystemBackendFieldNames.SCAN_CODE]);
       return properties.map(system => this.getSystemNameForMetricQuery({ queryReturnType }, system));
     }
-
-    await this.dependenciesLoadedPromise;
 
     const properties = await this.getSystemPropertiesLegacy('', [systemFields.ID, systemFields.ALIAS, systemFields.SCAN_CODE], this.templateSrv.replace(workspace));
     return properties.map(system => this.getSystemNameForMetricQuery({ queryReturnType }, system));
