@@ -63,12 +63,6 @@ export const ConnectionStatusOptions = [
   { label: 'Activated without connection', value: ConnectionStatus.ACTIVATED_WITHOUT_CONNECTION },
 ];
 
-export const systemFields = {
-  ID: 'id',
-  ALIAS: 'alias',
-  SCAN_CODE: 'scanCode',
-} as const;
-
 export interface SystemFeatureToggles {
   systemQueryBuilder?: boolean;
 }

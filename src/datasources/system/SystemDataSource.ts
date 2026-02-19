@@ -7,11 +7,11 @@ import {
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { NetworkUtils } from './network-utils';
-import { SystemQuery, SystemQueryType, SystemSummary, SystemVariableQuery, SystemQueryReturnType, SystemProperties, SystemDataSourceOptions, SystemFeatureTogglesDefaults, systemFields } from './types';
+import { SystemQuery, SystemQueryType, SystemSummary, SystemVariableQuery, SystemQueryReturnType, SystemProperties, SystemDataSourceOptions, SystemFeatureTogglesDefaults } from './types';
 import { getWorkspaceName } from 'core/utils';
 import { SystemsDataSourceBase } from './SystemsDataSourceBase';
 import { transformComputedFieldsQuery } from 'core/query-builder.utils';
-import { defaultOrderBy, defaultProjection, SystemBackendFieldNames } from './SystemsQueryBuilder.constants';
+import { systemFields, defaultOrderBy, defaultProjection, SystemBackendFieldNames } from './SystemsQueryBuilder.constants';
 import { from, map, Observable, switchMap } from 'rxjs';
 import { QuerySystemsResponse } from 'core/types';
 
