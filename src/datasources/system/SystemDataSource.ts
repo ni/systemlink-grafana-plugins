@@ -38,11 +38,10 @@ export class SystemDataSource extends SystemsDataSourceBase {
   };
 
   prepareQuery(query: SystemQuery): SystemQuery {
-    const prepared = { ...query };
-
-    if (!prepared.queryKind) {
-      prepared.queryKind = this.defaultQuery.queryKind;
-    }
+    const prepared = {
+      ...this.defaultQuery,
+      ...query,
+    };
 
     if (this.isQueryBuilderActive() && (prepared.systemName || prepared.workspace) && prepared.queryKind === SystemQueryType.Properties) {
       prepared.filter = this.backwardCompatibility(prepared);
