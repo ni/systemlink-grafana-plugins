@@ -9,7 +9,7 @@ export interface ListAlarmsQuery extends AlarmsQuery {
   transitionInclusionOption?: TransitionInclusionOption;
 }
 
-export interface AlarmsCacheProperties {
+export interface AlarmsQueryCache {
   requestInputs: string;
   selectedProperties: string;
   response: Alarm[];
