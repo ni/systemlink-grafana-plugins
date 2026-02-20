@@ -2,6 +2,7 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
+  LegacyMetricFindQueryOptions,
   MetricFindValue,
   TestDataSourceResponse
 } from '@grafana/data';
@@ -72,16 +73,16 @@ export class SystemDataSource extends SystemsDataSourceBase {
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 
-  async metricFindQuery({ queryReturnType, workspace }: SystemVariableQuery): Promise<MetricFindValue[]> {
+  async metricFindQuery({ queryReturnType, workspace, filter }: SystemVariableQuery, options?: LegacyMetricFindQueryOptions): Promise<MetricFindValue[]> {
     await this.dependenciesLoadedPromise;
 
-    let filter = '';
-    if (workspace) {
-      const resolvedWorkspace = this.templateSrv.replace(workspace);
-      filter = `workspace = "${resolvedWorkspace}"`;
+    let migratedFilter = filter || '';
+    if (!migratedFilter && workspace) {
+      migratedFilter = `workspace = "${workspace}"`;
     }
+    const processedFilter = migratedFilter ? this.processFilter(migratedFilter, options?.scopedVars || {}) : '';
 
-    const properties = await this.getSystemProperties(filter, [SystemBackendFieldNames.ID, SystemBackendFieldNames.ALIAS, SystemBackendFieldNames.SCAN_CODE]);
+    const properties = await this.getSystemProperties(processedFilter, [SystemBackendFieldNames.ID, SystemBackendFieldNames.ALIAS, SystemBackendFieldNames.SCAN_CODE]);
     return properties.map(system => this.getSystemNameForMetricQuery({ queryReturnType }, system));
   }
 
