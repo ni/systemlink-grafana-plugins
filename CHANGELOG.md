@@ -1,3 +1,9 @@
+## [4.134.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.133.4...v4.134.0) (2026-02-20)
+
+### Features
+
+* **systems:** Add feature flag for query builder in systems data source ([#683](https://github.com/ni/systemlink-grafana-plugins/issues/683)) ([86c02cb](https://github.com/ni/systemlink-grafana-plugins/commit/86c02cb742606178944d8c75227d2a5f9e441b0c))
+
 ## [4.133.4](https://github.com/ni/systemlink-grafana-plugins/compare/v4.133.3...v4.133.4) (2026-02-19)
 
 ### Bug Fixes
