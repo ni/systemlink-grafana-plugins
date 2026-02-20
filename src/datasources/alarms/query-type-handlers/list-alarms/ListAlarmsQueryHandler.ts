@@ -1,5 +1,5 @@
 import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue } from '@grafana/data';
-import { AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType } from '../../types/ListAlarms.types';
+import { AlarmsQueryCache, alarmsCacheTTL, AlarmsProperties, AlarmsSpecificProperties, AlarmsTransitionProperties, ListAlarmsQuery, OutputType } from '../../types/ListAlarms.types';
 import { AlarmsVariableQuery, QueryAlarmsRequest, TransitionInclusionOption } from '../../types/types';
 import { AlarmsQueryHandlerCore } from '../AlarmsQueryHandlerCore';
 import { AlarmPropertyKeyMap, AlarmsPropertiesOptions, DEFAULT_QUERY_EDITOR_DESCENDING, DEFAULT_QUERY_EDITOR_TRANSITION_INCLUSION_OPTION, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, TransitionPropertyKeyMap, QUERY_EDITOR_MAX_TAKE_TRANSITION_ALL, TRANSITION_SPECIFIC_PROPERTIES } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
@@ -10,11 +10,17 @@ import { User } from 'shared/types/QueryUsers.types';
 import { UsersUtils } from 'shared/users.utils';
 import { MINION_ID_CUSTOM_PROPERTY, PROPERTY_PREFIX_TO_EXCLUDE, SYSTEM_CUSTOM_PROPERTY } from 'datasources/alarms/constants/AlarmProperties.constants';
 import { MINIMUM_TAKE } from 'datasources/alarms/constants/QueryAlarms.constants';
+import TTLCache from '@isaacs/ttlcache';
 
 export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
 
   private readonly usersUtils: UsersUtils;
+  private readonly alarmsResponseCache: TTLCache<string, AlarmsQueryCache> = new TTLCache(
+    {
+      ttl: alarmsCacheTTL
+    }
+  );
 
   public constructor(
     instanceSettings: DataSourceInstanceSettings,
@@ -89,7 +95,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
       this.isTakeValid(query.take, query.transitionInclusionOption) &&
       this.isPropertiesValid(query.properties)
     ) {
-      const alarmsResponse = await this.queryAlarmsData(query);
+      const alarmsResponse = await this.getAlarms(query);
 
       const flattenedAlarms  =
         query.transitionInclusionOption === TransitionInclusionOption.All
@@ -107,6 +113,34 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     };
   }
 
+  private async getAlarms(query: ListAlarmsQuery): Promise<Alarm[]> {
+    const queryAlarmsRequestInputs = JSON.stringify({  
+      filter: query.filter,  
+      take: query.take,  
+      descending: query.descending,  
+      transitionInclusionOption: query.transitionInclusionOption
+    });  
+
+    const selectedProperties = JSON.stringify(query.properties);
+    const cachedAlarmsData = this.alarmsResponseCache.get(query.refId);
+
+    const onlyPropertiesChanged = cachedAlarmsData  
+      && cachedAlarmsData.requestInputs === queryAlarmsRequestInputs  
+      && cachedAlarmsData.selectedProperties !== selectedProperties;  
+
+    let response = cachedAlarmsData?.response ?? [];
+    if (!onlyPropertiesChanged) {
+      response = await this.queryAlarmsData(query);
+    }
+
+   const updatedCacheEntry = { 
+      requestInputs: queryAlarmsRequestInputs, 
+      selectedProperties,  
+      response  
+    };  
+    this.alarmsResponseCache.set(query.refId, updatedCacheEntry);  
+    return response; 
+  }
 
   private isTakeValid(take?: number, transitionInclusionOption?: TransitionInclusionOption): boolean {
     if (!take || take < QUERY_EDITOR_MIN_TAKE) {

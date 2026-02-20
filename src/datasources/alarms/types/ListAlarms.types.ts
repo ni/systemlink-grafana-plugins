@@ -1,4 +1,4 @@
-import { AlarmsQuery, TransitionInclusionOption } from './types';
+import { Alarm, AlarmsQuery, TransitionInclusionOption } from './types';
 
 export interface ListAlarmsQuery extends AlarmsQuery {
   outputType?: OutputType;
@@ -8,6 +8,14 @@ export interface ListAlarmsQuery extends AlarmsQuery {
   take?: number;
   transitionInclusionOption?: TransitionInclusionOption;
 }
+
+export interface AlarmsQueryCache {
+  requestInputs: string;
+  selectedProperties: string;
+  response: Alarm[];
+}
+
+export const alarmsCacheTTL = 1000 * 60 * 5;
 
 export enum OutputType {
   Properties = 'Properties',
