@@ -10,12 +10,12 @@ export interface ListAlarmsQuery extends AlarmsQuery {
 }
 
 export interface AlarmsCacheProperties {
-  alarmQueryParameters: string;
-  propertiesSelected: string;
+  requestInputs: string;
+  selectedProperties: string;
   response: Alarm[];
 }
 
-export const alarmsCacheTTL = 1000 * 60 * 5; // 5 minutes
+export const alarmsCacheTTL = 1000 * 60 * 5;
 
 export enum OutputType {
   Properties = 'Properties',

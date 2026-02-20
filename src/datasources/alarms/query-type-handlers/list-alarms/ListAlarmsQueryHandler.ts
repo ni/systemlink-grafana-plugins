@@ -113,55 +113,33 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     };
   }
 
-  private buildQueryParameter(query: ListAlarmsQuery): string {
-    return JSON.stringify({
-      filter: query.filter,
-      take: query.take,
-      descending: query.descending,
-      transitionInclusionOption: query.transitionInclusionOption,
-    });
-  }
-
   private async getAlarms(query: ListAlarmsQuery): Promise<Alarm[]> {
-    const alarmQueryParameters = this.buildQueryParameter(query);
-    const propertiesSelected = JSON.stringify(query.properties);
+    const queryAlarmsRequestInputs = JSON.stringify({  
+      filter: query.filter,  
+      take: query.take,  
+      descending: query.descending,  
+      transitionInclusionOption: query.transitionInclusionOption
+    });  
+
+    const selectedProperties = JSON.stringify(query.properties);
     const cachedAlarmsData = this.alarmsResponseCache.get(query.refId);
 
-    if (cachedAlarmsData
-      && cachedAlarmsData.alarmQueryParameters === alarmQueryParameters
-      && cachedAlarmsData.propertiesSelected !== propertiesSelected
-    ) {
-      this.updateAlarmsCache(
-        query.refId, 
-        alarmQueryParameters,
-        propertiesSelected,
-        cachedAlarmsData.response
-      );
-      return cachedAlarmsData.response;
+    const onlyPropertiesChanged = cachedAlarmsData  
+      && cachedAlarmsData.requestInputs === queryAlarmsRequestInputs  
+      && cachedAlarmsData.selectedProperties !== selectedProperties;  
+
+    let response = cachedAlarmsData?.response ?? [];
+    if (!onlyPropertiesChanged) {
+      response = await this.queryAlarmsData(query);
     }
 
-    const alarmsResponse = await this.queryAlarmsData(query);
-    this.updateAlarmsCache(
-      query.refId, 
-      alarmQueryParameters,
-      propertiesSelected,
-      alarmsResponse
-    );
-    return alarmsResponse;
-  }
-
-  private updateAlarmsCache(
-    refId: string, 
-    alarmQueryParameters: string, 
-    propertiesSelected: string, 
-    response: Alarm[]
-  ) {
-    const updatedCacheEntry = { 
-      alarmQueryParameters, 
-      propertiesSelected,
-      response
-    };
-    this.alarmsResponseCache.set(refId, updatedCacheEntry);
+   const updatedCacheEntry = { 
+      requestInputs: queryAlarmsRequestInputs, 
+      selectedProperties,  
+      response  
+    };  
+    this.alarmsResponseCache.set(query.refId, updatedCacheEntry);  
+    return response; 
   }
 
   private isTakeValid(take?: number, transitionInclusionOption?: TransitionInclusionOption): boolean {
