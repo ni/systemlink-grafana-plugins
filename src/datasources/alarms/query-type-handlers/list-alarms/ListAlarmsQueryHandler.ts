@@ -122,13 +122,13 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     });  
 
     const selectedProperties = JSON.stringify(query.properties);
-    const cachedAlarmsData = this.alarmsQueryCache.get(query.refId);
+    const cachedAlarmsQuery = this.alarmsQueryCache.get(query.refId);
 
-    const onlyPropertiesChanged = cachedAlarmsData  
-      && cachedAlarmsData.requestInputs === requestInputs  
-      && cachedAlarmsData.selectedProperties !== selectedProperties;  
+    const onlyPropertiesChanged = cachedAlarmsQuery  
+      && cachedAlarmsQuery.requestInputs === requestInputs  
+      && cachedAlarmsQuery.selectedProperties !== selectedProperties;  
 
-    let response = cachedAlarmsData?.response ?? [];
+    let response = cachedAlarmsQuery?.response ?? [];
     if (!onlyPropertiesChanged) {
       response = await this.queryAlarmsData(query);
     }
