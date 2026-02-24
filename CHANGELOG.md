@@ -1,3 +1,9 @@
+## [4.134.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.134.0...v4.134.1) (2026-02-24)
+
+### Bug Fixes
+
+* **alarms:** implement response caching for alarms query to optimize API calls ([#679](https://github.com/ni/systemlink-grafana-plugins/issues/679)) ([b9663dd](https://github.com/ni/systemlink-grafana-plugins/commit/b9663ddc3d53da6c26db4a072fda1c45c1eafbaf))
+
 ## [4.134.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.133.4...v4.134.0) (2026-02-20)
 
 ### Features
