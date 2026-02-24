@@ -261,10 +261,6 @@ export const metadataFieldOptions: Option[] = [
   { label: DATA_TABLE_NAME_LABEL, value: DATA_TABLE_NAME_FIELD, group: METADATA_GROUP }
 ];
 
-export const DataTableFirstClassPropertyLabels = new Set(
-  Object.values(DataTableProjectionLabelLookup).map(lookup => lookup.label)
-);
-
 export type ValidDataFrameQuery = ValidDataFrameQueryV1 | ValidDataFrameQueryV2;
 
 export type ValidDataFrameVariableQuery = DataFrameVariableQueryV2 & Required<Omit<DataFrameVariableQueryV2, keyof DataQuery>>;

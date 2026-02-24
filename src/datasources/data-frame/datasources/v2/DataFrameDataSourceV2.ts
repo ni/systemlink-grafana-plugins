@@ -1,7 +1,7 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, QueryResultMetaNotice, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, DataTableFirstClassPropertyLabels, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -1789,30 +1789,61 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 const includeDataTableCustomProperties = propertiesToQuery.includes(
                     DataTableProperties.Properties
                 );
-                const propertiesToQueryWithoutDataTableCustomProperties = propertiesToQuery.filter(
+                const fieldNames = new Set<string>();
+                const includeColumnCustomProperties = propertiesToQuery.includes(
+                    DataTableProperties.ColumnProperties
+                );
+                const propertiesToQueryWithoutCustomProperties = propertiesToQuery.filter(
                     property => property !== DataTableProperties.Properties
+                                && property !== DataTableProperties.ColumnProperties
                 );
 
-                propertiesToQueryWithoutDataTableCustomProperties.forEach(property => {
+                propertiesToQueryWithoutCustomProperties.forEach(property => {
                     const values = this.getFieldValues(
                         flattenedTablesWithColumns,
                         property,
                         workspaces
                     );
+                    const name = DataTableProjectionLabelLookup[property].label;
+                    fieldNames.add(name);
                     fields.push({
-                        name: DataTableProjectionLabelLookup[property].label,
+                        name,
                         type: this.getFieldType(property),
                         values
                     });
                 });
 
+                let customPropertyColumnsLimit = CUSTOM_PROPERTY_COLUMNS_LIMIT;
                 /**
                  * If @see DataTableProperties.Properties is selected,
                  * flatten it into separate fields in the data frame output
                  */
                 if (includeDataTableCustomProperties) {
-                    const propertyFields = this.createFieldsFromTableProperties(flattenedTablesWithColumns);
-                    fields.push(...propertyFields);
+                    const customPropertyFields = this.createFieldsFromCustomProperties(
+                        flattenedTablesWithColumns,
+                        customPropertyColumnsLimit,
+                        table => table.properties,
+                        fieldNames,
+                        'Data table'
+                    );
+                    customPropertyFields.forEach(field => fieldNames.add(field.name));
+                    customPropertyColumnsLimit -= customPropertyFields.length;
+                    fields.push(...customPropertyFields);
+                }
+
+                /**
+                 * If @see DataTableProperties.ColumnProperties is selected,
+                 * flatten it into separate fields in the data frame output
+                 */
+                if (includeColumnCustomProperties) {
+                    const customPropertyFields = this.createFieldsFromCustomProperties(
+                        flattenedTablesWithColumns,
+                        customPropertyColumnsLimit,
+                        table => table.columnProperties,
+                        fieldNames,
+                        'Column'
+                    );
+                    fields.push(...customPropertyFields);
                 }
 
                 return {
@@ -1826,31 +1857,50 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return dataFrame$;
     }
 
-    private createFieldsFromTableProperties(tables: FlattenedTableProperties[]): FieldDTO[] {
-        const uniquePropertyKeys = this.getUniqueCustomPropertyKeys(tables);
+    private createFieldsFromCustomProperties(
+        tables: FlattenedTableProperties[],
+        limit: number,
+        propertyAccessor: (table: FlattenedTableProperties) => Record<string, string> | undefined,
+        existingFieldNames: Set<string>,
+        fieldNameSuffix: string
+    ): FieldDTO[] {
+        const uniquePropertyKeys = this.getUniqueCustomPropertyKeys(
+            tables,
+            limit,
+            propertyAccessor
+        );
         const sortedPropertyKeys = Array.from(uniquePropertyKeys)
             .sort((propertyKey1, propertyKey2) => propertyKey1.localeCompare(propertyKey2));
 
         return sortedPropertyKeys.map(propertyKey => (this.createField({
-            name: this.getCustomPropertyFieldName(propertyKey),
+            name: this.getCustomPropertyFieldName(propertyKey, existingFieldNames, fieldNameSuffix),
             type: FieldType.string,
-            values: tables.map(table => table.properties?.[propertyKey])
+            values: tables.map(table => propertyAccessor(table)?.[propertyKey])
         })));
     }
 
-    private getCustomPropertyFieldName(propertyKey: string): string {
-        return DataTableFirstClassPropertyLabels.has(propertyKey)
-            ? `${propertyKey} (Data table)`
+    private getCustomPropertyFieldName(
+        propertyKey: string,
+        existingFieldNames: Set<string>,
+        fieldNameSuffix: string
+    ): string {
+        return existingFieldNames.has(propertyKey)
+            ? `${propertyKey} (${fieldNameSuffix})`
             : propertyKey;
     }
 
-    private getUniqueCustomPropertyKeys(tables: FlattenedTableProperties[]): Set<string> {
+    private getUniqueCustomPropertyKeys(
+        tables: FlattenedTableProperties[],
+        limit: number,
+        propertyAccessor: (table: FlattenedTableProperties) => Record<string, string> | undefined
+    ): Set<string> {
         const propertyKeysSet = new Set<string>();
         for (const table of tables) {
-            if (table.properties) {
-                for (const key of Object.keys(table.properties)) {
+            const properties = propertyAccessor(table);
+            if (properties) {
+                for (const key of Object.keys(properties)) {
                     propertyKeysSet.add(key);
-                    if (propertyKeysSet.size >= CUSTOM_PROPERTY_COLUMNS_LIMIT) {
+                    if (propertyKeysSet.size >= limit) {
                         return propertyKeysSet;
                     }
                 }
