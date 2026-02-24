@@ -2231,7 +2231,7 @@ describe('ListAlarmsQueryHandler', () => {
           {
             name: 'Workspace',
             type: 'string',
-            values: ['Workspace-A'],
+            values: ['Workspace-B'],
           },
         ],
       });
@@ -2279,7 +2279,7 @@ describe('ListAlarmsQueryHandler', () => {
           {
             name: 'Workspace',
             type: 'string',
-            values: ['Workspace-A'],
+            values: ['Workspace-B'],
           },
           {
             name: 'Active',
