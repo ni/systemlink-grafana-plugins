@@ -2184,6 +2184,112 @@ describe('ListAlarmsQueryHandler', () => {
       );
     });
 
+    it('should return correct cached data when multiple concurrent queries change only properties', async () => {
+      const query1 = buildAlarmsQuery({
+        refId: 'A',
+        filter: 'test-filter',
+        properties: [AlarmsSpecificProperties.displayName],
+      });
+
+      const query2 = buildAlarmsQuery({
+        refId: 'B',
+        filter: 'another-filter',
+        properties: [AlarmsSpecificProperties.workspace],
+      });
+
+      jest.spyOn(datastore as any, 'queryAlarmsInBatches')
+        .mockResolvedValueOnce(
+          buildAlarmsResponse([
+            { displayName: 'Alarm A', workspace: 'Workspace-A' }
+          ])
+        )
+        .mockResolvedValueOnce(
+          buildAlarmsResponse([
+            { displayName: 'Alarm B', workspace: 'Workspace-B' }
+          ])
+        );
+
+      const result1 = await datastore.runQuery(query1, options);
+      const result2 = await datastore.runQuery(query2, options);
+
+      expect(result1).toEqual({
+        refId: 'A',
+        name: 'A',
+        fields: [
+          {
+            name: 'Alarm name',
+            type: 'string',
+            values: ['Alarm A'],
+          },
+        ],
+      });
+
+      expect(result2).toEqual({
+        refId: 'B',
+        name: 'B',
+        fields: [
+          {
+            name: 'Workspace',
+            type: 'string',
+            values: ['Workspace-A'],
+          },
+        ],
+      });
+
+      backendServer.fetch.mockClear();
+
+      const query1Updated = buildAlarmsQuery({
+        refId: 'A',
+        filter: 'test-filter',
+        properties: [AlarmsSpecificProperties.displayName, AlarmsSpecificProperties.acknowledged],
+      });
+
+      const query2Updated = buildAlarmsQuery({
+        refId: 'B',
+        filter: 'another-filter',
+        properties: [AlarmsSpecificProperties.workspace, AlarmsSpecificProperties.active],
+      });
+
+      const result1Updated = await datastore.runQuery(query1Updated, options);
+      const result2Updated = await datastore.runQuery(query2Updated, options);
+
+      expect(backendServer.fetch).not.toHaveBeenCalled();
+
+      expect(result1Updated).toEqual({
+        refId: 'A',
+        name: 'A',
+        fields: [
+          {
+            name: 'Alarm name',
+            type: 'string',
+            values: ['Alarm A'],
+          },
+          {
+            name: 'Acknowledged',
+            type: 'boolean',
+            values: [true],
+          },
+        ],
+      });
+
+      expect(result2Updated).toEqual({
+        refId: 'B',
+        name: 'B',
+        fields: [
+          {
+            name: 'Workspace',
+            type: 'string',
+            values: ['Workspace-A'],
+          },
+          {
+            name: 'Active',
+            type: 'boolean',
+            values: [true],
+          },
+        ],
+      });
+    });
+
     it('should call the API again on refresh when query is identical', async () => {
       const query = buildAlarmsQuery({ filter: 'test', properties: [AlarmsSpecificProperties.displayName] });
 

@@ -16,7 +16,7 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   public readonly defaultQuery = defaultListAlarmsQuery;
 
   private readonly usersUtils: UsersUtils;
-  private readonly alarmsResponseCache: TTLCache<string, AlarmsQueryCache> = new TTLCache(
+  private readonly alarmsQueryCache: TTLCache<string, AlarmsQueryCache> = new TTLCache(
     {
       ttl: alarmsCacheTTL
     }
@@ -114,18 +114,18 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
   }
 
   private async getAlarms(query: ListAlarmsQuery): Promise<Alarm[]> {
-    const queryAlarmsRequestInputs = JSON.stringify({  
-      filter: query.filter,  
-      take: query.take,  
-      descending: query.descending,  
+    const requestInputs = JSON.stringify({  
+      filter: query.filter,
+      take: query.take,
+      descending: query.descending,
       transitionInclusionOption: query.transitionInclusionOption
     });  
 
     const selectedProperties = JSON.stringify(query.properties);
-    const cachedAlarmsData = this.alarmsResponseCache.get(query.refId);
+    const cachedAlarmsData = this.alarmsQueryCache.get(query.refId);
 
     const onlyPropertiesChanged = cachedAlarmsData  
-      && cachedAlarmsData.requestInputs === queryAlarmsRequestInputs  
+      && cachedAlarmsData.requestInputs === requestInputs  
       && cachedAlarmsData.selectedProperties !== selectedProperties;  
 
     let response = cachedAlarmsData?.response ?? [];
@@ -134,12 +134,12 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     }
 
    const updatedCacheEntry = { 
-      requestInputs: queryAlarmsRequestInputs, 
+      requestInputs, 
       selectedProperties,  
       response  
     };  
-    this.alarmsResponseCache.set(query.refId, updatedCacheEntry);  
-    return response; 
+    this.alarmsQueryCache.set(query.refId, updatedCacheEntry);
+    return response;
   }
 
   private isTakeValid(take?: number, transitionInclusionOption?: TransitionInclusionOption): boolean {
