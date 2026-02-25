@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
+import { interceptApiRoute } from '../../../../utils/intercept-api-route';
 
 test.describe('Asset Summary Table', () => {
     let dashboard: DashboardPage;
@@ -33,12 +34,9 @@ test.describe('Asset Summary Table', () => {
     test('should display correct asset summary values', async () => {
         let assetSummaryResponse: any;
 
-        await dashboard.page.route('**/niapm/v1/asset-summary', async (route) => {
-            const response = await route.fetch();
-            assetSummaryResponse = await response.json();
-            await route.fulfill({ response });
+        await interceptApiRoute(dashboard.page, '**/niapm/v1/asset-summary', (response) => {
+            assetSummaryResponse = response;
         });
-
         await dashboard.panel.assetQueryEditor.selectQueryType('Asset Summary');
         await dashboard.panel.table.getTable.waitFor({ timeout: 10000 });
 
