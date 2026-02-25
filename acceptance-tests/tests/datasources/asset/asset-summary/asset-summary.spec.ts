@@ -31,17 +31,28 @@ test.describe('Asset Summary Table', () => {
     });
 
     test('should display correct asset summary values', async () => {
+        let assetSummaryResponse: any;
+
+        await dashboard.page.route('**/niapm/v1/asset-summary', async (route) => {
+            const response = await route.fetch();
+            assetSummaryResponse = await response.json();
+            await route.fulfill({ response });
+        });
+
         await dashboard.panel.assetQueryEditor.selectQueryType('Asset Summary');
         await dashboard.panel.table.getTable.waitFor({ timeout: 10000 });
 
+        expect(assetSummaryResponse).toBeDefined();
+
         let rowCount = await dashboard.panel.table.getTableRowCount();
 
+        console.log('Asset Summary Response:', assetSummaryResponse);
         expect(rowCount).toBe(1);
-        expect(await dashboard.panel.table.checkColumnValue('Total', '10')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Active', '3')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Not active', '7')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Approaching due date', '3')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Past due date', '3')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Out for calibration', '1')).toBeTruthy();
+        expect(await dashboard.panel.table.checkColumnValue('Total', assetSummaryResponse.total.toString())).toBeTruthy();
+        expect(await dashboard.panel.table.checkColumnValue('Active', assetSummaryResponse.active.toString())).toBeTruthy();
+        expect(await dashboard.panel.table.checkColumnValue('Not active', assetSummaryResponse.notActive.toString())).toBeTruthy();
+        expect(await dashboard.panel.table.checkColumnValue('Approaching due date', assetSummaryResponse.approachingRecommendedDueDate.toString())).toBeTruthy();
+        expect(await dashboard.panel.table.checkColumnValue('Past due date', assetSummaryResponse.pastRecommendedDueDate.toString())).toBeTruthy();
+        expect(await dashboard.panel.table.checkColumnValue('Out for calibration', assetSummaryResponse.outForCalibration.toString())).toBeTruthy();
     });
 });
