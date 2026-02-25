@@ -6217,6 +6217,56 @@ describe('DataFrameDataSourceV2', () => {
                         const columnPropertyField = findField(result.fields, 'sharedKey (Column)');
                         expect(columnPropertyField?.values).toEqual(['Column value']);
                     });
+
+                    it('should share the custom property column limit between data table and column properties, with data table properties consuming from the limit first', async () => {
+                        const queryWithManyProperties = {
+                            type: DataFrameQueryType.Properties,
+                            dataTableProperties: [DataTableProperties.Properties],
+                            columnProperties: [DataTableProperties.ColumnProperties],
+                            take: 1000,
+                            refId: 'A',
+                        };
+
+                        const tableProperties: Record<string, string> = {};
+                        for (let i = 0; i < 80; i++) {
+                            tableProperties[`tableProp${i}`] = `Table property value ${i}`;
+                        }
+
+                        const columnProperties: Record<string, string> = {};
+                        for (let i = 0; i < 30; i++) {
+                            columnProperties[`columnProp${i}`] = `Column property value ${i}`;
+                        }
+
+                        const mockTables = [
+                            {
+                                id: 'table-1',
+                                name: 'Table 1',
+                                properties: tableProperties,
+                                columns: [
+                                    {
+                                        name: 'Col1',
+                                        dataType: 'STRING',
+                                        properties: columnProperties,
+                                    },
+                                ],
+                            },
+                        ];
+
+                        queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                        const result = await lastValueFrom(ds.runQuery(queryWithManyProperties, options));
+
+                        const tablePropertyFields = result.fields.filter((field: FieldDTO) =>
+                            typeof field.name === 'string' && field.name.startsWith('tableProp')
+                        );
+                        const columnPropertyFields = result.fields.filter((field: FieldDTO) =>
+                            typeof field.name === 'string' && field.name.startsWith('columnProp')
+                        );
+
+                        expect(tablePropertyFields.length).toBe(80);
+                        expect(columnPropertyFields.length).toBe(20);
+                        expect(result.fields.length).toBe(100);
+                    });
                 });
             });
         });
