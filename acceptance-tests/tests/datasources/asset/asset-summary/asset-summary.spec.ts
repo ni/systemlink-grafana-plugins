@@ -4,6 +4,15 @@ import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.page
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { interceptApiRoute } from '../../../../utils/intercept-api-route';
 
+interface AssetSummaryResponse {
+    total: number;
+    active: number;
+    notActive: number;
+    approachingRecommendedDueDate: number;
+    pastRecommendedDueDate: number;
+    outForCalibration: number;
+}
+
 test.describe('Asset Summary Table', () => {
     let dashboard: DashboardPage;
     let dataSources: DataSourcesPage;
@@ -32,12 +41,11 @@ test.describe('Asset Summary Table', () => {
     });
 
     test('should display correct asset summary values', async () => {
-        let assetSummaryResponse: any;
+        const [assetSummaryResponse] = await Promise.all([
+            interceptApiRoute<AssetSummaryResponse>(dashboard.page, '**/niapm/v1/asset-summary'),
+            dashboard.panel.assetQueryEditor.selectQueryType('Asset Summary')
+        ]);
 
-        await interceptApiRoute(dashboard.page, '**/niapm/v1/asset-summary', (response) => {
-            assetSummaryResponse = response;
-        });
-        await dashboard.panel.assetQueryEditor.selectQueryType('Asset Summary');
         await dashboard.panel.table.getTable.waitFor({ timeout: 10000 });
 
         expect(assetSummaryResponse).toBeDefined();
