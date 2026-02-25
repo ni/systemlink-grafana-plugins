@@ -1843,6 +1843,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         fieldNames,
                         'Column'
                     );
+                    customPropertyFields.forEach(field => fieldNames.add(field.name));
+                    customPropertyColumnsLimit -= customPropertyFields.length;
                     fields.push(...customPropertyFields);
                 }
 
