@@ -3,6 +3,7 @@ import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { interceptApiRoute } from '../../../../utils/intercept-api-route';
+import { timeOutPeriod } from '../../../../constants/asset-list-properties.constant';
 
 interface AssetSummaryResponse {
     total: number;
@@ -46,7 +47,7 @@ test.describe('Asset Summary Table', () => {
             dashboard.panel.assetQueryEditor.selectQueryType('Asset Summary')
         ]);
 
-        await dashboard.panel.table.getTable.waitFor({ timeout: 10000 });
+        await dashboard.panel.table.getTable.waitFor({ timeout: timeOutPeriod });
 
         expect(assetSummaryResponse).toBeDefined();
 
