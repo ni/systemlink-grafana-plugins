@@ -71,7 +71,6 @@ class AssetRoutes {
             outForCalibration: db.assets.filter(asset =>
                 asset.outForCalibration === true,
             ).length
-
         });
     }
 }

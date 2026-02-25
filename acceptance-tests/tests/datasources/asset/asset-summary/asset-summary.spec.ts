@@ -46,7 +46,6 @@ test.describe('Asset Summary Table', () => {
 
         let rowCount = await dashboard.panel.table.getTableRowCount();
 
-        console.log('Asset Summary Response:', assetSummaryResponse);
         expect(rowCount).toBe(1);
         expect(await dashboard.panel.table.checkColumnValue('Total', assetSummaryResponse.total.toString())).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue('Active', assetSummaryResponse.active.toString())).toBeTruthy();
