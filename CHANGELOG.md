@@ -1,3 +1,9 @@
+## [4.135.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.134.1...v4.135.0) (2026-02-25)
+
+### Features
+
+* **asset:** Add acceptance tests for asset summary query type ([#680](https://github.com/ni/systemlink-grafana-plugins/issues/680)) ([dc2a35b](https://github.com/ni/systemlink-grafana-plugins/commit/dc2a35b3634e6323e9c06fb9a7eb4b2589078224))
+
 ## [4.134.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.134.0...v4.134.1) (2026-02-24)
 
 ### Bug Fixes
