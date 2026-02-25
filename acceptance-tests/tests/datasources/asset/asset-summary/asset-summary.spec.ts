@@ -4,15 +4,7 @@ import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.page
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { interceptApiRoute } from '../../../../utils/intercept-api-route';
 import { timeOutPeriod } from '../../../../constants/asset-list-properties.constant';
-
-interface AssetSummaryResponse {
-    total: number;
-    active: number;
-    notActive: number;
-    approachingRecommendedDueDate: number;
-    pastRecommendedDueDate: number;
-    outForCalibration: number;
-}
+import { AssetSummaryResponse } from '../../../../models/asset-summary-response';
 
 test.describe('Asset Summary Table', () => {
     let dashboard: DashboardPage;
