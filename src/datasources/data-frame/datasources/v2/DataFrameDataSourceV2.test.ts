@@ -3769,6 +3769,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
+                        rowCount: 10_000,
                         columns: [
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
                             { name: 'current', dataType: 'INT32', columnType: ColumnType.Normal }
@@ -3802,6 +3803,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
+                        rowCount: 10_000,
                         columns: [
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
                             { name: 'current', dataType: 'INT32', columnType: ColumnType.Nullable }
@@ -3843,6 +3845,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
+                        rowCount: 10_000,
                         columns: [
                             { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -3898,6 +3901,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
+                        rowCount: 10_000,
                         columns: [
                             { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -3934,6 +3938,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
+                        rowCount: 10_000,
                         columns: [
                             { name: 'index', dataType: 'INT32', columnType: ColumnType.Index },
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -4143,6 +4148,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
+                        rowCount: 10_000,
                         columns: [
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                         ]
@@ -4180,6 +4186,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
+                        rowCount: 10_000,
                         columns: [
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                         ]
@@ -4210,6 +4217,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
+                        rowCount: 10_000,
                         columns: [
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
                         ]
@@ -4243,6 +4251,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
+                        rowCount: 10_000,
                         columns: [
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                         ]
@@ -4291,6 +4300,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
+                        rowCount: 10_000,
                         columns: [
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                         ]
@@ -4329,6 +4339,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
+                        rowCount: 10_000,
                         columns: [
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                         ]
@@ -4358,6 +4369,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
+                        rowCount: 500_000,
                         columns: [
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
                             { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -4390,6 +4402,7 @@ describe('DataFrameDataSourceV2', () => {
                         {
                             id: 'table1',
                             name: 'Table 1',
+                            rowCount: 10_000,
                             columns: [
                                 { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                 { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal}
@@ -4398,6 +4411,7 @@ describe('DataFrameDataSourceV2', () => {
                         {
                             id: 'table2',
                             name: 'Table 2',
+                            rowCount: 10_000,
                             columns: [
                                 { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                 { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -4449,6 +4463,7 @@ describe('DataFrameDataSourceV2', () => {
                                 const mockTables = [{
                                     id: 'table1',
                                     name: 'table1',
+                                    rowCount: 10_000,
                                     columns: [
                                         { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Normal },
                                         { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -4506,6 +4521,7 @@ describe('DataFrameDataSourceV2', () => {
                                 const mockTables = [{
                                     id: 'table1',
                                     name: 'table1',
+                                    rowCount: 10_000,
                                     columns: [
                                         { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
                                         { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -4543,6 +4559,8 @@ describe('DataFrameDataSourceV2', () => {
                             it('should apply numeric filters when URL params exist', async () => {
                                 const mockTables = [{
                                     id: 'table1',
+                                    name: 'table1',
+                                    rowCount: 10_000,
                                     columns: [
                                         { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
                                         { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -4600,6 +4618,7 @@ describe('DataFrameDataSourceV2', () => {
                                 const mockTables = [{
                                     id: 'table1',
                                     name: 'table1',
+                                    rowCount: 10_000,
                                     columns: [
                                         { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
                                         { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -4656,6 +4675,7 @@ describe('DataFrameDataSourceV2', () => {
                             const mockTables = [{
                                 id: 'table1',
                                 name: 'table1',
+                                rowCount: 10_000,
                                 columns: [
                                     { name: 'voltage', dataType: 'INT64', columnType: ColumnType.Index },
                                     { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -4693,6 +4713,7 @@ describe('DataFrameDataSourceV2', () => {
                                 const mockTables = [{
                                     id: 'table1',
                                     name: 'table1',
+                                    rowCount: 10_000,
                                     columns: [
                                         { name: 'voltage', dataType: 'INT64', columnType: ColumnType.Index },
                                         { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -4766,6 +4787,7 @@ describe('DataFrameDataSourceV2', () => {
                             const mockTables = [{
                                 id: 'table1',
                                 name: 'table1',
+                                rowCount: 10_000,
                                 columns: [
                                     { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal },
                                     { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -4826,6 +4848,7 @@ describe('DataFrameDataSourceV2', () => {
                             const mockTables = [{
                                 id: 'table1',
                                 name: 'table1',
+                                rowCount: 10_000,
                                 columns: [
                                     { name: 'voltage', dataType: 'INT64', columnType: ColumnType.Index },
                                     { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -4878,6 +4901,7 @@ describe('DataFrameDataSourceV2', () => {
                         const mockTables = Array.from({ length: 8 }, (_, i) => ({
                             id: `table${i}`,
                             name: `table${i}`,
+                            rowCount: 10_000,
                             columns: [
                                 { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                             ]
@@ -4909,6 +4933,7 @@ describe('DataFrameDataSourceV2', () => {
                         const mockTables = Array.from({ length: 10 }, (_, i) => ({
                             id: `table${i}`,
                             name: `table${i}`,
+                            rowCount: 300_000,
                             columns: [
                                 { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                             ]
@@ -4935,9 +4960,8 @@ describe('DataFrameDataSourceV2', () => {
                         const result = await queryPromise;
 
                         // Should stop after fetching enough to reach the limit
-                        // With 300k rows per table, we need 4 tables to exceed 1M limit
-                        // But the first batch of 6 runs concurrently before stopSignal propagates
-                        expect(postSpy.mock.calls.length).toEqual(6);
+                        // With 300k rowCount per table and 1M capacity, pre-computation generates 4 requests
+                        expect(postSpy.mock.calls.length).toEqual(4);
                         expect(result.refId).toBe('A');
                     });
 
@@ -4946,6 +4970,7 @@ describe('DataFrameDataSourceV2', () => {
                             {
                                 id: 'table1',
                                 name: 'table1',
+                                rowCount: 400_000,
                                 columns: [
                                     { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                     { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -4954,6 +4979,7 @@ describe('DataFrameDataSourceV2', () => {
                             {
                                 id: 'table2',
                                 name: 'table2',
+                                rowCount: 400_000,
                                 columns: [
                                     { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                     { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -5003,6 +5029,7 @@ describe('DataFrameDataSourceV2', () => {
                         const mockTables = [{
                             id: 'table1',
                             name: 'table1',
+                            rowCount: 2_000_000,
                             columns: [
                                 { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                 { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
@@ -5043,6 +5070,7 @@ describe('DataFrameDataSourceV2', () => {
                             {
                                 id: 'table1',
                                 name: 'table1',
+                                rowCount: 1_000_000,
                                 columns: [
                                     { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                 ]
@@ -5050,6 +5078,7 @@ describe('DataFrameDataSourceV2', () => {
                             {
                                 id: 'table2',
                                 name: 'table2',
+                                rowCount: 100,
                                 columns: [
                                     { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                     { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
@@ -5103,6 +5132,7 @@ describe('DataFrameDataSourceV2', () => {
                             {
                                 id: 'table1',
                                 name: 'table1',
+                                rowCount: 600_000,
                                 columns: [
                                     { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                                 ]
@@ -5110,6 +5140,7 @@ describe('DataFrameDataSourceV2', () => {
                             {
                                 id: 'table2',
                                 name: 'table2',
+                                rowCount: 600_000,
                                 columns: [
                                     { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                                 ]
@@ -5147,6 +5178,7 @@ describe('DataFrameDataSourceV2', () => {
                             {
                                 id: 'table1',
                                 name: 'table1',
+                                rowCount: 999_997,
                                 columns: [
                                     { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index }
                                 ]
@@ -5154,6 +5186,7 @@ describe('DataFrameDataSourceV2', () => {
                             {
                                 id: 'table2',
                                 name: 'table2',
+                                rowCount: 100,
                                 columns: [
                                     { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                     { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -5211,6 +5244,7 @@ describe('DataFrameDataSourceV2', () => {
                         const mockTables = Array.from({ length: REQUESTS_PER_SECOND }, (_, i) => ({
                             id: `table${i}`,
                             name: `table${i}`,
+                            rowCount: 10_000,
                             columns: [
                                 { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                             ]
