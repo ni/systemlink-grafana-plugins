@@ -468,6 +468,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             });
 
         let totalDataPointsAcrossTables = 0;
+        const configuredTake = query.undecimatedRecordCount;
         for (const [tableId, columnsMap] of tablesWithSelectedColumns) {
             const remainingDataPointsCapacity = MAXIMUM_DATA_POINTS - totalDataPointsAcrossTables;
             if (remainingDataPointsCapacity === 0) {
@@ -475,19 +476,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 break;
             }
 
-            const selectedColumnCount = columnsMap.selectedColumns.length;
-            const configuredTake = query.undecimatedRecordCount;
-            const tableRowCount = tableRowCountMap[tableId];
-            let take = Math.min(configuredTake, tableRowCount);
-            const dataPoints = take * selectedColumnCount;
-
-            if (dataPoints > remainingDataPointsCapacity) {
-                take = Math.floor(remainingDataPointsCapacity / selectedColumnCount);
+            let take = Math.min(configuredTake, tableRowCountMap[tableId]);
+            const selectedColumnsCount = columnsMap.selectedColumns.length;
+            const dataPoints = take * selectedColumnsCount;
+            const canFitAllDataPoints = dataPoints <= remainingDataPointsCapacity;
+            if (!canFitAllDataPoints) {
+                take = Math.floor(remainingDataPointsCapacity / selectedColumnsCount);
                 isDataPointLimitReached = true;
             }
-
-            const dataPointsToAdd = take * selectedColumnCount;
-            totalDataPointsAcrossTables += dataPointsToAdd;
 
             if (take !== 0) {
                 const request = this.constructUndecimatedDataRequest(
@@ -499,6 +495,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 );
                 requests.push(request);
             }
+
+            const dataPointsQueried = take * selectedColumnsCount;
+            totalDataPointsAcrossTables += dataPointsQueried;
+
             if(isDataPointLimitReached) {
                 break;
             }
