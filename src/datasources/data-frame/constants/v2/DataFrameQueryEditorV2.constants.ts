@@ -14,7 +14,7 @@ export const getValuesInPixels = (valueInGrafanaUnits: number) => {
  * The following values are multiples of 8 to align with Grafana's grid system.
  * For example, 25 in Grafana units is equal to 25*8 = 200px.
  */
-export const INLINE_LABEL_WIDTH = 31;
+export const INLINE_LABEL_WIDTH = 33;
 export const VALUE_FIELD_WIDTH = 65.5;
 export const INLINE_MARGIN_BETWEEN_LABEL_AND_FIELD = 0.5;
 export const DEFAULT_MARGIN_BOTTOM = 1;
@@ -36,11 +36,11 @@ export const labels = {
     columns: 'Columns',
     filterNulls: 'Filter nulls',
     includeIndexColumns: 'Include index columns',
-    showUnits: 'Show units',
+    showUnits: 'Show units in data',
     decimationMethod: 'Decimation method',
     xColumn: 'X-column',
     useTimeRange: 'Use time range',
-    filterXRangeOnZoomPan: 'Filter for x-axis range on zoom/pan',
+    filterXRangeOnZoomPan: 'Filter by x-axis range on zoom or pan',
     take: 'Take',
 };
 
@@ -53,17 +53,17 @@ export const tooltips = {
     queryByResultProperties: 'This field applies a results filter while searching data tables.',
     queryByColumnProperties: 'This field applies a column filter while searching data tables.',
     take: 'This field sets the maximum number of records to return from the query.',
-    undecimatedRecordCount: 'This field sets the maximum number of rows to return from the query.',
+    undecimatedRecordCount: 'This field sets the maximum number of rows to return per data table. If the total data points exceed 1M, this value is dynamically reduced to keep the total data points under the limit.',
     columns: 'Specifies the columns to include in the response data.',
     filterNulls: `Specifies whether to filter out null and NaN values before decimating the data.`,
     includeIndexColumns: 'Specifies whether to include index columns in the response data.',
-    showUnits: 'Specifies whether to append units to column display names and configure field units.',
+    showUnits: 'Specifies whether to show units in the column name and data.',
     dataTableProperties: 'This field specifies the data table properties to be queried.',
     columnProperties: 'This field specifies the column properties to be queried.',
     decimationMethod: 'Specifies the method used to decimate the data.',
-    xColumn: `Specifies the column to use as the x-axis when decimating the data. If this field is left blank, INDEX column will be used.`,
+    xColumn: `Specifies the column to use as the x-axis during data decimation. For undecimated data, SystemLink uses the specified column to order the results. If this field is left blank, SystemLink uses the INDEX column.`,
     useTimeRange: `Applies the dashboard time range to the selected x-column or alternatively to INDEX column (if either is a timestamp).`,
-    filterXRangeOnZoomPan: 'Filters the data based on the x-axis range during zoom or pan actions when x-column is selected.',
+    filterXRangeOnZoomPan: 'Enable to filter data based on the x-axis range during zoom or pan actions. When the user selects an x-column, the datasource applies the filter to that column. Otherwise, the datasource uses the INDEX column as the default filter.',
 };
 
 /**

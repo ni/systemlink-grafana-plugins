@@ -15,7 +15,7 @@ import { AxisLabels, PanelOptions } from './types';
 import { useTheme2, ContextMenu, MenuItemsGroup, linkModelToContextMenuItems } from '@grafana/ui';
 import { getTemplateSrv, PanelDataErrorView, locationService, getAppEvents } from '@grafana/runtime';
 import { getFieldsByName, notEmpty, Plot, renderMenuItems, useTraceColors } from './utils';
-import { AxisType, Legend, PlotData, PlotType, toImage, Icons, PlotlyHTMLElement } from 'plotly.js-basic-dist-min';
+import { AxisType, Legend, PlotData, PlotType, toImage, Icons, PlotlyHTMLElement } from 'plotly.js-dist-min';
 import { saveAs } from 'file-saver';
 import _ from 'lodash';
 import { NIRefreshDashboardEvent } from './events';
@@ -35,7 +35,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const theme = useTheme2();
 
   const traceColors = useTraceColors(theme);
-  const debounceDelayInMs = 300;
+  const debounceDelayInMs = 700;
   const xAxisPrecisionDecimals = 6;
 
   const xFields = useMemo(
@@ -227,7 +227,9 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   };
 
   const syncNumericXAxisRange = (xAxisMin: number, xAxisMax: number) => {
-    if(!options.xAxis.field) {
+    const xAxisFieldName = xFields[0].name;
+
+    if (!xAxisFieldName) {
       return;
     }
 
@@ -247,8 +249,8 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     
     const updatedXAxisMin = Number(xAxisMin.toFixed(xAxisPrecisionDecimals));
     const updatedXAxisMax = Number(xAxisMax.toFixed(xAxisPrecisionDecimals));
-    const existingXAxisMinParam = queryParams[`nisl-${options.xAxis.field}-min`];
-    const existingXAxisMaxParam = queryParams[`nisl-${options.xAxis.field}-max`];
+    const existingXAxisMinParam = queryParams[`nisl-${xAxisFieldName}-min`];
+    const existingXAxisMaxParam = queryParams[`nisl-${xAxisFieldName}-max`];
     const existingXAxisMin = parseNumericQueryParam(existingXAxisMinParam);
     const existingXAxisMax = parseNumericQueryParam(existingXAxisMaxParam);
 
@@ -259,7 +261,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       publishXAxisRangeUpdate(
         updatedXAxisMin, 
         updatedXAxisMax, 
-        options.xAxis.field
+        xAxisFieldName
       );
     }
   };

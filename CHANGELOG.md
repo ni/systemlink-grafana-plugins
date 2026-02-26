@@ -1,3 +1,79 @@
+## [4.135.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.134.1...v4.135.0) (2026-02-25)
+
+### Features
+
+* **asset:** Add acceptance tests for asset summary query type ([#680](https://github.com/ni/systemlink-grafana-plugins/issues/680)) ([dc2a35b](https://github.com/ni/systemlink-grafana-plugins/commit/dc2a35b3634e6323e9c06fb9a7eb4b2589078224))
+
+## [4.134.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.134.0...v4.134.1) (2026-02-24)
+
+### Bug Fixes
+
+* **alarms:** implement response caching for alarms query to optimize API calls ([#679](https://github.com/ni/systemlink-grafana-plugins/issues/679)) ([b9663dd](https://github.com/ni/systemlink-grafana-plugins/commit/b9663ddc3d53da6c26db4a072fda1c45c1eafbaf))
+
+## [4.134.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.133.4...v4.134.0) (2026-02-20)
+
+### Features
+
+* **systems:** Add feature flag for query builder in systems data source ([#683](https://github.com/ni/systemlink-grafana-plugins/issues/683)) ([86c02cb](https://github.com/ni/systemlink-grafana-plugins/commit/86c02cb742606178944d8c75227d2a5f9e441b0c))
+
+## [4.133.4](https://github.com/ni/systemlink-grafana-plugins/compare/v4.133.3...v4.133.4) (2026-02-19)
+
+### Bug Fixes
+
+* **plotly:** Sync numerical x-axis range on auto selection ([#678](https://github.com/ni/systemlink-grafana-plugins/issues/678)) ([8e09c88](https://github.com/ni/systemlink-grafana-plugins/commit/8e09c8857b51fb2cc2ce517fc6106e9039cbc7fe))
+
+## [4.133.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.133.2...v4.133.3) (2026-02-18)
+
+### Bug Fixes
+
+* **dataframe:** update tooltip description for undecimated take ([#682](https://github.com/ni/systemlink-grafana-plugins/issues/682)) ([d18f0eb](https://github.com/ni/systemlink-grafana-plugins/commit/d18f0ebdf231659ea6646e683e00528fde044c58))
+
+## [4.133.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.133.1...v4.133.2) (2026-02-18)
+
+### Bug Fixes
+
+* **dataframe:** User visible string review for Undecimated data support and units  ([#668](https://github.com/ni/systemlink-grafana-plugins/issues/668)) ([f7539fb](https://github.com/ni/systemlink-grafana-plugins/commit/f7539fb00dad8c18ed05ab18fb6c5b211f75c1c8))
+
+## [4.133.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.133.0...v4.133.1) (2026-02-18)
+
+### Bug Fixes
+
+* **dataframe:** User visible strings for high resolution zoom feature ([#675](https://github.com/ni/systemlink-grafana-plugins/issues/675)) ([975f2c9](https://github.com/ni/systemlink-grafana-plugins/commit/975f2c924dfdebeeafb431552a29beeef66cc990))
+
+## [4.133.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.132.0...v4.133.0) (2026-02-17)
+
+### Features
+
+* **dataframe:** Fetch high resolution zoom data ([#669](https://github.com/ni/systemlink-grafana-plugins/issues/669)) ([8cf1c3d](https://github.com/ni/systemlink-grafana-plugins/commit/8cf1c3d247bc6b8a2483f0e044cfe415d7acd2b7))
+
+## [4.132.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.131.0...v4.132.0) (2026-02-17)
+
+### Features
+
+* **asset:** Add acceptance tests for list asset query type ([#666](https://github.com/ni/systemlink-grafana-plugins/issues/666)) ([39b29e1](https://github.com/ni/systemlink-grafana-plugins/commit/39b29e1c3a837df7e92f67a68702865d22771b46))
+
+### Bug Fixes
+
+* **asset:** Add "outForCalibration" property to asset summary table ([#681](https://github.com/ni/systemlink-grafana-plugins/issues/681)) ([ac31b03](https://github.com/ni/systemlink-grafana-plugins/commit/ac31b03c56a91141bfe3473c0de2417ee0046de5))
+
+## [4.131.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.130.0...v4.131.0) (2026-02-13)
+
+### Features
+
+* **plotly:** add support for box and violin plot types ([#676](https://github.com/ni/systemlink-grafana-plugins/issues/676)) ([23dd10a](https://github.com/ni/systemlink-grafana-plugins/commit/23dd10a5b158f8c97f0d827dcce84f4967ab9dc6))
+
+## [4.130.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.129.1...v4.130.0) (2026-02-13)
+
+### Features
+
+* Add acceptance tests to PR workflow ([#673](https://github.com/ni/systemlink-grafana-plugins/issues/673)) ([766f8a1](https://github.com/ni/systemlink-grafana-plugins/commit/766f8a1107597b48edea354b4a209509e084e63e))
+
+## [4.129.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.129.0...v4.129.1) (2026-02-11)
+
+### Bug Fixes
+
+* **plotly:** Update debounce wait time ([#670](https://github.com/ni/systemlink-grafana-plugins/issues/670)) ([b0b4d89](https://github.com/ni/systemlink-grafana-plugins/commit/b0b4d8967ac713a2cb6e7c22301a0ab9d878380e))
+
 ## [4.129.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.128.3...v4.129.0) (2026-02-10)
 
 ### Features

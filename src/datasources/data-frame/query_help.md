@@ -36,7 +36,7 @@ The **SystemLink Data Frames** data source allows you to display data table prop
 
 ## URL Length Considerations
 
-When using the **Filter x-axis range on zoom/pan** feature on data tables with numeric columns, excessive use of zoom and pan operations can cause a URI Length error.
+When using the **Filter by x-axis range on zoom or pan** feature on data tables with numeric columns, excessive use of zoom and pan operations can cause a URI Length error.
 
 Use the following methods to avoid a URI Length error.
 

@@ -42,7 +42,8 @@ export class AssetSummaryDataSource extends AssetDataSourceBase {
         { name: assetSummaryFields.ACTIVE, values: [assets.active] },
         { name: assetSummaryFields.NOT_ACTIVE, values: [assets.notActive] },
         { name: assetSummaryFields.APPROACHING_DUE_DATE, values: [assets.approachingRecommendedDueDate] },
-        { name: assetSummaryFields.PAST_DUE_DATE, values: [assets.pastRecommendedDueDate] }
+        { name: assetSummaryFields.PAST_DUE_DATE, values: [assets.pastRecommendedDueDate] },
+        { name: assetSummaryFields.OUT_FOR_CALIBRATION, values: [assets.outForCalibration] }
       ]
     };
   }

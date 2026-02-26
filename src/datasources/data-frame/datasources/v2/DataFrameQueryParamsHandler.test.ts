@@ -127,4 +127,339 @@ describe('DataFrameQueryParamsHandler', () => {
       expect(targets).toEqual(['a', 'b', 'c']);
     });
   });
+
+  describe('getXColumnRangeFromUrlParams', () => {
+    it('should retrieve min and max numeric values from URL params', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': '50.5',
+        'nisl-voltage-max': '150.75'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toEqual({
+        min: 50.5,
+        max: 150.75
+      });
+    });
+
+    it('should handle column names with hyphens', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-my-column-name-min': '10',
+        'nisl-my-column-name-max': '20'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('my-column-name');
+
+      expect(result).toEqual({
+        min: 10,
+        max: 20
+      });
+    });
+
+    it('should be case-sensitive for column names', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-Voltage-min': '100',
+        'nisl-Voltage-max': '200'
+      });
+
+      const resultLower = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+      expect(resultLower).toBeNull();
+
+      const resultUpper = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('Voltage');
+      expect(resultUpper).toEqual({
+        min: 100,
+        max: 200
+      });
+    });
+
+    it('should handle equal min and max values for single-point filtering', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': '50.5',
+        'nisl-voltage-max': '50.5'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toEqual({
+        min: 50.5,
+        max: 50.5
+      });
+    });
+
+    it('should handle high precision values', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': '10.123456789012',
+        'nisl-voltage-max': '100.987654321098'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toEqual({
+        min: 10.123456789012,
+        max: 100.987654321098
+      });
+    });
+
+    it('should handle negative numbers', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': '-50.5',
+        'nisl-voltage-max': '150.75'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toEqual({
+        min: -50.5,
+        max: 150.75
+      });
+    });
+
+    it('should handle negative range', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': '-150.75',
+        'nisl-voltage-max': '-50.5'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toEqual({
+        min: -150.75,
+        max: -50.5
+      });
+    });
+
+    it('should handle decimal values without leading zero', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': '.5',
+        'nisl-voltage-max': '.75'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toEqual({
+        min: 0.5,
+        max: 0.75
+      });
+    });
+
+    it('should handle integer values', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': '100',
+        'nisl-voltage-max': '200'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toEqual({
+        min: 100,
+        max: 200
+      });
+    });
+
+    it('should handle scientific notation', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': '1e5',
+        'nisl-voltage-max': '2e5'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toEqual({
+        min: 100000,
+        max: 200000
+      });
+    });
+
+    it('should handle zero values', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': '0',
+        'nisl-voltage-max': '0'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toEqual({
+        min: 0,
+        max: 0
+      });
+    });
+
+    it('should handle duplicate URL parameters by taking the last value', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': ['10', '50', '100'],
+        'nisl-voltage-max': ['20', '60', '200']
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toEqual({
+        min: 100,
+        max: 200
+      });
+    });
+
+    it('should handle when URL param is a number type', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': 50,
+        'nisl-voltage-max': 150
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toEqual({
+        min: 50,
+        max: 150
+      });
+    });
+
+    it('should return null when min param is missing', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-max': '150.75'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when max param is missing', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': '50.5'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when both params are missing', () => {
+      mockGetSearchObject.mockReturnValue({});
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when min is greater than max', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': '150.75',
+        'nisl-voltage-max': '50.5'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when min value contains invalid characters', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': '50.5abc',
+        'nisl-voltage-max': '150.75'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when max value contains invalid characters', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': '50.5',
+        'nisl-voltage-max': '<script>alert(1)</script>'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when value is empty string', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': '',
+        'nisl-voltage-max': '150.75'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when value is NaN string', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': 'NaN',
+        'nisl-voltage-max': '150.75'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when value is Infinity', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': 'Infinity',
+        'nisl-voltage-max': '150.75'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when value is negative Infinity', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': '50.5',
+        'nisl-voltage-max': '-Infinity'
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when URL params are boolean true', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': true,
+        'nisl-voltage-max': true
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when URL params are boolean false', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': false,
+        'nisl-voltage-max': false
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when array contains boolean values', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': [true, false, true],
+        'nisl-voltage-max': [false, true, false]
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when array is empty', () => {
+      mockGetSearchObject.mockReturnValue({
+        'nisl-voltage-min': [],
+        'nisl-voltage-max': []
+      });
+
+      const result = DataFrameQueryParamsHandler.getXColumnRangeFromUrlParams('voltage');
+
+      expect(result).toBeNull();
+    });
+  });
 });

@@ -1,4 +1,4 @@
-FROM pull.artifacts.ni.com/rnd-docker-ci/node:25.2.1-alpine@sha256:f4769ca6eeb6ebbd15eb9c8233afed856e437b75f486f7fccaa81d7c8ad56007
+FROM node:25.6.0-alpine@sha256:c8d96e95e88f08f814af06415db9cfd5ab4ebcdf40721327ff2172ff25cfb997
 
 ENV PORT=8080
 
