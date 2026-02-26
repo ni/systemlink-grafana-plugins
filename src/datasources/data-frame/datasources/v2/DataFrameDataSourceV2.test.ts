@@ -5120,7 +5120,57 @@ describe('DataFrameDataSourceV2', () => {
                         expect(col1Field?.values?.length).toBe(999995);
                     });
 
-                    it('should skip table when remaining capacity is less than column count (maxRowsThatFit is zero)', async () => {
+                    it('should skip table with zero rows from the request', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                name: 'table1',
+                                rowCount: 0,
+                                columns: [
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                ]
+                            },
+                            {
+                                id: 'table2',
+                                name: 'table2',
+                                rowCount: 100,
+                                columns: [
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                ]
+                            }
+                        ];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const secondTableCsvRows = Array.from({ length: 100 }, () => '2.0').join('\n');
+                        const secondTableCsv = 'col1\n' + secondTableCsvRows;
+
+                        postSpy.mockImplementation(() => of(secondTableCsv));
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'NONE',
+                            filterNulls: false,
+                            applyTimeFilters: false,
+                            undecimatedRecordCount: 1000000
+                        } as DataFrameQueryV2;
+
+                        const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                        await jest.runAllTimersAsync();
+                        const result = await queryPromise;
+
+                        expect(postSpy).toHaveBeenCalledTimes(1);
+                        
+                        const postCall = postSpy.mock.calls[0];
+                        expect(postCall[0]).toContain('table2');
+
+                        const col1Field = findField(result.fields, 'col1');
+                        expect(col1Field?.values?.length).toBe(100);
+                    });
+
+                    it('should skip table from the request when remaining capacity is less than column count', async () => {
                         const mockTables = [
                             {
                                 id: 'table1',

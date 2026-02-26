@@ -476,6 +476,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 );
 
                 const actualRowCount = tableRowCountMap[tableId] ?? requestedRows;
+                if (actualRowCount === 0) {  
+                    return [];  
+                }  
+                
                 const expectedRowCount = Math.min(requestedRows, actualRowCount);
                 const expectedDataPoints = expectedRowCount * selectedColumnCount;
                 const remainingDataPointsCapacity = MAXIMUM_DATA_POINTS - totalDataPointsAcrossTables;
