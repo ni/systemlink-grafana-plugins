@@ -38,12 +38,12 @@ test.describe('Calibration Forecast', () => {
         await pressEscape(dashboard.page);
         await dashboard.panel.assetQueryEditor.selectGroupBy('Month');
         await dashboard.panel.assetQueryEditor.addFilter('Asset Type', 'equals', 'Device under test');
-        await dashboard.panel.assetQueryEditor.openDateTimePicker();
-        await dashboard.panel.assetQueryEditor.setTimeRange('2026-03-01 00:00:00', '2026-03-31 23:59:59');
+        await dashboard.panel.toolbar.openDateTimePicker();
+        await dashboard.panel.toolbar.setTimeRange('2026-03-01 00:00:00', '2026-03-31 23:59:59', 'Coordinated Universal Time');
 
         const [forecastResponse] = await Promise.all([
             interceptApiRoute<CalibrationForecastResponse>(dashboard.page, '**/niapm/v1/assets/calibration-forecast'),
-            dashboard.panel.assetQueryEditor.refreshData()
+            dashboard.panel.toolbar.refreshData()
         ]);
 
         await dashboard.panel.assetQueryEditor.switchToTableView();
@@ -57,12 +57,11 @@ test.describe('Calibration Forecast', () => {
         ) as CountColumn;
 
         expect(assetsColumn).toBeDefined();
-        expect(assetsColumn.values.length).toBe(2);
+        expect(assetsColumn.values.length).toBe(1);
 
         const tableRowCount = await dashboard.panel.table.getTableRowCount();
-        expect(tableRowCount).toBe(2);
-        expect(await dashboard.panel.table.checkColumnValue('Month', 'February 2026', 0)).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Month', 'March 2026', 1)).toBeTruthy();
+        expect(tableRowCount).toBe(1);
+        expect(await dashboard.panel.table.checkColumnValue('Month', 'March 2026', 0)).toBeTruthy();
 
         for (let rowIndex = 0; rowIndex < assetsColumn.values.length; rowIndex++) {
             const expectedValue = assetsColumn.values[rowIndex].toString();

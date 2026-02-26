@@ -1,6 +1,6 @@
 import { Page, Locator } from '@playwright/test';
 import { pressEnter } from '../../../utils/keyboard-utilities';
-import { assetColumn } from '../../../constants/asset-list-properties.constant';
+import { assetColumn, timeOutPeriod } from '../../../constants/asset-list-properties.constant';
 
 export class AssetQueryEditorComponent {
     readonly page: Page;
@@ -33,18 +33,6 @@ export class AssetQueryEditorComponent {
         return this.page.getByRole('button', { name: 'Switch to table' });
     }
 
-    public get refreshButton(): Locator {
-        return this.page.getByTestId('data-testid RefreshPicker run button');
-    }
-
-    public get timeRangeFromField(): Locator {
-        return this.page.getByTestId('data-testid Time Range from field');
-    }
-
-    public get timeRangeToField(): Locator {
-        return this.page.getByTestId('data-testid Time Range to field');
-    }
-
     public selectQueryBuilderPropertyOption(optionName: string): Locator {
         return this.page.getByRole('option', { name: optionName }).locator('a');
     }
@@ -55,10 +43,6 @@ export class AssetQueryEditorComponent {
 
     public get emptyGroupByDropdown(): Locator {
         return this.page.getByTestId('query-editor-row').getByText('Choose');
-    }
-
-    public get dateTimePicker(): Locator {
-        return this.page.getByTestId('data-testid TimePicker Open Button');
     }
 
     public selectGroupByOption(option: string): Locator {
@@ -105,16 +89,13 @@ export class AssetQueryEditorComponent {
     }
 
     async switchToTableView(): Promise<void> {
+        await this.page.waitForTimeout(timeOutPeriod);
         await this.switchToTableViewButton.click();
     }
 
     async openVariableDropdown(variableName: string, variableOption: string): Promise<void> {
         await this.variableDropdown(variableName).click();
         await this.variableDropdownOption(variableOption).click();
-    }
-
-    async refreshData(): Promise<void> {
-        await this.refreshButton.click();
     }
 
     async openQueryProperties(): Promise<void> {
@@ -138,15 +119,5 @@ export class AssetQueryEditorComponent {
     async selectGroupBy(option: string): Promise<void> {
         await this.openEmptyGroupByDropdown();
         await this.selectGroupByOption(option).click();
-    }
-
-    async openDateTimePicker(): Promise<void> {
-        await this.dateTimePicker.click();
-    }
-
-    async setTimeRange(from: string, to: string): Promise<void> {
-        await this.timeRangeFromField.fill(from);
-        await this.timeRangeToField.fill(to);
-        await this.page.getByTestId('data-testid TimePicker submit button').click();
     }
 }
