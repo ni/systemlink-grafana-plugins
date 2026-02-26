@@ -3688,7 +3688,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
-                        rowCount: 10000,
+                        rowCount: 10_000,
                         columns: [
                             { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -3729,7 +3729,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
-                        rowCount: 10000,
+                        rowCount: 10_000,
                         columns: [
                             { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -5398,7 +5398,7 @@ describe('DataFrameDataSourceV2', () => {
                                 {
                                     id: 'table2',
                                     name: 'table2',
-                                    rowCount: 100000,
+                                    rowCount: 100_000,
                                     columns: [
                                         { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                         { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
@@ -5408,7 +5408,7 @@ describe('DataFrameDataSourceV2', () => {
                                 {
                                     id: 'table3',
                                     name: 'table3',
-                                    rowCount: 100000,
+                                    rowCount: 100_000,
                                     columns: [
                                         { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                         { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
