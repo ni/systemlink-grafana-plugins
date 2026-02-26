@@ -304,18 +304,28 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private getTableData$(
         tableColumnsMap: Record<string, TableColumnsData>,
+        tableRowCountMap: Record<string, number>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange,
         maxDataPoints = 1000
     ): Observable<{ data: Record<string, TableDataRows>; isLimitExceeded: boolean }> {
-        const queryUndecimatedData = this.isQueryUndecimatedDataFeatureEnabled 
-            && query.decimationMethod === 'NONE';
+        const queryUndecimatedData = this.isUndecimatedDataQuery(query);
 
         if (queryUndecimatedData) {
-            const requests = this.getUndecimatedDataRequests(tableColumnsMap, query, timeRange);
+            const { requests, isDataPointLimitReached } = this.getUndecimatedDataRequests(
+                tableColumnsMap,
+                tableRowCountMap,
+                query,
+                timeRange,
+            );
             return this.queryTableDataInBatches$(
                 requests,
                 request => this.getUndecimatedTableData$(request)
+            ).pipe(
+                map(result => ({
+                    ...result,
+                    isLimitExceeded: result.isLimitExceeded || isDataPointLimitReached
+                }))
             );
         }
 
@@ -441,44 +451,90 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private getUndecimatedDataRequests(
         tableColumnsMap: Record<string, TableColumnsData>,
+        tableRowCountMap: Record<string, number>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange
-    ): UndecimatedDataRequest[] {
-        return Object.entries(tableColumnsMap)
-            .filter(([_, columnsMap]) => columnsMap.selectedColumns.length > 0)
-            .map(([tableId, columnsMap]) => {
-                const numberOfSelectedColumns = columnsMap.selectedColumns.length;
-                const maximumRecordCount = Math.floor(
-                    UNDECIMATED_RECORDS_LIMIT / numberOfSelectedColumns
-                );
-                const take = Math.min(
-                    query.undecimatedRecordCount ?? maximumRecordCount,
-                    maximumRecordCount
-                );
-                const filters = this.constructColumnFilters(
-                    query,
-                    columnsMap,
-                    timeRange
-                );
-                const orderBy = query.xColumn 
-                    ? [{ column: this.parseColumnIdentifier(query.xColumn).columnName }]
-                    : [
-                        { 
-                            column: columnsMap.columns.find(
-                                column => column.columnType === ColumnType.Index
-                            )!.name
-                        }
-                    ];
+    ): { 
+        requests: UndecimatedDataRequest[];
+        isDataPointLimitReached: boolean 
+    } {
+        const requests: UndecimatedDataRequest[] = [];
+        let isDataPointLimitReached = false;
 
-                return {
-                    tableId,
-                    columns: columnsMap.selectedColumns.map(column => column.name),
-                    orderBy,
-                    filters,
-                    take
-                };
+        const tablesWithSelectedColumns = Object.entries(tableColumnsMap)
+            .filter(([tableId, columnsMap]) => {
+                const tableRowCount = tableRowCountMap[tableId];
+                return columnsMap.selectedColumns.length > 0 && tableRowCount > 0;
+            });
+
+        let totalDataPointsAcrossTables = 0;
+        const configuredTake = query.undecimatedRecordCount;
+        for (const [tableId, columnsMap] of tablesWithSelectedColumns) {
+            const remainingDataPointsCapacity = MAXIMUM_DATA_POINTS - totalDataPointsAcrossTables;
+            if (remainingDataPointsCapacity === 0) {
+                isDataPointLimitReached = true;
+                break;
             }
+
+            let take = Math.min(configuredTake, tableRowCountMap[tableId]);
+            const selectedColumnsCount = columnsMap.selectedColumns.length;
+            const dataPoints = take * selectedColumnsCount;
+            const canFitAllDataPoints = dataPoints <= remainingDataPointsCapacity;
+            if (!canFitAllDataPoints) {
+                take = Math.floor(remainingDataPointsCapacity / selectedColumnsCount);
+                isDataPointLimitReached = true;
+            }
+
+            if (take !== 0) {
+                const request = this.constructUndecimatedDataRequest(
+                    tableId,
+                    columnsMap,
+                    query,
+                    timeRange,
+                    take
+                );
+                requests.push(request);
+            }
+
+            const dataPointsQueried = take * selectedColumnsCount;
+            totalDataPointsAcrossTables += dataPointsQueried;
+
+            if(isDataPointLimitReached) {
+                break;
+            }
+        }
+        return { requests, isDataPointLimitReached };
+    }
+
+    private constructUndecimatedDataRequest(
+        tableId: string,
+        columnsMap: TableColumnsData,
+        query: ValidDataFrameQueryV2,
+        timeRange: TimeRange,
+        take: number
+    ): UndecimatedDataRequest {
+        const filters = this.constructColumnFilters(
+            query,
+            columnsMap,
+            timeRange
         );
+        const orderBy = query.xColumn
+            ? [{ column: this.parseColumnIdentifier(query.xColumn).columnName }]
+            : [
+                {
+                    column: columnsMap.columns.find(
+                        column => column.columnType === ColumnType.Index
+                    )!.name
+                }
+            ];
+
+        return {
+            tableId,
+            columns: columnsMap.selectedColumns.map(column => column.name),
+            orderBy,
+            filters,
+            take
+        };
     }
 
     private constructColumnFilters(
@@ -1040,8 +1096,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return false;
         }
 
-        const isUndecimatedDataQuery = this.isQueryUndecimatedDataFeatureEnabled
-            && query.decimationMethod === 'NONE';
+        const isUndecimatedDataQuery = this.isUndecimatedDataQuery(query);
 
         if (isUndecimatedDataQuery) {
             const recordCount =  
@@ -1062,6 +1117,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             query.resultFilter !== ''
             || query.dataTableFilter !== ''
         );
+    }
+
+    private isUndecimatedDataQuery(query: ValidDataFrameQueryV2): boolean {
+        return this.isQueryUndecimatedDataFeatureEnabled
+            && query.decimationMethod === 'NONE';
     }
 
     private getFieldsForDataQuery$(
@@ -1105,6 +1165,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     DataTableProjections.ColumnDataType,
                     DataTableProjections.ColumnType,
                 ];
+
+                if (this.isUndecimatedDataQuery(processedQuery)) {
+                    projections.push(DataTableProjections.RowCount);
+                }
 
                 if (processedQuery.showUnits) {
                     projections.push(DataTableProjections.ColumnProperties);  
@@ -1154,6 +1218,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                             processedQuery.showUnits
                         );
 
+                        const tableRowCountMap: Record<string, number> = Object.fromEntries(
+                            tables.map(table => [table.id, table.rowCount])
+                        );
+
                         const hasOnlyMetadataFields = selectedColumnIdentifiers.every(
                             selectedColumnIdentifier => selectedColumnIdentifier === DATA_TABLE_ID_FIELD || selectedColumnIdentifier === DATA_TABLE_NAME_FIELD
                         );
@@ -1175,6 +1243,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                                 })
                                 : this.getTableData$(
                                     tableColumnsMap,
+                                    tableRowCountMap,
                                     processedQuery,
                                     options.range,
                                     options.maxDataPoints
