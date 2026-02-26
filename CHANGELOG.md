@@ -1,3 +1,9 @@
+## [4.135.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.135.1...v4.135.2) (2026-02-26)
+
+### Bug Fixes
+
+* **dataframe:** limit the number of undecimated requests using row count ([#685](https://github.com/ni/systemlink-grafana-plugins/issues/685)) ([c236d8c](https://github.com/ni/systemlink-grafana-plugins/commit/c236d8ce01e5eeaefad35242e903199a38caea07))
+
 ## [4.135.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.135.0...v4.135.1) (2026-02-26)
 
 ### Bug Fixes
