@@ -6,6 +6,12 @@ on:
       - main
       - alpha
   workflow_dispatch:
+    inputs:
+      upload-playwright-report:
+        description: "Upload Playwright report on failure"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build_and_test:
@@ -50,7 +56,7 @@ jobs:
         run: npm run test:acceptance
 
       - name: Upload Playwright report
-        if: failure() && github.event.inputs.upload_playwright_report == 'true'
+        if: failure() && github.event.inputs.upload-playwright-report == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
