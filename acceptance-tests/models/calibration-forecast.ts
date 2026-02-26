@@ -1,6 +1,6 @@
 export interface CalibrationForecastResponse {
     calibrationForecast: {
-        columns: (TimeColumn | CountColumn)[];
+        columns: Array<TimeColumn | CountColumn>;
     };
 }
 
