@@ -214,6 +214,34 @@ describe('DataFrameDataSourceV2', () => {
                 );
             });
 
+            it('should call updateSyncXAxisRangeTargetsQueryParam with true when filterXRangeOnZoomPan is enabled for all queries in a panel', async () => {
+                const optionsWithAllQueriesTimeRangeOn = {
+                    ...optionsWithPanelId,
+                    targets: [
+                        {
+                            ...query,
+                            applyTimeFilters: true,
+                        },
+                        {
+                            ...query,
+                            applyTimeFilters: true,
+                        }
+                    ],
+                } as unknown as DataQueryRequest<DataFrameQueryV2>;
+
+                await lastValueFrom(
+                    ds.runQuery(
+                        optionsWithAllQueriesTimeRangeOn.targets[0],
+                        optionsWithAllQueriesTimeRangeOn
+                    )
+                );
+
+                expect(DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam).toHaveBeenCalledWith(
+                    true,
+                    '42'
+                );
+            });
+
             describe('when high resolution zoom feature is disabled', () => {
                 let dsWithHighResZoomDisabled: DataFrameDataSourceV2;
 
@@ -6861,7 +6889,7 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         describe('DataFrameDataQuery.filterXRangeOnZoomPan', () => {
-            it('should copy applyTimeFilters value into filterXRangeOnZoomPan and remove applyTimeFilters', () => {
+            it('should migrate enabled applyTimeFilters to filterXRangeOnZoomPan and remove applyTimeFilters', () => {
                 const v1Query = {
                     type: DataFrameQueryType.Data,
                     tableId: 'table-123',
@@ -6872,6 +6900,20 @@ describe('DataFrameDataSourceV2', () => {
                 const result = ds.processQuery(v1Query);
 
                 expect(result.filterXRangeOnZoomPan).toBe(true);
+                expect(result).not.toHaveProperty('applyTimeFilters');
+            });
+
+            it('should migrate disabled applyTimeFilters to filterXRangeOnZoomPan and remove applyTimeFilters', () => {
+                const v1Query = {
+                    type: DataFrameQueryType.Data,
+                    tableId: 'table-123',
+                    applyTimeFilters: false,
+                    refId: 'B'
+                } as DataFrameQueryV1;
+
+                const result = ds.processQuery(v1Query);
+
+                expect(result.filterXRangeOnZoomPan).toBe(false);
                 expect(result).not.toHaveProperty('applyTimeFilters');
             });
         });
