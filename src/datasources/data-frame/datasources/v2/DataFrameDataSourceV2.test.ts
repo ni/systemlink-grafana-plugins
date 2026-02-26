@@ -5122,11 +5122,6 @@ describe('DataFrameDataSourceV2', () => {
                     });
 
                     it('should skip table when remaining capacity is less than column count (maxRowsThatFit is zero)', async () => {
-                        // Table 1: 999999 rows × 1 column = 999,999 data points
-                        // Remaining capacity: 1 data point
-                        // Table 2: 100 rows × 3 columns = would need at least 3 data points for 1 row
-                        // maxRowsThatFit = floor(1 / 3) = 0
-                        // So table 2 should be skipped
                         const mockTables = [
                             {
                                 id: 'table1',
