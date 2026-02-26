@@ -4997,7 +4997,7 @@ describe('DataFrameDataSourceV2', () => {
                         expect(totalDataPoints).toBeLessThanOrEqual(MAXIMUM_DATA_POINTS);
                     });
 
-                    it('should include table with full take when estimated data points exceed remaining capacity but capacity exists', async () => {
+                    it('should include table with truncated take when estimated data points exceed remaining capacity but capacity exists', async () => {
                         const mockTables = [
                             {
                                 id: 'table1',
@@ -5049,6 +5049,10 @@ describe('DataFrameDataSourceV2', () => {
                         const result = await queryPromise;
 
                         expect(postSpy).toHaveBeenCalledTimes(2);
+                        const secondPostCall = postSpy.mock.calls[1];
+                        expect(secondPostCall[1]).toMatchObject({
+                            take: 10
+                        });
 
                         const col1Field = findField(result.fields, 'col1');
                         expect(col1Field?.values?.length).toBeGreaterThanOrEqual(999990);
