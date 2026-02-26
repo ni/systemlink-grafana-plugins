@@ -515,27 +515,27 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         take: number
     ): UndecimatedDataRequest {
         const filters = this.constructColumnFilters(
-                query,
-                columnsMap,
-                timeRange
-            );
-            const orderBy = query.xColumn 
-                ? [{ column: this.parseColumnIdentifier(query.xColumn).columnName }]
-                : [
-                    { 
-                        column: columnsMap.columns.find(
-                            column => column.columnType === ColumnType.Index
-                        )!.name
-                    }
-                ];
+            query,
+            columnsMap,
+            timeRange
+        );
+        const orderBy = query.xColumn
+            ? [{ column: this.parseColumnIdentifier(query.xColumn).columnName }]
+            : [
+                {
+                    column: columnsMap.columns.find(
+                        column => column.columnType === ColumnType.Index
+                    )!.name
+                }
+            ];
 
-            return{
-                tableId,
-                columns: columnsMap.selectedColumns.map(column => column.name),
-                orderBy,
-                filters,
-                take
-            };
+        return {
+            tableId,
+            columns: columnsMap.selectedColumns.map(column => column.name),
+            orderBy,
+            filters,
+            take
+        };
     }
 
     private constructColumnFilters(
