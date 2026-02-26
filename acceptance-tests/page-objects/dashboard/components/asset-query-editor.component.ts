@@ -37,12 +37,32 @@ export class AssetQueryEditorComponent {
         return this.page.getByTestId('data-testid RefreshPicker run button');
     }
 
+    public get timeRangeFromField(): Locator {
+        return this.page.getByTestId('data-testid Time Range from field');
+    }
+
+    public get timeRangeToField(): Locator {
+        return this.page.getByTestId('data-testid Time Range to field');
+    }
+
     public selectQueryBuilderPropertyOption(optionName: string): Locator {
         return this.page.getByRole('option', { name: optionName }).locator('a');
     }
 
     public get propertiesField(): Locator {
         return this.page.getByTestId('query-editor-row');
+    }
+
+    public get emptyGroupByDropdown(): Locator {
+        return this.page.getByTestId('query-editor-row').getByText('Choose');
+    }
+
+    public get dateTimePicker(): Locator {
+        return this.page.getByTestId('data-testid TimePicker Open Button');
+    }
+
+    public selectGroupByOption(option: string): Locator {
+        return this.page.getByRole('option', { name: option });
     }
 
     public propertiesOptions(optionName: string): Locator {
@@ -109,5 +129,24 @@ export class AssetQueryEditorComponent {
         for (const property of propertiesList) {
             await this.selectQueryProperty(property);
         }
+    }
+
+    async openEmptyGroupByDropdown(): Promise<void> {
+        await this.emptyGroupByDropdown.click();
+    }
+
+    async selectGroupBy(option: string): Promise<void> {
+        await this.openEmptyGroupByDropdown();
+        await this.selectGroupByOption(option).click();
+    }
+
+    async openDateTimePicker(): Promise<void> {
+        await this.dateTimePicker.click();
+    }
+
+    async setTimeRange(from: string, to: string): Promise<void> {
+        await this.timeRangeFromField.fill(from);
+        await this.timeRangeToField.fill(to);
+        await this.page.getByTestId('data-testid TimePicker submit button').click();
     }
 }

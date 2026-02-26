@@ -31,6 +31,10 @@ export class Table {
         return this.page.getByRole('columnheader').nth(index);
     }
 
+    public getColumnHeaderByName(name: string): Locator {
+        return this.page.getByRole('columnheader', { name });
+    }
+
     async getColumnHeaderText(index: number): Promise<string> {
         return await this.getColumnHeaderByIndex(index).textContent() || '';
     }
