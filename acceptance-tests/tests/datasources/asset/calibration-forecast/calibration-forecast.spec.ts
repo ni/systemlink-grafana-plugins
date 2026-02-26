@@ -3,7 +3,7 @@ import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { pressEscape } from '../../../../utils/keyboard-utilities';
-import { interceptApiRoute } from '../../../../utils/intercepting-api-route';
+import { interceptApiRoute } from '../../../../utils/intercept-api-route';
 
 interface CalibrationForecastResponse {
     calibrationForecast: {
