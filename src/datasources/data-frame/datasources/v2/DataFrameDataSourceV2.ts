@@ -460,75 +460,82 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     } {
         let totalDataPointsAcrossTables = 0;
         let isDataPointLimitReached = false;
+        const requests: UndecimatedDataRequest[] = [];
 
-        const requests = Object.entries(tableColumnsMap)
-            .filter(([_, columnsMap]) => columnsMap.selectedColumns.length > 0)
-            .flatMap(([tableId, columnsMap]) => {
-                if (isDataPointLimitReached) {
-                    return [];
-                }
+        const tableEntries = Object.entries(tableColumnsMap)
+            .filter(([_, columnsMap]) => columnsMap.selectedColumns.length > 0);
 
-                const selectedColumnCount = columnsMap.selectedColumns.length;
-                const maxRowsPerTable = Math.floor(UNDECIMATED_RECORDS_LIMIT / selectedColumnCount);
-                const requestedRows = Math.min(
-                    query.undecimatedRecordCount ?? maxRowsPerTable,
-                    maxRowsPerTable
-                );
-
-                const actualRowCount = tableRowCountMap[tableId] ?? requestedRows;
-                if (actualRowCount === 0) {  
-                    return [];  
-                }  
-                
-                const expectedRowCount = Math.min(requestedRows, actualRowCount);
-                const expectedDataPoints = expectedRowCount * selectedColumnCount;
-                const remainingDataPointsCapacity = MAXIMUM_DATA_POINTS - totalDataPointsAcrossTables;
-
-                if (remainingDataPointsCapacity === 0) {
-                    isDataPointLimitReached = true;
-                    return [];
-                }
-
-                let rowsToFetch = requestedRows;
-                if (expectedDataPoints > remainingDataPointsCapacity) {
-                    const maxRowsThatFit = Math.floor(remainingDataPointsCapacity / selectedColumnCount);
-                    if (maxRowsThatFit === 0) {
-                        isDataPointLimitReached = true;
-                        return [];
-                    }
-                    rowsToFetch = maxRowsThatFit;
-                    isDataPointLimitReached = true;
-                }
-
-                const dataPointsToAdd = Math.min(rowsToFetch, actualRowCount) * selectedColumnCount;
-                totalDataPointsAcrossTables += dataPointsToAdd;
-
-                const filters = this.constructColumnFilters(
-                    query,
-                    columnsMap,
-                    timeRange
-                );
-                const orderBy = query.xColumn 
-                    ? [{ column: this.parseColumnIdentifier(query.xColumn).columnName }]
-                    : [
-                        { 
-                            column: columnsMap.columns.find(
-                                column => column.columnType === ColumnType.Index
-                            )!.name
-                        }
-                    ];
-
-                return {
-                    tableId,
-                    columns: columnsMap.selectedColumns.map(column => column.name),
-                    orderBy,
-                    filters,
-                    take: rowsToFetch
-                };
+        for (const [tableId, columnsMap] of tableEntries) {
+            const tableRowCount = tableRowCountMap[tableId];
+            if (tableRowCount === 0) {
+                continue;
             }
-        );
 
+            const remainingDataPointsCapacity = MAXIMUM_DATA_POINTS - totalDataPointsAcrossTables;
+            if (remainingDataPointsCapacity === 0) {
+                isDataPointLimitReached = true;
+                break;
+            }
+
+            const selectedColumnCount = columnsMap.selectedColumns.length;
+            const configuredTake = query.undecimatedRecordCount;
+            let take = Math.min( configuredTake, tableRowCount);
+            const dataPoints = take * selectedColumnCount;
+
+            if (dataPoints > remainingDataPointsCapacity) {
+                take = Math.floor(remainingDataPointsCapacity / selectedColumnCount);
+                isDataPointLimitReached = true;
+            }
+
+            const dataPointsToAdd = take * selectedColumnCount;
+            totalDataPointsAcrossTables += dataPointsToAdd;
+
+            if (take !== 0) {
+                const request = this.constructUndecimatedDataRequest(
+                    tableId,
+                    columnsMap,
+                    query,
+                    timeRange,
+                    take
+                );
+                requests.push(request);
+            }
+            if( isDataPointLimitReached) {
+                break;
+            }
+        }
         return { requests, isDataPointLimitReached };
+    }
+
+    private constructUndecimatedDataRequest(
+        tableId: string,
+        columnsMap: TableColumnsData,
+        query: ValidDataFrameQueryV2,
+        timeRange: TimeRange,
+        take: number
+    ): UndecimatedDataRequest {
+        const filters = this.constructColumnFilters(
+                query,
+                columnsMap,
+                timeRange
+            );
+            const orderBy = query.xColumn 
+                ? [{ column: this.parseColumnIdentifier(query.xColumn).columnName }]
+                : [
+                    { 
+                        column: columnsMap.columns.find(
+                            column => column.columnType === ColumnType.Index
+                        )!.name
+                    }
+                ];
+
+            return{
+                tableId,
+                columns: columnsMap.selectedColumns.map(column => column.name),
+                orderBy,
+                filters,
+                take
+            };
     }
 
     private constructColumnFilters(

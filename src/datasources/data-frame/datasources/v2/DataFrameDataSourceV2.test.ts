@@ -3688,6 +3688,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
+                        rowCount: 10000,
                         columns: [
                             { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
@@ -3722,6 +3723,46 @@ describe('DataFrameDataSourceV2', () => {
                         expect.any(Object)
                     );
                     expect(result.refId).toBe('A');
+                });
+
+                it('should include RowCount projection when querying tables for undecimated data', async () => {
+                    const mockTables = [{
+                        id: 'table1',
+                        name: 'table1',
+                        rowCount: 10000,
+                        columns: [
+                            { name: 'time', dataType: 'TIMESTAMP', columnType: ColumnType.Index },
+                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                        ]
+                    }];
+                    queryTablesSpy.mockReturnValue(of(mockTables));
+
+                    const csvResponse = 'time,voltage\n2024-01-01T00:00:00Z,10.5';
+                    postSpy.mockReturnValue(of(csvResponse));
+
+                    const query = {
+                        refId: 'A',
+                        type: DataFrameQueryType.Data,
+                        columns: ['time-Timestamp', 'voltage-Numeric'],
+                        dataTableFilter: 'name = "Test"',
+                        decimationMethod: 'NONE',
+                        filterNulls: false,
+                        applyTimeFilters: false,
+                        undecimatedRecordCount: 5000
+                    } as DataFrameQueryV2;
+
+                    await lastValueFrom(datasource.runQuery(query, options));
+
+                    expect(queryTablesSpy).toHaveBeenCalledWith(
+                        expect.any(Object),
+                        expect.any(Number),
+                        expect.arrayContaining([
+                            DataTableProjections.ColumnName,
+                            DataTableProjections.ColumnDataType,
+                            DataTableProjections.ColumnType,
+                            DataTableProjections.RowCount,
+                        ])
+                    );
                 });
 
                 it('should parse CSV response correctly into fields', async () => {
@@ -3925,122 +3966,6 @@ describe('DataFrameDataSourceV2', () => {
                     );
             
                 })
-
-                it('should calculate take based on number of columns to ensure total data points <= 1M', async () => {
-                    const mockTables = [{
-                        id: 'table1',
-                        name: 'table1',
-                        columns: [
-                            { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                            { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                            { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                            { name: 'col4', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                            { name: 'col5', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                            { name: 'col6', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                            { name: 'col7', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                            { name: 'col8', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                            { name: 'col9', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                            { name: 'col10', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                        ]
-                    }];
-                    queryTablesSpy.mockReturnValue(of(mockTables));
-
-                    const csvResponse = 'col1,col2,col3,col4,col5,col6,col7,col8,col9,col10\n1,2,3,4,5,6,7,8,9,10';
-                    postSpy.mockReturnValue(of(csvResponse));
-
-                    const query = {
-                        refId: 'A',
-                        type: DataFrameQueryType.Data,
-                        columns: ['col1-Numeric', 'col2-Numeric', 'col3-Numeric', 'col4-Numeric', 'col5-Numeric',
-                                  'col6-Numeric', 'col7-Numeric', 'col8-Numeric', 'col9-Numeric', 'col10-Numeric'],
-                        dataTableFilter: 'name = "Test"',
-                        decimationMethod: 'NONE',
-                        filterNulls: false,
-                        applyTimeFilters: false,
-                        undecimatedRecordCount: 500000
-                    } as DataFrameQueryV2;
-
-                    await lastValueFrom(datasource.runQuery(query, options));
-
-                    expect(postSpy).toHaveBeenCalledWith(
-                        expect.any(String),
-                        expect.objectContaining({
-                            take: 100000
-                        }),
-                        expect.any(Object)
-                    );
-                });
-
-                it('should allow full 1M rows when only 1 column is selected', async () => {
-                    const mockTables = [{
-                        id: 'table1',
-                        name: 'table1',
-                        columns: [
-                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
-                        ]
-                    }];
-                    queryTablesSpy.mockReturnValue(of(mockTables));
-
-                    const csvResponse = 'voltage\n10.5';
-                    postSpy.mockReturnValue(of(csvResponse));
-
-                    const query = {
-                        refId: 'A',
-                        type: DataFrameQueryType.Data,
-                        columns: ['voltage-Numeric'],
-                        dataTableFilter: 'name = "Test"',
-                        decimationMethod: 'NONE',
-                        filterNulls: false,
-                        applyTimeFilters: false,
-                        undecimatedRecordCount: 1000000
-                    } as DataFrameQueryV2;
-
-                    await lastValueFrom(datasource.runQuery(query, options));
-
-                    expect(postSpy).toHaveBeenCalledWith(
-                        expect.any(String),
-                        expect.objectContaining({
-                            take: 1000000
-                        }),
-                        expect.any(Object)
-                    );
-                });
-
-                it('should use user entered undecimatedRecordCount when it is less than calculated max data points', async () => {
-                    const mockTables = [{
-                        id: 'table1',
-                        name: 'table1',
-                        columns: [
-                            { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                            { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                        ]
-                    }];
-                    queryTablesSpy.mockReturnValue(of(mockTables));
-
-                    const csvResponse = 'col1,col2\n1,2';
-                    postSpy.mockReturnValue(of(csvResponse));
-
-                    const query = {
-                        refId: 'A',
-                        type: DataFrameQueryType.Data,
-                        columns: ['col1-Numeric', 'col2-Numeric'],
-                        dataTableFilter: 'name = "Test"',
-                        decimationMethod: 'NONE',
-                        filterNulls: false,
-                        applyTimeFilters: false,
-                        undecimatedRecordCount: 5000
-                    } as DataFrameQueryV2;
-
-                    await lastValueFrom(datasource.runQuery(query, options));
-
-                    expect(postSpy).toHaveBeenCalledWith(
-                        expect.any(String),
-                        expect.objectContaining({
-                            take: 5000
-                        }),
-                        expect.any(Object)
-                    );
-                });
 
                 it('should return empty DataFrame when undecimatedRecordCount is 0', async () => {
                     const query = {
@@ -4823,7 +4748,7 @@ describe('DataFrameDataSourceV2', () => {
                     });
                 });
 
-                describe('batching undecimated data requests', () => {
+                describe('undecimated data requests', () => {
                     beforeEach(() => {
                         jest.useFakeTimers();
                     });
@@ -4832,650 +4757,723 @@ describe('DataFrameDataSourceV2', () => {
                         jest.useRealTimers();
                     });
 
-                    it('should batch undecimated requests with delay between batches', async () => {
-                        const mockTables = Array.from({ length: 8 }, (_, i) => ({
-                            id: `table${i}`,
-                            name: `table${i}`,
-                            rowCount: 1000,
-                            columns: [
-                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
-                            ]
-                        }));
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-
-                        postSpy.mockImplementation(() => of('voltage\n1.0'));
-
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['voltage-Numeric'],
-                            dataTableFilter: 'name = "Test"',
-                            decimationMethod: 'NONE',
-                            filterNulls: false,
-                            applyTimeFilters: false
-                        } as DataFrameQueryV2;
-
-                        lastValueFrom(datasource.runQuery(query, options));
-
-                        await jest.advanceTimersByTimeAsync(0);
-                        expect(postSpy).toHaveBeenCalledTimes(6);
-
-                        await jest.advanceTimersByTimeAsync(1000);
-                        expect(postSpy).toHaveBeenCalledTimes(8);
-                    });
-
-                    it('should stop fetching undecimated data when MAXIMUM_DATA_POINTS is reached', async () => {
-                        const mockTables = Array.from({ length: 10 }, (_, i) => ({
-                            id: `table${i}`,
-                            name: `table${i}`,
-                            rowCount: 300000,
-                            columns: [
-                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
-                            ]
-                        }));
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-
-                        const largeDataRows = Array.from({ length: 300000 }, () => '1.0').join('\n');
-                        const largeCsvResponse = 'voltage\n' + largeDataRows;
-                        postSpy.mockImplementation(() => of(largeCsvResponse));
-
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['voltage-Numeric'],
-                            dataTableFilter: 'name = "Test"',
-                            decimationMethod: 'NONE',
-                            filterNulls: false,
-                            applyTimeFilters: false,
-                            undecimatedRecordCount: 1000000
-                        } as DataFrameQueryV2;
-
-                        const queryPromise = lastValueFrom(datasource.runQuery(query, options));
-                        await jest.runAllTimersAsync();
-                        const result = await queryPromise;
-
-                        expect(postSpy.mock.calls.length).toEqual(4);
-                        expect(result.refId).toBe('A');
-                    });
-
-                    it('should truncate undecimated data when total data points exceed MAXIMUM_DATA_POINTS', async () => {
-                        const mockTables = [
-                            {
+                    describe('getUndecimatedDataRequests', () => {
+                        it('should calculate take based on number of columns to ensure total data points <= 1M', async () => {
+                            const mockTables = [{
                                 id: 'table1',
                                 name: 'table1',
-                                rowCount: 200000,
-                                columns: [
-                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                                    { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                ]
-                            },
-                            {
-                                id: 'table2',
-                                name: 'table2',
-                                rowCount: 200000,
-                                columns: [
-                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                                    { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                ]
-                            }
-                        ];
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-
-                        const firstTableCsvRows = Array.from({ length: 400000 }, () => '1.0,2.0').join('\n');
-                        const firstTableCsv = 'voltage,current\n' + firstTableCsvRows;
-                        
-                        const secondTableCsvRows = Array.from({ length: 200000 }, () => '3.0,4.0').join('\n');
-                        const secondTableCsv = 'voltage,current\n' + secondTableCsvRows;
-
-                        let callCount = 0;
-                        postSpy.mockImplementation(() => {
-                            callCount++;
-                            if (callCount === 1) {
-                                return of(firstTableCsv);
-                            }
-                            return of(secondTableCsv);
-                        });
-
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['voltage-Numeric', 'current-Numeric'],
-                            dataTableFilter: 'name = "Test"',
-                            decimationMethod: 'NONE',
-                            filterNulls: false,
-                            applyTimeFilters: false,
-                            undecimatedRecordCount: 1000000
-                        } as DataFrameQueryV2;
-
-                        const queryPromise = lastValueFrom(datasource.runQuery(query, options));
-                        await jest.runAllTimersAsync();
-                        const result = await queryPromise;
-                        expect(result.fields.length).toBe(2);
-
-                        const voltageField = findField(result.fields, 'voltage');
-                        const currentField = findField(result.fields, 'current');
-                        expect(voltageField?.values?.length).toBe(500000);
-                        expect(currentField?.values?.length).toBe(500000);
-                    });
-
-                    it('should never exceed MAXIMUM_DATA_POINTS when single data tables exceeds MAXIMUM_DATA_POINTS', async () => {
-                        const mockTables = [{
-                            id: 'table1',
-                            name: 'table1',
-                            columns: [
-                                { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                                { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                                { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                            ]
-                        }];
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-
-                        const csvRows = Array.from({ length: 2000000 }, () => '1.0,2.0,3.0').join('\n');
-                        const csvResponse = 'col1,col2,col3\n' + csvRows;
-                        postSpy.mockImplementation(() => of(csvResponse));
-
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['col1-Numeric', 'col2-Numeric', 'col3-Numeric'],
-                            dataTableFilter: 'name = "Test"',
-                            decimationMethod: 'NONE',
-                            filterNulls: false,
-                            applyTimeFilters: false,
-                            undecimatedRecordCount: 1000000
-                        } as DataFrameQueryV2;
-
-                        const queryPromise = lastValueFrom(datasource.runQuery(query, options));
-                        await jest.runAllTimersAsync();
-                        const result = await queryPromise;
-                        expect(result.fields.length).toBe(3);
-
-                        const col1Field = findField(result.fields, 'col1');
-                        const totalRowsFetched = col1Field?.values?.length ?? 0;
-                        const totalDataPoints = totalRowsFetched * 3;
-
-                        expect(totalDataPoints).toBeLessThanOrEqual(MAXIMUM_DATA_POINTS);
-                    });
-
-                    it('should include table with truncated take when estimated data points exceed remaining capacity but capacity exists', async () => {
-                        const mockTables = [
-                            {
-                                id: 'table1',
-                                name: 'table1',
-                                rowCount: 999990,
-                                columns: [
-                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                                ]
-                            },
-                            {
-                                id: 'table2',
-                                name: 'table2',
-                                rowCount: 20,
-                                columns: [
-                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                                ]
-                            }
-                        ];
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-
-                        const firstTableCsvRows = Array.from({ length: 999990 }, () => '1.0').join('\n');
-                        const firstTableCsv = 'col1\n' + firstTableCsvRows;
-
-                        const secondTableCsvRows = Array.from({ length: 20 }, () => '2.0').join('\n');
-                        const secondTableCsv = 'col1\n' + secondTableCsvRows;
-
-                        let callCount = 0;
-                        postSpy.mockImplementation(() => {
-                            callCount++;
-                            if (callCount === 1) {
-                                return of(firstTableCsv);
-                            }
-                            return of(secondTableCsv);
-                        });
-
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['col1-Numeric'],
-                            dataTableFilter: 'name = "Test"',
-                            decimationMethod: 'NONE',
-                            filterNulls: false,
-                            applyTimeFilters: false,
-                            undecimatedRecordCount: 1000000
-                        } as DataFrameQueryV2;
-
-                        const queryPromise = lastValueFrom(datasource.runQuery(query, options));
-                        await jest.runAllTimersAsync();
-                        const result = await queryPromise;
-
-                        expect(postSpy).toHaveBeenCalledTimes(2);
-                        const secondPostCall = postSpy.mock.calls[1];
-                        expect(secondPostCall[1]).toMatchObject({
-                            take: 10
-                        });
-
-                        const col1Field = findField(result.fields, 'col1');
-                        expect(col1Field?.values?.length).toBeGreaterThanOrEqual(999990);
-                    });
-
-                    it('should truncate take value to fit remaining capacity when data points would exceed limit', async () => {
-                        const mockTables = [
-                            {
-                                id: 'table1',
-                                name: 'table1',
-                                rowCount: 999990,
-                                columns: [
-                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                                ]
-                            },
-                            {
-                                id: 'table2',
-                                name: 'table2',
-                                rowCount: 100,
-                                columns: [
-                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                                    { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
-                                ]
-                            }
-                        ];
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-
-                        const firstTableCsvRows = Array.from({ length: 999990 }, () => '1.0').join('\n');
-                        const firstTableCsv = 'col1\n' + firstTableCsvRows;
-
-                        const secondTableCsvRows = Array.from({ length: 100 }, () => '2.0,3.0').join('\n');
-                        const secondTableCsv = 'col1,col2\n' + secondTableCsvRows;
-
-                        let callCount = 0;
-                        postSpy.mockImplementation(() => {
-                            callCount++;
-                            if (callCount === 1) {
-                                return of(firstTableCsv);
-                            }
-                            return of(secondTableCsv);
-                        });
-
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['col1-Numeric', 'col2-Numeric'],
-                            dataTableFilter: 'name = "Test"',
-                            decimationMethod: 'NONE',
-                            filterNulls: false,
-                            applyTimeFilters: false,
-                            undecimatedRecordCount: 1000000
-                        } as DataFrameQueryV2;
-
-                        const queryPromise = lastValueFrom(datasource.runQuery(query, options));
-                        await jest.runAllTimersAsync();
-                        const result = await queryPromise;
-
-                        expect(postSpy).toHaveBeenCalledTimes(2);
-                        const secondPostCall = postSpy.mock.calls[1];
-                        expect(secondPostCall[1]).toMatchObject({
-                            take: 5
-                        });
-
-                        const col1Field = findField(result.fields, 'col1');
-                        expect(col1Field?.values?.length).toBe(999995);
-                    });
-
-                    it('should skip table with zero rows from the request', async () => {
-                        const mockTables = [
-                            {
-                                id: 'table1',
-                                name: 'table1',
-                                rowCount: 0,
-                                columns: [
-                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                                ]
-                            },
-                            {
-                                id: 'table2',
-                                name: 'table2',
-                                rowCount: 100,
-                                columns: [
-                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                                ]
-                            }
-                        ];
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-
-                        const secondTableCsvRows = Array.from({ length: 100 }, () => '2.0').join('\n');
-                        const secondTableCsv = 'col1\n' + secondTableCsvRows;
-
-                        postSpy.mockImplementation(() => of(secondTableCsv));
-
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['col1-Numeric'],
-                            dataTableFilter: 'name = "Test"',
-                            decimationMethod: 'NONE',
-                            filterNulls: false,
-                            applyTimeFilters: false,
-                            undecimatedRecordCount: 1000000
-                        } as DataFrameQueryV2;
-
-                        const queryPromise = lastValueFrom(datasource.runQuery(query, options));
-                        await jest.runAllTimersAsync();
-                        const result = await queryPromise;
-
-                        expect(postSpy).toHaveBeenCalledTimes(1);
-                        
-                        const postCall = postSpy.mock.calls[0];
-                        expect(postCall[0]).toContain('table2');
-
-                        const col1Field = findField(result.fields, 'col1');
-                        expect(col1Field?.values?.length).toBe(100);
-                    });
-
-                    it('should skip table from the request when remaining capacity is less than column count', async () => {
-                        const mockTables = [
-                            {
-                                id: 'table1',
-                                name: 'table1',
-                                rowCount: 999999,
-                                columns: [
-                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                                ]
-                            },
-                            {
-                                id: 'table2',
-                                name: 'table2',
-                                rowCount: 100,
+                                rowCount: 500000,
                                 columns: [
                                     { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                     { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
                                     { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col4', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col5', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col6', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col7', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col8', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col9', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col10', dataType: 'FLOAT64', columnType: ColumnType.Normal }
                                 ]
-                            }
-                        ];
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-
-                        const firstTableCsvRows = Array.from({ length: 999999 }, () => '1.0').join('\n');
-                        const firstTableCsv = 'col1\n' + firstTableCsvRows;
-
-                        const secondTableCsvRows = Array.from({ length: 100 }, () => '2.0,3.0,4.0').join('\n');
-                        const secondTableCsv = 'col1,col2,col3\n' + secondTableCsvRows;
-
-                        let callCount = 0;
-                        postSpy.mockImplementation(() => {
-                            callCount++;
-                            if (callCount === 1) {
-                                return of(firstTableCsv);
-                            }
-                            return of(secondTableCsv);
+                            }];
+                            queryTablesSpy.mockReturnValue(of(mockTables));
+    
+                            const csvResponse = 'col1,col2,col3,col4,col5,col6,col7,col8,col9,col10\n1,2,3,4,5,6,7,8,9,10';
+                            postSpy.mockReturnValue(of(csvResponse));
+    
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['col1-Numeric', 'col2-Numeric', 'col3-Numeric', 'col4-Numeric', 'col5-Numeric',
+                                          'col6-Numeric', 'col7-Numeric', 'col8-Numeric', 'col9-Numeric', 'col10-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'NONE',
+                                filterNulls: false,
+                                applyTimeFilters: false,
+                                undecimatedRecordCount: 500000
+                            } as DataFrameQueryV2;
+    
+                            const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                            await jest.runAllTimersAsync();
+                            await queryPromise;
+    
+                            expect(postSpy).toHaveBeenCalledWith(
+                                expect.any(String),
+                                expect.objectContaining({
+                                    take: 100000
+                                }),
+                                expect.any(Object)
+                            );
                         });
-
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['col1-Numeric', 'col2-Numeric', 'col3-Numeric'],
-                            dataTableFilter: 'name = "Test"',
-                            decimationMethod: 'NONE',
-                            filterNulls: false,
-                            applyTimeFilters: false,
-                            undecimatedRecordCount: 1000000
-                        } as DataFrameQueryV2;
-
-                        const queryPromise = lastValueFrom(datasource.runQuery(query, options));
-                        await jest.runAllTimersAsync();
-                        const result = await queryPromise;
-
-                        // Only table1 should be fetched, table2 skipped because maxRowsThatFit = 0
-                        expect(postSpy).toHaveBeenCalledTimes(1);
-
-                        const col1Field = findField(result.fields, 'col1');
-                        expect(col1Field?.values?.length).toBe(999999);
-                    });
-
-                    it('should skip table when remaining capacity is exactly zero', async () => {
-                        const mockTables = [
-                            {
+    
+                        it('should allow 1M rows as take when only 1 column is selected', async () => {
+                            const mockTables = [{
                                 id: 'table1',
                                 name: 'table1',
-                                rowCount: 1000000,
-                                columns: [
-                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                                ]
-                            },
-                            {
-                                id: 'table2',
-                                name: 'table2',
-                                rowCount: 100,
-                                columns: [
-                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                                ]
-                            }
-                        ];
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-
-                        const firstTableCsvRows = Array.from({ length: 1000000 }, () => '1.0').join('\n');
-                        const firstTableCsv = 'col1\n' + firstTableCsvRows;
-
-                        const secondTableCsvRows = Array.from({ length: 100 }, () => '2.0').join('\n');
-                        const secondTableCsv = 'col1\n' + secondTableCsvRows;
-
-                        let callCount = 0;
-                        postSpy.mockImplementation(() => {
-                            callCount++;
-                            if (callCount === 1) {
-                                return of(firstTableCsv);
-                            }
-                            return of(secondTableCsv);
-                        });
-
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['col1-Numeric'],
-                            dataTableFilter: 'name = "Test"',
-                            decimationMethod: 'NONE',
-                            filterNulls: false,
-                            applyTimeFilters: false,
-                            undecimatedRecordCount: 1000000
-                        } as DataFrameQueryV2;
-
-                        const queryPromise = lastValueFrom(datasource.runQuery(query, options));
-                        await jest.runAllTimersAsync();
-                        const result = await queryPromise;
-
-                        expect(postSpy).toHaveBeenCalledTimes(1);
-
-                        const col1Field = findField(result.fields, 'col1');
-                        expect(col1Field?.values?.length).toBe(1000000);
-                    });
-
-                    it('should set isLimitExceeded flag and show notice when undecimated data is truncated', async () => {
-                        const mockTables = [
-                            {
-                                id: 'table1',
-                                name: 'table1',
-                                rowCount: 500000,
+                                rowCount: 2000000,
                                 columns: [
                                     { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                                 ]
-                            },
-                            {
-                                id: 'table2',
-                                name: 'table2',
-                                rowCount: 500000,
-                                columns: [
-                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
-                                ]
-                            }
-                        ];
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-
-                        const largeCsvRows = Array.from({ length: 600000 }, () => '1.0').join('\n');
-                        const largeCsvResponse = 'voltage\n' + largeCsvRows;
-                        postSpy.mockImplementation(() => of(largeCsvResponse));
-
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['voltage-Numeric'],
-                            dataTableFilter: 'name = "Test"',
-                            decimationMethod: 'NONE',
-                            filterNulls: false,
-                            applyTimeFilters: false,
-                            undecimatedRecordCount: 1000000
-                        } as DataFrameQueryV2;
-
-                        const queryPromise = lastValueFrom(datasource.runQuery(query, options));
-                        await jest.runAllTimersAsync();
-                        const result = await queryPromise;
-
-                        expect(result.meta?.notices).toBeDefined();
-                        expect(result.meta?.notices?.length).toBeGreaterThan(0);
-                        expect(result.meta?.notices?.[0].severity).toBe('warning');
-                        expect(result.meta?.notices?.[0].text).toContain('1,000,000');
-                    });
-
-                    it('should show limit exceeded notice when pre-filtering skips tables due to estimated data points exceeding capacity', async () => {
-                        const mockTables = Array.from({ length: 5 }, (_, i) => ({
-                            id: `table${i + 1}`,
-                            name: `Table ${i + 1}`,
-                            rowCount: 300000,
-                            columns: [
-                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
-                            ]
-                        }));
-                        queryTablesSpy.mockReturnValue(of(mockTables));
-
-                        const csvResponse = 'voltage\n1.0\n2.0';
-                        postSpy.mockImplementation(() => of(csvResponse));
-
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['voltage-Numeric'],
-                            dataTableFilter: 'name = "Test"',
-                            decimationMethod: 'NONE',
-                            filterNulls: false,
-                            applyTimeFilters: false,
-                            undecimatedRecordCount: 1000000
-                        } as DataFrameQueryV2;
-
-                        const queryPromise = lastValueFrom(datasource.runQuery(query, options));
-                        await jest.runAllTimersAsync();
-                        const result = await queryPromise;
-
-                        expect(postSpy.mock.calls.length).toEqual(4);
-                        
-                        expect(result.meta?.notices).toBeDefined();
-                        expect(result.meta?.notices?.length).toBeGreaterThan(0);
-                        expect(result.meta?.notices?.[0].severity).toBe('warning');
-                        expect(result.meta?.notices?.[0].text).toContain('1,000,000');
-                    });
-
-                    it('should show limit exceeded when undecimated data is truncated even if total points is not exactly MAXIMUM_DATA_POINTS', async () => {
-                        const mockTables = [
-                            {
+                            }];
+                            queryTablesSpy.mockReturnValue(of(mockTables));
+    
+                            const csvResponse = 'voltage\n10.5';
+                            postSpy.mockReturnValue(of(csvResponse));
+    
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['voltage-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'NONE',
+                                filterNulls: false,
+                                applyTimeFilters: false,
+                                undecimatedRecordCount: 1000000
+                            } as DataFrameQueryV2;
+    
+                            const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                            await jest.runAllTimersAsync();
+                            await queryPromise;
+    
+                            expect(postSpy).toHaveBeenCalledWith(
+                                expect.any(String),
+                                expect.objectContaining({
+                                    take: 1000000
+                                }),
+                                expect.any(Object)
+                            );
+                        });
+    
+                        it('should use user entered undecimatedRecordCount as take when it is less than calculated data points', async () => {
+                            const mockTables = [{
                                 id: 'table1',
                                 name: 'table1',
-                                rowCount: 999997,
-                                columns: [
-                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index }
-                                ]
-                            },
-                            {
-                                id: 'table2',
-                                name: 'table2',
-                                rowCount: 1,
+                                rowCount: 10000,
                                 columns: [
                                     { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                                     { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
                                 ]
-                            }
-                        ];
-                        queryTablesSpy.mockReturnValue(of(mockTables));
+                            }];
+                            queryTablesSpy.mockReturnValue(of(mockTables));
+    
+                            const csvResponse = 'col1,col2\n1,2';
+                            postSpy.mockReturnValue(of(csvResponse));
+    
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['col1-Numeric', 'col2-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'NONE',
+                                filterNulls: false,
+                                applyTimeFilters: false,
+                                undecimatedRecordCount: 5000
+                            } as DataFrameQueryV2;
+    
+                            const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                            await jest.runAllTimersAsync();
+                            await queryPromise;
+    
+                            expect(postSpy).toHaveBeenCalledWith(
+                                expect.any(String),
+                                expect.objectContaining({
+                                    take: 5000
+                                }),
+                                expect.any(Object)
+                            );
+                        });
+    
+                        it('should truncate take value to fit the available datapoints when data points exceed limit', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table1',
+                                    name: 'table1',
+                                    rowCount: 999990,
+                                    columns: [
+                                        { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                    ]
+                                },
+                                {
+                                    id: 'table2',
+                                    name: 'table2',
+                                    rowCount: 100,
+                                    columns: [
+                                        { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                        { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    ]
+                                }
+                            ];
+                            queryTablesSpy.mockReturnValue(of(mockTables));
+    
+                            const firstTableCsvRows = Array.from({ length: 999990 }, () => '1.0').join('\n');
+                            const firstTableCsv = 'col1\n' + firstTableCsvRows;
+    
+                            const secondTableCsvRows = Array.from({ length: 100 }, () => '2.0,3.0').join('\n');
+                            const secondTableCsv = 'col1,col2\n' + secondTableCsvRows;
+    
+                            let callCount = 0;
+                            postSpy.mockImplementation(() => {
+                                callCount++;
+                                if (callCount === 1) {
+                                    return of(firstTableCsv);
+                                }
+                                return of(secondTableCsv);
+                            });
+    
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['col1-Numeric', 'col2-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'NONE',
+                                filterNulls: false,
+                                applyTimeFilters: false,
+                                undecimatedRecordCount: 1000000
+                            } as DataFrameQueryV2;
+    
+                            const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                            await jest.runAllTimersAsync();
+                            const result = await queryPromise;
+    
+                            expect(postSpy).toHaveBeenCalledTimes(2);
+                            const secondPostCall = postSpy.mock.calls[1];
+                            expect(secondPostCall[1]).toMatchObject({
+                                take: 5
+                            });
+    
+                            const col1Field = findField(result.fields, 'col1');
+                            expect(col1Field?.values?.length).toBe(999995);
+                        });
+    
+                        it('should skip table with zero rows from the request', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table1',
+                                    name: 'table1',
+                                    rowCount: 0,
+                                    columns: [
+                                        { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                    ]
+                                },
+                                {
+                                    id: 'table2',
+                                    name: 'table2',
+                                    rowCount: 100,
+                                    columns: [
+                                        { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                    ]
+                                }
+                            ];
+                            queryTablesSpy.mockReturnValue(of(mockTables));
 
-                        const firstTableCsvRows = Array.from({ length: 999997 }, () => '1.0').join('\n');
-                        const firstTableCsv = 'col1\n' + firstTableCsvRows;
+                            const secondTableCsvRows = Array.from({ length: 100 }, () => '2.0').join('\n');
+                            const secondTableCsv = 'col1\n' + secondTableCsvRows;
 
-                        const secondTableCsvRows = Array.from({ length: 100 }, () => '2.0,3.0').join('\n');
-                        const secondTableCsv = 'col1,col2\n' + secondTableCsvRows;
+                            postSpy.mockImplementation(() => of(secondTableCsv));
 
-                        let callCount = 0;
-                        postSpy.mockImplementation(() => {
-                            callCount++;
-                            if (callCount === 1) {
-                                return of(firstTableCsv);
-                            }
-                            return of(secondTableCsv);
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['col1-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'NONE',
+                                filterNulls: false,
+                                applyTimeFilters: false,
+                                undecimatedRecordCount: 1000000
+                            } as DataFrameQueryV2;
+
+                            const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                            await jest.runAllTimersAsync();
+                            const result = await queryPromise;
+
+                            expect(postSpy).toHaveBeenCalledTimes(1);
+
+                            const postCall = postSpy.mock.calls[0];
+                            expect(postCall[0]).toContain('table2');
+
+                            const col1Field = findField(result.fields, 'col1');
+                            expect(col1Field?.values?.length).toBe(100);
                         });
 
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['col1-Numeric', 'col2-Numeric'],
-                            dataTableFilter: 'name = "Test"',
-                            decimationMethod: 'NONE',
-                            filterNulls: false,
-                            applyTimeFilters: false,
-                            undecimatedRecordCount: 1000000
-                        } as DataFrameQueryV2;
+                        it('should stop adding table to the request when remaining capacity is less than column count', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table1',
+                                    name: 'table1',
+                                    rowCount: 999999,
+                                    columns: [
+                                        { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                    ]
+                                },
+                                {
+                                    id: 'table2',
+                                    name: 'table2',
+                                    rowCount: 100,
+                                    columns: [
+                                        { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                        { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                        { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    ]
+                                }
+                            ];
+                            queryTablesSpy.mockReturnValue(of(mockTables));
 
-                        const queryPromise = lastValueFrom(datasource.runQuery(query, options));
-                        await jest.runAllTimersAsync();
-                        const result = await queryPromise;
+                            const firstTableCsvRows = Array.from({ length: 999999 }, () => '1.0').join('\n');
+                            const firstTableCsv = 'col1\n' + firstTableCsvRows;
 
-                        const col1Field = findField(result.fields, 'col1');
-                        const col2Field = findField(result.fields, 'col2');
+                            const secondTableCsvRows = Array.from({ length: 100 }, () => '2.0,3.0,4.0').join('\n');
+                            const secondTableCsv = 'col1,col2,col3\n' + secondTableCsvRows;
 
-                        expect(col1Field?.values?.length).toBe(999998);
-                        
-                        const col2Values = col2Field?.values as Array<number | null>;
-                        const nonNullCol2Values = col2Values.filter(v => v !== null);
-                        expect(nonNullCol2Values).toHaveLength(1);
-                        expect(nonNullCol2Values[0]).toBe(3.0);
-                        
-                        expect(result.meta?.notices).toBeDefined();
-                        expect(result.meta?.notices?.length).toBeGreaterThan(0);
-                        expect(result.meta?.notices?.[0].severity).toBe('warning');
+                            let callCount = 0;
+                            postSpy.mockImplementation(() => {
+                                callCount++;
+                                if (callCount === 1) {
+                                    return of(firstTableCsv);
+                                }
+                                return of(secondTableCsv);
+                            });
+
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['col1-Numeric', 'col2-Numeric', 'col3-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'NONE',
+                                filterNulls: false,
+                                applyTimeFilters: false,
+                                undecimatedRecordCount: 1000000
+                            } as DataFrameQueryV2;
+
+                            const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                            await jest.runAllTimersAsync();
+                            const result = await queryPromise;
+
+                            // Only table1 should be fetched, table2 skipped because maxRowsThatFit = 0
+                            expect(postSpy).toHaveBeenCalledTimes(1);
+
+                            const col1Field = findField(result.fields, 'col1');
+                            expect(col1Field?.values?.length).toBe(999999);
+                        });
+
+                        it('should stop adding table to the request when dataPointsRemaining is exactly zero', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table1',
+                                    name: 'table1',
+                                    rowCount: 1000000,
+                                    columns: [
+                                        { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                    ]
+                                },
+                                {
+                                    id: 'table2',
+                                    name: 'table2',
+                                    rowCount: 100,
+                                    columns: [
+                                        { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                    ]
+                                }
+                            ];
+                            queryTablesSpy.mockReturnValue(of(mockTables));
+
+                            const firstTableCsvRows = Array.from({ length: 1000000 }, () => '1.0').join('\n');
+                            const firstTableCsv = 'col1\n' + firstTableCsvRows;
+
+                            const secondTableCsvRows = Array.from({ length: 100 }, () => '2.0').join('\n');
+                            const secondTableCsv = 'col1\n' + secondTableCsvRows;
+
+                            let callCount = 0;
+                            postSpy.mockImplementation(() => {
+                                callCount++;
+                                if (callCount === 1) {
+                                    return of(firstTableCsv);
+                                }
+                                return of(secondTableCsv);
+                            });
+
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['col1-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'NONE',
+                                filterNulls: false,
+                                applyTimeFilters: false,
+                                undecimatedRecordCount: 1000000
+                            } as DataFrameQueryV2;
+
+                            const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                            await jest.runAllTimersAsync();
+                            const result = await queryPromise;
+
+                            expect(postSpy).toHaveBeenCalledTimes(1);
+
+                            const col1Field = findField(result.fields, 'col1');
+                            expect(col1Field?.values?.length).toBe(1000000);
+                        });
                     });
 
-                    it('should handle exactly REQUESTS_PER_SECOND tables within a batch concurrently for undecimated data', async () => {
-                        const mockTables = Array.from({ length: REQUESTS_PER_SECOND }, (_, i) => ({
-                            id: `table${i}`,
-                            name: `table${i}`,
-                            rowCount: 1000,
-                            columns: [
-                                { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
-                            ]
-                        }));
-                        queryTablesSpy.mockReturnValue(of(mockTables));
+                    describe('data truncation', () => {
+                        it('should stop fetching undecimated data when MAXIMUM_DATA_POINTS is reached', async () => {
+                            const mockTables = Array.from({ length: 10 }, (_, i) => ({
+                                id: `table${i}`,
+                                name: `table${i}`,
+                                rowCount: 300000,
+                                columns: [
+                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
+                                ]
+                            }));
+                            queryTablesSpy.mockReturnValue(of(mockTables));
 
-                        const callOrder: number[] = [];
-                        postSpy.mockImplementation((url) => {
-                            const tableIdMatch = url.match(/table(\d+)/);
-                            const tableIndex = tableIdMatch ? parseInt(tableIdMatch[1], 10) : 0;
-                            callOrder.push(tableIndex);
-                            return of('voltage\n1.0');
+                            const largeDataRows = Array.from({ length: 300000 }, () => '1.0').join('\n');
+                            const largeCsvResponse = 'voltage\n' + largeDataRows;
+                            postSpy.mockImplementation(() => of(largeCsvResponse));
+
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['voltage-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'NONE',
+                                filterNulls: false,
+                                applyTimeFilters: false,
+                                undecimatedRecordCount: 1000000
+                            } as DataFrameQueryV2;
+
+                            const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                            await jest.runAllTimersAsync();
+                            const result = await queryPromise;
+
+                            expect(postSpy.mock.calls.length).toEqual(4);
+                            expect(result.refId).toBe('A');
                         });
 
-                        const query = {
-                            refId: 'A',
-                            type: DataFrameQueryType.Data,
-                            columns: ['voltage-Numeric'],
-                            dataTableFilter: 'name = "Test"',
-                            decimationMethod: 'NONE',
-                            filterNulls: false,
-                            applyTimeFilters: false,
-                            undecimatedRecordCount: 10000
+                        it('should truncate data when total data points exceed MAXIMUM_DATA_POINTS', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table1',
+                                    name: 'table1',
+                                    rowCount: 200000,
+                                    columns: [
+                                        { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                        { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                    ]
+                                },
+                                {
+                                    id: 'table2',
+                                    name: 'table2',
+                                    rowCount: 200000,
+                                    columns: [
+                                        { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                        { name: 'current', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                    ]
+                                }
+                            ];
+                            queryTablesSpy.mockReturnValue(of(mockTables));
 
-                        } as DataFrameQueryV2;
+                            const firstTableCsvRows = Array.from({ length: 400000 }, () => '1.0,2.0').join('\n');
+                            const firstTableCsv = 'voltage,current\n' + firstTableCsvRows;
 
-                        const queryPromise = lastValueFrom(datasource.runQuery(query, options));
-                        
-                        await jest.runAllTimersAsync();
-                        
-                        await queryPromise;
+                            const secondTableCsvRows = Array.from({ length: 200000 }, () => '3.0,4.0').join('\n');
+                            const secondTableCsv = 'voltage,current\n' + secondTableCsvRows;
 
-                        expect(postSpy).toHaveBeenCalledTimes(REQUESTS_PER_SECOND);
-                        expect(callOrder).toEqual(expect.arrayContaining([0, 1, 2, 3, 4, 5]));
+                            let callCount = 0;
+                            postSpy.mockImplementation(() => {
+                                callCount++;
+                                if (callCount === 1) {
+                                    return of(firstTableCsv);
+                                }
+                                return of(secondTableCsv);
+                            });
+
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['voltage-Numeric', 'current-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'NONE',
+                                filterNulls: false,
+                                applyTimeFilters: false,
+                                undecimatedRecordCount: 1000000
+                            } as DataFrameQueryV2;
+
+                            const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                            await jest.runAllTimersAsync();
+                            const result = await queryPromise;
+                            expect(result.fields.length).toBe(2);
+
+                            const voltageField = findField(result.fields, 'voltage');
+                            const currentField = findField(result.fields, 'current');
+                            expect(voltageField?.values?.length).toBe(500000);
+                            expect(currentField?.values?.length).toBe(500000);
+                        });
+
+                        it('should truncate data even when single data tables exceeds MAXIMUM_DATA_POINTS', async () => {
+                            const mockTables = [{
+                                id: 'table1',
+                                name: 'table1',
+                                rowCount: 2000000,
+                                columns: [
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                    { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                ]
+                            }];
+                            queryTablesSpy.mockReturnValue(of(mockTables));
+
+                            const csvRows = Array.from({ length: 333333 }, () => '1.0,2.0,3.0').join('\n');
+                            const csvResponse = 'col1,col2,col3\n' + csvRows;
+                            postSpy.mockImplementation(() => of(csvResponse));
+
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['col1-Numeric', 'col2-Numeric', 'col3-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'NONE',
+                                filterNulls: false,
+                                applyTimeFilters: false,
+                                undecimatedRecordCount: 1000000
+                            } as DataFrameQueryV2;
+
+                            const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                            await jest.runAllTimersAsync();
+                            const result = await queryPromise;
+                            expect(result.fields.length).toBe(3);
+
+                            const col1Field = findField(result.fields, 'col1');
+                            const totalRowsFetched = col1Field?.values?.length ?? 0;
+                            const totalDataPoints = totalRowsFetched * 3;
+
+                            expect(totalDataPoints).toBeLessThanOrEqual(MAXIMUM_DATA_POINTS);
+                        });
+
+                        describe('notices for data truncation', () => {
+                            it('should set isLimitExceeded flag and show notice when undecimated data is truncated', async () => {
+                                const mockTables = [
+                                    {
+                                        id: 'table1',
+                                        name: 'table1',
+                                        rowCount: 500000,
+                                        columns: [
+                                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
+                                        ]
+                                    },
+                                    {
+                                        id: 'table2',
+                                        name: 'table2',
+                                        rowCount: 500000,
+                                        columns: [
+                                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
+                                        ]
+                                    }
+                                ];
+                                queryTablesSpy.mockReturnValue(of(mockTables));
+
+                                const largeCsvRows = Array.from({ length: 600000 }, () => '1.0').join('\n');
+                                const largeCsvResponse = 'voltage\n' + largeCsvRows;
+                                postSpy.mockImplementation(() => of(largeCsvResponse));
+
+                                const query = {
+                                    refId: 'A',
+                                    type: DataFrameQueryType.Data,
+                                    columns: ['voltage-Numeric'],
+                                    dataTableFilter: 'name = "Test"',
+                                    decimationMethod: 'NONE',
+                                    filterNulls: false,
+                                    applyTimeFilters: false,
+                                    undecimatedRecordCount: 1000000
+                                } as DataFrameQueryV2;
+
+                                const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                                await jest.runAllTimersAsync();
+                                const result = await queryPromise;
+
+                                expect(result.meta?.notices).toBeDefined();
+                                expect(result.meta?.notices?.length).toBeGreaterThan(0);
+                                expect(result.meta?.notices?.[0].severity).toBe('warning');
+                                expect(result.meta?.notices?.[0].text).toContain('1,000,000');
+                            });
+
+                            it('should show limit exceeded notice when tables are not included into the requests list', async () => {
+                                const mockTables = Array.from({ length: 5 }, (_, i) => ({
+                                    id: `table${i + 1}`,
+                                    name: `Table ${i + 1}`,
+                                    rowCount: 300000,
+                                    columns: [
+                                        { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
+                                    ]
+                                }));
+                                queryTablesSpy.mockReturnValue(of(mockTables));
+
+                                const csvResponse = 'voltage\n1.0\n2.0';
+                                postSpy.mockImplementation(() => of(csvResponse));
+
+                                const query = {
+                                    refId: 'A',
+                                    type: DataFrameQueryType.Data,
+                                    columns: ['voltage-Numeric'],
+                                    dataTableFilter: 'name = "Test"',
+                                    decimationMethod: 'NONE',
+                                    filterNulls: false,
+                                    applyTimeFilters: false,
+                                    undecimatedRecordCount: 1000000
+                                } as DataFrameQueryV2;
+
+                                const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                                await jest.runAllTimersAsync();
+                                const result = await queryPromise;
+
+                                expect(postSpy.mock.calls.length).toEqual(4);
+
+                                expect(result.meta?.notices).toBeDefined();
+                                expect(result.meta?.notices?.length).toBeGreaterThan(0);
+                                expect(result.meta?.notices?.[0].severity).toBe('warning');
+                                expect(result.meta?.notices?.[0].text).toContain('1,000,000');
+                            });
+
+                            it('should show limit exceeded when undecimated data is truncated even if total points is not exactly MAXIMUM_DATA_POINTS', async () => {
+                                const mockTables = [
+                                    {
+                                        id: 'table1',
+                                        name: 'table1',
+                                        rowCount: 999997,
+                                        columns: [
+                                            { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index }
+                                        ]
+                                    },
+                                    {
+                                        id: 'table2',
+                                        name: 'table2',
+                                        rowCount: 1,
+                                        columns: [
+                                            { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                            { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                        ]
+                                    }
+                                ];
+                                queryTablesSpy.mockReturnValue(of(mockTables));
+
+                                const firstTableCsvRows = Array.from({ length: 999997 }, () => '1.0').join('\n');
+                                const firstTableCsv = 'col1\n' + firstTableCsvRows;
+
+                                const secondTableCsvRows = Array.from({ length: 100 }, () => '2.0,3.0').join('\n');
+                                const secondTableCsv = 'col1,col2\n' + secondTableCsvRows;
+
+                                let callCount = 0;
+                                postSpy.mockImplementation(() => {
+                                    callCount++;
+                                    if (callCount === 1) {
+                                        return of(firstTableCsv);
+                                    }
+                                    return of(secondTableCsv);
+                                });
+
+                                const query = {
+                                    refId: 'A',
+                                    type: DataFrameQueryType.Data,
+                                    columns: ['col1-Numeric', 'col2-Numeric'],
+                                    dataTableFilter: 'name = "Test"',
+                                    decimationMethod: 'NONE',
+                                    filterNulls: false,
+                                    applyTimeFilters: false,
+                                    undecimatedRecordCount: 1000000
+                                } as DataFrameQueryV2;
+
+                                const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                                await jest.runAllTimersAsync();
+                                const result = await queryPromise;
+
+                                const col1Field = findField(result.fields, 'col1');
+                                const col2Field = findField(result.fields, 'col2');
+
+                                expect(col1Field?.values?.length).toBe(999998);
+
+                                const col2Values = col2Field?.values as Array<number | null>;
+                                const nonNullCol2Values = col2Values.filter(v => v !== null);
+                                expect(nonNullCol2Values).toHaveLength(1);
+                                expect(nonNullCol2Values[0]).toBe(3.0);
+
+                                expect(result.meta?.notices).toBeDefined();
+                                expect(result.meta?.notices?.length).toBeGreaterThan(0);
+                                expect(result.meta?.notices?.[0].severity).toBe('warning');
+                            });
+                        });
+                    });
+
+                    describe('batching of undecimated requests', () => {
+                        it('should batch undecimated requests with delay between batches', async () => {
+                            const mockTables = Array.from({ length: 8 }, (_, i) => ({
+                                id: `table${i}`,
+                                name: `table${i}`,
+                                rowCount: 1000,
+                                columns: [
+                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
+                                ]
+                            }));
+                            queryTablesSpy.mockReturnValue(of(mockTables));
+
+                            postSpy.mockImplementation(() => of('voltage\n1.0'));
+
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['voltage-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'NONE',
+                                filterNulls: false,
+                                applyTimeFilters: false
+                            } as DataFrameQueryV2;
+
+                            lastValueFrom(datasource.runQuery(query, options));
+
+                            await jest.advanceTimersByTimeAsync(0);
+                            expect(postSpy).toHaveBeenCalledTimes(6);
+
+                            await jest.advanceTimersByTimeAsync(1000);
+                            expect(postSpy).toHaveBeenCalledTimes(8);
+                        });
+
+                        it('should handle exactly REQUESTS_PER_SECOND tables within a batch concurrently for undecimated data', async () => {
+                            const mockTables = Array.from({ length: REQUESTS_PER_SECOND }, (_, i) => ({
+                                id: `table${i}`,
+                                name: `table${i}`,
+                                rowCount: 1000,
+                                columns: [
+                                    { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
+                                ]
+                            }));
+                            queryTablesSpy.mockReturnValue(of(mockTables));
+
+                            const callOrder: number[] = [];
+                            postSpy.mockImplementation((url) => {
+                                const tableIdMatch = url.match(/table(\d+)/);
+                                const tableIndex = tableIdMatch ? parseInt(tableIdMatch[1], 10) : 0;
+                                callOrder.push(tableIndex);
+                                return of('voltage\n1.0');
+                            });
+
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['voltage-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'NONE',
+                                filterNulls: false,
+                                applyTimeFilters: false,
+                                undecimatedRecordCount: 10000
+
+                            } as DataFrameQueryV2;
+
+                            const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+
+                            await jest.runAllTimersAsync();
+
+                            await queryPromise;
+
+                            expect(postSpy).toHaveBeenCalledTimes(REQUESTS_PER_SECOND);
+                            expect(callOrder).toEqual(expect.arrayContaining([0, 1, 2, 3, 4, 5]));
+                        });
                     });
                 });
             });
