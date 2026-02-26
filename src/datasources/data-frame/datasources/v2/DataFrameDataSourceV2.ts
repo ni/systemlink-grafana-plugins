@@ -479,7 +479,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
             const selectedColumnCount = columnsMap.selectedColumns.length;
             const configuredTake = query.undecimatedRecordCount;
-            let take = Math.min( configuredTake, tableRowCount);
+            let take = Math.min(configuredTake, tableRowCount);
             const dataPoints = take * selectedColumnCount;
 
             if (dataPoints > remainingDataPointsCapacity) {
@@ -500,7 +500,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 );
                 requests.push(request);
             }
-            if( isDataPointLimitReached) {
+            if(isDataPointLimitReached) {
                 break;
             }
         }

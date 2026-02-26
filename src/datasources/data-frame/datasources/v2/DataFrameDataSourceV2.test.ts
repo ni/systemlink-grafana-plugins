@@ -5401,8 +5401,8 @@ describe('DataFrameDataSourceV2', () => {
                             queryTablesSpy.mockReturnValue(of(mockTables));
 
                             const csvRows = Array.from({ length: 500000 }, () => '1.0,2.0').join('\n');
-                            const csv = 'col1,col2\n' + csvRows;
-                            postSpy.mockImplementation(() => of(csv));
+                            const tableRows = 'col1,col2\n' + csvRows;
+                            postSpy.mockImplementation(() => of(tableRows));
 
                             const query = {
                                 refId: 'A',
