@@ -5322,66 +5322,7 @@ describe('DataFrameDataSourceV2', () => {
                             );
                         });
 
-                        it('should reduce take for table when its data points exceed remaining capacity', async () => {
-                            const mockTables = [
-                                {
-                                    id: 'table1',
-                                    name: 'table1',
-                                    rowCount: 400000,
-                                    columns: [
-                                        { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                                        { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                    ]
-                                },
-                                {
-                                    id: 'table2',
-                                    name: 'table2',
-                                    rowCount: 400000,
-                                    columns: [
-                                        { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
-                                        { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
-                                    ]
-                                }
-                            ];
-                            queryTablesSpy.mockReturnValue(of(mockTables));
-
-                            postSpy.mockImplementation(() => of('col1,col2\n1.0,2.0'));
-
-                            const query = {
-                                refId: 'A',
-                                type: DataFrameQueryType.Data,
-                                columns: ['col1-Numeric', 'col2-Numeric'],
-                                dataTableFilter: 'name = "Test"',
-                                decimationMethod: 'NONE',
-                                filterNulls: false,
-                                applyTimeFilters: false,
-                                undecimatedRecordCount: 400000
-                            } as DataFrameQueryV2;
-
-                            const queryPromise = lastValueFrom(datasource.runQuery(query, options));
-                            await jest.runAllTimersAsync();
-                            const result = await queryPromise;
-                            
-                            expect(postSpy).toHaveBeenCalledTimes(2);
-                            expect(postSpy).toHaveBeenNthCalledWith(
-                                1,
-                                expect.stringContaining('table1/export-data'),
-                                expect.objectContaining({ take: 400000 }),
-                                expect.any(Object)
-                            );
-                            expect(postSpy).toHaveBeenNthCalledWith(
-                                2,
-                                expect.stringContaining('table2/export-data'),
-                                expect.objectContaining({ take: 100000 }),
-                                expect.any(Object)
-                            );
-                            expect(result.meta?.notices).toBeDefined();
-                            expect(result.meta?.notices?.length).toBeGreaterThan(0);
-                            expect(result.meta?.notices?.[0].severity).toBe('warning');
-                            expect(result.meta?.notices?.[0].text).toContain('1,000,000');
-                        });
-
-                        it('should skip remaining tables when data point capacity is exhausted across multiple tables', async () => {
+                        it('should skip remaining tables when data points limit is reached exactly', async () => {
                             const mockTables = [
                                 {
                                     id: 'table1',
@@ -5436,6 +5377,136 @@ describe('DataFrameDataSourceV2', () => {
                             expect(postSpy).toHaveBeenCalledWith(
                                 expect.stringContaining('table1/export-data'),
                                 expect.any(Object),
+                                expect.any(Object)
+                            );
+                            expect(result.meta?.notices).toBeDefined();
+                            expect(result.meta?.notices?.length).toBeGreaterThan(0);
+                            expect(result.meta?.notices?.[0].severity).toBe('warning');
+                            expect(result.meta?.notices?.[0].text).toContain('1,000,000');
+                        });
+
+                        it('should skip remaining tables when data points limit is available but not enough to all data points from even a single row of the table', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table1',
+                                    name: 'table1',
+                                    rowCount: 999999,
+                                    columns: [
+                                        { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                    ]
+                                },
+                                {
+                                    id: 'table2',
+                                    name: 'table2',
+                                    rowCount: 100000,
+                                    columns: [
+                                        { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                        { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                        { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    ]
+                                },
+                                {
+                                    id: 'table3',
+                                    name: 'table3',
+                                    rowCount: 100000,
+                                    columns: [
+                                        { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                        { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                        { name: 'col3', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                    ]
+                                }
+                            ];
+                            queryTablesSpy.mockReturnValue(of(mockTables));
+
+                            postSpy.mockImplementation(() => of('col1\n1.0,2.0,3.0'));
+
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['col1-Numeric', 'col2-Numeric', 'col3-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'NONE',
+                                filterNulls: false,
+                                applyTimeFilters: false,
+                                undecimatedRecordCount: 1_000_000
+                            } as DataFrameQueryV2;
+
+                            const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                            await jest.runAllTimersAsync();
+                            const result = await queryPromise;
+
+                            expect(postSpy).toHaveBeenCalledTimes(1);
+                            expect(postSpy).toHaveBeenCalledWith(
+                                expect.stringContaining('table1/export-data'),
+                                expect.objectContaining({ take: 999999 }),
+                                expect.any(Object)
+                            );
+                            expect(result.meta?.notices).toBeDefined();
+                            expect(result.meta?.notices?.length).toBeGreaterThan(0);
+                            expect(result.meta?.notices?.[0].severity).toBe('warning');
+                            expect(result.meta?.notices?.[0].text).toContain('1,000,000');
+                        });
+
+                        it('should reduce take for table and skip remaining tables when data points limit is available to accommodate data points from some rows of the table', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table1',
+                                    name: 'table1',
+                                    rowCount: 400000,
+                                    columns: [
+                                        { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                        { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                    ]
+                                },
+                                {
+                                    id: 'table2',
+                                    name: 'table2',
+                                    rowCount: 400000,
+                                    columns: [
+                                        { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                        { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                    ]
+                                },
+                                {
+                                    id: 'table3',
+                                    name: 'table3',
+                                    rowCount: 400000,
+                                    columns: [
+                                        { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                        { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
+                                    ]
+                                }
+                            ];
+                            queryTablesSpy.mockReturnValue(of(mockTables));
+
+                            postSpy.mockImplementation(() => of('col1,col2\n1.0,2.0'));
+
+                            const query = {
+                                refId: 'A',
+                                type: DataFrameQueryType.Data,
+                                columns: ['col1-Numeric', 'col2-Numeric'],
+                                dataTableFilter: 'name = "Test"',
+                                decimationMethod: 'NONE',
+                                filterNulls: false,
+                                applyTimeFilters: false,
+                                undecimatedRecordCount: 400000
+                            } as DataFrameQueryV2;
+
+                            const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                            await jest.runAllTimersAsync();
+                            const result = await queryPromise;
+                            
+                            expect(postSpy).toHaveBeenCalledTimes(2);
+                            expect(postSpy).toHaveBeenNthCalledWith(
+                                1,
+                                expect.stringContaining('table1/export-data'),
+                                expect.objectContaining({ take: 400000 }),
+                                expect.any(Object)
+                            );
+                            expect(postSpy).toHaveBeenNthCalledWith(
+                                2,
+                                expect.stringContaining('table2/export-data'),
+                                expect.objectContaining({ take: 100000 }),
                                 expect.any(Object)
                             );
                             expect(result.meta?.notices).toBeDefined();
