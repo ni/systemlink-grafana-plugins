@@ -39,7 +39,7 @@ test.describe('Calibration Forecast', () => {
         await dashboard.panel.assetQueryEditor.selectGroupBy('Month');
         await dashboard.panel.assetQueryEditor.addFilter('Asset Type', 'equals', 'Device under test');
         await dashboard.panel.assetQueryEditor.openDateTimePicker();
-        await dashboard.panel.assetQueryEditor.setTimeRange('2026-02-01 00:00:00', '2026-03-31 23:59:59');
+        await dashboard.panel.assetQueryEditor.setTimeRange('2026-03-01 00:00:00', '2026-03-31 23:59:59');
 
         const [forecastResponse] = await Promise.all([
             interceptApiRoute<CalibrationForecastResponse>(dashboard.page, '**/niapm/v1/assets/calibration-forecast'),
