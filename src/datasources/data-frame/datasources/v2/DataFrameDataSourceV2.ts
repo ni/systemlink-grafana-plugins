@@ -312,7 +312,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const queryUndecimatedData = this.isUndecimatedDataQuery(query);
 
         if (queryUndecimatedData) {
-            const requests = this.getUndecimatedDataRequests(
+            const { requests, isPreFilterLimitExceeded } = this.getUndecimatedDataRequests(
                 tableColumnsMap,
                 tableRowCountMap,
                 query,
@@ -321,6 +321,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return this.queryTableDataInBatches$(
                 requests,
                 request => this.getUndecimatedTableData$(request)
+            ).pipe(
+                map(result => ({
+                    ...result,
+                    isLimitExceeded: result.isLimitExceeded || isPreFilterLimitExceeded
+                }))
             );
         }
 
@@ -449,11 +454,20 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         tableRowCountMap: Record<string, number>,
         query: ValidDataFrameQueryV2,
         timeRange: TimeRange
-    ): UndecimatedDataRequest[] {
-        let isRowCountTruncatedForAnyTable = false;
-        return Object.entries(tableColumnsMap)
+    ): { 
+        requests: UndecimatedDataRequest[];
+        isPreFilterLimitExceeded: boolean 
+    } {
+        let totalDataPointsAcrossTables = 0;
+        let hasReachedDataPointLimit = false;
+
+        const requests = Object.entries(tableColumnsMap)
             .filter(([_, columnsMap]) => columnsMap.selectedColumns.length > 0)
-            .map(([tableId, columnsMap]) => {
+            .flatMap(([tableId, columnsMap]) => {
+                if (hasReachedDataPointLimit) {
+                    return [];
+                }
+
                 const numberOfSelectedColumns = columnsMap.selectedColumns.length;
                 const maximumRecordCount = Math.floor(
                     UNDECIMATED_RECORDS_LIMIT / numberOfSelectedColumns
@@ -463,20 +477,19 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     maximumRecordCount
                 );
 
-                const recordCountReduced = take !== query.undecimatedRecordCount;
-                const hasUnfetchedRows = take < (tableRowCountMap[tableId] ?? 0);
-                const isRowCountTruncated = recordCountReduced && hasUnfetchedRows;
+                const actualRowCount = tableRowCountMap[tableId] ?? take;
+                const expectedRowCount = Math.min(take, actualRowCount);
+                const expectedDataPointsForTable = expectedRowCount * numberOfSelectedColumns;
+                const remainingDataPointCapacity = MAXIMUM_DATA_POINTS - totalDataPointsAcrossTables;
 
-                if (isRowCountTruncated && !isRowCountTruncatedForAnyTable) {
-                    isRowCountTruncatedForAnyTable = true;
-                    this.appEvents?.publish?.({
-                        type: AppEvents.alertWarning.name,
-                        payload: [
-                            'Take has been reduced for some tables',
-                            `The take has been automatically reduced for some tables to keep the total data points within the maximum allowed limit of ${UNDECIMATED_RECORDS_LIMIT.toLocaleString()}.`
-                        ],
-                    });
+                if (remainingDataPointCapacity === 0) {
+                    hasReachedDataPointLimit = true;
+                    return [];
                 }
+                if (expectedDataPointsForTable > remainingDataPointCapacity) {
+                    hasReachedDataPointLimit = true;
+                }
+                totalDataPointsAcrossTables += expectedDataPointsForTable;
 
                 const filters = this.constructColumnFilters(
                     query,
@@ -498,10 +511,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     columns: columnsMap.selectedColumns.map(column => column.name),
                     orderBy,
                     filters,
-                    take
+                    take,
                 };
             }
         );
+
+        return { requests, isPreFilterLimitExceeded: hasReachedDataPointLimit };
     }
 
     private constructColumnFilters(
