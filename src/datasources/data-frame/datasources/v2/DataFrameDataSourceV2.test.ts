@@ -4894,11 +4894,6 @@ describe('DataFrameDataSourceV2', () => {
                         await jest.runAllTimersAsync();
                         const result = await queryPromise;
 
-                        // Pre-filtering limits requests based on estimated data points (rowCount).
-                        // With 300k estimated rows per table and 1 column:
-                        // - Tables 1-3 fit within capacity (900k total)
-                        // - Table 4 exceeds remaining capacity but is still included with full take
-                        // - Tables 5-10 are skipped because limit was reached
                         expect(postSpy.mock.calls.length).toEqual(4);
                         expect(result.refId).toBe('A');
                     });
