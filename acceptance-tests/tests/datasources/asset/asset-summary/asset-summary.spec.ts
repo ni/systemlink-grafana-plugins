@@ -46,11 +46,11 @@ test.describe('Asset Summary Table', () => {
         const rowCount = await dashboard.panel.table.getTableRowCount();
 
         expect(rowCount).toBe(1);
-        expect(await dashboard.panel.table.checkColumnValue('Total', assetSummaryResponse.total.toString())).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Active', assetSummaryResponse.active.toString())).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Not active', assetSummaryResponse.notActive.toString())).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Approaching due date', assetSummaryResponse.approachingRecommendedDueDate.toString())).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Past due date', assetSummaryResponse.pastRecommendedDueDate.toString())).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Out for calibration', assetSummaryResponse.outForCalibration.toString())).toBeTruthy();
+        expect(await dashboard.panel.table.checkColumnValue('Total', assetSummaryResponse.total.toString(), 0)).toBeTruthy();
+        expect(await dashboard.panel.table.checkColumnValue('Active', assetSummaryResponse.active.toString(), 0)).toBeTruthy();
+        expect(await dashboard.panel.table.checkColumnValue('Not active', assetSummaryResponse.notActive.toString(), 0)).toBeTruthy();
+        expect(await dashboard.panel.table.checkColumnValue('Approaching due date', assetSummaryResponse.approachingRecommendedDueDate.toString(), 0)).toBeTruthy();
+        expect(await dashboard.panel.table.checkColumnValue('Past due date', assetSummaryResponse.pastRecommendedDueDate.toString(), 0)).toBeTruthy();
+        expect(await dashboard.panel.table.checkColumnValue('Out for calibration', assetSummaryResponse.outForCalibration.toString(), 0)).toBeTruthy();
     });
 });

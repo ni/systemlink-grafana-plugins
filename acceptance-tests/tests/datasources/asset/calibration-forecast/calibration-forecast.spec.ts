@@ -4,24 +4,7 @@ import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.page
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { pressEscape } from '../../../../utils/keyboard-utilities';
 import { interceptApiRoute } from '../../../../utils/intercept-api-route';
-
-interface CalibrationForecastResponse {
-    calibrationForecast: {
-        columns: (TimeColumn | CountColumn)[];
-    };
-}
-
-interface TimeColumn {
-    name: string;
-    columnDescriptors: Array<{ type: 'Time'; value: string }>;
-    values: string[];
-}
-
-interface CountColumn {
-    name: string;
-    columnDescriptors: Array<{ type: 'Count'; value: string }>;
-    values: number[];
-}
+import { CalibrationForecastResponse, CountColumn } from '../../../../models/calibration-forecast';
 
 test.describe('Calibration Forecast', () => {
     let dashboard: DashboardPage;
@@ -70,7 +53,7 @@ test.describe('Calibration Forecast', () => {
         expect(forecastResponse.calibrationForecast.columns).toBeDefined();
 
         const assetsColumn = forecastResponse.calibrationForecast.columns.find(
-            col => col.name === 'Assets' && col.columnDescriptors?.[0]?.type === 'Count'
+            column => column.name === 'Assets' && column.columnDescriptors?.[0]?.type === 'Count'
         ) as CountColumn;
 
         expect(assetsColumn).toBeDefined();
@@ -78,13 +61,12 @@ test.describe('Calibration Forecast', () => {
 
         const tableRowCount = await dashboard.panel.table.getTableRowCount();
         expect(tableRowCount).toBe(2);
-
-        const assetsColumnIndex = await dashboard.panel.table.getSelectedColumnIndex('Assets');
+        expect(await dashboard.panel.table.checkColumnValue('Month', 'February 2026', 0)).toBeTruthy();
+        expect(await dashboard.panel.table.checkColumnValue('Month', 'March 2026', 1)).toBeTruthy();
 
         for (let rowIndex = 0; rowIndex < assetsColumn.values.length; rowIndex++) {
             const expectedValue = assetsColumn.values[rowIndex].toString();
-            const actualValue = await dashboard.panel.table.getCellInRowByIndex(rowIndex, assetsColumnIndex);
-            expect(actualValue).toBe(expectedValue);
+            expect(await dashboard.panel.table.checkColumnValue('Assets', expectedValue, rowIndex)).toBeTruthy();
         }
     });
 });

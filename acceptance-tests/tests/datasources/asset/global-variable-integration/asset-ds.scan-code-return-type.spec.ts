@@ -68,12 +68,12 @@ test.describe('Asset data source with scan code return type', () => {
             let rowCount = await dashboard.panel.table.getTableRowCount();
 
             expect(rowCount).toBe(1);
-            expect(await dashboard.panel.table.checkColumnValue(assetColumn.vendor_name, 'vendor1')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(assetColumn.name, 'name1')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(assetColumn.model_name, 'model1')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(assetColumn.workspace, 'Default')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(assetColumn.location, 'System-1')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(assetColumn.scan_code, 'scanCode1')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.vendor_name, 'vendor1', 0)).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.name, 'name1', 0)).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.model_name, 'model1', 0)).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.workspace, 'Default', 0)).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.location, 'System-1', 0)).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.scan_code, 'scanCode1', 0)).toBeTruthy();
 
             await dashboard.panel.assetQueryEditor.openVariableDropdown('name1 (serial1)', 'name6 (serial6)');
             await dashboard.panel.assetQueryEditor.refreshData();
@@ -81,12 +81,12 @@ test.describe('Asset data source with scan code return type', () => {
             rowCount = await dashboard.panel.table.getTableRowCount();
 
             expect(rowCount).toBe(1);
-            expect(await dashboard.panel.table.checkColumnValue(assetColumn.vendor_name, 'vendor6')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(assetColumn.name, 'name6')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(assetColumn.model_name, 'model6')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(assetColumn.workspace, 'Default')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(assetColumn.location, 'System-3')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(assetColumn.scan_code, 'scanCode6')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.vendor_name, 'vendor6', 0)).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.name, 'name6', 0)).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.model_name, 'model6', 0)).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.workspace, 'Default', 0)).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.location, 'System-3', 0)).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(assetColumn.scan_code, 'scanCode6', 0)).toBeTruthy();
         });
     });
 });

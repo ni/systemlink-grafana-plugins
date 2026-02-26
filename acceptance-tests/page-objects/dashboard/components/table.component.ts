@@ -48,9 +48,14 @@ export class Table {
         return columnHeaders.indexOf(propertyName);
     };
 
-    async checkColumnValue(columnName: string, expectedValue: string): Promise<boolean> {
+    async checkColumnValue(columnName: string, expectedValue: string, rowIndex: number): Promise<boolean> {
         const columnIndex = await this.getSelectedColumnIndex(columnName);
-        const cellValue = await this.getCellInRowByIndex(0, columnIndex);
+
+        if (columnIndex === -1) {
+            throw new Error(`Column '${columnName}' not found in table`);
+        }
+
+        const cellValue = await this.getCellInRowByIndex(rowIndex, columnIndex);
         return cellValue === expectedValue;
     }
 }
