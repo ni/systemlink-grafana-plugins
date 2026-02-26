@@ -1,3 +1,9 @@
+## [4.135.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.135.0...v4.135.1) (2026-02-26)
+
+### Bug Fixes
+
+* **plot:** update plot type to scattergl for faster rendering ([#686](https://github.com/ni/systemlink-grafana-plugins/issues/686)) ([1fecfc8](https://github.com/ni/systemlink-grafana-plugins/commit/1fecfc8cafcc313f0af02e659cc526e931d7994d))
+
 ## [4.135.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.134.1...v4.135.0) (2026-02-25)
 
 ### Features
