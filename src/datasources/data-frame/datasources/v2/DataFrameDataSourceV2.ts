@@ -312,7 +312,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const queryUndecimatedData = this.isUndecimatedDataQuery(query);
 
         if (queryUndecimatedData) {
-            const { requests, isPreFilterLimitExceeded } = this.getUndecimatedDataRequests(
+            const { requests, isDataPointLimitReached } = this.getUndecimatedDataRequests(
                 tableColumnsMap,
                 tableRowCountMap,
                 query,
@@ -324,7 +324,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             ).pipe(
                 map(result => ({
                     ...result,
-                    isLimitExceeded: result.isLimitExceeded || isPreFilterLimitExceeded
+                    isLimitExceeded: result.isLimitExceeded || isDataPointLimitReached
                 }))
             );
         }
@@ -456,40 +456,48 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         timeRange: TimeRange
     ): { 
         requests: UndecimatedDataRequest[];
-        isPreFilterLimitExceeded: boolean 
+        isDataPointLimitReached: boolean 
     } {
         let totalDataPointsAcrossTables = 0;
-        let hasReachedDataPointLimit = false;
+        let isDataPointLimitReached = false;
 
         const requests = Object.entries(tableColumnsMap)
             .filter(([_, columnsMap]) => columnsMap.selectedColumns.length > 0)
             .flatMap(([tableId, columnsMap]) => {
-                if (hasReachedDataPointLimit) {
+                if (isDataPointLimitReached) {
                     return [];
                 }
 
-                const numberOfSelectedColumns = columnsMap.selectedColumns.length;
-                const maximumRecordCount = Math.floor(
-                    UNDECIMATED_RECORDS_LIMIT / numberOfSelectedColumns
-                );
-                const take = Math.min(
-                    query.undecimatedRecordCount ?? maximumRecordCount,
-                    maximumRecordCount
+                const selectedColumnCount = columnsMap.selectedColumns.length;
+                const maxRowsPerTable = Math.floor(UNDECIMATED_RECORDS_LIMIT / selectedColumnCount);
+                const requestedRows = Math.min(
+                    query.undecimatedRecordCount ?? maxRowsPerTable,
+                    maxRowsPerTable
                 );
 
-                const actualRowCount = tableRowCountMap[tableId] ?? take;
-                const expectedRowCount = Math.min(take, actualRowCount);
-                const expectedDataPointsForTable = expectedRowCount * numberOfSelectedColumns;
-                const remainingDataPointCapacity = MAXIMUM_DATA_POINTS - totalDataPointsAcrossTables;
+                const actualRowCount = tableRowCountMap[tableId] ?? requestedRows;
+                const expectedRowCount = Math.min(requestedRows, actualRowCount);
+                const expectedDataPoints = expectedRowCount * selectedColumnCount;
+                const remainingDataPointsCapacity = MAXIMUM_DATA_POINTS - totalDataPointsAcrossTables;
 
-                if (remainingDataPointCapacity === 0) {
-                    hasReachedDataPointLimit = true;
+                if (remainingDataPointsCapacity === 0) {
+                    isDataPointLimitReached = true;
                     return [];
                 }
-                if (expectedDataPointsForTable > remainingDataPointCapacity) {
-                    hasReachedDataPointLimit = true;
+
+                let rowsToFetch = requestedRows;
+                if (expectedDataPoints > remainingDataPointsCapacity) {
+                    const maxRowsThatFit = Math.floor(remainingDataPointsCapacity / selectedColumnCount);
+                    if (maxRowsThatFit === 0) {
+                        isDataPointLimitReached = true;
+                        return [];
+                    }
+                    rowsToFetch = maxRowsThatFit;
+                    isDataPointLimitReached = true;
                 }
-                totalDataPointsAcrossTables += expectedDataPointsForTable;
+
+                const dataPointsToAdd = Math.min(rowsToFetch, actualRowCount) * selectedColumnCount;
+                totalDataPointsAcrossTables += dataPointsToAdd;
 
                 const filters = this.constructColumnFilters(
                     query,
@@ -511,12 +519,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     columns: columnsMap.selectedColumns.map(column => column.name),
                     orderBy,
                     filters,
-                    take
+                    take: rowsToFetch
                 };
             }
         );
 
-        return { requests, isPreFilterLimitExceeded: hasReachedDataPointLimit };
+        return { requests, isDataPointLimitReached };
     }
 
     private constructColumnFilters(

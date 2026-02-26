@@ -5059,7 +5059,74 @@ describe('DataFrameDataSourceV2', () => {
                         expect(col1Field?.values?.length).toBeGreaterThanOrEqual(999990);
                     });
 
-                    it('should include table with full take even when remaining capacity is less than estimated data points', async () => {
+                    it('should truncate take value to fit remaining capacity when data points would exceed limit', async () => {
+                        const mockTables = [
+                            {
+                                id: 'table1',
+                                name: 'table1',
+                                rowCount: 999990,
+                                columns: [
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                ]
+                            },
+                            {
+                                id: 'table2',
+                                name: 'table2',
+                                rowCount: 100,
+                                columns: [
+                                    { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
+                                    { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
+                                ]
+                            }
+                        ];
+                        queryTablesSpy.mockReturnValue(of(mockTables));
+
+                        const firstTableCsvRows = Array.from({ length: 999990 }, () => '1.0').join('\n');
+                        const firstTableCsv = 'col1\n' + firstTableCsvRows;
+
+                        const secondTableCsvRows = Array.from({ length: 100 }, () => '2.0,3.0').join('\n');
+                        const secondTableCsv = 'col1,col2\n' + secondTableCsvRows;
+
+                        let callCount = 0;
+                        postSpy.mockImplementation(() => {
+                            callCount++;
+                            if (callCount === 1) {
+                                return of(firstTableCsv);
+                            }
+                            return of(secondTableCsv);
+                        });
+
+                        const query = {
+                            refId: 'A',
+                            type: DataFrameQueryType.Data,
+                            columns: ['col1-Numeric', 'col2-Numeric'],
+                            dataTableFilter: 'name = "Test"',
+                            decimationMethod: 'NONE',
+                            filterNulls: false,
+                            applyTimeFilters: false,
+                            undecimatedRecordCount: 1000000
+                        } as DataFrameQueryV2;
+
+                        const queryPromise = lastValueFrom(datasource.runQuery(query, options));
+                        await jest.runAllTimersAsync();
+                        const result = await queryPromise;
+
+                        expect(postSpy).toHaveBeenCalledTimes(2);
+                        const secondPostCall = postSpy.mock.calls[1];
+                        expect(secondPostCall[1]).toMatchObject({
+                            take: 5
+                        });
+
+                        const col1Field = findField(result.fields, 'col1');
+                        expect(col1Field?.values?.length).toBe(999995);
+                    });
+
+                    it('should skip table when remaining capacity is less than column count (maxRowsThatFit is zero)', async () => {
+                        // Table 1: 999999 rows × 1 column = 999,999 data points
+                        // Remaining capacity: 1 data point
+                        // Table 2: 100 rows × 3 columns = would need at least 3 data points for 1 row
+                        // maxRowsThatFit = floor(1 / 3) = 0
+                        // So table 2 should be skipped
                         const mockTables = [
                             {
                                 id: 'table1',
@@ -5112,11 +5179,11 @@ describe('DataFrameDataSourceV2', () => {
                         await jest.runAllTimersAsync();
                         const result = await queryPromise;
 
-                        expect(postSpy).toHaveBeenCalledTimes(2);
+                        // Only table1 should be fetched, table2 skipped because maxRowsThatFit = 0
+                        expect(postSpy).toHaveBeenCalledTimes(1);
 
                         const col1Field = findField(result.fields, 'col1');
-                        // Results from both tables should be present (though may be truncated by reduce logic)
-                        expect(col1Field?.values?.length).toBeGreaterThanOrEqual(999999);
+                        expect(col1Field?.values?.length).toBe(999999);
                     });
 
                     it('should skip table when remaining capacity is exactly zero', async () => {
