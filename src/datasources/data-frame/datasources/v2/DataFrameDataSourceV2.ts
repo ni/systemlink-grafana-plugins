@@ -511,7 +511,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     columns: columnsMap.selectedColumns.map(column => column.name),
                     orderBy,
                     filters,
-                    take,
+                    take
                 };
             }
         );
