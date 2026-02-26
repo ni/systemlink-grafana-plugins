@@ -458,19 +458,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         requests: UndecimatedDataRequest[];
         isDataPointLimitReached: boolean 
     } {
-        let totalDataPointsAcrossTables = 0;
-        let isDataPointLimitReached = false;
         const requests: UndecimatedDataRequest[] = [];
+        let isDataPointLimitReached = false;
 
-        const tableEntries = Object.entries(tableColumnsMap)
-            .filter(([_, columnsMap]) => columnsMap.selectedColumns.length > 0);
+        const tablesWithSelectedColumns = Object.entries(tableColumnsMap)
+            .filter(([tableId, columnsMap]) => {
+                const tableRowCount = tableRowCountMap[tableId];
+                return columnsMap.selectedColumns.length > 0 && tableRowCount > 0;
+            });
 
-        for (const [tableId, columnsMap] of tableEntries) {
-            const tableRowCount = tableRowCountMap[tableId];
-            if (tableRowCount === 0) {
-                continue;
-            }
-
+        let totalDataPointsAcrossTables = 0;
+        for (const [tableId, columnsMap] of tablesWithSelectedColumns) {
             const remainingDataPointsCapacity = MAXIMUM_DATA_POINTS - totalDataPointsAcrossTables;
             if (remainingDataPointsCapacity === 0) {
                 isDataPointLimitReached = true;
@@ -479,6 +477,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
             const selectedColumnCount = columnsMap.selectedColumns.length;
             const configuredTake = query.undecimatedRecordCount;
+            const tableRowCount = tableRowCountMap[tableId];
             let take = Math.min(configuredTake, tableRowCount);
             const dataPoints = take * selectedColumnCount;
 
