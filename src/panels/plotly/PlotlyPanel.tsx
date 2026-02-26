@@ -395,9 +395,9 @@ const getFixedColor = (field: Field, theme: GrafanaTheme2) => {
 const getModeAndType = (type: string) => {
   switch (type) {
     case 'line':
-      return { mode: 'lines' as PlotData['mode'], type: 'scatter' as PlotType };
+      return { mode: 'lines' as PlotData['mode'], type: 'scattergl' as PlotType };
     case 'points':
-      return { mode: 'markers' as PlotData['mode'], type: 'scatter' as PlotType };
+      return { mode: 'markers' as PlotData['mode'], type: 'scattergl' as PlotType };
     default:
       return { type: type as PlotType };
   }
