@@ -3971,7 +3971,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
-                        rowCount: 10000000,
+                        rowCount: 10_000_000,
                         columns: [
                             { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                             { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal },
@@ -4017,7 +4017,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
-                        rowCount: 10000000,
+                        rowCount: 10_000_000,
                         columns: [
                             { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
                         ]
@@ -4053,7 +4053,7 @@ describe('DataFrameDataSourceV2', () => {
                     const mockTables = [{
                         id: 'table1',
                         name: 'table1',
-                        rowCount: 10000000,
+                        rowCount: 10_000_000,
                         columns: [
                             { name: 'col1', dataType: 'FLOAT64', columnType: ColumnType.Index },
                             { name: 'col2', dataType: 'FLOAT64', columnType: ColumnType.Normal }
