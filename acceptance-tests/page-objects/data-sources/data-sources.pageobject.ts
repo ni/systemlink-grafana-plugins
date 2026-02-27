@@ -65,7 +65,6 @@ export class DataSourcesPage {
         await this.navigateToDatasourcesPage();
         await this.addDataSourceButton.click();
         await this.dataSource(dataSource).click();
-        await this.page.waitForTimeout(timeOutPeriod);
         await this.nameSettingsInputField.waitFor({ state: 'visible', timeout: timeOutPeriod });
         await this.httpSettingsURL.waitFor({ state: 'visible', timeout: timeOutPeriod });
         await this.changeNameInputFieldValue(dataSourceNameField);

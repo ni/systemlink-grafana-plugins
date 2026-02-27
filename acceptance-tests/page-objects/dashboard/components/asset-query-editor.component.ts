@@ -89,7 +89,6 @@ export class AssetQueryEditorComponent {
     }
 
     async switchToTableView(): Promise<void> {
-        await this.page.waitForTimeout(timeOutPeriod);
         await this.switchToTableViewButton.click();
     }
 

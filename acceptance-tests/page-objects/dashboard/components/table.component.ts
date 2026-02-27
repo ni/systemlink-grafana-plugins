@@ -44,7 +44,7 @@ export class Table {
         return columnHeaders.indexOf(propertyName);
     };
 
-    async checkColumnValue(columnName: string, expectedValue: string, rowIndex: number): Promise<boolean> {
+    async checkColumnValue(columnName: string, expectedValue: string, rowIndex: number = 0): Promise<boolean> {
         const columnIndex = await this.getSelectedColumnIndex(columnName);
 
         if (columnIndex === -1) {
