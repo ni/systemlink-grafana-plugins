@@ -1,3 +1,9 @@
+## [4.136.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.135.2...v4.136.0) (2026-02-27)
+
+### Features
+
+* **dataframe:** flatten data table column properties into separate fields ([#684](https://github.com/ni/systemlink-grafana-plugins/issues/684)) ([ac449c2](https://github.com/ni/systemlink-grafana-plugins/commit/ac449c20c5edca1e66cd2c10a0a80a38db96fb2c))
+
 ## [4.135.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.135.1...v4.135.2) (2026-02-26)
 
 ### Bug Fixes
