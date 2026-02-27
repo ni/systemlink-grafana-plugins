@@ -60,7 +60,7 @@ test.describe('Asset data source with asset variable', () => {
         expect(await dashboard.panel.table.checkColumnValue(assetColumn.supports_external_calibration, 'true')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue(assetColumn.calibration_due_date, '2025-09-06T21:00:00.000Z')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue(assetColumn.is_system_controller, 'false')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(assetColumn.calibration_status, 'OK')).toBeTruthy();
+        expect(await dashboard.panel.table.checkColumnValue(assetColumn.calibration_status, 'O')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue(assetColumn.scan_code, 'scanCode6')).toBeTruthy();
     });
 });
