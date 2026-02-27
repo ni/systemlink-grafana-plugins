@@ -23,49 +23,51 @@ test.describe('Calibration Forecast', () => {
         await dataSources.deleteDataSource(createdDataSourceName);
     });
 
-    test('should create a Systemlink Assets visualization with Calibration Forecast', async () => {
-        await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
-        await dashboard.addVisualizationButton.waitFor();
-        await dashboard.addVisualization();
-        await dashboard.selectDataSource(createdDataSourceName);
+    test.describe.serial('Calibration Forecast query', () => {
+        test('should create a Systemlink Assets visualization with Calibration Forecast', async () => {
+            await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
+            await dashboard.addVisualizationButton.waitFor();
+            await dashboard.addVisualization();
+            await dashboard.selectDataSource(createdDataSourceName);
 
-        await expect(dashboard.dataSourcePicker).toHaveAttribute('placeholder', createdDataSourceName);
-    });
+            await expect(dashboard.dataSourcePicker).toHaveAttribute('placeholder', createdDataSourceName);
+        });
 
 
-    test('should display calibration forecast grouped by month with filter', async () => {
-        await dashboard.panel.assetQueryEditor.selectQueryType('Calibration Forecast');
-        await pressEscape(dashboard.page);
-        await dashboard.panel.assetQueryEditor.selectGroupBy('Month');
-        await dashboard.panel.assetQueryEditor.addFilter('Asset Type', 'equals', 'Device under test');
-        await dashboard.panel.toolbar.openDateTimePicker();
-        await dashboard.panel.toolbar.setTimeRange('2026-03-01 00:00:00', '2026-03-31 23:59:59', 'Coordinated Universal Time');
+        test('should display calibration forecast grouped by month with filter', async () => {
+            await dashboard.panel.assetQueryEditor.selectQueryType('Calibration Forecast');
+            await pressEscape(dashboard.page);
+            await dashboard.panel.assetQueryEditor.selectGroupBy('Month');
+            await dashboard.panel.assetQueryEditor.addFilter('Asset Type', 'equals', 'Device under test');
+            await dashboard.panel.toolbar.openDateTimePicker();
+            await dashboard.panel.toolbar.setTimeRange('2026-03-01 00:00:00', '2026-03-31 23:59:59', 'Coordinated Universal Time');
 
-        const [forecastResponse] = await Promise.all([
-            interceptApiRoute<CalibrationForecastResponse>(dashboard.page, '**/niapm/v1/assets/calibration-forecast'),
-            dashboard.panel.toolbar.refreshData()
-        ]);
+            const [forecastResponse] = await Promise.all([
+                interceptApiRoute<CalibrationForecastResponse>(dashboard.page, '**/niapm/v1/assets/calibration-forecast'),
+                dashboard.panel.toolbar.refreshData()
+            ]);
 
-        await dashboard.panel.assetQueryEditor.switchToTableView();
-        await dashboard.panel.table.getTable.waitFor({ timeout: 10000 });
+            await dashboard.panel.assetQueryEditor.switchToTableView();
+            await dashboard.panel.table.getTable.waitFor({ timeout: 10000 });
 
-        expect(forecastResponse).toBeDefined();
-        expect(forecastResponse.calibrationForecast.columns).toBeDefined();
+            expect(forecastResponse).toBeDefined();
+            expect(forecastResponse.calibrationForecast.columns).toBeDefined();
 
-        const assetsColumn = forecastResponse.calibrationForecast.columns.find(
-            column => column.name === 'Assets' && column.columnDescriptors?.[0]?.type === 'Count'
-        ) as CountColumn;
+            const assetsColumn = forecastResponse.calibrationForecast.columns.find(
+                column => column.name === 'Assets' && column.columnDescriptors?.[0]?.type === 'Count'
+            ) as CountColumn;
 
-        expect(assetsColumn).toBeDefined();
-        expect(assetsColumn.values.length).toBe(1);
+            expect(assetsColumn).toBeDefined();
+            expect(assetsColumn.values.length).toBe(1);
 
-        const tableRowCount = await dashboard.panel.table.getTableRowCount();
-        expect(tableRowCount).toBe(1);
-        expect(await dashboard.panel.table.checkColumnValue('Month', 'March 2026', 0)).toBeTruthy();
+            const tableRowCount = await dashboard.panel.table.getTableRowCount();
+            expect(tableRowCount).toBe(1);
+            expect(await dashboard.panel.table.checkColumnValue('Month', 'March 2026', 0)).toBeTruthy();
 
-        for (let rowIndex = 0; rowIndex < assetsColumn.values.length; rowIndex++) {
-            const expectedValue = assetsColumn.values[rowIndex].toString();
-            expect(await dashboard.panel.table.checkColumnValue('Assets', expectedValue, rowIndex)).toBeTruthy();
-        }
+            for (let rowIndex = 0; rowIndex < assetsColumn.values.length; rowIndex++) {
+                const expectedValue = assetsColumn.values[rowIndex].toString();
+                expect(await dashboard.panel.table.checkColumnValue('Assets', expectedValue, rowIndex)).toBeTruthy();
+            }
+        });
     });
 });

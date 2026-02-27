@@ -23,34 +23,36 @@ test.describe('Asset Summary Table', () => {
         await dataSources.deleteDataSource(createdDataSourceName);
     });
 
-    test('should create a Systemlink Assets visualization', async () => {
-        await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
-        await dashboard.addVisualizationButton.waitFor();
-        await dashboard.addVisualization();
-        await dashboard.selectDataSource(createdDataSourceName);
-        await dashboard.panel.assetQueryEditor.switchToTableView();
+    test.describe.serial('Asset Summary query', () => {
+        test('should create a Systemlink Assets visualization', async () => {
+            await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
+            await dashboard.addVisualizationButton.waitFor();
+            await dashboard.addVisualization();
+            await dashboard.selectDataSource(createdDataSourceName);
+            await dashboard.panel.assetQueryEditor.switchToTableView();
 
-        await expect(dashboard.dataSourcePicker).toHaveAttribute('placeholder', createdDataSourceName);
-    });
+            await expect(dashboard.dataSourcePicker).toHaveAttribute('placeholder', createdDataSourceName);
+        });
 
-    test('should display correct asset summary values', async () => {
-        const [assetSummaryResponse] = await Promise.all([
-            interceptApiRoute<AssetSummaryResponse>(dashboard.page, '**/niapm/v1/asset-summary'),
-            dashboard.panel.assetQueryEditor.selectQueryType('Asset Summary')
-        ]);
+        test('should display correct asset summary values', async () => {
+            const [assetSummaryResponse] = await Promise.all([
+                interceptApiRoute<AssetSummaryResponse>(dashboard.page, '**/niapm/v1/asset-summary'),
+                dashboard.panel.assetQueryEditor.selectQueryType('Asset Summary')
+            ]);
 
-        await dashboard.panel.table.getTable.waitFor({ timeout: timeOutPeriod });
+            await dashboard.panel.table.getTable.waitFor({ timeout: timeOutPeriod });
 
-        expect(assetSummaryResponse).toBeDefined();
+            expect(assetSummaryResponse).toBeDefined();
 
-        const rowCount = await dashboard.panel.table.getTableRowCount();
+            const rowCount = await dashboard.panel.table.getTableRowCount();
 
-        expect(rowCount).toBe(1);
-        expect(await dashboard.panel.table.checkColumnValue('Total', assetSummaryResponse.total.toString())).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Active', assetSummaryResponse.active.toString())).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Not active', assetSummaryResponse.notActive.toString())).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Approaching due date', assetSummaryResponse.approachingRecommendedDueDate.toString())).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Past due date', assetSummaryResponse.pastRecommendedDueDate.toString())).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Out for calibration', assetSummaryResponse.outForCalibration.toString())).toBeTruthy();
+            expect(rowCount).toBe(1);
+            expect(await dashboard.panel.table.checkColumnValue('Total', assetSummaryResponse.total.toString())).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue('Active', assetSummaryResponse.active.toString())).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue('Not active', assetSummaryResponse.notActive.toString())).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue('Approaching due date', assetSummaryResponse.approachingRecommendedDueDate.toString())).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue('Past due date', assetSummaryResponse.pastRecommendedDueDate.toString())).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue('Out for calibration', assetSummaryResponse.outForCalibration.toString())).toBeTruthy();
+        });
     });
 });
