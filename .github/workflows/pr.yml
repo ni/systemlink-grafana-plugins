@@ -16,8 +16,8 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
-          node-version: "20"
-          cache: "npm"
+          node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
@@ -28,8 +28,8 @@ jobs:
       - name: Lint
         run: npm run lint -- --quiet
 
-      # - name: Unit tests
-      #   run: npm run test:ci
+      - name: Unit tests
+        run: npm run test:ci
 
       - name: Build
         run: npm run build
@@ -48,14 +48,6 @@ jobs:
 
       - name: Acceptance tests
         run: npm run test:acceptance
-
-      - name: Upload Playwright report
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: acceptance-tests/playwright-report/
-          retention-days: 7
 
       - name: Stop test environment
         if: always()

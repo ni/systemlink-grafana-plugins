@@ -55,7 +55,7 @@ test.describe('Asset data source with asset variable', () => {
         expect(await dashboard.panel.table.checkColumnValue(assetColumn.supports_self_calibration, 'true')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue(assetColumn.supports_self_test, 'true')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue(assetColumn.supports_reset, 'false')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(assetColumn.discovery_type, 'MANUA')).toBeTruthy();
+        expect(await dashboard.panel.table.checkColumnValue(assetColumn.discovery_type, 'MANUAL')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue(assetColumn.self_calibration, '2022-06-07T18:58:05.000Z')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue(assetColumn.supports_external_calibration, 'true')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue(assetColumn.calibration_due_date, '2025-09-06T21:00:00.000Z')).toBeTruthy();
