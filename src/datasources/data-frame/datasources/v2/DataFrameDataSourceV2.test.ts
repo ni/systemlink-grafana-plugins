@@ -6115,19 +6115,6 @@ describe('DataFrameDataSourceV2', () => {
                             values: ['dimension', 'measure', 'dimension', 'measure', 'dimension']
                         },
                         {
-                            name: DataTableProjectionLabelLookup[
-                                DataTableProperties.ColumnProperties
-                            ].label,
-                            type: 'other',
-                            values: [
-                                { colKey: 'colValue' },
-                                { colKey2: 'colValue2' },
-                                { colKey: 'colValue' },
-                                { colKey2: 'colValue2' },
-                                { colKey3: 'colValue3' }
-                            ]
-                        },
-                        {
                             name: "key",
                             type: 'string',
                             values: [
@@ -6136,6 +6123,39 @@ describe('DataFrameDataSourceV2', () => {
                                 'value2',
                                 'value2',
                                 'value2'
+                            ]
+                        },
+                        {
+                            name: "colKey",
+                            type: 'string',
+                            values: [
+                                'colValue',
+                                undefined,
+                                'colValue',
+                                undefined,
+                                undefined
+                            ]
+                        },
+                        {
+                            name: "colKey2",
+                            type: 'string',
+                            values: [
+                                undefined,
+                                'colValue2',
+                                undefined,
+                                'colValue2',
+                                undefined
+                            ]
+                        },
+                        {
+                            name: "colKey3",
+                            type: 'string',
+                            values: [
+                                undefined,
+                                undefined,
+                                undefined,
+                                undefined,
+                                'colValue3'
                             ]
                         }
                     ];
@@ -6413,6 +6433,362 @@ describe('DataFrameDataSourceV2', () => {
 
                         const nameField = findField(result.fields, 'Columns (Data table)');
                         expect(nameField?.values).toEqual(['Conflicting property value']);
+                    });
+                });
+
+                describe('when DataTableProperties.ColumnProperties is selected', () => {
+                    it('should return column properties flattened into fields', async () => {
+                        const queryWithColumnProperties = {
+                            type: DataFrameQueryType.Properties,
+                            dataTableProperties: [],
+                            columnProperties: [DataTableProperties.ColumnProperties],
+                            take: 1000,
+                            refId: 'A',
+                        };
+                        const mockTables = [
+                            {
+                                id: 'table-1',
+                                name: 'Table 1',
+                                columns: [
+                                    {
+                                        name: 'Col1',
+                                        dataType: 'STRING',
+                                        properties: {
+                                            unit: 'meters',
+                                            description: 'Length column'
+                                        }
+                                    },
+                                    {
+                                        name: 'Col2',
+                                        dataType: 'INT32',
+                                        properties: {
+                                            unit: 'kg',
+                                            category: 'weight'
+                                        }
+                                    }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                        const result = await lastValueFrom(ds.runQuery(queryWithColumnProperties, options));
+
+                        const unitField = findField(result.fields, 'unit');
+                        const descriptionField = findField(result.fields, 'description');
+                        const categoryField = findField(result.fields, 'category');
+
+                        expect(unitField?.values).toEqual(['meters', 'kg']);
+                        expect(descriptionField?.values).toEqual(['Length column', undefined]);
+                        expect(categoryField?.values).toEqual([undefined, 'weight']);
+                    });
+
+                    it('should return no column property fields when columns have no properties', async () => {
+                        const queryWithColumnProperties = {
+                            type: DataFrameQueryType.Properties,
+                            dataTableProperties: [DataTableProperties.Name],
+                            columnProperties: [DataTableProperties.ColumnProperties],
+                            take: 1000,
+                            refId: 'A',
+                        };
+                        const mockTables = [
+                            {
+                                id: 'table-1',
+                                name: 'Table 1',
+                                columns: [
+                                    { name: 'Col1', dataType: 'STRING', properties: {} },
+                                    { name: 'Col2', dataType: 'INT32', properties: {} }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                        const result = await lastValueFrom(ds.runQuery(queryWithColumnProperties, options));
+
+                        expect(result.fields).toHaveLength(1);
+                        expect(result.fields[0].name).toBe(
+                            DataTableProjectionLabelLookup[DataTableProperties.Name].label
+                        );
+                    });
+
+                    it('should sort column property keys alphabetically', async () => {
+                        const queryWithColumnProperties = {
+                            type: DataFrameQueryType.Properties,
+                            dataTableProperties: [],
+                            columnProperties: [DataTableProperties.ColumnProperties],
+                            take: 1000,
+                            refId: 'A',
+                        };
+                        const mockTables = [
+                            {
+                                id: 'table-1',
+                                name: 'Table 1',
+                                columns: [
+                                    {
+                                        name: 'Col1',
+                                        dataType: 'STRING',
+                                        properties: {
+                                            zebra: 'last',
+                                            alpha: 'first',
+                                            charlie: 'middle',
+                                            beta: 'second'
+                                        }
+                                    }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                        const result = await lastValueFrom(ds.runQuery(queryWithColumnProperties, options));
+
+                        const fieldNames = result.fields.map((field: FieldDTO) => field.name);
+                        expect(fieldNames).toEqual(['alpha', 'beta', 'charlie', 'zebra']);
+                    });
+
+                    it('should set all column property fields to string type', async () => {
+                        const queryWithColumnProperties = {
+                            type: DataFrameQueryType.Properties,
+                            dataTableProperties: [],
+                            columnProperties: [DataTableProperties.ColumnProperties],
+                            take: 1000,
+                            refId: 'A',
+                        };
+                        const mockTables = [
+                            {
+                                id: 'table-1',
+                                name: 'Table 1',
+                                columns: [
+                                    {
+                                        name: 'Col1',
+                                        dataType: 'STRING',
+                                        properties: {
+                                            stringProp: 'text',
+                                            numericProp: '123',
+                                            boolProp: 'true'
+                                        }
+                                    }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                        const result = await lastValueFrom(ds.runQuery(queryWithColumnProperties, options));
+
+                        expect(result.fields.every((field: FieldDTO) => field.type === 'string')).toBe(true);
+                    });
+
+                    it('should work with multiple columns across tables', async () => {
+                        const queryWithColumnProperties = {
+                            type: DataFrameQueryType.Properties,
+                            dataTableProperties: [DataTableProperties.Name],
+                            columnProperties: [
+                                DataTableProperties.ColumnName,
+                                DataTableProperties.ColumnProperties
+                            ],
+                            take: 1000,
+                            refId: 'A',
+                        };
+                        const mockTables = [
+                            {
+                                id: 'table-1',
+                                name: 'Table 1',
+                                columns: [
+                                    { 
+                                        name: 'Col1', 
+                                        dataType: 'STRING',
+                                        properties: { unit: 'm', key1: 'value1' }
+                                    },
+                                    { 
+                                        name: 'Col2',
+                                        dataType: 'INT32',
+                                        properties: { unit: 'kg', key2: 'value2'}
+                                    }
+                                ]
+                            },
+                            {
+                                id: 'table-2',
+                                name: 'Table 2',
+                                columns: [
+                                    { 
+                                        name: 'Col3',
+                                        dataType: 'STRING',
+                                        properties: { unit: 'm', key3: 'value3' }
+                                    },
+                                    {
+                                        name: 'Col4',
+                                        dataType: 'INT32',
+                                        properties: { unit: 'kg', key4: 'value4' }
+                                    }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                        const result = await lastValueFrom(ds.runQuery(queryWithColumnProperties, options));
+
+                        const unitField = findField(result.fields, 'unit');
+                        expect(unitField?.values).toEqual(['m', 'kg', 'm', 'kg']);
+
+                        const key1Field = findField(result.fields, 'key1');
+                        expect(key1Field?.values).toEqual(['value1', undefined, undefined, undefined]);
+
+                        const key2Field = findField(result.fields, 'key2');
+                        expect(key2Field?.values).toEqual([undefined, 'value2', undefined, undefined]);
+
+                        const key3Field = findField(result.fields, 'key3');
+                        expect(key3Field?.values).toEqual([undefined, undefined, 'value3', undefined]);
+
+                        const key4Field = findField(result.fields, 'key4');
+                        expect(key4Field?.values).toEqual([undefined, undefined, undefined, 'value4']);
+                    });
+
+                    it('should return only 100 fields when more than 100 unique column property keys exist', async () => {
+                        const queryWithColumnProperties = {
+                            type: DataFrameQueryType.Properties,
+                            dataTableProperties: [],
+                            columnProperties: [DataTableProperties.ColumnProperties],
+                            take: 1000,
+                            refId: 'A',
+                        };
+                        const mockTables = [
+                            {
+                                id: 'table-1',
+                                name: 'Table 1',
+                                columns: [
+                                    {
+                                        name: 'Col1',
+                                        dataType: 'STRING',
+                                        properties: Object.fromEntries(
+                                            Array.from({ length: 101 }, (_, i) => [`colProp${i}`, `value${i}`])
+                                        )
+                                    }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                        const result = await lastValueFrom(ds.runQuery(queryWithColumnProperties, options));
+
+                        expect(result.fields.length).toBe(100);
+                    });
+
+                    it('should add a suffix `(Column)` to column property field names that conflict with first-class property names', async () => {
+                        const queryWithColumnProperties = {
+                            type: DataFrameQueryType.Properties,
+                            dataTableProperties: [DataTableProperties.ColumnCount],
+                            columnProperties: [DataTableProperties.ColumnProperties],
+                            take: 1000,
+                            refId: 'A',
+                        };
+                        const mockTables = [
+                            {
+                                id: 'table-1',
+                                name: 'Table 1',
+                                columnCount: 1,
+                                columns: [
+                                    {
+                                        name: 'Col1',
+                                        dataType: 'STRING',
+                                        properties: {
+                                            Columns: 'Conflicting column property value',
+                                        }
+                                    }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                        const result = await lastValueFrom(ds.runQuery(queryWithColumnProperties, options));
+
+                        const dataTableField = findField(result.fields, 'Columns');
+                        expect(dataTableField?.values).toEqual([1]);
+                        const columnPropertyField = findField(result.fields, 'Columns (Column)');
+                        expect(columnPropertyField?.values).toEqual(['Conflicting column property value']);
+                    });
+
+                    it('should add a suffix `(Column)` to column property field names that conflict with data table property names', async () => {
+                        const queryWithColumnProperties = {
+                            type: DataFrameQueryType.Properties,
+                            dataTableProperties: [DataTableProperties.Properties],
+                            columnProperties: [DataTableProperties.ColumnProperties],
+                            take: 1000,
+                            refId: 'A',
+                        };
+                        const mockTables = [
+                            {
+                                id: 'table-1',
+                                name: 'Table 1',
+                                properties: {
+                                    sharedKey: 'Data table value',
+                                },
+                                columns: [
+                                    {
+                                        name: 'Col1',
+                                        dataType: 'STRING',
+                                        properties: {
+                                            sharedKey: 'Column value',
+                                        }
+                                    }
+                                ]
+                            }
+                        ];
+                        queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                        const result = await lastValueFrom(ds.runQuery(queryWithColumnProperties, options));
+
+                        const dataTableField = findField(result.fields, 'sharedKey');
+                        expect(dataTableField?.values).toEqual(['Data table value']);
+                        const columnPropertyField = findField(result.fields, 'sharedKey (Column)');
+                        expect(columnPropertyField?.values).toEqual(['Column value']);
+                    });
+
+                    it('should share the custom property column limit between data table and column properties, with data table properties consuming from the limit first', async () => {
+                        const queryWithManyProperties = {
+                            type: DataFrameQueryType.Properties,
+                            dataTableProperties: [DataTableProperties.Properties],
+                            columnProperties: [DataTableProperties.ColumnProperties],
+                            take: 1000,
+                            refId: 'A',
+                        };
+
+                        const tableProperties: Record<string, string> = {};
+                        for (let i = 0; i < 80; i++) {
+                            tableProperties[`tableProp${i}`] = `Table property value ${i}`;
+                        }
+
+                        const columnProperties: Record<string, string> = {};
+                        for (let i = 0; i < 30; i++) {
+                            columnProperties[`columnProp${i}`] = `Column property value ${i}`;
+                        }
+
+                        const mockTables = [
+                            {
+                                id: 'table-1',
+                                name: 'Table 1',
+                                properties: tableProperties,
+                                columns: [
+                                    {
+                                        name: 'Col1',
+                                        dataType: 'STRING',
+                                        properties: columnProperties,
+                                    },
+                                ],
+                            },
+                        ];
+
+                        queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                        const result = await lastValueFrom(ds.runQuery(queryWithManyProperties, options));
+
+                        const tablePropertyFields = result.fields.filter((field: FieldDTO) =>
+                            typeof field.name === 'string' && field.name.startsWith('tableProp')
+                        );
+                        const columnPropertyFields = result.fields.filter((field: FieldDTO) =>
+                            typeof field.name === 'string' && field.name.startsWith('columnProp')
+                        );
+
+                        expect(tablePropertyFields.length).toBe(80);
+                        expect(columnPropertyFields.length).toBe(20);
+                        expect(result.fields.length).toBe(100);
                     });
                 });
             });
