@@ -43,10 +43,7 @@ test.describe('Asset Summary Table', () => {
             await dashboard.panel.table.getTable.waitFor({ timeout: timeOutPeriod });
 
             expect(assetSummaryResponse).toBeDefined();
-
-            const rowCount = await dashboard.panel.table.getTableRowCount();
-
-            expect(rowCount).toBe(1);
+            expect(await dashboard.panel.table.getTableRowCount()).toBe(1);
             expect(await dashboard.panel.table.checkColumnValue('Total', assetSummaryResponse.total.toString())).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue('Active', assetSummaryResponse.active.toString())).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue('Not active', assetSummaryResponse.notActive.toString())).toBeTruthy();

@@ -85,10 +85,8 @@ class AssetRoutes {
 
         let filteredAssets = db.assets;
 
-        if (filter) {
-            if (filter.includes('DEVICE_UNDER_TEST') || filter.includes('Device under test')) {
-                filteredAssets = filteredAssets.filter(asset => asset.assetType === 'DEVICE_UNDER_TEST');
-            }
+        if (filter?.includes('DEVICE_UNDER_TEST') || filter?.includes('Device under test')) {
+            filteredAssets = filteredAssets.filter(asset => asset.assetType === 'DEVICE_UNDER_TEST');
         }
 
         const assetsInRange = filteredAssets.filter(asset => {
@@ -102,9 +100,9 @@ class AssetRoutes {
         let columns = [];
         if (groupBy.includes('MONTH')) {
             const monthMap = new Map();
+            const endDate = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), 1));
 
             let currentDate = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1));
-            const endDate = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), 1));
 
             while (currentDate <= endDate) {
                 const monthKey = currentDate.toISOString();
@@ -115,7 +113,6 @@ class AssetRoutes {
 
             assetsInRange.forEach(asset => {
                 const dueDate = new Date(asset.externalCalibration.resolvedDueDate);
-
                 const monthKey = new Date(Date.UTC(dueDate.getUTCFullYear(), dueDate.getUTCMonth(), 1)).toISOString();
 
                 monthMap.set(monthKey, monthMap.get(monthKey) + 1);
