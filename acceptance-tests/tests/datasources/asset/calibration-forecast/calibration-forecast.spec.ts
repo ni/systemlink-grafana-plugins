@@ -4,7 +4,7 @@ import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.page
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { pressEscape } from '../../../../utils/keyboard-utilities';
 import { interceptApiRoute } from '../../../../utils/intercept-api-route';
-import type { CalibrationForecastResponse, FieldDTOWithDescriptor } from '../../../../../src/datasources/asset/types/CalibrationForecastQuery.types';
+import { CalibrationForecastResponse, FieldDTOWithDescriptor } from '../../../../../src/datasources/asset/types/CalibrationForecastQuery.types';
 
 test.describe('Calibration Forecast', () => {
     let dashboard: DashboardPage;
@@ -46,7 +46,6 @@ test.describe('Calibration Forecast', () => {
                 interceptApiRoute<CalibrationForecastResponse>(dashboard.page, '**/niapm/v1/assets/calibration-forecast'),
                 dashboard.panel.toolbar.refreshData()
             ]);
-            console.log('Calibration Forecast API Response:', forecastResponse);
 
             await dashboard.panel.assetQueryEditor.switchToTableView();
             await dashboard.panel.table.getTable.waitFor({ timeout: 10000 });
@@ -55,14 +54,12 @@ test.describe('Calibration Forecast', () => {
             expect(forecastResponse.calibrationForecast.columns).toBeDefined();
 
             const assetsColumn = forecastResponse.calibrationForecast.columns.find(
-                column => column.name === 'Assets' && column.columnDescriptors?.[0]?.type === 'COUNT' as any
+                column => column.name === 'Assets' && column.columnDescriptors?.[0]?.type === 'COUNT'
             ) as FieldDTOWithDescriptor;
-            console.log('Assets Column:', assetsColumn);
 
             expect(assetsColumn).toBeDefined();
             expect(assetsColumn.values).toBeDefined();
             expect(assetsColumn.values!.length).toBe(1);
-            console
 
             const tableRowCount = await dashboard.panel.table.getTableRowCount();
             expect(tableRowCount).toBe(1);
