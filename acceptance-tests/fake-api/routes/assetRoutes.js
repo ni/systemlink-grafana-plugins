@@ -127,13 +127,13 @@ class AssetRoutes {
             columns = [
                 {
                     name: 'Month',
-                    values: months,
-                    columnDescriptors: [{ value: 'Month', type: 'TIME' }]
+                    columnDescriptors: [{ type: 'TIME', value: 'Month' }],
+                    values: months
                 },
                 {
                     name: 'Assets',
-                    values: counts,
-                    columnDescriptors: [{ value: 'Assets', type: 'COUNT' }]
+                    columnDescriptors: [{ type: 'COUNT', value: 'Assets' }],
+                    values: counts
                 }
             ];
         }
