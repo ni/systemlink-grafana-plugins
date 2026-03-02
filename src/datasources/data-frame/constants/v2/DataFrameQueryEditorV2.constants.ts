@@ -104,3 +104,6 @@ export const infoMessage = {
     datasourceHelp: 'For more information, refer to the datasource help documentation.',
     width: 88.75,
 }
+
+export const DATA_TABLE_CUSTOM_PROPERTIES_GROUP = 'Data table properties';
+export const COLUMN_CUSTOM_PROPERTIES_GROUP = 'Column properties';
