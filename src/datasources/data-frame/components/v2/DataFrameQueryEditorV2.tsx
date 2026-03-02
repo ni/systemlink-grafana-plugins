@@ -138,18 +138,15 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                     }
                 }
 
-                const sortedDataTableKeys = Array.from(dataTableKeySet).sort();
-                const sortedColumnKeys = Array.from(columnKeySet).sort();
-
                 setDynamicDataTablePropertyKeyOptions(
-                    sortedDataTableKeys.map(key => ({
+                    Array.from(dataTableKeySet).map(key => ({
                         label: key,
                         value: key,
                         group: DATA_TABLE_CUSTOM_PROPERTIES_GROUP,
                     })).sort((a, b) => a.label.localeCompare(b.label))
                 );
                 setDynamicColumnPropertyKeyOptions(
-                    sortedColumnKeys.map(key => ({
+                    Array.from(columnKeySet).map(key => ({
                         label: key,
                         value: key,
                         group: COLUMN_CUSTOM_PROPERTIES_GROUP,
