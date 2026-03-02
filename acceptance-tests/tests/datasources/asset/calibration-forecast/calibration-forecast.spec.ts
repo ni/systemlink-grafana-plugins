@@ -4,7 +4,7 @@ import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.page
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { pressEscape } from '../../../../utils/keyboard-utilities';
 import { interceptApiRoute } from '../../../../utils/intercept-api-route';
-import { CalibrationForecastResponse, CountColumn } from '../../../../models/calibration-forecast';
+import * as CalibrationForecastTypes from '../../../../../src/datasources/asset/types/CalibrationForecastQuery.types';
 
 test.describe('Calibration Forecast', () => {
     let dashboard: DashboardPage;
@@ -43,9 +43,10 @@ test.describe('Calibration Forecast', () => {
             await dashboard.panel.toolbar.setTimeRange('2026-03-01 00:00:00', '2026-03-31 23:59:59', 'Coordinated Universal Time');
 
             const [forecastResponse] = await Promise.all([
-                interceptApiRoute<CalibrationForecastResponse>(dashboard.page, '**/niapm/v1/assets/calibration-forecast'),
+                interceptApiRoute<CalibrationForecastTypes.CalibrationForecastResponse>(dashboard.page, '**/niapm/v1/assets/calibration-forecast'),
                 dashboard.panel.toolbar.refreshData()
             ]);
+            console.log('Calibration Forecast API Response:', forecastResponse);
 
             await dashboard.panel.assetQueryEditor.switchToTableView();
             await dashboard.panel.table.getTable.waitFor({ timeout: 10000 });
@@ -54,18 +55,21 @@ test.describe('Calibration Forecast', () => {
             expect(forecastResponse.calibrationForecast.columns).toBeDefined();
 
             const assetsColumn = forecastResponse.calibrationForecast.columns.find(
-                column => column.name === 'Assets' && column.columnDescriptors?.[0]?.type === 'Count'
-            ) as CountColumn;
+                column => column.name === 'Assets' && column.columnDescriptors?.[0]?.type === CalibrationForecastTypes.ColumnDescriptorType.Count
+            ) as CalibrationForecastTypes.FieldDTOWithDescriptor;
+            console.log('Assets Column:', assetsColumn);
 
             expect(assetsColumn).toBeDefined();
-            expect(assetsColumn.values.length).toBe(1);
+            expect(assetsColumn.values).toBeDefined();
+            expect(assetsColumn.values!.length).toBe(1);
+            console
 
             const tableRowCount = await dashboard.panel.table.getTableRowCount();
             expect(tableRowCount).toBe(1);
             expect(await dashboard.panel.table.checkColumnValue('Month', 'March 2026', 0)).toBeTruthy();
 
-            for (let rowIndex = 0; rowIndex < assetsColumn.values.length; rowIndex++) {
-                const expectedValue = assetsColumn.values[rowIndex].toString();
+            for (let rowIndex = 0; rowIndex < assetsColumn.values!.length; rowIndex++) {
+                const expectedValue = assetsColumn.values![rowIndex].toString();
                 expect(await dashboard.panel.table.checkColumnValue('Assets', expectedValue, rowIndex)).toBeTruthy();
             }
         });

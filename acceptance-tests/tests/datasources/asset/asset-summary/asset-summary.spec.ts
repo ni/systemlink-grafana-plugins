@@ -4,7 +4,7 @@ import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.page
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { interceptApiRoute } from '../../../../utils/intercept-api-route';
 import { timeOutPeriod } from '../../../../constants/asset-list-properties.constant';
-import { AssetSummaryResponse } from '../../../../models/asset-summary-response';
+import { AssetSummaryResponse } from '../../../../../src/datasources/asset/types/AssetSummaryQuery.types';
 
 test.describe('Asset Summary Table', () => {
     let dashboard: DashboardPage;
