@@ -25,6 +25,7 @@ server.get('/niauth/v1/user', authRoutes.getUserWorkspaces);
 server.post('/nisysmgmt/v1/query-systems', systemsRoutes.querySystems);
 server.get('/nilocation/v1/locations', locationsRoutes.listLocations);
 server.get('/niapm/v1/asset-summary', assetRoutes.getAssetSummary);
+server.post('/niapm/v1/assets/calibration-forecast', assetRoutes.getCalibrationForecast);
 
 server.use(router);
 server.listen(port);

@@ -73,6 +73,74 @@ class AssetRoutes {
             ).length
         });
     }
+
+    getCalibrationForecast(req, res) {
+        if (req.method !== 'POST') {
+            return;
+        }
+
+        const { groupBy, startTime, endTime, filter } = req.body;
+        const start = new Date(startTime);
+        const end = new Date(endTime);
+
+        let filteredAssets = db.assets;
+
+        if (filter?.includes('DEVICE_UNDER_TEST') || filter?.includes('Device under test')) {
+            filteredAssets = filteredAssets.filter(asset => asset.assetType === 'DEVICE_UNDER_TEST');
+        }
+
+        const assetsInRange = filteredAssets.filter(asset => {
+            if (!asset.externalCalibration?.resolvedDueDate) {
+                return false;
+            }
+            const dueDate = new Date(asset.externalCalibration.resolvedDueDate);
+            return dueDate >= start && dueDate <= end;
+        });
+
+        let columns = [];
+        if (groupBy.includes('MONTH')) {
+            const monthMap = new Map();
+            const endDate = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), 1));
+
+            let currentDate = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1));
+
+            while (currentDate <= endDate) {
+                const monthKey = currentDate.toISOString();
+                monthMap.set(monthKey, 0);
+
+                currentDate = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth() + 1, 1));
+            }
+
+            assetsInRange.forEach(asset => {
+                const dueDate = new Date(asset.externalCalibration.resolvedDueDate);
+                const monthKey = new Date(Date.UTC(dueDate.getUTCFullYear(), dueDate.getUTCMonth(), 1)).toISOString();
+
+                monthMap.set(monthKey, monthMap.get(monthKey) + 1);
+            });
+
+            const months = Array.from(monthMap.keys()).sort();
+            const counts = months.map(month => monthMap.get(month));
+
+            columns = [
+                {
+                    name: 'Month',
+                    columnDescriptors: [{ type: 'TIME', value: 'Month' }],
+                    values: months
+                },
+                {
+                    name: 'Assets',
+                    columnDescriptors: [{ type: 'COUNT', value: 'Assets' }],
+                    values: counts
+                }
+            ];
+        }
+
+        res.status(200).json({
+            calibrationForecast: {
+                columns: columns
+            }
+        });
+    }
 }
 
 export const assetRoutes = new AssetRoutes();

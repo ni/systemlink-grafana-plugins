@@ -1,6 +1,6 @@
 import { Page, Locator } from '@playwright/test';
 import { pressEnter } from '../../../utils/keyboard-utilities';
-import { assetColumn } from '../../../constants/asset-list-properties.constant';
+import { assetColumn, timeOutPeriod } from '../../../constants/asset-list-properties.constant';
 
 export class AssetQueryEditorComponent {
     readonly page: Page;
@@ -33,16 +33,20 @@ export class AssetQueryEditorComponent {
         return this.page.getByRole('button', { name: 'Switch to table' });
     }
 
-    public get refreshButton(): Locator {
-        return this.page.getByTestId('data-testid RefreshPicker run button');
-    }
-
     public selectQueryBuilderPropertyOption(optionName: string): Locator {
         return this.page.getByRole('option', { name: optionName }).locator('a');
     }
 
     public get propertiesField(): Locator {
         return this.page.getByTestId('query-editor-row');
+    }
+
+    public get emptyGroupByDropdown(): Locator {
+        return this.page.getByTestId('query-editor-row').getByText('Choose');
+    }
+
+    public selectGroupByOption(option: string): Locator {
+        return this.page.getByRole('option', { name: option });
     }
 
     public propertiesOptions(optionName: string): Locator {
@@ -93,10 +97,6 @@ export class AssetQueryEditorComponent {
         await this.variableDropdownOption(variableOption).click();
     }
 
-    async refreshData(): Promise<void> {
-        await this.refreshButton.click();
-    }
-
     async openQueryProperties(): Promise<void> {
         await this.propertiesField.click();
     }
@@ -109,5 +109,14 @@ export class AssetQueryEditorComponent {
         for (const property of propertiesList) {
             await this.selectQueryProperty(property);
         }
+    }
+
+    async openEmptyGroupByDropdown(): Promise<void> {
+        await this.emptyGroupByDropdown.click();
+    }
+
+    async selectGroupBy(option: string): Promise<void> {
+        await this.openEmptyGroupByDropdown();
+        await this.selectGroupByOption(option).click();
     }
 }
