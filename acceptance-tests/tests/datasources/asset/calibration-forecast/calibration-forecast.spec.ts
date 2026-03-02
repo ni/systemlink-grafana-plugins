@@ -4,7 +4,7 @@ import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.page
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { pressEscape } from '../../../../utils/keyboard-utilities';
 import { interceptApiRoute } from '../../../../utils/intercept-api-route';
-import * as CalibrationForecastTypes from '../../../../../src/datasources/asset/types/CalibrationForecastQuery.types';
+import type { CalibrationForecastResponse, FieldDTOWithDescriptor } from '../../../../../src/datasources/asset/types/CalibrationForecastQuery.types';
 
 test.describe('Calibration Forecast', () => {
     let dashboard: DashboardPage;
@@ -43,7 +43,7 @@ test.describe('Calibration Forecast', () => {
             await dashboard.panel.toolbar.setTimeRange('2026-03-01 00:00:00', '2026-03-31 23:59:59', 'Coordinated Universal Time');
 
             const [forecastResponse] = await Promise.all([
-                interceptApiRoute<CalibrationForecastTypes.CalibrationForecastResponse>(dashboard.page, '**/niapm/v1/assets/calibration-forecast'),
+                interceptApiRoute<CalibrationForecastResponse>(dashboard.page, '**/niapm/v1/assets/calibration-forecast'),
                 dashboard.panel.toolbar.refreshData()
             ]);
             console.log('Calibration Forecast API Response:', forecastResponse);
@@ -55,8 +55,8 @@ test.describe('Calibration Forecast', () => {
             expect(forecastResponse.calibrationForecast.columns).toBeDefined();
 
             const assetsColumn = forecastResponse.calibrationForecast.columns.find(
-                column => column.name === 'Assets' && column.columnDescriptors?.[0]?.type === CalibrationForecastTypes.ColumnDescriptorType.Count
-            ) as CalibrationForecastTypes.FieldDTOWithDescriptor;
+                column => column.name === 'Assets' && column.columnDescriptors?.[0]?.type === 'COUNT' as any
+            ) as FieldDTOWithDescriptor;
             console.log('Assets Column:', assetsColumn);
 
             expect(assetsColumn).toBeDefined();
