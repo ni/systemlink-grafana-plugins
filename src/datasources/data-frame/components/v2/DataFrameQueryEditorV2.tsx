@@ -17,6 +17,7 @@ import {
     infoMessage,
     DATA_TABLE_CUSTOM_PROPERTIES_GROUP,
     COLUMN_CUSTOM_PROPERTIES_GROUP,
+    PROPERTIES_SELECTION_LIMIT,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { isObservable, lastValueFrom } from 'rxjs';
 import _ from 'lodash';
@@ -45,6 +46,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const [undecimatedRecordCountInvalidMessage, setUndecimatedRecordCountInvalidMessage] = useState<string>('');
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>(metadataFieldOptions);
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
+    const [propertiesLimitExceededMessage, setPropertiesLimitExceededMessage] = useState<string>('');
     const [xColumnOptions, setXColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnOptionsInitialized, setIsColumnOptionsInitialized] = useState<boolean>(false);
     const [dynamicDataTablePropertyKeyOptions, setDynamicDataTablePropertyKeyOptions] = useState<Array<ComboboxOption<string>>>([]);
@@ -392,6 +394,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         const dataTableProperties = properties
             .filter(property => property.value !== undefined)
             .map(property => property.value);
+        const totalSelected = dataTableProperties.length + migratedQuery.columnProperties.length;
+        if (totalSelected > PROPERTIES_SELECTION_LIMIT) {
+            setPropertiesLimitExceededMessage(errorMessages.propertiesSelectionLimitExceeded);
+            return;
+        }
+        setPropertiesLimitExceededMessage('');
         handleQueryChange({ ...migratedQuery, dataTableProperties: dataTableProperties as DataTableProperties[] });
     };
 
@@ -399,6 +407,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         const columnProperties = properties
             .filter(property => property.value !== undefined)
             .map(property => property.value);
+        const totalSelected = migratedQuery.dataTableProperties.length + columnProperties.length;
+        if (totalSelected > PROPERTIES_SELECTION_LIMIT) {
+            setPropertiesLimitExceededMessage(errorMessages.propertiesSelectionLimitExceeded);
+            return;
+        }
+        setPropertiesLimitExceededMessage('');
         handleQueryChange({ ...migratedQuery, columnProperties: columnProperties as DataTableProperties[] });
     };
 
@@ -693,6 +707,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                         label={labels.dataTableProperties}
                         labelWidth={INLINE_LABEL_WIDTH}
                         tooltip={tooltips.dataTableProperties}
+                        invalid={!!propertiesLimitExceededMessage}
+                        error={propertiesLimitExceededMessage}
                     >
                         <MultiCombobox
                             placeholder={placeholders.dataTableProperties}
@@ -709,6 +725,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                         label={labels.columnProperties}
                         labelWidth={INLINE_LABEL_WIDTH}
                         tooltip={tooltips.columnProperties}
+                        invalid={!!propertiesLimitExceededMessage}
+                        error={propertiesLimitExceededMessage}
                     >
                         <MultiCombobox
                             placeholder={placeholders.columnProperties}

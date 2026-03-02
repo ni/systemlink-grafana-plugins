@@ -89,6 +89,7 @@ export const errorMessages = {
     xColumnLimitExceeded: `The tables query returned too many columns. Only the first ${COLUMN_OPTIONS_LIMIT} columns are shown in the x-column selection list.`,
     xColumnSelectionInvalid: 'The selected x-column is not available in all the tables matching the query.',
     propertiesNotSelected: 'At least one data table property or column property must be selected.',
+    propertiesSelectionLimitExceeded: `The total number of selected data table properties and column properties cannot exceed ${20}.`,
 };
 
 /**
@@ -107,3 +108,4 @@ export const infoMessage = {
 
 export const DATA_TABLE_CUSTOM_PROPERTIES_GROUP = 'Data table properties';
 export const COLUMN_CUSTOM_PROPERTIES_GROUP = 'Column properties';
+export const PROPERTIES_SELECTION_LIMIT = 20;
