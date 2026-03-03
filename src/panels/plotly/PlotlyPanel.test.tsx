@@ -271,16 +271,13 @@ describe('PlotlyPanel', () => {
           );
         });
 
-        it('should call onOptionsChange with new min and max when relayout event provides numeric x-axis values', () => {
+        it('should not call onOptionsChange with new min and max when relayout event provides numeric x-axis values', () => {
           const props = createMockProps({ xAxis: { field: 'temperature', min: 1, max: 2 } }, 1);
 
           renderPlotlyElement(props);
           triggerRelayout(10.8472639485726394, 100.5938475629384756);
 
-          expect(props.onOptionsChange).toHaveBeenCalledWith({
-            ...props.options,
-            xAxis: { ...props.options.xAxis, min: 10.8472639485726394, max: 100.5938475629384756 },
-          });
+          expect(props.onOptionsChange).not.toHaveBeenCalled();
         });
       });
 
