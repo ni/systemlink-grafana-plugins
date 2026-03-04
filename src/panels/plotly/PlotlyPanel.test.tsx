@@ -315,7 +315,7 @@ describe('PlotlyPanel', () => {
 
         it('should not call onOptionsChange when panel is in sync targets', () => {
           mockSearchObject('?nisl-syncXAxisRangeTargets=1');
-          const props = createMockProps({ xAxis: { field: 'temperature', min: 1, max: 2 } }, 1);
+          const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 200 } }, 1);
 
           renderPlotlyElement(props);
           triggerRelayout(10.8472639485726394, 100.5938475629384756);
