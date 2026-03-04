@@ -796,6 +796,22 @@ describe('PlotlyPanel', () => {
 
         expect(xAxisRangeInPlot).toEqual([1.5, 2.5]);
       });
+
+      it('should reset zoom when x-axis field changes', () => {
+        const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+
+        const { rerender } = renderPlotlyElement(props);
+
+        triggerRelayout(1.5, 2.5);
+
+        expect(xAxisRangeInPlot).toEqual([1.5, 2.5]);
+
+        const newProps = createMockProps({ xAxis: { field: 'pressure' } }, 1, 'number', 'pressure');
+
+        rerender(<PlotlyPanel {...newProps} />);
+
+        expect(xAxisRangeInPlot).toEqual([1, 3]);
+      });
     });
   });
 });
