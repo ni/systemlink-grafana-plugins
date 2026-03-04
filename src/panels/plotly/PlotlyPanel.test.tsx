@@ -8,6 +8,8 @@ import _ from 'lodash';
 
 const mockPublish = jest.fn();
 let plotlyOnRelayout: any;
+let xAxisRangeInPlot: [number, number] | undefined;
+let previousUirevision: string | undefined;
 
 jest.mock('@grafana/runtime', () => ({
   getTemplateSrv: () => ({
@@ -26,8 +28,33 @@ jest.mock('@grafana/runtime', () => ({
 jest.mock('./utils', () => ({
   getFieldsByName: jest.fn((frames, name) => frames.map((f: any) => f.fields[0])),
   notEmpty: jest.fn((val) => val !== null && val !== undefined),
-  Plot: ({ onRelayout }: any) => {
-    plotlyOnRelayout = onRelayout;
+  Plot: ({ onRelayout, layout, data }: any) => {
+    const xAxisRange = layout?.xaxis?.range;
+    const uirevision = layout?.uirevision;
+    const shouldAutoRange =
+      uirevision === undefined || uirevision !== previousUirevision;
+
+    if (xAxisRange) {
+      xAxisRangeInPlot = [...xAxisRange] as [number, number];
+    } else if (shouldAutoRange) {
+      const xAxisData: number[] = data?.[0]?.x || [];
+      xAxisRangeInPlot = xAxisData.length > 0
+        ? [Math.min(...xAxisData), Math.max(...xAxisData)]
+        : undefined;
+    }
+
+    previousUirevision = uirevision;
+
+    plotlyOnRelayout = (...args: any[]) => {
+      const event = args[0];
+      const rangeMin = event['xaxis.range[0]'];
+      const rangeMax = event['xaxis.range[1]'];
+      if (typeof rangeMin === 'number' && typeof rangeMax === 'number') {
+        xAxisRangeInPlot = [rangeMin, rangeMax];
+      }
+      onRelayout(...args);
+    };
+
     return <div data-testid="plotly-plot">Plot</div>;
   },
   renderMenuItems: jest.fn(),
@@ -139,6 +166,7 @@ describe('PlotlyPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    previousUirevision = undefined;
   });
 
   afterEach(() => {
@@ -740,6 +768,32 @@ describe('PlotlyPanel', () => {
 
           expect(props.onOptionsChange).not.toHaveBeenCalled();
         });
+      });
+    });
+
+    describe('Numeric X-axis Range Synchronization', () => {
+      it('should auto-range on render when no explicit range is configured', () => {
+        const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(xAxisRangeInPlot).toEqual([1, 3]);
+      });
+
+      it('should preserve user zoom on numeric x-axis', () => {
+        const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+
+        const { rerender } = renderPlotlyElement(props);
+
+        expect(xAxisRangeInPlot).toEqual([1, 3]);
+
+        triggerRelayout(1.5, 2.5);
+
+        expect(xAxisRangeInPlot).toEqual([1.5, 2.5]);
+
+        rerender(<PlotlyPanel {...props} />);
+
+        expect(xAxisRangeInPlot).toEqual([1.5, 2.5]);
       });
     });
   });
