@@ -31,7 +31,8 @@ jest.mock('./utils', () => ({
   Plot: ({ onRelayout, layout, data }: any) => {
     const xAxisRange = layout?.xaxis?.range;
     const uirevision = layout?.uirevision;
-    const shouldAutoRange = uirevision !== previousUirevision;
+    const shouldAutoRange =
+      uirevision === undefined || uirevision !== previousUirevision;
 
     if (xAxisRange) {
       xAxisRangeInPlot = [...xAxisRange] as [number, number];
