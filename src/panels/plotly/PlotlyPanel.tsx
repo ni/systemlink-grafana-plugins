@@ -455,7 +455,7 @@ const getLayout = (theme: GrafanaTheme2, traceColors: string[], options: PanelOp
   const showXAxis2 = options.showYAxis2 && !options.displayVertically;
   const showYAxis2 = options.showYAxis2 && options.displayVertically;
   const layout: Partial<Plotly.Layout> = {
-    uirevision: 'true',
+    uirevision: `${axisLabels.xAxis}`,
     colorway: traceColors,
     margin: { r: 40, l: 40, t: 20, b: 40 },
     paper_bgcolor: theme.components.panel.background,
