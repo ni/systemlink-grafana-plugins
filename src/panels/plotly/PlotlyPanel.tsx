@@ -221,7 +221,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         return;
       }
 
-      if (isPanelInSyncXAxisRangeTargets()) {
+      if (shouldSyncXRange()) {
         syncNumericXAxisRange(xAxisMin, xAxisMax);
       } else {
         onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
@@ -229,7 +229,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     }
   };
 
-  const isPanelInSyncXAxisRangeTargets = (): boolean => {
+  const shouldSyncXRange = (): boolean => {
     const queryParams = locationService.getSearchObject();
     const syncTargetsQueryParam = queryParams['nisl-syncXAxisRangeTargets'];
     const syncTargets =
