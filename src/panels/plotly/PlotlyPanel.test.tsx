@@ -307,14 +307,10 @@ describe('PlotlyPanel', () => {
           renderPlotlyElement(props);
           triggerRelayout(10.8472639485726394, 100.5938475629384756);
 
-          expect(props.onOptionsChange).toHaveBeenCalledWith(
-            expect.objectContaining({
-              xAxis: expect.objectContaining({
-                min: 10.8472639485726394,
-                max: 100.5938475629384756,
-              }),
-            })
-          );
+          expect(props.onOptionsChange).toHaveBeenCalledWith({
+            ...props.options,
+            xAxis: { ...props.options.xAxis, min: 10.8472639485726394, max: 100.5938475629384756 },
+          });
         });
 
         it('should not call onOptionsChange when panel is in sync targets', () => {
