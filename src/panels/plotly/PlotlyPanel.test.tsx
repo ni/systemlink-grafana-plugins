@@ -797,6 +797,25 @@ describe('PlotlyPanel', () => {
         expect(xAxisRangeInPlot).toEqual([1.5, 2.5]);
       });
 
+      it('should preserve zoom when orientation changes', () => {
+        const props = createMockProps({ xAxis: { field: 'temperature' }, displayVertically: true }, 1);
+
+        const { rerender } = renderPlotlyElement(props);
+
+        expect(xAxisRangeInPlot).toEqual([1, 3]);
+
+        triggerRelayout(1.5, 2.5);
+
+        expect(xAxisRangeInPlot).toEqual([1.5, 2.5]);
+
+        const newProps = createMockProps({ xAxis: { field: 'temperature' }, displayVertically: false }, 1);
+
+        rerender(<PlotlyPanel {...newProps} />);
+
+        expect(xAxisRangeInPlot).toEqual([1.5, 2.5]);
+      });
+    });
+
       it('should reset zoom when x-axis field changes', () => {
         const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
 
@@ -812,6 +831,5 @@ describe('PlotlyPanel', () => {
 
         expect(xAxisRangeInPlot).toEqual([1, 3]);
       });
-    });
   });
 });
