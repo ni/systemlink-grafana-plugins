@@ -29,15 +29,15 @@ jest.mock('./utils', () => ({
   getFieldsByName: jest.fn((frames, name) => frames.map((f: any) => f.fields[0])),
   notEmpty: jest.fn((val) => val !== null && val !== undefined),
   Plot: ({ onRelayout, layout, data }: any) => {
-    const xAxisRange = layout?.xaxis?.range;
-    const uirevision = layout?.uirevision;
+    const xAxisRange = layout.xaxis.range;
+    const uirevision = layout.uirevision;
     const shouldAutoRange =
       uirevision === undefined || uirevision !== previousUirevision;
 
     if (xAxisRange) {
       xAxisRangeInPlot = [...xAxisRange] as [number, number];
     } else if (shouldAutoRange) {
-      const xAxisData: number[] = data?.[0]?.x || [];
+      const xAxisData: number[] = data[0].x || [];
       xAxisRangeInPlot = xAxisData.length > 0
         ? [Math.min(...xAxisData), Math.max(...xAxisData)]
         : undefined;
