@@ -174,6 +174,8 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   }
 
   const resetXAxisRangeSync = () => {
+    publishXAxisRangeUpdate.cancel();
+
     if (!shouldSyncXAxisRange()) {
       return;
     }
