@@ -221,7 +221,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         return;
       }
 
-      if (shouldSyncXRange()) {
+      if (shouldSyncXAxisRange()) {
         syncNumericXAxisRange(xAxisMin, xAxisMax);
       } else {
         onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
@@ -229,7 +229,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     }
   };
 
-  const shouldSyncXRange = (): boolean => {
+  const shouldSyncXAxisRange = (): boolean => {
     const queryParams = locationService.getSearchObject();
     const syncTargetsQueryParam = queryParams['nisl-syncXAxisRangeTargets'];
     const syncTargets =
@@ -460,7 +460,6 @@ const getLayout = (theme: GrafanaTheme2, traceColors: string[], options: PanelOp
   const showXAxis2 = options.showYAxis2 && !options.displayVertically;
   const showYAxis2 = options.showYAxis2 && options.displayVertically;
   const layout: Partial<Plotly.Layout> = {
-    uirevision: `${axisLabels.xAxis}`,
     colorway: traceColors,
     margin: { r: 40, l: 40, t: 20, b: 40 },
     paper_bgcolor: theme.components.panel.background,
