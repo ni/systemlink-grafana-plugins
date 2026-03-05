@@ -220,10 +220,29 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       if (!Number.isFinite(xAxisMin) || !Number.isFinite(xAxisMax)) {
         return;
       }
-      
-      props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
-      syncNumericXAxisRange(xAxisMin, xAxisMax);
+
+      if (shouldSyncXAxisRange()) {
+        syncNumericXAxisRange(xAxisMin, xAxisMax);
+      } else {
+        onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
+      }
     }
+  };
+
+  const shouldSyncXAxisRange = (): boolean => {
+    const queryParams = locationService.getSearchObject();
+    const syncTargetsQueryParam = queryParams['nisl-syncXAxisRangeTargets'];
+    const syncTargets =
+      typeof syncTargetsQueryParam === 'string'
+        ? syncTargetsQueryParam
+            .split(',')
+            .map(id => id.trim())
+            .filter(id => id !== '')
+            .map(Number)
+            .filter(id => !isNaN(id) && id >= 0)
+        : [];
+
+    return syncTargets.includes(props.id);
   };
 
   const syncNumericXAxisRange = (xAxisMin: number, xAxisMax: number) => {
@@ -234,19 +253,6 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     }
 
     const queryParams = locationService.getSearchObject();
-    const syncTargetsQueryParam = queryParams['nisl-syncXAxisRangeTargets'];
-    const syncTargets =
-      typeof syncTargetsQueryParam === 'string'
-        ? syncTargetsQueryParam
-            .split(',')
-            .map(id => Number(id.trim()))
-            .filter(id => !isNaN(id) && id >= 0)
-        : [];
-
-    if (!syncTargets.includes(props.id)) {
-      return;
-    }
-    
     const updatedXAxisMin = Number(xAxisMin.toFixed(xAxisPrecisionDecimals));
     const updatedXAxisMax = Number(xAxisMax.toFixed(xAxisPrecisionDecimals));
     const existingXAxisMinParam = queryParams[`nisl-${xAxisFieldName}-min`];

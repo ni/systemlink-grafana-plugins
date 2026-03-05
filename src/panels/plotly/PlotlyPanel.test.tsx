@@ -139,6 +139,7 @@ describe('PlotlyPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    (locationService.getSearchObject as jest.Mock).mockReturnValue({});
   });
 
   afterEach(() => {
@@ -271,16 +272,31 @@ describe('PlotlyPanel', () => {
           );
         });
 
-        it('should call onOptionsChange with new min and max when relayout event provides numeric x-axis values', () => {
+        it('should call onOptionsChange with new min and max when relayout event provides numeric x-axis values and panel is not in sync targets', () => {
+          mockSearchObject('?nisl-syncXAxisRangeTargets=2');
           const props = createMockProps({ xAxis: { field: 'temperature', min: 1, max: 2 } }, 1);
 
           renderPlotlyElement(props);
           triggerRelayout(10.8472639485726394, 100.5938475629384756);
 
-          expect(props.onOptionsChange).toHaveBeenCalledWith({
-            ...props.options,
-            xAxis: { ...props.options.xAxis, min: 10.8472639485726394, max: 100.5938475629384756 },
-          });
+          expect(props.onOptionsChange).toHaveBeenCalledWith(
+            expect.objectContaining({
+              xAxis: expect.objectContaining({
+                min: 10.8472639485726394,
+                max: 100.5938475629384756,
+              }),
+            })
+          );
+        });
+
+        it('should not call onOptionsChange with new min and max when relayout event provides numeric x-axis values and panel is in sync targets', () => {
+          mockSearchObject('?nisl-syncXAxisRangeTargets=1');
+          const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 200 } }, 1);
+
+          renderPlotlyElement(props);
+          triggerRelayout(10.8472639485726394, 100.5938475629384756);
+
+          expect(props.onOptionsChange).not.toHaveBeenCalled();
         });
       });
 
@@ -433,6 +449,17 @@ describe('PlotlyPanel', () => {
 
           renderPlotlyElement(props);
           triggerRelayout(10.2847392847563829, 100.7384756293847561);
+          jest.runOnlyPendingTimers();
+
+          expect(locationService.partial).not.toHaveBeenCalled();
+        });
+
+        it('should not update route parameters when nisl-syncXAxisRangeTargets has consecutive commas', () => {
+          mockSearchObject('?nisl-syncXAxisRangeTargets=1,,2');
+          const props = createMockProps({ xAxis: { field: 'temperature' } }, 0);
+
+          renderPlotlyElement(props);
+          triggerRelayout(10, 100);
           jest.runOnlyPendingTimers();
 
           expect(locationService.partial).not.toHaveBeenCalled();
