@@ -89,8 +89,6 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           true,
         );
         getAppEvents().publish(new NIRefreshDashboardEvent());
-        props.onChangeTimeRange({ from: timeRange.from.valueOf() + 1, to: timeRange.to.valueOf() + 1 });
-        props.onChangeTimeRange({ from: timeRange.from.valueOf(), to: timeRange.to.valueOf() });
       }, debounceDelayInMs),
     []
   );
