@@ -8,6 +8,7 @@ import _ from 'lodash';
 
 const mockPublish = jest.fn();
 let plotlyOnRelayout: any;
+let plotlyLayout: any;
 
 jest.mock('@grafana/runtime', () => ({
   getTemplateSrv: () => ({
@@ -26,8 +27,9 @@ jest.mock('@grafana/runtime', () => ({
 jest.mock('./utils', () => ({
   getFieldsByName: jest.fn((frames, name) => frames.map((f: any) => f.fields[0])),
   notEmpty: jest.fn((val) => val !== null && val !== undefined),
-  Plot: ({ onRelayout }: any) => {
+  Plot: ({ onRelayout, layout }: any) => {
     plotlyOnRelayout = onRelayout;
+    plotlyLayout = layout;
     return <div data-testid="plotly-plot">Plot</div>;
   },
   renderMenuItems: jest.fn(),
@@ -559,6 +561,71 @@ describe('PlotlyPanel', () => {
       jest.runOnlyPendingTimers();
       
       expect(locationService.partial).not.toHaveBeenCalled();
+    });
+
+    describe('Synced X-Axis Range applied to layout (effectiveOptions)', () => {
+      it('should apply synced min and max from URL params to the plot layout when panel is in sync targets', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=5.5&nisl-temperature-max=95.5');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([5.5, 95.5]);
+      });
+
+      it('should apply only synced min from URL params when max is absent', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10.5');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range[0]).toBe(10.5);
+      });
+
+      it('should apply only synced max from URL params when min is absent', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-max=88.8');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range[1]).toBe(88.8);
+      });
+
+      it('should use original options when panel is not in sync targets', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=2,3&nisl-temperature-min=5&nisl-temperature-max=95');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([0, 100]);
+      });
+
+      it('should use original options when no synced range params exist in URL', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 10, max: 90 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([10, 90]);
+      });
+
+      it('should use original options when nisl-syncXAxisRangeTargets is missing', () => {
+        mockSearchObject('');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 20, max: 80 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([20, 80]);
+      });
+
+      it('should override panel min/max with URL synced values even when panel has configured range', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=25.123456&nisl-temperature-max=75.654321');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 200 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([25.123456, 75.654321]);
+      });
     });
 
     describe('Dashboard Time Range Synchronization', () => {
