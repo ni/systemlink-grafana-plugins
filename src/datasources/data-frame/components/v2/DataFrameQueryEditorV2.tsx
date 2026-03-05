@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2, metadataFieldOptions } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQueryV2, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2, metadataFieldOptions } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT, UNDECIMATED_RECORDS_LIMIT,decimationNoneOption, CUSTOM_PROPERTIES_OPTIONS_LIMIT, DEFAULT_DATA_TABLE_PROPERTIES_COUNT, DEFAULT_COLUMN_PROPERTIES_COUNT } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
