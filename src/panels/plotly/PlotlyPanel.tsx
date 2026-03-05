@@ -89,8 +89,6 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           true,
         );
         getAppEvents().publish(new NIRefreshDashboardEvent());
-        props.onChangeTimeRange({ from: timeRange.from.valueOf() + 1, to: timeRange.to.valueOf() + 1 });
-        props.onChangeTimeRange({ from: timeRange.from.valueOf(), to: timeRange.to.valueOf() });
       }, debounceDelayInMs),
     []
   );
@@ -247,17 +245,16 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         props.onChangeTimeRange({ from: from.valueOf(), to: to.valueOf() });
         onOptionsChange({...options, xAxis: { ...options.xAxis, min: from.valueOf(), max: to.valueOf() } });
       }
-      return;
-    }
-
-    if (!Number.isFinite(xAxisMin) || !Number.isFinite(xAxisMax)) {
-      return;
-    }
-
-    if (shouldSyncXAxisRange()) {
-      syncNumericXAxisRange(xAxisMin, xAxisMax);
     } else {
-      onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
+      if (!Number.isFinite(xAxisMin) || !Number.isFinite(xAxisMax)) {
+        return;
+      }
+
+      if (shouldSyncXAxisRange()) {
+        syncNumericXAxisRange(xAxisMin, xAxisMax);
+      } else {
+        onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
+      }
     }
   };
 
