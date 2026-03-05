@@ -138,6 +138,12 @@ describe('PlotlyPanel', () => {
     });
   };
 
+  const triggerAutoRange = () => {
+    plotlyOnRelayout({
+      'xaxis.autorange': true,
+    });
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
@@ -774,6 +780,76 @@ describe('PlotlyPanel', () => {
         renderPlotlyElement(props);
 
         expect(plotlyLayout.xaxis.range).toEqual([0, 100]);
+      });
+    });
+
+    describe('Reset X-Axis Range Sync on Autorange', () => {
+      it('should clear URL params and publish refresh when synced panel triggers autorange', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=90');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 10, max: 90 } }, 1);
+
+        renderPlotlyElement(props);
+        triggerAutoRange();
+
+        expect(props.onOptionsChange).toHaveBeenCalledWith(
+          expect.objectContaining({ xAxis: expect.objectContaining({ min: undefined, max: undefined }) })
+        );
+        expect(locationService.partial).toHaveBeenCalledWith(
+          {
+            'nisl-temperature-min': null,
+            'nisl-temperature-max': null,
+          },
+          true
+        );
+        expect(mockPublish).toHaveBeenCalled();
+      });
+
+      it('should clear URL params and publish refresh when synced panel has only one of the URL param', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 10, max: 90 } }, 1);
+
+        renderPlotlyElement(props);
+        triggerAutoRange();
+
+        expect(props.onOptionsChange).toHaveBeenCalledWith(
+          expect.objectContaining({ xAxis: expect.objectContaining({ min: undefined, max: undefined }) })
+        );
+        expect(locationService.partial).toHaveBeenCalledWith(
+          {
+            'nisl-temperature-min': null,
+            'nisl-temperature-max': null,
+          },
+          true
+        );
+        expect(mockPublish).toHaveBeenCalled();
+      });
+
+      it('should clear options but not URL params when panel is not in sync targets', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=2,3');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 10, max: 90 } }, 1);
+
+        renderPlotlyElement(props);
+        triggerAutoRange();
+
+        expect(props.onOptionsChange).toHaveBeenCalledWith(
+          expect.objectContaining({ xAxis: expect.objectContaining({ min: undefined, max: undefined }) })
+        );
+        expect(locationService.partial).not.toHaveBeenCalled();
+        expect(mockPublish).not.toHaveBeenCalled();
+      });
+
+      it('should not clear URL params when synced panel has no existing URL range params', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 10, max: 90 } }, 1);
+
+        renderPlotlyElement(props);
+        triggerAutoRange();
+
+        expect(props.onOptionsChange).toHaveBeenCalledWith(
+          expect.objectContaining({ xAxis: expect.objectContaining({ min: undefined, max: undefined }) })
+        );
+        expect(locationService.partial).not.toHaveBeenCalled();
+        expect(mockPublish).not.toHaveBeenCalled();
       });
     });
 

@@ -89,6 +89,8 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           true,
         );
         getAppEvents().publish(new NIRefreshDashboardEvent());
+        props.onChangeTimeRange({ from: timeRange.from.valueOf() + 1, to: timeRange.to.valueOf() + 1 });
+        props.onChangeTimeRange({ from: timeRange.from.valueOf(), to: timeRange.to.valueOf() });
       }, debounceDelayInMs),
     []
   );
@@ -173,7 +175,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     }
   }
 
-  const clearSyncedXAxisRange = () => {
+  const resetXAxisRangeSync = () => {
     if (!shouldSyncXAxisRange()) {
       return;
     }
@@ -183,8 +185,8 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       return;
     }
 
-    const existingRange = getExistingXAxisRange(xAxisFieldName);
-    if (existingRange.min === undefined && existingRange.max === undefined) {
+    const { min, max } = getExistingXAxisRange(xAxisFieldName);
+    if (min === undefined && max === undefined) {
       return;
     }
 
@@ -226,7 +228,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
 
     if (autoRange) {
       onOptionsChange({...options, xAxis: { ...options.xAxis, min: undefined, max: undefined }});
-      clearSyncedXAxisRange();
+      resetXAxisRangeSync();
       return;
     }
 
