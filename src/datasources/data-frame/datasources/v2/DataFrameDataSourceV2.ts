@@ -332,6 +332,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             .map(([key, value]) => ({
                 label: value.label,
                 value: key,
+                group: value.type === DataTableProjectionType.DataTable
+                    ? 'Data table properties'
+                    : 'Column properties'
             }))
             .sort((a, b) => a.label.localeCompare(b.label));
     }
