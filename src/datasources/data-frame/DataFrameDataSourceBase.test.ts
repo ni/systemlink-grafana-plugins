@@ -152,6 +152,14 @@ describe('DataFrameDataSourceBase', () => {
         expect(options).toEqual({ uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] });
     });
 
+    it('should return empty arrays for getPropertiesOptions', async () => {
+        const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
+
+        const options = await ds.getPropertiesOptions({ dataTableFilter: 'filter' });
+
+        expect(options).toEqual({ dataTablePropertiesOptions: [], columnPropertiesOptions: [] });
+    });
+
     it('should return query as it is for processVariableQuery', async () => {
         const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
         const query = { key: 'dataframe-variable-query' } as any;

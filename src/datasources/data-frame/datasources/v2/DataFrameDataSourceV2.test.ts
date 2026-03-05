@@ -6794,6 +6794,63 @@ describe('DataFrameDataSourceV2', () => {
             });
         });
 
+        describe('getPropertiesOptions', () => {
+            it('should return default properties sorted alphabetically with group', async () => {
+                const filters = { dataTableFilter: '', resultFilter: '', columnFilter: '' };
+
+                const result = await ds.getPropertiesOptions(filters);
+
+                const dataTablePropertiesLabel = result.dataTablePropertiesOptions.map(opt => opt.label);
+                const dataTablePropertiesSortedLabels = [...dataTablePropertiesLabel].sort((a, b) => a.localeCompare(b));
+                expect(dataTablePropertiesLabel).toEqual(dataTablePropertiesSortedLabels);
+
+                result.dataTablePropertiesOptions.forEach(opt => {
+                    expect(opt.group).toBe('Properties');
+                });
+
+                const columnPropertiesLabels = result.columnPropertiesOptions.map(opt => opt.label);
+                const columnPropertiesSortedLabels = [...columnPropertiesLabels].sort((a, b) => a.localeCompare(b));
+                expect(columnPropertiesLabels).toEqual(columnPropertiesSortedLabels);
+
+                result.columnPropertiesOptions.forEach(opt => {
+                    expect(opt.group).toBe('Properties');
+                });
+            });
+
+            it('should return all 11 default data table properties', async () => {
+                const filters = { dataTableFilter: '', resultFilter: '', columnFilter: '' };
+
+                const result = await ds.getPropertiesOptions(filters);
+
+                expect(result.dataTablePropertiesOptions.length).toBe(11);
+                const values = result.dataTablePropertiesOptions.map(opt => opt.value);
+                expect(values).toContain(DataTableProperties.Name);
+                expect(values).toContain(DataTableProperties.Id);
+                expect(values).toContain(DataTableProperties.RowCount);
+                expect(values).toContain(DataTableProperties.ColumnCount);
+                expect(values).toContain(DataTableProperties.CreatedAt);
+                expect(values).toContain(DataTableProperties.Workspace);
+                expect(values).toContain(DataTableProperties.MetadataModifiedAt);
+                expect(values).toContain(DataTableProperties.MetadataRevision);
+                expect(values).toContain(DataTableProperties.RowsModifiedAt);
+                expect(values).toContain(DataTableProperties.SupportsAppend);
+                expect(values).toContain(DataTableProperties.Properties);
+            });
+
+            it('should return all 4 default column properties', async () => {
+                const filters = { dataTableFilter: '', resultFilter: '', columnFilter: '' };
+
+                const result = await ds.getPropertiesOptions(filters);
+
+                expect(result.columnPropertiesOptions.length).toBe(4);
+                const values = result.columnPropertiesOptions.map(opt => opt.value);
+                expect(values).toContain(DataTableProperties.ColumnName);
+                expect(values).toContain(DataTableProperties.ColumnDataType);
+                expect(values).toContain(DataTableProperties.ColumnType);
+                expect(values).toContain(DataTableProperties.ColumnProperties);
+            });
+        });
+
         describe("when the field name is 'value'", () => {
             let queryTablesSpy$: jest.SpyInstance;
 

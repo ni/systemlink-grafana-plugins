@@ -7,10 +7,10 @@ import React from "react";
 import { cleanup, render, RenderResult, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
-import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties, DataFrameDataQuery } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties, DataFrameDataQuery, DataTableProjectionType } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
-import { COLUMN_OPTIONS_LIMIT } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, DEFAULT_PROPERTIES_GROUP } from "datasources/data-frame/constants";
 import { ComboboxOption } from "@grafana/ui";
 import { errorMessages, infoMessage } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
 import { of } from "rxjs";
@@ -73,6 +73,24 @@ const renderComponent = (
         transformResultQuery: jest.fn((filter: string) => filter),
         transformColumnQuery: jest.fn((filter: string) => filter),
         hasRequiredFilters: mockHasRequiredFilters,
+        getPropertiesOptions: jest.fn().mockResolvedValue({
+            dataTablePropertiesOptions: Object.entries(DataTableProjectionLabelLookup)
+                .filter(([_, value]) => value.type === DataTableProjectionType.DataTable)
+                .map(([key, value]) => ({
+                    label: value.label,
+                    value: key,
+                    group: DEFAULT_PROPERTIES_GROUP
+                }))
+                .sort((a, b) => a.label.localeCompare(b.label)),
+            columnPropertiesOptions: Object.entries(DataTableProjectionLabelLookup)
+                .filter(([_, value]) => value.type === DataTableProjectionType.Column)
+                .map(([key, value]) => ({
+                    label: value.label,
+                    value: key,
+                    group: DEFAULT_PROPERTIES_GROUP
+                }))
+                .sort((a, b) => a.label.localeCompare(b.label)),
+        }),
         variablesCache,
         parseColumnIdentifier: mockParseColumnIdentifier,
         instanceSettings: {
@@ -3078,6 +3096,156 @@ describe("DataFrameQueryEditorV2", () => {
                 await waitFor(() => {
                     expect(onChange).not.toHaveBeenCalled();
                     expect(onRunQuery).not.toHaveBeenCalled();
+                });
+            });
+        });
+
+        describe("fetching properties options", () => {
+            it('should call getPropertiesOptions when query type is Properties', async () => {
+                cleanup();
+                const { datasource } = renderComponent(
+                    { type: DataFrameQueryType.Properties }
+                );
+
+                await waitFor(() => {
+                    expect(datasource.getPropertiesOptions).toHaveBeenCalled();
+                });
+            });
+
+            it('should not call getPropertiesOptions when query type is Data', async () => {
+                cleanup();
+                const { datasource } = renderComponent(
+                    { type: DataFrameQueryType.Data }
+                );
+
+                await waitFor(() => {
+                    expect(datasource.getPropertiesOptions).not.toHaveBeenCalled();
+                });
+            });
+
+            it('should populate data table properties options from getPropertiesOptions', async () => {
+                cleanup();
+                const mockOptions = {
+                    dataTablePropertiesOptions: [
+                        { label: 'Custom Prop A', value: 'customPropA', group: 'Custom' },
+                        { label: 'Data table name', value: DataTableProperties.Name, group: DEFAULT_PROPERTIES_GROUP },
+                    ],
+                    columnPropertiesOptions: [
+                        { label: 'Column name', value: DataTableProperties.ColumnName, group: DEFAULT_PROPERTIES_GROUP },
+                    ],
+                };
+                const { renderResult: result } = renderComponent(
+                    { type: DataFrameQueryType.Properties },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    {
+                        getPropertiesOptions: jest.fn().mockResolvedValue(mockOptions),
+                    }
+                );
+                const user = userEvent.setup();
+
+                const dataTablePropertiesField = result.getAllByRole('combobox')[0];
+                await user.click(dataTablePropertiesField);
+
+                await waitFor(() => {
+                    expect(document.body).toHaveTextContent('Custom Prop A');
+                    expect(document.body).toHaveTextContent('Data table name');
+                });
+            });
+
+            it('should populate column properties options from getPropertiesOptions', async () => {
+                cleanup();
+                const mockOptions = {
+                    dataTablePropertiesOptions: [
+                        { label: 'Data table name', value: DataTableProperties.Name, group: DEFAULT_PROPERTIES_GROUP },
+                    ],
+                    columnPropertiesOptions: [
+                        { label: 'Custom Col Prop', value: 'customColProp', group: 'Custom' },
+                        { label: 'Column name', value: DataTableProperties.ColumnName, group: DEFAULT_PROPERTIES_GROUP },
+                    ],
+                };
+                const { renderResult: result } = renderComponent(
+                    { type: DataFrameQueryType.Properties },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    {
+                        getPropertiesOptions: jest.fn().mockResolvedValue(mockOptions),
+                    }
+                );
+                const user = userEvent.setup();
+
+                const columnPropertiesField = result.getAllByRole('combobox')[1];
+                await user.click(columnPropertiesField);
+
+                await waitFor(() => {
+                    expect(document.body).toHaveTextContent('Custom Col Prop');
+                    expect(document.body).toHaveTextContent('Column name');
+                });
+            });
+
+            it('should limit data table properties options to CUSTOM_PROPERTIES_OPTIONS_LIMIT + DEFAULT_DATA_TABLE_PROPERTIES_COUNT', async () => {
+                cleanup();
+                const manyOptions = Array.from({ length: 20000 }, (_, i) => ({
+                    label: `Prop ${i}`,
+                    value: `prop${i}`,
+                    group: 'Custom'
+                }));
+                const mockOptions = {
+                    dataTablePropertiesOptions: manyOptions,
+                    columnPropertiesOptions: [],
+                };
+                const { datasource } = renderComponent(
+                    { type: DataFrameQueryType.Properties },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    {
+                        getPropertiesOptions: jest.fn().mockResolvedValue(mockOptions),
+                    }
+                );
+
+                await waitFor(() => {
+                    expect(datasource.getPropertiesOptions).toHaveBeenCalled();
+                });
+            });
+
+            it('should limit column properties options to CUSTOM_PROPERTIES_OPTIONS_LIMIT + DEFAULT_COLUMN_PROPERTIES_COUNT', async () => {
+                cleanup();
+                const manyOptions = Array.from({ length: 20000 }, (_, i) => ({
+                    label: `ColProp ${i}`,
+                    value: `colProp${i}`,
+                    group: 'Custom'
+                }));
+                const mockOptions = {
+                    dataTablePropertiesOptions: [],
+                    columnPropertiesOptions: manyOptions,
+                };
+                const { datasource } = renderComponent(
+                    { type: DataFrameQueryType.Properties },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    {
+                        getPropertiesOptions: jest.fn().mockResolvedValue(mockOptions),
+                    }
+                );
+
+                await waitFor(() => {
+                    expect(datasource.getPropertiesOptions).toHaveBeenCalled();
                 });
             });
         });

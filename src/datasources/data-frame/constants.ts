@@ -38,6 +38,10 @@ export const COLUMN_SELECTION_LIMIT = 20;
 export const MAXIMUM_DATA_POINTS = 1000000;
 export const RESULT_IDS_LIMIT = 1000;
 export const CUSTOM_PROPERTY_COLUMNS_LIMIT = 100;
+export const CUSTOM_PROPERTIES_OPTIONS_LIMIT = 10_000;
+
+export const DEFAULT_DATA_TABLE_PROPERTIES_COUNT = 11;
+export const DEFAULT_COLUMN_PROPERTIES_COUNT = 4;
 
 export const REQUESTS_PER_SECOND = 6;
 export const DELAY_BETWEEN_REQUESTS_MS = 1000;
@@ -54,6 +58,7 @@ export const NUMERIC_DATA_TYPES = [
 
 export const COLUMNS_GROUP = 'Columns';
 export const METADATA_GROUP = 'Metadata';
+export const DEFAULT_PROPERTIES_GROUP = 'Properties';
 
 export const POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS = ['unit', 'units', 'Unit', 'Units'];
 

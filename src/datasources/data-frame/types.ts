@@ -35,8 +35,8 @@ export interface DataFrameQueryV2 extends DataQuery {
   resultFilter?: string;
   dataTableFilter?: string;
   columnFilter?: string;
-  dataTableProperties?: DataTableProperties[];
-  columnProperties?: DataTableProperties[];
+  dataTableProperties?: string[];
+  columnProperties?: string[];
   columns?: string[] | Observable<string[]>;
   includeIndexColumns?: boolean;
   filterNulls?: boolean;
@@ -111,6 +111,7 @@ export enum DataTableProjections {
   SupportsAppend = 'SUPPORTS_APPEND',
   Properties = 'PROPERTIES'
 }
+
 
 export interface CombinedFilters {
   resultFilter?: string;
@@ -360,6 +361,11 @@ export interface DataFrameDataSourceOptions extends DataSourceJsonData {
 export interface ColumnOptions {
   uniqueColumnsAcrossTables: Option[];
   commonColumnsAcrossTables: Option[];
+}
+
+export interface PropertiesOptions {
+  dataTablePropertiesOptions: Option[];
+  columnPropertiesOptions: Option[];
 }
 
 export interface Option {
