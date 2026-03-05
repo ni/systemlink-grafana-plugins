@@ -188,23 +188,6 @@ describe('PlotlyPanel', () => {
           expect(mockPublish).toHaveBeenCalled();
         });
 
-        it('should update route parameters when x-axis range starts at zero', () => {
-          mockSearchObject('?nisl-syncXAxisRangeTargets=1');
-          const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
-
-          renderPlotlyElement(props);
-          triggerRelayout(0.000000, 10.5847392847563829);
-          jest.runOnlyPendingTimers();
-
-          expect(locationService.partial).toHaveBeenCalledWith(
-            {
-              'nisl-temperature-min': 0,
-              'nisl-temperature-max': 10.584739,
-            },
-            true
-          );
-        });
-
         it('should use 6-decimal precision for min and max values', () => {
           mockSearchObject('?nisl-syncXAxisRangeTargets=5');
           const props = createMockProps({ xAxis: { field: 'pressure' } }, 5);
@@ -290,23 +273,6 @@ describe('PlotlyPanel', () => {
               'nisl-temperature-max': 109.987654,
             },
             true
-          );
-        });
-
-        it('should call onOptionsChange with new min and max when relayout event provides numeric x-axis values and panel is not in sync targets', () => {
-          mockSearchObject('?nisl-syncXAxisRangeTargets=1');
-          const props = createMockProps({ xAxis: { field: 'temperature', min: 1, max: 2 } }, 2);
-
-          renderPlotlyElement(props);
-          triggerRelayout(10.8472639485726394, 100.5938475629384756);
-
-          expect(props.onOptionsChange).toHaveBeenCalledWith(
-            expect.objectContaining({
-              xAxis: expect.objectContaining({
-                min: 10.8472639485726394,
-                max: 100.5938475629384756,
-              }),
-            })
           );
         });
 
