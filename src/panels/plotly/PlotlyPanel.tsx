@@ -236,7 +236,9 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       typeof syncTargetsQueryParam === 'string'
         ? syncTargetsQueryParam
             .split(',')
-            .map(id => Number(id.trim()))
+            .map(id => id.trim())
+            .filter(id => id !== '')
+            .map(Number)
             .filter(id => !isNaN(id) && id >= 0)
         : [];
 

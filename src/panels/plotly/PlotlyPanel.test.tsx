@@ -454,6 +454,17 @@ describe('PlotlyPanel', () => {
           expect(locationService.partial).not.toHaveBeenCalled();
         });
 
+        it('should not update route parameters when nisl-syncXAxisRangeTargets has consecutive commas', () => {
+          mockSearchObject('?nisl-syncXAxisRangeTargets=1,,2');
+          const props = createMockProps({ xAxis: { field: 'temperature' } }, 0);
+
+          renderPlotlyElement(props);
+          triggerRelayout(10, 100);
+          jest.runOnlyPendingTimers();
+
+          expect(locationService.partial).not.toHaveBeenCalled();
+        });
+
         it('should not update route parameters when nisl-syncXAxisRangeTargets has single quotes around values', () => {
           mockSearchObject('?nisl-syncXAxisRangeTargets=\'1\',\'2\'');
           const props = createMockProps({ xAxis: { field: 'temperature' } }, 2);
