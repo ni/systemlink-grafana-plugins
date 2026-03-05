@@ -6795,7 +6795,7 @@ describe('DataFrameDataSourceV2', () => {
         });
 
         describe('getPropertiesOptions', () => {
-            it('should return default properties sorted alphabetically with group', async () => {
+            it('should return default properties sorted alphabetically', async () => {
                 const filters = { dataTableFilter: '', resultFilter: '', columnFilter: '' };
 
                 const result = await ds.getPropertiesOptions(filters);
@@ -6804,20 +6804,12 @@ describe('DataFrameDataSourceV2', () => {
                 const dataTablePropertiesSortedLabels = [...dataTablePropertiesLabel].sort((a, b) => a.localeCompare(b));
                 expect(dataTablePropertiesLabel).toEqual(dataTablePropertiesSortedLabels);
 
-                result.dataTablePropertiesOptions.forEach(opt => {
-                    expect(opt.group).toBe('Properties');
-                });
-
                 const columnPropertiesLabels = result.columnPropertiesOptions.map(opt => opt.label);
                 const columnPropertiesSortedLabels = [...columnPropertiesLabels].sort((a, b) => a.localeCompare(b));
                 expect(columnPropertiesLabels).toEqual(columnPropertiesSortedLabels);
-
-                result.columnPropertiesOptions.forEach(opt => {
-                    expect(opt.group).toBe('Properties');
-                });
             });
 
-            it('should return all 11 default data table properties', async () => {
+            it('should return all 11 default data table properties by default', async () => {
                 const filters = { dataTableFilter: '', resultFilter: '', columnFilter: '' };
 
                 const result = await ds.getPropertiesOptions(filters);
@@ -6837,7 +6829,7 @@ describe('DataFrameDataSourceV2', () => {
                 expect(values).toContain(DataTableProperties.Properties);
             });
 
-            it('should return all 4 default column properties', async () => {
+            it('should return all 4 default column properties by default', async () => {
                 const filters = { dataTableFilter: '', resultFilter: '', columnFilter: '' };
 
                 const result = await ds.getPropertiesOptions(filters);
