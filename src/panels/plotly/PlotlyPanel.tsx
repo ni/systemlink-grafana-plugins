@@ -204,7 +204,12 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       return;
     }
 
-    if (!xAxisMin || !xAxisMax) {
+    if (
+      xAxisMin === undefined ||
+      xAxisMin === null ||
+      xAxisMax === undefined ||
+      xAxisMax === null
+    ) {
       return;
     }
 
@@ -269,11 +274,17 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const parseNumericQueryParam = (paramValue: UrlQueryValue): number | undefined => {
     const value = Array.isArray(paramValue) ? paramValue[paramValue.length - 1] : paramValue;
 
-    if (typeof value === 'string' && value !== '') {
-      return Number(value);
+    if (
+      value === undefined ||
+      value === null ||
+      value === '' ||
+      typeof value === 'boolean'
+    ) {
+      return undefined;
     }
 
-    return undefined;
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? numericValue : undefined;
   };
 
   const getExistingXAxisRange = (fieldName: string): { min?: number; max?: number } => {
