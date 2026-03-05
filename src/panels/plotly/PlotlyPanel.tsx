@@ -221,7 +221,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         return;
       }
 
-      if (shouldSyncXRange()) {
+      if (shouldSyncXAxisRange()) {
         syncNumericXAxisRange(xAxisMin, xAxisMax);
       } else {
         onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
@@ -229,7 +229,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     }
   };
 
-  const shouldSyncXRange = (): boolean => {
+  const shouldSyncXAxisRange = (): boolean => {
     const queryParams = locationService.getSearchObject();
     const syncTargetsQueryParam = queryParams['nisl-syncXAxisRangeTargets'];
     const syncTargets =
@@ -252,11 +252,11 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
 
     const updatedXAxisMin = Number(xAxisMin.toFixed(xAxisPrecisionDecimals));
     const updatedXAxisMax = Number(xAxisMax.toFixed(xAxisPrecisionDecimals));
-    const existing = getExistingXAxisRange(xAxisFieldName);
+    const existingXAxisRange = getExistingXAxisRange(xAxisFieldName);
 
     if (
-      updatedXAxisMin !== existing.min ||
-      updatedXAxisMax !== existing.max
+      updatedXAxisMin !== existingXAxisRange.min ||
+      updatedXAxisMax !== existingXAxisRange.max
     ) {
       publishXAxisRangeUpdate(
         updatedXAxisMin, 
@@ -267,14 +267,16 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   };
 
   const parseNumericQueryParam = (paramValue: UrlQueryValue): number | undefined => {
-    if (typeof paramValue === 'string' && paramValue !== '') {
-      return Number(paramValue);
+    const value = Array.isArray(paramValue) ? paramValue[paramValue.length - 1] : paramValue;
+
+    if (typeof value === 'string' && value !== '') {
+      return Number(value);
     }
 
     return undefined;
   };
 
-  const getExistingXAxisRange = (fieldName: string): { min: number | undefined; max: number | undefined } => {
+  const getExistingXAxisRange = (fieldName: string): { min?: number; max?: number } => {
     const queryParams = locationService.getSearchObject();
     return {
       min: parseNumericQueryParam(queryParams[`nisl-${fieldName}-min`]),
@@ -282,18 +284,25 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     };
   };
 
-  const getSyncedXAxisRange = (): { min: number | undefined; max: number | undefined } | undefined => {
-    if (!shouldSyncXRange()) {
+  const getSyncedXAxisRange = (): { min?: number; max?: number } | undefined => {
+    if (!shouldSyncXAxisRange()) {
       return undefined;
     }
+
     const xAxisFieldName = xFields[0]?.name;
     if (!xAxisFieldName) {
       return undefined;
     }
+
     const range = getExistingXAxisRange(xAxisFieldName);
-    if (range.min === undefined && range.max === undefined) {
+    if (
+      range.min === undefined ||
+      range.max === undefined ||
+      range.min > range.max
+    ) {
       return undefined;
     }
+
     return range;
   };
 
