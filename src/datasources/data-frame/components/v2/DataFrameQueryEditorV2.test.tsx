@@ -1,6 +1,10 @@
 jest.mock('datasources/data-frame/constants', () => {
     const actual = jest.requireActual('datasources/data-frame/constants');
-    return { ...actual, COLUMN_OPTIONS_LIMIT: 10 }; // reduce column option limit for tests
+    return { 
+        ...actual, 
+        COLUMN_OPTIONS_LIMIT: 10, 
+        CUSTOM_PROPERTIES_OPTIONS_LIMIT: 5
+    };
 });
 
 import React from "react";
@@ -3011,32 +3015,44 @@ describe("DataFrameQueryEditorV2", () => {
 
                 it("should limit data table properties options to CUSTOM_PROPERTIES_OPTIONS_LIMIT + DEFAULT_DATA_TABLE_PROPERTIES_COUNT", async () => {
                     cleanup();
-                    const manyOptions = Array.from({ length: 20000 }, (_, i) => ({
-                      label: `Prop ${i}`,
-                      value: `prop${i}`,
-                      group: 'Custom',
+                    const manyOptions = Array.from({ length: 10 }, (_, i) => ({
+                        label: `Prop ${i}`,
+                        value: `prop${i}`,
+                        group: 'Custom',
                     }));
                     const mockOptions = {
-                      dataTablePropertiesOptions: manyOptions,
-                      columnPropertiesOptions: [],
+                        dataTablePropertiesOptions: [
+                            ...defaultPropertiesOptions.dataTablePropertiesOptions, 
+                            ...manyOptions
+                        ],
+                        columnPropertiesOptions: [],
                     };
-                    const { datasource } = renderComponent(
-                      { type: DataFrameQueryType.Properties },
-                      '',
-                      '',
-                      [],
-                      [],
-                      undefined,
-                      {},
-                      {
-                        getPropertiesOptions: jest.fn().mockResolvedValue(mockOptions),
-                      }
+                    const mockGetPropertiesOptions = jest.fn().mockResolvedValue(mockOptions);
+                    jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(500);
+                    const { renderResult: result } = renderComponent(
+                        { type: DataFrameQueryType.Properties },
+                        '',
+                        '',
+                        [],
+                        [],
+                        undefined,
+                        {},
+                        {
+                          getPropertiesOptions: mockGetPropertiesOptions,
+                        }
                     );
 
                     await waitFor(() => {
-                      expect(datasource.getPropertiesOptions).toHaveBeenCalled();
+                        expect(mockGetPropertiesOptions).toHaveBeenCalled();
+                    });
+
+                    const user = userEvent.setup();
+                    const dataTablePropertiesField = result.getAllByRole('combobox')[0];
+                    await user.click(dataTablePropertiesField);
+
+                    const optionControls = screen.getAllByRole('option');
+                    expect(optionControls).toHaveLength(16);
                 });
-              });
             });
 
             describe("column properties fields", () => {
@@ -3093,31 +3109,39 @@ describe("DataFrameQueryEditorV2", () => {
 
                 it("should limit column properties options to CUSTOM_PROPERTIES_OPTIONS_LIMIT + DEFAULT_COLUMN_PROPERTIES_COUNT", async () => {
                     cleanup();
-                    const manyOptions = Array.from({ length: 20000 }, (_, i) => ({
-                      label: `ColProp ${i}`,
-                      value: `colProp${i}`,
-                      group: 'Custom',
+                    const manyOptions = Array.from({ length: 10 }, (_, i) => ({
+                        label: `ColProp ${i}`,
+                        value: `colProp${i}`,
+                        group: 'Custom',
                     }));
                     const mockOptions = {
-                      dataTablePropertiesOptions: [],
-                      columnPropertiesOptions: manyOptions,
+                        dataTablePropertiesOptions: [],
+                        columnPropertiesOptions: manyOptions,
                     };
-                    const { datasource } = renderComponent(
-                      { type: DataFrameQueryType.Properties },
-                      '',
-                      '',
-                      [],
-                      [],
-                      undefined,
-                      {},
-                      {
-                        getPropertiesOptions: jest.fn().mockResolvedValue(mockOptions),
-                      }
+                    const mockGetPropertiesOptions = jest.fn().mockResolvedValue(mockOptions);
+                     const { renderResult: result } = renderComponent(
+                        { type: DataFrameQueryType.Properties },
+                        '',
+                        '',
+                        [],
+                        [],
+                        undefined,
+                        {},
+                        {
+                          getPropertiesOptions: mockGetPropertiesOptions,
+                        }
                     );
 
                     await waitFor(() => {
-                      expect(datasource.getPropertiesOptions).toHaveBeenCalled();
+                        expect(mockGetPropertiesOptions).toHaveBeenCalled();
                     });
+                     const user = userEvent.setup();
+
+                    const columnPropertiesField = result.getAllByRole('combobox')[1];
+                    await user.click(columnPropertiesField);
+
+                    const optionControls = screen.getAllByRole('option');
+                    expect(optionControls).toHaveLength(9);
                 });
             });
         });

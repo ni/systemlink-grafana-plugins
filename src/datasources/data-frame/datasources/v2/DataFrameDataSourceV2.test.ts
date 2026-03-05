@@ -1,7 +1,7 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
 import { BackendSrv, locationService, TemplateSrv } from '@grafana/runtime';
-import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
+import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, PropertiesOptions, ValidDataFrameQueryV2 } from '../../types';
 import { COLUMN_SELECTION_LIMIT, MAXIMUM_DATA_POINTS, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
@@ -6809,37 +6809,41 @@ describe('DataFrameDataSourceV2', () => {
                 expect(columnPropertiesLabels).toEqual(columnPropertiesSortedLabels);
             });
 
-            it('should return all 11 default data table properties by default', async () => {
-                const filters = { dataTableFilter: '', resultFilter: '', columnFilter: '' };
+            it('should return default properties combined with custom properties', async () => {
+                const filters = { dataTableFilter: 'name = "Test"', resultFilter: '', columnFilter: '' };
+                const defaultDataTableLabels = Object.values(DataTableProjectionLabelLookup)
+                    .filter(v => v.type === 'dataTable')
+                    .map(v => v.label);
+                const defaultColumnLabels = Object.values(DataTableProjectionLabelLookup)
+                    .filter(v => v.type === 'column')
+                    .map(v => v.label);
+                const customProperties: PropertiesOptions = {
+                    dataTablePropertiesOptions: [
+                        { label: 'Custom Table Prop', value: 'customTableProp' },
+                    ],
+                    columnPropertiesOptions: [
+                        { label: 'Custom Column Prop', value: 'customColumnProp' },
+                    ],
+                };
+                jest.spyOn(ds as any, 'getCustomPropertiesAsOptions').mockResolvedValue(customProperties);
 
                 const result = await ds.getPropertiesOptions(filters);
+                
+                const resultDataTableLabels = result.dataTablePropertiesOptions.map(opt => opt.label);
+                for (const label of defaultDataTableLabels) {
+                    expect(resultDataTableLabels).toContain(label);
+                }
+                expect(result.dataTablePropertiesOptions).toEqual(
+                    expect.arrayContaining(customProperties.dataTablePropertiesOptions)
+                );
 
-                expect(result.dataTablePropertiesOptions.length).toBe(11);
-                const values = result.dataTablePropertiesOptions.map(opt => opt.value);
-                expect(values).toContain(DataTableProperties.Name);
-                expect(values).toContain(DataTableProperties.Id);
-                expect(values).toContain(DataTableProperties.RowCount);
-                expect(values).toContain(DataTableProperties.ColumnCount);
-                expect(values).toContain(DataTableProperties.CreatedAt);
-                expect(values).toContain(DataTableProperties.Workspace);
-                expect(values).toContain(DataTableProperties.MetadataModifiedAt);
-                expect(values).toContain(DataTableProperties.MetadataRevision);
-                expect(values).toContain(DataTableProperties.RowsModifiedAt);
-                expect(values).toContain(DataTableProperties.SupportsAppend);
-                expect(values).toContain(DataTableProperties.Properties);
-            });
-
-            it('should return all 4 default column properties by default', async () => {
-                const filters = { dataTableFilter: '', resultFilter: '', columnFilter: '' };
-
-                const result = await ds.getPropertiesOptions(filters);
-
-                expect(result.columnPropertiesOptions.length).toBe(4);
-                const values = result.columnPropertiesOptions.map(opt => opt.value);
-                expect(values).toContain(DataTableProperties.ColumnName);
-                expect(values).toContain(DataTableProperties.ColumnDataType);
-                expect(values).toContain(DataTableProperties.ColumnType);
-                expect(values).toContain(DataTableProperties.ColumnProperties);
+                const resultColumnLabels = result.columnPropertiesOptions.map(opt => opt.label);
+                for (const label of defaultColumnLabels) {
+                    expect(resultColumnLabels).toContain(label);
+                }
+                expect(result.columnPropertiesOptions).toEqual(
+                    expect.arrayContaining(customProperties.columnPropertiesOptions)
+                );
             });
         });
 
