@@ -173,6 +173,31 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     }
   }
 
+  const clearSyncedXAxisRange = () => {
+    if (!shouldSyncXAxisRange()) {
+      return;
+    }
+
+    const xAxisFieldName = xFields[0]?.name;
+    if (!xAxisFieldName) {
+      return;
+    }
+
+    const existingRange = getExistingXAxisRange(xAxisFieldName);
+    if (existingRange.min === undefined && existingRange.max === undefined) {
+      return;
+    }
+
+    locationService.partial(
+      {
+        [`nisl-${xAxisFieldName}-min`]: null,
+        [`nisl-${xAxisFieldName}-max`]: null,
+      },
+      true,
+    );
+    getAppEvents().publish(new NIRefreshDashboardEvent());
+  };
+
   const handlePlotClick = (plotEvent: Readonly<Plotly.PlotMouseEvent>) => {
     const point = plotEvent.points[0];
     const [id] = point.data.customdata;
@@ -201,6 +226,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
 
     if (autoRange) {
       onOptionsChange({...options, xAxis: { ...options.xAxis, min: undefined, max: undefined }});
+      clearSyncedXAxisRange();
       return;
     }
 
@@ -216,16 +242,17 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         props.onChangeTimeRange({ from: from.valueOf(), to: to.valueOf() });
         onOptionsChange({...options, xAxis: { ...options.xAxis, min: from.valueOf(), max: to.valueOf() } });
       }
-    } else {
-      if (!Number.isFinite(xAxisMin) || !Number.isFinite(xAxisMax)) {
-        return;
-      }
+      return;
+    }
 
-      if (shouldSyncXAxisRange()) {
-        syncNumericXAxisRange(xAxisMin, xAxisMax);
-      } else {
-        onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
-      }
+    if (!Number.isFinite(xAxisMin) || !Number.isFinite(xAxisMax)) {
+      return;
+    }
+
+    if (shouldSyncXAxisRange()) {
+      syncNumericXAxisRange(xAxisMin, xAxisMax);
+    } else {
+      onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
     }
   };
 
