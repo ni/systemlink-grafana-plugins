@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { QueryBuilder, QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
+import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 import { useTheme2 } from '@grafana/ui';
 
 import 'smart-webcomponents-react/source/styles/smart.dark-orange.css';
@@ -16,6 +16,7 @@ import { QBField } from '../../../../types/CalibrationForecastQuery.types';
 import { AssetCalibrationFields, AssetCalibrationStaticFields } from '../../../../constants/CalibrationForecastQuery.constants';
 import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
 import { LocationModel } from 'datasources/asset/types/ListLocations.types';
+import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
 
 type CalibrationForecastQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
@@ -108,12 +109,12 @@ export const CalibrationForecastQueryBuilder: React.FC<CalibrationForecastQueryB
   }, [workspaceField, locationField, areDependenciesLoaded, globalVariableOptions]);
 
   return (
-    <QueryBuilder
+    <SlQueryBuilder
       customOperations={operations}
       fields={fields}
       messages={queryBuilderMessages}
       onChange={onChange}
       value={sanitizedFilter}
-      />
+    />
   );
 };
