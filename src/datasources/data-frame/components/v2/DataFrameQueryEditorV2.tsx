@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2, metadataFieldOptions } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2, metadataFieldOptions, DataTableProjections } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
 import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT, UNDECIMATED_RECORDS_LIMIT,decimationNoneOption } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
@@ -15,6 +15,9 @@ import {
     placeholders,
     tooltips,
     infoMessage,
+    DATA_TABLE_CUSTOM_PROPERTIES_GROUP,
+    COLUMN_CUSTOM_PROPERTIES_GROUP,
+    PROPERTIES_SELECTION_LIMIT,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { isObservable, lastValueFrom } from 'rxjs';
 import _ from 'lodash';
@@ -43,8 +46,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const [undecimatedRecordCountInvalidMessage, setUndecimatedRecordCountInvalidMessage] = useState<string>('');
     const [columnOptions, setColumnOptions] = useState<Array<ComboboxOption<string>>>(metadataFieldOptions);
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
+    const [propertiesLimitExceededMessage, setPropertiesLimitExceededMessage] = useState<string>('');
     const [xColumnOptions, setXColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnOptionsInitialized, setIsColumnOptionsInitialized] = useState<boolean>(false);
+    const [dynamicDataTablePropertyKeyOptions, setDynamicDataTablePropertyKeyOptions] = useState<Array<ComboboxOption<string>>>([]);
+    const [dynamicColumnPropertyKeyOptions, setDynamicColumnPropertyKeyOptions] = useState<Array<ComboboxOption<string>>>([]);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -53,7 +59,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
             .filter(([_, value]) => value.type === type)
             .map(([key, value]) => ({
                 label: value.label,
-                value: key as DataTableProperties
+                value: key as DataTableProperties,
+                group: 'Properties'
             }))
             .sort((a, b) => a.label.localeCompare(b.label));
 
@@ -100,6 +107,59 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         [
             datasource
         ]
+    );
+
+    const fetchAndSetPropertyKeyOptions = useCallback(
+        async (filters: CombinedFilters) => {
+            try {
+                const tables = await lastValueFrom(datasource.queryTables$(
+                    filters ,
+                    migratedQuery.take,
+                    [
+                        DataTableProjections.Properties,
+                        DataTableProjections.ColumnProperties
+                    ]
+                    ));
+                const dataTableKeySet = new Set<string>();
+                const columnKeySet = new Set<string>();
+
+                for (const table of tables) {
+                    if (table.properties) {
+                        for (const key of Object.keys(table.properties)) {
+                            dataTableKeySet.add(key);
+                        }
+                    }
+                    if (table.columns) {
+                        for (const column of table.columns) {
+                            if (column.properties) {
+                                for (const key of Object.keys(column.properties)) {
+                                    columnKeySet.add(key);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                setDynamicDataTablePropertyKeyOptions(
+                    Array.from(dataTableKeySet).map(key => ({
+                        label: key,
+                        value: key,
+                        group: DATA_TABLE_CUSTOM_PROPERTIES_GROUP,
+                    })).sort((a, b) => a.label.localeCompare(b.label))
+                );
+                setDynamicColumnPropertyKeyOptions(
+                    Array.from(columnKeySet).map(key => ({
+                        label: key,
+                        value: key,
+                        group: COLUMN_CUSTOM_PROPERTIES_GROUP,
+                    })).sort((a, b) => a.label.localeCompare(b.label))
+                );
+            } catch {
+                setDynamicDataTablePropertyKeyOptions([]);
+                setDynamicColumnPropertyKeyOptions([]);
+            }
+        },
+        [datasource, migratedQuery.take]
     );
 
     const columnOptionsMap = useMemo(() => {
@@ -204,6 +264,33 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         ]
     );
 
+    useEffect(
+        () => {
+            if (migratedQuery.type !== DataFrameQueryType.Properties) {
+                return;
+            }
+
+            const transformedFilter = {
+                resultFilter: datasource.transformResultQuery(migratedQuery.resultFilter),
+                dataTableFilter: datasource.transformDataTableQuery(migratedQuery.dataTableFilter),
+                columnFilter: datasource.transformColumnQuery(migratedQuery.columnFilter)
+            };
+
+            fetchAndSetPropertyKeyOptions(transformedFilter);
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [
+            migratedQuery.type,
+            migratedQuery.dataTableFilter,
+            migratedQuery.resultFilter,
+            migratedQuery.columnFilter,
+            migratedQuery.take,
+            datasource.variablesCache,
+            fetchAndSetPropertyKeyOptions,
+            datasource,
+        ]
+    );
+
     const xColumnSelection = useMemo((): {
         isInvalid: boolean;
         value: ComboboxOption<string> | string | null;
@@ -303,18 +390,30 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         handleQueryChange({ ...migratedQuery, columnFilter });
     };
 
-    const onDataTablePropertiesChange = (properties: Array<ComboboxOption<DataTableProperties>>) => {
+    const onDataTablePropertiesChange = (properties: Array<ComboboxOption<string>>) => {
         const dataTableProperties = properties
             .filter(property => property.value !== undefined)
-            .map(property => property.value as DataTableProperties);
-        handleQueryChange({ ...migratedQuery, dataTableProperties });
+            .map(property => property.value);
+        const totalSelected = dataTableProperties.length + migratedQuery.columnProperties.length;
+        if (totalSelected > PROPERTIES_SELECTION_LIMIT) {
+            setPropertiesLimitExceededMessage(errorMessages.propertiesSelectionLimitExceeded);
+            return;
+        }
+        setPropertiesLimitExceededMessage('');
+        handleQueryChange({ ...migratedQuery, dataTableProperties: dataTableProperties as DataTableProperties[] });
     };
 
-    const onColumnPropertiesChange = (properties: Array<ComboboxOption<DataTableProperties>>) => {
+    const onColumnPropertiesChange = (properties: Array<ComboboxOption<string>>) => {
         const columnProperties = properties
             .filter(property => property.value !== undefined)
-            .map(property => property.value as DataTableProperties);
-        handleQueryChange({ ...migratedQuery, columnProperties });
+            .map(property => property.value);
+        const totalSelected = migratedQuery.dataTableProperties.length + columnProperties.length;
+        if (totalSelected > PROPERTIES_SELECTION_LIMIT) {
+            setPropertiesLimitExceededMessage(errorMessages.propertiesSelectionLimitExceeded);
+            return;
+        }
+        setPropertiesLimitExceededMessage('');
+        handleQueryChange({ ...migratedQuery, columnProperties: columnProperties as DataTableProperties[] });
     };
 
     const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -380,6 +479,16 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
 
         return '';
     }
+
+    const mergedDataTablePropertiesOptions = useMemo(() => [
+        ...dataTablePropertiesOptions,
+        ...dynamicDataTablePropertyKeyOptions,
+    ], [dataTablePropertiesOptions, dynamicDataTablePropertyKeyOptions]);
+
+    const mergedColumnPropertiesOptions = useMemo(() => [
+        ...columnPropertiesOptions,
+        ...dynamicColumnPropertyKeyOptions,
+    ], [columnPropertiesOptions, dynamicColumnPropertyKeyOptions]);
 
     const decimationMethodOptions = useMemo(() => {
         if (isQueryUndecimatedDataFeatureEnabled) {
@@ -598,15 +707,17 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                         label={labels.dataTableProperties}
                         labelWidth={INLINE_LABEL_WIDTH}
                         tooltip={tooltips.dataTableProperties}
+                        invalid={!!propertiesLimitExceededMessage}
+                        error={propertiesLimitExceededMessage}
                     >
                         <MultiCombobox
                             placeholder={placeholders.dataTableProperties}
                             width="auto"
                             minWidth={VALUE_FIELD_WIDTH}
                             maxWidth={VALUE_FIELD_WIDTH}
-                            value={migratedQuery.dataTableProperties}
+                            value={migratedQuery.dataTableProperties as string[]}
                             onChange={onDataTablePropertiesChange}
-                            options={dataTablePropertiesOptions}
+                            options={mergedDataTablePropertiesOptions}
                             isClearable={true}
                         />
                     </InlineField>
@@ -614,15 +725,17 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                         label={labels.columnProperties}
                         labelWidth={INLINE_LABEL_WIDTH}
                         tooltip={tooltips.columnProperties}
+                        invalid={!!propertiesLimitExceededMessage}
+                        error={propertiesLimitExceededMessage}
                     >
                         <MultiCombobox
                             placeholder={placeholders.columnProperties}
                             width="auto"
                             minWidth={VALUE_FIELD_WIDTH}
                             maxWidth={VALUE_FIELD_WIDTH}
-                            value={migratedQuery.columnProperties}
+                            value={migratedQuery.columnProperties as string[]}
                             onChange={onColumnPropertiesChange}
-                            options={columnPropertiesOptions}
+                            options={mergedColumnPropertiesOptions}
                             isClearable={true}
                         />
                     </InlineField>
