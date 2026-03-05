@@ -194,6 +194,24 @@ describe('PlotlyPanel', () => {
           expect(mockPublish).toHaveBeenCalled();
         });
 
+        it('should update route parameters when x-axis range starts at zero', () => {
+          mockSearchObject('?nisl-syncXAxisRangeTargets=1');
+          const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+
+          renderPlotlyElement(props);
+          triggerRelayout(0.000000, 10.5847392847563829);
+          jest.runOnlyPendingTimers();
+
+          expect(locationService.partial).toHaveBeenCalledWith(
+            {
+              'nisl-temperature-min': 0,
+              'nisl-temperature-max': 10.584739,
+            },
+            true
+          );
+          expect(mockPublish).toHaveBeenCalled();
+        });
+
         it('should use 6-decimal precision for min and max values', () => {
           mockSearchObject('?nisl-syncXAxisRangeTargets=5');
           const props = createMockProps({ xAxis: { field: 'pressure' } }, 5);

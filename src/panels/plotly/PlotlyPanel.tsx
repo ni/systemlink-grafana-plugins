@@ -232,7 +232,10 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       return;
     }
 
-    if (!xAxisMin || !xAxisMax) {
+    if (
+      xAxisMin === undefined ||
+      xAxisMax === undefined
+    ) {
       return;
     }
 
