@@ -8,10 +8,10 @@ jest.mock('datasources/data-frame/constants', () => {
 });
 
 import React from "react";
-import { cleanup, render, RenderResult, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, render, RenderResult, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
-import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties, DataFrameDataQuery, DataTableProjectionType } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties, DataFrameDataQuery } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { COLUMN_OPTIONS_LIMIT } from "datasources/data-frame/constants";
@@ -39,15 +39,9 @@ const mockHasRequiredFilters = jest.fn((query: ValidDataFrameQueryV2) => {
     return (query.resultFilter !== '' || query.dataTableFilter !== '');
 });
 
-const buildDefaultPropertiesOptions = (type: DataTableProjectionType) =>
-    Object.entries(DataTableProjectionLabelLookup)
-        .filter(([_, value]) => value.type === type)
-        .map(([key, value]) => ({ label: value.label, value: key }))
-        .sort((a, b) => a.label.localeCompare(b.label));
-
-const defaultPropertiesOptions = {
-    dataTablePropertiesOptions: buildDefaultPropertiesOptions(DataTableProjectionType.DataTable),
-    columnPropertiesOptions: buildDefaultPropertiesOptions(DataTableProjectionType.Column),
+const defaultCustomPropertiesOptions = {
+    dataTableCustomPropertiesOptions: [],
+    columnCustomPropertiesOptions: [],
 };
 
 const renderComponent = (
@@ -88,7 +82,7 @@ const renderComponent = (
         transformResultQuery: jest.fn((filter: string) => filter),
         transformColumnQuery: jest.fn((filter: string) => filter),
         hasRequiredFilters: mockHasRequiredFilters,
-        getPropertiesOptions: jest.fn().mockResolvedValue(defaultPropertiesOptions),
+        getCustomPropertiesAsOptions: jest.fn().mockResolvedValue(defaultCustomPropertiesOptions),
         variablesCache,
         parseColumnIdentifier: mockParseColumnIdentifier,
         instanceSettings: {
@@ -2883,36 +2877,37 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
-        describe("fetching properties options", () => {
-            it('should call getPropertiesOptions when query type is Properties', async () => {
+        describe("fetching custom properties options", () => {
+            it('should call getCustomPropertiesAsOptions when query type is Properties', async () => {
                 cleanup();
                 const { datasource } = renderComponent({ type: DataFrameQueryType.Properties });
 
                 await waitFor(() => {
-                  expect(datasource.getPropertiesOptions).toHaveBeenCalled();
+                  expect(datasource.getCustomPropertiesAsOptions).toHaveBeenCalled();
                 });
             });
 
-            it('should not call getPropertiesOptions when query type is Data', async () => {
+            it('should not call getCustomPropertiesAsOptions when query type is Data', async () => {
                 cleanup();
                 const { datasource } = renderComponent({ type: DataFrameQueryType.Data });
 
                 await waitFor(() => {
-                    expect(datasource.getPropertiesOptions).not.toHaveBeenCalled();
+                    expect(datasource.getCustomPropertiesAsOptions).not.toHaveBeenCalled();
                 });
             });
 
-            it('should populate properties options from getPropertiesOptions', async () => {
+            it('should populate custom properties options from getCustomPropertiesAsOptions', async () => {
                 cleanup();
                 const mockOptions = {
-                    dataTablePropertiesOptions: [
+                    dataTableCustomPropertiesOptions: [
                     { label: 'Custom Prop A', value: 'customPropA', group: 'Custom' },
-                    { label: 'Data table name', value: DataTableProperties.Name },
                     ],
-                    columnPropertiesOptions: [
-                    { label: 'Column name', value: DataTableProperties.ColumnName },
+                    columnCustomPropertiesOptions: [
+                    { label: 'Custom Col Prop', value: 'customColProp', group: 'Custom' },
                     ],
                 };
+                const mockGetCustomPropertiesOptions = jest.fn().mockResolvedValue(mockOptions);
+                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(500);
                 const { renderResult: result } = renderComponent(
                     { type: DataFrameQueryType.Properties },
                     '',
@@ -2922,227 +2917,231 @@ describe("DataFrameQueryEditorV2", () => {
                     undefined,
                     {},
                     {
-                    getPropertiesOptions: jest.fn().mockResolvedValue(mockOptions),
+                        getCustomPropertiesAsOptions: mockGetCustomPropertiesOptions,
                     }
                 );
-                const user = userEvent.setup();
 
+                await waitFor(() => {
+                    expect(mockGetCustomPropertiesOptions).toHaveBeenCalled();
+                });
+
+                const user = userEvent.setup();
                 const dataTablePropertiesField = result.getAllByRole('combobox')[0];
                 await user.click(dataTablePropertiesField);
 
+                const optionControls = screen.getAllByRole('option');
+                expect(optionControls).toHaveLength(12);
+                const optionTexts = optionControls.map(opt => opt.textContent);
+                expect(optionTexts).toContain('CustomCustom Prop A');
+
+                const columnPropertiesField = result.getAllByRole('combobox')[1];
+                await user.click(columnPropertiesField);
+                
                 await waitFor(() => {
-                    expect(document.body).toHaveTextContent('Custom Prop A');
-                    expect(document.body).toHaveTextContent('Data table name');
+                    const options = screen.getAllByRole('option');
+                    const optionTexts = options.map(opt => opt.textContent);
+                    expect(optionTexts).toContain('CustomCustom Col Prop');
                 });
+            });
+        });
+
+        describe("data table properties fields", () => {
+            let dataTablePropertiesField: HTMLElement;
+
+            beforeEach(() => {
+                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(400);
+                dataTablePropertiesField = renderResult.getAllByRole('combobox')[0];
+            });
+
+            it('should render data table properties select with default value', async () => {
+                expect(dataTablePropertiesField).toBeInTheDocument();
+                expect(dataTablePropertiesField).toHaveAttribute('aria-expanded', 'false');
+                expect(dataTablePropertiesField).toHaveDisplayValue('');
+
+                await user.click(dataTablePropertiesField);
+
+                await waitFor(() => {
+                    expect(document.body).toHaveTextContent("Data table name");
+                    expect(document.body).toHaveTextContent("Data table ID");
+                    expect(document.body).toHaveTextContent("Rows");
+                    expect(document.body).toHaveTextContent("Columns");
+                    expect(document.body).toHaveTextContent("Created");
+                    expect(document.body).toHaveTextContent("Workspace");
+                });
+            });
+
+            it('should call onChange with data table properties when user selects properties', async () => {
+                await selectProperty(
+                    dataTablePropertiesField,
+                    DataTableProjectionLabelLookup.Properties.label,
+                    user
+                );
+
+                await waitFor(() => {
+                    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                        dataTableProperties: expect.arrayContaining([DataTableProperties.Properties])
+                    }));
+                });
+            });
+
+            it('should call onRunQuery when user selects properties', async () => {
+                await selectProperty(
+                    dataTablePropertiesField,
+                    DataTableProjectionLabelLookup.Properties.label,
+                    user
+                );
+
+                await waitFor(() => {
+                    expect(onRunQuery).toHaveBeenCalled();
+                });
+            });
+
+            it("should show the expected options in sorted order in the data table properties field", async () => {
+                await user.click(dataTablePropertiesField);
+
+                const optionControls = screen.getAllByRole('option');
+                const optionTexts = optionControls.map(opt => opt.textContent);
+                expect(optionTexts).toEqual([
+                    "Data table propertiesColumns", // The group label gets appended the first option
+                    "Created",
+                    "Data table ID",
+                    "Data table name",
+                    "Data table properties",
+                    "Metadata modified",
+                    "Metadata revision",
+                    "Rows",
+                    "Rows modified",
+                    "Supports append",
+                    "Workspace"
+                ]);
+            });
+
+            it("should limit custom data table properties options to CUSTOM_PROPERTIES_OPTIONS_LIMIT", async () => {
+                cleanup();
+                const manyOptions = Array.from({ length: 10 }, (_, i) => ({
+                    label: `Prop ${i}`,
+                    value: `prop${i}`,
+                    group: 'Custom',
+                }));
+                const mockOptions = {
+                    dataTableCustomPropertiesOptions: manyOptions,
+                    columnCustomPropertiesOptions: [],
+                };
+                const mockGetCustomPropertiesOptions = jest.fn().mockResolvedValue(mockOptions);
+                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(500);
+                const { renderResult: result } = renderComponent(
+                    { type: DataFrameQueryType.Properties },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    {
+                        getCustomPropertiesAsOptions: mockGetCustomPropertiesOptions,
+                    }
+                );
+
+                await waitFor(() => {
+                    expect(mockGetCustomPropertiesOptions).toHaveBeenCalled();
+                });
+
+                const user = userEvent.setup();
+                const dataTablePropertiesField = result.getAllByRole('combobox')[0];
+                await user.click(dataTablePropertiesField);
+
+                const optionControls = screen.getAllByRole('option');
+                expect(optionControls).toHaveLength(16);
+            });
+        });
+
+        describe("column properties fields", () => {
+            let columnPropertiesField: HTMLElement;
+
+            beforeEach(() => {
+                columnPropertiesField = renderResult.getAllByRole('combobox')[1];
+            });
+
+            it('should render column properties select', () => {
+                expect(columnPropertiesField).toBeInTheDocument();
+                expect(columnPropertiesField).toHaveAttribute('aria-expanded', 'false');
+                expect(columnPropertiesField).toHaveDisplayValue('');
+            });
+
+            it('should call onChange with columns properties when user selects properties', async () => {
+                selectProperty(
+                    columnPropertiesField,
+                    DataTableProjectionLabelLookup.ColumnType.label,
+                    user
+                );
+
+                await waitFor(() => {
+                    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+                        columnProperties: expect.arrayContaining([DataTableProperties.ColumnType])
+                    }));
+                });
+            });
+
+            it('should call onRunQuery when user selects properties', async () => {
+                selectProperty(
+                    columnPropertiesField,
+                    DataTableProjectionLabelLookup.ColumnType.label,
+                    user
+                );
+
+                await waitFor(() => {
+                    expect(onRunQuery).toHaveBeenCalled();
+                });
+            });
+
+            it("should show the expected options in sorted order in the column properties field", async () => {
+                await user.click(columnPropertiesField);
+
+                const optionControls = screen.getAllByRole('option');
+                const optionTexts = optionControls.map(opt => opt.textContent);
+                expect(optionTexts).toContain([
+                    "Column propertiesColumn data type", // The group label gets appended the first option
+                    "Column name",
+                    "Column properties",
+                    "Column type"
+                ]);
+            });
+
+            it("should limit custom column properties options to CUSTOM_PROPERTIES_OPTIONS_LIMIT", async () => {
+                cleanup();
+                const manyOptions = Array.from({ length: 10 }, (_, i) => ({
+                    label: `ColProp ${i}`,
+                    value: `colProp${i}`,
+                    group: 'Custom',
+                }));
+                const mockOptions = {
+                    dataTableCustomPropertiesOptions: [],
+                    columnCustomPropertiesOptions: manyOptions,
+                };
+                const mockGetPropertiesOptions = jest.fn().mockResolvedValue(mockOptions);
+                    const { renderResult: result } = renderComponent(
+                    { type: DataFrameQueryType.Properties },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    {
+                        getCustomPropertiesAsOptions: mockGetPropertiesOptions,
+                    }
+                );
+
+                await waitFor(() => {
+                    expect(mockGetPropertiesOptions).toHaveBeenCalled();
+                });
+                    const user = userEvent.setup();
 
                 const columnPropertiesField = result.getAllByRole('combobox')[1];
                 await user.click(columnPropertiesField);
 
-                await waitFor(() => {
-                    expect(document.body).toHaveTextContent('Column name');
-                });
-            });
-
-            describe("data table properties fields", () => {
-                let dataTablePropertiesField: HTMLElement;
-
-                beforeEach(() => {
-                    dataTablePropertiesField = renderResult.getAllByRole('combobox')[0];
-                });
-
-                it('should render data table properties select with default value', async () => {
-                    expect(dataTablePropertiesField).toBeInTheDocument();
-                    expect(dataTablePropertiesField).toHaveAttribute('aria-expanded', 'false');
-                    expect(dataTablePropertiesField).toHaveDisplayValue('');
-
-                    await user.click(dataTablePropertiesField);
-
-                    await waitFor(() => {
-                        expect(document.body).toHaveTextContent("Data table name");
-                        expect(document.body).toHaveTextContent("Data table ID");
-                        expect(document.body).toHaveTextContent("Rows");
-                        expect(document.body).toHaveTextContent("Columns");
-                        expect(document.body).toHaveTextContent("Created");
-                        expect(document.body).toHaveTextContent("Workspace");
-                    });
-                });
-
-                it('should call onChange with data table properties when user selects properties', async () => {
-                    await selectProperty(
-                        dataTablePropertiesField,
-                        DataTableProjectionLabelLookup.Properties.label,
-                        user
-                    );
-
-                    await waitFor(() => {
-                        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                            dataTableProperties: expect.arrayContaining([DataTableProperties.Properties])
-                        }));
-                    });
-                });
-
-                it('should call onRunQuery when user selects properties', async () => {
-                    await selectProperty(
-                        dataTablePropertiesField,
-                        DataTableProjectionLabelLookup.Properties.label,
-                        user
-                    );
-
-                    await waitFor(() => {
-                        expect(onRunQuery).toHaveBeenCalled();
-                    });
-                });
-
-                it("should show the expected options in sorted order in the data table properties field", async () => {
-                    await user.click(dataTablePropertiesField);
-
-                    const optionControls = screen.getAllByRole('option');
-                    const optionTexts = optionControls.map(opt => opt.textContent);
-                    expect(optionTexts).toEqual([
-                        "Columns",
-                        "Created",
-                        "Data table ID",
-                        "Data table name",
-                        "Data table properties",
-                        "Metadata modified",
-                        "Metadata revision",
-                        "Rows",
-                        "Rows modified",
-                        "Supports append",
-                        "Workspace"
-                    ]);
-                });
-
-                it("should limit data table properties options to CUSTOM_PROPERTIES_OPTIONS_LIMIT + DEFAULT_DATA_TABLE_PROPERTIES_COUNT", async () => {
-                    cleanup();
-                    const manyOptions = Array.from({ length: 10 }, (_, i) => ({
-                        label: `Prop ${i}`,
-                        value: `prop${i}`,
-                        group: 'Custom',
-                    }));
-                    const mockOptions = {
-                        dataTablePropertiesOptions: [
-                            ...defaultPropertiesOptions.dataTablePropertiesOptions, 
-                            ...manyOptions
-                        ],
-                        columnPropertiesOptions: [],
-                    };
-                    const mockGetPropertiesOptions = jest.fn().mockResolvedValue(mockOptions);
-                    jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(500);
-                    const { renderResult: result } = renderComponent(
-                        { type: DataFrameQueryType.Properties },
-                        '',
-                        '',
-                        [],
-                        [],
-                        undefined,
-                        {},
-                        {
-                          getPropertiesOptions: mockGetPropertiesOptions,
-                        }
-                    );
-
-                    await waitFor(() => {
-                        expect(mockGetPropertiesOptions).toHaveBeenCalled();
-                    });
-
-                    const user = userEvent.setup();
-                    const dataTablePropertiesField = result.getAllByRole('combobox')[0];
-                    await user.click(dataTablePropertiesField);
-
-                    const optionControls = screen.getAllByRole('option');
-                    expect(optionControls).toHaveLength(16);
-                });
-            });
-
-            describe("column properties fields", () => {
-                let columnPropertiesField: HTMLElement;
-
-                beforeEach(() => {
-                    columnPropertiesField = renderResult.getAllByRole('combobox')[1];
-                });
-
-                it('should render column properties select', () => {
-                    expect(columnPropertiesField).toBeInTheDocument();
-                    expect(columnPropertiesField).toHaveAttribute('aria-expanded', 'false');
-                    expect(columnPropertiesField).toHaveDisplayValue('');
-                });
-
-                it('should call onChange with columns properties when user selects properties', async () => {
-                    selectProperty(
-                        columnPropertiesField,
-                        DataTableProjectionLabelLookup.ColumnType.label,
-                        user
-                    );
-
-                    await waitFor(() => {
-                        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
-                            columnProperties: expect.arrayContaining([DataTableProperties.ColumnType])
-                        }));
-                    });
-                });
-
-                it('should call onRunQuery when user selects properties', async () => {
-                    selectProperty(
-                        columnPropertiesField,
-                        DataTableProjectionLabelLookup.ColumnType.label,
-                        user
-                    );
-
-                    await waitFor(() => {
-                        expect(onRunQuery).toHaveBeenCalled();
-                    });
-                });
-
-                it("should show the expected options in sorted order in the column properties field", async () => {
-                    await user.click(columnPropertiesField);
-
-                    const optionControls = screen.getAllByRole('option');
-                    const optionTexts = optionControls.map(opt => opt.textContent);
-                    expect(optionTexts).toEqual([
-                        "Column data type",
-                        "Column name",
-                        "Column properties",
-                        "Column type"
-                    ]);
-                });
-
-                it("should limit column properties options to CUSTOM_PROPERTIES_OPTIONS_LIMIT + DEFAULT_COLUMN_PROPERTIES_COUNT", async () => {
-                    cleanup();
-                    const manyOptions = Array.from({ length: 10 }, (_, i) => ({
-                        label: `ColProp ${i}`,
-                        value: `colProp${i}`,
-                        group: 'Custom',
-                    }));
-                    const mockOptions = {
-                        dataTablePropertiesOptions: [],
-                        columnPropertiesOptions: manyOptions,
-                    };
-                    const mockGetPropertiesOptions = jest.fn().mockResolvedValue(mockOptions);
-                     const { renderResult: result } = renderComponent(
-                        { type: DataFrameQueryType.Properties },
-                        '',
-                        '',
-                        [],
-                        [],
-                        undefined,
-                        {},
-                        {
-                          getPropertiesOptions: mockGetPropertiesOptions,
-                        }
-                    );
-
-                    await waitFor(() => {
-                        expect(mockGetPropertiesOptions).toHaveBeenCalled();
-                    });
-                     const user = userEvent.setup();
-
-                    const columnPropertiesField = result.getAllByRole('combobox')[1];
-                    await user.click(columnPropertiesField);
-
-                    const optionControls = screen.getAllByRole('option');
-                    expect(optionControls).toHaveLength(9);
-                });
+                const optionControls = screen.getAllByRole('option');
+                expect(optionControls).toHaveLength(9);
             });
         });
 

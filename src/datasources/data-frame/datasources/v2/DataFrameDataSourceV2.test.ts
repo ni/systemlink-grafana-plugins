@@ -1,7 +1,7 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
 import { BackendSrv, locationService, TemplateSrv } from '@grafana/runtime';
-import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, PropertiesOptions, ValidDataFrameQueryV2 } from '../../types';
+import { ColumnType, CustomPropertiesOptions, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { COLUMN_SELECTION_LIMIT, MAXIMUM_DATA_POINTS, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
@@ -6794,55 +6794,41 @@ describe('DataFrameDataSourceV2', () => {
             });
         });
 
-        describe('getPropertiesOptions', () => {
-            it('should return default properties sorted alphabetically', async () => {
+        describe('getCustomPropertiesAsOptions', () => {
+            it('should return custom properties sorted alphabetically', async () => {
                 const filters = { dataTableFilter: '', resultFilter: '', columnFilter: '' };
 
-                const result = await ds.getPropertiesOptions(filters);
+                const result = await ds.getCustomPropertiesAsOptions(filters);
 
-                const dataTablePropertiesLabel = result.dataTablePropertiesOptions.map(opt => opt.label);
+                const dataTablePropertiesLabel = result.dataTableCustomPropertiesOptions.map(opt => opt.label);
                 const dataTablePropertiesSortedLabels = [...dataTablePropertiesLabel].sort((a, b) => a.localeCompare(b));
                 expect(dataTablePropertiesLabel).toEqual(dataTablePropertiesSortedLabels);
 
-                const columnPropertiesLabels = result.columnPropertiesOptions.map(opt => opt.label);
+                const columnPropertiesLabels = result.columnCustomPropertiesOptions.map(opt => opt.label);
                 const columnPropertiesSortedLabels = [...columnPropertiesLabels].sort((a, b) => a.localeCompare(b));
                 expect(columnPropertiesLabels).toEqual(columnPropertiesSortedLabels);
             });
 
-            it('should return default properties combined with custom properties', async () => {
-                const filters = { dataTableFilter: 'name = "Test"', resultFilter: '', columnFilter: '' };
-                const defaultDataTableLabels = Object.values(DataTableProjectionLabelLookup)
-                    .filter(v => v.type === 'dataTable')
-                    .map(v => v.label);
-                const defaultColumnLabels = Object.values(DataTableProjectionLabelLookup)
-                    .filter(v => v.type === 'column')
-                    .map(v => v.label);
-                const customProperties: PropertiesOptions = {
-                    dataTablePropertiesOptions: [
+            it('should return only custom properties', async () => {
+                const filters = { dataTableFilter: '', resultFilter: '', columnFilter: '' };
+
+                const customProperties: CustomPropertiesOptions = {
+                    dataTableCustomPropertiesOptions: [
                         { label: 'Custom Table Prop', value: 'customTableProp' },
                     ],
-                    columnPropertiesOptions: [
+                    columnCustomPropertiesOptions: [
                         { label: 'Custom Column Prop', value: 'customColumnProp' },
                     ],
                 };
                 jest.spyOn(ds as any, 'getCustomPropertiesAsOptions').mockResolvedValue(customProperties);
 
-                const result = await ds.getPropertiesOptions(filters);
-                
-                const resultDataTableLabels = result.dataTablePropertiesOptions.map(opt => opt.label);
-                for (const label of defaultDataTableLabels) {
-                    expect(resultDataTableLabels).toContain(label);
-                }
-                expect(result.dataTablePropertiesOptions).toEqual(
-                    expect.arrayContaining(customProperties.dataTablePropertiesOptions)
-                );
+                const result = await ds.getCustomPropertiesAsOptions(filters);
 
-                const resultColumnLabels = result.columnPropertiesOptions.map(opt => opt.label);
-                for (const label of defaultColumnLabels) {
-                    expect(resultColumnLabels).toContain(label);
-                }
-                expect(result.columnPropertiesOptions).toEqual(
-                    expect.arrayContaining(customProperties.columnPropertiesOptions)
+                expect(result.dataTableCustomPropertiesOptions).toEqual(
+                    expect.arrayContaining(customProperties.dataTableCustomPropertiesOptions)
+                );
+                expect(result.columnCustomPropertiesOptions).toEqual(
+                    expect.arrayContaining(customProperties.columnCustomPropertiesOptions)
                 );
             });
         });
