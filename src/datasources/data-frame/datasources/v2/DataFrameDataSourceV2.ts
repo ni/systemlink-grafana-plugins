@@ -867,45 +867,43 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return { dataTablePropertiesOptions: [], columnPropertiesOptions: [] };
         }
 
-        const dataTablePropertiesKeySet = new Set<string>();
-        const columnPropertiesKeySet = new Set<string>();
-
-        for (const table of tables) {
-            if (table.properties) {
-                for (const key of Object.keys(table.properties)) {
-                    dataTablePropertiesKeySet.add(key);
-                }
-            }
-            if (table.columns) {
-                for (const column of table.columns) {
-                    if (column.properties) {
-                        for (const key of Object.keys(column.properties)) {
-                            columnPropertiesKeySet.add(key);
-                        }
-                    }
-                }
-            }
-        }
-
-        const dataTablePropertiesOptions = this.sortOptionsByLabel(
-            Array.from(dataTablePropertiesKeySet).map(key => ({
-                label: key,
-                value: key,
-                group: CUSTOM_DATATABLE_PROPERTIES_GROUP
-            }))
+        const dataTablePropertiesKeySet = new Set(
+            tables.flatMap(table => table.properties ? Object.keys(table.properties) : [])
         );
-        const columnPropertiesOptions = this.sortOptionsByLabel(
-            Array.from(columnPropertiesKeySet).map(key => ({
-                label: key,
-                value: key,
-                group: CUSTOM_COLUMN_PROPERTIES_GROUP
-            }))
+        const columnPropertiesKeySet = new Set(
+            tables.flatMap(table =>
+                table.columns?.flatMap(column =>
+                    column.properties ? Object.keys(column.properties) : []
+                ) ?? []
+            )
+        );
+
+        const dataTablePropertiesOptions = this.createCustomPropertiesAsOptions(
+            dataTablePropertiesKeySet,
+            CUSTOM_DATATABLE_PROPERTIES_GROUP
+        );
+        const columnPropertiesOptions = this.createCustomPropertiesAsOptions(
+            columnPropertiesKeySet,
+            CUSTOM_COLUMN_PROPERTIES_GROUP
         );
 
         return {
             dataTablePropertiesOptions,
             columnPropertiesOptions
         }
+    }
+
+    private createCustomPropertiesAsOptions(
+        keySet: Set<string>,
+        groupName: string
+    ): Option[] {
+        return this.sortOptionsByLabel(
+            Array.from(keySet).map(key => ({
+                label: key,
+                value: key,
+                group: groupName
+            }))
+        );
     }
 
     private sortOptionsByLabel(options: Option[]): Option[] {
