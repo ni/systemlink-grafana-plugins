@@ -619,6 +619,16 @@ describe('PlotlyPanel', () => {
         expect(plotlyLayout.xaxis.range).toEqual([25, 80]);
       });
 
+      it('should use original panel options for x-axis range when x-axis field name is undefined', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl--min=5&nisl--max=95');
+        const props = createMockProps({ xAxis: { field: undefined, min: 0, max: 100 } }, 1);
+        props.data.series[0].fields[0].name = '';
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([0, 100]);
+      });
+
       it('should use original panel options for x-axis range when panel is not in sync targets', () => {
         mockSearchObject('?nisl-syncXAxisRangeTargets=2,3&nisl-temperature-min=5&nisl-temperature-max=95');
         const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
