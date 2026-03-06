@@ -268,36 +268,12 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     }
   };
 
-  const parseNumericQueryParam = (paramValue: UrlQueryValue): number | undefined => {
-    const value = Array.isArray(paramValue) ? paramValue[paramValue.length - 1] : paramValue;
-
-    if (
-      value === undefined ||
-      value === null ||
-      value === '' ||
-      typeof value === 'boolean'
-    ) {
-      return undefined;
-    }
-
-    const numericValue = Number(value);
-    return Number.isFinite(numericValue) ? numericValue : undefined;
-  };
-
-  const getExistingXAxisRange = (fieldName: string): { min?: number; max?: number } => {
-    const queryParams = locationService.getSearchObject();
-    return {
-      min: parseNumericQueryParam(queryParams[`nisl-${fieldName}-min`]),
-      max: parseNumericQueryParam(queryParams[`nisl-${fieldName}-max`]),
-    };
-  };
-
   const getSyncedXAxisRange = (): { min?: number; max?: number } | undefined => {
     if (!shouldSyncXAxisRange()) {
       return undefined;
     }
 
-    const xAxisFieldName = xFields[0]?.name;
+    const xAxisFieldName = xFields[0].name;
     if (!xAxisFieldName) {
       return undefined;
     }
@@ -312,6 +288,30 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     }
 
     return range;
+  };
+
+  const parseNumericQueryParam = (paramValue: UrlQueryValue): number | undefined => {
+    const value = Array.isArray(paramValue) ? paramValue[paramValue.length - 1] : paramValue;
+
+    if (
+      value === undefined
+      || value === null
+      || value === ''
+      || typeof value === 'boolean'
+    ) {
+      return undefined;
+    }
+
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? numericValue : undefined;
+  };
+
+  const getExistingXAxisRange = (fieldName: string): { min?: number; max?: number } => {
+    const queryParams = locationService.getSearchObject();
+    return {
+      min: parseNumericQueryParam(queryParams[`nisl-${fieldName}-min`]),
+      max: parseNumericQueryParam(queryParams[`nisl-${fieldName}-max`]),
+    };
   };
 
   const syncedXAxisRange = getSyncedXAxisRange();
