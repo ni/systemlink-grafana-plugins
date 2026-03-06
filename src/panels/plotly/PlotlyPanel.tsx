@@ -280,9 +280,9 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
 
     const range = getExistingXAxisRange(xAxisFieldName);
     if (
-      range.min === undefined ||
-      range.max === undefined ||
-      range.min > range.max
+      range.min === undefined
+      || range.max === undefined
+      || range.min > range.max
     ) {
       return undefined;
     }
