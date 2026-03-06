@@ -59,8 +59,8 @@ export const NUMERIC_DATA_TYPES = [
 export const COLUMNS_GROUP = 'Columns';
 export const METADATA_GROUP = 'Metadata';
 
-export const CUSTOM_DATATABLE_PROPERTIES_GROUP = 'Data table properties';
-export const CUSTOM_COLUMN_PROPERTIES_GROUP = 'Column properties';
+export const CUSTOM_DATATABLE_PROPERTIES_GROUP = 'Data table custom properties';
+export const CUSTOM_COLUMN_PROPERTIES_GROUP = 'Column custom properties';
 
 export const POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS = ['unit', 'units', 'Unit', 'Units'];
 
