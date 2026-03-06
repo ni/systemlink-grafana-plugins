@@ -8,7 +8,7 @@ jest.mock('datasources/data-frame/constants', () => {
 });
 
 import React from "react";
-import { act, cleanup, render, RenderResult, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, RenderResult, screen, waitFor, within } from "@testing-library/react";
 import userEvent, { UserEvent } from "@testing-library/user-event";
 import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
 import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties, DataFrameDataQuery } from "../../types";
@@ -39,7 +39,7 @@ const mockHasRequiredFilters = jest.fn((query: ValidDataFrameQueryV2) => {
     return (query.resultFilter !== '' || query.dataTableFilter !== '');
 });
 
-const defaultCustomPropertiesOptions = {
+const customPropertiesOptions = {
     dataTableCustomPropertiesOptions: [],
     columnCustomPropertiesOptions: [],
 };
@@ -82,7 +82,7 @@ const renderComponent = (
         transformResultQuery: jest.fn((filter: string) => filter),
         transformColumnQuery: jest.fn((filter: string) => filter),
         hasRequiredFilters: mockHasRequiredFilters,
-        getCustomPropertiesAsOptions: jest.fn().mockResolvedValue(defaultCustomPropertiesOptions),
+        getCustomPropertiesAsOptions: jest.fn().mockResolvedValue(customPropertiesOptions),
         variablesCache,
         parseColumnIdentifier: mockParseColumnIdentifier,
         instanceSettings: {
@@ -3099,7 +3099,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                 const optionControls = screen.getAllByRole('option');
                 const optionTexts = optionControls.map(opt => opt.textContent);
-                expect(optionTexts).toContain([
+                expect(optionTexts).toEqual([
                     "Column propertiesColumn data type", // The group label gets appended the first option
                     "Column name",
                     "Column properties",
