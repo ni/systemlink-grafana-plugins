@@ -131,18 +131,18 @@ describe('DataFrameDataSource', () => {
         });
     });
 
-    describe('getPropertiesOptions', () => {
-        it('should call getPropertiesOptions on DataFrameDataSourceV2', async () => {
+    describe('getCustomPropertiesAsOptions', () => {
+        it('should call getCustomPropertiesAsOptions on DataFrameDataSourceV2', async () => {
             const ds = new DataFrameDataSource(mockInstanceSettings);
             const mockPropertiesOptions = {
-                dataTablePropertiesOptions: [{ label: 'Name', value: 'Name' }],
-                columnPropertiesOptions: [{ label: 'Column name', value: 'ColumnName' }]
+                dataTableCustomPropertiesOptions: [{ label: 'Name', value: 'Name' }],
+                columnCustomPropertiesOptions: [{ label: 'Column name', value: 'ColumnName' }]
             };
-            v2Mock.getPropertiesOptions = jest.fn().mockResolvedValue(mockPropertiesOptions);
+            v2Mock.getCustomPropertiesAsOptions = jest.fn().mockResolvedValue(mockPropertiesOptions);
 
-            const result = await ds.getPropertiesOptions({ dataTableFilter: 'filter' });
+            const result = await ds.getCustomPropertiesAsOptions({ dataTableFilter: 'filter' });
 
-            expect(v2Mock.getPropertiesOptions).toHaveBeenCalledWith({ dataTableFilter: 'filter' });
+            expect(v2Mock.getCustomPropertiesAsOptions).toHaveBeenCalledWith({ dataTableFilter: 'filter' });
             expect(result).toEqual(mockPropertiesOptions);
         });
     });

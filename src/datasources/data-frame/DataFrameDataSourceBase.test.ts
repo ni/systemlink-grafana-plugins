@@ -152,12 +152,12 @@ describe('DataFrameDataSourceBase', () => {
         expect(options).toEqual({ uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] });
     });
 
-    it('should return empty arrays for getPropertiesOptions', async () => {
+    it('should return empty arrays for getCustomPropertiesAsOptions', async () => {
         const ds = new TestDataFrameDataSource(instanceSettings, backendSrv, templateSrv);
 
-        const options = await ds.getPropertiesOptions({ dataTableFilter: 'filter' });
+        const options = await ds.getCustomPropertiesAsOptions({ dataTableFilter: 'filter' });
 
-        expect(options).toEqual({ dataTablePropertiesOptions: [], columnPropertiesOptions: [] });
+        expect(options).toEqual({ dataTableCustomPropertiesOptions: [], columnCustomPropertiesOptions: [] });
     });
 
     it('should return query as it is for processVariableQuery', async () => {
