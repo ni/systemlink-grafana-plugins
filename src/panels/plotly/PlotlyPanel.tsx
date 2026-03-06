@@ -78,17 +78,25 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dashboardTimeFrom, dashboardTimeTo, isTimeBasedXAxis]);
 
+  const updateXAxisRangeInQueryParams = (
+    xAxisFieldName: string,
+    min?: number,
+    max?: number
+  ) => {
+    locationService.partial(
+      {
+        [`nisl-${xAxisFieldName}-min`]: min ?? null,
+        [`nisl-${xAxisFieldName}-max`]: max ?? null,
+      },
+      true,
+    );
+    getAppEvents().publish(new NIRefreshDashboardEvent());
+  };
+
   const publishXAxisRangeUpdate = useMemo(
     () =>
       _.debounce((xAxisMin: number, xAxisMax: number, xAxisField: string) => {
-        locationService.partial(
-          {
-            [`nisl-${xAxisField}-min`]: xAxisMin,
-            [`nisl-${xAxisField}-max`]: xAxisMax,
-          },
-          true,
-        );
-        getAppEvents().publish(new NIRefreshDashboardEvent());
+        updateXAxisRangeInQueryParams(xAxisField, xAxisMin, xAxisMax);
       }, debounceDelayInMs),
     []
   );
@@ -173,33 +181,6 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     }
   }
 
-  const resetXAxisRangeSync = () => {
-    publishXAxisRangeUpdate.cancel();
-
-    if (!shouldSyncXAxisRange()) {
-      return;
-    }
-
-    const xAxisFieldName = xFields[0]?.name;
-    if (!xAxisFieldName) {
-      return;
-    }
-
-    const { min, max } = getExistingXAxisRange(xAxisFieldName);
-    if (min === undefined && max === undefined) {
-      return;
-    }
-
-    locationService.partial(
-      {
-        [`nisl-${xAxisFieldName}-min`]: null,
-        [`nisl-${xAxisFieldName}-max`]: null,
-      },
-      true,
-    );
-    getAppEvents().publish(new NIRefreshDashboardEvent());
-  };
-
   const handlePlotClick = (plotEvent: Readonly<Plotly.PlotMouseEvent>) => {
     const point = plotEvent.points[0];
     const [id] = point.data.customdata;
@@ -228,7 +209,10 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
 
     if (autoRange) {
       onOptionsChange({...options, xAxis: { ...options.xAxis, min: undefined, max: undefined }});
-      resetXAxisRangeSync();
+
+      if (shouldSyncXAxisRange()) {
+        resetNumericXAxisRange();
+      }
       return;
     }
 
@@ -297,6 +281,22 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         xAxisFieldName
       );
     }
+  };
+
+  const resetNumericXAxisRange = () => {
+    publishXAxisRangeUpdate.cancel();
+
+    const xAxisFieldName = xFields[0]?.name;
+    if (!xAxisFieldName) {
+      return;
+    }
+
+    const { min, max } = getExistingXAxisRange(xAxisFieldName);
+    if (min === undefined && max === undefined) {
+      return;
+    }
+
+    updateXAxisRangeInQueryParams(xAxisFieldName);
   };
 
   const getSyncedXAxisRange = (): { min?: number; max?: number } | undefined => {
