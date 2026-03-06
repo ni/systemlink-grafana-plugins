@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV2, DataFrameQueryType, DataTableProjectionLabelLookup, DataTableProjectionType, ValidDataFrameQueryV2, DataTableProperties, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2, metadataFieldOptions } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQueryV2, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2, metadataFieldOptions, DataTableProjectionLabelLookup, DataTableProjectionType, DataTableProperties } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
-import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT, UNDECIMATED_RECORDS_LIMIT,decimationNoneOption } from 'datasources/data-frame/constants';
+import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT, UNDECIMATED_RECORDS_LIMIT,decimationNoneOption, CUSTOM_PROPERTIES_OPTIONS_LIMIT } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
 import {
     errorMessages,
@@ -45,6 +45,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
     const [xColumnOptions, setXColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnOptionsInitialized, setIsColumnOptionsInitialized] = useState<boolean>(false);
+    const [dataTableCustomPropertiesOptions, setDataTableCustomPropertiesOptions] = useState<Array<ComboboxOption<string>>>([]);
+    const [columnCustomPropertiesOptions, setColumnCustomPropertiesOptions] = useState<Array<ComboboxOption<string>>>([]);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -53,12 +55,15 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
             .filter(([_, value]) => value.type === type)
             .map(([key, value]) => ({
                 label: value.label,
-                value: key as DataTableProperties
+                value: key as DataTableProperties,
+                group: value.type === DataTableProjectionType.DataTable 
+                    ? 'Data table properties' 
+                    : 'Column properties',
             }))
             .sort((a, b) => a.label.localeCompare(b.label));
 
-    const dataTablePropertiesOptions = getPropertiesOptions(DataTableProjectionType.DataTable);
-    const columnPropertiesOptions = getPropertiesOptions(DataTableProjectionType.Column);
+    const defaultDataTablePropertiesOptions = getPropertiesOptions(DataTableProjectionType.DataTable);
+    const defaultColumnPropertiesOptions = getPropertiesOptions(DataTableProjectionType.Column);
 
     const lastFilterRef = useRef<CombinedFilters>({
         resultFilter: '',
@@ -100,6 +105,24 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         [
             datasource
         ]
+    );
+
+    const fetchAndSetCustomPropertiesOptions = useCallback(
+      async (filters: CombinedFilters) => {
+        const propertiesOptions = await datasource.getCustomPropertiesAsOptions(filters);
+        const limitedDataTableCustomPropertiesOptions = propertiesOptions.dataTableCustomPropertiesOptions.slice(
+          0,
+          CUSTOM_PROPERTIES_OPTIONS_LIMIT
+        );
+        const limitedColumnCustomPropertiesOptions = propertiesOptions.columnCustomPropertiesOptions.slice(
+          0,
+          CUSTOM_PROPERTIES_OPTIONS_LIMIT
+        );
+
+        setDataTableCustomPropertiesOptions(limitedDataTableCustomPropertiesOptions);
+        setColumnCustomPropertiesOptions(limitedColumnCustomPropertiesOptions);
+      },
+      [datasource]
     );
 
     const columnOptionsMap = useMemo(() => {
@@ -204,6 +227,41 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         ]
     );
 
+    useEffect(
+      () => {
+        if (migratedQuery.type !== DataFrameQueryType.Properties) {
+          return;
+        }
+
+        const transformedFilter = {
+          resultFilter: datasource.transformResultQuery(migratedQuery.resultFilter),
+          dataTableFilter: datasource.transformDataTableQuery(migratedQuery.dataTableFilter),
+          columnFilter: datasource.transformColumnQuery(migratedQuery.columnFilter),
+        };
+
+        fetchAndSetCustomPropertiesOptions(transformedFilter);
+      },
+      [
+        migratedQuery.type,
+        migratedQuery.dataTableFilter,
+        migratedQuery.resultFilter,
+        migratedQuery.columnFilter,
+        fetchAndSetCustomPropertiesOptions,
+        datasource,
+      ]
+    );
+
+    const dataTablePropertiesOptions = useMemo(() => [
+        ...defaultDataTablePropertiesOptions,
+        ...dataTableCustomPropertiesOptions,
+    ], [defaultDataTablePropertiesOptions, dataTableCustomPropertiesOptions]);
+
+    const columnPropertiesOptions = useMemo(() => [
+        ...defaultColumnPropertiesOptions,
+        ...columnCustomPropertiesOptions,
+    ], [defaultColumnPropertiesOptions, columnCustomPropertiesOptions]);
+
+
     const xColumnSelection = useMemo((): {
         isInvalid: boolean;
         value: ComboboxOption<string> | string | null;
@@ -303,17 +361,17 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         handleQueryChange({ ...migratedQuery, columnFilter });
     };
 
-    const onDataTablePropertiesChange = (properties: Array<ComboboxOption<DataTableProperties>>) => {
+    const onDataTablePropertiesChange = (properties: Array<ComboboxOption<string>>) => {
         const dataTableProperties = properties
             .filter(property => property.value !== undefined)
-            .map(property => property.value as DataTableProperties);
+            .map(property => property.value);
         handleQueryChange({ ...migratedQuery, dataTableProperties });
     };
 
-    const onColumnPropertiesChange = (properties: Array<ComboboxOption<DataTableProperties>>) => {
+    const onColumnPropertiesChange = (properties: Array<ComboboxOption<string>>) => {
         const columnProperties = properties
             .filter(property => property.value !== undefined)
-            .map(property => property.value as DataTableProperties);
+            .map(property => property.value);
         handleQueryChange({ ...migratedQuery, columnProperties });
     };
 

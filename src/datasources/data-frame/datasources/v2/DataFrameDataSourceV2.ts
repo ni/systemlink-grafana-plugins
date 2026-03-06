@@ -1,7 +1,7 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, QueryResultMetaNotice, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL, CustomPropertiesOptions } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -299,6 +299,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return {
             uniqueColumnsAcrossTables: uniqueColumnsAcrossTablesWithVariables,
             commonColumnsAcrossTables: commonColumnsAcrossTablesWithVariables
+        };
+    }
+
+    public async getCustomPropertiesAsOptions(
+        filters: CombinedFilters
+    ): Promise<CustomPropertiesOptions> {
+        const customProperties = await this.getCustomProperties(filters);
+        return {
+            dataTableCustomPropertiesOptions: customProperties.dataTableCustomPropertiesOptions,
+            columnCustomPropertiesOptions: customProperties.columnCustomPropertiesOptions
         };
     }
 
@@ -818,6 +828,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             : [];
 
         return { uniqueColumnsAcrossTables, commonColumnsAcrossTables };
+    }
+
+    private async getCustomProperties(filters: CombinedFilters): Promise<CustomPropertiesOptions> {
+        return {
+            dataTableCustomPropertiesOptions: [],
+            columnCustomPropertiesOptions: []
+        }
     }
 
     private sortOptionsByLabel(options: Option[]): Option[] {
@@ -1834,7 +1851,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             ...processedQuery.columnProperties
         ];
         const projections = propertiesToQuery
-            .map(property => DataTableProjectionLabelLookup[property].projection);
+            .map(property => DataTableProjectionLabelLookup[property as DataTableProperties].projection);
         const projectionExcludingId = projections
             .filter(projection => projection !== DataTableProjections.Id);
         const filters = {
@@ -1870,14 +1887,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 propertiesToQueryWithoutCustomProperties.forEach(property => {
                     const values = this.getFieldValues(
                         flattenedTablesWithColumns,
-                        property,
+                        property as DataTableProperties,
                         workspaces
                     );
-                    const name = DataTableProjectionLabelLookup[property].label;
+                    const name = DataTableProjectionLabelLookup[property as DataTableProperties].label;
                     fieldNames.add(name);
                     fields.push({
                         name,
-                        type: this.getFieldType(property),
+                        type: this.getFieldType(property as DataTableProperties),
                         values
                     });
                 });
@@ -2070,7 +2087,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return query.columns ?? defaultQueryV2.columns;
     }
 
-    private resolveDataTableProperties(query: DataFrameDataQuery): DataTableProperties[] {
+    private resolveDataTableProperties(query: DataFrameDataQuery): string[] {
         if ('dataTableProperties' in query && query.dataTableProperties !== undefined) {
             return query.dataTableProperties;
         }

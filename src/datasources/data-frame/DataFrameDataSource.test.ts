@@ -131,6 +131,22 @@ describe('DataFrameDataSource', () => {
         });
     });
 
+    describe('getCustomPropertiesAsOptions', () => {
+        it('should call getCustomPropertiesAsOptions on DataFrameDataSourceV2', async () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings);
+            const mockPropertiesOptions = {
+                dataTableCustomPropertiesOptions: [{ label: 'Name', value: 'Name' }],
+                columnCustomPropertiesOptions: [{ label: 'Column name', value: 'ColumnName' }]
+            };
+            v2Mock.getCustomPropertiesAsOptions = jest.fn().mockResolvedValue(mockPropertiesOptions);
+
+            const result = await ds.getCustomPropertiesAsOptions({ dataTableFilter: 'filter' });
+
+            expect(v2Mock.getCustomPropertiesAsOptions).toHaveBeenCalledWith({ dataTableFilter: 'filter' });
+            expect(result).toEqual(mockPropertiesOptions);
+        });
+    });
+
     describe('dashboard variables caching', () => {
         const backendSrv = {} as BackendSrv;
         const createTemplateSrv = (variables: Array<{ name: string; value: string }>): TemplateSrv => {
