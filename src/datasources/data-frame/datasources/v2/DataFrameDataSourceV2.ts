@@ -2,7 +2,7 @@ import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceI
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL, CustomPropertiesOptions } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATATABLE_PROPERTIES_GROUP } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -831,10 +831,52 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private async getCustomProperties(filters: CombinedFilters): Promise<CustomPropertiesOptions> {
-        return {
-            dataTableCustomPropertiesOptions: [],
-            columnCustomPropertiesOptions: []
+        const tables = await lastValueFrom(
+            this.queryTables$(filters, TAKE_LIMIT, [
+                DataTableProjections.Properties,
+                DataTableProjections.ColumnProperties
+            ]));
+        if (!this.tablesContainsProperties(tables) && !this.tablesContainsColumns(tables)) {
+            return { dataTableCustomPropertiesOptions: [], columnCustomPropertiesOptions: [] };
         }
+
+        const dataTablePropertiesKeySet = new Set(
+            tables.flatMap(table => table.properties ? Object.keys(table.properties) : [])
+        );
+        const columnPropertiesKeySet = new Set(
+            tables.flatMap(table =>
+                table.columns?.flatMap(column =>
+                    column.properties ? Object.keys(column.properties) : []
+                ) ?? []
+            )
+        );
+
+        const dataTableCustomPropertiesOptions = this.createCustomPropertiesAsOptions(
+            dataTablePropertiesKeySet,
+            CUSTOM_DATATABLE_PROPERTIES_GROUP
+        );
+        const columnCustomPropertiesOptions = this.createCustomPropertiesAsOptions(
+            columnPropertiesKeySet,
+            CUSTOM_COLUMN_PROPERTIES_GROUP
+        );
+
+        return {
+            dataTableCustomPropertiesOptions,
+            columnCustomPropertiesOptions
+        }
+    }
+
+    private createCustomPropertiesAsOptions(
+        keySet: Set<string>,
+        groupName: string
+    ): Option[] {
+        return this.sortOptionsByLabel(
+            Array.from(keySet).map(key => ({
+                label: key,
+                value: key,
+                group: groupName
+            }))
+        );
     }
 
     private sortOptionsByLabel(options: Option[]): Option[] {
@@ -843,6 +885,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private tablesContainsColumns(tables: TableProperties[]): boolean {
         return tables.length > 0 && tables[0].columns !== undefined;
+    }
+
+    private tablesContainsProperties(tables: TableProperties[]): boolean {
+        return tables.length > 0 && (tables.some(table => table.properties !== undefined))
     }
 
     private createColumnIdentifierSet(columns: Column[]): Set<string> {
