@@ -6793,7 +6793,7 @@ describe('DataFrameDataSourceV2', () => {
                 });
             });
         });
-            
+
         describe('getCustomPropertiesAsOptions', () => {
             let queryTablesSpy$: jest.SpyInstance;
             const filters = { dataTableFilter: '', resultFilter: '', columnFilter: '' };
@@ -6824,10 +6824,10 @@ describe('DataFrameDataSourceV2', () => {
 
                 const customProperties: CustomPropertiesOptions = {
                     dataTableCustomPropertiesOptions: [
-                        { label: 'Custom Table Prop', value: 'customTableProp' },
+                        { label: 'Custom Table Prop', value: 'customTableProp-(custom-properties)' },
                     ],
                     columnCustomPropertiesOptions: [
-                        { label: 'Custom Column Prop', value: 'customColumnProp' },
+                        { label: 'Custom Column Prop', value: 'customColumnProp-(custom-properties)' },
                     ],
                 };
                 jest.spyOn(ds as any, 'getCustomPropertiesAsOptions').mockResolvedValue(customProperties);
@@ -6884,9 +6884,9 @@ describe('DataFrameDataSourceV2', () => {
 
                 const customDataTableOptions = result.dataTableCustomPropertiesOptions.filter(opt => opt.group === CUSTOM_DATATABLE_PROPERTIES_GROUP);
                 expect(customDataTableOptions).toEqual([
-                    { label: 'propA', value: 'propA', group: CUSTOM_DATATABLE_PROPERTIES_GROUP },
-                    { label: 'propB', value: 'propB', group: CUSTOM_DATATABLE_PROPERTIES_GROUP },
-                    { label: 'propC', value: 'propC', group: CUSTOM_DATATABLE_PROPERTIES_GROUP },
+                    { label: 'propA', value: 'propA-(custom-properties)', group: CUSTOM_DATATABLE_PROPERTIES_GROUP },
+                    { label: 'propB', value: 'propB-(custom-properties)', group: CUSTOM_DATATABLE_PROPERTIES_GROUP },
+                    { label: 'propC', value: 'propC-(custom-properties)', group: CUSTOM_DATATABLE_PROPERTIES_GROUP },
                 ]);
             });
 
@@ -6912,9 +6912,9 @@ describe('DataFrameDataSourceV2', () => {
 
                 const customColumnOptions = result.columnCustomPropertiesOptions.filter(opt => opt.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
                 expect(customColumnOptions).toEqual([
-                    { label: 'colPropX', value: 'colPropX', group: CUSTOM_COLUMN_PROPERTIES_GROUP },
-                    { label: 'colPropY', value: 'colPropY', group: CUSTOM_COLUMN_PROPERTIES_GROUP },
-                    { label: 'colPropZ', value: 'colPropZ', group: CUSTOM_COLUMN_PROPERTIES_GROUP },
+                    { label: 'colPropX', value: 'colPropX-(custom-properties)', group: CUSTOM_COLUMN_PROPERTIES_GROUP },
+                    { label: 'colPropY', value: 'colPropY-(custom-properties)', group: CUSTOM_COLUMN_PROPERTIES_GROUP },
+                    { label: 'colPropZ', value: 'colPropZ-(custom-properties)', group: CUSTOM_COLUMN_PROPERTIES_GROUP },
                 ]);
             });
 
@@ -6929,7 +6929,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 const customDataTableOptions = result.dataTableCustomPropertiesOptions.filter(opt => opt.group === CUSTOM_DATATABLE_PROPERTIES_GROUP);
                 expect(customDataTableOptions).toEqual([
-                    { label: 'sharedProp', value: 'sharedProp', group: CUSTOM_DATATABLE_PROPERTIES_GROUP },
+                    { label: 'sharedProp', value: 'sharedProp-(custom-properties)', group: CUSTOM_DATATABLE_PROPERTIES_GROUP },
                 ]);
             });
 
@@ -6954,7 +6954,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 const customColumnOptions = result.columnCustomPropertiesOptions.filter(opt => opt.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
                 expect(customColumnOptions).toEqual([
-                    { label: 'sharedColProp', value: 'sharedColProp', group: CUSTOM_COLUMN_PROPERTIES_GROUP },
+                    { label: 'sharedColProp', value: 'sharedColProp-(custom-properties)', group: CUSTOM_COLUMN_PROPERTIES_GROUP },
                 ]);
             });
 
@@ -6992,7 +6992,7 @@ describe('DataFrameDataSourceV2', () => {
 
                 const customColumnOptions = result.columnCustomPropertiesOptions.filter(opt => opt.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
                 expect(customColumnOptions).toEqual([
-                    { label: 'colProp', value: 'colProp', group: CUSTOM_COLUMN_PROPERTIES_GROUP },
+                    { label: 'colProp', value: 'colProp-(custom-properties)', group: CUSTOM_COLUMN_PROPERTIES_GROUP },
                 ]);
             });
 
@@ -7013,10 +7013,10 @@ describe('DataFrameDataSourceV2', () => {
                 const customDataTableOptions = result.dataTableCustomPropertiesOptions.filter(opt => opt.group === CUSTOM_DATATABLE_PROPERTIES_GROUP);
                 const customColumnOptions = result.columnCustomPropertiesOptions.filter(opt => opt.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
                 expect(customDataTableOptions).toEqual([
-                    { label: 'tableProp', value: 'tableProp', group: CUSTOM_DATATABLE_PROPERTIES_GROUP },
+                    { label: 'tableProp', value: 'tableProp-(custom-properties)', group: CUSTOM_DATATABLE_PROPERTIES_GROUP },
                 ]);
                 expect(customColumnOptions).toEqual([
-                    { label: 'colProp', value: 'colProp', group: CUSTOM_COLUMN_PROPERTIES_GROUP },
+                    { label: 'colProp', value: 'colProp-(custom-properties)', group: CUSTOM_COLUMN_PROPERTIES_GROUP },
                 ]);
             });
         });

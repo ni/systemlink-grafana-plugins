@@ -835,7 +835,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             this.queryTables$(filters, TAKE_LIMIT, [
                 DataTableProjections.Properties,
                 DataTableProjections.ColumnProperties
-            ]));
+            ])
+        );
         if (!this.tablesContainsProperties(tables) && !this.tablesContainsColumns(tables)) {
             return { dataTableCustomPropertiesOptions: [], columnCustomPropertiesOptions: [] };
         }
@@ -873,7 +874,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return this.sortOptionsByLabel(
             Array.from(keySet).map(key => ({
                 label: key,
-                value: key,
+                value: `${key}-(custom-properties)`,
                 group: groupName
             }))
         );
