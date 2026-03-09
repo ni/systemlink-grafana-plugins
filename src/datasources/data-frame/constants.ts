@@ -40,6 +40,8 @@ export const RESULT_IDS_LIMIT = 1000;
 export const CUSTOM_PROPERTY_COLUMNS_LIMIT = 100;
 export const CUSTOM_PROPERTIES_OPTIONS_LIMIT = 10_000;
 
+export const CUSTOM_PROPERTY_SUFFIX = '-(custom-properties)'
+
 export const REQUESTS_PER_SECOND = 6;
 export const DELAY_BETWEEN_REQUESTS_MS = 1000;
 
