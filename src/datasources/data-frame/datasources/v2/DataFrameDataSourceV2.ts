@@ -2,7 +2,7 @@ import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceI
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL, CustomPropertiesOptions } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATATABLE_PROPERTIES_GROUP } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, CUSTOM_PROPERTY_SUFFIX, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATATABLE_PROPERTIES_GROUP } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -874,7 +874,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return this.sortOptionsByLabel(
             Array.from(keySet).map(key => ({
                 label: key,
-                value: `${key}-(custom-properties)`,
+                value: `${key}${CUSTOM_PROPERTY_SUFFIX}`,
                 group: groupName
             }))
         );
@@ -1892,10 +1892,36 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         });
     }
 
+    private isCustomProperty(property:  string): boolean {
+        return property.endsWith(CUSTOM_PROPERTY_SUFFIX);
+    }
+
+    private extractCustomPropertyKey(property: string): string {
+        return property.slice(0, -CUSTOM_PROPERTY_SUFFIX.length);
+    }
+
+    private categorizeProperties(properties: string[]): [string[], DataTableProperties[]] {
+        const customProperties: string[] = [];
+        const standardProperties: DataTableProperties[] = [];
+        for (const property of properties) {
+            if (this.isCustomProperty(property)) {
+                customProperties.push(property);
+            } else {
+                standardProperties.push(property as DataTableProperties);
+            }
+        }
+        return [customProperties, standardProperties];
+    }
+
     private getFieldsForPropertiesQuery$(processedQuery: ValidDataFrameQueryV2): Observable<DataFrameDTO> {
+        const [selectedDataTableCustomProperties, dataTablePropertiesToQuery] = this.categorizeProperties(processedQuery.dataTableProperties);
+        const [selectedColumnCustomProperties, columnPropertiesToQuery] = this.categorizeProperties(processedQuery.columnProperties);
+
         const propertiesToQuery = [
-            ...processedQuery.dataTableProperties,
-            ...processedQuery.columnProperties
+            ...dataTablePropertiesToQuery,
+            ...(selectedDataTableCustomProperties.length > 0  ? [DataTableProperties.Properties] : []),
+            ...columnPropertiesToQuery,
+            ...(selectedColumnCustomProperties.length > 0 ? [DataTableProperties.ColumnProperties] : []),
         ];
         const projections = propertiesToQuery
             .map(property => DataTableProjectionLabelLookup[property as DataTableProperties].projection);
@@ -1952,12 +1978,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                  * flatten it into separate fields in the data frame output
                  */
                 if (includeDataTableCustomProperties) {
+                    const includeAllDataTableCustomProperties = dataTablePropertiesToQuery
+                        .includes(DataTableProperties.Properties);
                     const customPropertyFields = this.createFieldsFromCustomProperties(
                         flattenedTablesWithColumns,
                         customPropertyColumnsLimit,
                         table => table.properties,
                         fieldNames,
-                        'Data table'
+                        'Data table',
+                        includeAllDataTableCustomProperties,
+                        selectedDataTableCustomProperties
                     );
                     customPropertyFields.forEach(field => fieldNames.add(field.name));
                     customPropertyColumnsLimit -= customPropertyFields.length;
@@ -1969,17 +1999,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                  * flatten it into separate fields in the data frame output
                  */
                 if (includeColumnCustomProperties) {
+                    const includeAllColumnCustomProperties = columnPropertiesToQuery
+                        .includes(DataTableProperties.ColumnProperties);
                     const customPropertyFields = this.createFieldsFromCustomProperties(
                         flattenedTablesWithColumns,
                         customPropertyColumnsLimit,
                         table => table.columnProperties,
                         fieldNames,
-                        'Column'
+                        'Column',
+                        includeAllColumnCustomProperties,
+                        selectedColumnCustomProperties
                     );
                     customPropertyFields.forEach(field => fieldNames.add(field.name));
                     customPropertyColumnsLimit -= customPropertyFields.length;
                     fields.push(...customPropertyFields);
                 }
+
+
 
                 return {
                     refId: processedQuery.refId,
@@ -1997,13 +2033,27 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         limit: number,
         propertyAccessor: (table: FlattenedTableProperties) => Record<string, string> | undefined,
         existingFieldNames: Set<string>,
-        fieldNameSuffix: string
+        fieldNameSuffix: string,
+        includeAllCustomProperties: boolean,
+        selectedCustomProperties: string[]
     ): FieldDTO[] {
-        const uniquePropertyKeys = this.getUniqueCustomPropertyKeys(
-            tables,
-            limit,
-            propertyAccessor
-        );
+        let uniquePropertyKeys = new Set<string>();
+
+        if (includeAllCustomProperties) {
+            uniquePropertyKeys = this.getUniqueCustomPropertyKeys(
+                tables,
+                limit,
+                propertyAccessor
+            );
+        }
+
+        for (const property of selectedCustomProperties) {
+            const customPropertyKey = this.extractCustomPropertyKey(property);
+            if (customPropertyKey) {
+                uniquePropertyKeys.add(customPropertyKey);
+            }
+        }
+
         const sortedPropertyKeys = Array.from(uniquePropertyKeys)
             .sort((propertyKey1, propertyKey2) => propertyKey1.localeCompare(propertyKey2));
 
