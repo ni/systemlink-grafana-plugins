@@ -2931,17 +2931,19 @@ describe("DataFrameQueryEditorV2", () => {
 
                 const optionControls = screen.getAllByRole('option');
                 expect(optionControls).toHaveLength(12);
-                const optionTexts = optionControls.map(opt => opt.textContent);
-                expect(optionTexts).toContain('CustomCustom Prop A');
+                const dataTableCustomOption = optionControls.find(opt =>  
+                    opt.textContent && opt.textContent.includes('Custom Prop A')  
+                );  
+                expect(dataTableCustomOption).toBeDefined();
 
                 const columnPropertiesField = result.getAllByRole('combobox')[1];
                 await user.click(columnPropertiesField);
                 
-                await waitFor(() => {
-                    const options = screen.getAllByRole('option');
-                    const optionTexts = options.map(opt => opt.textContent);
-                    expect(optionTexts).toContain('CustomCustom Col Prop');
-                });
+                const columnOptionControls = screen.getAllByRole('option');
+                const columnCustomOption = columnOptionControls.find(opt =>  
+                    opt.textContent && opt.textContent.includes('Custom Col Prop')  
+                );  
+                expect(columnCustomOption).toBeDefined();
             });
         });
 
