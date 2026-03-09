@@ -1917,12 +1917,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const [selectedDataTableCustomProperties, dataTablePropertiesToQuery] = this.categorizeProperties(processedQuery.dataTableProperties);
         const [selectedColumnCustomProperties, columnPropertiesToQuery] = this.categorizeProperties(processedQuery.columnProperties);
 
-        const propertiesToQuery = [
+        const combinedProperties = new Set<DataTableProperties>([
             ...dataTablePropertiesToQuery,
-            ...(selectedDataTableCustomProperties.length > 0  ? [DataTableProperties.Properties] : []),
             ...columnPropertiesToQuery,
-            ...(selectedColumnCustomProperties.length > 0 ? [DataTableProperties.ColumnProperties] : []),
-        ];
+        ]);
+        if (selectedDataTableCustomProperties.length > 0) {
+            combinedProperties.add(DataTableProperties.Properties);
+        }
+        if (selectedColumnCustomProperties.length > 0) {
+            combinedProperties.add(DataTableProperties.ColumnProperties);
+        }
+        const propertiesToQuery = [...combinedProperties];
         const projections = propertiesToQuery
             .map(property => DataTableProjectionLabelLookup[property as DataTableProperties].projection);
         const projectionExcludingId = projections
@@ -2014,8 +2019,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     customPropertyColumnsLimit -= customPropertyFields.length;
                     fields.push(...customPropertyFields);
                 }
-
-
 
                 return {
                     refId: processedQuery.refId,
