@@ -6824,7 +6824,7 @@ describe('DataFrameDataSourceV2', () => {
                     expect(findField(result.fields, 'department')).toBeUndefined();
                 });
 
-                it('when a custom column property is selected, then it should return only that column property field and include the Properties projection', async () => {
+                it('when a custom column property is selected, then it should return only that column property field and include the ColumnProperties in projection', async () => {
                     const query = {
                         type: DataFrameQueryType.Properties,
                         dataTableProperties: [],
