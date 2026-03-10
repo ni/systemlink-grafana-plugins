@@ -3144,7 +3144,7 @@ describe("DataFrameQueryEditorV2", () => {
                 };
                 const mockGetPropertiesOptions = jest.fn()
                     .mockResolvedValue(mockOptions);
-                    const { renderResult: result } = renderComponent(
+                const { renderResult: result } = renderComponent(
                     { type: DataFrameQueryType.Properties },
                     '',
                     '',
