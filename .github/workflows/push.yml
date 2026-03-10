@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - alpha
+  # Allows for manually running this workflow
+  workflow_dispatch:
 
 jobs:
   release:
