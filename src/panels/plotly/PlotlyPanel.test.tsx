@@ -8,6 +8,7 @@ import _ from 'lodash';
 
 const mockPublish = jest.fn();
 let plotlyOnRelayout: any;
+let plotlyData: any;
 
 jest.mock('@grafana/runtime', () => ({
   getTemplateSrv: () => ({
@@ -26,8 +27,9 @@ jest.mock('@grafana/runtime', () => ({
 jest.mock('./utils', () => ({
   getFieldsByName: jest.fn((frames, name) => frames.map((f: any) => f.fields[0])),
   notEmpty: jest.fn((val) => val !== null && val !== undefined),
-  Plot: ({ onRelayout }: any) => {
+  Plot: ({ onRelayout, data }: any) => {
     plotlyOnRelayout = onRelayout;
+    plotlyData = data;
     return <div data-testid="plotly-plot">Plot</div>;
   },
   renderMenuItems: jest.fn(),
@@ -66,6 +68,7 @@ describe('PlotlyPanel', () => {
         invertXAxis: false,
         series: {
           plotType: 'line',
+          scatterType: 'scatter',
           stackBars: false,
           areaFill: false,
           staircase: false,
@@ -74,6 +77,7 @@ describe('PlotlyPanel', () => {
         },
         series2: {
           plotType: 'line',
+          scatterType: 'scatter',
           stackBars: false,
           areaFill: false,
           staircase: false,
@@ -742,6 +746,92 @@ describe('PlotlyPanel', () => {
           renderPlotlyElement(props);
 
           expect(props.onOptionsChange).not.toHaveBeenCalled();
+        });
+      });
+    });
+  });
+
+  describe('Render type control', () => {
+    const defaultSeriesOptions = {
+      stackBars: false,
+      areaFill: false,
+      staircase: false,
+      markerSize: 5,
+      lineWidth: 2,
+    };
+
+    describe('primary series', () => {
+      describe('when plotType is line or points - render type control is applicable', () => {
+        [
+          { plotType: 'line', scatterType: 'scatter' },
+          { plotType: 'line', scatterType: 'scattergl' },
+          { plotType: 'points', scatterType: 'scatter' },
+          { plotType: 'points', scatterType: 'scattergl' },
+        ].forEach(({ plotType, scatterType }) => {
+          it(`should use scatterType '${scatterType}' as the trace type when plotType is '${plotType}'`, () => {
+            const props = createMockProps({
+              series: { ...defaultSeriesOptions, plotType, scatterType },
+            });
+
+            renderPlotlyElement(props);
+
+            expect(plotlyData[0].type).toBe(scatterType);
+          });
+        });
+      });
+
+      describe('when plotType is not line or points - render type control is not applicable', () => {
+        ['bar', 'box', 'violin'].forEach(plotType => {
+          it(`should use '${plotType}' as the trace type regardless of scatterType`, () => {
+            const props = createMockProps({
+              series: { ...defaultSeriesOptions, plotType, scatterType: 'scattergl' },
+            });
+
+            renderPlotlyElement(props);
+
+            expect(plotlyData[0].type).toBe(plotType);
+          });
+        });
+      });
+    });
+
+    describe('secondary series (Y Axis 2)', () => {
+      describe('when plotType is line or points - render type control is applicable', () => {
+        [
+          { plotType: 'line', scatterType: 'scatter' },
+          { plotType: 'line', scatterType: 'scattergl' },
+          { plotType: 'points', scatterType: 'scatter' },
+          { plotType: 'points', scatterType: 'scattergl' },
+        ].forEach(({ plotType, scatterType }) => {
+          it(`should use scatterType '${scatterType}' as the trace type when plotType is '${plotType}'`, () => {
+            const props = createMockProps({
+              showYAxis2: true,
+              yAxis2: { fields: ['value'] },
+              series2: { ...defaultSeriesOptions, plotType, scatterType },
+            });
+
+            renderPlotlyElement(props);
+
+            const y2Trace = plotlyData.find((d: any) => d.yaxis === 'y2');
+            expect(y2Trace.type).toBe(scatterType);
+          });
+        });
+      });
+
+      describe('when plotType is not line or points - render type control is not applicable', () => {
+        ['bar', 'box', 'violin'].forEach(plotType => {
+          it(`should use '${plotType}' as the trace type regardless of scatterType`, () => {
+            const props = createMockProps({
+              showYAxis2: true,
+              yAxis2: { fields: ['value'] },
+              series2: { ...defaultSeriesOptions, plotType, scatterType: 'scattergl' },
+            });
+
+            renderPlotlyElement(props);
+
+            const y2Trace = plotlyData.find((d: any) => d.yaxis === 'y2');
+            expect(y2Trace.type).toBe(plotType);
+          });
         });
       });
     });

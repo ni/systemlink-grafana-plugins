@@ -129,7 +129,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         x: plotlyXAxisField ? getFieldValues(plotlyXAxisField) : [],
         y: plotlyYAxisField ? getFieldValues(plotlyYAxisField) : [],
         name: yName,
-        ...getModeAndType(options.series.plotType),
+        ...getModeAndType(options.series.plotType, options.series.scatterType),
         fill: options.series.areaFill && options.series.plotType === 'line' ? 'tozeroy' : 'none',
         marker: {
           size: options.series.markerSize,
@@ -156,7 +156,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           xaxis: options.displayVertically ? 'x' : 'x2',
           yaxis: options.displayVertically ? 'y2' : 'y',
           name: yName,
-          ...getModeAndType(options.series2.plotType),
+          ...getModeAndType(options.series2.plotType, options.series2.scatterType),
           fill: options.series2.areaFill && options.series2.plotType === 'line' ? 'tozeroy' : 'none',
           marker: {
             size: options.series2.markerSize,
@@ -392,14 +392,14 @@ const getFixedColor = (field: Field, theme: GrafanaTheme2) => {
   return theme.visualization.getColorByName(field.config.color.fixedColor);
 };
 
-const getModeAndType = (type: string) => {
-  switch (type) {
+const getModeAndType = (plotType: string, scatterType = 'scatter') => {
+  switch (plotType) {
     case 'line':
-      return { mode: 'lines' as PlotData['mode'], type: 'scattergl' as PlotType };
+      return { mode: 'lines' as PlotData['mode'], type: scatterType as PlotType };
     case 'points':
-      return { mode: 'markers' as PlotData['mode'], type: 'scattergl' as PlotType };
+      return { mode: 'markers' as PlotData['mode'], type: scatterType as PlotType };
     default:
-      return { type: type as PlotType };
+      return { type: plotType as PlotType };
   }
 };
 

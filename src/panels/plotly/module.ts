@@ -143,6 +143,19 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         defaultValue: 'line',
         category: ['Y Axis'],
       })
+      .addRadio({
+        path: 'series.scatterType',
+        name: 'Render type',
+        settings: {
+          options: [
+            { label: 'Scatter', value: 'scatter' },
+            { label: 'ScatterGL', value: 'scattergl' },
+          ],
+        },
+        defaultValue: 'scatter',
+        showIf: (options) => options.series.plotType === 'line' || options.series.plotType === 'points',
+        category: ['Y Axis'],
+      })
       .addBooleanSwitch({
         path: 'series.stackBars',
         name: 'Stack bars',
@@ -271,6 +284,19 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         },
         defaultValue: 'line',
         showIf: (options) => options.showYAxis2,
+        category: ['Secondary Y Axis'],
+      })
+      .addRadio({
+        path: 'series2.scatterType',
+        name: 'Render type',
+        settings: {
+          options: [
+            { label: 'Scatter', value: 'scatter' },
+            { label: 'ScatterGL', value: 'scattergl' },
+          ],
+        },
+        defaultValue: 'scatter',
+        showIf: (options) => options.showYAxis2 && (options.series2.plotType === 'line' || options.series2.plotType === 'points'),
         category: ['Secondary Y Axis'],
       })
       .addBooleanSwitch({
