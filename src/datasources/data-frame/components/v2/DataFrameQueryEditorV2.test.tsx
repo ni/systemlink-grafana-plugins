@@ -2883,7 +2883,9 @@ describe("DataFrameQueryEditorV2", () => {
             });
 
             it('should call getCustomPropertyOptions when query type is Properties', async () => {
-                const { datasource } = renderComponent({ type: DataFrameQueryType.Properties });
+                const { datasource } = renderComponent({
+                    type: DataFrameQueryType.Properties 
+                });
 
                 await waitFor(() => {
                   expect(datasource.getCustomPropertyOptions).toHaveBeenCalled();
@@ -2891,7 +2893,9 @@ describe("DataFrameQueryEditorV2", () => {
             });
 
             it('should not call getCustomPropertyOptions when query type is Data', async () => {
-                const { datasource } = renderComponent({ type: DataFrameQueryType.Data });
+                const { datasource } = renderComponent({
+                    type: DataFrameQueryType.Data
+                });
 
                 await waitFor(() => {
                     expect(datasource.getCustomPropertyOptions).not.toHaveBeenCalled();
@@ -3031,17 +3035,22 @@ describe("DataFrameQueryEditorV2", () => {
 
             it("should limit custom data table properties options to CUSTOM_PROPERTIES_OPTIONS_LIMIT", async () => {
                 cleanup();
-                const dataTableCustomPropertiesOptions = Array.from({ length: 10 }, (_, i) => ({
-                    label: `Prop ${i}`,
-                    value: `prop${i}`,
-                    group: 'Custom',
-                }));
+                const dataTableCustomPropertiesOptions = Array.from(
+                    { length: 10 }, (_, i) => ({
+                        label: `Prop ${i}`,
+                        value: `prop${i}`,
+                        group: 'Custom',
+                    })
+                );
                 const mockOptions = {
                     dataTableCustomProperties: dataTableCustomPropertiesOptions,
                     columnCustomProperties: [],
                 };
-                const mockGetCustomPropertiesOptions = jest.fn().mockResolvedValue(mockOptions);
-                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(500);
+                const mockGetCustomPropertiesOptions = jest.fn().mockResolvedValue(
+                    mockOptions
+                );
+                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
+                    .mockReturnValue(500);
                 const { renderResult: result } = renderComponent(
                     { type: DataFrameQueryType.Properties },
                     '',
@@ -3122,16 +3131,19 @@ describe("DataFrameQueryEditorV2", () => {
 
             it("should limit custom column properties options to CUSTOM_PROPERTIES_OPTIONS_LIMIT", async () => {
                 cleanup();
-                const columnCustomPropertiesOptions = Array.from({ length: 10 }, (_, i) => ({
-                    label: `ColProp ${i}`,
-                    value: `colProp${i}`,
-                    group: 'Custom',
-                }));
+                const columnCustomPropertiesOptions = Array.from(
+                    { length: 10 }, (_, i) => ({
+                        label: `ColProp ${i}`,
+                        value: `colProp${i}`,
+                        group: 'Custom',
+                    })
+                );
                 const mockOptions = {
                     dataTableCustomProperties: [],
                     columnCustomProperties: columnCustomPropertiesOptions,
                 };
-                const mockGetPropertiesOptions = jest.fn().mockResolvedValue(mockOptions);
+                const mockGetPropertiesOptions = jest.fn()
+                    .mockResolvedValue(mockOptions);
                     const { renderResult: result } = renderComponent(
                     { type: DataFrameQueryType.Properties },
                     '',

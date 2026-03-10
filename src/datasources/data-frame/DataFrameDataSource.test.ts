@@ -135,14 +135,31 @@ describe('DataFrameDataSource', () => {
         it('should call getCustomPropertyOptions on DataFrameDataSourceV2', async () => {
             const ds = new DataFrameDataSource(mockInstanceSettings);
             const mockPropertiesOptions = {
-                dataTableCustomProperties: [{ label: 'Name', value: 'Name' }],
-                columnCustomProperties: [{ label: 'Column name', value: 'ColumnName' }]
+                dataTableCustomProperties: [
+                    {
+                        label: 'Name',
+                        value: 'Name'
+                    }
+                ],
+                columnCustomProperties: [
+                    {
+                        label: 'Column name',
+                        value: 'ColumnName'
+                    }
+                ]
             };
-            v2Mock.getCustomPropertyOptions = jest.fn().mockResolvedValue(mockPropertiesOptions);
+            v2Mock.getCustomPropertyOptions = jest.fn()
+                .mockResolvedValue(mockPropertiesOptions);
 
-            const result = await ds.getCustomPropertyOptions({ dataTableFilter: 'filter' });
+            const result = await ds.getCustomPropertyOptions({
+                dataTableFilter: 'filter'
+            });
 
-            expect(v2Mock.getCustomPropertyOptions).toHaveBeenCalledWith({ dataTableFilter: 'filter' });
+            expect(v2Mock.getCustomPropertyOptions).toHaveBeenCalledWith(
+                {
+                    dataTableFilter: 'filter'
+                }
+            );
             expect(result).toEqual(mockPropertiesOptions);
         });
     });

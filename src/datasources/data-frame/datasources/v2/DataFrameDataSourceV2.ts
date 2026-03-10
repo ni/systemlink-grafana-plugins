@@ -1842,7 +1842,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             ...processedQuery.dataTableProperties,
             ...processedQuery.columnProperties
         ];
-        const dataTablePropertiesValues = new Set<string>(Object.values(DataTableProperties));
+        const dataTablePropertiesValues = new Set<string>(
+            Object.values(DataTableProperties)
+        );
         const projections = propertiesToQuery
             .filter((property): property is DataTableProperties => dataTablePropertiesValues.has(property))
             .map(property => DataTableProjectionLabelLookup[property].projection);

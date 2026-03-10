@@ -6796,15 +6796,15 @@ describe('DataFrameDataSourceV2', () => {
 
         describe('getCustomPropertyOptions', () => {
             it('should return empty arrays for data table and column custom properties', async () => {
-                    const filters = {
-                        dataTableFilter: 'name = "Test Table"',
-                        columnFilter: 'name = "Test Column"',
-                    };
-                    const result = await ds.getCustomPropertyOptions(filters);
-                    expect(result).toEqual({
-                        dataTableCustomProperties: [],
-                        columnCustomProperties: []
-                    });
+                const filters = {
+                    dataTableFilter: 'name = "Test Table"',
+                    columnFilter: 'name = "Test Column"',
+                };
+                const result = await ds.getCustomPropertyOptions(filters);
+                expect(result).toEqual({
+                    dataTableCustomProperties: [],
+                    columnCustomProperties: []
+                });
             });
         });
 
