@@ -252,17 +252,13 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       return;
     }
 
-    const queryParams = locationService.getSearchObject();
     const updatedXAxisMin = Number(xAxisMin.toFixed(xAxisPrecisionDecimals));
     const updatedXAxisMax = Number(xAxisMax.toFixed(xAxisPrecisionDecimals));
-    const existingXAxisMinParam = queryParams[`nisl-${xAxisFieldName}-min`];
-    const existingXAxisMaxParam = queryParams[`nisl-${xAxisFieldName}-max`];
-    const existingXAxisMin = parseNumericQueryParam(existingXAxisMinParam);
-    const existingXAxisMax = parseNumericQueryParam(existingXAxisMaxParam);
+    const existingXAxisRange = getExistingXAxisRange(xAxisFieldName);
 
     if (
-      updatedXAxisMin !== existingXAxisMin ||
-      updatedXAxisMax !== existingXAxisMax
+      updatedXAxisMin !== existingXAxisRange.min ||
+      updatedXAxisMax !== existingXAxisRange.max
     ) {
       publishXAxisRangeUpdate(
         updatedXAxisMin, 
@@ -272,13 +268,56 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     }
   };
 
-  const parseNumericQueryParam = (paramValue: UrlQueryValue): number | undefined => {
-    if (typeof paramValue === 'string' && paramValue !== '') {
-      return Number(paramValue);
+  const getSyncedXAxisRange = (): { min?: number; max?: number } | undefined => {
+    if (!shouldSyncXAxisRange()) {
+      return undefined;
     }
 
-    return undefined;
+    const xAxisFieldName = xFields[0].name;
+    if (!xAxisFieldName) {
+      return undefined;
+    }
+
+    const range = getExistingXAxisRange(xAxisFieldName);
+    if (
+      range.min === undefined
+      || range.max === undefined
+      || range.min > range.max
+    ) {
+      return undefined;
+    }
+
+    return range;
   };
+
+  const parseNumericQueryParam = (paramValue: UrlQueryValue): number | undefined => {
+    const value = Array.isArray(paramValue) ? paramValue[paramValue.length - 1] : paramValue;
+
+    if (
+      value === undefined
+      || value === null
+      || value === ''
+      || typeof value === 'boolean'
+    ) {
+      return undefined;
+    }
+
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? numericValue : undefined;
+  };
+
+  const getExistingXAxisRange = (fieldName: string): { min?: number; max?: number } => {
+    const queryParams = locationService.getSearchObject();
+    return {
+      min: parseNumericQueryParam(queryParams[`nisl-${fieldName}-min`]),
+      max: parseNumericQueryParam(queryParams[`nisl-${fieldName}-max`]),
+    };
+  };
+
+  const syncedXAxisRange = getSyncedXAxisRange();
+  const effectiveOptions = syncedXAxisRange
+    ? { ...options, xAxis: { ...options.xAxis, min: syncedXAxisRange.min, max: syncedXAxisRange.max } }
+    : options;
 
   const handleImageDownload = (gd: PlotlyHTMLElement) =>
     toImage(gd, { format: 'png', width, height }).then((data) => saveAs(data, props.title));
@@ -292,7 +331,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           height,
           annotations:
             plotData.length === 0 || !plotData.find((d) => d.y?.length) ? [{ text: 'No data', showarrow: false }] : [],
-          ...getLayout(theme, traceColors, options, plotData, axisLabels),
+          ...getLayout(theme, traceColors, effectiveOptions, plotData, axisLabels),
         }}
         config={getConfig(options, handleImageDownload)}
         onClick={handlePlotClick}
