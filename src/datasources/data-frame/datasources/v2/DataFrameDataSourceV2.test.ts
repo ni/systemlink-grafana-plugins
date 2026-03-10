@@ -6987,6 +6987,24 @@ describe('DataFrameDataSourceV2', () => {
                 ]);
             });
 
+            it('should return empty dataTableCustomProperties and columnCustomProperties when all properties are empty', async () => {
+                const mockTables = [
+                    {
+                        id: 'table-1', name: 'Table 1',
+                        properties: {},
+                        columns: [
+                            { name: 'Col1', dataType: 'STRING', properties: {} },
+                        ]
+                    },
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters);
+
+                expect(result.dataTableCustomProperties).toEqual([]);
+                expect(result.columnCustomProperties).toEqual([]);
+            });
+
             it('should return both data table and column custom properties together', async () => {
                 const mockTables = [
                     {
