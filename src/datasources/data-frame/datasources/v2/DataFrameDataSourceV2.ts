@@ -311,14 +311,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 DataTableProjections.ColumnProperties
             ])
         );
-        if (!this.tablesContainsProperties(tables) && !this.tablesContainsColumns(tables)) {
+        if (!this.tablesContainsColumns(tables) && !this.tablesContainsProperties(tables)) {
             return { dataTableCustomProperties: [], columnCustomProperties: [] };
         }
 
-        const dataTablePropertiesKeySet = new Set(
+        const dataTableProperties = new Set(
             tables.flatMap(table => table.properties ? Object.keys(table.properties) : [])
         );
-        const columnPropertiesKeySet = new Set(
+        const columnProperties = new Set(
             tables.flatMap(table =>
                 table.columns?.flatMap(column =>
                     column.properties ? Object.keys(column.properties) : []
@@ -326,12 +326,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             )
         );
 
-        const dataTableCustomProperties = this.createCustomPropertiesAsOptions(
-            dataTablePropertiesKeySet,
+        const dataTableCustomProperties = this.createCustomPropertyOptions(
+            dataTableProperties,
             CUSTOM_DATATABLE_PROPERTIES_GROUP
         );
-        const columnCustomProperties = this.createCustomPropertiesAsOptions(
-            columnPropertiesKeySet,
+        const columnCustomProperties = this.createCustomPropertyOptions(
+            columnProperties,
             CUSTOM_COLUMN_PROPERTIES_GROUP
         );
         return {
@@ -834,7 +834,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             this.queryTables$(filters, TAKE_LIMIT, [
                 DataTableProjections.ColumnName,
                 DataTableProjections.ColumnDataType,
-            ]));
+            ])
+        );
 
         if (!this.tablesContainsColumns(tables)) {
             return { uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] };
@@ -858,15 +859,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return { uniqueColumnsAcrossTables, commonColumnsAcrossTables };
     }
 
-    private createCustomPropertiesAsOptions(
-        keySet: Set<string>,
-        groupName: string
+    private createCustomPropertyOptions(
+        properties: Set<string>,
+        group: string
     ): Option[] {
         return this.sortOptionsByLabel(
-            Array.from(keySet).map(key => ({
-                label: key,
-                value: `${key}${CUSTOM_PROPERTY_SUFFIX}`,
-                group: groupName
+            Array.from(properties).map(property => ({
+                label: property,
+                value: `${property}${CUSTOM_PROPERTY_SUFFIX}`,
+                group: group
             }))
         );
     }
@@ -880,7 +881,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private tablesContainsProperties(tables: TableProperties[]): boolean {
-        return tables.length > 0 && (tables.some(table => table.properties !== undefined))
+        return tables.length > 0 
+            && (tables.some(table => table.properties !== undefined)) 
+            && (tables.some(table => table.columns?.some(column => column.properties !== undefined)));
     }
 
     private createColumnIdentifierSet(columns: Column[]): Set<string> {

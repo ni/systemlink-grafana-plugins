@@ -6834,18 +6834,9 @@ describe('DataFrameDataSourceV2', () => {
 
                 const result = await ds.getCustomPropertyOptions(filters);
                 
-                const resultDataTableLabels = result.dataTableCustomProperties.map(option => option.label);
-                for (const label of resultDataTableLabels) {
-                    expect(resultDataTableLabels).toContain(label);
-                }
                 expect(result.dataTableCustomProperties).toEqual(
                     expect.arrayContaining(customProperties.dataTableCustomProperties)
                 );
-
-                const resultColumnLabels = result.columnCustomProperties.map(option => option.label);
-                for (const label of resultColumnLabels) {
-                    expect(resultColumnLabels).toContain(label);
-                }
                 expect(result.columnCustomProperties).toEqual(
                     expect.arrayContaining(customProperties.columnCustomProperties)
                 );
