@@ -18,7 +18,7 @@ import {
     CombinedFilters,
     ColumnOptions,
     ColumnFilter,
-    CustomPropertiesOptions,
+    CustomPropertyOptions,
 } from './types';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { extractErrorInfo } from 'core/errors';
@@ -98,8 +98,12 @@ export abstract class DataFrameDataSourceBase<
         return Promise.resolve({ uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] });
     }
 
-    public async getCustomPropertiesAsOptions(filters: CombinedFilters): Promise<CustomPropertiesOptions> {
-        return Promise.resolve({ dataTableCustomPropertiesOptions: [], columnCustomPropertiesOptions: [] });
+    public async getCustomPropertyOptions(
+        _: CombinedFilters
+    ): Promise<CustomPropertyOptions> {
+        return Promise.resolve({
+            dataTableCustomProperties: [], columnCustomProperties: []
+        });
     }
 
     public async loadPartNumbers(): Promise<string[]> {

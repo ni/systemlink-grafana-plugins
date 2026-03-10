@@ -40,8 +40,8 @@ const mockHasRequiredFilters = jest.fn((query: ValidDataFrameQueryV2) => {
 });
 
 const customPropertiesOptions = {
-    dataTableCustomPropertiesOptions: [],
-    columnCustomPropertiesOptions: [],
+    dataTableCustomProperties: [],
+    columnCustomProperties: [],
 };
 
 const renderComponent = (
@@ -82,7 +82,7 @@ const renderComponent = (
         transformResultQuery: jest.fn((filter: string) => filter),
         transformColumnQuery: jest.fn((filter: string) => filter),
         hasRequiredFilters: mockHasRequiredFilters,
-        getCustomPropertiesAsOptions: jest.fn().mockResolvedValue(customPropertiesOptions),
+        getCustomPropertyOptions: jest.fn().mockResolvedValue(customPropertiesOptions),
         variablesCache,
         parseColumnIdentifier: mockParseColumnIdentifier,
         instanceSettings: {
@@ -2877,37 +2877,52 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
-        describe("fetching custom properties options", () => {
-            it('should call getCustomPropertiesAsOptions when query type is Properties', async () => {
+        describe("fetching custom property options", () => {
+            beforeEach(() => {
                 cleanup();
-                const { datasource } = renderComponent({ type: DataFrameQueryType.Properties });
+            });
+
+            it('should call getCustomPropertyOptions when query type is Properties', async () => {
+                const { datasource } = renderComponent({
+                    type: DataFrameQueryType.Properties 
+                });
 
                 await waitFor(() => {
-                  expect(datasource.getCustomPropertiesAsOptions).toHaveBeenCalled();
+                  expect(datasource.getCustomPropertyOptions).toHaveBeenCalled();
                 });
             });
 
-            it('should not call getCustomPropertiesAsOptions when query type is Data', async () => {
-                cleanup();
-                const { datasource } = renderComponent({ type: DataFrameQueryType.Data });
+            it('should not call getCustomPropertyOptions when query type is Data', async () => {
+                const { datasource } = renderComponent({
+                    type: DataFrameQueryType.Data
+                });
 
                 await waitFor(() => {
-                    expect(datasource.getCustomPropertiesAsOptions).not.toHaveBeenCalled();
+                    expect(datasource.getCustomPropertyOptions).not.toHaveBeenCalled();
                 });
             });
 
-            it('should populate custom properties options from getCustomPropertiesAsOptions', async () => {
-                cleanup();
+            it('should populate custom properties options from getCustomPropertyOptions', async () => {
                 const mockOptions = {
-                    dataTableCustomPropertiesOptions: [
-                    { label: 'Custom Prop A', value: 'customPropA', group: 'Custom' },
+                    dataTableCustomProperties: [
+                        { 
+                            label: 'Custom Prop A',
+                            value: 'customPropA',
+                            group: 'Custom' 
+                        },
                     ],
-                    columnCustomPropertiesOptions: [
-                    { label: 'Custom Col Prop', value: 'customColProp', group: 'Custom' },
+                    columnCustomProperties: [
+                        {
+                            label: 'Custom Col Prop',
+                            value: 'customColProp',
+                            group: 'Custom' 
+                        },
                     ],
                 };
-                const mockGetCustomPropertiesOptions = jest.fn().mockResolvedValue(mockOptions);
-                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(500);
+                const mockGetCustomPropertiesOptions = jest.fn()
+                    .mockResolvedValue(mockOptions);
+                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
+                    .mockReturnValue(500);
                 const { renderResult: result } = renderComponent(
                     { type: DataFrameQueryType.Properties },
                     '',
@@ -2917,7 +2932,7 @@ describe("DataFrameQueryEditorV2", () => {
                     undefined,
                     {},
                     {
-                        getCustomPropertiesAsOptions: mockGetCustomPropertiesOptions,
+                        getCustomPropertyOptions: mockGetCustomPropertiesOptions,
                     }
                 );
 
@@ -2931,17 +2946,19 @@ describe("DataFrameQueryEditorV2", () => {
 
                 const optionControls = screen.getAllByRole('option');
                 expect(optionControls).toHaveLength(12);
-                const optionTexts = optionControls.map(opt => opt.textContent);
-                expect(optionTexts).toContain('CustomCustom Prop A');
+                const dataTableCustomOption = optionControls.find(opt =>  
+                    opt.textContent && opt.textContent.includes('Custom Prop A')  
+                );  
+                expect(dataTableCustomOption).toBeDefined();
 
                 const columnPropertiesField = result.getAllByRole('combobox')[1];
                 await user.click(columnPropertiesField);
                 
-                await waitFor(() => {
-                    const options = screen.getAllByRole('option');
-                    const optionTexts = options.map(opt => opt.textContent);
-                    expect(optionTexts).toContain('CustomCustom Col Prop');
-                });
+                const columnOptionControls = screen.getAllByRole('option');
+                const columnCustomOption = columnOptionControls.find(opt =>  
+                    opt.textContent && opt.textContent.includes('Custom Col Prop')  
+                );  
+                expect(columnCustomOption).toBeDefined();
             });
         });
 
@@ -3002,7 +3019,7 @@ describe("DataFrameQueryEditorV2", () => {
                 const optionControls = screen.getAllByRole('option');
                 const optionTexts = optionControls.map(opt => opt.textContent);
                 expect(optionTexts).toEqual([
-                    "Data table propertiesColumns", // The group label gets appended the first option
+                    "Data table propertiesColumns", // The group label gets appended to the first option
                     "Created",
                     "Data table ID",
                     "Data table name",
@@ -3018,17 +3035,22 @@ describe("DataFrameQueryEditorV2", () => {
 
             it("should limit custom data table properties options to CUSTOM_PROPERTIES_OPTIONS_LIMIT", async () => {
                 cleanup();
-                const manyOptions = Array.from({ length: 10 }, (_, i) => ({
-                    label: `Prop ${i}`,
-                    value: `prop${i}`,
-                    group: 'Custom',
-                }));
+                const dataTableCustomPropertiesOptions = Array.from(
+                    { length: 10 }, (_, i) => ({
+                        label: `Prop ${i}`,
+                        value: `prop${i}`,
+                        group: 'Custom',
+                    })
+                );
                 const mockOptions = {
-                    dataTableCustomPropertiesOptions: manyOptions,
-                    columnCustomPropertiesOptions: [],
+                    dataTableCustomProperties: dataTableCustomPropertiesOptions,
+                    columnCustomProperties: [],
                 };
-                const mockGetCustomPropertiesOptions = jest.fn().mockResolvedValue(mockOptions);
-                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(500);
+                const mockGetCustomPropertiesOptions = jest.fn().mockResolvedValue(
+                    mockOptions
+                );
+                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
+                    .mockReturnValue(500);
                 const { renderResult: result } = renderComponent(
                     { type: DataFrameQueryType.Properties },
                     '',
@@ -3038,7 +3060,7 @@ describe("DataFrameQueryEditorV2", () => {
                     undefined,
                     {},
                     {
-                        getCustomPropertiesAsOptions: mockGetCustomPropertiesOptions,
+                        getCustomPropertyOptions: mockGetCustomPropertiesOptions,
                     }
                 );
 
@@ -3100,7 +3122,7 @@ describe("DataFrameQueryEditorV2", () => {
                 const optionControls = screen.getAllByRole('option');
                 const optionTexts = optionControls.map(opt => opt.textContent);
                 expect(optionTexts).toEqual([
-                    "Column propertiesColumn data type", // The group label gets appended the first option
+                    "Column propertiesColumn data type", // The group label gets appended to the first option
                     "Column name",
                     "Column properties",
                     "Column type"
@@ -3109,16 +3131,19 @@ describe("DataFrameQueryEditorV2", () => {
 
             it("should limit custom column properties options to CUSTOM_PROPERTIES_OPTIONS_LIMIT", async () => {
                 cleanup();
-                const manyOptions = Array.from({ length: 10 }, (_, i) => ({
-                    label: `ColProp ${i}`,
-                    value: `colProp${i}`,
-                    group: 'Custom',
-                }));
+                const columnCustomPropertiesOptions = Array.from(
+                    { length: 10 }, (_, i) => ({
+                        label: `ColProp ${i}`,
+                        value: `colProp${i}`,
+                        group: 'Custom',
+                    })
+                );
                 const mockOptions = {
-                    dataTableCustomPropertiesOptions: [],
-                    columnCustomPropertiesOptions: manyOptions,
+                    dataTableCustomProperties: [],
+                    columnCustomProperties: columnCustomPropertiesOptions,
                 };
-                const mockGetPropertiesOptions = jest.fn().mockResolvedValue(mockOptions);
+                const mockGetPropertiesOptions = jest.fn()
+                    .mockResolvedValue(mockOptions);
                     const { renderResult: result } = renderComponent(
                     { type: DataFrameQueryType.Properties },
                     '',
@@ -3128,15 +3153,15 @@ describe("DataFrameQueryEditorV2", () => {
                     undefined,
                     {},
                     {
-                        getCustomPropertiesAsOptions: mockGetPropertiesOptions,
+                        getCustomPropertyOptions: mockGetPropertiesOptions,
                     }
                 );
 
                 await waitFor(() => {
                     expect(mockGetPropertiesOptions).toHaveBeenCalled();
                 });
-                    const user = userEvent.setup();
 
+                const user = userEvent.setup();
                 const columnPropertiesField = result.getAllByRole('combobox')[1];
                 await user.click(columnPropertiesField);
 

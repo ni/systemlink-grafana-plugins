@@ -38,7 +38,7 @@ export const COLUMN_SELECTION_LIMIT = 20;
 export const MAXIMUM_DATA_POINTS = 1000000;
 export const RESULT_IDS_LIMIT = 1000;
 export const CUSTOM_PROPERTY_COLUMNS_LIMIT = 100;
-export const CUSTOM_PROPERTIES_OPTIONS_LIMIT = 10_000;
+export const CUSTOM_PROPERTY_OPTIONS_LIMIT = 10_000;
 
 export const CUSTOM_PROPERTY_SUFFIX = '-(custom-properties)'
 
