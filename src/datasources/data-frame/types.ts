@@ -362,9 +362,9 @@ export interface ColumnOptions {
   commonColumnsAcrossTables: Option[];
 }
 
-export interface CustomPropertiesOptions {
-  dataTableCustomPropertiesOptions: Option[];
-  columnCustomPropertiesOptions: Option[];
+export interface CustomPropertyOptions {
+  dataTableCustomProperties: Option[];
+  columnCustomProperties: Option[];
 }
 
 export interface Option {

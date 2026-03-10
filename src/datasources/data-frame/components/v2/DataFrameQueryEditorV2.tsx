@@ -3,7 +3,7 @@ import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBui
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQueryV2, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2, metadataFieldOptions, DataTableProjectionLabelLookup, DataTableProjectionType, DataTableProperties } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
-import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT, UNDECIMATED_RECORDS_LIMIT,decimationNoneOption, CUSTOM_PROPERTIES_OPTIONS_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT, UNDECIMATED_RECORDS_LIMIT,decimationNoneOption, CUSTOM_PROPERTY_OPTIONS_LIMIT } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
 import {
     errorMessages,
@@ -45,8 +45,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
     const [xColumnOptions, setXColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnOptionsInitialized, setIsColumnOptionsInitialized] = useState<boolean>(false);
-    const [dataTableCustomPropertiesOptions, setDataTableCustomPropertiesOptions] = useState<Array<ComboboxOption<string>>>([]);
-    const [columnCustomPropertiesOptions, setColumnCustomPropertiesOptions] = useState<Array<ComboboxOption<string>>>([]);
+    const [dataTableCustomProperties, setDataTableCustomProperties] = useState<Array<ComboboxOption<string>>>([]);
+    const [columnCustomProperties, setColumnCustomProperties] = useState<Array<ComboboxOption<string>>>([]);
 
     const getPropertiesOptions = (
         type: DataTableProjectionType
@@ -62,8 +62,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
             }))
             .sort((a, b) => a.label.localeCompare(b.label));
 
-    const defaultDataTablePropertiesOptions = getPropertiesOptions(DataTableProjectionType.DataTable);
-    const defaultColumnPropertiesOptions = getPropertiesOptions(DataTableProjectionType.Column);
+    const standardDataTablePropertiesOptions = getPropertiesOptions(DataTableProjectionType.DataTable);
+    const standardColumnPropertiesOptions = getPropertiesOptions(DataTableProjectionType.Column);
 
     const lastFilterRef = useRef<CombinedFilters>({
         resultFilter: '',
@@ -109,18 +109,22 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
 
     const fetchAndSetCustomPropertiesOptions = useCallback(
       async (filters: CombinedFilters) => {
-        const propertiesOptions = await datasource.getCustomPropertiesAsOptions(filters);
-        const limitedDataTableCustomPropertiesOptions = propertiesOptions.dataTableCustomPropertiesOptions.slice(
-          0,
-          CUSTOM_PROPERTIES_OPTIONS_LIMIT
-        );
-        const limitedColumnCustomPropertiesOptions = propertiesOptions.columnCustomPropertiesOptions.slice(
-          0,
-          CUSTOM_PROPERTIES_OPTIONS_LIMIT
-        );
+        const propertiesOptions = await datasource.getCustomPropertyOptions(filters);
+        const limitedDataTableCustomPropertiesOptions = propertiesOptions
+            .dataTableCustomProperties
+            .slice(
+                0,
+                CUSTOM_PROPERTY_OPTIONS_LIMIT
+            );
+        const limitedColumnCustomPropertiesOptions = propertiesOptions
+            .columnCustomProperties
+            .slice(
+                0,
+                CUSTOM_PROPERTY_OPTIONS_LIMIT
+            );
 
-        setDataTableCustomPropertiesOptions(limitedDataTableCustomPropertiesOptions);
-        setColumnCustomPropertiesOptions(limitedColumnCustomPropertiesOptions);
+        setDataTableCustomProperties(limitedDataTableCustomPropertiesOptions);
+        setColumnCustomProperties(limitedColumnCustomPropertiesOptions);
       },
       [datasource]
     );
@@ -252,14 +256,14 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     );
 
     const dataTablePropertiesOptions = useMemo(() => [
-        ...defaultDataTablePropertiesOptions,
-        ...dataTableCustomPropertiesOptions,
-    ], [defaultDataTablePropertiesOptions, dataTableCustomPropertiesOptions]);
+        ...standardDataTablePropertiesOptions,
+        ...dataTableCustomProperties,
+    ], [standardDataTablePropertiesOptions, dataTableCustomProperties]);
 
     const columnPropertiesOptions = useMemo(() => [
-        ...defaultColumnPropertiesOptions,
-        ...columnCustomPropertiesOptions,
-    ], [defaultColumnPropertiesOptions, columnCustomPropertiesOptions]);
+        ...standardColumnPropertiesOptions,
+        ...columnCustomProperties,
+    ], [standardColumnPropertiesOptions, columnCustomProperties]);
 
 
     const xColumnSelection = useMemo((): {
