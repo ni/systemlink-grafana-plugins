@@ -31,7 +31,7 @@ export interface YAxisOptions extends AxisOptions {
 
 export interface SeriesOptions {
   plotType: string;
-  scatterType: string;
+  scatterType?: 'scatter' | 'scattergl';
   stackBars: boolean;
   areaFill: boolean;
   staircase: boolean;

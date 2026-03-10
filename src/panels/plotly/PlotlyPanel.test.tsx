@@ -143,6 +143,7 @@ describe('PlotlyPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    plotlyData = undefined;
   });
 
   afterEach(() => {
@@ -762,12 +763,12 @@ describe('PlotlyPanel', () => {
 
     describe('primary series', () => {
       describe('when plotType is line or points - render type control is applicable', () => {
-        [
+        ([
           { plotType: 'line', scatterType: 'scatter' },
           { plotType: 'line', scatterType: 'scattergl' },
           { plotType: 'points', scatterType: 'scatter' },
           { plotType: 'points', scatterType: 'scattergl' },
-        ].forEach(({ plotType, scatterType }) => {
+        ] as const).forEach(({ plotType, scatterType }) => {
           it(`should use scatterType '${scatterType}' as the trace type when plotType is '${plotType}'`, () => {
             const props = createMockProps({
               series: { ...defaultSeriesOptions, plotType, scatterType },
@@ -797,12 +798,12 @@ describe('PlotlyPanel', () => {
 
     describe('secondary series (Y Axis 2)', () => {
       describe('when plotType is line or points - render type control is applicable', () => {
-        [
+        ([
           { plotType: 'line', scatterType: 'scatter' },
           { plotType: 'line', scatterType: 'scattergl' },
           { plotType: 'points', scatterType: 'scatter' },
           { plotType: 'points', scatterType: 'scattergl' },
-        ].forEach(({ plotType, scatterType }) => {
+        ] as const).forEach(({ plotType, scatterType }) => {
           it(`should use scatterType '${scatterType}' as the trace type when plotType is '${plotType}'`, () => {
             const props = createMockProps({
               showYAxis2: true,
