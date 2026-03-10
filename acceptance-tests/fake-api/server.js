@@ -5,6 +5,7 @@ import { assetRoutes } from './routes/assetRoutes.js';
 import { authRoutes } from './routes/authRoutes.js';
 import { systemsRoutes } from './routes/systemsRoutes.js';
 import { locationsRoutes } from './routes/locationRoutes.js';
+import { notebookRoutes } from './routes/notebookRoute.js';
 
 const server = jsonServer.create();
 const router = jsonServer.router(db);
@@ -26,6 +27,12 @@ server.post('/nisysmgmt/v1/query-systems', systemsRoutes.querySystems);
 server.get('/nilocation/v1/locations', locationsRoutes.listLocations);
 server.get('/niapm/v1/asset-summary', assetRoutes.getAssetSummary);
 server.post('/niapm/v1/assets/calibration-forecast', assetRoutes.getCalibrationForecast);
+server.post('/ninbexecution/v1/executions', notebookRoutes.createExecution);
+server.get('/ninbexecution/v1/executions/:executionId', notebookRoutes.getExecution);
+server.post('/ninbexecution/v1/query-executions', notebookRoutes.queryExecutions);
+server.post('/niapp/v1/webapps/query', notebookRoutes.listNotebooks);
+server.get('/ninbparser/v1/notebook/:id', notebookRoutes.getNotebookMetadata)
+server.get('/niauth/v1/auth', authRoutes.authenticate);
 
 server.use(router);
 server.listen(port);

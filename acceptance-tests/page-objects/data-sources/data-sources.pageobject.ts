@@ -49,6 +49,10 @@ export class DataSourcesPage {
         return this.page.getByTestId('data-testid Alert success').getByText('Data source connected and authentication successful!Next, you can start to');
     }
 
+    public get notebookDataSourceConnectedSuccessMessage(): Locator {
+        return this.page.getByTestId('data-testid Alert success').getByText('Success');
+    }
+
     public existentDataSourceLink(dataSourceName: string): Locator {
         return this.page.getByRole('link', { name: dataSourceName, exact: true });
     }
@@ -70,6 +74,7 @@ export class DataSourcesPage {
         await this.changeNameInputFieldValue(dataSourceNameField);
         await this.httpSettingsURL.fill(FAKE_API_URL);
         await this.saveAndTestButton.click();
+        await this.page.waitForLoadState('networkidle');
     }
 
     async deleteDataSource(dataSourceName: string): Promise<void> {
