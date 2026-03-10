@@ -752,7 +752,7 @@ describe('PlotlyPanel', () => {
     });
   });
 
-  describe('Render type control', () => {
+  describe('Scatter type control', () => {
     const defaultSeriesOptions = {
       stackBars: false,
       areaFill: false,
@@ -761,15 +761,25 @@ describe('PlotlyPanel', () => {
       lineWidth: 2,
     };
 
-    describe('primary series', () => {
-      describe('when plotType is line or points - render type control is applicable', () => {
+    describe('Primary Y axis', () => {
+      describe('when plotType is line or points', () => {
+        it('should default to scatter when scatterType is not set', () => {
+          const props = createMockProps({
+            series: { ...defaultSeriesOptions, plotType: 'line' },
+          });
+
+          renderPlotlyElement(props);
+
+          expect(plotlyData[0].type).toBe('scatter');
+        });
+
         ([
           { plotType: 'line', scatterType: 'scatter' },
           { plotType: 'line', scatterType: 'scattergl' },
           { plotType: 'points', scatterType: 'scatter' },
           { plotType: 'points', scatterType: 'scattergl' },
         ] as const).forEach(({ plotType, scatterType }) => {
-          it(`should use scatterType '${scatterType}' as the trace type when plotType is '${plotType}'`, () => {
+          it(`should use selected '${scatterType}' as the trace type when plotType is '${plotType}'`, () => {
             const props = createMockProps({
               series: { ...defaultSeriesOptions, plotType, scatterType },
             });
@@ -781,9 +791,9 @@ describe('PlotlyPanel', () => {
         });
       });
 
-      describe('when plotType is not line or points - render type control is not applicable', () => {
+      describe('when plotType is not line or points', () => {
         ['bar', 'box', 'violin'].forEach(plotType => {
-          it(`should use '${plotType}' as the trace type regardless of scatterType`, () => {
+          it(`should use selected '${plotType}' as the trace type regardless of scatterType`, () => {
             const props = createMockProps({
               series: { ...defaultSeriesOptions, plotType, scatterType: 'scattergl' },
             });
@@ -796,15 +806,28 @@ describe('PlotlyPanel', () => {
       });
     });
 
-    describe('secondary series (Y Axis 2)', () => {
-      describe('when plotType is line or points - render type control is applicable', () => {
+    describe('Secondary Y axis', () => {
+      describe('when plotType is line or points', () => {
+        it('should default to scatter when scatterType is not set', () => {
+          const props = createMockProps({
+            showYAxis2: true,
+            yAxis2: { fields: ['value'] },
+            series2: { ...defaultSeriesOptions, plotType: 'line' },
+          });
+
+          renderPlotlyElement(props);
+
+          const y2Trace = plotlyData.find((d: any) => d.yaxis === 'y2');
+          expect(y2Trace.type).toBe('scatter');
+        });
+
         ([
           { plotType: 'line', scatterType: 'scatter' },
           { plotType: 'line', scatterType: 'scattergl' },
           { plotType: 'points', scatterType: 'scatter' },
           { plotType: 'points', scatterType: 'scattergl' },
         ] as const).forEach(({ plotType, scatterType }) => {
-          it(`should use scatterType '${scatterType}' as the trace type when plotType is '${plotType}'`, () => {
+          it(`should use selected '${scatterType}' as the trace type when plotType is '${plotType}'`, () => {
             const props = createMockProps({
               showYAxis2: true,
               yAxis2: { fields: ['value'] },
@@ -814,14 +837,15 @@ describe('PlotlyPanel', () => {
             renderPlotlyElement(props);
 
             const y2Trace = plotlyData.find((d: any) => d.yaxis === 'y2');
+            console.log(plotlyData);
             expect(y2Trace.type).toBe(scatterType);
           });
         });
       });
 
-      describe('when plotType is not line or points - render type control is not applicable', () => {
+      describe('when plotType is not line or points', () => {
         ['bar', 'box', 'violin'].forEach(plotType => {
-          it(`should use '${plotType}' as the trace type regardless of scatterType`, () => {
+          it(`should use selected '${plotType}' as the trace type regardless of scatterType`, () => {
             const props = createMockProps({
               showYAxis2: true,
               yAxis2: { fields: ['value'] },
