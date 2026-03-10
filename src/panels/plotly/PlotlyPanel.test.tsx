@@ -68,7 +68,6 @@ describe('PlotlyPanel', () => {
         invertXAxis: false,
         series: {
           plotType: 'line',
-          scatterType: 'scatter',
           stackBars: false,
           areaFill: false,
           staircase: false,
@@ -77,7 +76,6 @@ describe('PlotlyPanel', () => {
         },
         series2: {
           plotType: 'line',
-          scatterType: 'scatter',
           stackBars: false,
           areaFill: false,
           staircase: false,
@@ -837,7 +835,6 @@ describe('PlotlyPanel', () => {
             renderPlotlyElement(props);
 
             const y2Trace = plotlyData.find((d: any) => d.yaxis === 'y2');
-            console.log(plotlyData);
             expect(y2Trace.type).toBe(scatterType);
           });
         });
