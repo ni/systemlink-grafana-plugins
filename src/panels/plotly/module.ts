@@ -145,7 +145,7 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
       })
       .addRadio({
         path: 'series.scatterType',
-        name: 'Render type',
+        name: 'Scatter type',
         settings: {
           options: [
             { label: 'Scatter', value: 'scatter' },
@@ -288,7 +288,7 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
       })
       .addRadio({
         path: 'series2.scatterType',
-        name: 'Render type',
+        name: 'Scatter type',
         settings: {
           options: [
             { label: 'Scatter', value: 'scatter' },
