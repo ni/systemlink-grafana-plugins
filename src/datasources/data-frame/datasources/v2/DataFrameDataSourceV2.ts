@@ -305,12 +305,22 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     public async getCustomPropertyOptions(
         filters: CombinedFilters
     ): Promise<CustomPropertyOptions> {
-        const tables = await lastValueFrom(
+        let tables: TableProperties[] = [];
+        try {
+            tables = await lastValueFrom(
             this.queryTables$(filters, TAKE_LIMIT, [
                 DataTableProjections.Properties,
                 DataTableProjections.ColumnProperties
             ])
-        );
+            );
+        } catch (error) {
+            const errorMessage = this.getErrorMessage(error as Error, 'custom properties');
+            this.appEvents?.publish?.({
+                type: AppEvents.alertError.name,
+                payload: ['Error fetching custom properties', errorMessage],
+            });
+            return { dataTableCustomProperties: [], columnCustomProperties: [] };
+        }
         if (!this.tablesContainsColumns(tables) && !this.tablesContainsProperties(tables)) {
             return { dataTableCustomProperties: [], columnCustomProperties: [] };
         }
