@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { QueryBuilder, QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
+import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 import { useTheme2 } from '@grafana/ui';
 
 import 'smart-webcomponents-react/source/styles/smart.dark-orange.css';
@@ -16,6 +16,7 @@ import { QBField } from '../../../../types/CalibrationForecastQuery.types';
 import { ListAssetsFields, ListAssetsStaticFields } from '../../../../constants/ListAssets.constants';
 import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
 import { LocationModel } from 'datasources/asset/types/ListLocations.types';
+import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
 
 type AssetCalibrationQueryBuilderProps = QueryBuilderProps &
   React.HTMLAttributes<Element> & {
@@ -137,7 +138,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
         ...QueryBuilderOperations.IS_NOT_BLANK,
         ...callbacks,
       },
-      { 
+      {
         ...QueryBuilderOperations.CONTAINS,
         ...callbacks,
       },
@@ -165,7 +166,7 @@ export const AssetQueryBuilder: React.FC<AssetCalibrationQueryBuilderProps> = ({
   }, [workspaceField, locationField, calibrationDueDateField, areDependenciesLoaded, globalVariableOptions]);
 
   return (
-    <QueryBuilder
+    <SlQueryBuilder
       customOperations={operations}
       fields={fields}
       messages={queryBuilderMessages}

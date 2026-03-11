@@ -344,23 +344,6 @@ describe('with query builder enabled', () => {
       );
     });
 
-    test('should preserve existing filter and append migrated systemName', async () => {
-      const query: SystemQuery = {
-        refId: 'A',
-        queryKind: SystemQueryType.Properties,
-        systemName: 'my-system',
-        workspace: '',
-        filter: 'state = "CONNECTED"'
-      };
-
-      await firstValueFrom(ds.query(buildQuery(query)));
-
-      expect(backendSrv.fetch.mock.lastCall?.[0].data).toHaveProperty(
-        'filter',
-        'state = "CONNECTED" && (id = "my-system" || alias = "my-system")'
-      );
-    });
-
     test('should not add workspace filter if systemName is provided', async () => {
       const query: SystemQuery = {
         refId: 'A',

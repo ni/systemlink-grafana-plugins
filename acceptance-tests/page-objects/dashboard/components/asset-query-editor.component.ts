@@ -30,7 +30,7 @@ export class AssetQueryEditorComponent {
     }
 
     public get switchToTableViewButton(): Locator {
-        return this.page.getByRole('button', { name: 'Switch to table' });
+        return this.page.getByText('Table view');
     }
 
     public selectQueryBuilderPropertyOption(optionName: string): Locator {
@@ -80,9 +80,11 @@ export class AssetQueryEditorComponent {
     async addFilter(property: string, operation: string, value: string): Promise<void> {
         await this.queryBuilderPropertyField.click();
         await this.selectQueryBuilderPropertyOption(property).click();
-        await pressEnter(this.page);
-        await this.queryBuilderOperationField.click();
-        await this.page.getByText(operation).click();
+        await this.page.getByRole('option', { name: property }).waitFor({ state: 'hidden' });
+        // The library makes the Operator field unclickable via CSS (pointer-events: none).
+        // Using dispatchEvent bypasses this restriction and fires the event directly on the element.
+        await this.queryBuilderOperationField.dispatchEvent('pointerdown', { bubbles: true, isPrimary: true });
+        await this.page.getByText(operation.toLowerCase()).click();
         await this.queryBuilderValueField.click();
         await this.page.keyboard.type(value);
         await pressEnter(this.page);
