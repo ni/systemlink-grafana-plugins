@@ -1,3 +1,17 @@
+## [4.137.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.136.0...v4.137.0) (2026-03-10)
+
+### Features
+
+* Add upload playwright report option to PR workflow ([#689](https://github.com/ni/systemlink-grafana-plugins/issues/689)) ([1a680e8](https://github.com/ni/systemlink-grafana-plugins/commit/1a680e892bd4c7f59212a72bd04e1a729518287a))
+* **asset:** Add acceptance tests for calibration forecast query type ([#688](https://github.com/ni/systemlink-grafana-plugins/issues/688)) ([f273099](https://github.com/ni/systemlink-grafana-plugins/commit/f2730993f6618ea35d160a1687e220ff0e009c8c))
+
+### Bug Fixes
+
+* **plotly:** Fix synced Plotly panel not resetting on auto-range and rejecting zero range values ([#694](https://github.com/ni/systemlink-grafana-plugins/issues/694)) ([e061da4](https://github.com/ni/systemlink-grafana-plugins/commit/e061da491e1a63b0c50a1c9747368b9f07cc6d07))
+* **plotly:** Sync x-axis range min and max range ([#693](https://github.com/ni/systemlink-grafana-plugins/issues/693)) ([0890a87](https://github.com/ni/systemlink-grafana-plugins/commit/0890a87a2bbde1d59afd2d2a06a481e554bd7290))
+* **plotly:** Use URL x-axis range in plot layout to prevent flicker on synced panels ([#690](https://github.com/ni/systemlink-grafana-plugins/issues/690)) ([ae95fd3](https://github.com/ni/systemlink-grafana-plugins/commit/ae95fd34257b0af05ea3c5af9923be306e24bca0))
+* **release:** Allow for manual runs of CI ([#700](https://github.com/ni/systemlink-grafana-plugins/issues/700)) ([fc5b377](https://github.com/ni/systemlink-grafana-plugins/commit/fc5b377b0068fe1c5bc6cf7bb076720529896240))
+
 ## [4.136.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.135.2...v4.136.0) (2026-02-27)
 
 ### Features
