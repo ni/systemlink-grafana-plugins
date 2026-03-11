@@ -3,7 +3,7 @@ import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { pressEscape } from '../../../../utils/keyboard-utilities';
-import { assetColumn } from '../../../../constants/asset-list-properties.constant';
+import { assetColumn, timeOutPeriod } from '../../../../constants/asset-list-properties.constant';
 
 test.describe('Asset DataSource with Notebook Variable', () => {
     let dashboard: DashboardPage;
@@ -18,7 +18,9 @@ test.describe('Asset DataSource with Notebook Variable', () => {
         dashboard = new DashboardPage(page);
 
         await dataSources.addDataSource('SystemLink Assets', assetDataSourceName);
+        await dataSources.dataSourceConnectedSuccessMessage.waitFor({ timeout: timeOutPeriod });
         await dataSources.addDataSource('SystemLink Notebooks', notebookDataSourceName);
+        await dataSources.notebookDataSourceConnectedSuccessMessage.waitFor({ timeout: timeOutPeriod });
     });
 
     test.afterAll(async () => {

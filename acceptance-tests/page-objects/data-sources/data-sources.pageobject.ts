@@ -68,13 +68,13 @@ export class DataSourcesPage {
     async addDataSource(dataSource: string, dataSourceNameField: string): Promise<void> {
         await this.navigateToDatasourcesPage();
         await this.addDataSourceButton.click();
+        await this.page.waitForLoadState('domcontentloaded');
         await this.dataSource(dataSource).click();
         await this.nameSettingsInputField.waitFor({ state: 'visible', timeout: timeOutPeriod });
         await this.httpSettingsURL.waitFor({ state: 'visible', timeout: timeOutPeriod });
         await this.changeNameInputFieldValue(dataSourceNameField);
         await this.httpSettingsURL.fill(FAKE_API_URL);
         await this.saveAndTestButton.click();
-        await this.page.waitForLoadState('networkidle');
     }
 
     async deleteDataSource(dataSourceName: string): Promise<void> {
