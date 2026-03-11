@@ -59,4 +59,4 @@ export const nonDefaultAssetListProperties = [
     assetColumn.scan_code
 ];
 
-export const timeOutPeriod = 10000;
+export const timeOutPeriod = 15000;

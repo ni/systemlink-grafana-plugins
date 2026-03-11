@@ -42,9 +42,10 @@ test.describe('Asset data source with minion id return type', () => {
             await dashboard.addVisualizationButton.waitFor();
             await dashboard.addVisualization();
             await dashboard.selectDataSource(createdDataSourceName);
-            await dashboard.page.waitForLoadState('networkidle');
+            if (await dashboard.panel.assetQueryEditor.switchToTableViewButton.isVisible() === false) {
+                await dashboard.panel.toolbar.refreshData();
+            }
             await dashboard.panel.assetQueryEditor.switchToTableView();
-
             await expect(dashboard.dataSourcePicker).toHaveAttribute('placeholder', createdDataSourceName);
         });
 

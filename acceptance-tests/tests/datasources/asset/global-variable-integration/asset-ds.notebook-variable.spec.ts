@@ -42,7 +42,6 @@ test.describe('Asset DataSource with Notebook Variable', () => {
             await dashboard.settings.variable.selectNotebookVariableDropdownOption('Asset List Notebook');
             await pressEscape(dashboard.page);
             await dashboard.settings.variable.applyVariableChanges();
-            await dashboard.page.waitForLoadState('networkidle');
             expect(dashboard.settings.createdVariable('notebook_asset_id')).toBeDefined();
         });
 
