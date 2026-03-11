@@ -7,9 +7,9 @@ import { locationService } from '@grafana/runtime';
 import _ from 'lodash';
 
 const mockPublish = jest.fn();
+let plotlyData: any;
 let plotlyOnRelayout: any;
 let plotlyLayout: any;
-let plotlyData: any;
 
 jest.mock('@grafana/runtime', () => ({
   getTemplateSrv: () => ({
@@ -28,9 +28,9 @@ jest.mock('@grafana/runtime', () => ({
 jest.mock('./utils', () => ({
   getFieldsByName: jest.fn((frames, name) => frames.map((f: any) => f.fields[0])),
   notEmpty: jest.fn((val) => val !== null && val !== undefined),
-  Plot: ({ onRelayout, data, layout }: any) => {
-    plotlyOnRelayout = onRelayout;
+  Plot: ({ data, onRelayout, layout }: any) => {
     plotlyData = data;
+    plotlyOnRelayout = onRelayout;
     plotlyLayout = layout;
     return <div data-testid="plotly-plot">Plot</div>;
   },
@@ -149,9 +149,9 @@ describe('PlotlyPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    plotlyData = undefined;
     plotlyOnRelayout = undefined;
     plotlyLayout = undefined;
-    plotlyData = undefined;
     (locationService.getSearchObject as jest.Mock).mockReturnValue({});
   });
 
