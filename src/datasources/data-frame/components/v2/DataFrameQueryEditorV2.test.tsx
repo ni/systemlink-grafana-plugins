@@ -3004,6 +3004,29 @@ describe("DataFrameQueryEditorV2", () => {
                 );  
                 expect(columnCustomPropertyOption).toBeDefined();
             });
+
+            it('should set custom properties options to empty arrays when getCustomPropertyOptions returns error', async () => {
+                const mockGetCustomPropertyOptions = jest.fn().mockRejectedValue(new Error('Failed to fetch options'));
+
+                renderComponent(
+                  { type: DataFrameQueryType.Properties },
+                  '',
+                  '',
+                  [],
+                  [],
+                  undefined,
+                  {},
+                  {
+                    getCustomPropertyOptions: mockGetCustomPropertyOptions,
+                  }
+                );
+
+                await waitFor(() => {
+                    expect(mockGetCustomPropertyOptions).toHaveBeenCalled();
+                    expect(screen.queryByText('Custom Prop A')).not.toBeInTheDocument();
+                    expect(screen.queryByText('Custom Col Prop')).not.toBeInTheDocument();
+                });
+            })
         });
 
         describe("data table properties fields", () => {
