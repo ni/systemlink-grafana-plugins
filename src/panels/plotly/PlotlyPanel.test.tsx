@@ -7,6 +7,7 @@ import { locationService } from '@grafana/runtime';
 import _ from 'lodash';
 
 const mockPublish = jest.fn();
+let plotlyData: any;
 let plotlyOnRelayout: any;
 let plotlyLayout: any;
 
@@ -27,7 +28,8 @@ jest.mock('@grafana/runtime', () => ({
 jest.mock('./utils', () => ({
   getFieldsByName: jest.fn((frames, name) => frames.map((f: any) => f.fields[0])),
   notEmpty: jest.fn((val) => val !== null && val !== undefined),
-  Plot: ({ onRelayout, layout }: any) => {
+  Plot: ({ data, onRelayout, layout }: any) => {
+    plotlyData = data;
     plotlyOnRelayout = onRelayout;
     plotlyLayout = layout;
     return <div data-testid="plotly-plot">Plot</div>;
@@ -147,6 +149,7 @@ describe('PlotlyPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    plotlyData = undefined;
     plotlyOnRelayout = undefined;
     plotlyLayout = undefined;
     (locationService.getSearchObject as jest.Mock).mockReturnValue({});
@@ -1079,6 +1082,115 @@ describe('PlotlyPanel', () => {
           renderPlotlyElement(props);
 
           expect(props.onOptionsChange).not.toHaveBeenCalled();
+        });
+      });
+    });
+  });
+
+  describe('WebGL rendering control', () => {
+    const defaultSeriesOptions = {
+      stackBars: false,
+      areaFill: false,
+      staircase: false,
+      markerSize: 5,
+      lineWidth: 2,
+    };
+
+    describe('Primary Y axis', () => {
+      describe('when plotType is line or points', () => {
+        it('should default to scatter when isWebGLEnabled is not set', () => {
+          const props = createMockProps({
+            series: { ...defaultSeriesOptions, plotType: 'line' },
+          });
+
+          renderPlotlyElement(props);
+
+          expect(plotlyData[0].type).toBe('scatter');
+        });
+
+        ([
+          { plotType: 'line', isWebGLEnabled: false, expectedType: 'scatter' },
+          { plotType: 'line', isWebGLEnabled: true, expectedType: 'scattergl' },
+          { plotType: 'points', isWebGLEnabled: false, expectedType: 'scatter' },
+          { plotType: 'points', isWebGLEnabled: true, expectedType: 'scattergl' },
+        ] as const).forEach(({ plotType, isWebGLEnabled, expectedType }) => {
+          it(`should use '${expectedType}' as the trace type when plotType is '${plotType}' and isWebGLEnabled is ${isWebGLEnabled}`, () => {
+            const props = createMockProps({
+              series: { ...defaultSeriesOptions, plotType, isWebGLEnabled },
+            });
+
+            renderPlotlyElement(props);
+
+            expect(plotlyData[0].type).toBe(expectedType);
+          });
+        });
+      });
+
+      describe('when plotType is not line or points', () => {
+        ['bar', 'box', 'violin'].forEach(plotType => {
+          it(`should use selected '${plotType}' as the trace type regardless of isWebGLEnabled`, () => {
+            const props = createMockProps({
+              series: { ...defaultSeriesOptions, plotType, isWebGLEnabled: true },
+            });
+
+            renderPlotlyElement(props);
+
+            expect(plotlyData[0].type).toBe(plotType);
+          });
+        });
+      });
+    });
+
+    describe('Secondary Y axis', () => {
+      describe('when plotType is line or points', () => {
+        it('should default to scatter when isWebGLEnabled is not set', () => {
+          const props = createMockProps({
+            showYAxis2: true,
+            yAxis2: { fields: ['value'] },
+            series2: { ...defaultSeriesOptions, plotType: 'line' },
+          });
+
+          renderPlotlyElement(props);
+
+          const y2Trace = plotlyData.find((d: any) => d.yaxis === 'y2');
+          expect(y2Trace.type).toBe('scatter');
+        });
+
+        ([
+          { plotType: 'line', isWebGLEnabled: false, expectedType: 'scatter' },
+          { plotType: 'line', isWebGLEnabled: true, expectedType: 'scattergl' },
+          { plotType: 'points', isWebGLEnabled: false, expectedType: 'scatter' },
+          { plotType: 'points', isWebGLEnabled: true, expectedType: 'scattergl' },
+        ] as const).forEach(({ plotType, isWebGLEnabled, expectedType }) => {
+          it(`should use '${expectedType}' as the trace type when plotType is '${plotType}' and isWebGLEnabled is ${isWebGLEnabled}`, () => {
+            const props = createMockProps({
+              showYAxis2: true,
+              yAxis2: { fields: ['value'] },
+              series2: { ...defaultSeriesOptions, plotType, isWebGLEnabled },
+            });
+
+            renderPlotlyElement(props);
+
+            const y2Trace = plotlyData.find((d: any) => d.yaxis === 'y2');
+            expect(y2Trace.type).toBe(expectedType);
+          });
+        });
+      });
+
+      describe('when plotType is not line or points', () => {
+        ['bar', 'box', 'violin'].forEach(plotType => {
+          it(`should use selected '${plotType}' as the trace type regardless of isWebGLEnabled`, () => {
+            const props = createMockProps({
+              showYAxis2: true,
+              yAxis2: { fields: ['value'] },
+              series2: { ...defaultSeriesOptions, plotType, isWebGLEnabled: true },
+            });
+
+            renderPlotlyElement(props);
+
+            const y2Trace = plotlyData.find((d: any) => d.yaxis === 'y2');
+            expect(y2Trace.type).toBe(plotType);
+          });
         });
       });
     });

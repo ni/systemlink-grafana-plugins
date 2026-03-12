@@ -31,6 +31,7 @@ export interface YAxisOptions extends AxisOptions {
 
 export interface SeriesOptions {
   plotType: string;
+  isWebGLEnabled?: boolean;
   stackBars: boolean;
   areaFill: boolean;
   staircase: boolean;
