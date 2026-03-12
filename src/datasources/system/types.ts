@@ -18,6 +18,7 @@ export interface SystemVariableQuery {
   workspace: string;
   queryReturnType?: SystemQueryReturnType;
   filter?: string;
+  filterObjects?: QueryFilterObjects;
 }
 
 export interface SystemSummary {

@@ -51,17 +51,22 @@ export class SystemAdvancedQueryHandler extends SystemQueryHandlerBase {
     );
   }
 
-  async metricFindQuery({ workspace, queryReturnType }: SystemVariableQuery): Promise<MetricFindValue[]> {
+  async metricFindQuery({ workspace, queryReturnType, filter, filterObjects }: SystemVariableQuery): Promise<MetricFindValue[]> {
     await this.dependenciesLoadedPromise;
 
-    let filter = '';
-    if (workspace) {
+    let processedFilter = '';
+
+    if (filterObjects) {
+      processedFilter = this.processFilter(parseQueryObjectsToLinq(filterObjects));
+    } else if (filter) {
+      processedFilter = this.processFilter(filter);
+    } else if (workspace) {
       const resolvedWorkspace = this.dataSource.templateSrv.replace(workspace);
-      filter = `workspace = "${resolvedWorkspace}"`;
+      processedFilter = `workspace = "${resolvedWorkspace}"`;
     }
 
     const properties = await this.getSystemProperties(
-      filter,
+      processedFilter,
       [SystemBackendFieldNames.ID, SystemBackendFieldNames.ALIAS, SystemBackendFieldNames.SCAN_CODE]
     );
     return properties.map(system => this.getSystemNameForMetricQuery({ queryReturnType }, system));
@@ -86,8 +91,8 @@ export class SystemAdvancedQueryHandler extends SystemQueryHandlerBase {
     );
   }
 
-  private processFilter(filter: string, scopedVars: any): string {
-    let tempFilter = this.dataSource.templateSrv.replace(filter, scopedVars);
+  private processFilter(filter: string, scopedVars?: any): string {
+    const tempFilter = this.dataSource.templateSrv.replace(filter, scopedVars);
     return transformComputedFieldsQuery(tempFilter, this.dataSource.systemsComputedDataFields);
   }
 

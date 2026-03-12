@@ -5,6 +5,9 @@ import { SystemDataSource } from '../SystemDataSource';
 import { InlineField } from 'core/components/InlineField';
 import { Workspace } from 'core/types';
 import { SystemsQueryBuilder } from './query-builder/SystemsQueryBuilder';
+import { QueryFilterObjects } from 'core/components/SlQueryBuilder/models/SlQueryFilterObjects';
+import { SystemBackendFieldNames } from '../SystemsQueryBuilder.constants';
+import { QueryBuilderOperations } from 'core/query-builder.constants';
 
 interface Props {
   query: SystemVariableQuery;
@@ -12,8 +15,15 @@ interface Props {
   datasource: SystemDataSource;
 }
 
+// const cloneFilterObjects = (value?: QueryFilterObjects): QueryFilterObjects | undefined => {
+//   if (!value) {
+//     return undefined;
+//   }
+//   return JSON.parse(JSON.stringify(value)) as QueryFilterObjects;
+// };
+
 export function SystemVariableQueryEditor({ onChange, query, datasource }: Props) {
-  const SystemVariableQuery = query as SystemVariableQuery;
+  const systemVariableQuery = query as SystemVariableQuery;
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
   const returnTypeOptions = Object.values(SystemQueryReturnType).map((type) => ({
@@ -29,27 +39,35 @@ export function SystemVariableQueryEditor({ onChange, query, datasource }: Props
   }, [datasource]);
 
   useEffect(() => {
-    if (query.workspace && !query.filter) {
-      const migratedFilter = `workspace = "${query.workspace}"`;
-      onChange({ ...query, filter: migratedFilter, workspace: '' });
+    if (query.workspace && !query.filter && !query.filterObjects) {
+      const workspaceFilterExpression: [string, string, string] = [
+        SystemBackendFieldNames.WORKSPACE,
+        QueryBuilderOperations.EQUALS.name,
+        query.workspace,
+      ];
+
+      const migratedFilterObjects: QueryFilterObjects = [[workspaceFilterExpression]];
+
+      onChange({ ...query, filterObjects: migratedFilterObjects, workspace: '' });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 
   function changeQueryReturnType(queryReturnType: SystemQueryReturnType) {
-    onChange({ ...SystemVariableQuery, queryReturnType: queryReturnType } as SystemVariableQuery);
+    onChange({ ...systemVariableQuery, queryReturnType: queryReturnType } as SystemVariableQuery);
   }
 
   function onParameterChange(ev: CustomEvent) {
-    if (query.filter !== ev.detail.linq) {
-      onChange({ ...query, filter: ev.detail.linq, workspace: '' });
+    if (systemVariableQuery.filter !== ev.detail.linq) {
+      onChange({ ...systemVariableQuery, filter: ev.detail.linq, filterObjects: ev.detail.value, workspace: '' });
     }
   }
   return (
     <>
       <InlineField label="Filter" labelWidth={25} tooltip={"Filter the systems by various properties."}>
         <SystemsQueryBuilder
-          filter={query.filter || ''}
+          filter={systemVariableQuery.filter || ''}
+          filterObjects={systemVariableQuery.filterObjects}
           onChange={(event: any) => onParameterChange(event)}
           globalVariableOptions={datasource.getVariableOptions()}
           workspaces={workspaces}
@@ -64,7 +82,7 @@ export function SystemVariableQueryEditor({ onChange, query, datasource }: Props
         <Select
           options={returnTypeOptions}
           defaultValue={SystemQueryReturnType.MinionId}
-          value={SystemVariableQuery.queryReturnType || SystemQueryReturnType.MinionId}
+          value={systemVariableQuery.queryReturnType || SystemQueryReturnType.MinionId}
           onChange={(item) => {
             changeQueryReturnType(item.value!);
           }}
