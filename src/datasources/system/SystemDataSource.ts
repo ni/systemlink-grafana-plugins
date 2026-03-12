@@ -2,7 +2,6 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
-  LegacyMetricFindQueryOptions,
   MetricFindValue,
   TestDataSourceResponse
 } from '@grafana/data';
