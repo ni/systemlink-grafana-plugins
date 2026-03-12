@@ -3,7 +3,7 @@ jest.mock('datasources/data-frame/constants', () => {
     return { 
         ...actual, 
         COLUMN_OPTIONS_LIMIT: 10, 
-        CUSTOM_PROPERTIES_OPTIONS_LIMIT: 5
+        CUSTOM_PROPERTY_OPTIONS_LIMIT: 5
     };
 });
 
@@ -2963,7 +2963,7 @@ describe("DataFrameQueryEditorV2", () => {
                         },
                     ],
                 };
-                const mockGetCustomPropertiesOptions = jest.fn()
+                const mockGetCustomPropertyOptions = jest.fn()
                     .mockResolvedValue(mockOptions);
                 jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
                     .mockReturnValue(500);
@@ -2976,12 +2976,12 @@ describe("DataFrameQueryEditorV2", () => {
                     undefined,
                     {},
                     {
-                        getCustomPropertyOptions: mockGetCustomPropertiesOptions,
+                        getCustomPropertyOptions: mockGetCustomPropertyOptions,
                     }
                 );
 
                 await waitFor(() => {
-                    expect(mockGetCustomPropertiesOptions).toHaveBeenCalled();
+                    expect(mockGetCustomPropertyOptions).toHaveBeenCalled();
                 });
 
                 const user = userEvent.setup();
@@ -3004,6 +3004,29 @@ describe("DataFrameQueryEditorV2", () => {
                 );  
                 expect(columnCustomPropertyOption).toBeDefined();
             });
+
+            it('should set custom properties options to empty arrays when getCustomPropertyOptions returns error', async () => {
+                const mockGetCustomPropertyOptions = jest.fn().mockRejectedValue(new Error('Failed to fetch options'));
+
+                renderComponent(
+                  { type: DataFrameQueryType.Properties },
+                  '',
+                  '',
+                  [],
+                  [],
+                  undefined,
+                  {},
+                  {
+                    getCustomPropertyOptions: mockGetCustomPropertyOptions,
+                  }
+                );
+
+                await waitFor(() => {
+                    expect(mockGetCustomPropertyOptions).toHaveBeenCalled();
+                    expect(screen.queryByText('Custom Prop A')).not.toBeInTheDocument();
+                    expect(screen.queryByText('Custom Col Prop')).not.toBeInTheDocument();
+                });
+            })
         });
 
         describe("data table properties fields", () => {

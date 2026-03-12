@@ -245,7 +245,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
               columnFilter: datasource.transformColumnQuery(migratedQuery.columnFilter),
             };
             
-            const filterChanged = !_.isEqual(lastFilterRef.current, transformedFilter);
+            const filterChanged =
+              isFiltersEmpty(transformedFilter) 
+              || !_.isEqual(lastFilterRef.current, transformedFilter);
     
             if (migratedQuery.type !== DataFrameQueryType.Properties || !filterChanged) {
               return;
@@ -265,6 +267,10 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         datasource,
       ]
     );
+
+    const isFiltersEmpty = (filters: CombinedFilters): boolean => {
+      return filters.dataTableFilter === '' && !filters.resultFilter && !filters.columnFilter;
+    };
 
     const dataTablePropertyOptions = useMemo(() => [
         ...standardDataTablePropertyOptions,

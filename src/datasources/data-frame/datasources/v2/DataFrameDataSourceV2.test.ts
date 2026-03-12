@@ -7259,20 +7259,6 @@ describe('DataFrameDataSourceV2', () => {
                     { label: 'colProp', value: 'colProp-(custom-properties)', group: CUSTOM_COLUMN_PROPERTIES_GROUP },
                 ]);
             });
-
-            it('should return empty options and publish error alert when queryTables$ throws', async () => {
-                queryTablesSpy$.mockReturnValue(throwError(() => new Error('Network error')));
-                const publishMock = jest.fn();
-                (ds as any).appEvents = { publish: publishMock };
-
-                const result = await ds.getCustomPropertyOptions(filters);
-
-                expect(result).toEqual({ dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] });
-                expect(publishMock).toHaveBeenCalledWith({
-                    type: 'alert-error',
-                    payload: ['Error fetching custom properties', expect.any(String)],
-                });
-            });
         });
 
         describe("when the field name is 'value'", () => {
