@@ -312,7 +312,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             ])
         );
         
-        if (!this.tablesContainsColumns(tables) && !this.tablesContainsProperties(tables)) {
+        if (!this.tablesContainsProperties(tables)) {
             return { dataTableCustomPropertyOptions:[], columnCustomPropertyOptions: [] };
         }
 
@@ -835,8 +835,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             this.queryTables$(filters, TAKE_LIMIT, [
                 DataTableProjections.ColumnName,
                 DataTableProjections.ColumnDataType,
-            ])
-        );
+            ]));
 
         if (!this.tablesContainsColumns(tables)) {
             return { uniqueColumnsAcrossTables: [], commonColumnsAcrossTables: [] };
@@ -884,7 +883,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private tablesContainsProperties(tables: TableProperties[]): boolean {
         return tables.length > 0 
             && (tables.some(table => table.properties !== undefined)) 
-            && (tables.some(table => table.columns?.some(column => column.properties !== undefined)));
+            || (tables.some(table => table.columns?.some(column => column.properties !== undefined)));
     }
 
     private createColumnIdentifierSet(columns: Column[]): Set<string> {
@@ -1897,7 +1896,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
         const projections = propertiesToQuery
             .filter(
-                (property): property is DataTableProperties => 
+                (property): property is DataTableProperties =>
                     standardDataTablePropertyValues.has(property)
             )
             .map(property => DataTableProjectionLabelLookup[property].projection);
