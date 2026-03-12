@@ -143,16 +143,11 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         defaultValue: 'line',
         category: ['Y Axis'],
       })
-      .addRadio({
-        path: 'series.scatterType',
-        name: 'Scatter type',
-        settings: {
-          options: [
-            { label: 'Scatter', value: 'scatter' },
-            { label: 'ScatterGL', value: 'scattergl' },
-          ],
-        },
-        defaultValue: 'scatter',
+      .addBooleanSwitch({
+        path: 'series.isWebGLEnabled',
+        name: 'Use WebGL for rendering',
+        description: 'Turn it on for better performance while visualizing large data sets. WebGL is resource-limited in your browser — enable only when needed to avoid rendering issues.',
+        defaultValue: false,
         showIf: (options) => options.series.plotType === 'line' || options.series.plotType === 'points',
         category: ['Y Axis'],
       })
@@ -286,16 +281,11 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         showIf: (options) => options.showYAxis2,
         category: ['Secondary Y Axis'],
       })
-      .addRadio({
-        path: 'series2.scatterType',
-        name: 'Scatter type',
-        settings: {
-          options: [
-            { label: 'Scatter', value: 'scatter' },
-            { label: 'ScatterGL', value: 'scattergl' },
-          ],
-        },
-        defaultValue: 'scatter',
+      .addBooleanSwitch({
+        path: 'series2.isWebGLEnabled',
+        name: 'Use WebGL for rendering',
+        description: 'Turn it on for better performance while visualizing large data sets. WebGL is resource-limited in your browser - enable only when needed to avoid rendering issues.',
+        defaultValue: false,
         showIf: (options) => options.showYAxis2 && (options.series2.plotType === 'line' || options.series2.plotType === 'points'),
         category: ['Secondary Y Axis'],
       })

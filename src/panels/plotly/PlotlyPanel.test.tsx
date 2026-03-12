@@ -1087,7 +1087,7 @@ describe('PlotlyPanel', () => {
     });
   });
 
-  describe('Scatter type control', () => {
+  describe('WebGL rendering control', () => {
     const defaultSeriesOptions = {
       stackBars: false,
       areaFill: false,
@@ -1098,7 +1098,7 @@ describe('PlotlyPanel', () => {
 
     describe('Primary Y axis', () => {
       describe('when plotType is line or points', () => {
-        it('should default to scatter when scatterType is not set', () => {
+        it('should default to scatter when isWebGLEnabled is not set', () => {
           const props = createMockProps({
             series: { ...defaultSeriesOptions, plotType: 'line' },
           });
@@ -1109,28 +1109,28 @@ describe('PlotlyPanel', () => {
         });
 
         ([
-          { plotType: 'line', scatterType: 'scatter' },
-          { plotType: 'line', scatterType: 'scattergl' },
-          { plotType: 'points', scatterType: 'scatter' },
-          { plotType: 'points', scatterType: 'scattergl' },
-        ] as const).forEach(({ plotType, scatterType }) => {
-          it(`should use selected '${scatterType}' as the trace type when plotType is '${plotType}'`, () => {
+          { plotType: 'line', isWebGLEnabled: false, expectedType: 'scatter' },
+          { plotType: 'line', isWebGLEnabled: true, expectedType: 'scattergl' },
+          { plotType: 'points', isWebGLEnabled: false, expectedType: 'scatter' },
+          { plotType: 'points', isWebGLEnabled: true, expectedType: 'scattergl' },
+        ] as const).forEach(({ plotType, isWebGLEnabled, expectedType }) => {
+          it(`should use '${expectedType}' as the trace type when plotType is '${plotType}' and isWebGLEnabled is ${isWebGLEnabled}`, () => {
             const props = createMockProps({
-              series: { ...defaultSeriesOptions, plotType, scatterType },
+              series: { ...defaultSeriesOptions, plotType, isWebGLEnabled },
             });
 
             renderPlotlyElement(props);
 
-            expect(plotlyData[0].type).toBe(scatterType);
+            expect(plotlyData[0].type).toBe(expectedType);
           });
         });
       });
 
       describe('when plotType is not line or points', () => {
         ['bar', 'box', 'violin'].forEach(plotType => {
-          it(`should use selected '${plotType}' as the trace type regardless of scatterType`, () => {
+          it(`should use selected '${plotType}' as the trace type regardless of isWebGLEnabled`, () => {
             const props = createMockProps({
-              series: { ...defaultSeriesOptions, plotType, scatterType: 'scattergl' },
+              series: { ...defaultSeriesOptions, plotType, isWebGLEnabled: true },
             });
 
             renderPlotlyElement(props);
@@ -1143,7 +1143,7 @@ describe('PlotlyPanel', () => {
 
     describe('Secondary Y axis', () => {
       describe('when plotType is line or points', () => {
-        it('should default to scatter when scatterType is not set', () => {
+        it('should default to scatter when isWebGLEnabled is not set', () => {
           const props = createMockProps({
             showYAxis2: true,
             yAxis2: { fields: ['value'] },
@@ -1157,33 +1157,33 @@ describe('PlotlyPanel', () => {
         });
 
         ([
-          { plotType: 'line', scatterType: 'scatter' },
-          { plotType: 'line', scatterType: 'scattergl' },
-          { plotType: 'points', scatterType: 'scatter' },
-          { plotType: 'points', scatterType: 'scattergl' },
-        ] as const).forEach(({ plotType, scatterType }) => {
-          it(`should use selected '${scatterType}' as the trace type when plotType is '${plotType}'`, () => {
+          { plotType: 'line', isWebGLEnabled: false, expectedType: 'scatter' },
+          { plotType: 'line', isWebGLEnabled: true, expectedType: 'scattergl' },
+          { plotType: 'points', isWebGLEnabled: false, expectedType: 'scatter' },
+          { plotType: 'points', isWebGLEnabled: true, expectedType: 'scattergl' },
+        ] as const).forEach(({ plotType, isWebGLEnabled, expectedType }) => {
+          it(`should use '${expectedType}' as the trace type when plotType is '${plotType}' and isWebGLEnabled is ${isWebGLEnabled}`, () => {
             const props = createMockProps({
               showYAxis2: true,
               yAxis2: { fields: ['value'] },
-              series2: { ...defaultSeriesOptions, plotType, scatterType },
+              series2: { ...defaultSeriesOptions, plotType, isWebGLEnabled },
             });
 
             renderPlotlyElement(props);
 
             const y2Trace = plotlyData.find((d: any) => d.yaxis === 'y2');
-            expect(y2Trace.type).toBe(scatterType);
+            expect(y2Trace.type).toBe(expectedType);
           });
         });
       });
 
       describe('when plotType is not line or points', () => {
         ['bar', 'box', 'violin'].forEach(plotType => {
-          it(`should use selected '${plotType}' as the trace type regardless of scatterType`, () => {
+          it(`should use selected '${plotType}' as the trace type regardless of isWebGLEnabled`, () => {
             const props = createMockProps({
               showYAxis2: true,
               yAxis2: { fields: ['value'] },
-              series2: { ...defaultSeriesOptions, plotType, scatterType: 'scattergl' },
+              series2: { ...defaultSeriesOptions, plotType, isWebGLEnabled: true },
             });
 
             renderPlotlyElement(props);
