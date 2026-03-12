@@ -3,7 +3,7 @@ jest.mock('datasources/data-frame/constants', () => {
     return { 
         ...actual, 
         COLUMN_OPTIONS_LIMIT: 10, 
-        CUSTOM_PROPERTIES_OPTIONS_LIMIT: 5
+        CUSTOM_PROPERTY_OPTIONS_LIMIT: 5
     };
 });
 
@@ -40,8 +40,8 @@ const mockHasRequiredFilters = jest.fn((query: ValidDataFrameQueryV2) => {
 });
 
 const customPropertiesOptions = {
-    dataTableCustomProperties: [],
-    columnCustomProperties: [],
+    dataTableCustomPropertyOptions: [],
+    columnCustomPropertyOptions: [],
 };
 
 const renderComponent = (
@@ -2880,6 +2880,7 @@ describe("DataFrameQueryEditorV2", () => {
         describe("fetching custom property options", () => {
             beforeEach(() => {
                 cleanup();
+                (DataFrameQueryBuilderWrapper as jest.Mock).mockClear();
             });
 
             it('should call getCustomPropertyOptions when query type is Properties', async () => {
@@ -2889,6 +2890,49 @@ describe("DataFrameQueryEditorV2", () => {
 
                 await waitFor(() => {
                   expect(datasource.getCustomPropertyOptions).toHaveBeenCalled();
+                });
+            });
+
+            it('should call getCustomPropertyOptions when filters change and query type is Properties', async () => {
+                const { datasource } = renderComponent({
+                  type: DataFrameQueryType.Properties,
+                  dataTableFilter: 'InitialFilter',
+                  resultFilter: 'InitialResultFilter',
+                  columnFilter: 'InitialColumnFilter',
+                });
+
+                const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                const { onDataTableFilterChange, onResultFilterChange, onColumnFilterChange } = props;
+                const mockEvent = {
+                    detail: { linq: 'UpdatedFilter' }
+                } as Event & { detail: { linq: string; }; };
+        
+                onDataTableFilterChange(mockEvent);
+                onResultFilterChange(mockEvent);
+                onColumnFilterChange(mockEvent);
+
+                await waitFor(() => {
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(4); // 1 call on initial render + 3 calls for each filter change
+                });
+            });
+
+            it('should not call getCustomPropertyOptions when filters do not change', async () => {
+                const { datasource } = renderComponent({
+                    type: DataFrameQueryType.Properties,
+                    dataTableFilter: 'InitialFilter',
+                    resultFilter: 'InitialResultFilter',
+                    columnFilter: 'InitialColumnFilter',
+                });
+
+                const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                const { onDataTableFilterChange } = props;
+                const mockEvent = {
+                    detail: { linq: 'InitialFilter' }
+                } as Event & { detail: { linq: string; }; };
+                onDataTableFilterChange(mockEvent);
+
+                await waitFor(() => {
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1); // Only the initial call on render, no additional calls since filter did not change
                 });
             });
 
@@ -2904,14 +2948,14 @@ describe("DataFrameQueryEditorV2", () => {
 
             it('should populate custom properties options from getCustomPropertyOptions', async () => {
                 const mockOptions = {
-                    dataTableCustomProperties: [
+                    dataTableCustomPropertyOptions: [
                         { 
                             label: 'Custom Prop A',
                             value: 'customPropA',
                             group: 'Custom' 
                         },
                     ],
-                    columnCustomProperties: [
+                    columnCustomPropertyOptions: [
                         {
                             label: 'Custom Col Prop',
                             value: 'customColProp',
@@ -2919,7 +2963,7 @@ describe("DataFrameQueryEditorV2", () => {
                         },
                     ],
                 };
-                const mockGetCustomPropertiesOptions = jest.fn()
+                const mockGetCustomPropertyOptions = jest.fn()
                     .mockResolvedValue(mockOptions);
                 jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
                     .mockReturnValue(500);
@@ -2932,12 +2976,12 @@ describe("DataFrameQueryEditorV2", () => {
                     undefined,
                     {},
                     {
-                        getCustomPropertyOptions: mockGetCustomPropertiesOptions,
+                        getCustomPropertyOptions: mockGetCustomPropertyOptions,
                     }
                 );
 
                 await waitFor(() => {
-                    expect(mockGetCustomPropertiesOptions).toHaveBeenCalled();
+                    expect(mockGetCustomPropertyOptions).toHaveBeenCalled();
                 });
 
                 const user = userEvent.setup();
@@ -2946,20 +2990,43 @@ describe("DataFrameQueryEditorV2", () => {
 
                 const optionControls = screen.getAllByRole('option');
                 expect(optionControls).toHaveLength(12);
-                const dataTableCustomOption = optionControls.find(opt =>  
+                const dataTableCustomPropertyOption = optionControls.find(opt =>  
                     opt.textContent && opt.textContent.includes('Custom Prop A')  
                 );  
-                expect(dataTableCustomOption).toBeDefined();
+                expect(dataTableCustomPropertyOption).toBeDefined();
 
                 const columnPropertiesField = result.getAllByRole('combobox')[1];
                 await user.click(columnPropertiesField);
                 
                 const columnOptionControls = screen.getAllByRole('option');
-                const columnCustomOption = columnOptionControls.find(opt =>  
+                const columnCustomPropertyOption = columnOptionControls.find(opt =>  
                     opt.textContent && opt.textContent.includes('Custom Col Prop')  
                 );  
-                expect(columnCustomOption).toBeDefined();
+                expect(columnCustomPropertyOption).toBeDefined();
             });
+
+            it('should set custom properties options to empty arrays when getCustomPropertyOptions returns error', async () => {
+                const mockGetCustomPropertyOptions = jest.fn().mockRejectedValue(new Error('Failed to fetch options'));
+
+                renderComponent(
+                  { type: DataFrameQueryType.Properties },
+                  '',
+                  '',
+                  [],
+                  [],
+                  undefined,
+                  {},
+                  {
+                    getCustomPropertyOptions: mockGetCustomPropertyOptions,
+                  }
+                );
+
+                await waitFor(() => {
+                    expect(mockGetCustomPropertyOptions).toHaveBeenCalled();
+                    expect(screen.queryByText('Custom Prop A')).not.toBeInTheDocument();
+                    expect(screen.queryByText('Custom Col Prop')).not.toBeInTheDocument();
+                });
+            })
         });
 
         describe("data table properties fields", () => {
@@ -3035,7 +3102,7 @@ describe("DataFrameQueryEditorV2", () => {
 
             it("should limit custom data table properties options to CUSTOM_PROPERTIES_OPTIONS_LIMIT", async () => {
                 cleanup();
-                const dataTableCustomPropertiesOptions = Array.from(
+                const dataTableCustomPropertyOptions = Array.from(
                     { length: 10 }, (_, i) => ({
                         label: `Prop ${i}`,
                         value: `prop${i}`,
@@ -3043,8 +3110,8 @@ describe("DataFrameQueryEditorV2", () => {
                     })
                 );
                 const mockOptions = {
-                    dataTableCustomProperties: dataTableCustomPropertiesOptions,
-                    columnCustomProperties: [],
+                    dataTableCustomPropertyOptions: dataTableCustomPropertyOptions,
+                    columnCustomPropertyOptions: [],
                 };
                 const mockGetCustomPropertiesOptions = jest.fn().mockResolvedValue(
                     mockOptions
@@ -3139,12 +3206,12 @@ describe("DataFrameQueryEditorV2", () => {
                     })
                 );
                 const mockOptions = {
-                    dataTableCustomProperties: [],
-                    columnCustomProperties: columnCustomPropertiesOptions,
+                    dataTableCustomPropertyOptions: [],
+                    columnCustomPropertyOptions: columnCustomPropertiesOptions,
                 };
                 const mockGetPropertiesOptions = jest.fn()
                     .mockResolvedValue(mockOptions);
-                    const { renderResult: result } = renderComponent(
+                const { renderResult: result } = renderComponent(
                     { type: DataFrameQueryType.Properties },
                     '',
                     '',
@@ -3184,7 +3251,7 @@ describe("DataFrameQueryEditorV2", () => {
 
             const renderWithCustomProperties = (
                 queryOverrides: Partial<DataFrameDataQuery>,
-                customPropertyOptions = { dataTableCustomProperties: [] as ComboboxOption[], columnCustomProperties: [] as ComboboxOption[] }
+                customPropertyOptions = { dataTableCustomPropertyOptions: [] as ComboboxOption[], columnCustomPropertyOptions: [] as ComboboxOption[] }
             ) => {
                 const mockGetCustomPropertyOptions = jest.fn().mockResolvedValue(customPropertyOptions);
                 return renderComponent(
@@ -3204,8 +3271,8 @@ describe("DataFrameQueryEditorV2", () => {
                     renderWithCustomProperties(
                         { dataTableProperties: [`propA${SUFFIX}`] },
                         {
-                            dataTableCustomProperties: [{ label: 'propA', value: `propA${SUFFIX}`, group: 'Custom' }],
-                            columnCustomProperties: [],
+                            dataTableCustomPropertyOptions: [{ label: 'propA', value: `propA${SUFFIX}`, group: 'Custom' }],
+                            columnCustomPropertyOptions: [],
                         }
                     );
 
@@ -3219,7 +3286,7 @@ describe("DataFrameQueryEditorV2", () => {
                 it('should show an error message for a single invalid custom data table property', async () => {
                     renderWithCustomProperties(
                         { dataTableProperties: [`missingProp${SUFFIX}`] },
-                        { dataTableCustomProperties: [], columnCustomProperties: [] }
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
                     );
 
                     await waitFor(() => {
@@ -3232,7 +3299,7 @@ describe("DataFrameQueryEditorV2", () => {
                 it('should show an error message for multiple invalid custom data table properties', async () => {
                     renderWithCustomProperties(
                         { dataTableProperties: [`missingA${SUFFIX}`, `missingB${SUFFIX}`] },
-                        { dataTableCustomProperties: [], columnCustomProperties: [] }
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
                     );
 
                     await waitFor(() => {
@@ -3246,8 +3313,8 @@ describe("DataFrameQueryEditorV2", () => {
                     renderWithCustomProperties(
                         { dataTableProperties: [DataTableProperties.Name, `validCustom${SUFFIX}`, `invalidCustom${SUFFIX}`] },
                         {
-                            dataTableCustomProperties: [{ label: 'validCustom', value: `validCustom${SUFFIX}`, group: 'Custom' }],
-                            columnCustomProperties: [],
+                            dataTableCustomPropertyOptions: [{ label: 'validCustom', value: `validCustom${SUFFIX}`, group: 'Custom' }],
+                            columnCustomPropertyOptions: [],
                         }
                     );
 
@@ -3264,8 +3331,8 @@ describe("DataFrameQueryEditorV2", () => {
                     renderWithCustomProperties(
                         { columnProperties: [`colPropA${SUFFIX}`] },
                         {
-                            dataTableCustomProperties: [],
-                            columnCustomProperties: [{ label: 'colPropA', value: `colPropA${SUFFIX}`, group: 'Custom' }],
+                            dataTableCustomPropertyOptions: [],
+                            columnCustomPropertyOptions: [{ label: 'colPropA', value: `colPropA${SUFFIX}`, group: 'Custom' }],
                         }
                     );
 
@@ -3279,7 +3346,7 @@ describe("DataFrameQueryEditorV2", () => {
                 it('should show an error message for a single invalid custom column property', async () => {
                     renderWithCustomProperties(
                         { columnProperties: [`missingColProp${SUFFIX}`] },
-                        { dataTableCustomProperties: [], columnCustomProperties: [] }
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
                     );
 
                     await waitFor(() => {
@@ -3292,7 +3359,7 @@ describe("DataFrameQueryEditorV2", () => {
                 it('should show an error message for multiple invalid custom column properties', async () => {
                     renderWithCustomProperties(
                         { columnProperties: [`missingColA${SUFFIX}`, `missingColB${SUFFIX}`] },
-                        { dataTableCustomProperties: [], columnCustomProperties: [] }
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
                     );
 
                     await waitFor(() => {
@@ -3306,8 +3373,8 @@ describe("DataFrameQueryEditorV2", () => {
                     renderWithCustomProperties(
                         { columnProperties: [DataTableProperties.ColumnName, `validColCustom${SUFFIX}`, `invalidColCustom${SUFFIX}`] },
                         {
-                            dataTableCustomProperties: [],
-                            columnCustomProperties: [{ label: 'validColCustom', value: `validColCustom${SUFFIX}`, group: 'Custom' }],
+                            dataTableCustomPropertyOptions: [],
+                            columnCustomPropertyOptions: [{ label: 'validColCustom', value: `validColCustom${SUFFIX}`, group: 'Custom' }],
                         }
                     );
 
@@ -3326,7 +3393,7 @@ describe("DataFrameQueryEditorV2", () => {
                             dataTableProperties: [`invalidTableProp${SUFFIX}`],
                             columnProperties: [`invalidColProp${SUFFIX}`],
                         },
-                        { dataTableCustomProperties: [], columnCustomProperties: [] }
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
                     );
 
                     await waitFor(() => {
@@ -3344,7 +3411,7 @@ describe("DataFrameQueryEditorV2", () => {
                 it('should not treat standard data table properties as invalid', async () => {
                     renderWithCustomProperties(
                         { dataTableProperties: [DataTableProperties.Name, DataTableProperties.RowCount] },
-                        { dataTableCustomProperties: [], columnCustomProperties: [] }
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
                     );
 
                     await waitFor(() => {
@@ -3355,7 +3422,7 @@ describe("DataFrameQueryEditorV2", () => {
                 it('should not treat standard column properties as invalid', async () => {
                     renderWithCustomProperties(
                         { columnProperties: [DataTableProperties.ColumnName, DataTableProperties.ColumnDataType] },
-                        { dataTableCustomProperties: [], columnCustomProperties: [] }
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
                     );
 
                     await waitFor(() => {
