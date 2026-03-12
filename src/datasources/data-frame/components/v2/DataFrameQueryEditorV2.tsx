@@ -3,7 +3,7 @@ import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBui
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
 import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQueryV2, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2, metadataFieldOptions, DataTableProjectionLabelLookup, DataTableProjectionType, DataTableProperties } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
-import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT, UNDECIMATED_RECORDS_LIMIT,decimationNoneOption, CUSTOM_PROPERTY_OPTIONS_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT, UNDECIMATED_RECORDS_LIMIT,decimationNoneOption, CUSTOM_PROPERTY_OPTIONS_LIMIT, CUSTOM_PROPERTY_SUFFIX } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
 import {
     errorMessages,
@@ -46,6 +46,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const [xColumnOptions, setXColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnOptionsInitialized, setIsColumnOptionsInitialized] = useState<boolean>(false);
     const [dataTableCustomProperties, setDataTableCustomProperties] = useState<Array<ComboboxOption<string>>>([]);
+    const [dataTableCustomPropertiesInitialized, setDataTableCustomPropertiesInitialized] = useState<boolean>(false);
     const [columnCustomProperties, setColumnCustomProperties] = useState<Array<ComboboxOption<string>>>([]);
 
     const getPropertiesOptions = (
@@ -122,12 +123,143 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 0,
                 CUSTOM_PROPERTY_OPTIONS_LIMIT
             );
-
+        setDataTableCustomPropertiesInitialized(true);
         setDataTableCustomProperties(limitedDataTableCustomPropertiesOptions);
         setColumnCustomProperties(limitedColumnCustomPropertiesOptions);
       },
       [datasource]
     );
+
+    const getPropertyValidation = useCallback((
+        selectedProperties: string[],
+        customPropertyOptions: Array<ComboboxOption<string>>,
+        standardOptions: Array<ComboboxOption<string>>,
+    ) => {
+        const allPropertyOptions = new Set([
+            ...customPropertyOptions.map(property => property.value),
+            ...standardOptions.map(option => option.value),
+        ]);
+        const validProperties = selectedProperties
+            .filter(property => allPropertyOptions.has(property));
+        const invalidProperties = selectedProperties
+            .filter(property => !allPropertyOptions.has(property));
+        return { validProperties, invalidProperties };
+    }, []);
+
+    const { validProperties: validDataTableProperties, invalidProperties: invalidDataTableProperties } = useMemo(() => {
+      return getPropertyValidation(
+        migratedQuery.dataTableProperties,
+        dataTableCustomProperties,
+        standardDataTablePropertiesOptions
+      );
+    }, [
+      getPropertyValidation,
+      dataTableCustomProperties,
+      migratedQuery.dataTableProperties,
+      standardDataTablePropertiesOptions,
+    ]);
+
+    const { validProperties: validColumnProperties, invalidProperties: invalidColumnProperties } = useMemo(() => {
+      return getPropertyValidation(
+        migratedQuery.columnProperties,
+        columnCustomProperties,
+        standardColumnPropertiesOptions
+      );
+    }, [
+      getPropertyValidation,
+      columnCustomProperties,
+      migratedQuery.columnProperties,
+      standardColumnPropertiesOptions,
+    ]);
+
+    const getSelectedPropertiesOptions = useCallback((
+        validProperties: string[],
+        invalidProperties: string[],
+        standardOptions: Array<ComboboxOption<string>>,
+        customOptions: Array<ComboboxOption<string>>,
+    ): Array<ComboboxOption<string>> => {
+        const standardOptionsMap = new Map(standardOptions.map(option => [option.value, option]));
+        const customOptionsMap = new Map(customOptions.map(option => [option.value, option]));
+        const validOptions = validProperties.map(property =>
+            standardOptionsMap.get(property) || customOptionsMap.get(property)!
+        );
+        const invalidOptions = invalidProperties.map(property => ({
+            label: property,
+            value: property.slice(0, -CUSTOM_PROPERTY_SUFFIX.length),
+        }));
+        return [...validOptions, ...invalidOptions];
+    }, []);
+
+    const selectedDataTablePropertiesOptions = useMemo(() => {
+        return getSelectedPropertiesOptions(
+            validDataTableProperties,
+            invalidDataTableProperties,
+            standardDataTablePropertiesOptions,
+            dataTableCustomProperties
+        );
+    }, [
+        getSelectedPropertiesOptions,
+        validDataTableProperties,
+        invalidDataTableProperties,
+        standardDataTablePropertiesOptions,
+        dataTableCustomProperties
+    ]);
+
+    const selectedColumnPropertiesOptions = useMemo(() => {
+        return getSelectedPropertiesOptions(
+            validColumnProperties,
+            invalidColumnProperties,
+            standardColumnPropertiesOptions,
+            columnCustomProperties
+        );
+    }, [
+        getSelectedPropertiesOptions,
+        validColumnProperties,
+        invalidColumnProperties,
+        standardColumnPropertiesOptions,
+        columnCustomProperties
+    ]);
+
+    const getInvalidPropertiesMessage = useCallback((
+        invalidProperties: string[],
+        isInitialized: boolean,
+        propertyType: string,
+    ): string => {
+        if (invalidProperties.length === 0 || !isInitialized) {
+            return '';
+        }
+        const invalidPropertyNames = invalidProperties
+            .map(property => property.slice(0, -CUSTOM_PROPERTY_SUFFIX.length))
+            .join(', ');
+        return invalidProperties.length === 1
+            ? `The following selected custom ${propertyType} property is not valid: '${invalidPropertyNames}'`
+            : `The following selected custom ${propertyType} properties are not valid: '${invalidPropertyNames}'`;
+    }, []);
+
+    const invalidSelectedDataTablePropertiesMessage = useMemo(() => {
+        return getInvalidPropertiesMessage(
+            invalidDataTableProperties,
+            dataTableCustomPropertiesInitialized,
+            'data table'
+        );
+    }, [
+        getInvalidPropertiesMessage,
+        invalidDataTableProperties,
+        dataTableCustomPropertiesInitialized
+    ]);
+
+    const invalidSelectedColumnPropertiesMessage = useMemo(() => {
+        return getInvalidPropertiesMessage(
+            invalidColumnProperties,
+            dataTableCustomPropertiesInitialized,
+            'column'
+        );
+    }, [
+        getInvalidPropertiesMessage,
+        invalidColumnProperties,
+        dataTableCustomPropertiesInitialized
+    ]);
+
 
     const columnOptionsMap = useMemo(() => {
         return new Map(columnOptions.map(option => [option.value, option]));
@@ -660,13 +792,15 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                         label={labels.dataTableProperties}
                         labelWidth={INLINE_LABEL_WIDTH}
                         tooltip={tooltips.dataTableProperties}
+                        invalid={!!invalidSelectedDataTablePropertiesMessage}
+                        error={invalidSelectedDataTablePropertiesMessage}
                     >
                         <MultiCombobox
                             placeholder={placeholders.dataTableProperties}
                             width="auto"
                             minWidth={VALUE_FIELD_WIDTH}
                             maxWidth={VALUE_FIELD_WIDTH}
-                            value={migratedQuery.dataTableProperties}
+                            value={selectedDataTablePropertiesOptions}
                             onChange={onDataTablePropertiesChange}
                             options={dataTablePropertiesOptions}
                             isClearable={true}
@@ -676,13 +810,15 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                         label={labels.columnProperties}
                         labelWidth={INLINE_LABEL_WIDTH}
                         tooltip={tooltips.columnProperties}
+                        invalid={!!invalidSelectedColumnPropertiesMessage}
+                        error={invalidSelectedColumnPropertiesMessage}
                     >
                         <MultiCombobox
                             placeholder={placeholders.columnProperties}
                             width="auto"
                             minWidth={VALUE_FIELD_WIDTH}
                             maxWidth={VALUE_FIELD_WIDTH}
-                            value={migratedQuery.columnProperties}
+                            value={selectedColumnPropertiesOptions}
                             onChange={onColumnPropertiesChange}
                             options={columnPropertiesOptions}
                             isClearable={true}
