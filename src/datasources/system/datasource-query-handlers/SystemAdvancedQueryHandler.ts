@@ -51,15 +51,13 @@ export class SystemAdvancedQueryHandler extends SystemQueryHandlerBase {
     );
   }
 
-  async metricFindQuery({ workspace, queryReturnType, filter, filterObjects }: SystemVariableQuery): Promise<MetricFindValue[]> {
+  async metricFindQuery({ workspace, queryReturnType, filterObjects }: SystemVariableQuery): Promise<MetricFindValue[]> {
     await this.dependenciesLoadedPromise;
 
     let processedFilter = '';
 
     if (filterObjects) {
       processedFilter = this.processFilter(parseQueryObjectsToLinq(filterObjects));
-    } else if (filter) {
-      processedFilter = this.processFilter(filter);
     } else if (workspace) {
       const resolvedWorkspace = this.dataSource.templateSrv.replace(workspace);
       processedFilter = `workspace = "${resolvedWorkspace}"`;

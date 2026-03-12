@@ -63,7 +63,7 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
       return filterXSSLINQExpression(value);
     }
 
-    return value;
+    return structuredClone(value);
   }, [value, isLegacyFilter]);
 
   const configuredFields: QBField[] = useMemo(() => {

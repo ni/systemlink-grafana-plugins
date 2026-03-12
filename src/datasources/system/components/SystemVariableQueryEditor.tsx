@@ -15,15 +15,7 @@ interface Props {
   datasource: SystemDataSource;
 }
 
-// const cloneFilterObjects = (value?: QueryFilterObjects): QueryFilterObjects | undefined => {
-//   if (!value) {
-//     return undefined;
-//   }
-//   return JSON.parse(JSON.stringify(value)) as QueryFilterObjects;
-// };
-
 export function SystemVariableQueryEditor({ onChange, query, datasource }: Props) {
-  const systemVariableQuery = query as SystemVariableQuery;
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [areDependenciesLoaded, setAreDependenciesLoaded] = useState<boolean>(false);
   const returnTypeOptions = Object.values(SystemQueryReturnType).map((type) => ({
@@ -54,20 +46,20 @@ export function SystemVariableQueryEditor({ onChange, query, datasource }: Props
   }, []); // Only run on mount
 
   function changeQueryReturnType(queryReturnType: SystemQueryReturnType) {
-    onChange({ ...systemVariableQuery, queryReturnType: queryReturnType } as SystemVariableQuery);
+    onChange({ ...query, queryReturnType: queryReturnType } as SystemVariableQuery);
   }
 
   function onParameterChange(ev: CustomEvent) {
-    if (systemVariableQuery.filter !== ev.detail.linq) {
-      onChange({ ...systemVariableQuery, filter: ev.detail.linq, filterObjects: ev.detail.value, workspace: '' });
+    if (query.filter !== ev.detail.linq) {
+      onChange({ ...query, filter: ev.detail.linq, filterObjects: ev.detail.value });
     }
   }
   return (
     <>
       <InlineField label="Filter" labelWidth={25} tooltip={"Filter the systems by various properties."}>
         <SystemsQueryBuilder
-          filter={systemVariableQuery.filter || ''}
-          filterObjects={systemVariableQuery.filterObjects}
+          filter={query.filter || ''}
+          filterObjects={query.filterObjects}
           onChange={(event: any) => onParameterChange(event)}
           globalVariableOptions={datasource.getVariableOptions()}
           workspaces={workspaces}
@@ -82,7 +74,7 @@ export function SystemVariableQueryEditor({ onChange, query, datasource }: Props
         <Select
           options={returnTypeOptions}
           defaultValue={SystemQueryReturnType.MinionId}
-          value={systemVariableQuery.queryReturnType || SystemQueryReturnType.MinionId}
+          value={query.queryReturnType || SystemQueryReturnType.MinionId}
           onChange={(item) => {
             changeQueryReturnType(item.value!);
           }}
