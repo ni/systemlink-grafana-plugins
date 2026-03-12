@@ -199,7 +199,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         return [...validOptions, ...invalidOptions];
     }, []);
 
-    const selectedDataTablePropertiesOptions = useMemo(() => {
+    const selectedDataTablePropertyOptions = useMemo(() => {
         return getSelectedPropertiesOptions(
             validDataTableProperties,
             invalidDataTableProperties,
@@ -214,7 +214,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         dataTableCustomPropertyOptions
     ]);
 
-    const selectedColumnPropertiesOptions = useMemo(() => {
+    const selectedColumnPropertyOptions = useMemo(() => {
         return getSelectedPropertiesOptions(
             validColumnProperties,
             invalidColumnProperties,
@@ -231,10 +231,10 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
 
     const getInvalidPropertiesMessage = useCallback((
         invalidProperties: string[],
-        isInitialized: boolean,
+        isCustomPropertiesInitialized: boolean,
         propertyType: string,
     ): string => {
-        if (invalidProperties.length === 0 || !isInitialized) {
+        if (invalidProperties.length === 0 || !isCustomPropertiesInitialized) {
             return '';
         }
         const invalidPropertyNames = invalidProperties
@@ -268,7 +268,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         invalidColumnProperties,
         customPropertiesInitialized
     ]);
-
 
     const columnOptionsMap = useMemo(() => {
         return new Map(columnOptions.map(option => [option.value, option]));
@@ -820,7 +819,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                             width="auto"
                             minWidth={VALUE_FIELD_WIDTH}
                             maxWidth={VALUE_FIELD_WIDTH}
-                            value={selectedDataTablePropertiesOptions}
+                            value={selectedDataTablePropertyOptions}
                             onChange={onDataTablePropertiesChange}
                             options={dataTablePropertyOptions}
                             isClearable={true}
@@ -838,7 +837,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                             width="auto"
                             minWidth={VALUE_FIELD_WIDTH}
                             maxWidth={VALUE_FIELD_WIDTH}
-                            value={selectedColumnPropertiesOptions}
+                            value={selectedColumnPropertyOptions}
                             onChange={onColumnPropertiesChange}
                             options={columnPropertyOptions}
                             isClearable={true}
