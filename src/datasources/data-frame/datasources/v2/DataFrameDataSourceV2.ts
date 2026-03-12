@@ -305,9 +305,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     public async getCustomPropertyOptions(
         filters: CombinedFilters
     ): Promise<CustomPropertyOptions> {
+        // TODO : Implement logic to fetch and return custom property options 
+        // based on the filters.
         return {
-            dataTableCustomProperties: [],
-            columnCustomProperties: []
+            dataTableCustomPropertyOptions: [],
+            columnCustomPropertyOptions: []
         };
     }
 

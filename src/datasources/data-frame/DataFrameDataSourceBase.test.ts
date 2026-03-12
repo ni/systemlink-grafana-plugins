@@ -164,8 +164,8 @@ describe('DataFrameDataSourceBase', () => {
         });
 
         expect(options).toEqual({
-            dataTableCustomProperties: [],
-            columnCustomProperties: []
+            dataTableCustomPropertyOptions: [],
+            columnCustomPropertyOptions: []
         });
     });
 

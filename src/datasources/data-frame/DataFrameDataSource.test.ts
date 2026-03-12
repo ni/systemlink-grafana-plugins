@@ -135,16 +135,16 @@ describe('DataFrameDataSource', () => {
         it('should call getCustomPropertyOptions on DataFrameDataSourceV2', async () => {
             const ds = new DataFrameDataSource(mockInstanceSettings);
             const mockPropertiesOptions = {
-                dataTableCustomProperties: [
+                dataTableCustomPropertyOptions: [
                     {
-                        label: 'Name',
-                        value: 'Name'
+                        label: 'key1',
+                        value: 'value1'
                     }
                 ],
-                columnCustomProperties: [
+                columnCustomPropertyOptions: [
                     {
-                        label: 'Column name',
-                        value: 'ColumnName'
+                        label: 'key2',
+                        value: 'value2'
                     }
                 ]
             };

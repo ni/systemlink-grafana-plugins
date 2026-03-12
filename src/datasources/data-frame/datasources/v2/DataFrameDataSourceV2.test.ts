@@ -6802,8 +6802,8 @@ describe('DataFrameDataSourceV2', () => {
                 };
                 const result = await ds.getCustomPropertyOptions(filters);
                 expect(result).toEqual({
-                    dataTableCustomProperties: [],
-                    columnCustomProperties: []
+                    dataTableCustomPropertyOptions: [],
+                    columnCustomPropertyOptions: []
                 });
             });
         });
