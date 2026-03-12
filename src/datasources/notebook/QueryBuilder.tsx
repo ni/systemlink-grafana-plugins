@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { QueryBuilder, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
+import { QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 import { useTheme2 } from '@grafana/ui';
 import { queryBuilderMessages, customOperations } from 'core/query-builder.constants';
 
@@ -9,6 +9,7 @@ import 'smart-webcomponents-react/source/styles/components/smart.base.css';
 import 'smart-webcomponents-react/source/styles/components/smart.common.css';
 import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
 import { filterXSSLINQExpression } from 'core/utils';
+import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
 
 type TestResultsQueryBuilderProps = Omit<QueryBuilderProps, 'customOperations' | 'fields' | 'messages' | 'showIcons'> &
   React.HTMLAttributes<Element> & {
@@ -156,7 +157,7 @@ export const TestResultsQueryBuilder: React.FC<TestResultsQueryBuilderProps> = (
   ];
 
   return (
-    <QueryBuilder
+    <SlQueryBuilder
       customOperations={customOperations}
       getDynamicField={getDynamicField}
       fields={fields}

@@ -6,13 +6,14 @@ import { filterXSSField, filterXSSLINQExpression } from "core/utils";
 import { ProductsQueryBuilderFields, ProductsQueryBuilderStaticFields } from "datasources/products/constants/ProductsQueryBuilder.constants";
 import { QBField } from "datasources/products/types";
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import QueryBuilder, { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
+import { QueryBuilderCustomOperation, QueryBuilderProps } from "smart-webcomponents-react/querybuilder";
 
 import 'smart-webcomponents-react/source/styles/smart.dark-orange.css';
 import 'smart-webcomponents-react/source/styles/smart.orange.css';
 import 'smart-webcomponents-react/source/styles/components/smart.base.css';
 import 'smart-webcomponents-react/source/styles/components/smart.common.css';
 import 'smart-webcomponents-react/source/styles/components/smart.querybuilder.css';
+import { SlQueryBuilder } from "core/components/SlQueryBuilder/SlQueryBuilder";
 
 type ProductsQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
   filter?: string;
@@ -88,26 +89,26 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
   }, [partNumbers]);
 
   const familyField = useMemo(() => {
-          const familyField = ProductsQueryBuilderFields.FAMILY;
-          return {
-              ...familyField,
-              lookup: {
-                  ...familyField.lookup,
-                  dataSource: [
-                      ...familyNames.map(family => ({ label: family, value: family }))
-                  ],
-                  minLength: 1
-              }
-          }
-      }, [familyNames]);
+    const familyField = ProductsQueryBuilderFields.FAMILY;
+    return {
+      ...familyField,
+      lookup: {
+        ...familyField.lookup,
+        dataSource: [
+          ...familyNames.map(family => ({ label: family, value: family }))
+        ],
+        minLength: 1
+      }
+    }
+  }, [familyNames]);
 
-      
-    const callbacks = useMemo(() => {
-      return {
-        expressionBuilderCallback: expressionBuilderCallbackWithRef(optionsRef),
-        expressionReaderCallback: expressionReaderCallbackWithRef(optionsRef),
-      };
-    }, [optionsRef]);
+
+  const callbacks = useMemo(() => {
+    return {
+      expressionBuilderCallback: expressionBuilderCallbackWithRef(optionsRef),
+      expressionReaderCallback: expressionReaderCallbackWithRef(optionsRef),
+    };
+  }, [optionsRef]);
 
   useEffect(() => {
     const updatedFields = [partNumberField, familyField, ...ProductsQueryBuilderStaticFields!, updatedAtField, workspaceField]
@@ -175,7 +176,7 @@ export const ProductsQueryBuilder: React.FC<ProductsQueryBuilderProps> = ({
   }, [workspaceField, updatedAtField, partNumberField, familyField, globalVariableOptions, callbacks]);
 
   return (
-    <QueryBuilder
+    <SlQueryBuilder
       customOperations={operations}
       fields={fields}
       messages={queryBuilderMessages}
