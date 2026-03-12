@@ -1,3 +1,9 @@
+## [4.137.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.137.0...v4.137.1) (2026-03-12)
+
+### Bug Fixes
+
+* **plotly:** Add control to toggle between Scatter and ScatterGL ([#698](https://github.com/ni/systemlink-grafana-plugins/issues/698)) ([c020045](https://github.com/ni/systemlink-grafana-plugins/commit/c0200456edd37806461742b7f365d379343f5c21))
+
 ## [4.137.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.136.0...v4.137.0) (2026-03-10)
 
 ### Features
