@@ -71,6 +71,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         columnFilter: '',
     });
 
+    const lastCustomPropertyFilterRef = useRef<CombinedFilters>({
+        resultFilter: '',
+        dataTableFilter: '',
+        columnFilter: '',
+    });
+
     // Auto-run query on initial render
     // if it is default query
     useEffect(() => {
@@ -247,13 +253,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
             
             const filterChanged =
               isFiltersEmpty(transformedFilter) 
-              || !_.isEqual(lastFilterRef.current, transformedFilter);
+              || !_.isEqual(lastCustomPropertyFilterRef.current, transformedFilter);
     
             if (migratedQuery.type !== DataFrameQueryType.Properties || !filterChanged) {
               return;
             }
 
-            lastFilterRef.current = transformedFilter;
+            lastCustomPropertyFilterRef.current = transformedFilter;
 
             fetchAndSetCustomPropertyOptions(transformedFilter);
       },
