@@ -306,10 +306,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         filters: CombinedFilters
     ): Promise<CustomPropertyOptions> {
         const tables = await lastValueFrom(
-            this.queryTables$(filters, TAKE_LIMIT, [
-                DataTableProjections.Properties,
-                DataTableProjections.ColumnProperties
-            ])
+            this.queryTables$(
+                filters,
+                TAKE_LIMIT,
+                [
+                    DataTableProjections.Properties,
+                    DataTableProjections.ColumnProperties
+                ]
+            )
         );
         
         if (!this.tablesContainsProperties(tables)) {

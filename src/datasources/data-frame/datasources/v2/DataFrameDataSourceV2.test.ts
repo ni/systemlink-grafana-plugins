@@ -1,7 +1,7 @@
 import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
 import { BackendSrv, locationService, TemplateSrv } from '@grafana/runtime';
-import { ColumnType, CustomPropertyOptions, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
+import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
 import { COLUMN_SELECTION_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATATABLE_PROPERTIES_GROUP, MAXIMUM_DATA_POINTS, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
@@ -6819,29 +6819,6 @@ describe('DataFrameDataSourceV2', () => {
                 expect(columnLabels).toEqual(['xprop', 'yprop', 'zprop']);
             });
 
-            it('should return only custom properties', async () => {
-                const filters = { dataTableFilter: '', resultFilter: '', columnFilter: '' };
-
-                const customProperties: CustomPropertyOptions = {
-                    dataTableCustomPropertyOptions: [
-                        { label: 'Custom Table Prop', value: 'customTableProp-(custom-properties)' },
-                    ],
-                    columnCustomPropertyOptions: [
-                        { label: 'Custom Column Prop', value: 'customColumnProp-(custom-properties)' },
-                    ],
-                };
-                jest.spyOn(ds as any, 'getCustomPropertyOptions').mockResolvedValue(customProperties);
-
-                const result = await ds.getCustomPropertyOptions(filters);
-                
-                expect(result.dataTableCustomPropertyOptions).toEqual(
-                    expect.arrayContaining(customProperties.dataTableCustomPropertyOptions)
-                );
-                expect(result.columnCustomPropertyOptions).toEqual(
-                    expect.arrayContaining(customProperties.columnCustomPropertyOptions)
-                );
-            });
-
             it('should return empty options when tables have no properties and no columns', async () => {
                 queryTablesSpy$.mockReturnValue(of([]));
                 const result = await ds.getCustomPropertyOptions(filters);
@@ -6969,6 +6946,35 @@ describe('DataFrameDataSourceV2', () => {
 
                 const customColumnOptions = result.columnCustomPropertyOptions.filter(option => option.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
                 expect(customColumnOptions).toEqual([]);
+            });
+
+            it('should skip tables without properties', async () => {
+                const mockTables = [
+                    {
+                        id: 'table-1', name: 'Table 1',
+                        columns: [
+                            { name: 'Col1', dataType: 'STRING', properties: { colProp: 'val' } },
+                            { name: 'Col2', dataType: 'INT32' },
+                        ]
+                    },
+                    {
+                        id: 'table-2', name: 'Table 2',
+                        columns: [
+                            { name: 'Col3', dataType: 'STRING' },
+                            { name: 'Col4', dataType: 'INT32' },
+                        ],
+                       properties: { tableProp: 'val1' },
+                    }
+                ];
+
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters);
+
+                const customDataTableOptions = result.dataTableCustomPropertyOptions.filter(option => option.group === CUSTOM_DATATABLE_PROPERTIES_GROUP);
+                expect(customDataTableOptions).toEqual([
+                    { label: 'tableProp', value: 'tableProp-(custom-properties)', group: CUSTOM_DATATABLE_PROPERTIES_GROUP },
+                ]);
             });
 
             it('should skip columns without properties', async () => {
