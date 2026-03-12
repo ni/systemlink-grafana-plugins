@@ -8,6 +8,7 @@ import _ from 'lodash';
 
 const mockPublish = jest.fn();
 let plotlyOnRelayout: any;
+let plotlyLayout: any;
 
 jest.mock('@grafana/runtime', () => ({
   getTemplateSrv: () => ({
@@ -26,8 +27,9 @@ jest.mock('@grafana/runtime', () => ({
 jest.mock('./utils', () => ({
   getFieldsByName: jest.fn((frames, name) => frames.map((f: any) => f.fields[0])),
   notEmpty: jest.fn((val) => val !== null && val !== undefined),
-  Plot: ({ onRelayout }: any) => {
+  Plot: ({ onRelayout, layout }: any) => {
     plotlyOnRelayout = onRelayout;
+    plotlyLayout = layout;
     return <div data-testid="plotly-plot">Plot</div>;
   },
   renderMenuItems: jest.fn(),
@@ -50,77 +52,80 @@ describe('PlotlyPanel', () => {
     options: Partial<PanelOptions> = {},
     panelId = 1,
     fieldType = 'number',
-    fieldName = 'temperature'
-  ): PanelProps<PanelOptions> => ({
-    options: {
-      xAxis: { field: 'temperature', min: undefined, max: undefined },
-      yAxis: { fields: [], min: undefined, max: undefined },
-      yAxis2: { fields: [], min: undefined, max: undefined },
-      showYAxis2: false,
-      showLegend: true,
-      legendPosition: 'right',
-      showModeBar: true,
-      displayVertically: true,
-      invertXAxis: false,
-      series: {
-        plotType: 'line',
-        stackBars: false,
-        areaFill: false,
-        staircase: false,
-        markerSize: 5,
-        lineWidth: 2,
-      },
-      series2: {
-        plotType: 'line',
-        stackBars: false,
-        areaFill: false,
-        staircase: false,
-        markerSize: 5,
-        lineWidth: 2,
-      },
-      ...options,
-    },
-    data: {
-      series: [
-        {
-          name: 'Series 1',
-          fields: [
-            {
-              name: fieldName,
-              type: fieldType,
-              values: { toArray: () => [1, 2, 3] },
-              config: {},
-            },
-            {
-              name: 'value',
-              type: 'number',
-              values: { toArray: () => [10, 20, 30] },
-              config: {},
-            },
-          ],
-          length: 3,
+    fieldName?: string
+  ): PanelProps<PanelOptions> => {
+    const xAxisFieldName = fieldName || (options.xAxis?.field) || 'temperature';
+    return {
+      options: {
+        xAxis: { field: xAxisFieldName, min: undefined, max: undefined },
+        yAxis: { fields: [], min: undefined, max: undefined },
+        yAxis2: { fields: [], min: undefined, max: undefined },
+        showYAxis2: false,
+        showLegend: true,
+        legendPosition: 'right',
+        showModeBar: true,
+        displayVertically: true,
+        invertXAxis: false,
+        series: {
+          plotType: 'line',
+          stackBars: false,
+          areaFill: false,
+          staircase: false,
+          markerSize: 5,
+          lineWidth: 2,
         },
-      ],
-      state: 'Done',
-    } as any,
-    timeRange: {
-      from: { isValid: () => false, valueOf: () => undefined },
-      to: { isValid: () => false, valueOf: () => undefined },
-    } as any,
-    timeZone: 'UTC',
-    width: 800,
-    height: 600,
-    fieldConfig: {} as any,
-    id: panelId,
-    title: 'Plotly Panel',
-    transparent: false,
-    renderCounter: 1,
-    onOptionsChange: jest.fn(),
-    onFieldConfigChange: jest.fn(),
-    replaceVariables: jest.fn((str) => str),
-    onChangeTimeRange: jest.fn(),
-    eventBus: {} as any,
-  });
+        series2: {
+          plotType: 'line',
+          stackBars: false,
+          areaFill: false,
+          staircase: false,
+          markerSize: 5,
+          lineWidth: 2,
+        },
+        ...options,
+      },
+      data: {
+        series: [
+          {
+            name: 'Series 1',
+            fields: [
+              {
+                name: xAxisFieldName,
+                type: fieldType,
+                values: { toArray: () => [1, 2, 3] },
+                config: {},
+              },
+              {
+                name: 'value',
+                type: 'number',
+                values: { toArray: () => [10, 20, 30] },
+                config: {},
+              },
+            ],
+            length: 3,
+          },
+        ],
+        state: 'Done',
+      } as any,
+      timeRange: {
+        from: { isValid: () => false, valueOf: () => undefined },
+        to: { isValid: () => false, valueOf: () => undefined },
+      } as any,
+      timeZone: 'UTC',
+      width: 800,
+      height: 600,
+      fieldConfig: {} as any,
+      id: panelId,
+      title: 'Plotly Panel',
+      transparent: false,
+      renderCounter: 1,
+      onOptionsChange: jest.fn(),
+      onFieldConfigChange: jest.fn(),
+      replaceVariables: jest.fn((str) => str),
+      onChangeTimeRange: jest.fn(),
+      eventBus: {} as any,
+    };
+  };
 
   const renderPlotlyElement = (props: PanelProps<PanelOptions>) => {
     return render(<PlotlyPanel {...props} />);
@@ -133,9 +138,18 @@ describe('PlotlyPanel', () => {
     });
   };
 
+  const triggerAutoRange = () => {
+    plotlyOnRelayout({
+      'xaxis.autorange': true,
+    });
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    plotlyOnRelayout = undefined;
+    plotlyLayout = undefined;
+    (locationService.getSearchObject as jest.Mock).mockReturnValue({});
   });
 
   afterEach(() => {
@@ -174,6 +188,24 @@ describe('PlotlyPanel', () => {
             {
               'nisl-temperature-min': 3.123457,
               'nisl-temperature-max': 45.678901,
+            },
+            true
+          );
+          expect(mockPublish).toHaveBeenCalled();
+        });
+
+        it('should update route parameters when x-axis range starts at zero', () => {
+          mockSearchObject('?nisl-syncXAxisRangeTargets=1');
+          const props = createMockProps({ xAxis: { field: 'temperature' } }, 1);
+
+          renderPlotlyElement(props);
+          triggerRelayout(0.000000, 10.5847392847563829);
+          jest.runOnlyPendingTimers();
+
+          expect(locationService.partial).toHaveBeenCalledWith(
+            {
+              'nisl-temperature-min': 0,
+              'nisl-temperature-max': 10.584739,
             },
             true
           );
@@ -268,16 +300,31 @@ describe('PlotlyPanel', () => {
           );
         });
 
-        it('should call onOptionsChange with new min and max when relayout event provides numeric x-axis values', () => {
+        it('should call onOptionsChange with new min and max when relayout event provides numeric x-axis values and panel is not in sync targets', () => {
+          mockSearchObject('?nisl-syncXAxisRangeTargets=2');
           const props = createMockProps({ xAxis: { field: 'temperature', min: 1, max: 2 } }, 1);
 
           renderPlotlyElement(props);
           triggerRelayout(10.8472639485726394, 100.5938475629384756);
 
-          expect(props.onOptionsChange).toHaveBeenCalledWith({
-            ...props.options,
-            xAxis: { ...props.options.xAxis, min: 10.8472639485726394, max: 100.5938475629384756 },
-          });
+          expect(props.onOptionsChange).toHaveBeenCalledWith(
+            expect.objectContaining({
+              xAxis: expect.objectContaining({
+                min: 10.8472639485726394,
+                max: 100.5938475629384756,
+              }),
+            })
+          );
+        });
+
+        it('should not call onOptionsChange with new min and max when relayout event provides numeric x-axis values and panel is in sync targets', () => {
+          mockSearchObject('?nisl-syncXAxisRangeTargets=1');
+          const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 200 } }, 1);
+
+          renderPlotlyElement(props);
+          triggerRelayout(10.8472639485726394, 100.5938475629384756);
+
+          expect(props.onOptionsChange).not.toHaveBeenCalled();
         });
       });
 
@@ -435,6 +482,17 @@ describe('PlotlyPanel', () => {
           expect(locationService.partial).not.toHaveBeenCalled();
         });
 
+        it('should not update route parameters when nisl-syncXAxisRangeTargets has consecutive commas', () => {
+          mockSearchObject('?nisl-syncXAxisRangeTargets=1,,2');
+          const props = createMockProps({ xAxis: { field: 'temperature' } }, 0);
+
+          renderPlotlyElement(props);
+          triggerRelayout(10, 100);
+          jest.runOnlyPendingTimers();
+
+          expect(locationService.partial).not.toHaveBeenCalled();
+        });
+
         it('should not update route parameters when nisl-syncXAxisRangeTargets has single quotes around values', () => {
           mockSearchObject('?nisl-syncXAxisRangeTargets=\'1\',\'2\'');
           const props = createMockProps({ xAxis: { field: 'temperature' } }, 2);
@@ -483,8 +541,8 @@ describe('PlotlyPanel', () => {
       });
     });
 
-    describe('when x-axis field is invalid', () => {
-      it('should not update route parameters when field is undefined', () => {
+    describe('when x-axis field is undefined or empty', () => {
+      it('should update route parameters using auto-resolved field name when field is undefined', () => {
         mockSearchObject('?nisl-syncXAxisRangeTargets=1');
         const props = createMockProps({ xAxis: { field: undefined } }, 1);
 
@@ -492,10 +550,16 @@ describe('PlotlyPanel', () => {
         triggerRelayout(10.3472639485726394, 99.7938475629384756);
         jest.runOnlyPendingTimers();
 
-        expect(locationService.partial).not.toHaveBeenCalled();
+        expect(locationService.partial).toHaveBeenCalledWith(
+          {
+            'nisl-temperature-min': 10.347264,
+            'nisl-temperature-max': 99.793848,
+          },
+          true
+        );
       });
 
-      it('should not update route parameters when field is an empty string', () => {
+      it('should update route parameters using auto-resolved field name when field is an empty string', () => {
         mockSearchObject('?nisl-syncXAxisRangeTargets=1');
         const props = createMockProps({ xAxis: { field: '' } }, 1);
 
@@ -503,7 +567,13 @@ describe('PlotlyPanel', () => {
         triggerRelayout(10.3472639485726394, 99.7938475629384756);
         jest.runOnlyPendingTimers();
 
-        expect(locationService.partial).not.toHaveBeenCalled();
+        expect(locationService.partial).toHaveBeenCalledWith(
+          {
+            'nisl-temperature-min': 10.347264,
+            'nisl-temperature-max': 99.793848,
+          },
+          true
+        );
       });
     });
 
@@ -519,6 +589,288 @@ describe('PlotlyPanel', () => {
       expect(locationService.partial).not.toHaveBeenCalled();
     });
 
+    describe('Numeric X-Axis Range Synchronization', () => {
+      it('should sync x-axis range with min and max from URL params when panel is in sync targets', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=5.5&nisl-temperature-max=95.5');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([5.5, 95.5]);
+      });
+
+      it('should sync x-axis range when min and max from URL params are equal', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=50&nisl-temperature-max=50');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([50, 50]);
+      });
+
+      it('should sync x-axis range when min and max from URL params are negative', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=-200&nisl-temperature-max=-50');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([-200, -50]);
+      });
+
+      it('should sync x-axis range when min and max from URL params are number type', () => {
+        (locationService.getSearchObject as jest.Mock).mockReturnValue({
+          'nisl-syncXAxisRangeTargets': '1',
+          'nisl-temperature-min': 25,
+          'nisl-temperature-max': 75,
+        });
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([25, 75]);
+      });
+
+      it('should sync x-axis range with last value when duplicate URL params exist for both min and max', () => {
+        (locationService.getSearchObject as jest.Mock).mockReturnValue({
+          'nisl-syncXAxisRangeTargets': '1',
+          'nisl-temperature-min': ['5', '15', '25'],
+          'nisl-temperature-max': ['60', '70', '80'],
+        });
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([25, 80]);
+      });
+
+      it('should use original panel options for x-axis range when x-axis field name is undefined', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl--min=5&nisl--max=95');
+        const props = createMockProps({ xAxis: { field: undefined, min: 0, max: 100 } }, 1);
+        props.data.series[0].fields[0].name = '';
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([0, 100]);
+      });
+
+      it('should use original panel options for x-axis range when panel is not in sync targets', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=2,3&nisl-temperature-min=5&nisl-temperature-max=95');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([0, 100]);
+      });
+
+      it('should use original panel options for x-axis range when no range params exist in URL', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 10, max: 90 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([10, 90]);
+      });
+
+      it('should use original panel options for x-axis range when nisl-syncXAxisRangeTargets is missing', () => {
+        mockSearchObject('');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 20, max: 80 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([20, 80]);
+      });
+      
+      it('should use original panel options for x-axis range when only synced min is present in URL params', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10.5');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([0, 100]);
+      });
+
+      it('should use original panel options for x-axis range when only synced max is present in URL params', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-max=88.8');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([0, 100]);
+      });
+
+      it('should use original panel options for x-axis range when synced min is greater than synced max', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=95.5&nisl-temperature-max=5.5');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([0, 100]);
+      });
+
+      it('should use original panel options for x-axis range when negative min is greater than negative max', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=-10&nisl-temperature-max=-50');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([0, 100]);
+      });
+
+      it('should use original panel options for x-axis range when URL param min is NaN', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=NaN&nisl-temperature-max=100');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([0, 100]);
+      });
+
+      it('should use original panel options for x-axis range when URL param max is Infinity', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=Infinity');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([0, 100]);
+      });
+
+      it('should use original panel options for x-axis range when URL param min is negative Infinity', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=-Infinity&nisl-temperature-max=100');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([0, 100]);
+      });
+
+      it('should use original panel options for x-axis range when URL param contains invalid characters', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=50.5abc&nisl-temperature-max=100');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([0, 100]);
+      });
+
+      it('should use original panel options for x-axis range when URL param value is empty string', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=&nisl-temperature-max=100');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([0, 100]);
+      });
+
+      it('should use original panel options for x-axis range when URL params are boolean true', () => {
+        (locationService.getSearchObject as jest.Mock).mockReturnValue({
+          'nisl-syncXAxisRangeTargets': '1',
+          'nisl-temperature-min': true,
+          'nisl-temperature-max': true,
+        });
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([0, 100]);
+      });
+
+      it('should use original panel options for x-axis range when URL params are boolean false', () => {
+        (locationService.getSearchObject as jest.Mock).mockReturnValue({
+          'nisl-syncXAxisRangeTargets': '1',
+          'nisl-temperature-min': false,
+          'nisl-temperature-max': false,
+        });
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([0, 100]);
+      });
+
+      it('should use original panel options for x-axis range when URL params are empty arrays', () => {
+        (locationService.getSearchObject as jest.Mock).mockReturnValue({
+          'nisl-syncXAxisRangeTargets': '1',
+          'nisl-temperature-min': [],
+          'nisl-temperature-max': [],
+        });
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 0, max: 100 } }, 1);
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.xaxis.range).toEqual([0, 100]);
+      });
+    });
+
+    describe('Reset X-Axis Range Sync on Autorange', () => {
+      it('should clear URL params and publish refresh when synced panel triggers autorange', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10&nisl-temperature-max=90');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 10, max: 90 } }, 1);
+
+        renderPlotlyElement(props);
+        triggerAutoRange();
+
+        expect(props.onOptionsChange).toHaveBeenCalledWith(
+          expect.objectContaining({ xAxis: expect.objectContaining({ min: undefined, max: undefined }) })
+        );
+        expect(locationService.partial).toHaveBeenCalledWith(
+          {
+            'nisl-temperature-min': null,
+            'nisl-temperature-max': null,
+          },
+          true
+        );
+        expect(mockPublish).toHaveBeenCalled();
+      });
+
+      it('should clear URL params and publish refresh when synced panel has only one of the URL param', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1&nisl-temperature-min=10');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 10, max: 90 } }, 1);
+
+        renderPlotlyElement(props);
+        triggerAutoRange();
+
+        expect(props.onOptionsChange).toHaveBeenCalledWith(
+          expect.objectContaining({ xAxis: expect.objectContaining({ min: undefined, max: undefined }) })
+        );
+        expect(locationService.partial).toHaveBeenCalledWith(
+          {
+            'nisl-temperature-min': null,
+            'nisl-temperature-max': null,
+          },
+          true
+        );
+        expect(mockPublish).toHaveBeenCalled();
+      });
+
+      it('should clear options but not URL params when panel is not in sync targets', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=2,3');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 10, max: 90 } }, 1);
+
+        renderPlotlyElement(props);
+        triggerAutoRange();
+
+        expect(props.onOptionsChange).toHaveBeenCalledWith(
+          expect.objectContaining({ xAxis: expect.objectContaining({ min: undefined, max: undefined }) })
+        );
+        expect(locationService.partial).not.toHaveBeenCalled();
+        expect(mockPublish).not.toHaveBeenCalled();
+      });
+
+      it('should not clear URL params when synced panel has no existing URL range params', () => {
+        mockSearchObject('?nisl-syncXAxisRangeTargets=1');
+        const props = createMockProps({ xAxis: { field: 'temperature', min: 10, max: 90 } }, 1);
+
+        renderPlotlyElement(props);
+        triggerAutoRange();
+
+        expect(props.onOptionsChange).toHaveBeenCalledWith(
+          expect.objectContaining({ xAxis: expect.objectContaining({ min: undefined, max: undefined }) })
+        );
+        expect(locationService.partial).not.toHaveBeenCalled();
+        expect(mockPublish).not.toHaveBeenCalled();
+      });
+    });
+
     describe('Dashboard Time Range Synchronization', () => {
       describe('when x-axis is time-based', () => {
         const createTimeSeriesProps = (xAxisMin?: number, xAxisMax?: number) => {
@@ -527,8 +879,7 @@ describe('PlotlyPanel', () => {
               xAxis: { field: 'Updated at', min: xAxisMin, max: xAxisMax },
             },
             1,
-            FieldType.time,
-            'Updated at'
+            FieldType.time
           );
         };
 
@@ -697,8 +1048,7 @@ describe('PlotlyPanel', () => {
                 xAxis: { field: fieldName, min: undefined, max: undefined },
               },
               1,
-              fieldType,
-              fieldName
+              fieldType
             );
             props.timeRange = {
               from: { isValid: () => true, valueOf: () => timeFrom },

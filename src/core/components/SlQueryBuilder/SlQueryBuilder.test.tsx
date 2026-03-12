@@ -4,7 +4,6 @@ import { SlQueryBuilder } from './SlQueryBuilder';
 import { QueryBuilderCustomOperation, QueryBuilderField } from 'smart-webcomponents-react';
 import * as QueryBuilderModule from 'smart-webcomponents-react/querybuilder';
 
-
 describe('SlQueryBuilder', () => {
   const containerClass = 'smart-filter-group-condition-container';
   const customOperations = [{
@@ -55,7 +54,7 @@ describe('SlQueryBuilder', () => {
     const expectedFieldLabels = ['Field1', 'Field2', 'Field3', 'Field4'];
 
     renderElement(customOperations, fields);
-    const queryBuilderFields = queryBuilderSpy.mock.lastCall?.at(0).fields;
+    const queryBuilderFields = queryBuilderSpy.mock.lastCall?.at(0)?.fields;
     const queryBuilderFieldLabels = queryBuilderFields?.map((field: QueryBuilderField) => field.label);
 
     expect(queryBuilderFieldLabels).toEqual(expectedFieldLabels);

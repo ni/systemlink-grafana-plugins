@@ -136,6 +136,8 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
             { label: 'Line', value: 'line' },
             { label: 'Bar', value: 'bar' },
             { label: 'Points', value: 'points' },
+            { label: 'Box', value: 'box' },
+            { label: 'Violin', value: 'violin' }
           ],
         },
         defaultValue: 'line',
@@ -263,6 +265,8 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
             { label: 'Line', value: 'line' },
             { label: 'Bar', value: 'bar' },
             { label: 'Points', value: 'points' },
+            { label: 'Box', value: 'box' },
+            { label: 'Violin', value: 'violin' }
           ],
         },
         defaultValue: 'line',

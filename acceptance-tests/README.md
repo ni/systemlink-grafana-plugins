@@ -123,6 +123,8 @@ export const getAssetHealth = (req, res) => {
 server.get('/api/assets/:id/health', getAssetHealth);
 ```
 
+> **Note**: When configuring data sources in tests, use `http://fake-api:8080` as the URL instead of `http://localhost:5000`. The fake-api service runs on port 8080 inside the Docker network, while port 5000 is only the external mapping for local development access.
+
 ## Test Guidelines
 
 - Use descriptive test names that explain the expected behavior

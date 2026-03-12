@@ -1,4 +1,5 @@
-import { DataQuery } from '@grafana/schema'
+import { DataQuery, DataSourceJsonData } from '@grafana/schema'
+import { QueryFilterObjects } from 'core/components/SlQueryBuilder/models/SlQueryFilterObjects';
 
 export enum SystemQueryType {
   Properties = "Properties",
@@ -10,6 +11,7 @@ export interface SystemQuery extends DataQuery {
   systemName: string;
   workspace: string;
   filter?: string;
+  filterObjects?: QueryFilterObjects;
 }
 
 export interface SystemVariableQuery {
@@ -63,3 +65,15 @@ export const ConnectionStatusOptions = [
   { label: 'Connected refresh pending', value: ConnectionStatus.CONNECTED_REFRESH_PENDING },
   { label: 'Activated without connection', value: ConnectionStatus.ACTIVATED_WITHOUT_CONNECTION },
 ];
+
+export interface SystemFeatureToggles {
+  systemQueryBuilder?: boolean;
+}
+
+export const SystemFeatureTogglesDefaults: SystemFeatureToggles = {
+  systemQueryBuilder: false,
+};
+
+export interface SystemDataSourceOptions extends DataSourceJsonData {
+  featureToggles?: SystemFeatureToggles;
+}

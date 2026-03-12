@@ -15,7 +15,7 @@ import { AxisLabels, PanelOptions } from './types';
 import { useTheme2, ContextMenu, MenuItemsGroup, linkModelToContextMenuItems } from '@grafana/ui';
 import { getTemplateSrv, PanelDataErrorView, locationService, getAppEvents } from '@grafana/runtime';
 import { getFieldsByName, notEmpty, Plot, renderMenuItems, useTraceColors } from './utils';
-import { AxisType, Legend, PlotData, PlotType, toImage, Icons, PlotlyHTMLElement } from 'plotly.js-basic-dist-min';
+import { AxisType, Legend, PlotData, PlotType, toImage, Icons, PlotlyHTMLElement } from 'plotly.js-dist-min';
 import { saveAs } from 'file-saver';
 import _ from 'lodash';
 import { NIRefreshDashboardEvent } from './events';
@@ -78,17 +78,25 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dashboardTimeFrom, dashboardTimeTo, isTimeBasedXAxis]);
 
+  const updateXAxisRangeInQueryParams = (
+    xAxisFieldName: string,
+    min?: number,
+    max?: number
+  ) => {
+    locationService.partial(
+      {
+        [`nisl-${xAxisFieldName}-min`]: min ?? null,
+        [`nisl-${xAxisFieldName}-max`]: max ?? null,
+      },
+      true,
+    );
+    getAppEvents().publish(new NIRefreshDashboardEvent());
+  };
+
   const publishXAxisRangeUpdate = useMemo(
     () =>
       _.debounce((xAxisMin: number, xAxisMax: number, xAxisField: string) => {
-        locationService.partial(
-          {
-            [`nisl-${xAxisField}-min`]: xAxisMin,
-            [`nisl-${xAxisField}-max`]: xAxisMax,
-          },
-          true,
-        );
-        getAppEvents().publish(new NIRefreshDashboardEvent());
+        updateXAxisRangeInQueryParams(xAxisField, xAxisMin, xAxisMax);
       }, debounceDelayInMs),
     []
   );
@@ -201,10 +209,17 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
 
     if (autoRange) {
       onOptionsChange({...options, xAxis: { ...options.xAxis, min: undefined, max: undefined }});
+
+      if (shouldSyncXAxisRange()) {
+        resetNumericXAxisRange();
+      }
       return;
     }
 
-    if (!xAxisMin || !xAxisMax) {
+    if (
+      xAxisMin === undefined ||
+      xAxisMax === undefined
+    ) {
       return;
     }
 
@@ -220,57 +235,120 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       if (!Number.isFinite(xAxisMin) || !Number.isFinite(xAxisMax)) {
         return;
       }
-      
-      props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
-      syncNumericXAxisRange(xAxisMin, xAxisMax);
+
+      if (shouldSyncXAxisRange()) {
+        syncNumericXAxisRange(xAxisMin, xAxisMax);
+      } else {
+        onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
+      }
     }
   };
 
-  const syncNumericXAxisRange = (xAxisMin: number, xAxisMax: number) => {
-    if(!options.xAxis.field) {
-      return;
-    }
-
+  const shouldSyncXAxisRange = (): boolean => {
     const queryParams = locationService.getSearchObject();
     const syncTargetsQueryParam = queryParams['nisl-syncXAxisRangeTargets'];
     const syncTargets =
       typeof syncTargetsQueryParam === 'string'
         ? syncTargetsQueryParam
             .split(',')
-            .map(id => Number(id.trim()))
+            .map(id => id.trim())
+            .filter(id => id !== '')
+            .map(Number)
             .filter(id => !isNaN(id) && id >= 0)
         : [];
 
-    if (!syncTargets.includes(props.id)) {
+    return syncTargets.includes(props.id);
+  };
+
+  const syncNumericXAxisRange = (xAxisMin: number, xAxisMax: number) => {
+    const xAxisFieldName = xFields[0].name;
+
+    if (!xAxisFieldName) {
       return;
     }
-    
+
     const updatedXAxisMin = Number(xAxisMin.toFixed(xAxisPrecisionDecimals));
     const updatedXAxisMax = Number(xAxisMax.toFixed(xAxisPrecisionDecimals));
-    const existingXAxisMinParam = queryParams[`nisl-${options.xAxis.field}-min`];
-    const existingXAxisMaxParam = queryParams[`nisl-${options.xAxis.field}-max`];
-    const existingXAxisMin = parseNumericQueryParam(existingXAxisMinParam);
-    const existingXAxisMax = parseNumericQueryParam(existingXAxisMaxParam);
+    const existingXAxisRange = getExistingXAxisRange(xAxisFieldName);
 
     if (
-      updatedXAxisMin !== existingXAxisMin ||
-      updatedXAxisMax !== existingXAxisMax
+      updatedXAxisMin !== existingXAxisRange.min ||
+      updatedXAxisMax !== existingXAxisRange.max
     ) {
       publishXAxisRangeUpdate(
         updatedXAxisMin, 
         updatedXAxisMax, 
-        options.xAxis.field
+        xAxisFieldName
       );
     }
   };
 
-  const parseNumericQueryParam = (paramValue: UrlQueryValue): number | undefined => {
-    if (typeof paramValue === 'string' && paramValue !== '') {
-      return Number(paramValue);
+  const resetNumericXAxisRange = () => {
+    publishXAxisRangeUpdate.cancel();
+
+    const xAxisFieldName = xFields[0]?.name;
+    if (!xAxisFieldName) {
+      return;
     }
 
-    return undefined;
+    const { min, max } = getExistingXAxisRange(xAxisFieldName);
+    if (min === undefined && max === undefined) {
+      return;
+    }
+
+    updateXAxisRangeInQueryParams(xAxisFieldName);
   };
+
+  const getSyncedXAxisRange = (): { min?: number; max?: number } | undefined => {
+    if (!shouldSyncXAxisRange()) {
+      return undefined;
+    }
+
+    const xAxisFieldName = xFields[0].name;
+    if (!xAxisFieldName) {
+      return undefined;
+    }
+
+    const range = getExistingXAxisRange(xAxisFieldName);
+    if (
+      range.min === undefined
+      || range.max === undefined
+      || range.min > range.max
+    ) {
+      return undefined;
+    }
+
+    return range;
+  };
+
+  const parseNumericQueryParam = (paramValue: UrlQueryValue): number | undefined => {
+    const value = Array.isArray(paramValue) ? paramValue[paramValue.length - 1] : paramValue;
+
+    if (
+      value === undefined
+      || value === null
+      || value === ''
+      || typeof value === 'boolean'
+    ) {
+      return undefined;
+    }
+
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? numericValue : undefined;
+  };
+
+  const getExistingXAxisRange = (fieldName: string): { min?: number; max?: number } => {
+    const queryParams = locationService.getSearchObject();
+    return {
+      min: parseNumericQueryParam(queryParams[`nisl-${fieldName}-min`]),
+      max: parseNumericQueryParam(queryParams[`nisl-${fieldName}-max`]),
+    };
+  };
+
+  const syncedXAxisRange = getSyncedXAxisRange();
+  const effectiveOptions = syncedXAxisRange
+    ? { ...options, xAxis: { ...options.xAxis, min: syncedXAxisRange.min, max: syncedXAxisRange.max } }
+    : options;
 
   const handleImageDownload = (gd: PlotlyHTMLElement) =>
     toImage(gd, { format: 'png', width, height }).then((data) => saveAs(data, props.title));
@@ -284,7 +362,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           height,
           annotations:
             plotData.length === 0 || !plotData.find((d) => d.y?.length) ? [{ text: 'No data', showarrow: false }] : [],
-          ...getLayout(theme, traceColors, options, plotData, axisLabels),
+          ...getLayout(theme, traceColors, effectiveOptions, plotData, axisLabels),
         }}
         config={getConfig(options, handleImageDownload)}
         onClick={handlePlotClick}
@@ -393,9 +471,9 @@ const getFixedColor = (field: Field, theme: GrafanaTheme2) => {
 const getModeAndType = (type: string) => {
   switch (type) {
     case 'line':
-      return { mode: 'lines' as PlotData['mode'], type: 'scatter' as PlotType };
+      return { mode: 'lines' as PlotData['mode'], type: 'scattergl' as PlotType };
     case 'points':
-      return { mode: 'markers' as PlotData['mode'], type: 'scatter' as PlotType };
+      return { mode: 'markers' as PlotData['mode'], type: 'scattergl' as PlotType };
     default:
       return { type: type as PlotType };
   }
