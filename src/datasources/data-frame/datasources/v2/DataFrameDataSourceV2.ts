@@ -305,24 +305,15 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     public async getCustomPropertyOptions(
         filters: CombinedFilters
     ): Promise<CustomPropertyOptions> {
-        let tables: TableProperties[] = [];
-        try {
-            tables = await lastValueFrom(
+        const tables = await lastValueFrom(
             this.queryTables$(filters, TAKE_LIMIT, [
                 DataTableProjections.Properties,
                 DataTableProjections.ColumnProperties
             ])
-            );
-        } catch (error) {
-            const errorMessage = this.getErrorMessage(error as Error, 'custom properties');
-            this.appEvents?.publish?.({
-                type: AppEvents.alertError.name,
-                payload: ['Error fetching custom properties', errorMessage],
-            });
-            return { dataTableCustomProperties: [], columnCustomProperties: [] };
-        }
+        );
+        
         if (!this.tablesContainsColumns(tables) && !this.tablesContainsProperties(tables)) {
-            return { dataTableCustomProperties: [], columnCustomProperties: [] };
+            return { dataTableCustomPropertyOptions:[], columnCustomPropertyOptions: [] };
         }
 
         const dataTableProperties = new Set(
@@ -336,17 +327,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             )
         );
 
-        const dataTableCustomProperties = this.createCustomPropertyOptions(
+        const dataTableCustomPropertyOptions = this.createCustomPropertyOptions(
             dataTableProperties,
             CUSTOM_DATATABLE_PROPERTIES_GROUP
         );
-        const columnCustomProperties = this.createCustomPropertyOptions(
+        const columnCustomPropertyOptions = this.createCustomPropertyOptions(
             columnProperties,
             CUSTOM_COLUMN_PROPERTIES_GROUP
         );
         return {
-            dataTableCustomProperties,
-            columnCustomProperties
+            dataTableCustomPropertyOptions,
+            columnCustomPropertyOptions
         };
     }
 
@@ -1901,11 +1892,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             ...processedQuery.dataTableProperties,
             ...processedQuery.columnProperties
         ];
-        const dataTablePropertiesValues = new Set<string>(
+        const standardDataTablePropertyValues = new Set<string>(
             Object.values(DataTableProperties)
         );
         const projections = propertiesToQuery
-            .filter((property): property is DataTableProperties => dataTablePropertiesValues.has(property))
+            .filter(
+                (property): property is DataTableProperties => 
+                    standardDataTablePropertyValues.has(property)
+            )
             .map(property => DataTableProjectionLabelLookup[property].projection);
         const projectionExcludingId = projections
             .filter(projection => projection !== DataTableProjections.Id);
@@ -1936,7 +1930,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 );
                 const propertiesToQueryWithoutCustomProperties = propertiesToQuery.filter(
                     (property): property is DataTableProperties =>
-                        dataTablePropertiesValues.has(property)
+                        standardDataTablePropertyValues.has(property)
                         && property !== DataTableProperties.Properties
                         && property !== DataTableProperties.ColumnProperties
                 );
