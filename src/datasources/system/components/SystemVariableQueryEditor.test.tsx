@@ -5,6 +5,8 @@ import { setupDataSource } from 'test/fixtures';
 import { SystemDataSource } from '../SystemDataSource';
 import { SystemVariableQueryEditor } from './SystemVariableQueryEditor';
 import { SystemQueryReturnType } from '../types';
+import { QueryBuilderOperations } from 'core/query-builder.constants';
+import { SystemBackendFieldNames } from '../SystemsQueryBuilder.constants';
 
 const onChange = jest.fn();
 const [datasource] = setupDataSource(SystemDataSource);
@@ -28,7 +30,8 @@ test('migrates old workspace field to filter on mount', async () => {
 
   expect(onChange).toHaveBeenCalledWith({
     workspace: '',
-    filter: 'workspace = "1"',
+    filter: '',
+    filterObjects: [[[SystemBackendFieldNames.WORKSPACE, QueryBuilderOperations.EQUALS.name, '1']]],
   });
 });
 
@@ -37,7 +40,8 @@ test('migrates workspace variable to filter preserving variable reference', asyn
 
   expect(onChange).toHaveBeenCalledWith({
     workspace: '',
-    filter: 'workspace = "$myWorkspace"',
+    filter: '',
+    filterObjects: [[[SystemBackendFieldNames.WORKSPACE, QueryBuilderOperations.EQUALS.name, '$myWorkspace']]],
   });
 });
 

@@ -72,7 +72,7 @@ export interface SystemFeatureToggles {
 }
 
 export const SystemFeatureTogglesDefaults: SystemFeatureToggles = {
-  systemQueryBuilder: false,
+  systemQueryBuilder: true,
 };
 
 export interface SystemDataSourceOptions extends DataSourceJsonData {
