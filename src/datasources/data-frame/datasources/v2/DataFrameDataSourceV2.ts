@@ -1844,11 +1844,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             ...processedQuery.dataTableProperties,
             ...processedQuery.columnProperties
         ];
-        const dataTablePropertiesValues = new Set<string>(
+        const standardDataTablePropertyValues = new Set<string>(
             Object.values(DataTableProperties)
         );
         const projections = propertiesToQuery
-            .filter((property): property is DataTableProperties => dataTablePropertiesValues.has(property))
+            .filter(
+                (property): property is DataTableProperties => 
+                    standardDataTablePropertyValues.has(property)
+            )
             .map(property => DataTableProjectionLabelLookup[property].projection);
         const projectionExcludingId = projections
             .filter(projection => projection !== DataTableProjections.Id);
@@ -1879,7 +1882,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 );
                 const propertiesToQueryWithoutCustomProperties = propertiesToQuery.filter(
                     (property): property is DataTableProperties =>
-                        dataTablePropertiesValues.has(property)
+                        standardDataTablePropertyValues.has(property)
                         && property !== DataTableProperties.Properties
                         && property !== DataTableProperties.ColumnProperties
                 );
