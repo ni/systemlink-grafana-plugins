@@ -2896,7 +2896,7 @@ describe("DataFrameQueryEditorV2", () => {
                 });
 
                 it('should not fetch custom properties when query is Data and filter is changed', async () => {
-                        const { datasource } = renderComponent({
+                    const { datasource } = renderComponent({
                         type: DataFrameQueryType.Data,
                     });
 
@@ -2919,11 +2919,10 @@ describe("DataFrameQueryEditorV2", () => {
                         dataTableFilter: 'ExistingFilter',
                     });
                     const getCustomPropertyOptionsSpy = jest.spyOn(datasource, 'getCustomPropertyOptions');
-
                     getCustomPropertyOptionsSpy.mockClear();
-                
+
                     const dataRadios = screen.getAllByRole('radio', {
-                        name: DataFrameQueryType.Properties,
+                        name: DataFrameQueryType.Data,
                     });
                     await user.click(dataRadios[0]);
 
@@ -2937,20 +2936,16 @@ describe("DataFrameQueryEditorV2", () => {
                         dataTableFilter: '',
                     });
 
-                    // Switch query type to Properties (use first matching radio)
                     const dataRadios = screen.getAllByRole('radio', {
                         name: DataFrameQueryType.Properties,
                     });
                     await user.click(dataRadios[0]);
 
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
                     expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
                         dataTableFilter: '',
                         resultFilter: '',
                         columnFilter: '',
-                    });
-
-                    await waitFor(() => {
-                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
                     });
                 });
 
@@ -2972,7 +2967,7 @@ describe("DataFrameQueryEditorV2", () => {
                     } as Event & { detail: { linq: string } };
                     onDataTableFilterChange(mockEvent);
 
-                    //still should not fetch custom properties in Data query type
+                    // Still should not fetch custom properties in Data query type
                     expect(getCustomPropertyOptions).not.toHaveBeenCalled();
 
                     // Switch query type to Properties (use first matching radio)
@@ -2980,6 +2975,7 @@ describe("DataFrameQueryEditorV2", () => {
                         name: DataFrameQueryType.Properties,
                     });
                     await user.click(dataRadios[0]);
+
                     expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
                         dataTableFilter: 'UpdatedFilter',
                         resultFilter: '',
@@ -3022,6 +3018,7 @@ describe("DataFrameQueryEditorV2", () => {
                         }
                     );
 
+                    expect(mockGetCustomPropertyOptions).toHaveBeenCalledTimes(1);
                     expect(mockGetCustomPropertyOptions).toHaveBeenCalledWith({
                         dataTableFilter: '',
                         resultFilter: '',
@@ -3092,7 +3089,7 @@ describe("DataFrameQueryEditorV2", () => {
                     onDataTableFilterChange(mockEvent);
     
                     await waitFor(() => {
-                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1); // Only the initial call on render, no additional calls since filter did not change
+                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
                     });
                 });
 
@@ -3134,11 +3131,11 @@ describe("DataFrameQueryEditorV2", () => {
                         expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterX');
                         expect(datasource.transformResultQuery).toHaveBeenCalledWith('FilterY');
                         expect(datasource.transformColumnQuery).toHaveBeenCalledWith('FilterZ');
-                    });
-                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
-                        dataTableFilter: 'FilterX',
-                        resultFilter: 'FilterY',
-                        columnFilter: 'FilterZ',
+                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
+                            dataTableFilter: 'FilterX',
+                            resultFilter: 'FilterY',
+                            columnFilter: 'FilterZ',
+                        });
                     });
                 });
             });
@@ -3216,7 +3213,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                     await waitFor(() => {
                         expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
-                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalled();
+                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
                     });
                 });
             });
