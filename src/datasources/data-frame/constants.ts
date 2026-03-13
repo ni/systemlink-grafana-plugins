@@ -60,7 +60,7 @@ export const METADATA_GROUP = 'Metadata';
 
 export const STANDARD_DATA_TABLE_PROPERTIES_GROUP = 'Data table properties';
 export const STANDARD_COLUMN_PROPERTIES_GROUP = 'Column properties';
-export const CUSTOM_DATATABLE_PROPERTIES_GROUP = 'Custom data table properties';
+export const CUSTOM_DATA_TABLE_PROPERTIES_GROUP = 'Custom data table properties';
 export const CUSTOM_COLUMN_PROPERTIES_GROUP = 'Custom column properties';
 
 export const POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS = ['unit', 'units', 'Unit', 'Units'];
