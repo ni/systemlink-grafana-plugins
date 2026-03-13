@@ -119,16 +119,10 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
             const customPropertyOptions = await datasource.getCustomPropertyOptions(filters);
             const limitedDataTableCustomPropertyOptions = customPropertyOptions
                 .dataTableCustomPropertyOptions
-                .slice(
-                    0,
-                    CUSTOM_PROPERTY_OPTIONS_LIMIT
-                );
+                .slice(0, CUSTOM_PROPERTY_OPTIONS_LIMIT);
             const limitedColumnCustomPropertyOptions = customPropertyOptions
                 .columnCustomPropertyOptions
-                .slice(
-                    0,
-                    CUSTOM_PROPERTY_OPTIONS_LIMIT
-                );
+                .slice(0, CUSTOM_PROPERTY_OPTIONS_LIMIT);
     
             setDataTableCustomPropertyOptions(limitedDataTableCustomPropertyOptions);
             setColumnCustomPropertyOptions(limitedColumnCustomPropertyOptions);
