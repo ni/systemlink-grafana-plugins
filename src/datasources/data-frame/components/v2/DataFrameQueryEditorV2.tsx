@@ -203,7 +203,10 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 return;
             }
 
-            const filterChanged = !_.isEqual(lastFilterRefForDataQueryType.current, transformedFilters);
+            const filterChanged = !_.isEqual(
+                lastFilterRefForDataQueryType.current,
+                transformedFilters
+            );
             const hasRequiredFilters = datasource.hasRequiredFilters(migratedQuery);
 
             lastFilterRefForDataQueryType.current = transformedFilters;
@@ -247,13 +250,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 transformedFilters
             );
 
-            if (!filterChanged) {
-                return;
-            }
-
             lastFilterRefForPropertiesQueryType.current = transformedFilters;
 
-            fetchAndSetCustomPropertyOptions(transformedFilters);
+            if (filterChanged) {
+                fetchAndSetCustomPropertyOptions(transformedFilters);
+                return;
+            }
         },
         [
             migratedQuery.type,
