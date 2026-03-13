@@ -17,6 +17,8 @@ export interface SystemQuery extends DataQuery {
 export interface SystemVariableQuery {
   workspace: string;
   queryReturnType?: SystemQueryReturnType;
+  filter?: string;
+  filterObjects?: QueryFilterObjects;
 }
 
 export interface SystemSummary {
@@ -70,7 +72,7 @@ export interface SystemFeatureToggles {
 }
 
 export const SystemFeatureTogglesDefaults: SystemFeatureToggles = {
-  systemQueryBuilder: false,
+  systemQueryBuilder: true,
 };
 
 export interface SystemDataSourceOptions extends DataSourceJsonData {
