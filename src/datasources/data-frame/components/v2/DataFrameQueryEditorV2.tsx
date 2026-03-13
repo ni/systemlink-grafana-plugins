@@ -66,7 +66,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const standardColumnPropertyOptions = getStandardPropertyOptions(DataTableProjectionType.Column);
 
     const lastFilterRefForDataQueryType = useRef<CombinedFilters | null>(null);
-
     const lastFilterRefForPropertiesQueryType = useRef<CombinedFilters | null>(null);
     const lastTakeRefForPropertiesQueryType = useRef<number | null>(null);
 
