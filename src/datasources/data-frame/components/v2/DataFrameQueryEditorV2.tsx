@@ -65,17 +65,9 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const standardDataTablePropertyOptions = getStandardPropertyOptions(DataTableProjectionType.DataTable);
     const standardColumnPropertyOptions = getStandardPropertyOptions(DataTableProjectionType.Column);
 
-    const lastFilterRefForDataQueryType = useRef<CombinedFilters>({
-        resultFilter: '',
-        dataTableFilter: '',
-        columnFilter: '',
-    });
+    const lastFilterRefForDataQueryType = useRef<CombinedFilters | null>(null);
 
-    const lastFilterRefForPropertiesQueryType = useRef<CombinedFilters>({
-        resultFilter: '',
-        dataTableFilter: '',
-        columnFilter: '',
-    });
+    const lastFilterRefForPropertiesQueryType = useRef<CombinedFilters | null>(null);
 
     // Auto-run query on initial render
     // if it is default query
@@ -184,18 +176,30 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
             : `The following selected columns are not valid: '${invalidColumnNames}'`;
     }, [invalidColumnSelections, isColumnOptionsInitialized]);
 
-    useEffect(
+    const transformedFilters = useMemo(
         () => {
-            const dataTableFilter = migratedQuery.dataTableFilter;
             const resultFilter = migratedQuery.resultFilter;
+            const dataTableFilter = migratedQuery.dataTableFilter;
             const columnFilter = migratedQuery.columnFilter;
-            const transformedFilter = {
+            return {
                 resultFilter: datasource.transformResultQuery(resultFilter),
                 dataTableFilter: datasource.transformDataTableQuery(dataTableFilter),
                 columnFilter: datasource.transformColumnQuery(columnFilter)
             };
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [
+            migratedQuery.resultFilter,
+            migratedQuery.dataTableFilter,
+            migratedQuery.columnFilter,
+            datasource.variablesCache,
+            datasource,
+        ]
+    );
 
-            const filterChanged = !_.isEqual(lastFilterRefForDataQueryType.current, transformedFilter);
+    useEffect(
+        () => {
+            const filterChanged = !_.isEqual(lastFilterRefForDataQueryType.current, transformedFilters);
             const hasRequiredFilters = datasource.hasRequiredFilters(migratedQuery);
 
             if (
@@ -209,10 +213,10 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 return;
             }
 
-            lastFilterRefForDataQueryType.current = transformedFilter;
+            lastFilterRefForDataQueryType.current = transformedFilters;
 
             if (hasRequiredFilters) {
-                fetchAndSetColumnOptions(transformedFilter);
+                fetchAndSetColumnOptions(transformedFilters);
                 return;
             }
 
@@ -227,10 +231,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             migratedQuery.type,
-            migratedQuery.dataTableFilter,
-            migratedQuery.resultFilter,
-            migratedQuery.columnFilter,
-            datasource.variablesCache,
+            transformedFilters,
             fetchAndSetColumnOptions,
             datasource,
         ]
@@ -238,44 +239,29 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
 
     useEffect(
         () => {
-            const transformedFilter = {
-                resultFilter: datasource.transformResultQuery(migratedQuery.resultFilter),
-                dataTableFilter: datasource.transformDataTableQuery(migratedQuery.dataTableFilter),
-                columnFilter: datasource.transformColumnQuery(migratedQuery.columnFilter),
-            };
-
-            const filterChanged = !_.isEqual(
-                lastFilterRefForPropertiesQueryType.current,
-                transformedFilter
-            );
-
-            if (
-                migratedQuery.type !== DataFrameQueryType.Properties
-                || (!areFiltersEmpty(transformedFilter) && !filterChanged)
-            ) {
+            if (migratedQuery.type !== DataFrameQueryType.Properties) {
                 return;
             }
 
-            lastFilterRefForPropertiesQueryType.current = transformedFilter;
+            const filterChanged = !_.isEqual(
+                lastFilterRefForPropertiesQueryType.current,
+                transformedFilters
+            );
 
-            fetchAndSetCustomPropertyOptions(transformedFilter);
+            if (!filterChanged) {
+                return;
+            }
+
+            lastFilterRefForPropertiesQueryType.current = transformedFilters;
+
+            fetchAndSetCustomPropertyOptions(transformedFilters);
         },
         [
             migratedQuery.type,
-            migratedQuery.dataTableFilter,
-            migratedQuery.resultFilter,
-            migratedQuery.columnFilter,
-            datasource.variablesCache,
+            transformedFilters,
             fetchAndSetCustomPropertyOptions,
-            datasource,
         ]
     );
-
-    const areFiltersEmpty = (filters: CombinedFilters): boolean => {
-      return filters.dataTableFilter === '' 
-        && filters.resultFilter === ''
-        && filters.columnFilter === '';
-    };
 
     const dataTablePropertyOptions = useMemo(() => [
         ...standardDataTablePropertyOptions,
