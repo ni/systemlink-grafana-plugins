@@ -1,3 +1,9 @@
+## [4.138.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.137.1...v4.138.0) (2026-03-13)
+
+### Features
+
+* **systems:** Add query builder to systems variable editor ([#677](https://github.com/ni/systemlink-grafana-plugins/issues/677)) ([c44aeb3](https://github.com/ni/systemlink-grafana-plugins/commit/c44aeb3cc4281f9647e97b6100d2ec143d8367fd))
+
 ## [4.137.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.137.0...v4.137.1) (2026-03-12)
 
 ### Bug Fixes
