@@ -123,11 +123,6 @@ export enum DataTableProjectionType {
   Column = 'column'
 }
 
-export enum DataTablePropertiesType {
-  DataTableProperties = 'Data table properties',
-  ColumnProperties = 'Column properties'
-}
-
 export const defaultDatatableProperties: DataTableProperties[] = [
   DataTableProperties.Name,
   DataTableProperties.Id,

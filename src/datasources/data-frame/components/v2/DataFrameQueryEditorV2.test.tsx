@@ -2877,76 +2877,348 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
-        describe("fetching custom property options", () => {
+        describe("fetch custom property options", () => {
             beforeEach(() => {
                 cleanup();
                 (DataFrameQueryBuilderWrapper as jest.Mock).mockClear();
+                jest.clearAllMocks();
             });
 
-            it('should call getCustomPropertyOptions when query type is Properties', async () => {
-                const { datasource } = renderComponent({
-                    type: DataFrameQueryType.Properties 
+            describe('custom properties option based on query type', () => {
+                it('should not fetch custom properties when query type is Data', async () => {
+                        const { datasource } = renderComponent({
+                        type: DataFrameQueryType.Data,
+                    });
+
+                    await waitFor(() => {
+                        expect(datasource.getCustomPropertyOptions).not.toHaveBeenCalled();
+                    });
                 });
 
-                await waitFor(() => {
-                  expect(datasource.getCustomPropertyOptions).toHaveBeenCalled();
+                it('should not fetch custom properties when query is Data and filter is changed', async () => {
+                    const { datasource } = renderComponent({
+                        type: DataFrameQueryType.Data,
+                    });
+
+                    const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                    const { onDataTableFilterChange } = props;
+                    const mockEvent = {
+                        detail: { linq: 'InitialFilter' },
+                    } as Event & { detail: { linq: string } };
+                    onDataTableFilterChange(mockEvent);
+
+                    await waitFor(() => {
+                        expect(datasource.getCustomPropertyOptions).not.toHaveBeenCalled();
+                    });
+                });
+
+                it('should not fetch custom properties when switching to Data query with filters', async () => {
+                    const user = userEvent.setup();
+                    const { datasource } = renderComponent({
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'ExistingFilter',
+                    });
+                    const getCustomPropertyOptionsSpy = jest.spyOn(datasource, 'getCustomPropertyOptions');
+                    getCustomPropertyOptionsSpy.mockClear();
+
+                    const dataRadios = screen.getAllByRole('radio', {
+                        name: DataFrameQueryType.Data,
+                    });
+                    await user.click(dataRadios[0]);
+
+                    expect(datasource.getCustomPropertyOptions).not.toHaveBeenCalled();                    
+                })
+
+                it('should fetch custom properties when switching to Properties query type without filters', async () => {
+                    const user = userEvent.setup();
+                    const { datasource } = renderComponent({
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: '',
+                    });
+
+                    const dataRadios = screen.getAllByRole('radio', {
+                        name: DataFrameQueryType.Properties,
+                    });
+                    await user.click(dataRadios[0]);
+
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
+                        dataTableFilter: '',
+                        resultFilter: '',
+                        columnFilter: '',
+                    });
+                });
+
+                it('should fetch custom properties when switching to Properties query type after changing filters in the Data query type', async () => {
+                    const user = userEvent.setup();
+                    const { datasource } = renderComponent({
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: 'InitialFilter',
+                    });
+                    const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                    const { onDataTableFilterChange } = props;
+                    const getCustomPropertyOptions = jest.spyOn(datasource, 'getCustomPropertyOptions');
+
+                    expect(getCustomPropertyOptions).not.toHaveBeenCalled();
+
+                    //Change the filter while in Data query type
+                    const mockEvent = {
+                        detail: { linq: 'UpdatedFilter' },
+                    } as Event & { detail: { linq: string } };
+                    onDataTableFilterChange(mockEvent);
+
+                    // Still should not fetch custom properties in Data query type
+                    expect(getCustomPropertyOptions).not.toHaveBeenCalled();
+
+                    // Switch query type to Properties (use first matching radio)
+                    const dataRadios = screen.getAllByRole('radio', {
+                        name: DataFrameQueryType.Properties,
+                    });
+                    await user.click(dataRadios[0]);
+
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
+                        dataTableFilter: 'UpdatedFilter',
+                        resultFilter: '',
+                        columnFilter: ''
+                    });
+                });
+            });            
+
+            describe('custom properties option based on filter and take', () => {
+                it('should fetch custom properties on initial render with empty filters', () => {
+                    const customPropertyOptions = {
+                        dataTableCustomPropertyOptions: [
+                          {
+                            label: 'Custom Prop A',
+                            value: 'customPropA',
+                            group: 'Custom',
+                          },
+                        ],
+                        columnCustomPropertyOptions: [
+                          {
+                            label: 'Custom Col Prop',
+                            value: 'customColProp',
+                            group: 'Custom',
+                          },
+                        ],
+                    };
+
+                    const mockGetCustomPropertyOptions = jest.fn()
+                        .mockResolvedValue(customPropertyOptions);
+                    renderComponent(
+                        { type: DataFrameQueryType.Properties },
+                        '',
+                        '',
+                        [],
+                        [],
+                        undefined,
+                        {},
+                        {
+                            getCustomPropertyOptions: mockGetCustomPropertyOptions,
+                        }
+                    );
+
+                    expect(mockGetCustomPropertyOptions).toHaveBeenCalledTimes(1);
+                    expect(mockGetCustomPropertyOptions).toHaveBeenCalledWith({
+                        dataTableFilter: '',
+                        resultFilter: '',
+                        columnFilter: ''
+                    });
+                })
+
+                it('should fetch custom properties when only the filters change', async () => {
+                    const { datasource } = renderComponent({
+                      type: DataFrameQueryType.Properties,
+                      dataTableFilter: 'InitialFilter'
+                    });
+    
+                    const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                    const { 
+                        onDataTableFilterChange,
+                        onResultFilterChange,
+                        onColumnFilterChange 
+                    } = props;
+                    const mockEvent = {
+                        detail: { linq: 'UpdatedFilter' }
+                    } as Event & { detail: { linq: string; }; };
+            
+                    onDataTableFilterChange(mockEvent);
+                    onResultFilterChange(mockEvent);
+                    onColumnFilterChange(mockEvent);
+    
+                    await waitFor(() => {
+                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(4); // 1 call on initial render + 3 calls for each filter change
+                    });
+                });
+    
+                it('should fetch custom properties when only take changes', async () => {
+                    const { datasource } = renderComponent({
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'InitialFilter',
+                    });
+                    const getCustomPropertyOptionsSpy = jest.spyOn(datasource, 'getCustomPropertyOptions');
+                    
+                    expect(getCustomPropertyOptionsSpy).toHaveBeenCalledTimes(1); 
+                    getCustomPropertyOptionsSpy.mockClear();
+
+                    const takeInput = screen.getByRole('spinbutton');
+                    await userEvent.type(takeInput, '500');
+                    await userEvent.tab();
+    
+                    await waitFor(() => {
+                        expect(getCustomPropertyOptionsSpy).toHaveBeenCalledTimes(1); 
+                    });
+                })
+    
+                it('should not fetch custom properties when neither filters change nor take chnage', async () => {
+                    const { datasource } = renderComponent(
+                        {
+                            type: DataFrameQueryType.Properties,
+                            dataTableFilter: 'InitialFilter',
+                            resultFilter: 'InitialResultFilter',
+                            columnFilter: 'InitialColumnFilter',
+                            take: 1000
+                        }
+                    );
+    
+                    const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                    const { onDataTableFilterChange } = props;
+                    const mockEvent = {
+                        detail: { linq: 'InitialFilter' }
+                    } as Event & { detail: { linq: string; }; };
+                    onDataTableFilterChange(mockEvent);
+    
+                    await waitFor(() => {
+                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
+                    });
+                });
+
+                it('should transform variables in filters before deciding to load custom property options', async () => {
+                    const datasource = {
+                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                        getCustomPropertyOptions: jest.fn().mockResolvedValue({
+                          dataTableCustomPropertyOptions: [],
+                          columnCustomPropertyOptions: [],
+                        }),
+                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                          uniqueColumnsAcrossTables: [],
+                          commonColumnsAcrossTables: [],
+                        }),
+                        transformDataTableQuery: jest.fn(f => f),
+                        transformResultQuery: jest.fn(f => f),
+                        transformColumnQuery: jest.fn(f => f),
+                        hasRequiredFilters: mockHasRequiredFilters,
+                    } as any;
+                    renderComponent(
+                        {
+                          ...defaultQueryV2,
+                          refId: 'A',
+                          type: DataFrameQueryType.Properties,
+                          dataTableFilter: 'FilterX',
+                          resultFilter: 'FilterY',
+                          columnFilter: 'FilterZ',
+                        },
+                        '',
+                        '',
+                        [],
+                        [],
+                        undefined,
+                        {},
+                        datasource
+                    );
+
+                    await waitFor(() => {
+                        expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterX');
+                        expect(datasource.transformResultQuery).toHaveBeenCalledWith('FilterY');
+                        expect(datasource.transformColumnQuery).toHaveBeenCalledWith('FilterZ');
+                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
+                            dataTableFilter: 'FilterX',
+                            resultFilter: 'FilterY',
+                            columnFilter: 'FilterZ',
+                        });
+                    });
                 });
             });
 
-            it('should call getCustomPropertyOptions when filters change and query type is Properties', async () => {
-                const { datasource } = renderComponent({
-                  type: DataFrameQueryType.Properties,
-                  dataTableFilter: 'InitialFilter',
-                  resultFilter: 'InitialResultFilter',
-                  columnFilter: 'InitialColumnFilter',
-                });
+            describe('custom properties options population based on variables cache', () => {
+                it('should trigger useEffect when variables cache object reference changes', async () => {
+                    cleanup()
+                    const initialVariablesCache = { var1: 'value1' };
+                    const updatedVariablesCache = { var1: 'value2' };
+                    const datasource = {
+                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                        getCustomPropertyOptions: jest.fn().mockResolvedValue({
+                            dataTableCustomPropertyOptions: [],
+                            columnCustomPropertyOptions: [],
+                        }),
+                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                            uniqueColumnsAcrossTables: [],
+                            commonColumnsAcrossTables: [],
+                        }),
+                        transformDataTableQuery: jest.fn(f => f),
+                        transformResultQuery: jest.fn(f => f),
+                        transformColumnQuery: jest.fn(f => f),
+                        hasRequiredFilters: mockHasRequiredFilters,
+                    } as any;
 
-                const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
-                const { onDataTableFilterChange, onResultFilterChange, onColumnFilterChange } = props;
-                const mockEvent = {
-                    detail: { linq: 'UpdatedFilter' }
-                } as Event & { detail: { linq: string; }; };
-        
-                onDataTableFilterChange(mockEvent);
-                onResultFilterChange(mockEvent);
-                onColumnFilterChange(mockEvent);
+                    renderComponent(
+                        {
+                            ...defaultQueryV2,
+                            refId: 'A',
+                            type: DataFrameQueryType.Properties,
+                            dataTableFilter: 'FilterWithVar',
+                            resultFilter: 'ResultWithVar',
+                            columnFilter: 'ColumnWithVar',
+                        },
+                        '',
+                        '',
+                        [],
+                        [],
+                        undefined,
+                        initialVariablesCache,
+                        datasource,
+                    );
 
-                await waitFor(() => {
-                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(4); // 1 call on initial render + 3 calls for each filter change
+                    await waitFor(() => {
+                        expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
+                        expect(datasource.transformResultQuery).toHaveBeenCalledWith('ResultWithVar');
+                        expect(datasource.transformColumnQuery).toHaveBeenCalledWith('ColumnWithVar');
+                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
+                            dataTableFilter: 'FilterWithVar',
+                            resultFilter: 'ResultWithVar',
+                            columnFilter: 'ColumnWithVar',
+                        });
+                    });
+
+                    datasource.getCustomPropertyOptions.mockClear();
+                    datasource.transformDataTableQuery.mockClear();
+                    cleanup();
+
+                    // Update variables cache reference and rerender
+                    renderComponent(
+                        {
+                            ...defaultQueryV2,
+                            refId: 'A',
+                            type: DataFrameQueryType.Properties,
+                            dataTableFilter: 'FilterWithVar',
+                        },
+                        '',
+                        '',
+                        [],
+                        [],
+                        undefined,
+                        updatedVariablesCache,
+                        datasource,
+                    );
+
+                    await waitFor(() => {
+                        expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
+                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
+                    });
                 });
             });
 
-            it('should not call getCustomPropertyOptions when filters do not change', async () => {
-                const { datasource } = renderComponent({
-                    type: DataFrameQueryType.Properties,
-                    dataTableFilter: 'InitialFilter',
-                    resultFilter: 'InitialResultFilter',
-                    columnFilter: 'InitialColumnFilter',
-                });
-
-                const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
-                const { onDataTableFilterChange } = props;
-                const mockEvent = {
-                    detail: { linq: 'InitialFilter' }
-                } as Event & { detail: { linq: string; }; };
-                onDataTableFilterChange(mockEvent);
-
-                await waitFor(() => {
-                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1); // Only the initial call on render, no additional calls since filter did not change
-                });
-            });
-
-            it('should not call getCustomPropertyOptions when query type is Data', async () => {
-                const { datasource } = renderComponent({
-                    type: DataFrameQueryType.Data
-                });
-
-                await waitFor(() => {
-                    expect(datasource.getCustomPropertyOptions).not.toHaveBeenCalled();
-                });
-            });
-
-            it('should populate custom properties options from getCustomPropertyOptions', async () => {
+            it('should populate data table and column custom properties options from getCustomPropertyOptions', async () => {
                 const mockOptions = {
                     dataTableCustomPropertyOptions: [
                         { 
@@ -2967,7 +3239,7 @@ describe("DataFrameQueryEditorV2", () => {
                     .mockResolvedValue(mockOptions);
                 jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
                     .mockReturnValue(500);
-                const { renderResult: result } = renderComponent(
+                const { renderResult: result, datasource} = renderComponent(
                     { type: DataFrameQueryType.Properties },
                     '',
                     '',
@@ -2979,26 +3251,32 @@ describe("DataFrameQueryEditorV2", () => {
                         getCustomPropertyOptions: mockGetCustomPropertyOptions,
                     }
                 );
+                const getCustomPropertiesOptionsSpy = jest.spyOn(datasource, 'getCustomPropertyOptions');
 
                 await waitFor(() => {
-                    expect(mockGetCustomPropertyOptions).toHaveBeenCalled();
+                    expect(getCustomPropertiesOptionsSpy).toHaveBeenCalledTimes(1);
                 });
 
+                //Data table properties
                 const user = userEvent.setup();
                 const dataTablePropertiesField = result.getAllByRole('combobox')[0];
                 await user.click(dataTablePropertiesField);
 
                 const optionControls = screen.getAllByRole('option');
                 expect(optionControls).toHaveLength(12);
+
                 const dataTableCustomPropertyOption = optionControls.find(opt =>  
                     opt.textContent && opt.textContent.includes('Custom Prop A')  
                 );  
                 expect(dataTableCustomPropertyOption).toBeDefined();
 
+                //Column Properties 
                 const columnPropertiesField = result.getAllByRole('combobox')[1];
                 await user.click(columnPropertiesField);
                 
                 const columnOptionControls = screen.getAllByRole('option');
+                expect(columnOptionControls).toHaveLength(5);
+
                 const columnCustomPropertyOption = columnOptionControls.find(opt =>  
                     opt.textContent && opt.textContent.includes('Custom Col Prop')  
                 );  
@@ -3007,22 +3285,23 @@ describe("DataFrameQueryEditorV2", () => {
 
             it('should set custom properties options to empty arrays when getCustomPropertyOptions returns error', async () => {
                 const mockGetCustomPropertyOptions = jest.fn().mockRejectedValue(new Error('Failed to fetch options'));
-
-                renderComponent(
-                  { type: DataFrameQueryType.Properties },
-                  '',
-                  '',
-                  [],
-                  [],
-                  undefined,
-                  {},
-                  {
-                    getCustomPropertyOptions: mockGetCustomPropertyOptions,
-                  }
+                const { datasource } = renderComponent(
+                    { type: DataFrameQueryType.Properties },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    {
+                      getCustomPropertyOptions: mockGetCustomPropertyOptions,
+                    }
                 );
+                const getCustomPropertiesOptionsSpy = jest.spyOn(datasource, 'getCustomPropertyOptions');
+
 
                 await waitFor(() => {
-                    expect(mockGetCustomPropertyOptions).toHaveBeenCalled();
+                    expect(getCustomPropertiesOptionsSpy).toHaveBeenCalled();
                     expect(screen.queryByText('Custom Prop A')).not.toBeInTheDocument();
                     expect(screen.queryByText('Custom Col Prop')).not.toBeInTheDocument();
                 });
