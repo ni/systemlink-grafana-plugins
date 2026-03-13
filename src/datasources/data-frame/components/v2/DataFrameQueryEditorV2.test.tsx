@@ -3054,7 +3054,7 @@ describe("DataFrameQueryEditorV2", () => {
                     });
                 });
     
-                it('should call getCustomPropertyOptions when only take changes', () => {
+                it('should call getCustomPropertyOptions when only take changes', async () => {
                     const { datasource } = renderComponent({
                         type: DataFrameQueryType.Properties,
                         dataTableFilter: 'InitialFilter',
@@ -3065,10 +3065,10 @@ describe("DataFrameQueryEditorV2", () => {
                     getCustomPropertyOptionsSpy.mockClear();
 
                     const takeInput = screen.getByRole('spinbutton');
-                    userEvent.type(takeInput, '500');
-                    userEvent.tab();
+                    await userEvent.type(takeInput, '500');
+                    await userEvent.tab();
     
-                    waitFor(() => {
+                    await waitFor(() => {
                         expect(getCustomPropertyOptionsSpy).toHaveBeenCalledTimes(1); 
                     });
                 })
@@ -3195,6 +3195,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                     datasource.getCustomPropertyOptions.mockClear();
                     datasource.transformDataTableQuery.mockClear();
+                    cleanup();
 
                     // Update variables cache reference and rerender
                     renderComponent(
