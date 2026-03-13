@@ -2896,7 +2896,7 @@ describe("DataFrameQueryEditorV2", () => {
                 });
 
                 it('should not fetch custom properties when query is Data and filter is changed', async () => {
-                        const { datasource } = renderComponent({
+                    const { datasource } = renderComponent({
                         type: DataFrameQueryType.Data,
                     });
 
@@ -2919,11 +2919,10 @@ describe("DataFrameQueryEditorV2", () => {
                         dataTableFilter: 'ExistingFilter',
                     });
                     const getCustomPropertyOptionsSpy = jest.spyOn(datasource, 'getCustomPropertyOptions');
-
                     getCustomPropertyOptionsSpy.mockClear();
-                
+
                     const dataRadios = screen.getAllByRole('radio', {
-                        name: DataFrameQueryType.Properties,
+                        name: DataFrameQueryType.Data,
                     });
                     await user.click(dataRadios[0]);
 
@@ -2937,20 +2936,15 @@ describe("DataFrameQueryEditorV2", () => {
                         dataTableFilter: '',
                     });
 
-                    // Switch query type to Properties (use first matching radio)
                     const dataRadios = screen.getAllByRole('radio', {
                         name: DataFrameQueryType.Properties,
                     });
                     await user.click(dataRadios[0]);
 
-                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenOnceCalledWith({
                         dataTableFilter: '',
                         resultFilter: '',
                         columnFilter: '',
-                    });
-
-                    await waitFor(() => {
-                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
                     });
                 });
 
@@ -2966,13 +2960,13 @@ describe("DataFrameQueryEditorV2", () => {
 
                     expect(getCustomPropertyOptions).not.toHaveBeenCalled();
 
-                    //Change the filter while in Data query type
+                    //C hange the filter while in Data query type
                     const mockEvent = {
                         detail: { linq: 'UpdatedFilter' },
                     } as Event & { detail: { linq: string } };
                     onDataTableFilterChange(mockEvent);
 
-                    //still should not fetch custom properties in Data query type
+                    // Still should not fetch custom properties in Data query type
                     expect(getCustomPropertyOptions).not.toHaveBeenCalled();
 
                     // Switch query type to Properties (use first matching radio)
