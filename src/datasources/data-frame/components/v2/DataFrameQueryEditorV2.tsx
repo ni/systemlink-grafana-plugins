@@ -68,6 +68,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const lastFilterRefForDataQueryType = useRef<CombinedFilters | null>(null);
 
     const lastFilterRefForPropertiesQueryType = useRef<CombinedFilters | null>(null);
+    const lastTakeRefForPropertiesQueryType = useRef<number | null>(null);
 
     // Auto-run query on initial render
     // if it is default query
@@ -249,16 +250,19 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 lastFilterRefForPropertiesQueryType.current,
                 transformedFilters
             );
+            const isTakeChanged = lastTakeRefForPropertiesQueryType.current !== migratedQuery.take;
 
             lastFilterRefForPropertiesQueryType.current = transformedFilters;
+            lastTakeRefForPropertiesQueryType.current = migratedQuery.take;
 
-            if (filterChanged) {
+            if (filterChanged || isTakeChanged) {
                 fetchAndSetCustomPropertyOptions(transformedFilters);
                 return;
             }
         },
         [
             migratedQuery.type,
+            migratedQuery.take,
             transformedFilters,
             fetchAndSetCustomPropertyOptions,
         ]
