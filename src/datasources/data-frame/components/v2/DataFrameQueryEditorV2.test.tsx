@@ -3029,7 +3029,7 @@ describe("DataFrameQueryEditorV2", () => {
                     });
                 })
 
-                it('should call getCustomPropertyOptions when only the filters change', async () => {
+                it('should fetch custom properties when only the filters change', async () => {
                     const { datasource } = renderComponent({
                       type: DataFrameQueryType.Properties,
                       dataTableFilter: 'InitialFilter'
@@ -3054,7 +3054,7 @@ describe("DataFrameQueryEditorV2", () => {
                     });
                 });
     
-                it('should call getCustomPropertyOptions when only take changes', async () => {
+                it('should fetch custom properties when only take changes', async () => {
                     const { datasource } = renderComponent({
                         type: DataFrameQueryType.Properties,
                         dataTableFilter: 'InitialFilter',
@@ -3073,7 +3073,7 @@ describe("DataFrameQueryEditorV2", () => {
                     });
                 })
     
-                it('should not call getCustomPropertyOptions when neither filters change nor take chnage', async () => {
+                it('should not fetch custom properties when neither filters change nor take chnage', async () => {
                     const { datasource } = renderComponent(
                         {
                             type: DataFrameQueryType.Properties,
