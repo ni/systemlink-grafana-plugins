@@ -14,7 +14,7 @@ import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
 import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties, DataFrameDataQuery } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
-import { COLUMN_OPTIONS_LIMIT } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, CUSTOM_PROPERTY_SUFFIX } from "datasources/data-frame/constants";
 import { ComboboxOption } from "@grafana/ui";
 import { errorMessages, infoMessage } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
 import { of } from "rxjs";
@@ -3237,9 +3237,7 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
-        describe('property validation and error handling', () => {
-            const SUFFIX = '-(custom-properties)';
-
+        describe('custom property validation and error handling', () => {
             beforeAll(() => {
                 jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
             });
@@ -3269,9 +3267,9 @@ describe("DataFrameQueryEditorV2", () => {
             describe('when selected data table custom properties are valid', () => {
                 it('should not show an error message', async () => {
                     renderWithCustomProperties(
-                        { dataTableProperties: [`propA${SUFFIX}`] },
+                        { dataTableProperties: [`propA${CUSTOM_PROPERTY_SUFFIX}`] },
                         {
-                            dataTableCustomPropertyOptions: [{ label: 'propA', value: `propA${SUFFIX}`, group: 'Custom' }],
+                            dataTableCustomPropertyOptions: [{ label: 'propA', value: `propA${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
                             columnCustomPropertyOptions: [],
                         }
                     );
@@ -3285,7 +3283,7 @@ describe("DataFrameQueryEditorV2", () => {
             describe('when selected data table custom properties are invalid', () => {
                 it('should show an error message for a single invalid custom data table property', async () => {
                     renderWithCustomProperties(
-                        { dataTableProperties: [`missingProp${SUFFIX}`] },
+                        { dataTableProperties: [`missingProp${CUSTOM_PROPERTY_SUFFIX}`] },
                         { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
                     );
 
@@ -3298,7 +3296,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                 it('should show an error message for multiple invalid custom data table properties', async () => {
                     renderWithCustomProperties(
-                        { dataTableProperties: [`missingA${SUFFIX}`, `missingB${SUFFIX}`] },
+                        { dataTableProperties: [`missingA${CUSTOM_PROPERTY_SUFFIX}`, `missingB${CUSTOM_PROPERTY_SUFFIX}`] },
                         { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
                     );
 
@@ -3311,9 +3309,9 @@ describe("DataFrameQueryEditorV2", () => {
 
                 it('should only show error for invalid data table properties when some are valid', async () => {
                     renderWithCustomProperties(
-                        { dataTableProperties: [DataTableProperties.Name, `validCustom${SUFFIX}`, `invalidCustom${SUFFIX}`] },
+                        { dataTableProperties: [DataTableProperties.Name, `validCustom${CUSTOM_PROPERTY_SUFFIX}`, `invalidCustom${CUSTOM_PROPERTY_SUFFIX}`] },
                         {
-                            dataTableCustomPropertyOptions: [{ label: 'validCustom', value: `validCustom${SUFFIX}`, group: 'Custom' }],
+                            dataTableCustomPropertyOptions: [{ label: 'validCustom', value: `validCustom${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
                             columnCustomPropertyOptions: [],
                         }
                     );
@@ -3329,10 +3327,10 @@ describe("DataFrameQueryEditorV2", () => {
             describe('when selected column custom properties are valid', () => {
                 it('should not show an error message', async () => {
                     renderWithCustomProperties(
-                        { columnProperties: [`colPropA${SUFFIX}`] },
+                        { columnProperties: [`colPropA${CUSTOM_PROPERTY_SUFFIX}`] },
                         {
                             dataTableCustomPropertyOptions: [],
-                            columnCustomPropertyOptions: [{ label: 'colPropA', value: `colPropA${SUFFIX}`, group: 'Custom' }],
+                            columnCustomPropertyOptions: [{ label: 'colPropA', value: `colPropA${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
                         }
                     );
 
@@ -3345,7 +3343,7 @@ describe("DataFrameQueryEditorV2", () => {
             describe('when selected column custom properties are invalid', () => {
                 it('should show an error message for a single invalid custom column property', async () => {
                     renderWithCustomProperties(
-                        { columnProperties: [`missingColProp${SUFFIX}`] },
+                        { columnProperties: [`missingColProp${CUSTOM_PROPERTY_SUFFIX}`] },
                         { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
                     );
 
@@ -3358,7 +3356,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                 it('should show an error message for multiple invalid custom column properties', async () => {
                     renderWithCustomProperties(
-                        { columnProperties: [`missingColA${SUFFIX}`, `missingColB${SUFFIX}`] },
+                        { columnProperties: [`missingColA${CUSTOM_PROPERTY_SUFFIX}`, `missingColB${CUSTOM_PROPERTY_SUFFIX}`] },
                         { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
                     );
 
@@ -3371,10 +3369,10 @@ describe("DataFrameQueryEditorV2", () => {
 
                 it('should only show error for invalid column properties when some are valid', async () => {
                     renderWithCustomProperties(
-                        { columnProperties: [DataTableProperties.ColumnName, `validColCustom${SUFFIX}`, `invalidColCustom${SUFFIX}`] },
+                        { columnProperties: [DataTableProperties.ColumnName, `validColCustom${CUSTOM_PROPERTY_SUFFIX}`, `invalidColCustom${CUSTOM_PROPERTY_SUFFIX}`] },
                         {
                             dataTableCustomPropertyOptions: [],
-                            columnCustomPropertyOptions: [{ label: 'validColCustom', value: `validColCustom${SUFFIX}`, group: 'Custom' }],
+                            columnCustomPropertyOptions: [{ label: 'validColCustom', value: `validColCustom${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
                         }
                     );
 
@@ -3390,8 +3388,8 @@ describe("DataFrameQueryEditorV2", () => {
                 it('should show error messages for both data table and column properties', async () => {
                     renderWithCustomProperties(
                         {
-                            dataTableProperties: [`invalidTableProp${SUFFIX}`],
-                            columnProperties: [`invalidColProp${SUFFIX}`],
+                            dataTableProperties: [`invalidTableProp${CUSTOM_PROPERTY_SUFFIX}`],
+                            columnProperties: [`invalidColProp${CUSTOM_PROPERTY_SUFFIX}`],
                         },
                         { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
                     );
