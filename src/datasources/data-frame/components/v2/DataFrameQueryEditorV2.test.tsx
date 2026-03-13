@@ -2883,6 +2883,16 @@ describe("DataFrameQueryEditorV2", () => {
                 (DataFrameQueryBuilderWrapper as jest.Mock).mockClear();
             });
 
+            it('should not call getCustomPropertyOptions when query type is Data', async () => {
+                const { datasource } = renderComponent({
+                    type: DataFrameQueryType.Data
+                });
+
+                await waitFor(() => {
+                    expect(datasource.getCustomPropertyOptions).not.toHaveBeenCalled();
+                });
+            });
+
             it('should call getCustomPropertyOptions when query type is Properties', async () => {
                 const { datasource } = renderComponent({
                     type: DataFrameQueryType.Properties 
@@ -2893,16 +2903,18 @@ describe("DataFrameQueryEditorV2", () => {
                 });
             });
 
-            it('should call getCustomPropertyOptions when filters change and query type is Properties', async () => {
+            it('should call getCustomPropertyOptions when only the filters change', async () => {
                 const { datasource } = renderComponent({
                   type: DataFrameQueryType.Properties,
-                  dataTableFilter: 'InitialFilter',
-                  resultFilter: 'InitialResultFilter',
-                  columnFilter: 'InitialColumnFilter',
+                  dataTableFilter: 'InitialFilter'
                 });
 
                 const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
-                const { onDataTableFilterChange, onResultFilterChange, onColumnFilterChange } = props;
+                const { 
+                    onDataTableFilterChange,
+                    onResultFilterChange,
+                    onColumnFilterChange 
+                } = props;
                 const mockEvent = {
                     detail: { linq: 'UpdatedFilter' }
                 } as Event & { detail: { linq: string; }; };
@@ -2916,13 +2928,31 @@ describe("DataFrameQueryEditorV2", () => {
                 });
             });
 
-            it('should not call getCustomPropertyOptions when filters do not change', async () => {
+            it('should call getCustomPropertyOptions when only take changes', () => {
                 const { datasource } = renderComponent({
                     type: DataFrameQueryType.Properties,
                     dataTableFilter: 'InitialFilter',
-                    resultFilter: 'InitialResultFilter',
-                    columnFilter: 'InitialColumnFilter',
                 });
+
+                const takeInput = screen.getByRole('spinbutton');
+                userEvent.type(takeInput, '500');
+                userEvent.tab();
+
+                waitFor(() => {
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(2); // 1 call on initial render + 1 call for take change
+                });
+            })
+
+            it('should not call getCustomPropertyOptions when neither filters change nor take', async () => {
+                const { datasource } = renderComponent(
+                    {
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'InitialFilter',
+                        resultFilter: 'InitialResultFilter',
+                        columnFilter: 'InitialColumnFilter',
+                        take: 1000
+                    }
+                );
 
                 const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
                 const { onDataTableFilterChange } = props;
@@ -2933,16 +2963,6 @@ describe("DataFrameQueryEditorV2", () => {
 
                 await waitFor(() => {
                     expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1); // Only the initial call on render, no additional calls since filter did not change
-                });
-            });
-
-            it('should not call getCustomPropertyOptions when query type is Data', async () => {
-                const { datasource } = renderComponent({
-                    type: DataFrameQueryType.Data
-                });
-
-                await waitFor(() => {
-                    expect(datasource.getCustomPropertyOptions).not.toHaveBeenCalled();
                 });
             });
 
@@ -2984,21 +3004,26 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(mockGetCustomPropertyOptions).toHaveBeenCalled();
                 });
 
+                //Data table properties
                 const user = userEvent.setup();
                 const dataTablePropertiesField = result.getAllByRole('combobox')[0];
                 await user.click(dataTablePropertiesField);
 
                 const optionControls = screen.getAllByRole('option');
                 expect(optionControls).toHaveLength(12);
+
                 const dataTableCustomPropertyOption = optionControls.find(opt =>  
                     opt.textContent && opt.textContent.includes('Custom Prop A')  
                 );  
                 expect(dataTableCustomPropertyOption).toBeDefined();
 
+                //Column Properties 
                 const columnPropertiesField = result.getAllByRole('combobox')[1];
                 await user.click(columnPropertiesField);
                 
                 const columnOptionControls = screen.getAllByRole('option');
+                expect(columnOptionControls).toHaveLength(5);
+
                 const columnCustomPropertyOption = columnOptionControls.find(opt =>  
                     opt.textContent && opt.textContent.includes('Custom Col Prop')  
                 );  
@@ -3009,16 +3034,16 @@ describe("DataFrameQueryEditorV2", () => {
                 const mockGetCustomPropertyOptions = jest.fn().mockRejectedValue(new Error('Failed to fetch options'));
 
                 renderComponent(
-                  { type: DataFrameQueryType.Properties },
-                  '',
-                  '',
-                  [],
-                  [],
-                  undefined,
-                  {},
-                  {
-                    getCustomPropertyOptions: mockGetCustomPropertyOptions,
-                  }
+                    { type: DataFrameQueryType.Properties },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    {
+                      getCustomPropertyOptions: mockGetCustomPropertyOptions,
+                    }
                 );
 
                 await waitFor(() => {
