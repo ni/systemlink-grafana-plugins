@@ -17,7 +17,7 @@ import {
     infoMessage,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { isObservable, lastValueFrom } from 'rxjs';
-import _ from 'lodash';
+import _, { set } from 'lodash';
 
 export const DataFrameQueryEditorV2: React.FC<Props> = (
     { query, onChange, onRunQuery, datasource }: Props
@@ -392,12 +392,17 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 fetchAndSetCustomPropertyOptions(transformedFilters);
                 return;
             }
+
+            if (!isColumnOptionsInitialized) {
+                setIsColumnOptionsInitialized(true);
+            }
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             migratedQuery.type,
             migratedQuery.take,
             transformedFilters,
-            fetchAndSetCustomPropertyOptions,
+            fetchAndSetCustomPropertyOptions, 
         ]
     );
 
