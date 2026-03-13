@@ -199,6 +199,10 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
 
     useEffect(
         () => {
+            if (migratedQuery.type !== DataFrameQueryType.Data) {
+                return;
+            }
+
             const filterChanged = !_.isEqual(lastFilterRefForDataQueryType.current, transformedFilters);
             const hasRequiredFilters = datasource.hasRequiredFilters(migratedQuery);
 
@@ -209,7 +213,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 setIsColumnOptionsInitialized(true);
             }
 
-            if (migratedQuery.type !== DataFrameQueryType.Data || !filterChanged) {
+            if (!filterChanged) {
                 return;
             }
 
