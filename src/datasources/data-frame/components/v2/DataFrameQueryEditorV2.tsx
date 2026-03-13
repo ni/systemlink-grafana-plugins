@@ -65,13 +65,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const standardDataTablePropertyOptions = getStandardPropertyOptions(DataTableProjectionType.DataTable);
     const standardColumnPropertyOptions = getStandardPropertyOptions(DataTableProjectionType.Column);
 
-    const lastFilterRef = useRef<CombinedFilters>({
+    const lastFilterRefForDataQueryType = useRef<CombinedFilters>({
         resultFilter: '',
         dataTableFilter: '',
         columnFilter: '',
     });
 
-    const lastCustomPropertyFilterRef = useRef<CombinedFilters>({
+    const lastFilterRefForPropertiesQueryType = useRef<CombinedFilters>({
         resultFilter: '',
         dataTableFilter: '',
         columnFilter: '',
@@ -132,8 +132,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     
             setDataTableCustomPropertyOptions(limitedDataTableCustomPropertyOptions);
             setColumnCustomPropertyOptions(limitedColumnCustomPropertyOptions);
-        }
-        catch (error) {
+        } catch (error) {
             setDataTableCustomPropertyOptions([]);
             setColumnCustomPropertyOptions([]);
         }
@@ -202,7 +201,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 columnFilter: datasource.transformColumnQuery(columnFilter)
             };
 
-            const filterChanged = !_.isEqual(lastFilterRef.current, transformedFilter);
+            const filterChanged = !_.isEqual(lastFilterRefForDataQueryType.current, transformedFilter);
             const hasRequiredFilters = datasource.hasRequiredFilters(migratedQuery);
 
             if (
@@ -216,7 +215,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 return;
             }
 
-            lastFilterRef.current = transformedFilter;
+            lastFilterRefForDataQueryType.current = transformedFilter;
 
             if (hasRequiredFilters) {
                 fetchAndSetColumnOptions(transformedFilter);
@@ -244,38 +243,44 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     );
 
     useEffect(
-      () => {
-          const transformedFilter = {
-              resultFilter: datasource.transformResultQuery(migratedQuery.resultFilter),
-              dataTableFilter: datasource.transformDataTableQuery(migratedQuery.dataTableFilter),
-              columnFilter: datasource.transformColumnQuery(migratedQuery.columnFilter),
+        () => {
+            const transformedFilter = {
+                resultFilter: datasource.transformResultQuery(migratedQuery.resultFilter),
+                dataTableFilter: datasource.transformDataTableQuery(migratedQuery.dataTableFilter),
+                columnFilter: datasource.transformColumnQuery(migratedQuery.columnFilter),
             };
-            
-            const filterChanged =
-              isFiltersEmpty(transformedFilter) 
-              || !_.isEqual(lastCustomPropertyFilterRef.current, transformedFilter);
-    
-            if (migratedQuery.type !== DataFrameQueryType.Properties || !filterChanged) {
-              return;
+
+            const filterChanged = !_.isEqual(
+                lastFilterRefForPropertiesQueryType.current,
+                transformedFilter
+            );
+
+            if (
+                migratedQuery.type !== DataFrameQueryType.Properties
+                || (!areFiltersEmpty(transformedFilter) && !filterChanged)
+            ) {
+                return;
             }
 
-            lastCustomPropertyFilterRef.current = transformedFilter;
+            lastFilterRefForPropertiesQueryType.current = transformedFilter;
 
             fetchAndSetCustomPropertyOptions(transformedFilter);
-      },
-      [
-        migratedQuery.type,
-        migratedQuery.dataTableFilter,
-        migratedQuery.resultFilter,
-        migratedQuery.columnFilter,
-        datasource.variablesCache,
-        fetchAndSetCustomPropertyOptions,
-        datasource,
-      ]
+        },
+        [
+            migratedQuery.type,
+            migratedQuery.dataTableFilter,
+            migratedQuery.resultFilter,
+            migratedQuery.columnFilter,
+            datasource.variablesCache,
+            fetchAndSetCustomPropertyOptions,
+            datasource,
+        ]
     );
 
-    const isFiltersEmpty = (filters: CombinedFilters): boolean => {
-      return filters.dataTableFilter === '' && !filters.resultFilter && !filters.columnFilter;
+    const areFiltersEmpty = (filters: CombinedFilters): boolean => {
+      return filters.dataTableFilter === '' 
+        && filters.resultFilter === ''
+        && filters.columnFilter === '';
     };
 
     const dataTablePropertyOptions = useMemo(() => [
