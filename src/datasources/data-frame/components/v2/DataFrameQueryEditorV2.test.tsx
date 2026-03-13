@@ -2941,7 +2941,8 @@ describe("DataFrameQueryEditorV2", () => {
                     });
                     await user.click(dataRadios[0]);
 
-                    expect(datasource.getCustomPropertyOptions).toHaveBeenOnceCalledWith({
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
                         dataTableFilter: '',
                         resultFilter: '',
                         columnFilter: '',
@@ -2960,7 +2961,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                     expect(getCustomPropertyOptions).not.toHaveBeenCalled();
 
-                    //C hange the filter while in Data query type
+                    //Change the filter while in Data query type
                     const mockEvent = {
                         detail: { linq: 'UpdatedFilter' },
                     } as Event & { detail: { linq: string } };
@@ -2974,6 +2975,7 @@ describe("DataFrameQueryEditorV2", () => {
                         name: DataFrameQueryType.Properties,
                     });
                     await user.click(dataRadios[0]);
+
                     expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
                         dataTableFilter: 'UpdatedFilter',
                         resultFilter: '',
@@ -3016,6 +3018,7 @@ describe("DataFrameQueryEditorV2", () => {
                         }
                     );
 
+                    expect(mockGetCustomPropertyOptions).toHaveBeenCalledTimes(1);
                     expect(mockGetCustomPropertyOptions).toHaveBeenCalledWith({
                         dataTableFilter: '',
                         resultFilter: '',
@@ -3086,7 +3089,7 @@ describe("DataFrameQueryEditorV2", () => {
                     onDataTableFilterChange(mockEvent);
     
                     await waitFor(() => {
-                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1); // Only the initial call on render, no additional calls since filter did not change
+                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
                     });
                 });
 
@@ -3128,11 +3131,11 @@ describe("DataFrameQueryEditorV2", () => {
                         expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterX');
                         expect(datasource.transformResultQuery).toHaveBeenCalledWith('FilterY');
                         expect(datasource.transformColumnQuery).toHaveBeenCalledWith('FilterZ');
-                    });
-                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
-                        dataTableFilter: 'FilterX',
-                        resultFilter: 'FilterY',
-                        columnFilter: 'FilterZ',
+                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
+                            dataTableFilter: 'FilterX',
+                            resultFilter: 'FilterY',
+                            columnFilter: 'FilterZ',
+                        });
                     });
                 });
             });
@@ -3210,7 +3213,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                     await waitFor(() => {
                         expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
-                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalled();
+                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
                     });
                 });
             });
