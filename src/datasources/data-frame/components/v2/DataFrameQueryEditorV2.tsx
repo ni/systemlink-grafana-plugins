@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
 import { Alert, AutoSizeInput, Collapse, Combobox, ComboboxOption, InlineField, InlineSwitch, MultiCombobox, RadioButtonGroup } from "@grafana/ui";
-import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQueryV2, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2, metadataFieldOptions, DataTableProjectionLabelLookup, DataTableProjectionType, DataTableProperties, DataTablePropertiesType } from "../../types";
+import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQueryV2, Props, DataFrameDataQuery, CombinedFilters, defaultQueryV2, metadataFieldOptions, DataTableProjectionLabelLookup, DataTableProjectionType, DataTableProperties } from "../../types";
 import { enumToOptions, validateNumericInput } from "core/utils";
-import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT, UNDECIMATED_RECORDS_LIMIT,decimationNoneOption, CUSTOM_PROPERTY_OPTIONS_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_OPTIONS_LIMIT, decimationMethods, TAKE_LIMIT, UNDECIMATED_RECORDS_LIMIT,decimationNoneOption, CUSTOM_PROPERTY_OPTIONS_LIMIT, STANDARD_DATA_TABLE_PROPERTIES_GROUP, STANDARD_COLUMN_PROPERTIES_GROUP } from 'datasources/data-frame/constants';
 import { FloatingError } from 'core/errors';
 import {
     errorMessages,
@@ -57,8 +57,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 label: value.label,
                 value: key as DataTableProperties,
                 group: value.type === DataTableProjectionType.DataTable 
-                    ? DataTablePropertiesType.DataTableProperties 
-                    : DataTablePropertiesType.ColumnProperties,
+                    ? STANDARD_DATA_TABLE_PROPERTIES_GROUP 
+                    : STANDARD_COLUMN_PROPERTIES_GROUP,
             }))
             .sort((a, b) => a.label.localeCompare(b.label));
 
