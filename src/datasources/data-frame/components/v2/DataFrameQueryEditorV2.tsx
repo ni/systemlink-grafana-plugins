@@ -45,8 +45,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
     const [xColumnOptions, setXColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnOptionsInitialized, setIsColumnOptionsInitialized] = useState<boolean>(false);
-    const [dataTableCustomPropertyOptions, setDataTableCustomPropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
-    const [columnCustomPropertyOptions, setColumnCustomPropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
+    const [customDataTablePropertyOptions, setCustomDataTablePropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
+    const [customColumnPropertyOptions, setCustomColumnPropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
 
     const getStandardPropertyOptions = (
         type: DataTableProjectionType
@@ -116,11 +116,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 .columnCustomPropertyOptions
                 .slice(0, CUSTOM_PROPERTY_OPTIONS_LIMIT);
     
-            setDataTableCustomPropertyOptions(limitedDataTableCustomPropertyOptions);
-            setColumnCustomPropertyOptions(limitedColumnCustomPropertyOptions);
+            setCustomDataTablePropertyOptions(limitedDataTableCustomPropertyOptions);
+            setCustomColumnPropertyOptions(limitedColumnCustomPropertyOptions);
         } catch (error) {
-            setDataTableCustomPropertyOptions([]);
-            setColumnCustomPropertyOptions([]);
+            setCustomDataTablePropertyOptions([]);
+            setCustomColumnPropertyOptions([]);
         }
       },
       [datasource]
@@ -253,12 +253,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 lastFilterRefForPropertiesQueryType.current,
                 transformedFilters
             );
-            const isTakeChanged = lastTakeRefForPropertiesQueryType.current !== migratedQuery.take;
+            const takeChanged = lastTakeRefForPropertiesQueryType.current !== migratedQuery.take;
 
-            lastFilterRefForPropertiesQueryType.current = transformedFilters;
-            lastTakeRefForPropertiesQueryType.current = migratedQuery.take;
+            if (filterChanged || takeChanged) {
+                lastFilterRefForPropertiesQueryType.current = transformedFilters;
+                lastTakeRefForPropertiesQueryType.current = migratedQuery.take;
 
-            if (filterChanged || isTakeChanged) {
                 fetchAndSetCustomPropertyOptions(transformedFilters);
                 return;
             }
@@ -273,13 +273,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
 
     const dataTablePropertyOptions = useMemo(() => [
         ...standardDataTablePropertyOptions,
-        ...dataTableCustomPropertyOptions,
-    ], [standardDataTablePropertyOptions, dataTableCustomPropertyOptions]);
+        ...customDataTablePropertyOptions,
+    ], [standardDataTablePropertyOptions, customDataTablePropertyOptions]);
 
     const columnPropertyOptions = useMemo(() => [
         ...standardColumnPropertyOptions,
-        ...columnCustomPropertyOptions,
-    ], [standardColumnPropertyOptions, columnCustomPropertyOptions]);
+        ...customColumnPropertyOptions,
+    ], [standardColumnPropertyOptions, customColumnPropertyOptions]);
 
 
     const xColumnSelection = useMemo((): {
