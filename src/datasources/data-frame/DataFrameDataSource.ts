@@ -11,7 +11,8 @@ import {
   ValidDataFrameQuery,
   ValidDataFrameVariableQuery, DataFrameQuery,
   CombinedFilters,
-  ColumnOptions
+  ColumnOptions,
+  CustomPropertyOptions
 } from "./types";
 import { DataFrameDataSourceBase } from "./DataFrameDataSourceBase";
 import { DataFrameDataSourceV2 } from "./datasources/v2/DataFrameDataSourceV2";
@@ -120,6 +121,13 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
 
   public async getColumnOptionsWithVariables(filters: CombinedFilters): Promise<ColumnOptions> {
     return this.datasource.getColumnOptionsWithVariables(filters);
+  }
+
+  public async getCustomPropertyOptions(
+    filters: CombinedFilters,
+    take: number
+  ): Promise<CustomPropertyOptions> {
+    return this.datasource.getCustomPropertyOptions(filters, take);
   }
 
   public transformDataTableQuery(query: string) {

@@ -2,7 +2,7 @@ import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
 import { BackendSrv, locationService, TemplateSrv } from '@grafana/runtime';
 import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
-import { COLUMN_SELECTION_LIMIT, MAXIMUM_DATA_POINTS, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_SELECTION_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, MAXIMUM_DATA_POINTS, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
 import { Workspace } from 'core/types';
@@ -6791,6 +6791,336 @@ describe('DataFrameDataSourceV2', () => {
                         expect(result.fields.length).toBe(100);
                     });
                 });
+            });
+        });
+
+        describe('getCustomPropertyOptions', () => {
+            let queryTablesSpy$: jest.SpyInstance;
+            const filters = { dataTableFilter: '', resultFilter: '', columnFilter: '' };
+            
+            beforeEach(() => {
+                queryTablesSpy$ = jest.spyOn(ds, 'queryTables$');
+                const mockTables = [
+                    {
+                        properties: {
+                            zprop: 'val1',
+                            aprop: 'val2',
+                            bprop: 'val3'
+                        },
+                        columns: [
+                            {
+                                properties: { 
+                                    yprop: 'v1',
+                                    xprop: 'v2',
+                                    zprop: 'v3'
+                                }
+                            },
+                        ]
+                    }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+            });
+
+            it('should call queryTables$ with Properties and ColumnProperties projections', async () => {
+                queryTablesSpy$.mockReturnValue(of([]));
+
+                await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    filters,
+                    TAKE_LIMIT,
+                    [DataTableProjections.Properties, DataTableProjections.ColumnProperties]
+                );
+            });
+
+            it('should pass custom take value to queryTables$', async () => {
+                queryTablesSpy$.mockReturnValue(of([]));
+                const customTake = 500;
+
+                await ds.getCustomPropertyOptions(filters, customTake);
+
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    filters,
+                    customTake,
+                    [DataTableProjections.Properties, DataTableProjections.ColumnProperties]
+                );
+            });
+
+            it('should return empty options when tables have no data table properties and column properties', async () => {
+                queryTablesSpy$.mockReturnValue(of([]));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
+                const columnCustomPropertyOptions = result.columnCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
+                expect(dataTableCustomPropertyOptions).toEqual([]);
+                expect(columnCustomPropertyOptions).toEqual([]);
+            });
+
+            it('should return data table custom properties as options when only data table properties are available', async () => {
+                const mockTables = [
+                    { properties: { propA: 'valueA', propB: 'valueB' } },
+                    { properties: { propB: 'valueB2', propC: 'valueC' } },
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
+                expect(dataTableCustomPropertyOptions).toEqual([
+                    {
+                        label: 'propA',
+                        value: 'propA-(custom-properties)',
+                        group: CUSTOM_DATA_TABLE_PROPERTIES_GROUP
+                    },
+                    {
+                        label: 'propB',
+                        value: 'propB-(custom-properties)',
+                        group: CUSTOM_DATA_TABLE_PROPERTIES_GROUP
+                    },
+                    {
+                        label: 'propC',
+                        value: 'propC-(custom-properties)',
+                        group: CUSTOM_DATA_TABLE_PROPERTIES_GROUP
+                    },
+                ]);
+            });
+
+            it('should return column custom properties as options when only column properties are available', async () => {
+                const mockTables = [
+                    {
+                        columns: [
+                            { properties: { colPropX: 'val1' } },
+                            { properties: { colPropY: 'val2' } },
+                        ]
+                    },
+                    {
+                        columns: [
+                            { properties: { colPropX: 'val3', colPropZ: 'val4' } },
+                        ]
+                    },
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const columnCustomPropertyOptions = result.columnCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
+                expect(columnCustomPropertyOptions).toEqual([
+                    {
+                        label: 'colPropX',
+                        value: 'colPropX-(custom-properties)',
+                        group: CUSTOM_COLUMN_PROPERTIES_GROUP
+                    },
+                    {
+                        label: 'colPropY',
+                        value: 'colPropY-(custom-properties)',
+                        group: CUSTOM_COLUMN_PROPERTIES_GROUP
+                    },
+                    {
+                        label: 'colPropZ',
+                        value: 'colPropZ-(custom-properties)',
+                        group: CUSTOM_COLUMN_PROPERTIES_GROUP
+                    },
+                ]);
+            });
+
+            it('should deduplicate data table property keys across tables', async () => {
+                const mockTables = [
+                    { properties: { sharedProp: 'val1' } },
+                    { properties: { sharedProp: 'val2' } },
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
+                expect(dataTableCustomPropertyOptions).toEqual([
+                    {
+                        label: 'sharedProp',
+                        value: 'sharedProp-(custom-properties)',
+                        group: CUSTOM_DATA_TABLE_PROPERTIES_GROUP
+                    },
+                ]);
+            });
+
+            it('should deduplicate column property keys across tables', async () => {
+                const mockTables = [
+                    {
+                        columns: [
+                            { properties: { sharedColProp: 'val1' } },
+                        ]
+                    },
+                    {
+                        columns: [
+                            { properties: { sharedColProp: 'val2' } },
+                        ]
+                    },
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const columnCustomPropertyOptions = result.columnCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
+                expect(columnCustomPropertyOptions).toEqual([
+                    {
+                        label: 'sharedColProp',
+                        value: 'sharedColProp-(custom-properties)',
+                        group: CUSTOM_COLUMN_PROPERTIES_GROUP
+                    },
+                ]);
+            });
+
+            it('should return custom properties sorted alphabetically', async () => {
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const dataTableCustomPropertyLabels = result.dataTableCustomPropertyOptions
+                    .map(option => option.label);
+                const columnCustomPropertyLabels = result.columnCustomPropertyOptions
+                    .map(option => option.label);
+
+                expect(dataTableCustomPropertyLabels).toEqual(['aprop', 'bprop', 'zprop']);
+                expect(columnCustomPropertyLabels).toEqual(['xprop', 'yprop', 'zprop']);
+            });
+
+            it('should skip tables without properties', async () => {
+                const mockTables = [
+                    {
+                        columns: []
+                    },
+                    {
+                        columns: [],
+                        properties: { tableProp: 'val1' },
+                    }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
+                expect(dataTableCustomPropertyOptions).toEqual([
+                    {
+                        label: 'tableProp',
+                        value: 'tableProp-(custom-properties)',
+                        group: CUSTOM_DATA_TABLE_PROPERTIES_GROUP
+                    },
+                ]);
+            });
+
+            it('should skip columns without properties', async () => {
+                const mockTables = [
+                    {
+                        columns: [
+                            { properties: { colProp: 'val' } },
+                            { properties: {} },
+                        ]
+                    },
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const columnCustomPropertyOptions = result.columnCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
+                expect(columnCustomPropertyOptions).toEqual([
+                    {
+                        label: 'colProp',
+                        value: 'colProp-(custom-properties)',
+                        group: CUSTOM_COLUMN_PROPERTIES_GROUP
+                    },
+                ]);
+            });
+
+            it('should return empty options when all tables lack properties', async () => {
+                const mockTables = [
+                    {
+                        columns: []
+                    },
+                    {
+                        columns: []
+                    }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
+                expect(dataTableCustomPropertyOptions).toEqual([]);
+            });
+
+            it('should return empty column options when all columns lack properties', async () => {
+                const mockTables = [
+                    {
+                        columns: [
+                            { properties: {} },
+                            { properties: {} },
+                        ]
+                    },
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const columnCustomPropertyOptions = result.columnCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
+                expect(columnCustomPropertyOptions).toEqual([]);
+            });
+
+            it('should return empty dataTableCustomPropertyOptions and columnCustomPropertyOptions when all properties are empty', async () => {
+                const mockTables = [
+                    {
+                        properties: {},
+                        columns: [
+                            { properties: {} },
+                        ]
+                    },
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                expect(result.dataTableCustomPropertyOptions).toEqual([]);
+                expect(result.columnCustomPropertyOptions).toEqual([]);
+            });
+
+            it('should return both data table and column custom properties', async () => {
+                const mockTables = [
+                    {
+                        properties: { tableProp: 'val1' },
+                        columns: [
+                            { properties: { colProp: 'val2' } },
+                        ]
+                    },
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
+                const columnCustomPropertyOptions = result.columnCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
+                expect(dataTableCustomPropertyOptions).toEqual([
+                    {
+                        label: 'tableProp',
+                        value: 'tableProp-(custom-properties)',
+                        group: CUSTOM_DATA_TABLE_PROPERTIES_GROUP
+                    },
+                ]);
+                expect(columnCustomPropertyOptions).toEqual([
+                    {
+                        label: 'colProp',
+                        value: 'colProp-(custom-properties)',
+                        group: CUSTOM_COLUMN_PROPERTIES_GROUP
+                    },
+                ]);
             });
         });
 

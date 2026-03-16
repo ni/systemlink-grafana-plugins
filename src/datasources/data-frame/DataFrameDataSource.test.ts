@@ -131,6 +131,43 @@ describe('DataFrameDataSource', () => {
         });
     });
 
+    describe('getCustomPropertyOptions', () => {
+        it('should call getCustomPropertyOptions on DataFrameDataSourceV2', async () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings);
+            const mockPropertiesOptions = {
+                dataTableCustomPropertyOptions: [
+                    {
+                        label: 'key1',
+                        value: 'value1'
+                    }
+                ],
+                columnCustomPropertyOptions: [
+                    {
+                        label: 'key2',
+                        value: 'value2'
+                    }
+                ]
+            };
+            v2Mock.getCustomPropertyOptions = jest.fn()
+                .mockResolvedValue(mockPropertiesOptions);
+
+            const result = await ds.getCustomPropertyOptions(
+                {
+                    dataTableFilter: 'filter'
+                },
+                500
+            );
+
+            expect(v2Mock.getCustomPropertyOptions).toHaveBeenCalledWith(
+                {
+                    dataTableFilter: 'filter'
+                },
+                500
+            );
+            expect(result).toEqual(mockPropertiesOptions);
+        });
+    });
+
     describe('dashboard variables caching', () => {
         const backendSrv = {} as BackendSrv;
         const createTemplateSrv = (variables: Array<{ name: string; value: string }>): TemplateSrv => {
