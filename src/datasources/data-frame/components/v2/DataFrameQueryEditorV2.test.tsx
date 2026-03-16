@@ -2961,7 +2961,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                     expect(getCustomPropertyOptions).not.toHaveBeenCalled();
 
-                    //Change the filter while in Data query type
+                    // Change the filter while in Data query type
                     const mockEvent = {
                         detail: { linq: 'UpdatedFilter' },
                     } as Event & { detail: { linq: string } };
@@ -2982,7 +2982,7 @@ describe("DataFrameQueryEditorV2", () => {
                         columnFilter: ''
                     });
                 });
-            });            
+            });
 
             describe('custom properties option based on filter and take', () => {
                 it('should fetch custom properties on initial render with empty filters', () => {
@@ -3257,7 +3257,7 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(getCustomPropertiesOptionsSpy).toHaveBeenCalledTimes(1);
                 });
 
-                //Data table properties
+                // Data table properties
                 const user = userEvent.setup();
                 const dataTablePropertiesField = result.getAllByRole('combobox')[0];
                 await user.click(dataTablePropertiesField);
@@ -3270,7 +3270,7 @@ describe("DataFrameQueryEditorV2", () => {
                 );  
                 expect(dataTableCustomPropertyOption).toBeDefined();
 
-                //Column Properties 
+                // Column Properties 
                 const columnPropertiesField = result.getAllByRole('combobox')[1];
                 await user.click(columnPropertiesField);
                 
