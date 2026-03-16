@@ -318,7 +318,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
         
         if (!this.tablesContainsProperties(tables)) {
-            return { dataTableCustomPropertyOptions:[], columnCustomPropertyOptions: [] };
+            return { 
+                dataTableCustomPropertyOptions:[],
+                columnCustomPropertyOptions: []
+            };
         }
 
         const dataTableProperties = new Set(

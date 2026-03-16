@@ -103,7 +103,8 @@ export abstract class DataFrameDataSourceBase<
         take: number
     ): Promise<CustomPropertyOptions> {
         return Promise.resolve({
-            dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: []
+            dataTableCustomPropertyOptions: [],
+            columnCustomPropertyOptions: []
         });
     }
 

@@ -6802,10 +6802,18 @@ describe('DataFrameDataSourceV2', () => {
                 queryTablesSpy$ = jest.spyOn(ds, 'queryTables$');
                 const mockTables = [
                     {
-                        properties: { zprop: 'val1', aprop: 'val2', bprop: 'val3' },
+                        properties: {
+                            zprop: 'val1',
+                            aprop: 'val2',
+                            bprop: 'val3'
+                        },
                         columns: [
                             {
-                                properties: { yprop: 'v1', xprop: 'v2', zprop: 'v3' }
+                                properties: { 
+                                    yprop: 'v1',
+                                    xprop: 'v2',
+                                    zprop: 'v3'
+                                }
                             },
                         ]
                     }

@@ -151,9 +151,12 @@ describe('DataFrameDataSource', () => {
             v2Mock.getCustomPropertyOptions = jest.fn()
                 .mockResolvedValue(mockPropertiesOptions);
 
-            const result = await ds.getCustomPropertyOptions({
-                dataTableFilter: 'filter'
-            }, 500);
+            const result = await ds.getCustomPropertyOptions(
+                {
+                    dataTableFilter: 'filter'
+                },
+                500
+            );
 
             expect(v2Mock.getCustomPropertyOptions).toHaveBeenCalledWith(
                 {

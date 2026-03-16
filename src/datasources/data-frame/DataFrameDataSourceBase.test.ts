@@ -159,9 +159,12 @@ describe('DataFrameDataSourceBase', () => {
             templateSrv
         );
 
-        const options = await ds.getCustomPropertyOptions({
-            dataTableFilter: 'filter',
-        }, 100);
+        const options = await ds.getCustomPropertyOptions(
+            {
+                dataTableFilter: 'filter',
+            }, 
+            100
+        );
 
         expect(options).toEqual({
             dataTableCustomPropertyOptions: [],
