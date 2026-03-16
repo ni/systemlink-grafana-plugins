@@ -138,42 +138,54 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         customPropertyOptions: Array<ComboboxOption<string>>,
         standardOptions: Array<ComboboxOption<string>>,
     ) => {
-        const allPropertyOptions = new Set([
-            ...customPropertyOptions.map(property => property.value),
-            ...standardOptions.map(option => option.value),
-        ]);
-        const validProperties = selectedProperties
-            .filter(property => allPropertyOptions.has(property));
-        const invalidProperties = selectedProperties
-            .filter(property => !allPropertyOptions.has(property));
-        return { validProperties, invalidProperties };
-    }, []);
+            const allPropertyOptions = new Set([
+                ...customPropertyOptions.map(property => property.value),
+                ...standardOptions.map(option => option.value),
+            ]);
+            const validProperties = selectedProperties
+                .filter(property => allPropertyOptions.has(property));
+            const invalidProperties = selectedProperties
+                .filter(property => !allPropertyOptions.has(property));
+            return { validProperties, invalidProperties };
+        },
+        []
+    );
 
-    const { validProperties: validDataTableProperties, invalidProperties: invalidDataTableProperties } = useMemo(() => {
-      return getPropertyValidation(
-        migratedQuery.dataTableProperties,
-        customDataTablePropertyOptions,
-        standardDataTablePropertyOptions
-      );
-    }, [
-      getPropertyValidation,
-      customDataTablePropertyOptions,
-      migratedQuery.dataTableProperties,
-      standardDataTablePropertyOptions,
-    ]);
+    const { 
+        validProperties: validDataTableProperties,
+        invalidProperties: invalidDataTableProperties
+    } = useMemo(() => {
+            return getPropertyValidation(
+                migratedQuery.dataTableProperties,
+                customDataTablePropertyOptions,
+                standardDataTablePropertyOptions
+            );
+        },
+        [
+            getPropertyValidation,
+            customDataTablePropertyOptions,
+            migratedQuery.dataTableProperties,
+            standardDataTablePropertyOptions
+        ]
+    );
 
-    const { validProperties: validColumnProperties, invalidProperties: invalidColumnProperties } = useMemo(() => {
-      return getPropertyValidation(
-        migratedQuery.columnProperties,
-        customColumnPropertyOptions,
-        standardColumnPropertyOptions
-      );
-    }, [
-      getPropertyValidation,
-      customColumnPropertyOptions,
-      migratedQuery.columnProperties,
-      standardColumnPropertyOptions,
-    ]);
+    const { 
+        validProperties: validColumnProperties,
+        invalidProperties: invalidColumnProperties
+    } = useMemo(() => {
+            return getPropertyValidation(
+                migratedQuery.columnProperties,
+                customColumnPropertyOptions,
+                standardColumnPropertyOptions
+            );
+        }, 
+        [
+            getPropertyValidation,
+            customColumnPropertyOptions,
+            migratedQuery.columnProperties,
+            standardColumnPropertyOptions
+        ]
+    );
 
     const getSelectedPropertiesOptions = useCallback((
         validProperties: string[],

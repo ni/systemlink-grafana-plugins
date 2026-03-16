@@ -3636,29 +3636,13 @@ describe("DataFrameQueryEditorV2", () => {
 
                 it('should show an error message for multiple invalid custom column properties', async () => {
                     renderWithCustomProperties(
-                        { columnProperties: [`missingColA${CUSTOM_PROPERTY_SUFFIX}`, `missingColB${CUSTOM_PROPERTY_SUFFIX}`] },
+                        { columnProperties: [DataTableProperties.ColumnName,`missingColA${CUSTOM_PROPERTY_SUFFIX}`, `missingColB${CUSTOM_PROPERTY_SUFFIX}`] },
                         { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
                     );
 
                     await waitFor(() => {
                         expect(
                             screen.getByText(`The following selected custom column properties are not valid: 'missingColA, missingColB'`)
-                        ).toBeInTheDocument();
-                    });
-                });
-
-                it('should only show error for invalid column properties when some are valid', async () => {
-                    renderWithCustomProperties(
-                        { columnProperties: [DataTableProperties.ColumnName, `validColCustom${CUSTOM_PROPERTY_SUFFIX}`, `invalidColCustom${CUSTOM_PROPERTY_SUFFIX}`] },
-                        {
-                            dataTableCustomPropertyOptions: [],
-                            columnCustomPropertyOptions: [{ label: 'validColCustom', value: `validColCustom${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
-                        }
-                    );
-
-                    await waitFor(() => {
-                        expect(
-                            screen.getByText(`The following selected custom column property is not valid: 'invalidColCustom'`)
                         ).toBeInTheDocument();
                     });
                 });
@@ -3708,25 +3692,217 @@ describe("DataFrameQueryEditorV2", () => {
                     });
                 });
             });
-        });
 
-        describe('custom property validation and error handling', () => {
-            beforeAll(() => {
-                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
+            it('should display both valid and invalid data table properties in the combobox', async () => {
+                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(500);
+                renderWithCustomProperties(
+                    {
+                        dataTableProperties: [
+                            `validProp${CUSTOM_PROPERTY_SUFFIX}`,
+                            `invalidProp${CUSTOM_PROPERTY_SUFFIX}`
+                        ]
+                    },
+                    {
+                        dataTableCustomPropertyOptions: [
+                            { label: 'validProp', value: `validProp${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }
+                        ],
+                        columnCustomPropertyOptions: [],
+                    }
+                );
+
+                await waitFor(() => {
+                    expect(document.body).toHaveTextContent('validProp');
+                    expect(document.body).toHaveTextContent('invalidProp');
+                });
             });
 
-            beforeEach(() => {
-                cleanup();
-                jest.clearAllMocks();
+            it('should display both valid and invalid column properties in the combobox', async () => {
+                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(500);
+                renderWithCustomProperties(
+                    {
+                        columnProperties: [
+                            `validColProp${CUSTOM_PROPERTY_SUFFIX}`,
+                            `invalidColProp${CUSTOM_PROPERTY_SUFFIX}`
+                        ]
+                    },
+                    {
+                        dataTableCustomPropertyOptions: [],
+                        columnCustomPropertyOptions: [
+                            { label: 'validColProp', value: `validColProp${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }
+                        ],
+                    }
+                );
+
+                await waitFor(() => {
+                    expect(document.body).toHaveTextContent('validColProp');
+                    expect(document.body).toHaveTextContent('invalidColProp');
+                });
             });
 
-            const renderWithCustomProperties = (
-                queryOverrides: Partial<DataFrameDataQuery>,
-                customPropertyOptions = { dataTableCustomPropertyOptions: [] as ComboboxOption[], columnCustomPropertyOptions: [] as ComboboxOption[] }
-            ) => {
-                const mockGetCustomPropertyOptions = jest.fn().mockResolvedValue(customPropertyOptions);
-                return renderComponent(
-                    { type: DataFrameQueryType.Properties, ...queryOverrides },
+            it('should clear data table property error when invalid properties become valid after filter change', async () => {
+                const mockGetCustomPropertyOptions = jest.fn().mockResolvedValue({
+                    dataTableCustomPropertyOptions: [],
+                    columnCustomPropertyOptions: [],
+                });
+
+                const mockCustomPropDatasource = {
+                    processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                    getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                        uniqueColumnsAcrossTables: [],
+                        commonColumnsAcrossTables: []
+                    }),
+                    transformDataTableQuery: jest.fn((filter: string) => filter),
+                    transformResultQuery: jest.fn((filter: string) => filter),
+                    transformColumnQuery: jest.fn((filter: string) => filter),
+                    hasRequiredFilters: mockHasRequiredFilters,
+                    getCustomPropertyOptions: mockGetCustomPropertyOptions,
+                    parseColumnIdentifier: mockParseColumnIdentifier,
+                    instanceSettings: {
+                        jsonData: {
+                            featureToggles: {
+                                queryUndecimatedData: true
+                            }
+                        }
+                    }
+                } as any;
+
+                const { renderResult } = renderComponent(
+                    {
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'InitialFilter',
+                        dataTableProperties: [`myProp${CUSTOM_PROPERTY_SUFFIX}`],
+                    },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    mockCustomPropDatasource
+                );
+
+                await waitFor(() => {
+                    expect(
+                        screen.getByText(`The following selected custom data table property is not valid: 'myProp'`)
+                    ).toBeInTheDocument();
+                });
+
+                // Update mock to return the property as valid
+                mockCustomPropDatasource.getCustomPropertyOptions = jest.fn().mockResolvedValue({
+                    dataTableCustomPropertyOptions: [
+                        { label: 'myProp', value: `myProp${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }
+                    ],
+                    columnCustomPropertyOptions: [],
+                });
+
+                // Change filter to trigger refetch
+                renderResult.rerender(
+                    <DataFrameQueryEditorV2
+                        query={{
+                            refId: 'A',
+                            type: DataFrameQueryType.Properties,
+                            dataTableFilter: 'UpdatedFilter',
+                            dataTableProperties: [`myProp${CUSTOM_PROPERTY_SUFFIX}`],
+                        }}
+                        onChange={jest.fn()}
+                        onRunQuery={jest.fn()}
+                        datasource={mockCustomPropDatasource}
+                    />
+                );
+
+                await waitFor(() => {
+                    expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+                });
+            });
+
+            it('should clear column property error when invalid properties become valid after filter change', async () => {
+                const mockGetCustomPropertyOptions = jest.fn().mockResolvedValue({
+                    dataTableCustomPropertyOptions: [],
+                    columnCustomPropertyOptions: [],
+                });
+
+                const mockCustomPropDatasource = {
+                    processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                    getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                        uniqueColumnsAcrossTables: [],
+                        commonColumnsAcrossTables: []
+                    }),
+                    transformDataTableQuery: jest.fn((filter: string) => filter),
+                    transformResultQuery: jest.fn((filter: string) => filter),
+                    transformColumnQuery: jest.fn((filter: string) => filter),
+                    hasRequiredFilters: mockHasRequiredFilters,
+                    getCustomPropertyOptions: mockGetCustomPropertyOptions,
+                    parseColumnIdentifier: mockParseColumnIdentifier,
+                    instanceSettings: {
+                        jsonData: {
+                            featureToggles: {
+                                queryUndecimatedData: true
+                            }
+                        }
+                    }
+                } as any;
+
+                const { renderResult } = renderComponent(
+                    {
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'InitialFilter',
+                        columnProperties: [`myColProp${CUSTOM_PROPERTY_SUFFIX}`],
+                    },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    mockCustomPropDatasource
+                );
+
+                await waitFor(() => {
+                    expect(
+                        screen.getByText(`The following selected custom column property is not valid: 'myColProp'`)
+                    ).toBeInTheDocument();
+                });
+
+                // Update mock to return the property as valid
+                mockCustomPropDatasource.getCustomPropertyOptions = jest.fn().mockResolvedValue({
+                    dataTableCustomPropertyOptions: [],
+                    columnCustomPropertyOptions: [
+                        { label: 'myColProp', value: `myColProp${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }
+                    ],
+                });
+
+                // Change filter to trigger refetch
+                renderResult.rerender(
+                    <DataFrameQueryEditorV2
+                        query={{
+                            refId: 'A',
+                            type: DataFrameQueryType.Properties,
+                            dataTableFilter: 'UpdatedFilter',
+                            columnProperties: [`myColProp${CUSTOM_PROPERTY_SUFFIX}`],
+                        }}
+                        onChange={jest.fn()}
+                        onRunQuery={jest.fn()}
+                        datasource={mockCustomPropDatasource}
+                    />
+                );
+
+                await waitFor(() => {
+                    expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+                });
+            });
+
+            it('should not show custom property error before fetching custom property options', () => {
+                const mockGetCustomPropertyOptions = jest.fn().mockReturnValue(
+                    new Promise(() => {})
+                );
+
+                renderComponent(
+                    {
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'name = "TestTable"',
+                        dataTableProperties: [`missingProp${CUSTOM_PROPERTY_SUFFIX}`],
+                        columnProperties: [`missingColProp${CUSTOM_PROPERTY_SUFFIX}`],
+                    },
                     '',
                     '',
                     [],
@@ -3735,171 +3911,8 @@ describe("DataFrameQueryEditorV2", () => {
                     {},
                     { getCustomPropertyOptions: mockGetCustomPropertyOptions }
                 );
-            };
 
-            describe('when selected data table custom properties are valid', () => {
-                it('should not show an error message', async () => {
-                    renderWithCustomProperties(
-                        { dataTableProperties: [`propA${CUSTOM_PROPERTY_SUFFIX}`] },
-                        {
-                            dataTableCustomPropertyOptions: [{ label: 'propA', value: `propA${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
-                            columnCustomPropertyOptions: [],
-                        }
-                    );
-
-                    await waitFor(() => {
-                        expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
-                    });
-                });
-            });
-
-            describe('when selected data table custom properties are invalid', () => {
-                it('should show an error message for a single invalid custom data table property', async () => {
-                    renderWithCustomProperties(
-                        { dataTableProperties: [`missingProp${CUSTOM_PROPERTY_SUFFIX}`] },
-                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
-                    );
-
-                    await waitFor(() => {
-                        expect(
-                            screen.getByText(`The following selected custom data table property is not valid: 'missingProp'`)
-                        ).toBeInTheDocument();
-                    });
-                });
-
-                it('should show an error message for multiple invalid custom data table properties', async () => {
-                    renderWithCustomProperties(
-                        { dataTableProperties: [`missingA${CUSTOM_PROPERTY_SUFFIX}`, `missingB${CUSTOM_PROPERTY_SUFFIX}`] },
-                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
-                    );
-
-                    await waitFor(() => {
-                        expect(
-                            screen.getByText(`The following selected custom data table properties are not valid: 'missingA, missingB'`)
-                        ).toBeInTheDocument();
-                    });
-                });
-
-                it('should only show error for invalid data table properties when some are valid', async () => {
-                    renderWithCustomProperties(
-                        { dataTableProperties: [DataTableProperties.Name, `validCustom${CUSTOM_PROPERTY_SUFFIX}`, `invalidCustom${CUSTOM_PROPERTY_SUFFIX}`] },
-                        {
-                            dataTableCustomPropertyOptions: [{ label: 'validCustom', value: `validCustom${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
-                            columnCustomPropertyOptions: [],
-                        }
-                    );
-
-                    await waitFor(() => {
-                        expect(
-                            screen.getByText(`The following selected custom data table property is not valid: 'invalidCustom'`)
-                        ).toBeInTheDocument();
-                    });
-                });
-            });
-
-            describe('when selected column custom properties are valid', () => {
-                it('should not show an error message', async () => {
-                    renderWithCustomProperties(
-                        { columnProperties: [`colPropA${CUSTOM_PROPERTY_SUFFIX}`] },
-                        {
-                            dataTableCustomPropertyOptions: [],
-                            columnCustomPropertyOptions: [{ label: 'colPropA', value: `colPropA${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
-                        }
-                    );
-
-                    await waitFor(() => {
-                        expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
-                    });
-                });
-            });
-
-            describe('when selected column custom properties are invalid', () => {
-                it('should show an error message for a single invalid custom column property', async () => {
-                    renderWithCustomProperties(
-                        { columnProperties: [`missingColProp${CUSTOM_PROPERTY_SUFFIX}`] },
-                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
-                    );
-
-                    await waitFor(() => {
-                        expect(
-                            screen.getByText(`The following selected custom column property is not valid: 'missingColProp'`)
-                        ).toBeInTheDocument();
-                    });
-                });
-
-                it('should show an error message for multiple invalid custom column properties', async () => {
-                    renderWithCustomProperties(
-                        { columnProperties: [`missingColA${CUSTOM_PROPERTY_SUFFIX}`, `missingColB${CUSTOM_PROPERTY_SUFFIX}`] },
-                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
-                    );
-
-                    await waitFor(() => {
-                        expect(
-                            screen.getByText(`The following selected custom column properties are not valid: 'missingColA, missingColB'`)
-                        ).toBeInTheDocument();
-                    });
-                });
-
-                it('should only show error for invalid column properties when some are valid', async () => {
-                    renderWithCustomProperties(
-                        { columnProperties: [DataTableProperties.ColumnName, `validColCustom${CUSTOM_PROPERTY_SUFFIX}`, `invalidColCustom${CUSTOM_PROPERTY_SUFFIX}`] },
-                        {
-                            dataTableCustomPropertyOptions: [],
-                            columnCustomPropertyOptions: [{ label: 'validColCustom', value: `validColCustom${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
-                        }
-                    );
-
-                    await waitFor(() => {
-                        expect(
-                            screen.getByText(`The following selected custom column property is not valid: 'invalidColCustom'`)
-                        ).toBeInTheDocument();
-                    });
-                });
-            });
-
-            describe('when both data table and column custom properties have invalid selections', () => {
-                it('should show error messages for both data table and column properties', async () => {
-                    renderWithCustomProperties(
-                        {
-                            dataTableProperties: [`invalidTableProp${CUSTOM_PROPERTY_SUFFIX}`],
-                            columnProperties: [`invalidColProp${CUSTOM_PROPERTY_SUFFIX}`],
-                        },
-                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
-                    );
-
-                    await waitFor(() => {
-                        expect(
-                            screen.getByText(`The following selected custom data table property is not valid: 'invalidTableProp'`)
-                        ).toBeInTheDocument();
-                        expect(
-                            screen.getByText(`The following selected custom column property is not valid: 'invalidColProp'`)
-                        ).toBeInTheDocument();
-                    });
-                });
-            });
-
-            describe('when standard properties are selected', () => {
-                it('should not treat standard data table properties as invalid', async () => {
-                    renderWithCustomProperties(
-                        { dataTableProperties: [DataTableProperties.Name, DataTableProperties.RowCount] },
-                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
-                    );
-
-                    await waitFor(() => {
-                        expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
-                    });
-                });
-
-                it('should not treat standard column properties as invalid', async () => {
-                    renderWithCustomProperties(
-                        { columnProperties: [DataTableProperties.ColumnName, DataTableProperties.ColumnDataType] },
-                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
-                    );
-
-                    await waitFor(() => {
-                        expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
-                    });
-                });
+                expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
             });
         });
 
