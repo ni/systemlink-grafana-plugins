@@ -207,27 +207,31 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 lastFilterRefForDataQueryType.current,
                 transformedFilters
             );
-            const hasRequiredFilters = datasource.hasRequiredFilters(migratedQuery);
 
-            lastFilterRefForDataQueryType.current = transformedFilters;
+            if (filterChanged) {
+                const hasRequiredFilters = datasource.hasRequiredFilters(migratedQuery);
 
-            if (filterChanged && hasRequiredFilters) {
-                fetchAndSetColumnOptions(transformedFilters);
-                return;
+                lastFilterRefForDataQueryType.current = transformedFilters;
+
+                switch (true) {
+                    case hasRequiredFilters:
+                         fetchAndSetColumnOptions(transformedFilters);
+                         break;
+                    case !hasRequiredFilters:
+                        if (columnOptions.length > 0) {
+                            setColumnOptions(metadataFieldOptions);
+                        }
+                        if (xColumnOptions.length > 0) {
+                            setXColumnOptions([]);
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
 
             if (!isColumnOptionsInitialized) {
                 setIsColumnOptionsInitialized(true);
-            }
-
-            // Clear column options if required filters are missing
-            if (!hasRequiredFilters) {
-                if (columnOptions.length > 0) {
-                    setColumnOptions(metadataFieldOptions);
-                }
-                if (xColumnOptions.length > 0) {
-                    setXColumnOptions([]);
-                }
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
