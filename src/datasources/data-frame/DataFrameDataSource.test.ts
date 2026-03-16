@@ -153,12 +153,13 @@ describe('DataFrameDataSource', () => {
 
             const result = await ds.getCustomPropertyOptions({
                 dataTableFilter: 'filter'
-            });
+            }, 500);
 
             expect(v2Mock.getCustomPropertyOptions).toHaveBeenCalledWith(
                 {
                     dataTableFilter: 'filter'
-                }
+                },
+                500
             );
             expect(result).toEqual(mockPropertiesOptions);
         });

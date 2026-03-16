@@ -14,7 +14,7 @@ import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
 import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties, DataFrameDataQuery } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
-import { COLUMN_OPTIONS_LIMIT } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT } from "datasources/data-frame/constants";
 import { ComboboxOption } from "@grafana/ui";
 import { errorMessages, infoMessage } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
 import { of } from "rxjs";
@@ -2946,7 +2946,7 @@ describe("DataFrameQueryEditorV2", () => {
                         dataTableFilter: '',
                         resultFilter: '',
                         columnFilter: '',
-                    });
+                    }, TAKE_LIMIT);
                 });
 
                 it('should fetch custom properties when switching to Properties query type after changing filters in the Data query type', async () => {
@@ -2980,7 +2980,7 @@ describe("DataFrameQueryEditorV2", () => {
                         dataTableFilter: 'UpdatedFilter',
                         resultFilter: '',
                         columnFilter: ''
-                    });
+                    }, TAKE_LIMIT);
                 });
             });
 
@@ -3023,7 +3023,7 @@ describe("DataFrameQueryEditorV2", () => {
                         dataTableFilter: '',
                         resultFilter: '',
                         columnFilter: ''
-                    });
+                    }, TAKE_LIMIT);
                 })
 
                 it('should fetch custom properties when only the filters change', async () => {
@@ -3070,7 +3070,7 @@ describe("DataFrameQueryEditorV2", () => {
                     });
                 })
     
-                it('should not fetch custom properties when neither filters change nor take chnage', async () => {
+                it('should not fetch custom properties when neither filters change nor take change', async () => {
                     const { datasource } = renderComponent(
                         {
                             type: DataFrameQueryType.Properties,
@@ -3080,6 +3080,8 @@ describe("DataFrameQueryEditorV2", () => {
                             take: 1000
                         }
                     );
+                    const getCustomPropertyOptionsSpy = jest.spyOn(datasource, 'getCustomPropertyOptions');
+                    expect(getCustomPropertyOptionsSpy).toHaveBeenCalledTimes(1);
     
                     const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
                     const { onDataTableFilterChange } = props;
@@ -3089,7 +3091,7 @@ describe("DataFrameQueryEditorV2", () => {
                     onDataTableFilterChange(mockEvent);
     
                     await waitFor(() => {
-                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
+                        expect(getCustomPropertyOptionsSpy).not.toHaveBeenCalled();
                     });
                 });
 
@@ -3135,7 +3137,7 @@ describe("DataFrameQueryEditorV2", () => {
                             dataTableFilter: 'FilterX',
                             resultFilter: 'FilterY',
                             columnFilter: 'FilterZ',
-                        });
+                        }, TAKE_LIMIT);
                     });
                 });
             });
@@ -3187,7 +3189,7 @@ describe("DataFrameQueryEditorV2", () => {
                             dataTableFilter: 'FilterWithVar',
                             resultFilter: 'ResultWithVar',
                             columnFilter: 'ColumnWithVar',
-                        });
+                        }, TAKE_LIMIT);
                     });
 
                     datasource.getCustomPropertyOptions.mockClear();

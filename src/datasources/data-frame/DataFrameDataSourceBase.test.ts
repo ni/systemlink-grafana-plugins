@@ -160,8 +160,8 @@ describe('DataFrameDataSourceBase', () => {
         );
 
         const options = await ds.getCustomPropertyOptions({
-            dataTableFilter: 'filter'
-        });
+            dataTableFilter: 'filter',
+        }, 100);
 
         expect(options).toEqual({
             dataTableCustomPropertyOptions: [],

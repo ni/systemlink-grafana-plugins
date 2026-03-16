@@ -106,9 +106,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     );
 
     const fetchAndSetCustomPropertyOptions = useCallback(
-      async (filters: CombinedFilters) => {
+      async (filters: CombinedFilters, take: number) => {
         try {
-            const customPropertyOptions = await datasource.getCustomPropertyOptions(filters);
+            const customPropertyOptions = await datasource.getCustomPropertyOptions(
+                filters,
+                take
+            );
             const limitedDataTableCustomPropertyOptions = customPropertyOptions
                 .dataTableCustomPropertyOptions
                 .slice(0, CUSTOM_PROPERTY_OPTIONS_LIMIT);
@@ -259,7 +262,10 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 lastFilterRefForPropertiesQueryType.current = transformedFilters;
                 lastTakeRefForPropertiesQueryType.current = migratedQuery.take;
 
-                fetchAndSetCustomPropertyOptions(transformedFilters);
+                fetchAndSetCustomPropertyOptions(
+                    transformedFilters,
+                    migratedQuery.take
+                );
                 return;
             }
         },

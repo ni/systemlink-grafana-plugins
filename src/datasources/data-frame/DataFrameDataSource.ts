@@ -124,9 +124,10 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
   }
 
   public async getCustomPropertyOptions(
-    filters: CombinedFilters
+    filters: CombinedFilters,
+    take: number
   ): Promise<CustomPropertyOptions> {
-    return this.datasource.getCustomPropertyOptions(filters);
+    return this.datasource.getCustomPropertyOptions(filters, take);
   }
 
   public transformDataTableQuery(query: string) {

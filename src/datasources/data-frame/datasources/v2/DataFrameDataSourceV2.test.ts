@@ -6816,7 +6816,7 @@ describe('DataFrameDataSourceV2', () => {
             it('should call queryTables$ with Properties and ColumnProperties projections', async () => {
                 queryTablesSpy$.mockReturnValue(of([]));
 
-                await ds.getCustomPropertyOptions(filters);
+                await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
 
                 expect(queryTablesSpy$).toHaveBeenCalledWith(
                     filters,
@@ -6825,10 +6825,23 @@ describe('DataFrameDataSourceV2', () => {
                 );
             });
 
+            it('should pass custom take value to queryTables$', async () => {
+                queryTablesSpy$.mockReturnValue(of([]));
+                const customTake = 500;
+
+                await ds.getCustomPropertyOptions(filters, customTake);
+
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    filters,
+                    customTake,
+                    [DataTableProjections.Properties, DataTableProjections.ColumnProperties]
+                );
+            });
+
             it('should return empty options when tables have no data table properties and column properties', async () => {
                 queryTablesSpy$.mockReturnValue(of([]));
 
-                const result = await ds.getCustomPropertyOptions(filters);
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
 
                 const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
                     .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
@@ -6845,7 +6858,7 @@ describe('DataFrameDataSourceV2', () => {
                 ];
                 queryTablesSpy$.mockReturnValue(of(mockTables));
 
-                const result = await ds.getCustomPropertyOptions(filters);
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
 
                 const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
                     .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
@@ -6884,7 +6897,7 @@ describe('DataFrameDataSourceV2', () => {
                 ];
                 queryTablesSpy$.mockReturnValue(of(mockTables));
 
-                const result = await ds.getCustomPropertyOptions(filters);
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
 
                 const columnCustomPropertyOptions = result.columnCustomPropertyOptions
                     .filter(option => option.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
@@ -6914,7 +6927,7 @@ describe('DataFrameDataSourceV2', () => {
                 ];
                 queryTablesSpy$.mockReturnValue(of(mockTables));
 
-                const result = await ds.getCustomPropertyOptions(filters);
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
 
                 const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
                     .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
@@ -6942,7 +6955,7 @@ describe('DataFrameDataSourceV2', () => {
                 ];
                 queryTablesSpy$.mockReturnValue(of(mockTables));
 
-                const result = await ds.getCustomPropertyOptions(filters);
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
 
                 const columnCustomPropertyOptions = result.columnCustomPropertyOptions
                     .filter(option => option.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
@@ -6956,7 +6969,7 @@ describe('DataFrameDataSourceV2', () => {
             });
 
             it('should return custom properties sorted alphabetically', async () => {
-                const result = await ds.getCustomPropertyOptions(filters);
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
 
                 const dataTableCustomPropertyLabels = result.dataTableCustomPropertyOptions
                     .map(option => option.label);
@@ -6979,7 +6992,7 @@ describe('DataFrameDataSourceV2', () => {
                 ];
                 queryTablesSpy$.mockReturnValue(of(mockTables));
 
-                const result = await ds.getCustomPropertyOptions(filters);
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
 
                 const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
                     .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
@@ -7003,7 +7016,7 @@ describe('DataFrameDataSourceV2', () => {
                 ];
                 queryTablesSpy$.mockReturnValue(of(mockTables));
 
-                const result = await ds.getCustomPropertyOptions(filters);
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
 
                 const columnCustomPropertyOptions = result.columnCustomPropertyOptions
                     .filter(option => option.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
@@ -7027,7 +7040,7 @@ describe('DataFrameDataSourceV2', () => {
                 ];
                 queryTablesSpy$.mockReturnValue(of(mockTables));
 
-                const result = await ds.getCustomPropertyOptions(filters);
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
 
                 const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
                     .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
@@ -7045,7 +7058,7 @@ describe('DataFrameDataSourceV2', () => {
                 ];
                 queryTablesSpy$.mockReturnValue(of(mockTables));
 
-                const result = await ds.getCustomPropertyOptions(filters);
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
 
                 const columnCustomPropertyOptions = result.columnCustomPropertyOptions
                     .filter(option => option.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
@@ -7063,7 +7076,7 @@ describe('DataFrameDataSourceV2', () => {
                 ];
                 queryTablesSpy$.mockReturnValue(of(mockTables));
 
-                const result = await ds.getCustomPropertyOptions(filters);
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
 
                 expect(result.dataTableCustomPropertyOptions).toEqual([]);
                 expect(result.columnCustomPropertyOptions).toEqual([]);
@@ -7080,7 +7093,7 @@ describe('DataFrameDataSourceV2', () => {
                 ];
                 queryTablesSpy$.mockReturnValue(of(mockTables));
 
-                const result = await ds.getCustomPropertyOptions(filters);
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
 
                 const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
                     .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
