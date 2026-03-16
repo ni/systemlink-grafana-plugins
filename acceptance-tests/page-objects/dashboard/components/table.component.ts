@@ -40,7 +40,7 @@ export class Table {
     }
 
     async getSelectedColumnIndex(propertyName: string): Promise<number> {
-        const columnHeaders = await this.page.getByRole('columnheader').allTextContents();
+        const columnHeaders = await this.page.getByRole('columnheader').locator('button > div').filter({ hasText: /\S/ }).allTextContents();
         return columnHeaders.indexOf(propertyName);
     };
 

@@ -45,8 +45,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const [isPropertiesNotSelected, setIsPropertiesNotSelected] = useState<boolean>(false);
     const [xColumnOptions, setXColumnOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [isColumnOptionsInitialized, setIsColumnOptionsInitialized] = useState<boolean>(false);
-    const [dataTableCustomPropertyOptions, setDataTableCustomPropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
-    const [columnCustomPropertyOptions, setColumnCustomPropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
+    const [customDataTablePropertyOptions, setCustomDataTablePropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
+    const [customColumnPropertyOptions, setCustomColumnPropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
 
     const getStandardPropertyOptions = (
         type: DataTableProjectionType
@@ -106,9 +106,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     );
 
     const fetchAndSetCustomPropertyOptions = useCallback(
-      async (filters: CombinedFilters) => {
+      async (filters: CombinedFilters, take: number) => {
         try {
-            const customPropertyOptions = await datasource.getCustomPropertyOptions(filters);
+            const customPropertyOptions = await datasource.getCustomPropertyOptions(
+                filters,
+                take
+            );
             const limitedDataTableCustomPropertyOptions = customPropertyOptions
                 .dataTableCustomPropertyOptions
                 .slice(0, CUSTOM_PROPERTY_OPTIONS_LIMIT);
@@ -116,11 +119,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 .columnCustomPropertyOptions
                 .slice(0, CUSTOM_PROPERTY_OPTIONS_LIMIT);
     
-            setDataTableCustomPropertyOptions(limitedDataTableCustomPropertyOptions);
-            setColumnCustomPropertyOptions(limitedColumnCustomPropertyOptions);
+            setCustomDataTablePropertyOptions(limitedDataTableCustomPropertyOptions);
+            setCustomColumnPropertyOptions(limitedColumnCustomPropertyOptions);
         } catch (error) {
-            setDataTableCustomPropertyOptions([]);
-            setColumnCustomPropertyOptions([]);
+            setCustomDataTablePropertyOptions([]);
+            setCustomColumnPropertyOptions([]);
         }
       },
       [datasource]
@@ -207,26 +210,29 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 lastFilterRefForDataQueryType.current,
                 transformedFilters
             );
-            const hasRequiredFilters = datasource.hasRequiredFilters(migratedQuery);
 
-            lastFilterRefForDataQueryType.current = transformedFilters;
+            if (filterChanged) {
+                const hasRequiredFilters = datasource.hasRequiredFilters(migratedQuery);
 
-            if (filterChanged && hasRequiredFilters) {
-                fetchAndSetColumnOptions(transformedFilters);
-                return;
-            }
+                lastFilterRefForDataQueryType.current = transformedFilters;
 
-            if (!isColumnOptionsInitialized) {
-                setIsColumnOptionsInitialized(true);
-            }
-
-            // Clear column options if required filters are missing
-            if (!hasRequiredFilters) {
-                if (columnOptions.length > 0) {
-                    setColumnOptions(metadataFieldOptions);
-                }
-                if (xColumnOptions.length > 0) {
-                    setXColumnOptions([]);
+                switch (true) {
+                    case hasRequiredFilters:
+                         fetchAndSetColumnOptions(transformedFilters);
+                         break;
+                    case !hasRequiredFilters:
+                        if (columnOptions.length > 0) {
+                            setColumnOptions(metadataFieldOptions);
+                        }
+                        if (xColumnOptions.length > 0) {
+                            setXColumnOptions([]);
+                        }
+                        if (!isColumnOptionsInitialized) {
+                            setIsColumnOptionsInitialized(true);
+                        }
+                        break;
+                    default:
+                        break;
                 }
             }
         },
@@ -249,13 +255,16 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 lastFilterRefForPropertiesQueryType.current,
                 transformedFilters
             );
-            const isTakeChanged = lastTakeRefForPropertiesQueryType.current !== migratedQuery.take;
+            const takeChanged = lastTakeRefForPropertiesQueryType.current !== migratedQuery.take;
 
-            lastFilterRefForPropertiesQueryType.current = transformedFilters;
-            lastTakeRefForPropertiesQueryType.current = migratedQuery.take;
+            if (filterChanged || takeChanged) {
+                lastFilterRefForPropertiesQueryType.current = transformedFilters;
+                lastTakeRefForPropertiesQueryType.current = migratedQuery.take;
 
-            if (filterChanged || isTakeChanged) {
-                fetchAndSetCustomPropertyOptions(transformedFilters);
+                fetchAndSetCustomPropertyOptions(
+                    transformedFilters,
+                    migratedQuery.take
+                );
                 return;
             }
         },
@@ -269,13 +278,13 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
 
     const dataTablePropertyOptions = useMemo(() => [
         ...standardDataTablePropertyOptions,
-        ...dataTableCustomPropertyOptions,
-    ], [standardDataTablePropertyOptions, dataTableCustomPropertyOptions]);
+        ...customDataTablePropertyOptions,
+    ], [standardDataTablePropertyOptions, customDataTablePropertyOptions]);
 
     const columnPropertyOptions = useMemo(() => [
         ...standardColumnPropertyOptions,
-        ...columnCustomPropertyOptions,
-    ], [standardColumnPropertyOptions, columnCustomPropertyOptions]);
+        ...customColumnPropertyOptions,
+    ], [standardColumnPropertyOptions, customColumnPropertyOptions]);
 
 
     const xColumnSelection = useMemo((): {

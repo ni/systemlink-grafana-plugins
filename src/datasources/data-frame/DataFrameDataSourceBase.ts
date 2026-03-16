@@ -99,10 +99,12 @@ export abstract class DataFrameDataSourceBase<
     }
 
     public async getCustomPropertyOptions(
-        filters: CombinedFilters
+        filters: CombinedFilters,
+        take: number
     ): Promise<CustomPropertyOptions> {
         return Promise.resolve({
-            dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: []
+            dataTableCustomPropertyOptions: [],
+            columnCustomPropertyOptions: []
         });
     }
 

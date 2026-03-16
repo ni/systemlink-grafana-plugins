@@ -5,6 +5,9 @@ import { QuerySystemsResponse } from 'core/types';
 import { SystemQuery, SystemQueryType, SystemProperties, SystemVariableQuery } from '../types';
 import { defaultOrderBy, defaultProjection, SystemBackendFieldNames } from '../SystemsQueryBuilder.constants';
 import { SystemDataSourceContext, SystemQueryHandlerBase } from './SystemQueryHandlerBase';
+import { parseQueryObjectsToLinq } from 'core/components/SlQueryBuilder/query-parser';
+import { LogicalOperator, QueryFilterObjectFilters, QueryFilterObjects } from 'core/components/SlQueryBuilder/models/SlQueryFilterObjects';
+import { QueryBuilderOperations } from 'core/query-builder.constants';
 
 /**
  * Handles advanced query execution using the query builder feature.
@@ -25,7 +28,11 @@ export class SystemAdvancedQueryHandler extends SystemQueryHandlerBase {
     };
 
     if ((prepared.systemName || prepared.workspace) && prepared.queryKind === SystemQueryType.Properties) {
-      prepared.filter = this.buildBackwardCompatibilityFilter(prepared);
+      query.filterObjects = this.buildBackwardCompatibilityFilter(prepared);
+    }
+
+    if (query.filterObjects) {
+      prepared.filter = parseQueryObjectsToLinq(query.filterObjects);
       prepared.systemName = '';
       prepared.workspace = '';
     }
@@ -44,17 +51,20 @@ export class SystemAdvancedQueryHandler extends SystemQueryHandlerBase {
     );
   }
 
-  async metricFindQuery({ workspace, queryReturnType }: SystemVariableQuery): Promise<MetricFindValue[]> {
+  async metricFindQuery({ workspace, queryReturnType, filterObjects }: SystemVariableQuery): Promise<MetricFindValue[]> {
     await this.dependenciesLoadedPromise;
 
-    let filter = '';
-    if (workspace) {
+    let processedFilter = '';
+
+    if (filterObjects) {
+      processedFilter = this.processFilter(parseQueryObjectsToLinq(filterObjects));
+    } else if (workspace) {
       const resolvedWorkspace = this.dataSource.templateSrv.replace(workspace);
-      filter = `workspace = "${resolvedWorkspace}"`;
+      processedFilter = `workspace = "${resolvedWorkspace}"`;
     }
 
     const properties = await this.getSystemProperties(
-      filter,
+      processedFilter,
       [SystemBackendFieldNames.ID, SystemBackendFieldNames.ALIAS, SystemBackendFieldNames.SCAN_CODE]
     );
     return properties.map(system => this.getSystemNameForMetricQuery({ queryReturnType }, system));
@@ -79,8 +89,8 @@ export class SystemAdvancedQueryHandler extends SystemQueryHandlerBase {
     );
   }
 
-  private processFilter(filter: string, scopedVars: any): string {
-    let tempFilter = this.dataSource.templateSrv.replace(filter, scopedVars);
+  private processFilter(filter: string, scopedVars?: any): string {
+    const tempFilter = this.dataSource.templateSrv.replace(filter, scopedVars);
     return transformComputedFieldsQuery(tempFilter, this.dataSource.systemsComputedDataFields);
   }
 
@@ -93,26 +103,19 @@ export class SystemAdvancedQueryHandler extends SystemQueryHandlerBase {
     return response.data;
   }
 
-  private buildBackwardCompatibilityFilter(query: SystemQuery): string {
-    const parts: string[] = [];
-
-    if (query.filter?.trim()) {
-      parts.push(query.filter);
+  private buildBackwardCompatibilityFilter(query: SystemQuery): QueryFilterObjects {
+    if (query.systemName) {
+      return [[
+        [SystemBackendFieldNames.ID, QueryBuilderOperations.EQUALS.name, query.systemName],
+        LogicalOperator.Or,
+        [SystemBackendFieldNames.ALIAS, QueryBuilderOperations.EQUALS.name, query.systemName],
+      ]];
     }
 
-    if (query.systemName?.trim()) {
-      const idPart = `id = "${query.systemName}"`;
-      const aliasPart = `alias = "${query.systemName}"`;
-      parts.push(`(${idPart} || ${aliasPart})`);
+    if (query.workspace) {
+      return [[[SystemBackendFieldNames.WORKSPACE, QueryBuilderOperations.EQUALS.name, query.workspace]]];
     }
 
-    if (query.workspace?.trim() && !query.systemName) {
-      const workspacePart = `workspace = "${query.workspace}"`;
-      if (!query.filter?.includes('workspace =')) {
-        parts.push(workspacePart);
-      }
-    }
-
-    return parts.join(' && ');
+    return QueryFilterObjectFilters.emptyFilter;
   }
 }

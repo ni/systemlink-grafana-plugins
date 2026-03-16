@@ -303,12 +303,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     public async getCustomPropertyOptions(
-        filters: CombinedFilters
+        filters: CombinedFilters,
+        take: number
     ): Promise<CustomPropertyOptions> {
         const tables = await lastValueFrom(
             this.queryTables$(
                 filters,
-                TAKE_LIMIT,
+                take,
                 [
                     DataTableProjections.Properties,
                     DataTableProjections.ColumnProperties
@@ -317,7 +318,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
         
         if (!this.tablesContainsProperties(tables)) {
-            return { dataTableCustomPropertyOptions:[], columnCustomPropertyOptions: [] };
+            return { 
+                dataTableCustomPropertyOptions:[],
+                columnCustomPropertyOptions: []
+            };
         }
 
         const dataTableProperties = new Set(

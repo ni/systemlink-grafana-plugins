@@ -10,6 +10,10 @@ if (typeof window.URL.createObjectURL === 'undefined') {
   window.URL.createObjectURL = jest.fn();
 }
 
+if (typeof global.structuredClone === 'undefined') {
+  global.structuredClone = (value) => JSON.parse(JSON.stringify(value));
+}
+
 // Called by @grafana/ui AutoSizeInput
 HTMLCanvasElement.prototype.getContext = () => ({
   measureText: text => ({ width: text.length * 8 }),
