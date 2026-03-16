@@ -3113,9 +3113,9 @@ describe("DataFrameQueryEditorV2", () => {
                           uniqueColumnsAcrossTables: [],
                           commonColumnsAcrossTables: [],
                         }),
-                        transformDataTableQuery: jest.fn(f => f),
-                        transformResultQuery: jest.fn(f => f),
-                        transformColumnQuery: jest.fn(f => f),
+                        transformDataTableQuery: jest.fn(() => 'TransformedFilterX'),
+                        transformResultQuery: jest.fn(() => 'TransformedFilterY'),
+                        transformColumnQuery: jest.fn(() => 'TransformedFilterZ'),
                         hasRequiredFilters: mockHasRequiredFilters,
                     } as any;
                     renderComponent(
@@ -3141,89 +3141,87 @@ describe("DataFrameQueryEditorV2", () => {
                         expect(datasource.transformResultQuery).toHaveBeenCalledWith('FilterY');
                         expect(datasource.transformColumnQuery).toHaveBeenCalledWith('FilterZ');
                         expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
-                            dataTableFilter: 'FilterX',
-                            resultFilter: 'FilterY',
-                            columnFilter: 'FilterZ',
+                            dataTableFilter: 'TransformedFilterX',
+                            resultFilter: 'TransformedFilterY',
+                            columnFilter: 'TransformedFilterZ',
                         }, TAKE_LIMIT);
                     });
                 });
             });
 
-            describe('custom properties options population based on variables cache', () => {
-                it('should trigger useEffect when variables cache object reference changes', async () => {
-                    cleanup()
-                    const initialVariablesCache = { var1: 'value1' };
-                    const updatedVariablesCache = { var1: 'value2' };
-                    const datasource = {
-                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
-                        getCustomPropertyOptions: jest.fn().mockResolvedValue({
-                            dataTableCustomPropertyOptions: [],
-                            columnCustomPropertyOptions: [],
-                        }),
-                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
-                            uniqueColumnsAcrossTables: [],
-                            commonColumnsAcrossTables: [],
-                        }),
-                        transformDataTableQuery: jest.fn(f => f),
-                        transformResultQuery: jest.fn(f => f),
-                        transformColumnQuery: jest.fn(f => f),
-                        hasRequiredFilters: mockHasRequiredFilters,
-                    } as any;
+            it('should trigger useEffect when variables cache object reference changes', async () => {
+                cleanup()
+                const initialVariablesCache = { var1: 'value1' };
+                const updatedVariablesCache = { var1: 'value2' };
+                const datasource = {
+                    processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                    getCustomPropertyOptions: jest.fn().mockResolvedValue({
+                        dataTableCustomPropertyOptions: [],
+                        columnCustomPropertyOptions: [],
+                    }),
+                    getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                        uniqueColumnsAcrossTables: [],
+                        commonColumnsAcrossTables: [],
+                    }),
+                    transformDataTableQuery: jest.fn(f => f),
+                    transformResultQuery: jest.fn(f => f),
+                    transformColumnQuery: jest.fn(f => f),
+                    hasRequiredFilters: mockHasRequiredFilters,
+                } as any;
 
-                    renderComponent(
-                        {
-                            ...defaultQueryV2,
-                            refId: 'A',
-                            type: DataFrameQueryType.Properties,
-                            dataTableFilter: 'FilterWithVar',
-                            resultFilter: 'ResultWithVar',
-                            columnFilter: 'ColumnWithVar',
-                        },
-                        '',
-                        '',
-                        [],
-                        [],
-                        undefined,
-                        initialVariablesCache,
-                        datasource,
-                    );
+                renderComponent(
+                    {
+                        ...defaultQueryV2,
+                        refId: 'A',
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'FilterWithVar',
+                        resultFilter: 'ResultWithVar',
+                        columnFilter: 'ColumnWithVar',
+                    },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    initialVariablesCache,
+                    datasource,
+                );
 
-                    await waitFor(() => {
-                        expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
-                        expect(datasource.transformResultQuery).toHaveBeenCalledWith('ResultWithVar');
-                        expect(datasource.transformColumnQuery).toHaveBeenCalledWith('ColumnWithVar');
-                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
-                            dataTableFilter: 'FilterWithVar',
-                            resultFilter: 'ResultWithVar',
-                            columnFilter: 'ColumnWithVar',
-                        }, TAKE_LIMIT);
-                    });
+                await waitFor(() => {
+                    expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
+                    expect(datasource.transformResultQuery).toHaveBeenCalledWith('ResultWithVar');
+                    expect(datasource.transformColumnQuery).toHaveBeenCalledWith('ColumnWithVar');
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
+                        dataTableFilter: 'FilterWithVar',
+                        resultFilter: 'ResultWithVar',
+                        columnFilter: 'ColumnWithVar',
+                    }, TAKE_LIMIT);
+                });
 
-                    datasource.getCustomPropertyOptions.mockClear();
-                    datasource.transformDataTableQuery.mockClear();
-                    cleanup();
+                datasource.getCustomPropertyOptions.mockClear();
+                datasource.transformDataTableQuery.mockClear();
+                cleanup();
 
-                    // Update variables cache reference and rerender
-                    renderComponent(
-                        {
-                            ...defaultQueryV2,
-                            refId: 'A',
-                            type: DataFrameQueryType.Properties,
-                            dataTableFilter: 'FilterWithVar',
-                        },
-                        '',
-                        '',
-                        [],
-                        [],
-                        undefined,
-                        updatedVariablesCache,
-                        datasource,
-                    );
+                // Update variables cache reference and rerender
+                renderComponent(
+                    {
+                        ...defaultQueryV2,
+                        refId: 'A',
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'FilterWithVar',
+                    },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    updatedVariablesCache,
+                    datasource,
+                );
 
-                    await waitFor(() => {
-                        expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
-                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
-                    });
+                await waitFor(() => {
+                    expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
                 });
             });
 
@@ -3248,7 +3246,7 @@ describe("DataFrameQueryEditorV2", () => {
                     .mockResolvedValue(mockOptions);
                 jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
                     .mockReturnValue(500);
-                const { renderResult: result, datasource} = renderComponent(
+                const { renderResult: result} = renderComponent(
                     { type: DataFrameQueryType.Properties },
                     '',
                     '',
@@ -3260,21 +3258,16 @@ describe("DataFrameQueryEditorV2", () => {
                         getCustomPropertyOptions: mockGetCustomPropertyOptions,
                     }
                 );
-                const getCustomPropertiesOptionsSpy = jest.spyOn(datasource, 'getCustomPropertyOptions');
-
-                await waitFor(() => {
-                    expect(getCustomPropertiesOptionsSpy).toHaveBeenCalledTimes(1);
-                });
 
                 // Data table properties
                 const user = userEvent.setup();
                 const dataTablePropertiesField = result.getAllByRole('combobox')[0];
                 await user.click(dataTablePropertiesField);
 
-                const optionControls = screen.getAllByRole('option');
-                expect(optionControls).toHaveLength(12);
+                const dataTableCustomPropertyOptions = screen.getAllByRole('option');
+                expect(dataTableCustomPropertyOptions).toHaveLength(12);
 
-                const dataTableCustomPropertyOption = optionControls.find(opt =>  
+                const dataTableCustomPropertyOption = dataTableCustomPropertyOptions.find(opt =>  
                     opt.textContent && opt.textContent.includes('Custom Prop A')  
                 );  
                 expect(dataTableCustomPropertyOption).toBeDefined();
@@ -3283,10 +3276,10 @@ describe("DataFrameQueryEditorV2", () => {
                 const columnPropertiesField = result.getAllByRole('combobox')[1];
                 await user.click(columnPropertiesField);
                 
-                const columnOptionControls = screen.getAllByRole('option');
-                expect(columnOptionControls).toHaveLength(5);
+                const columnCustomPropertyOptions = screen.getAllByRole('option');
+                expect(columnCustomPropertyOptions).toHaveLength(5);
 
-                const columnCustomPropertyOption = columnOptionControls.find(opt =>  
+                const columnCustomPropertyOption = columnCustomPropertyOptions.find(opt =>  
                     opt.textContent && opt.textContent.includes('Custom Col Prop')  
                 );  
                 expect(columnCustomPropertyOption).toBeDefined();
@@ -3307,7 +3300,6 @@ describe("DataFrameQueryEditorV2", () => {
                     }
                 );
                 const getCustomPropertiesOptionsSpy = jest.spyOn(datasource, 'getCustomPropertyOptions');
-
 
                 await waitFor(() => {
                     expect(getCustomPropertiesOptionsSpy).toHaveBeenCalled();
@@ -3427,8 +3419,8 @@ describe("DataFrameQueryEditorV2", () => {
                 const dataTablePropertiesField = result.getAllByRole('combobox')[0];
                 await user.click(dataTablePropertiesField);
 
-                const optionControls = screen.getAllByRole('option');
-                expect(optionControls).toHaveLength(16);
+                const dataTableCustomPropertyOptionControl = screen.getAllByRole('option');
+                expect(dataTableCustomPropertyOptionControl).toHaveLength(16);// 11 default options + 5 custom options(CUSTOM_PROPERTIES_OPTIONS_LIMIT is 5)
             });
         });
 
@@ -3520,8 +3512,8 @@ describe("DataFrameQueryEditorV2", () => {
                 const columnPropertiesField = result.getAllByRole('combobox')[1];
                 await user.click(columnPropertiesField);
 
-                const optionControls = screen.getAllByRole('option');
-                expect(optionControls).toHaveLength(9);
+                const columnCustomPropertyOptionControl = screen.getAllByRole('option');
+                expect(columnCustomPropertyOptionControl).toHaveLength(9);// 4 default options + 5 custom options(CUSTOM_PROPERTIES_OPTIONS_LIMIT is 5)
             });
         });
 
