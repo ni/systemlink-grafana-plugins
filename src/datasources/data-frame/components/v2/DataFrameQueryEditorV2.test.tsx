@@ -3075,20 +3075,27 @@ describe("DataFrameQueryEditorV2", () => {
                         {
                             type: DataFrameQueryType.Properties,
                             dataTableFilter: 'InitialFilter',
-                            resultFilter: 'InitialResultFilter',
-                            columnFilter: 'InitialColumnFilter',
+                            resultFilter: 'InitialFilter',
+                            columnFilter: 'InitialFilter',
                             take: 1000
                         }
                     );
                     const getCustomPropertyOptionsSpy = jest.spyOn(datasource, 'getCustomPropertyOptions');
                     expect(getCustomPropertyOptionsSpy).toHaveBeenCalledTimes(1);
+                    getCustomPropertyOptionsSpy.mockClear();
     
                     const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
-                    const { onDataTableFilterChange } = props;
+                    const { 
+                        onDataTableFilterChange,
+                        onResultFilterChange,
+                        onColumnFilterChange 
+                    } = props;
                     const mockEvent = {
                         detail: { linq: 'InitialFilter' }
                     } as Event & { detail: { linq: string; }; };
                     onDataTableFilterChange(mockEvent);
+                    onResultFilterChange(mockEvent);
+                    onColumnFilterChange(mockEvent);
     
                     await waitFor(() => {
                         expect(getCustomPropertyOptionsSpy).not.toHaveBeenCalled();
