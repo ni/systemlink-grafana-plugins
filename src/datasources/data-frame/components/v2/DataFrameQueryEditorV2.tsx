@@ -235,10 +235,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                         break;
                 }
             }
-
-            if (!filterChanged && !isColumnOptionsInitialized) {
-                setIsColumnOptionsInitialized(true);
-            }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [
