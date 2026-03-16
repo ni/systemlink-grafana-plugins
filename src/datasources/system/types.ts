@@ -1,4 +1,5 @@
 import { DataQuery, DataSourceJsonData } from '@grafana/schema'
+import { QueryFilterObjects } from 'core/components/SlQueryBuilder/models/SlQueryFilterObjects';
 
 export enum SystemQueryType {
   Properties = "Properties",
@@ -10,11 +11,14 @@ export interface SystemQuery extends DataQuery {
   systemName: string;
   workspace: string;
   filter?: string;
+  filterObjects?: QueryFilterObjects;
 }
 
 export interface SystemVariableQuery {
   workspace: string;
   queryReturnType?: SystemQueryReturnType;
+  filter?: string;
+  filterObjects?: QueryFilterObjects;
 }
 
 export interface SystemSummary {
@@ -68,7 +72,7 @@ export interface SystemFeatureToggles {
 }
 
 export const SystemFeatureTogglesDefaults: SystemFeatureToggles = {
-  systemQueryBuilder: false,
+  systemQueryBuilder: true,
 };
 
 export interface SystemDataSourceOptions extends DataSourceJsonData {

@@ -58,6 +58,7 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
   function onParameterChange(ev: CustomEvent) {
     if (query.filter !== ev.detail.linq) {
       query.filter = ev.detail.linq;
+      query.filterObjects = ev.detail.value;
       onChange(query);
       onRunQuery();
     }
@@ -77,7 +78,7 @@ export function SystemQueryEditor({ query, onChange, onRunQuery, datasource }: P
           {datasource.isQueryBuilderActive() ? (
             <InlineField label="Filter" labelWidth={14} tooltip={tooltips.filter}>
               <SystemsQueryBuilder
-                filter={query.filter}
+                filterObjects={query.filterObjects}
                 onChange={(event: any) => onParameterChange(event)}
                 globalVariableOptions={datasource.getVariableOptions()}
                 workspaces={workspaces}

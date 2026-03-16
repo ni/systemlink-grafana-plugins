@@ -14,7 +14,7 @@ import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
 import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties, DataFrameDataQuery } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
-import { COLUMN_OPTIONS_LIMIT, CUSTOM_PROPERTY_SUFFIX } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT, CUSTOM_PROPERTY_SUFFIX } from "datasources/data-frame/constants";
 import { ComboboxOption } from "@grafana/ui";
 import { errorMessages, infoMessage } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
 import { of } from "rxjs";
@@ -2946,7 +2946,7 @@ describe("DataFrameQueryEditorV2", () => {
                         dataTableFilter: '',
                         resultFilter: '',
                         columnFilter: '',
-                    });
+                    }, TAKE_LIMIT);
                 });
 
                 it('should fetch custom properties when switching to Properties query type after changing filters in the Data query type', async () => {
@@ -2961,7 +2961,7 @@ describe("DataFrameQueryEditorV2", () => {
 
                     expect(getCustomPropertyOptions).not.toHaveBeenCalled();
 
-                    //Change the filter while in Data query type
+                    // Change the filter while in Data query type
                     const mockEvent = {
                         detail: { linq: 'UpdatedFilter' },
                     } as Event & { detail: { linq: string } };
@@ -2980,9 +2980,9 @@ describe("DataFrameQueryEditorV2", () => {
                         dataTableFilter: 'UpdatedFilter',
                         resultFilter: '',
                         columnFilter: ''
-                    });
+                    }, TAKE_LIMIT);
                 });
-            });            
+            });
 
             describe('custom properties option based on filter and take', () => {
                 it('should fetch custom properties on initial render with empty filters', () => {
@@ -3023,7 +3023,7 @@ describe("DataFrameQueryEditorV2", () => {
                         dataTableFilter: '',
                         resultFilter: '',
                         columnFilter: ''
-                    });
+                    }, TAKE_LIMIT);
                 })
 
                 it('should fetch custom properties when only the filters change', async () => {
@@ -3070,26 +3070,35 @@ describe("DataFrameQueryEditorV2", () => {
                     });
                 })
     
-                it('should not fetch custom properties when neither filters change nor take chnage', async () => {
+                it('should not fetch custom properties when neither filters change nor take change', async () => {
                     const { datasource } = renderComponent(
                         {
                             type: DataFrameQueryType.Properties,
                             dataTableFilter: 'InitialFilter',
-                            resultFilter: 'InitialResultFilter',
-                            columnFilter: 'InitialColumnFilter',
+                            resultFilter: 'InitialFilter',
+                            columnFilter: 'InitialFilter',
                             take: 1000
                         }
                     );
+                    const getCustomPropertyOptionsSpy = jest.spyOn(datasource, 'getCustomPropertyOptions');
+                    expect(getCustomPropertyOptionsSpy).toHaveBeenCalledTimes(1);
+                    getCustomPropertyOptionsSpy.mockClear();
     
                     const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
-                    const { onDataTableFilterChange } = props;
+                    const { 
+                        onDataTableFilterChange,
+                        onResultFilterChange,
+                        onColumnFilterChange 
+                    } = props;
                     const mockEvent = {
                         detail: { linq: 'InitialFilter' }
                     } as Event & { detail: { linq: string; }; };
                     onDataTableFilterChange(mockEvent);
+                    onResultFilterChange(mockEvent);
+                    onColumnFilterChange(mockEvent);
     
                     await waitFor(() => {
-                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
+                        expect(getCustomPropertyOptionsSpy).not.toHaveBeenCalled();
                     });
                 });
 
@@ -3104,9 +3113,9 @@ describe("DataFrameQueryEditorV2", () => {
                           uniqueColumnsAcrossTables: [],
                           commonColumnsAcrossTables: [],
                         }),
-                        transformDataTableQuery: jest.fn(f => f),
-                        transformResultQuery: jest.fn(f => f),
-                        transformColumnQuery: jest.fn(f => f),
+                        transformDataTableQuery: jest.fn(() => 'TransformedFilterX'),
+                        transformResultQuery: jest.fn(() => 'TransformedFilterY'),
+                        transformColumnQuery: jest.fn(() => 'TransformedFilterZ'),
                         hasRequiredFilters: mockHasRequiredFilters,
                     } as any;
                     renderComponent(
@@ -3132,89 +3141,87 @@ describe("DataFrameQueryEditorV2", () => {
                         expect(datasource.transformResultQuery).toHaveBeenCalledWith('FilterY');
                         expect(datasource.transformColumnQuery).toHaveBeenCalledWith('FilterZ');
                         expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
-                            dataTableFilter: 'FilterX',
-                            resultFilter: 'FilterY',
-                            columnFilter: 'FilterZ',
-                        });
+                            dataTableFilter: 'TransformedFilterX',
+                            resultFilter: 'TransformedFilterY',
+                            columnFilter: 'TransformedFilterZ',
+                        }, TAKE_LIMIT);
                     });
                 });
             });
 
-            describe('custom properties options population based on variables cache', () => {
-                it('should trigger useEffect when variables cache object reference changes', async () => {
-                    cleanup()
-                    const initialVariablesCache = { var1: 'value1' };
-                    const updatedVariablesCache = { var1: 'value2' };
-                    const datasource = {
-                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
-                        getCustomPropertyOptions: jest.fn().mockResolvedValue({
-                            dataTableCustomPropertyOptions: [],
-                            columnCustomPropertyOptions: [],
-                        }),
-                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
-                            uniqueColumnsAcrossTables: [],
-                            commonColumnsAcrossTables: [],
-                        }),
-                        transformDataTableQuery: jest.fn(f => f),
-                        transformResultQuery: jest.fn(f => f),
-                        transformColumnQuery: jest.fn(f => f),
-                        hasRequiredFilters: mockHasRequiredFilters,
-                    } as any;
+            it('should trigger useEffect when variables cache object reference changes', async () => {
+                cleanup()
+                const initialVariablesCache = { var1: 'value1' };
+                const updatedVariablesCache = { var1: 'value2' };
+                const datasource = {
+                    processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                    getCustomPropertyOptions: jest.fn().mockResolvedValue({
+                        dataTableCustomPropertyOptions: [],
+                        columnCustomPropertyOptions: [],
+                    }),
+                    getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                        uniqueColumnsAcrossTables: [],
+                        commonColumnsAcrossTables: [],
+                    }),
+                    transformDataTableQuery: jest.fn(f => f),
+                    transformResultQuery: jest.fn(f => f),
+                    transformColumnQuery: jest.fn(f => f),
+                    hasRequiredFilters: mockHasRequiredFilters,
+                } as any;
 
-                    renderComponent(
-                        {
-                            ...defaultQueryV2,
-                            refId: 'A',
-                            type: DataFrameQueryType.Properties,
-                            dataTableFilter: 'FilterWithVar',
-                            resultFilter: 'ResultWithVar',
-                            columnFilter: 'ColumnWithVar',
-                        },
-                        '',
-                        '',
-                        [],
-                        [],
-                        undefined,
-                        initialVariablesCache,
-                        datasource,
-                    );
+                renderComponent(
+                    {
+                        ...defaultQueryV2,
+                        refId: 'A',
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'FilterWithVar',
+                        resultFilter: 'ResultWithVar',
+                        columnFilter: 'ColumnWithVar',
+                    },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    initialVariablesCache,
+                    datasource,
+                );
 
-                    await waitFor(() => {
-                        expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
-                        expect(datasource.transformResultQuery).toHaveBeenCalledWith('ResultWithVar');
-                        expect(datasource.transformColumnQuery).toHaveBeenCalledWith('ColumnWithVar');
-                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
-                            dataTableFilter: 'FilterWithVar',
-                            resultFilter: 'ResultWithVar',
-                            columnFilter: 'ColumnWithVar',
-                        });
-                    });
+                await waitFor(() => {
+                    expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
+                    expect(datasource.transformResultQuery).toHaveBeenCalledWith('ResultWithVar');
+                    expect(datasource.transformColumnQuery).toHaveBeenCalledWith('ColumnWithVar');
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
+                        dataTableFilter: 'FilterWithVar',
+                        resultFilter: 'ResultWithVar',
+                        columnFilter: 'ColumnWithVar',
+                    }, TAKE_LIMIT);
+                });
 
-                    datasource.getCustomPropertyOptions.mockClear();
-                    datasource.transformDataTableQuery.mockClear();
-                    cleanup();
+                datasource.getCustomPropertyOptions.mockClear();
+                datasource.transformDataTableQuery.mockClear();
+                cleanup();
 
-                    // Update variables cache reference and rerender
-                    renderComponent(
-                        {
-                            ...defaultQueryV2,
-                            refId: 'A',
-                            type: DataFrameQueryType.Properties,
-                            dataTableFilter: 'FilterWithVar',
-                        },
-                        '',
-                        '',
-                        [],
-                        [],
-                        undefined,
-                        updatedVariablesCache,
-                        datasource,
-                    );
+                // Update variables cache reference and rerender
+                renderComponent(
+                    {
+                        ...defaultQueryV2,
+                        refId: 'A',
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'FilterWithVar',
+                    },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    updatedVariablesCache,
+                    datasource,
+                );
 
-                    await waitFor(() => {
-                        expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
-                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
-                    });
+                await waitFor(() => {
+                    expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
                 });
             });
 
@@ -3239,7 +3246,7 @@ describe("DataFrameQueryEditorV2", () => {
                     .mockResolvedValue(mockOptions);
                 jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
                     .mockReturnValue(500);
-                const { renderResult: result, datasource} = renderComponent(
+                const { renderResult: result} = renderComponent(
                     { type: DataFrameQueryType.Properties },
                     '',
                     '',
@@ -3251,33 +3258,28 @@ describe("DataFrameQueryEditorV2", () => {
                         getCustomPropertyOptions: mockGetCustomPropertyOptions,
                     }
                 );
-                const getCustomPropertiesOptionsSpy = jest.spyOn(datasource, 'getCustomPropertyOptions');
 
-                await waitFor(() => {
-                    expect(getCustomPropertiesOptionsSpy).toHaveBeenCalledTimes(1);
-                });
-
-                //Data table properties
+                // Data table properties
                 const user = userEvent.setup();
                 const dataTablePropertiesField = result.getAllByRole('combobox')[0];
                 await user.click(dataTablePropertiesField);
 
-                const optionControls = screen.getAllByRole('option');
-                expect(optionControls).toHaveLength(12);
+                const dataTableCustomPropertyOptions = screen.getAllByRole('option');
+                expect(dataTableCustomPropertyOptions).toHaveLength(12);
 
-                const dataTableCustomPropertyOption = optionControls.find(opt =>  
+                const dataTableCustomPropertyOption = dataTableCustomPropertyOptions.find(opt =>  
                     opt.textContent && opt.textContent.includes('Custom Prop A')  
                 );  
                 expect(dataTableCustomPropertyOption).toBeDefined();
 
-                //Column Properties 
+                // Column Properties 
                 const columnPropertiesField = result.getAllByRole('combobox')[1];
                 await user.click(columnPropertiesField);
                 
-                const columnOptionControls = screen.getAllByRole('option');
-                expect(columnOptionControls).toHaveLength(5);
+                const columnCustomPropertyOptions = screen.getAllByRole('option');
+                expect(columnCustomPropertyOptions).toHaveLength(5);
 
-                const columnCustomPropertyOption = columnOptionControls.find(opt =>  
+                const columnCustomPropertyOption = columnCustomPropertyOptions.find(opt =>  
                     opt.textContent && opt.textContent.includes('Custom Col Prop')  
                 );  
                 expect(columnCustomPropertyOption).toBeDefined();
@@ -3298,7 +3300,6 @@ describe("DataFrameQueryEditorV2", () => {
                     }
                 );
                 const getCustomPropertiesOptionsSpy = jest.spyOn(datasource, 'getCustomPropertyOptions');
-
 
                 await waitFor(() => {
                     expect(getCustomPropertiesOptionsSpy).toHaveBeenCalled();
@@ -3418,8 +3419,8 @@ describe("DataFrameQueryEditorV2", () => {
                 const dataTablePropertiesField = result.getAllByRole('combobox')[0];
                 await user.click(dataTablePropertiesField);
 
-                const optionControls = screen.getAllByRole('option');
-                expect(optionControls).toHaveLength(16);
+                const dataTableCustomPropertyOptionControl = screen.getAllByRole('option');
+                expect(dataTableCustomPropertyOptionControl).toHaveLength(16);// 11 default options + 5 custom options(CUSTOM_PROPERTIES_OPTIONS_LIMIT is 5)
             });
         });
 
@@ -3511,8 +3512,201 @@ describe("DataFrameQueryEditorV2", () => {
                 const columnPropertiesField = result.getAllByRole('combobox')[1];
                 await user.click(columnPropertiesField);
 
-                const optionControls = screen.getAllByRole('option');
-                expect(optionControls).toHaveLength(9);
+                const columnCustomPropertyOptionControl = screen.getAllByRole('option');
+                expect(columnCustomPropertyOptionControl).toHaveLength(9);// 4 default options + 5 custom options(CUSTOM_PROPERTIES_OPTIONS_LIMIT is 5)
+            });
+        });
+
+        describe('custom property validation and error handling', () => {
+            beforeAll(() => {
+                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
+            });
+
+            beforeEach(() => {
+                cleanup();
+                jest.clearAllMocks();
+            });
+
+            const renderWithCustomProperties = (
+                queryOverrides: Partial<DataFrameDataQuery>,
+                customPropertyOptions = { dataTableCustomPropertyOptions: [] as ComboboxOption[], columnCustomPropertyOptions: [] as ComboboxOption[] }
+            ) => {
+                const mockGetCustomPropertyOptions = jest.fn().mockResolvedValue(customPropertyOptions);
+                return renderComponent(
+                    { type: DataFrameQueryType.Properties, ...queryOverrides },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    { getCustomPropertyOptions: mockGetCustomPropertyOptions }
+                );
+            };
+
+            describe('when selected data table custom properties are valid', () => {
+                it('should not show an error message', async () => {
+                    renderWithCustomProperties(
+                        { dataTableProperties: [`propA${CUSTOM_PROPERTY_SUFFIX}`] },
+                        {
+                            dataTableCustomPropertyOptions: [{ label: 'propA', value: `propA${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
+                            columnCustomPropertyOptions: [],
+                        }
+                    );
+
+                    await waitFor(() => {
+                        expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+                    });
+                });
+            });
+
+            describe('when selected data table custom properties are invalid', () => {
+                it('should show an error message for a single invalid custom data table property', async () => {
+                    renderWithCustomProperties(
+                        { dataTableProperties: [`missingProp${CUSTOM_PROPERTY_SUFFIX}`] },
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
+                    );
+
+                    await waitFor(() => {
+                        expect(
+                            screen.getByText(`The following selected custom data table property is not valid: 'missingProp'`)
+                        ).toBeInTheDocument();
+                    });
+                });
+
+                it('should show an error message for multiple invalid custom data table properties', async () => {
+                    renderWithCustomProperties(
+                        { dataTableProperties: [`missingA${CUSTOM_PROPERTY_SUFFIX}`, `missingB${CUSTOM_PROPERTY_SUFFIX}`] },
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
+                    );
+
+                    await waitFor(() => {
+                        expect(
+                            screen.getByText(`The following selected custom data table properties are not valid: 'missingA, missingB'`)
+                        ).toBeInTheDocument();
+                    });
+                });
+
+                it('should only show error for invalid data table properties when some are valid', async () => {
+                    renderWithCustomProperties(
+                        { dataTableProperties: [DataTableProperties.Name, `validCustom${CUSTOM_PROPERTY_SUFFIX}`, `invalidCustom${CUSTOM_PROPERTY_SUFFIX}`] },
+                        {
+                            dataTableCustomPropertyOptions: [{ label: 'validCustom', value: `validCustom${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
+                            columnCustomPropertyOptions: [],
+                        }
+                    );
+
+                    await waitFor(() => {
+                        expect(
+                            screen.getByText(`The following selected custom data table property is not valid: 'invalidCustom'`)
+                        ).toBeInTheDocument();
+                    });
+                });
+            });
+
+            describe('when selected column custom properties are valid', () => {
+                it('should not show an error message', async () => {
+                    renderWithCustomProperties(
+                        { columnProperties: [`colPropA${CUSTOM_PROPERTY_SUFFIX}`] },
+                        {
+                            dataTableCustomPropertyOptions: [],
+                            columnCustomPropertyOptions: [{ label: 'colPropA', value: `colPropA${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
+                        }
+                    );
+
+                    await waitFor(() => {
+                        expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+                    });
+                });
+            });
+
+            describe('when selected column custom properties are invalid', () => {
+                it('should show an error message for a single invalid custom column property', async () => {
+                    renderWithCustomProperties(
+                        { columnProperties: [`missingColProp${CUSTOM_PROPERTY_SUFFIX}`] },
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
+                    );
+
+                    await waitFor(() => {
+                        expect(
+                            screen.getByText(`The following selected custom column property is not valid: 'missingColProp'`)
+                        ).toBeInTheDocument();
+                    });
+                });
+
+                it('should show an error message for multiple invalid custom column properties', async () => {
+                    renderWithCustomProperties(
+                        { columnProperties: [`missingColA${CUSTOM_PROPERTY_SUFFIX}`, `missingColB${CUSTOM_PROPERTY_SUFFIX}`] },
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
+                    );
+
+                    await waitFor(() => {
+                        expect(
+                            screen.getByText(`The following selected custom column properties are not valid: 'missingColA, missingColB'`)
+                        ).toBeInTheDocument();
+                    });
+                });
+
+                it('should only show error for invalid column properties when some are valid', async () => {
+                    renderWithCustomProperties(
+                        { columnProperties: [DataTableProperties.ColumnName, `validColCustom${CUSTOM_PROPERTY_SUFFIX}`, `invalidColCustom${CUSTOM_PROPERTY_SUFFIX}`] },
+                        {
+                            dataTableCustomPropertyOptions: [],
+                            columnCustomPropertyOptions: [{ label: 'validColCustom', value: `validColCustom${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
+                        }
+                    );
+
+                    await waitFor(() => {
+                        expect(
+                            screen.getByText(`The following selected custom column property is not valid: 'invalidColCustom'`)
+                        ).toBeInTheDocument();
+                    });
+                });
+            });
+
+            describe('when both data table and column custom properties have invalid selections', () => {
+                it('should show error messages for both data table and column properties', async () => {
+                    renderWithCustomProperties(
+                        {
+                            dataTableProperties: [`invalidTableProp${CUSTOM_PROPERTY_SUFFIX}`],
+                            columnProperties: [`invalidColProp${CUSTOM_PROPERTY_SUFFIX}`],
+                        },
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
+                    );
+
+                    await waitFor(() => {
+                        expect(
+                            screen.getByText(`The following selected custom data table property is not valid: 'invalidTableProp'`)
+                        ).toBeInTheDocument();
+                        expect(
+                            screen.getByText(`The following selected custom column property is not valid: 'invalidColProp'`)
+                        ).toBeInTheDocument();
+                    });
+                });
+            });
+
+            describe('when standard properties are selected', () => {
+                it('should not treat standard data table properties as invalid', async () => {
+                    renderWithCustomProperties(
+                        { dataTableProperties: [DataTableProperties.Name, DataTableProperties.RowCount] },
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
+                    );
+
+                    await waitFor(() => {
+                        expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+                    });
+                });
+
+                it('should not treat standard column properties as invalid', async () => {
+                    renderWithCustomProperties(
+                        { columnProperties: [DataTableProperties.ColumnName, DataTableProperties.ColumnDataType] },
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
+                    );
+
+                    await waitFor(() => {
+                        expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+                    });
+                });
             });
         });
 

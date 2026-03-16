@@ -303,12 +303,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     public async getCustomPropertyOptions(
-        filters: CombinedFilters
+        filters: CombinedFilters,
+        take: number
     ): Promise<CustomPropertyOptions> {
         const tables = await lastValueFrom(
             this.queryTables$(
                 filters,
-                TAKE_LIMIT,
+                take,
                 [
                     DataTableProjections.Properties,
                     DataTableProjections.ColumnProperties
@@ -317,7 +318,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
         
         if (!this.tablesContainsProperties(tables)) {
-            return { dataTableCustomPropertyOptions:[], columnCustomPropertyOptions: [] };
+            return { 
+                dataTableCustomPropertyOptions:[],
+                columnCustomPropertyOptions: []
+            };
         }
 
         const dataTableProperties = new Set(
@@ -1901,11 +1905,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return property.endsWith(CUSTOM_PROPERTY_SUFFIX);
     }
 
-    private extractCustomPropertyKey(property: string): string {
+    private extractCustomProperty(property: string): string {
         return property.slice(0, -CUSTOM_PROPERTY_SUFFIX.length);
     }
 
-    private categorizeProperties(properties: string[]): [string[], DataTableProperties[]] {
+    private getStandardAndCustomProperties(properties: string[]): [string[], DataTableProperties[]] {
         const customProperties: string[] = [];
         const standardProperties: DataTableProperties[] = [];
         for (const property of properties) {
@@ -1919,27 +1923,33 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private getFieldsForPropertiesQuery$(processedQuery: ValidDataFrameQueryV2): Observable<DataFrameDTO> {
-        const [selectedDataTableCustomProperties, dataTablePropertiesToQuery] = this.categorizeProperties(processedQuery.dataTableProperties);
-        const [selectedColumnCustomProperties, columnPropertiesToQuery] = this.categorizeProperties(processedQuery.columnProperties);
+        const [
+            selectedCustomDataTableProperties,
+            standardDataTableProperties
+        ] = this.getStandardAndCustomProperties(processedQuery.dataTableProperties);
+        const [
+            selectedCustomColumnProperties,
+            standardColumnProperties
+        ] = this.getStandardAndCustomProperties(processedQuery.columnProperties);
 
         const combinedProperties = new Set<DataTableProperties>([
-            ...dataTablePropertiesToQuery,
-            ...columnPropertiesToQuery,
+            ...standardDataTableProperties,
+            ...standardColumnProperties,
         ]);
-        if (selectedDataTableCustomProperties.length > 0) {
+        if (selectedCustomDataTableProperties.length > 0) {
             combinedProperties.add(DataTableProperties.Properties);
         }
-        if (selectedColumnCustomProperties.length > 0) {
+        if (selectedCustomColumnProperties.length > 0) {
             combinedProperties.add(DataTableProperties.ColumnProperties);
         }
         const propertiesToQuery = [...combinedProperties];
-        const standardDataTableProperties = new Set<string>(
+        const allStandardDataTableProperties = new Set<string>(
             Object.values(DataTableProperties)
         );
         const projections = propertiesToQuery
             .filter(
                 (property): property is DataTableProperties =>
-                    standardDataTableProperties.has(property)
+                    allStandardDataTableProperties.has(property)
             )
             .map(property => DataTableProjectionLabelLookup[property].projection);
         const projectionExcludingId = projections
@@ -1971,7 +1981,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 );
                 const propertiesToQueryWithoutCustomProperties = propertiesToQuery.filter(
                     (property): property is DataTableProperties =>
-                        standardDataTableProperties.has(property)
+                        allStandardDataTableProperties.has(property)
                         && property !== DataTableProperties.Properties
                         && property !== DataTableProperties.ColumnProperties
                 );
@@ -1997,7 +2007,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                  * flatten it into separate fields in the data frame output
                  */
                 if (includeDataTableCustomProperties) {
-                    const includeAllDataTableCustomProperties = dataTablePropertiesToQuery
+                    const includeAllDataTableCustomProperties = standardDataTableProperties
                         .includes(DataTableProperties.Properties);
                     const customPropertyFields = this.createFieldsFromCustomProperties(
                         flattenedTablesWithColumns,
@@ -2006,7 +2016,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         fieldNames,
                         'Data table',
                         includeAllDataTableCustomProperties,
-                        selectedDataTableCustomProperties
+                        selectedCustomDataTableProperties
                     );
                     customPropertyFields.forEach(field => fieldNames.add(field.name));
                     customPropertyColumnsLimit -= customPropertyFields.length;
@@ -2018,7 +2028,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                  * flatten it into separate fields in the data frame output
                  */
                 if (includeColumnCustomProperties) {
-                    const includeAllColumnCustomProperties = columnPropertiesToQuery
+                    const includeAllColumnCustomProperties = standardColumnProperties
                         .includes(DataTableProperties.ColumnProperties);
                     const customPropertyFields = this.createFieldsFromCustomProperties(
                         flattenedTablesWithColumns,
@@ -2027,7 +2037,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         fieldNames,
                         'Column',
                         includeAllColumnCustomProperties,
-                        selectedColumnCustomProperties
+                        selectedCustomColumnProperties
                     );
                     customPropertyFields.forEach(field => fieldNames.add(field.name));
                     customPropertyColumnsLimit -= customPropertyFields.length;
@@ -2054,10 +2064,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         includeAllCustomProperties: boolean,
         selectedCustomProperties: string[]
     ): FieldDTO[] {
-        let uniquePropertyKeys = new Set<string>();
-
+        let uniqueCustomPropertyKeys = new Set<string>();
         if (includeAllCustomProperties) {
-            uniquePropertyKeys = this.getUniqueCustomPropertyKeys(
+            uniqueCustomPropertyKeys = this.getUniqueCustomPropertyKeys(
                 tables,
                 limit,
                 propertyAccessor
@@ -2065,13 +2074,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         for (const property of selectedCustomProperties) {
-            const customPropertyKey = this.extractCustomPropertyKey(property);
-            if (customPropertyKey) {
-                uniquePropertyKeys.add(customPropertyKey);
+            const selectedCustomProperty = this.extractCustomProperty(property);
+            if (selectedCustomProperty) {
+                uniqueCustomPropertyKeys.add(selectedCustomProperty);
             }
         }
 
-        const sortedPropertyKeys = Array.from(uniquePropertyKeys)
+        const sortedPropertyKeys = Array.from(uniqueCustomPropertyKeys)
             .sort((propertyKey1, propertyKey2) => propertyKey1.localeCompare(propertyKey2));
 
         return sortedPropertyKeys.map(propertyKey => (this.createField({
