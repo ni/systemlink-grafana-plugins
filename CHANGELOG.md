@@ -1,3 +1,9 @@
+## [4.139.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.138.0...v4.139.0) (2026-03-16)
+
+### Features
+
+* **dataframes:** add support to show custom properties in the query editor ([#692](https://github.com/ni/systemlink-grafana-plugins/issues/692)) ([a8b911b](https://github.com/ni/systemlink-grafana-plugins/commit/a8b911b076032faa1a609797325c30a875550c62))
+
 ## [4.138.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.137.1...v4.138.0) (2026-03-13)
 
 ### Features
