@@ -17,7 +17,7 @@ import {
     infoMessage,
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { isObservable, lastValueFrom } from 'rxjs';
-import _, { set } from 'lodash';
+import _ from 'lodash';
 
 export const DataFrameQueryEditorV2: React.FC<Props> = (
     { query, onChange, onRunQuery, datasource }: Props
@@ -152,12 +152,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const { validProperties: validDataTableProperties, invalidProperties: invalidDataTableProperties } = useMemo(() => {
       return getPropertyValidation(
         migratedQuery.dataTableProperties,
-        dataTableCustomPropertyOptions,
+        customDataTablePropertyOptions,
         standardDataTablePropertyOptions
       );
     }, [
       getPropertyValidation,
-      dataTableCustomPropertyOptions,
+      customDataTablePropertyOptions,
       migratedQuery.dataTableProperties,
       standardDataTablePropertyOptions,
     ]);
@@ -165,12 +165,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const { validProperties: validColumnProperties, invalidProperties: invalidColumnProperties } = useMemo(() => {
       return getPropertyValidation(
         migratedQuery.columnProperties,
-        columnCustomPropertyOptions,
+        customColumnPropertyOptions,
         standardColumnPropertyOptions
       );
     }, [
       getPropertyValidation,
-      columnCustomPropertyOptions,
+      customColumnPropertyOptions,
       migratedQuery.columnProperties,
       standardColumnPropertyOptions,
     ]);
@@ -198,14 +198,14 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
             validDataTableProperties,
             invalidDataTableProperties,
             standardDataTablePropertyOptions,
-            dataTableCustomPropertyOptions
+            customDataTablePropertyOptions
         );
     }, [
         getSelectedPropertiesOptions,
         validDataTableProperties,
         invalidDataTableProperties,
         standardDataTablePropertyOptions,
-        dataTableCustomPropertyOptions
+        customDataTablePropertyOptions
     ]);
 
     const selectedColumnPropertyOptions = useMemo(() => {
@@ -213,14 +213,14 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
             validColumnProperties,
             invalidColumnProperties,
             standardColumnPropertyOptions,
-            columnCustomPropertyOptions
+            customColumnPropertyOptions
         );
     }, [
         getSelectedPropertiesOptions,
         validColumnProperties,
         invalidColumnProperties,
         standardColumnPropertyOptions,
-        columnCustomPropertyOptions
+        customColumnPropertyOptions
     ]);
 
     const getInvalidPropertiesMessage = useCallback((
