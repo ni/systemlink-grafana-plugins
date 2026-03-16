@@ -227,13 +227,16 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                         if (xColumnOptions.length > 0) {
                             setXColumnOptions([]);
                         }
+                        if (!isColumnOptionsInitialized) {
+                            setIsColumnOptionsInitialized(true);
+                        }
                         break;
                     default:
                         break;
                 }
             }
 
-            if (!isColumnOptionsInitialized) {
+            if (!filterChanged && !isColumnOptionsInitialized) {
                 setIsColumnOptionsInitialized(true);
             }
         },
