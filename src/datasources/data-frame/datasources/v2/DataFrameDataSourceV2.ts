@@ -1968,6 +1968,22 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             combineLatestWith(workspaces$),
             map(([flattenedTablesWithColumns, workspaces]) => {
                 const fields: FieldDTO[] = [];
+
+                if (
+                    !this.areSelectedCustomPropertiesValid(
+                        selectedDataTableProperties.customProperties,
+                        selectedColumnProperties.customProperties,
+                        flattenedTablesWithColumns
+                    )
+                ) {
+                    const errorMessage = 'One or more selected properties are invalid. Please update your properties selection or refine your filters.';
+                    this.appEvents?.publish?.({
+                        type: AppEvents.alertError.name,
+                        payload: ['Properties selection error', errorMessage],
+                    });
+                    throw new Error(errorMessage);
+                }
+
                 const includeDataTableCustomProperties = selectedStandardProperties.has(
                     DataTableProperties.Properties
                 );
@@ -2047,6 +2063,58 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
 
         return dataFrame$;
+    }
+
+    private areSelectedCustomPropertiesValid(
+        selectedCustomDataTableProperties: string[],
+        selectedCustomColumnProperties: string[],
+        tableProperties: FlattenedTableProperties[]
+    ): boolean {
+        const allTableDataTableCustomProperties = new Set<string>();
+        const allTableColumnCustomProperties = new Set<string>();
+
+        if( 
+            selectedCustomDataTableProperties.length === 0 
+            && selectedCustomColumnProperties.length === 0
+        ) {
+            return true;
+        }
+
+        tableProperties.forEach(table => {
+            if (table.properties) {
+                Object.keys(table.properties).forEach(propertyKey => {
+                    allTableDataTableCustomProperties.add(propertyKey);
+                });
+            }
+            if (table.columnProperties) {
+                Object.keys(table.columnProperties).forEach(propertyKey => {
+                    allTableColumnCustomProperties.add(propertyKey);
+                });
+            }
+        });
+
+        const isDataTableCustomPropertiesValid = selectedCustomDataTableProperties.every(
+            selectedCustomDataTableProperty => {
+                const selectedCustomProperty = this.extractCustomProperty(
+                    selectedCustomDataTableProperty
+                );
+                return selectedCustomProperty 
+                    ? allTableDataTableCustomProperties.has(selectedCustomProperty) 
+                    : false;
+            }
+        );
+        const isColumnCustomPropertiesValid = selectedCustomColumnProperties.every(
+            selectedCustomColumnProperty => {
+                const selectedCustomProperty = this.extractCustomProperty(
+                    selectedCustomColumnProperty
+                );
+                return selectedCustomProperty 
+                    ? allTableColumnCustomProperties.has(selectedCustomProperty) 
+                    : false;
+            }
+        );
+
+        return isDataTableCustomPropertiesValid && isColumnCustomPropertiesValid;
     }
 
     private createFieldsFromCustomProperties(

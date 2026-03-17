@@ -7079,6 +7079,108 @@ describe('DataFrameDataSourceV2', () => {
                             expect(customField?.values).toEqual(['custom-value']);
                         });
                     });
+
+                    describe('when selected custom properties are invalid', () => {
+                        const propertiesErrorMessage = 'One or more selected properties are invalid. Please update your properties selection or refine your filters.';
+                        it('should throw error when a selected data table custom property does not exist in any table', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table-1', name: 'Table 1',
+                                    properties: { existingProp: 'value1' }
+                                }
+                            ];
+                            queryTablesSpy$.mockReturnValue(of(mockTables));
+                            const query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: ['nonExistentProp-(custom-properties)'],
+                                columnProperties: [],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            await expect(
+                                lastValueFrom(ds.runQuery(query, options))
+                            ).rejects.toThrow(propertiesErrorMessage);
+                        });
+
+                        it('should throw error when a selected column custom property does not exist in any table column', async () => {
+                            const mockTables = [
+                                {
+                                    properties: {},
+                                    columns: [
+                                        { properties: { sensor: 'temp' } },
+                                    ]
+                                }
+                            ];
+                            queryTablesSpy$.mockReturnValue(of(mockTables));
+                            const query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: [],
+                                columnProperties: ['nonExistentColumnProp-(custom-properties)'],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            await expect(
+                                lastValueFrom(ds.runQuery(query, options))
+                            ).rejects.toThrow(propertiesErrorMessage);
+                        });
+
+                        it('should throw error when both data table and column custom properties are invalid', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table-1', name: 'Table 1',
+                                    properties: { prop1: 'val1' },
+                                    columns: [
+                                        { properties: { colProp1: 'colVal1' } }
+                                    ]
+                                }
+                            ];
+                            queryTablesSpy$.mockReturnValue(of(mockTables));
+                            const query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: ['invalidTableProp-(custom-properties)'],
+                                columnProperties: ['invalidColProp-(custom-properties)'],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            await expect(
+                                lastValueFrom(ds.runQuery(query, options))
+                            ).rejects.toThrow(propertiesErrorMessage);
+                        });
+
+                        it('should publish alert error when selected custom properties are invalid', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table-1', name: 'Table 1',
+                                    properties: { existingProp: 'value1' }
+                                }
+                            ];
+                            const publishMock = jest.fn();
+                            (ds as any).appEvents = { publish: publishMock };
+                            queryTablesSpy$.mockReturnValue(of(mockTables));
+                            const query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: ['missingProp-(custom-properties)'],
+                                columnProperties: [],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            await expect(
+                                lastValueFrom(ds.runQuery(query, options))
+                            ).rejects.toThrow(propertiesErrorMessage);
+
+                            expect(publishMock).toHaveBeenCalledWith({
+                                type: 'alert-error',
+                                payload: [
+                                    'Properties selection error',
+                                    propertiesErrorMessage
+                                ]
+                            });
+                        });
+                    });
                 });
             });
         });
