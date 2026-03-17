@@ -2062,19 +2062,19 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private areSelectedCustomPropertiesValid(
-        selectedCustomDataTableProperties: string[],
-        selectedCustomColumnProperties: string[],
+        selectedDataTableCustomProperties: string[],
+        selectedColumnCustomProperties: string[],
         tables: FlattenedTableProperties[]
     ): boolean {
         if( 
-            selectedCustomDataTableProperties.length === 0 
-            && selectedCustomColumnProperties.length === 0
+            selectedDataTableCustomProperties.length === 0 
+            && selectedColumnCustomProperties.length === 0
         ) {
             return true;
         }
 
         let allDataTableCustomPropertyKeys = new Set<string>();
-        if (selectedCustomDataTableProperties.length > 0) {
+        if (selectedDataTableCustomProperties.length > 0) {
             allDataTableCustomPropertyKeys = this.getUniqueCustomPropertyKeys(
                 tables,
                 table => table.properties,
@@ -2082,27 +2082,27 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         let allColumnCustomPropertyKeys = new Set<string>();
-        if (selectedCustomColumnProperties.length > 0) {
+        if (selectedColumnCustomProperties.length > 0) {
             allColumnCustomPropertyKeys = this.getUniqueCustomPropertyKeys(
                 tables,
                 table => table.columnProperties,
             );
         }
 
-        const areDataTableCustomPropertiesValid = selectedCustomDataTableProperties.every(
-            selectedCustomDataTableProperty => {
+        const areDataTableCustomPropertiesValid = selectedDataTableCustomProperties.every(
+            selectedDataTableCustomProperty => {
                 const selectedCustomProperty = this.extractCustomProperty(
-                    selectedCustomDataTableProperty
+                    selectedDataTableCustomProperty
                 );
                 return selectedCustomProperty 
                     ? allDataTableCustomPropertyKeys.has(selectedCustomProperty) 
                     : false;
             }
         );
-        const areColumnCustomPropertiesValid = selectedCustomColumnProperties.every(
-            selectedCustomColumnProperty => {
+        const areColumnCustomPropertiesValid = selectedColumnCustomProperties.every(
+            selectedColumnCustomProperty => {
                 const selectedCustomProperty = this.extractCustomProperty(
-                    selectedCustomColumnProperty
+                    selectedColumnCustomProperty
                 );
                 return selectedCustomProperty 
                     ? allColumnCustomPropertyKeys.has(selectedCustomProperty) 
