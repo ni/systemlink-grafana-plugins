@@ -6799,7 +6799,7 @@ describe('DataFrameDataSourceV2', () => {
                             beforeEach(() => {
                                 const mockTables = [
                                     {
-                                        properties : {},
+                                        properties: {},
                                         columns: [
                                             { properties: { sensor: 'temp', unit: 'C' } },
                                             { properties: { sensor: 'pressure' } },
@@ -6844,7 +6844,7 @@ describe('DataFrameDataSourceV2', () => {
                                     refId: 'A',
                                 };
                                 const result = await lastValueFrom(ds.runQuery(query, options));
-    
+
                                 expect(findField(result.fields, 'sensor')?.values).toEqual(['temp', 'pressure']);
                                 expect(findField(result.fields, 'unit')?.values).toEqual(['C', undefined]);
                             })
@@ -6854,17 +6854,18 @@ describe('DataFrameDataSourceV2', () => {
                             beforeEach(() => {
                                 const mockTables = [
                                     {
-                                        properties: { 
+                                        properties: {
                                             author: 'John',
                                             version: '1.0',
-                                            department: 'Engineering' }
+                                            department: 'Engineering'
+                                        }
                                     }
                                 ];
                                 queryTablesSpy$.mockReturnValue(of(mockTables));
                             });
 
                             it('should include `PROPERTIES` in the projection', async () => {
-                                 query = {
+                                query = {
                                     type: DataFrameQueryType.Properties,
                                     dataTableProperties: ['author-(custom-properties)'],
                                     columnProperties: [],
@@ -6881,7 +6882,7 @@ describe('DataFrameDataSourceV2', () => {
                             });
 
                             it('should include the selected custom property in the output fields', async () => {
-                                 query = {
+                                query = {
                                     type: DataFrameQueryType.Properties,
                                     dataTableProperties: [
                                         'author-(custom-properties)',
@@ -6892,7 +6893,7 @@ describe('DataFrameDataSourceV2', () => {
                                     refId: 'A',
                                 };
                                 const result = await lastValueFrom(ds.runQuery(query, options));
-                                
+
                                 expect(findField(result.fields, 'author')?.values).toEqual(['John']);
                                 expect(findField(result.fields, 'department')?.values).toEqual(['Engineering']);
                             });
@@ -6920,25 +6921,25 @@ describe('DataFrameDataSourceV2', () => {
                             expect(fieldNames).toEqual(['alpha', 'middle', 'zebra']);
                         });
                     });
-        
+
                     describe('when custom properties and standard properties are both selected', () => {
                         beforeEach(() => {
                             const mockTables = [
-                                {   
-                                    name:'Table 1',
-                                    properties: { 
+                                {
+                                    name: 'Table 1',
+                                    properties: {
                                         author: 'John',
                                         version: '1.0',
-                                        extra: 'ignored' 
+                                        extra: 'ignored'
                                     },
                                     columns: [
-                                        {   
+                                        {
                                             name: 'Col1',
-                                            properties: { 
+                                            properties: {
                                                 sensor: 'temp',
-                                                unit: 'C' 
-                                            } 
-                                    },
+                                                unit: 'C'
+                                            }
+                                        },
                                     ]
                                 }
                             ];
@@ -6956,15 +6957,15 @@ describe('DataFrameDataSourceV2', () => {
                             }
                             const result = await lastValueFrom(ds.runQuery(query, options));
 
-                             expect(queryTablesSpy$).toHaveBeenCalledWith(
-                                    expect.any(Object),
-                                    1000,
-                                    expect.arrayContaining([
-                                        DataTableProjections.Name,
-                                        DataTableProjections.Properties,
-                                        DataTableProjections.ColumnName,
-                                        DataTableProjections.ColumnProperties
-                                    ])
+                            expect(queryTablesSpy$).toHaveBeenCalledWith(
+                                expect.any(Object),
+                                1000,
+                                expect.arrayContaining([
+                                    DataTableProjections.Name,
+                                    DataTableProjections.Properties,
+                                    DataTableProjections.ColumnName,
+                                    DataTableProjections.ColumnProperties
+                                ])
                             );
 
                             const nameField = findField(result.fields, DataTableProjectionLabelLookup[DataTableProperties.Name].label);
@@ -6988,7 +6989,7 @@ describe('DataFrameDataSourceV2', () => {
                                 take: 1000,
                                 refId: 'A',
                             };
-                
+
                             const result = await lastValueFrom(ds.runQuery(query, options));
 
                             const authorFields = result.fields.filter((f: FieldDTO) => f.name === 'author');
@@ -7016,17 +7017,17 @@ describe('DataFrameDataSourceV2', () => {
                         it('when a custom property is selected outside the CUSTOM_PROPERTY_COLUMNS_LIMIT, should include the field', async () => {
                             let query: DataFrameDataQuery;
                             const mockTables = [
-                                {   
-                                    name:'Table 1',
+                                {
+                                    name: 'Table 1',
                                     properties: Object.fromEntries(
-                                            Array.from(
-                                                { length: 101 },
-                                                (_, i) => [
-                                                    `tableProp${i + 1}`,
-                                                    `value${i + 1}`
-                                                ]
-                                            )
-                                        ),
+                                        Array.from(
+                                            { length: 101 },
+                                            (_, i) => [
+                                                `tableProp${i + 1}`,
+                                                `value${i + 1}`
+                                            ]
+                                        )
+                                    ),
                                     columns: []
                                 }
                             ];
@@ -7051,7 +7052,7 @@ describe('DataFrameDataSourceV2', () => {
                             };
 
                             result = await lastValueFrom(ds.runQuery(query, options));
-                            
+
                             const customField101 = findField(result.fields, 'tableProp101');
                             expect(customField101).toBeDefined();
                         })
@@ -7088,6 +7089,7 @@ describe('DataFrameDataSourceV2', () => {
 
                     describe('when selected custom properties are invalid', () => {
                         const propertiesErrorMessage = 'One or more selected properties are invalid. Please update your properties selection or refine your filters.';
+
                         it('should throw error when a selected data table custom property does not exist in any table', async () => {
                             const mockTables = [
                                 {
@@ -7186,7 +7188,143 @@ describe('DataFrameDataSourceV2', () => {
                                 ]
                             });
                         });
+
+                        it('should throw error when only data table custom properties are invalid while column custom properties are valid', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table-1', name: 'Table 1',
+                                    properties: { existingProp: 'val1' },
+                                    columns: [
+                                        { properties: { validColProp: 'colVal1' } }
+                                    ]
+                                }
+                            ];
+                            queryTablesSpy$.mockReturnValue(of(mockTables));
+                            const query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: ['invalidProp-(custom-properties)'],
+                                columnProperties: ['validColProp-(custom-properties)'],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            await expect(
+                                lastValueFrom(ds.runQuery(query, options))
+                            ).rejects.toThrow(propertiesErrorMessage);
+                        });
+
+                        it('should throw error when only column custom properties are invalid while data table custom properties are valid', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table-1', name: 'Table 1',
+                                    properties: { validProp: 'val1' },
+                                    columns: [
+                                        { properties: { existingColProp: 'colVal1' } }
+                                    ]
+                                }
+                            ];
+                            queryTablesSpy$.mockReturnValue(of(mockTables));
+                            const query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: ['validProp-(custom-properties)'],
+                                columnProperties: ['invalidColProp-(custom-properties)'],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            await expect(
+                                lastValueFrom(ds.runQuery(query, options))
+                            ).rejects.toThrow(propertiesErrorMessage);
+                        });
+
+                        it('should throw error when the custom property suffix is selected without a property name', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table-1', name: 'Table 1',
+                                    properties: { someProp: 'val1' }
+                                }
+                            ];
+                            queryTablesSpy$.mockReturnValue(of(mockTables));
+                            const query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: ['-(custom-properties)'],
+                                columnProperties: [],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            await expect(
+                                lastValueFrom(ds.runQuery(query, options))
+                            ).rejects.toThrow(propertiesErrorMessage);
+                        });
                     });
+                });
+
+                it('should not throw error when no custom properties are selected', async () => {
+                    const mockTables = [
+                        {
+                            name: 'Table 1',
+                            properties: { author: 'John' }
+                        }
+                    ];
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    const query = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableProperties: [DataTableProperties.Name],
+                        columnProperties: [],
+                        take: 1000,
+                        refId: 'A',
+                    };
+
+                    const result = await lastValueFrom(ds.runQuery(query, options));
+
+                    expect(result.fields).toBeDefined();
+                });
+
+                it('should not throw error when selected custom properties exist in the tables', async () => {
+                    const mockTables = [
+                        {
+                            id: 'table-1', name: 'Table 1',
+                            properties: { author: 'John' },
+                            columns: [
+                                { properties: { sensor: 'temp' } }
+                            ]
+                        }
+                    ];
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    const query = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableProperties: ['author-(custom-properties)'],
+                        columnProperties: ['sensor-(custom-properties)'],
+                        take: 1000,
+                        refId: 'A',
+                    };
+
+                    const result = await lastValueFrom(ds.runQuery(query, options));
+
+                    expect(findField(result.fields, 'author')?.values).toEqual(['John']);
+                    expect(findField(result.fields, 'sensor')?.values).toEqual(['temp']);
+                });
+
+
+                it('should not throw error when tables have no standard properties and no custom properties are selected', async () => {
+                    const mockTables = [
+                        {
+                            id: 'table-1', name: 'Table 1',
+                        }
+                    ];
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    const query = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableProperties: [DataTableProperties.Name],
+                        columnProperties: [],
+                        take: 1000,
+                        refId: 'A',
+                    };
+
+                    const result = await lastValueFrom(ds.runQuery(query, options));
+
+                    expect(result.fields).toBeDefined();
                 });
             });
         });
