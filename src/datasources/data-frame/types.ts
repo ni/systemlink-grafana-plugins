@@ -408,3 +408,7 @@ export interface TableColumnsData {
 export function isSystemLinkError(error: any): error is SystemLinkError {
   return Boolean(error?.error?.code) && Boolean(error?.error?.name);
 }
+
+export const ALL_STANDARD_PROPERTIES = new Set<string>(
+  Object.values(DataTableProperties)
+); 
