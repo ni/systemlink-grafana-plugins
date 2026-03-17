@@ -1,4 +1,3 @@
-import { DataTableProperties } from "./types";
 import { nbsp } from "./utils";
 
 export const decimationMethods = [
