@@ -367,6 +367,11 @@ export interface CustomPropertyOptions {
   columnCustomPropertyOptions: Option[];
 }
 
+export interface PropertySelections {
+  customProperties: string[];
+  standardProperties: DataTableProperties[];
+}
+
 export interface Option {
   label: string;
   value: string;
