@@ -79,7 +79,3 @@ export const FLOAT32_MAX = 3.40282347e38;
 
 export const FLOAT64_MIN = -Number.MAX_VALUE;
 export const FLOAT64_MAX = Number.MAX_VALUE;
-
-export const ALL_STANDARD_PROPERTIES = new Set<string>(
-  Object.values(DataTableProperties)
-); 
