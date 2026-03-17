@@ -2013,8 +2013,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                  * flatten it into separate fields in the data frame output
                  */
                 if (includeDataTableCustomProperties) {
-                    const includeAllCustomProperties = ALL_STANDARD_PROPERTIES
-                        .has(DataTableProperties.Properties);
+                    const includeAllCustomProperties = selectedDataTableProperties
+                        .standardProperties.includes(DataTableProperties.Properties);
                     const customPropertyFields = this.createFieldsFromCustomProperties(
                         flattenedTablesWithColumns,
                         table => table.properties,
@@ -2034,8 +2034,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                  * flatten it into separate fields in the data frame output
                  */
                 if (includeColumnCustomProperties) {
-                    const includeAllCustomProperties = ALL_STANDARD_PROPERTIES
-                        .has(DataTableProperties.ColumnProperties);
+                    const includeAllCustomProperties = selectedColumnProperties
+                        .standardProperties.includes(DataTableProperties.ColumnProperties);
                     const customPropertyFields = this.createFieldsFromCustomProperties(
                         flattenedTablesWithColumns,
                         table => table.columnProperties,
