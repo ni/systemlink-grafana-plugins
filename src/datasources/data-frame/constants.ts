@@ -1,3 +1,4 @@
+import { DataTableProperties } from "./types";
 import { nbsp } from "./utils";
 
 export const decimationMethods = [
@@ -78,3 +79,7 @@ export const FLOAT32_MAX = 3.40282347e38;
 
 export const FLOAT64_MIN = -Number.MAX_VALUE;
 export const FLOAT64_MAX = Number.MAX_VALUE;
+
+export const allStandardDataTableProperties = new Set<string>(
+  Object.values(DataTableProperties)
+); 
