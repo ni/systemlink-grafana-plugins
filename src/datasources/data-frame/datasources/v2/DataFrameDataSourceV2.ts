@@ -2077,12 +2077,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         tableProperties.forEach(table => {
-            if (table.properties) {
+            if (selectedCustomDataTableProperties.length > 0 && table.properties) {
                 Object.keys(table.properties).forEach(propertyKey => {
                     allTableDataTableCustomProperties.add(propertyKey);
                 });
             }
-            if (table.columnProperties) {
+            if (selectedCustomColumnProperties.length > 0 && table.columnProperties) {
                 Object.keys(table.columnProperties).forEach(propertyKey => {
                     allTableColumnCustomProperties.add(propertyKey);
                 });
