@@ -7019,7 +7019,13 @@ describe('DataFrameDataSourceV2', () => {
                                 {   
                                     name:'Table 1',
                                     properties: Object.fromEntries(
-                                            Array.from({ length: 101 }, (_, i) => [`tableProp${i}`, `value${i}`])
+                                            Array.from(
+                                                { length: 101 },
+                                                (_, i) => [
+                                                    `tableProp${i + 1}`,
+                                                    `value${i + 1}`
+                                                ]
+                                            )
                                         ),
                                     columns: []
                                 }
