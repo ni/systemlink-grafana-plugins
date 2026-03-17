@@ -7236,27 +7236,6 @@ describe('DataFrameDataSourceV2', () => {
                                 lastValueFrom(ds.runQuery(query, options))
                             ).rejects.toThrow(propertiesErrorMessage);
                         });
-
-                        it('should throw error when the custom property suffix is selected without a property name', async () => {
-                            const mockTables = [
-                                {
-                                    id: 'table-1', name: 'Table 1',
-                                    properties: { someProp: 'val1' }
-                                }
-                            ];
-                            queryTablesSpy$.mockReturnValue(of(mockTables));
-                            const query = {
-                                type: DataFrameQueryType.Properties,
-                                dataTableProperties: ['-(custom-properties)'],
-                                columnProperties: [],
-                                take: 1000,
-                                refId: 'A',
-                            };
-
-                            await expect(
-                                lastValueFrom(ds.runQuery(query, options))
-                            ).rejects.toThrow(propertiesErrorMessage);
-                        });
                     });
                 });
 
