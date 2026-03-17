@@ -2,7 +2,7 @@ import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceI
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL, CustomPropertyOptions, PropertySelections } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, CUSTOM_PROPERTY_SUFFIX } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, CUSTOM_PROPERTY_SUFFIX, ALL_STANDARD_PROPERTIES } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -1915,7 +1915,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         for (const property of properties) {
             if (this.isCustomProperty(property)) {
                 customProperties.push(property);
-            } else {
+            } else if (ALL_STANDARD_PROPERTIES.has(property)) {
                 standardProperties.push(property as DataTableProperties);
             }
         }
@@ -1943,9 +1943,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             selectedStandardProperties.add(DataTableProperties.ColumnProperties);
         }
 
-        const allStandardProperties = new Set<string>(
-            Object.values(DataTableProperties)
-        );
         const projections = [...selectedStandardProperties]
             .map(property => DataTableProjectionLabelLookup[property].projection);
         const projectionExcludingId = projections
@@ -2017,7 +2014,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                  * flatten it into separate fields in the data frame output
                  */
                 if (includeDataTableCustomProperties) {
-                    const includeAllCustomProperties = allStandardProperties
+                    const includeAllCustomProperties = ALL_STANDARD_PROPERTIES
                         .has(DataTableProperties.Properties);
                     const customPropertyFields = this.createFieldsFromCustomProperties(
                         flattenedTablesWithColumns,
@@ -2038,7 +2035,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                  * flatten it into separate fields in the data frame output
                  */
                 if (includeColumnCustomProperties) {
-                    const includeAllCustomProperties = allStandardProperties
+                    const includeAllCustomProperties = ALL_STANDARD_PROPERTIES
                         .has(DataTableProperties.ColumnProperties);
                     const customPropertyFields = this.createFieldsFromCustomProperties(
                         flattenedTablesWithColumns,
