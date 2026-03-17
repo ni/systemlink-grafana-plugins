@@ -1,7 +1,7 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, QueryResultMetaNotice, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL, CustomPropertyOptions } from "../../types";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL, CustomPropertyOptions, PropertySelections } from "../../types";
 import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, CUSTOM_PROPERTY_SUFFIX } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
@@ -1909,7 +1909,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return property.slice(0, -CUSTOM_PROPERTY_SUFFIX.length);
     }
 
-    private getStandardAndCustomProperties(properties: string[]): [string[], DataTableProperties[]] {
+    private getStandardAndCustomProperties(properties: string[]): PropertySelections {
         const customProperties: string[] = [];
         const standardProperties: DataTableProperties[] = [];
         for (const property of properties) {
@@ -1919,38 +1919,34 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 standardProperties.push(property as DataTableProperties);
             }
         }
-        return [customProperties, standardProperties];
+        return { customProperties, standardProperties };
     }
 
     private getFieldsForPropertiesQuery$(processedQuery: ValidDataFrameQueryV2): Observable<DataFrameDTO> {
-        const [
-            selectedCustomDataTableProperties,
-            standardDataTableProperties
-        ] = this.getStandardAndCustomProperties(processedQuery.dataTableProperties);
-        const [
-            selectedCustomColumnProperties,
-            standardColumnProperties
-        ] = this.getStandardAndCustomProperties(processedQuery.columnProperties);
+        const selectedDataTableProperties = this.getStandardAndCustomProperties(
+            processedQuery.dataTableProperties
+        );
+        const selectedColumnProperties = this.getStandardAndCustomProperties(
+            processedQuery.columnProperties
+        );
 
-        const combinedProperties = new Set<DataTableProperties>([
-            ...standardDataTableProperties,
-            ...standardColumnProperties,
+        const selectedStandardProperties = new Set<DataTableProperties>([
+            ...selectedDataTableProperties.standardProperties,
+            ...selectedColumnProperties.standardProperties,
         ]);
-        if (selectedCustomDataTableProperties.length > 0) {
-            combinedProperties.add(DataTableProperties.Properties);
+
+        if (selectedDataTableProperties.customProperties.length > 0) {
+            selectedStandardProperties.add(DataTableProperties.Properties);
         }
-        if (selectedCustomColumnProperties.length > 0) {
-            combinedProperties.add(DataTableProperties.ColumnProperties);
+
+        if (selectedColumnProperties.customProperties.length > 0) {
+            selectedStandardProperties.add(DataTableProperties.ColumnProperties);
         }
-        const propertiesToQuery = [...combinedProperties];
-        const allStandardDataTableProperties = new Set<string>(
+
+        const allStandardProperties = new Set<string>(
             Object.values(DataTableProperties)
         );
-        const projections = propertiesToQuery
-            .filter(
-                (property): property is DataTableProperties =>
-                    allStandardDataTableProperties.has(property)
-            )
+        const projections = [...selectedStandardProperties]
             .map(property => DataTableProjectionLabelLookup[property].projection);
         const projectionExcludingId = projections
             .filter(projection => projection !== DataTableProjections.Id);
@@ -1972,21 +1968,19 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             combineLatestWith(workspaces$),
             map(([flattenedTablesWithColumns, workspaces]) => {
                 const fields: FieldDTO[] = [];
-                const includeDataTableCustomProperties = propertiesToQuery.includes(
+                const includeDataTableCustomProperties = selectedStandardProperties.has(
                     DataTableProperties.Properties
                 );
                 const fieldNames = new Set<string>();
-                const includeColumnCustomProperties = propertiesToQuery.includes(
+                const includeColumnCustomProperties = selectedStandardProperties.has(
                     DataTableProperties.ColumnProperties
                 );
-                const propertiesToQueryWithoutCustomProperties = propertiesToQuery.filter(
-                    (property): property is DataTableProperties =>
-                        allStandardDataTableProperties.has(property)
-                        && property !== DataTableProperties.Properties
+                const filteredStandardProperties = [...selectedStandardProperties].filter(
+                        property => property !== DataTableProperties.Properties
                         && property !== DataTableProperties.ColumnProperties
                 );
 
-                propertiesToQueryWithoutCustomProperties.forEach(property => {
+                filteredStandardProperties.forEach(property => {
                     const values = this.getFieldValues(
                         flattenedTablesWithColumns,
                         property,
@@ -2007,16 +2001,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                  * flatten it into separate fields in the data frame output
                  */
                 if (includeDataTableCustomProperties) {
-                    const includeAllDataTableCustomProperties = standardDataTableProperties
-                        .includes(DataTableProperties.Properties);
+                    const includeAllCustomProperties = allStandardProperties
+                        .has(DataTableProperties.Properties);
                     const customPropertyFields = this.createFieldsFromCustomProperties(
                         flattenedTablesWithColumns,
                         customPropertyColumnsLimit,
                         table => table.properties,
                         fieldNames,
                         'Data table',
-                        includeAllDataTableCustomProperties,
-                        selectedCustomDataTableProperties
+                        includeAllCustomProperties,
+                        selectedDataTableProperties.customProperties
                     );
                     customPropertyFields.forEach(field => fieldNames.add(field.name));
                     customPropertyColumnsLimit -= customPropertyFields.length;
@@ -2028,16 +2022,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                  * flatten it into separate fields in the data frame output
                  */
                 if (includeColumnCustomProperties) {
-                    const includeAllColumnCustomProperties = standardColumnProperties
-                        .includes(DataTableProperties.ColumnProperties);
+                    const includeAllCustomProperties = allStandardProperties
+                        .has(DataTableProperties.ColumnProperties);
                     const customPropertyFields = this.createFieldsFromCustomProperties(
                         flattenedTablesWithColumns,
                         customPropertyColumnsLimit,
                         table => table.columnProperties,
                         fieldNames,
                         'Column',
-                        includeAllColumnCustomProperties,
-                        selectedCustomColumnProperties
+                        includeAllCustomProperties,
+                        selectedColumnProperties.customProperties
                     );
                     customPropertyFields.forEach(field => fieldNames.add(field.name));
                     customPropertyColumnsLimit -= customPropertyFields.length;
