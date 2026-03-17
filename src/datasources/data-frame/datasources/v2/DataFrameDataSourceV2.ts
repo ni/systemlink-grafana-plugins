@@ -2017,8 +2017,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         .has(DataTableProperties.Properties);
                     const customPropertyFields = this.createFieldsFromCustomProperties(
                         flattenedTablesWithColumns,
-                        customPropertyColumnsLimit,
                         table => table.properties,
+                        customPropertyColumnsLimit,
                         fieldNames,
                         'Data table',
                         includeAllCustomProperties,
@@ -2038,8 +2038,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         .has(DataTableProperties.ColumnProperties);
                     const customPropertyFields = this.createFieldsFromCustomProperties(
                         flattenedTablesWithColumns,
-                        customPropertyColumnsLimit,
                         table => table.columnProperties,
+                        customPropertyColumnsLimit,
                         fieldNames,
                         'Column',
                         includeAllCustomProperties,
@@ -2115,8 +2115,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private createFieldsFromCustomProperties(
         tables: FlattenedTableProperties[],
-        limit: number,
         propertyAccessor: (table: FlattenedTableProperties) => Record<string, string> | undefined,
+        limit: number,
         existingFieldNames: Set<string>,
         fieldNameSuffix: string,
         includeAllCustomProperties: boolean,
@@ -2126,8 +2126,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         if (includeAllCustomProperties) {
             uniqueCustomPropertyKeys = this.getUniqueCustomPropertyKeys(
                 tables,
+                propertyAccessor,
                 limit,
-                propertyAccessor
             );
         }
 
@@ -2160,8 +2160,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private getUniqueCustomPropertyKeys(
         tables: FlattenedTableProperties[],
-        limit: number,
-        propertyAccessor: (table: FlattenedTableProperties) => Record<string, string> | undefined
+        propertyAccessor: (table: FlattenedTableProperties) => Record<string, string> | undefined,
+        limit?: number,
     ): Set<string> {
         const propertyKeysSet = new Set<string>();
         for (const table of tables) {
@@ -2169,7 +2169,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             if (properties) {
                 for (const key of Object.keys(properties)) {
                     propertyKeysSet.add(key);
-                    if (propertyKeysSet.size >= limit) {
+                    if (limit !== undefined && propertyKeysSet.size >= limit) {
                         return propertyKeysSet;
                     }
                 }
