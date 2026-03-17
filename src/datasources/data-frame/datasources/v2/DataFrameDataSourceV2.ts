@@ -1964,8 +1964,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const dataFrame$ = flattenedTablesWithColumns$.pipe(
             combineLatestWith(workspaces$),
             map(([flattenedTablesWithColumns, workspaces]) => {
-                const fields: FieldDTO[] = [];
-
                 if (
                     !this.areSelectedCustomPropertiesValid(
                         selectedDataTableProperties.customProperties,
@@ -1981,6 +1979,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     throw new Error(errorMessage);
                 }
 
+                const fields: FieldDTO[] = [];
                 const includeDataTableCustomProperties = selectedStandardProperties.has(
                     DataTableProperties.Properties
                 );
@@ -1989,8 +1988,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     DataTableProperties.ColumnProperties
                 );
                 const filteredStandardProperties = [...selectedStandardProperties].filter(
-                        property => property !== DataTableProperties.Properties
-                        && property !== DataTableProperties.ColumnProperties
+                    property => property !== DataTableProperties.Properties
+                    && property !== DataTableProperties.ColumnProperties
                 );
 
                 filteredStandardProperties.forEach(property => {
