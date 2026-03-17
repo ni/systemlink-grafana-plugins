@@ -32,6 +32,7 @@ interface Props extends PanelProps<PanelOptions> {}
 export const PlotlyPanel: React.FC<Props> = (props) => {
   const { data, width, height, options, timeRange, onOptionsChange } = props;
   const [menu, setMenu] = useState<MenuState>({ x: 0, y: 0, show: false, items: [] });
+  const [dragMode, setDragMode] = useState<Plotly.Layout['dragmode']>('zoom');
   const theme = useTheme2();
 
   const traceColors = useTraceColors(theme);
@@ -51,6 +52,8 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const dashboardTimeTo = timeRange.to.isValid() ? timeRange.to.valueOf() : undefined;
   const panelXAxisMin = options.xAxis.min;
   const panelXAxisMax = options.xAxis.max;
+  
+  const isScatterPlotType = options.series.plotType === 'bar' || options.series.plotType === 'points';
 
   useEffect(() => {
     if (
@@ -205,6 +208,10 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   };
 
   const handlePlotRelayout = (event: Readonly<Plotly.PlotRelayoutEvent>) => {
+    if (event.dragmode) {
+      setDragMode(event.dragmode);
+    }
+
     const { "xaxis.range[0]": xAxisMin, "xaxis.range[1]": xAxisMax, "xaxis.autorange": autoRange } = event;
 
     if (autoRange) {
@@ -349,6 +356,10 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const effectiveOptions = syncedXAxisRange
     ? { ...options, xAxis: { ...options.xAxis, min: syncedXAxisRange.min, max: syncedXAxisRange.max } }
     : options;
+  
+  const effectiveDragmode = (!isScatterPlotType && (dragMode === 'lasso' || dragMode === 'select'))
+    ? 'zoom'
+    : dragMode;
 
   const handleImageDownload = (gd: PlotlyHTMLElement) =>
     toImage(gd, { format: 'png', width, height }).then((data) => saveAs(data, props.title));
@@ -363,6 +374,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           annotations:
             plotData.length === 0 || !plotData.find((d) => d.y?.length) ? [{ text: 'No data', showarrow: false }] : [],
           ...getLayout(theme, traceColors, effectiveOptions, plotData, axisLabels),
+          dragmode: effectiveDragmode,
         }}
         config={getConfig(options, handleImageDownload)}
         onClick={handlePlotClick}
