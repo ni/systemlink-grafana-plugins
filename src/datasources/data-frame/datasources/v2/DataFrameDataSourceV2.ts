@@ -2064,11 +2064,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private areSelectedCustomPropertiesValid(
         selectedCustomDataTableProperties: string[],
         selectedCustomColumnProperties: string[],
-        tableProperties: FlattenedTableProperties[]
+        tables: FlattenedTableProperties[]
     ): boolean {
-        const allTableDataTableCustomProperties = new Set<string>();
-        const allTableColumnCustomProperties = new Set<string>();
-
         if( 
             selectedCustomDataTableProperties.length === 0 
             && selectedCustomColumnProperties.length === 0
@@ -2076,41 +2073,44 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return true;
         }
 
-        tableProperties.forEach(table => {
-            if (selectedCustomDataTableProperties.length > 0 && table.properties) {
-                Object.keys(table.properties).forEach(propertyKey => {
-                    allTableDataTableCustomProperties.add(propertyKey);
-                });
-            }
-            if (selectedCustomColumnProperties.length > 0 && table.columnProperties) {
-                Object.keys(table.columnProperties).forEach(propertyKey => {
-                    allTableColumnCustomProperties.add(propertyKey);
-                });
-            }
-        });
+        let allDataTableCustomPropertyKeys = new Set<string>();
+        if (selectedCustomDataTableProperties.length > 0) {
+            allDataTableCustomPropertyKeys = this.getUniqueCustomPropertyKeys(
+                tables,
+                table => table.properties,
+            );
+        }
 
-        const isDataTableCustomPropertiesValid = selectedCustomDataTableProperties.every(
+        let allColumnCustomPropertyKeys = new Set<string>();
+        if (selectedCustomColumnProperties.length > 0) {
+            allColumnCustomPropertyKeys = this.getUniqueCustomPropertyKeys(
+                tables,
+                table => table.columnProperties,
+            );
+        }
+
+        const areDataTableCustomPropertiesValid = selectedCustomDataTableProperties.every(
             selectedCustomDataTableProperty => {
                 const selectedCustomProperty = this.extractCustomProperty(
                     selectedCustomDataTableProperty
                 );
                 return selectedCustomProperty 
-                    ? allTableDataTableCustomProperties.has(selectedCustomProperty) 
+                    ? allDataTableCustomPropertyKeys.has(selectedCustomProperty) 
                     : false;
             }
         );
-        const isColumnCustomPropertiesValid = selectedCustomColumnProperties.every(
+        const areColumnCustomPropertiesValid = selectedCustomColumnProperties.every(
             selectedCustomColumnProperty => {
                 const selectedCustomProperty = this.extractCustomProperty(
                     selectedCustomColumnProperty
                 );
                 return selectedCustomProperty 
-                    ? allTableColumnCustomProperties.has(selectedCustomProperty) 
+                    ? allColumnCustomPropertyKeys.has(selectedCustomProperty) 
                     : false;
             }
         );
 
-        return isDataTableCustomPropertiesValid && isColumnCustomPropertiesValid;
+        return areDataTableCustomPropertiesValid && areColumnCustomPropertiesValid;
     }
 
     private createFieldsFromCustomProperties(
