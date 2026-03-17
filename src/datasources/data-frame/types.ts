@@ -94,6 +94,10 @@ export enum DataTableProperties {
   Properties = 'Properties'
 }
 
+export const AllStandardDataTableProperties = new Set<string>(
+  Object.values(DataTableProperties)
+); 
+
 export enum DataTableProjections {
   Name = 'NAME',
   Id = 'ID',
