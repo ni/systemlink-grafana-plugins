@@ -53,13 +53,38 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const panelXAxisMin = options.xAxis.min;
   const panelXAxisMax = options.xAxis.max;
 
-  const isBarOrPointsPlotType = (plotType: string) => plotType === 'bar' || plotType === 'points';
-  const hasBarOrPointsSeries = isBarOrPointsPlotType(options.series.plotType)
-    || (options.showYAxis2 && isBarOrPointsPlotType(options.series2.plotType));
+  useEffect(() => {
+    if (dragMode === false) {
+      return;
+    }
 
-  if (!hasBarOrPointsSeries && (dragMode === 'lasso' || dragMode === 'select')) {
-    setDragMode('zoom');
-  }
+    const isSelectionDragMode = ['lasso', 'select'].includes(dragMode);
+
+    if (!isSelectionDragMode) {
+      return;
+    }
+
+    const isPlotTypeSupportsSelectionDragMode = (plotType: string) => {
+      return ['bar', 'points'].includes(plotType);
+    };
+
+    const isMainSeriesSupportsSelectionDragMode =
+      isPlotTypeSupportsSelectionDragMode(options.series.plotType);
+    const isSecondarySeriesSupportsSelectionDragMode = options.showYAxis2 &&
+      isPlotTypeSupportsSelectionDragMode(options.series2.plotType);
+
+    if (
+      !isMainSeriesSupportsSelectionDragMode
+      && !isSecondarySeriesSupportsSelectionDragMode
+    ) {
+      setDragMode('zoom');
+    }
+  }, [
+    dragMode,
+    options.series.plotType,
+    options.series2.plotType,
+    options.showYAxis2
+  ]);
 
   useEffect(() => {
     if (
