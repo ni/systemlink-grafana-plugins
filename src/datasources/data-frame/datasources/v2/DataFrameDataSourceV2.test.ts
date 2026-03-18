@@ -7398,7 +7398,7 @@ describe('DataFrameDataSourceV2', () => {
 
             it('should not call queryTables$ when the same properties query is run again', async () => {
                 const mockTables = [
-                    { id: 'table-1', name: 'Table 1', properties: { key: 'value' } }
+                    { name: 'Table 1', properties: { key: 'value' } }
                 ];
                 queryTablesSpy$.mockReturnValue(of(mockTables));
                 const query = {
@@ -7464,7 +7464,9 @@ describe('DataFrameDataSourceV2', () => {
 
             it('should call queryTables$ again when the take value changes', async () => {
                 const mockTables = [
-                    { id: 'table-1', name: 'Table 1', properties: { key: 'value' } }
+                    { 
+                        properties: { key: 'value' } 
+                    }
                 ];
                 queryTablesSpy$.mockReturnValue(of(mockTables));
                 const query1 = {
@@ -7487,7 +7489,9 @@ describe('DataFrameDataSourceV2', () => {
 
             it('should maintain separate caches for different refIds', async () => {
                 const mockTables = [
-                    { id: 'table-1', name: 'Table 1', properties: { key: 'value' } }
+                    { 
+                        properties: { key: 'value' } 
+                    }
                 ];
                 queryTablesSpy$.mockReturnValue(of(mockTables));
                 const queryA = {
@@ -7511,7 +7515,6 @@ describe('DataFrameDataSourceV2', () => {
             it('should not call queryTables$ when only custom properties selection changes but standard properties remain the same', async () => {
                 const mockTables = [
                     {
-                        id: 'table-1', name: 'Table 1',
                         properties: { author: 'John', version: '1.0' }
                     }
                 ];
@@ -7537,7 +7540,6 @@ describe('DataFrameDataSourceV2', () => {
             it('should return cached data correctly on cache hit', async () => {
                 const mockTables = [
                     {
-                        id: 'table-1', name: 'Table 1',
                         properties: { author: 'John' }
                     }
                 ];
@@ -7560,7 +7562,6 @@ describe('DataFrameDataSourceV2', () => {
             it('should replay the cached observable without re-executing the underlying HTTP call on cache hit', async () => {
                 const mockTables = [
                     {
-                        id: 'table-1', name: 'Table 1',
                         properties: { author: 'John' }
                     }
                 ];
@@ -7581,14 +7582,8 @@ describe('DataFrameDataSourceV2', () => {
             });
 
             it('should re-query when the previous query ended in error', async () => {
-                const mockTables = [
-                    {
-                        id: 'table-1', name: 'Table 1',
-                        properties: { author: 'John' }
-                    }
-                ];
-                queryTablesSpy$.mockReturnValueOnce(throwError(() => new Error('API error')));
-                queryTablesSpy$.mockReturnValueOnce(of(mockTables));
+                const postSpy = jest.spyOn(ds, 'post$');
+                postSpy.mockReturnValueOnce(throwError(() => new Error('API error')));
                 const query = {
                     type: DataFrameQueryType.Properties,
                     dataTableProperties: [DataTableProperties.Name],
@@ -7601,10 +7596,15 @@ describe('DataFrameDataSourceV2', () => {
                     lastValueFrom(ds.runQuery(query, options))
                 ).rejects.toThrow();
 
+                const mockTables = [
+                    { id: 'table-1', name: 'Table 1', properties: { key: 'value' } }
+                ];
+                postSpy.mockReturnValue(of({ tables: mockTables }));
+
                 const result = await lastValueFrom(ds.runQuery(query, options));
 
-                expect(queryTablesSpy$).toHaveBeenCalledTimes(2);
                 expect(result.fields).toBeDefined();
+                expect(postSpy).toHaveBeenCalledTimes(2);
             });
         });
 

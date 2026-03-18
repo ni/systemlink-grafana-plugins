@@ -1986,7 +1986,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                         connector: () => new ReplaySubject(1),
                         resetOnError: true 
                     }
-                )
+                ),
+                catchError(error => {
+                    this.customPropertiesQueryCache.delete(processedQuery.refId);
+                    throw error;
+                })
             );
         }
 
