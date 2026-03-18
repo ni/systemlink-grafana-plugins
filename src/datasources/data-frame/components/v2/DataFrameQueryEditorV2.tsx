@@ -47,7 +47,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const [isColumnOptionsInitialized, setIsColumnOptionsInitialized] = useState<boolean>(false);
     const [customDataTablePropertyOptions, setCustomDataTablePropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [customColumnPropertyOptions, setCustomColumnPropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
-    const [customPropertiesInitialized, setCustomPropertiesInitialized] = useState<boolean>(false);
+    const [isCustomPropertiesInitialized, setCustomPropertiesInitialized] = useState<boolean>(false);
 
     const getStandardPropertyOptions = (
         type: DataTableProjectionType
@@ -125,159 +125,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         } catch (error) {
             setCustomDataTablePropertyOptions([]);
             setCustomColumnPropertyOptions([]);
-        }
-        finally {
+        } finally {
             setCustomPropertiesInitialized(true);
         }
       },
       [datasource]
     );
-
-    const getPropertyValidation = useCallback((
-        selectedProperties: string[],
-        customPropertyOptions: Array<ComboboxOption<string>>,
-        standardOptions: Array<ComboboxOption<string>>,
-    ) => {
-            const allPropertyOptions = new Set([
-                ...customPropertyOptions.map(property => property.value),
-                ...standardOptions.map(option => option.value),
-            ]);
-            const validProperties = selectedProperties
-                .filter(property => allPropertyOptions.has(property));
-            const invalidProperties = selectedProperties
-                .filter(property => !allPropertyOptions.has(property));
-            return { validProperties, invalidProperties };
-        },
-        []
-    );
-
-    const { 
-        validProperties: validDataTableProperties,
-        invalidProperties: invalidDataTableProperties
-    } = useMemo(() => {
-            return getPropertyValidation(
-                migratedQuery.dataTableProperties,
-                customDataTablePropertyOptions,
-                standardDataTablePropertyOptions
-            );
-        },
-        [
-            getPropertyValidation,
-            customDataTablePropertyOptions,
-            migratedQuery.dataTableProperties,
-            standardDataTablePropertyOptions
-        ]
-    );
-
-    const { 
-        validProperties: validColumnProperties,
-        invalidProperties: invalidColumnProperties
-    } = useMemo(() => {
-            return getPropertyValidation(
-                migratedQuery.columnProperties,
-                customColumnPropertyOptions,
-                standardColumnPropertyOptions
-            );
-        }, 
-        [
-            getPropertyValidation,
-            customColumnPropertyOptions,
-            migratedQuery.columnProperties,
-            standardColumnPropertyOptions
-        ]
-    );
-
-    const getSelectedPropertiesOptions = useCallback((
-        validProperties: string[],
-        invalidProperties: string[],
-        standardOptions: Array<ComboboxOption<string>>,
-        customOptions: Array<ComboboxOption<string>>,
-    ): Array<ComboboxOption<string>> => {
-        const standardOptionsMap = new Map(standardOptions.map(option => [option.value, option]));
-        const customOptionsMap = new Map(customOptions.map(option => [option.value, option]));
-        const validOptions = validProperties.map(property =>
-            standardOptionsMap.get(property) || customOptionsMap.get(property)!
-        );
-        const invalidOptions = invalidProperties.map(property => ({
-            label: property,
-            value: property.slice(0, -CUSTOM_PROPERTY_SUFFIX.length),
-        }));
-        return [...validOptions, ...invalidOptions];
-    }, []);
-
-    const selectedDataTablePropertyOptions = useMemo(() => {
-        return getSelectedPropertiesOptions(
-            validDataTableProperties,
-            invalidDataTableProperties,
-            standardDataTablePropertyOptions,
-            customDataTablePropertyOptions
-        );
-    }, [
-        getSelectedPropertiesOptions,
-        validDataTableProperties,
-        invalidDataTableProperties,
-        standardDataTablePropertyOptions,
-        customDataTablePropertyOptions
-    ]);
-
-    const selectedColumnPropertyOptions = useMemo(() => {
-        return getSelectedPropertiesOptions(
-            validColumnProperties,
-            invalidColumnProperties,
-            standardColumnPropertyOptions,
-            customColumnPropertyOptions
-        );
-    }, [
-        getSelectedPropertiesOptions,
-        validColumnProperties,
-        invalidColumnProperties,
-        standardColumnPropertyOptions,
-        customColumnPropertyOptions
-    ]);
-
-    const getInvalidPropertiesMessage = useCallback((
-        invalidProperties: string[],
-        isCustomPropertiesInitialized: boolean,
-        propertyType: string,
-    ): string => {
-        if (invalidProperties.length === 0 || !isCustomPropertiesInitialized) {
-            return '';
-        }
-        const invalidPropertyNames = invalidProperties
-            .map(property => property.slice(0, -CUSTOM_PROPERTY_SUFFIX.length))
-            .join(', ');
-        return invalidProperties.length === 1
-            ? `The following selected custom ${propertyType} property is not valid: '${invalidPropertyNames}'`
-            : `The following selected custom ${propertyType} properties are not valid: '${invalidPropertyNames}'`;
-    }, []);
-
-    const invalidSelectedDataTablePropertiesMessage = useMemo(() => {
-        return getInvalidPropertiesMessage(
-            invalidDataTableProperties,
-            customPropertiesInitialized,
-            'data table'
-        );
-    }, [
-        getInvalidPropertiesMessage,
-        invalidDataTableProperties,
-        customPropertiesInitialized
-    ]);
-
-    const invalidSelectedColumnPropertiesMessage = useMemo(() => {
-        return getInvalidPropertiesMessage(
-            invalidColumnProperties,
-            customPropertiesInitialized,
-            'column'
-        );
-    }, [
-        getInvalidPropertiesMessage,
-        invalidColumnProperties,
-        customPropertiesInitialized
-    ]);
-
-    const columnOptionsMap = useMemo(() => {
-        return new Map(columnOptions.map(option => [option.value, option]));
-    }, [columnOptions]);
 
     const selectedColumnIds = useMemo(() => {
         if (
@@ -290,40 +143,80 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         return migratedQuery.columns;
     }, [migratedQuery.columns]);
 
-    const validColumnSelections = useMemo((): Array<ComboboxOption<string>> => {
-        return selectedColumnIds
-            .filter(columnId => columnOptionsMap.has(columnId))
-            .map(columnId => columnOptionsMap.get(columnId)!);
-    }, [columnOptionsMap, selectedColumnIds]);
-
     const getSelectedColumnLabelForInvalidColumn = useCallback((columnId: string): string => {
         const parsedColumnIdentifier = datasource.parseColumnIdentifier(columnId);
         return `${parsedColumnIdentifier.columnName} (${parsedColumnIdentifier.transformedDataType})`;
     }, [datasource]);
 
-    const invalidColumnSelections = useMemo((): Array<ComboboxOption<string>> => {
-        return selectedColumnIds
-            .filter(columnId => !columnOptionsMap.has(columnId))
-            .map(columnId => ({
-                label: getSelectedColumnLabelForInvalidColumn(columnId),
-                value: columnId
-            }));
-    }, [columnOptionsMap, selectedColumnIds, getSelectedColumnLabelForInvalidColumn]);
+    const validateSelectedOptions = useCallback((
+        selectedOptions: string[],
+        allOptions: Array<ComboboxOption<string>>,
+        getInvalidLabel?: (option: string) => string,
+    ) => {
+            const allOptionsMap = new Map(
+                allOptions.map(option => [option.value, option])
+            );
+            const validSelections = selectedOptions
+                .filter(option => allOptionsMap.has(option))
+                .map(option => allOptionsMap.get(option)!);
+            const invalidSelections = selectedOptions
+                .filter(option => !allOptionsMap.has(option))
+                .map(option => ({
+                    label: getInvalidLabel ? getInvalidLabel(option) : option,
+                    value: option,
+                }));
+            return { validSelections, invalidSelections };
+        },
+        []
+    );
+
+    const {
+        validSelections: validColumnSelections,
+        invalidSelections: invalidColumnSelections
+    } = useMemo(() => {
+        return validateSelectedOptions(
+            selectedColumnIds,
+            columnOptions,
+            getSelectedColumnLabelForInvalidColumn
+        );
+    }, [
+        validateSelectedOptions,
+        selectedColumnIds,
+        columnOptions,
+        getSelectedColumnLabelForInvalidColumn
+    ]);
 
     const selectedColumnOptions = useMemo((): Array<ComboboxOption<string>> => {
         return [...validColumnSelections, ...invalidColumnSelections];
     }, [validColumnSelections, invalidColumnSelections]);
 
-    const invalidSelectedColumnsMessage = useMemo(() => {
-        if (invalidColumnSelections.length === 0 || !isColumnOptionsInitialized) {
+    const getInvalidSelectionsMessage = useCallback((
+        invalidSelections: string[],
+        areOptionsInitialized: boolean,
+        singularLabel: string,
+        pluralLabel: string,
+    ): string => {
+        if (invalidSelections.length === 0 || !areOptionsInitialized) {
             return '';
         }
+        const invalidNames = invalidSelections.join(', ');
+        return invalidSelections.length === 1
+            ? `The following selected ${singularLabel} is not valid: '${invalidNames}'`
+            : `The following selected ${pluralLabel} are not valid: '${invalidNames}'`;
+    }, []);
 
-        const invalidColumnNames = invalidColumnSelections.map(column => column.label).join(', ');
-        return invalidColumnSelections.length === 1
-            ? `The following selected column is not valid: '${invalidColumnNames}'`
-            : `The following selected columns are not valid: '${invalidColumnNames}'`;
-    }, [invalidColumnSelections, isColumnOptionsInitialized]);
+    const invalidSelectedColumnsMessage = useMemo(() => {
+        return getInvalidSelectionsMessage(
+            invalidColumnSelections.map(column => column.value),
+            isColumnOptionsInitialized,
+            'column',
+            'columns'
+        );
+    }, [
+        getInvalidSelectionsMessage,
+        invalidColumnSelections,
+        isColumnOptionsInitialized
+    ]);
 
     const transformedFilters = useMemo(
         () => {
@@ -413,17 +306,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 );
                 return;
             }
-
-            if (!isColumnOptionsInitialized) {
-                setIsColumnOptionsInitialized(true);
-            }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             migratedQuery.type,
             migratedQuery.take,
             transformedFilters,
-            fetchAndSetCustomPropertyOptions, 
+            fetchAndSetCustomPropertyOptions,
         ]
     );
 
@@ -437,6 +325,90 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         ...customColumnPropertyOptions,
     ], [standardColumnPropertyOptions, customColumnPropertyOptions]);
 
+
+    const {
+        validSelections: validDataTableProperties,
+        invalidSelections: invalidDataTableProperties
+    } = useMemo(() => {
+            return validateSelectedOptions(
+                migratedQuery.dataTableProperties,
+                dataTablePropertyOptions
+            );
+        },
+        [
+            validateSelectedOptions,
+            dataTablePropertyOptions,
+            migratedQuery.dataTableProperties,
+        ]
+    );
+
+    const {
+        validSelections: validColumnProperties,
+        invalidSelections: invalidColumnProperties
+    } = useMemo(() => {
+            return validateSelectedOptions(
+                migratedQuery.columnProperties,
+                columnPropertyOptions
+            );
+        }, 
+        [
+            validateSelectedOptions,
+            columnPropertyOptions,
+            migratedQuery.columnProperties,
+        ]
+    );
+
+    const selectedDataTablePropertyOptions = useMemo(() => {
+      return [...validDataTableProperties, ...invalidDataTableProperties];
+    }, [invalidDataTableProperties, validDataTableProperties]);
+
+    const selectedColumnPropertyOptions = useMemo(() => {
+        return [...validColumnProperties, ...invalidColumnProperties];
+    }, [validColumnProperties, invalidColumnProperties]);
+
+    const stripCustomPropertySuffix = useCallback((value: string): string => {
+        return value.endsWith(CUSTOM_PROPERTY_SUFFIX)
+            ? value.slice(0, -CUSTOM_PROPERTY_SUFFIX.length)
+            : value;
+    }, []);
+
+    const invalidSelectedDataTablePropertiesMessage = useMemo(
+        () => {
+            return getInvalidSelectionsMessage(
+                invalidDataTableProperties.map(
+                    property => (stripCustomPropertySuffix(property.value))
+                ),
+                isCustomPropertiesInitialized,
+                'custom data table property',
+                'custom data table properties'
+            );
+        },
+        [
+            getInvalidSelectionsMessage,
+            invalidDataTableProperties,
+            isCustomPropertiesInitialized,
+            stripCustomPropertySuffix
+        ]
+    );
+
+    const invalidSelectedColumnPropertiesMessage = useMemo(
+        () => {
+            return getInvalidSelectionsMessage(
+                invalidColumnProperties.map(
+                    property => (stripCustomPropertySuffix(property.value))
+                ),
+                isCustomPropertiesInitialized,
+                'custom column property',
+                'custom column properties'
+            );
+        },
+        [
+            getInvalidSelectionsMessage,
+            invalidColumnProperties,
+            isCustomPropertiesInitialized,
+            stripCustomPropertySuffix
+        ]
+    );
 
     const xColumnSelection = useMemo((): {
         isInvalid: boolean;
