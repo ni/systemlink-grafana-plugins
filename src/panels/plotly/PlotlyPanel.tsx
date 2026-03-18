@@ -52,8 +52,10 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const dashboardTimeTo = timeRange.to.isValid() ? timeRange.to.valueOf() : undefined;
   const panelXAxisMin = options.xAxis.min;
   const panelXAxisMax = options.xAxis.max;
-  
-  const isScatterPlotType = options.series.plotType === 'bar' || options.series.plotType === 'points';
+
+  const isBarOrPointsPlotType = (plotType: string) => plotType === 'bar' || plotType === 'points';
+  const hasBarOrPointsSeries = isBarOrPointsPlotType(options.series.plotType)
+    || (options.showYAxis2 && isBarOrPointsPlotType(options.series2.plotType));
 
   useEffect(() => {
     if (
@@ -208,7 +210,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   };
 
   const handlePlotRelayout = (event: Readonly<Plotly.PlotRelayoutEvent>) => {
-    if (event.dragmode) {
+    if (event.dragmode !== undefined) {
       setDragMode(event.dragmode);
     }
 
@@ -357,7 +359,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     ? { ...options, xAxis: { ...options.xAxis, min: syncedXAxisRange.min, max: syncedXAxisRange.max } }
     : options;
   
-  const effectiveDragmode = (!isScatterPlotType && (dragMode === 'lasso' || dragMode === 'select'))
+  const effectiveDragMode = (!hasBarOrPointsSeries && (dragMode === 'lasso' || dragMode === 'select'))
     ? 'zoom'
     : dragMode;
 
@@ -374,7 +376,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           annotations:
             plotData.length === 0 || !plotData.find((d) => d.y?.length) ? [{ text: 'No data', showarrow: false }] : [],
           ...getLayout(theme, traceColors, effectiveOptions, plotData, axisLabels),
-          dragmode: effectiveDragmode,
+          dragmode: effectiveDragMode,
         }}
         config={getConfig(options, handleImageDownload)}
         onClick={handlePlotClick}
