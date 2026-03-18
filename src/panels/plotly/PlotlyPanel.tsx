@@ -354,7 +354,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const effectiveOptions = syncedXAxisRange
     ? { ...options, xAxis: { ...options.xAxis, min: syncedXAxisRange.min, max: syncedXAxisRange.max } }
     : options;
-  
+
   const handleImageDownload = (gd: PlotlyHTMLElement) =>
     toImage(gd, { format: 'png', width, height }).then((data) => saveAs(data, props.title));
 
