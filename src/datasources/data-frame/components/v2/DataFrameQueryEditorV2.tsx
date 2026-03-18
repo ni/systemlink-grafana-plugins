@@ -207,7 +207,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
 
     const invalidSelectedColumnsMessage = useMemo(() => {
         return getInvalidSelectionsMessage(
-            invalidColumnSelections.map(column => column.value),
+            invalidColumnSelections.map(column => column.label),
             isColumnOptionsInitialized,
             'column',
             'columns'
