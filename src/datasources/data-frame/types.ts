@@ -26,8 +26,6 @@ export interface CustomPropertiesQueryCache {
   response: Observable<TableProperties[]>;
 }
 
-export const customPropertiesCacheTTL = 1000 * 60 * 5;
-
 export interface DataFrameQueryV1 extends DataQuery {
   type: DataFrameQueryType;
   tableId?: string;

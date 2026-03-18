@@ -7579,6 +7579,33 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(postSpy).toHaveBeenCalledTimes(1);
             });
+
+            it('should re-query when the previous query ended in error', async () => {
+                const mockTables = [
+                    {
+                        id: 'table-1', name: 'Table 1',
+                        properties: { author: 'John' }
+                    }
+                ];
+                queryTablesSpy$.mockReturnValueOnce(throwError(() => new Error('API error')));
+                queryTablesSpy$.mockReturnValueOnce(of(mockTables));
+                const query = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableProperties: [DataTableProperties.Name],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'A',
+                };
+
+                await expect(
+                    lastValueFrom(ds.runQuery(query, options))
+                ).rejects.toThrow();
+
+                const result = await lastValueFrom(ds.runQuery(query, options));
+
+                expect(queryTablesSpy$).toHaveBeenCalledTimes(2);
+                expect(result.fields).toBeDefined();
+            });
         });
 
         describe('getCustomPropertyOptions', () => {
