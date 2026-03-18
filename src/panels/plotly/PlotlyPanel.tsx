@@ -52,6 +52,12 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const dashboardTimeTo = timeRange.to.isValid() ? timeRange.to.valueOf() : undefined;
   const panelXAxisMin = options.xAxis.min;
   const panelXAxisMax = options.xAxis.max;
+  const hasBarOrPointsSeries = isBarOrPointsPlotType(options.series.plotType)
+    || (options.showYAxis2 && isBarOrPointsPlotType(options.series2.plotType));
+
+  if (!hasBarOrPointsSeries && (dragMode === 'lasso' || dragMode === 'select')) {
+    setDragMode('zoom');
+  }
 
   useEffect(() => {
     if (
@@ -539,11 +545,6 @@ const getLayout = (theme: GrafanaTheme2, traceColors: string[], options: PanelOp
   const yAxisTitle = options.displayVertically ? originalAxisTitleY : originalAxisTitleX;
   const showXAxis2 = options.showYAxis2 && !options.displayVertically;
   const showYAxis2 = options.showYAxis2 && options.displayVertically;
-  const hasBarOrPointsSeries = isBarOrPointsPlotType(options.series.plotType)
-    || (options.showYAxis2 && isBarOrPointsPlotType(options.series2.plotType));
-  const effectiveDragMode = (!hasBarOrPointsSeries && (dragMode === 'lasso' || dragMode === 'select'))
-    ? 'zoom'
-    : dragMode;
   const layout: Partial<Plotly.Layout> = {
     colorway: traceColors,
     margin: { r: 40, l: 40, t: 20, b: 40 },
@@ -618,7 +619,7 @@ const getLayout = (theme: GrafanaTheme2, traceColors: string[], options: PanelOp
     legend: getLegendLayout(options.legendPosition, showYAxis2, !!xAxisOptions.title),
     barmode: options.series.stackBars ? 'stack' : 'group',
     hovermode: 'closest',
-    dragmode: effectiveDragMode,
+    dragmode: dragMode,
   };
 
   return layout;

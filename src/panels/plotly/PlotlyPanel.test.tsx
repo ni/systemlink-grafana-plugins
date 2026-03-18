@@ -1312,7 +1312,7 @@ describe('PlotlyPanel', () => {
         expect(plotlyLayout.dragmode).toBe('lasso');
       });
 
-      it('should restore lasso drag mode when switching back to a plot type that supports selection drag modes', () => {
+      it('should not restore lasso drag mode when switching back to a plot type that supports selection drag modes', () => {
         const props = createMockProps({
           series: { plotType: 'bar', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
         });
@@ -1329,7 +1329,7 @@ describe('PlotlyPanel', () => {
 
         props.options.series = { ...props.options.series, plotType: 'bar' };
         rerender(<PlotlyPanel {...props} />);
-        expect(plotlyLayout.dragmode).toBe('lasso');
+        expect(plotlyLayout.dragmode).toBe('zoom');
       });
 
       it('should reset lasso drag mode to zoom when switching to a plot type that does not support selection drag modes', () => {
