@@ -192,10 +192,17 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         standardPropertyOptions: Array<ComboboxOption<string>>,
         customPropertyOptions: Array<ComboboxOption<string>>,
     ): Array<ComboboxOption<string>> => {
-        const standardOptionsMap = new Map(standardPropertyOptions.map(option => [option.value, option]));
-        const customOptionsMap = new Map(customPropertyOptions.map(option => [option.value, option]));
+        const standardOptionsMap = new Map(
+            standardPropertyOptions.map(
+                option => [option.value, option]
+            )
+        );
+        const customOptionsMap = new Map(
+            customPropertyOptions.map(option => [option.value, option])
+        );
         const validOptions = validProperties.map(property =>
-            standardOptionsMap.get(property) || customOptionsMap.get(property)!
+            standardOptionsMap.get(property) 
+            || customOptionsMap.get(property)!
         );
         const invalidOptions = invalidProperties.map(property => ({
             label: property,
