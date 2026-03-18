@@ -133,14 +133,14 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
       [datasource]
     );
 
-    const getPropertyValidation = useCallback((
+    const validateSelectedProperties = useCallback((
         selectedProperties: string[],
         customPropertyOptions: Array<ComboboxOption<string>>,
-        standardOptions: Array<ComboboxOption<string>>,
+        standardPropertyOptions: Array<ComboboxOption<string>>,
     ) => {
             const allPropertyOptions = new Set([
                 ...customPropertyOptions.map(property => property.value),
-                ...standardOptions.map(option => option.value),
+                ...standardPropertyOptions.map(option => option.value),
             ]);
             const validProperties = selectedProperties
                 .filter(property => allPropertyOptions.has(property));
@@ -155,14 +155,14 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         validProperties: validDataTableProperties,
         invalidProperties: invalidDataTableProperties
     } = useMemo(() => {
-            return getPropertyValidation(
+            return validateSelectedProperties(
                 migratedQuery.dataTableProperties,
                 customDataTablePropertyOptions,
                 standardDataTablePropertyOptions
             );
         },
         [
-            getPropertyValidation,
+            validateSelectedProperties,
             customDataTablePropertyOptions,
             migratedQuery.dataTableProperties,
             standardDataTablePropertyOptions
@@ -173,14 +173,14 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         validProperties: validColumnProperties,
         invalidProperties: invalidColumnProperties
     } = useMemo(() => {
-            return getPropertyValidation(
+            return validateSelectedProperties(
                 migratedQuery.columnProperties,
                 customColumnPropertyOptions,
                 standardColumnPropertyOptions
             );
         }, 
         [
-            getPropertyValidation,
+            validateSelectedProperties,
             customColumnPropertyOptions,
             migratedQuery.columnProperties,
             standardColumnPropertyOptions
@@ -190,11 +190,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const getSelectedPropertiesOptions = useCallback((
         validProperties: string[],
         invalidProperties: string[],
-        standardOptions: Array<ComboboxOption<string>>,
-        customOptions: Array<ComboboxOption<string>>,
+        standardPropertyOptions: Array<ComboboxOption<string>>,
+        customPropertyOptions: Array<ComboboxOption<string>>,
     ): Array<ComboboxOption<string>> => {
-        const standardOptionsMap = new Map(standardOptions.map(option => [option.value, option]));
-        const customOptionsMap = new Map(customOptions.map(option => [option.value, option]));
+        const standardOptionsMap = new Map(standardPropertyOptions.map(option => [option.value, option]));
+        const customOptionsMap = new Map(customPropertyOptions.map(option => [option.value, option]));
         const validOptions = validProperties.map(property =>
             standardOptionsMap.get(property) || customOptionsMap.get(property)!
         );
