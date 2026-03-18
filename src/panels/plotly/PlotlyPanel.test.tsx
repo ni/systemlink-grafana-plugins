@@ -1197,170 +1197,174 @@ describe('PlotlyPanel', () => {
   });
 
   describe('Drag mode persistence', () => {
-    it('should default to zoom drag mode on initial render', () => {
-      const props = createMockProps();
+    describe('persisting drag mode across re-renders', () => {
+      it('should default to zoom drag mode on initial render', () => {
+        const props = createMockProps();
 
-      renderPlotlyElement(props);
+        renderPlotlyElement(props);
 
-      expect(plotlyLayout.dragmode).toBe('zoom');
+        expect(plotlyLayout.dragmode).toBe('zoom');
+      });
+
+      it('should set pan drag mode after relayout event', () => {
+        const props = createMockProps();
+
+        renderPlotlyElement(props);
+        act(() => {
+          plotlyOnRelayout({ dragmode: 'pan' });
+        });
+
+        expect(plotlyLayout.dragmode).toBe('pan');
+      });
+
+      it('should persist pan drag mode across re-renders', () => {
+        const props = createMockProps();
+
+        const { rerender } = renderPlotlyElement(props);
+        act(() => {
+          plotlyOnRelayout({ dragmode: 'pan' });
+        });
+
+        rerender(<PlotlyPanel {...props} />);
+
+        expect(plotlyLayout.dragmode).toBe('pan');
+      });
+
+      it('should persist pan drag mode across re-renders when secondary Y axis is enabled', () => {
+        const props = createMockProps({
+          series: { plotType: 'line', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
+          series2: { plotType: 'line', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
+          showYAxis2: true,
+        });
+
+        const { rerender } = renderPlotlyElement(props);
+        act(() => {
+          plotlyOnRelayout({ dragmode: 'pan' });
+        });
+        expect(plotlyLayout.dragmode).toBe('pan');
+
+        rerender(<PlotlyPanel {...props} />);
+
+        expect(plotlyLayout.dragmode).toBe('pan');
+      });
+
+      it('should persist lasso drag mode across re-renders when secondary Y axis plot type supports selection drag modes', () => {
+        const props = createMockProps({
+          series: { plotType: 'line', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
+          series2: { plotType: 'points', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
+          showYAxis2: true,
+        });
+
+        const { rerender } = renderPlotlyElement(props);
+        act(() => {
+          plotlyOnRelayout({ dragmode: 'lasso' });
+        });
+        expect(plotlyLayout.dragmode).toBe('lasso');
+
+        rerender(<PlotlyPanel {...props} />);
+
+        expect(plotlyLayout.dragmode).toBe('lasso');
+      });
+
+      it('should not change drag mode when relayout event does not include dragmode', () => {
+        const props = createMockProps();
+
+        renderPlotlyElement(props);
+        act(() => {
+          plotlyOnRelayout({ dragmode: 'pan' });
+          plotlyOnRelayout({ 'xaxis.range[0]': 1, 'xaxis.range[1]': 10 });
+        });
+
+        expect(plotlyLayout.dragmode).toBe('pan');
+      });
     });
 
-    it('should persist pan drag mode after relayout event', () => {
-      const props = createMockProps();
+    describe('switching plot types', () => {
+      it('should keep pan drag mode when switching plot types', () => {
+        const props = createMockProps({
+          series: { plotType: 'points', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
+        });
 
-      renderPlotlyElement(props);
-      act(() => {
-        plotlyOnRelayout({ dragmode: 'pan' });
+        const { rerender } = renderPlotlyElement(props);
+        act(() => {
+          plotlyOnRelayout({ dragmode: 'pan' });
+        });
+
+        props.options.series = { ...props.options.series, plotType: 'line' };
+        rerender(<PlotlyPanel {...props} />);
+
+        expect(plotlyLayout.dragmode).toBe('pan');
       });
 
-      expect(plotlyLayout.dragmode).toBe('pan');
-    });
+      it('should keep lasso drag mode when switching between plot types that support selection drag modes', () => {
+        const props = createMockProps({
+          series: { plotType: 'bar', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
+        });
 
-    it('should persist pan drag mode across re-renders when data updates', () => {
-      const props = createMockProps();
+        const { rerender } = renderPlotlyElement(props);
+        act(() => {
+          plotlyOnRelayout({ dragmode: 'lasso' });
+        });
 
-      const { rerender } = renderPlotlyElement(props);
-      act(() => {
-        plotlyOnRelayout({ dragmode: 'pan' });
+        props.options.series = { ...props.options.series, plotType: 'points' };
+        rerender(<PlotlyPanel {...props} />);
+
+        expect(plotlyLayout.dragmode).toBe('lasso');
       });
 
-      rerender(<PlotlyPanel {...props} />);
+      it('should restore lasso drag mode when switching back to a plot type that supports selection drag modes', () => {
+        const props = createMockProps({
+          series: { plotType: 'bar', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
+        });
 
-      expect(plotlyLayout.dragmode).toBe('pan');
-    });
+        const { rerender } = renderPlotlyElement(props);
+        act(() => {
+          plotlyOnRelayout({ dragmode: 'lasso' });
+        });
+        expect(plotlyLayout.dragmode).toBe('lasso');
 
-    it('should not change drag mode when relayout event does not include dragmode', () => {
-      const props = createMockProps();
+        props.options.series = { ...props.options.series, plotType: 'line' };
+        rerender(<PlotlyPanel {...props} />);
+        expect(plotlyLayout.dragmode).toBe('zoom');
 
-      renderPlotlyElement(props);
-      act(() => {
-        plotlyOnRelayout({ dragmode: 'pan' });
-        plotlyOnRelayout({ 'xaxis.range[0]': 1, 'xaxis.range[1]': 10 });
+        props.options.series = { ...props.options.series, plotType: 'bar' };
+        rerender(<PlotlyPanel {...props} />);
+        expect(plotlyLayout.dragmode).toBe('lasso');
       });
 
-      expect(plotlyLayout.dragmode).toBe('pan');
-    });
+      it('should reset lasso drag mode to zoom when switching to a plot type that does not support selection drag modes', () => {
+        const props = createMockProps({
+          series: { plotType: 'bar', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
+        });
 
-    it('should reset lasso drag mode to zoom when switching to a plot type that does not support selection drag modes', () => {
-      const props = createMockProps({
-        series: { plotType: 'bar', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
+        const { rerender } = renderPlotlyElement(props);
+        act(() => {
+          plotlyOnRelayout({ dragmode: 'lasso' });
+        });
+        expect(plotlyLayout.dragmode).toBe('lasso');
+
+        props.options.series = { ...props.options.series, plotType: 'line' };
+        rerender(<PlotlyPanel {...props} />);
+
+        expect(plotlyLayout.dragmode).toBe('zoom');
       });
 
-      const { rerender } = renderPlotlyElement(props);
-      act(() => {
-        plotlyOnRelayout({ dragmode: 'lasso' });
+      it('should reset select drag mode to zoom when switching to a plot type that does not support selection drag modes', () => {
+        const props = createMockProps({
+          series: { plotType: 'points', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
+        });
+
+        const { rerender } = renderPlotlyElement(props);
+        act(() => {
+          plotlyOnRelayout({ dragmode: 'select' });
+        });
+        expect(plotlyLayout.dragmode).toBe('select');
+
+        props.options.series = { ...props.options.series, plotType: 'box' };
+        rerender(<PlotlyPanel {...props} />);
+
+        expect(plotlyLayout.dragmode).toBe('zoom');
       });
-      expect(plotlyLayout.dragmode).toBe('lasso');
-
-      props.options.series = { ...props.options.series, plotType: 'line' };
-      rerender(<PlotlyPanel {...props} />);
-
-      expect(plotlyLayout.dragmode).toBe('zoom');
-    });
-
-    it('should reset select drag mode to zoom when switching to a plot type that does not support selection drag modes', () => {
-      const props = createMockProps({
-        series: { plotType: 'points', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
-      });
-
-      const { rerender } = renderPlotlyElement(props);
-      act(() => {
-        plotlyOnRelayout({ dragmode: 'select' });
-      });
-      expect(plotlyLayout.dragmode).toBe('select');
-
-      props.options.series = { ...props.options.series, plotType: 'box' };
-      rerender(<PlotlyPanel {...props} />);
-
-      expect(plotlyLayout.dragmode).toBe('zoom');
-    });
-
-    it('should keep pan drag mode when switching plot types', () => {
-      const props = createMockProps({
-        series: { plotType: 'points', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
-      });
-
-      const { rerender } = renderPlotlyElement(props);
-      act(() => {
-        plotlyOnRelayout({ dragmode: 'pan' });
-      });
-
-      props.options.series = { ...props.options.series, plotType: 'line' };
-      rerender(<PlotlyPanel {...props} />);
-
-      expect(plotlyLayout.dragmode).toBe('pan');
-    });
-
-    it('should keep lasso drag mode when switching between plot types that support selection drag modes', () => {
-      const props = createMockProps({
-        series: { plotType: 'bar', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
-      });
-
-      const { rerender } = renderPlotlyElement(props);
-      act(() => {
-        plotlyOnRelayout({ dragmode: 'lasso' });
-      });
-
-      props.options.series = { ...props.options.series, plotType: 'points' };
-      rerender(<PlotlyPanel {...props} />);
-
-      expect(plotlyLayout.dragmode).toBe('lasso');
-    });
-
-    it('should restore lasso drag mode when switching back to a plot type that supports selection drag modes', () => {
-      const props = createMockProps({
-        series: { plotType: 'bar', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
-      });
-
-      const { rerender } = renderPlotlyElement(props);
-      act(() => {
-        plotlyOnRelayout({ dragmode: 'lasso' });
-      });
-      expect(plotlyLayout.dragmode).toBe('lasso');
-
-      props.options.series = { ...props.options.series, plotType: 'line' };
-      rerender(<PlotlyPanel {...props} />);
-      expect(plotlyLayout.dragmode).toBe('zoom');
-
-      props.options.series = { ...props.options.series, plotType: 'bar' };
-      rerender(<PlotlyPanel {...props} />);
-      expect(plotlyLayout.dragmode).toBe('lasso');
-    });
-
-    it('should persist lasso drag mode across re-renders when Y2 is a plot type that supports selection drag modes', () => {
-      const props = createMockProps({
-        series: { plotType: 'line', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
-        series2: { plotType: 'points', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
-        showYAxis2: true,
-      });
-
-      const { rerender } = renderPlotlyElement(props);
-      act(() => {
-        plotlyOnRelayout({ dragmode: 'lasso' });
-      });
-      expect(plotlyLayout.dragmode).toBe('lasso');
-
-      rerender(<PlotlyPanel {...props} />);
-
-      expect(plotlyLayout.dragmode).toBe('lasso');
-    });
-
-    it('should persist pan drag mode across re-renders when Y2 is enabled', () => {
-      const props = createMockProps({
-        series: { plotType: 'line', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
-        series2: { plotType: 'line', stackBars: false, areaFill: false, staircase: false, markerSize: 5, lineWidth: 2 },
-        showYAxis2: true,
-      });
-
-      const { rerender } = renderPlotlyElement(props);
-      act(() => {
-        plotlyOnRelayout({ dragmode: 'pan' });
-      });
-      expect(plotlyLayout.dragmode).toBe('pan');
-
-      rerender(<PlotlyPanel {...props} />);
-
-      expect(plotlyLayout.dragmode).toBe('pan');
     });
   });
 });

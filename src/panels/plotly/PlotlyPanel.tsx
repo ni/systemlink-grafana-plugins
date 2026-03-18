@@ -53,10 +53,6 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const panelXAxisMin = options.xAxis.min;
   const panelXAxisMax = options.xAxis.max;
 
-  const isBarOrPointsPlotType = (plotType: string) => plotType === 'bar' || plotType === 'points';
-  const hasBarOrPointsSeries = isBarOrPointsPlotType(options.series.plotType)
-    || (options.showYAxis2 && isBarOrPointsPlotType(options.series2.plotType));
-
   useEffect(() => {
     if (
       !isTimeBasedXAxis ||
@@ -359,10 +355,6 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     ? { ...options, xAxis: { ...options.xAxis, min: syncedXAxisRange.min, max: syncedXAxisRange.max } }
     : options;
   
-  const effectiveDragMode = (!hasBarOrPointsSeries && (dragMode === 'lasso' || dragMode === 'select'))
-    ? 'zoom'
-    : dragMode;
-
   const handleImageDownload = (gd: PlotlyHTMLElement) =>
     toImage(gd, { format: 'png', width, height }).then((data) => saveAs(data, props.title));
 
@@ -375,8 +367,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           height,
           annotations:
             plotData.length === 0 || !plotData.find((d) => d.y?.length) ? [{ text: 'No data', showarrow: false }] : [],
-          ...getLayout(theme, traceColors, effectiveOptions, plotData, axisLabels),
-          dragmode: effectiveDragMode,
+          ...getLayout(theme, traceColors, effectiveOptions, plotData, axisLabels, dragMode),
         }}
         config={getConfig(options, handleImageDownload)}
         onClick={handlePlotClick}
@@ -537,7 +528,9 @@ const getConfig = (options: PanelOptions, handleImageDownload: (gd: PlotlyHTMLEl
   showTips: false,
 });
 
-const getLayout = (theme: GrafanaTheme2, traceColors: string[], options: PanelOptions, data: Array<Partial<PlotData>>, axisLabels: AxisLabels) => {
+const isBarOrPointsPlotType = (plotType: string) => plotType === 'bar' || plotType === 'points';
+
+const getLayout = (theme: GrafanaTheme2, traceColors: string[], options: PanelOptions, data: Array<Partial<PlotData>>, axisLabels: AxisLabels, dragMode: Plotly.Layout['dragmode']) => {
   const originalAxisTitleX = getTemplateSrv().replace(options.xAxis.title) || axisLabels.xAxis;
   const originalAxisTitleY = getTemplateSrv().replace(options.yAxis.title) || axisLabels.yAxis.join(', ');
   const xAxisOptions = options.displayVertically ? options.xAxis : options.yAxis;
@@ -546,6 +539,11 @@ const getLayout = (theme: GrafanaTheme2, traceColors: string[], options: PanelOp
   const yAxisTitle = options.displayVertically ? originalAxisTitleY : originalAxisTitleX;
   const showXAxis2 = options.showYAxis2 && !options.displayVertically;
   const showYAxis2 = options.showYAxis2 && options.displayVertically;
+  const hasBarOrPointsSeries = isBarOrPointsPlotType(options.series.plotType)
+    || (options.showYAxis2 && isBarOrPointsPlotType(options.series2.plotType));
+  const effectiveDragMode = (!hasBarOrPointsSeries && (dragMode === 'lasso' || dragMode === 'select'))
+    ? 'zoom'
+    : dragMode;
   const layout: Partial<Plotly.Layout> = {
     colorway: traceColors,
     margin: { r: 40, l: 40, t: 20, b: 40 },
@@ -620,6 +618,7 @@ const getLayout = (theme: GrafanaTheme2, traceColors: string[], options: PanelOp
     legend: getLegendLayout(options.legendPosition, showYAxis2, !!xAxisOptions.title),
     barmode: options.series.stackBars ? 'stack' : 'group',
     hovermode: 'closest',
+    dragmode: effectiveDragMode,
   };
 
   return layout;
