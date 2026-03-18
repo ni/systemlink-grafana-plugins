@@ -190,16 +190,33 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         return [...validColumnSelections, ...invalidColumnSelections];
     }, [validColumnSelections, invalidColumnSelections]);
 
-    const invalidSelectedColumnsMessage = useMemo(() => {
-        if (invalidColumnSelections.length === 0 || !isColumnOptionsInitialized) {
+    const getInvalidSelectionsMessage = useCallback((
+        invalidSelections: string[],
+        areOptionsInitialized: boolean,
+        singularLabel: string,
+        pluralLabel: string,
+    ): string => {
+        if (invalidSelections.length === 0 || !areOptionsInitialized) {
             return '';
         }
+        const invalidNames = invalidSelections.join(', ');
+        return invalidSelections.length === 1
+            ? `The following selected ${singularLabel} is not valid: '${invalidNames}'`
+            : `The following selected ${pluralLabel} are not valid: '${invalidNames}'`;
+    }, []);
 
-        const invalidColumnNames = invalidColumnSelections.map(column => column.label).join(', ');
-        return invalidColumnSelections.length === 1
-            ? `The following selected column is not valid: '${invalidColumnNames}'`
-            : `The following selected columns are not valid: '${invalidColumnNames}'`;
-    }, [invalidColumnSelections, isColumnOptionsInitialized]);
+    const invalidSelectedColumnsMessage = useMemo(() => {
+        return getInvalidSelectionsMessage(
+            invalidColumnSelections.map(column => column.value),
+            isColumnOptionsInitialized,
+            'column',
+            'columns'
+        );
+    }, [
+        getInvalidSelectionsMessage,
+        invalidColumnSelections,
+        isColumnOptionsInitialized
+    ]);
 
     const transformedFilters = useMemo(
         () => {
@@ -349,49 +366,49 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         return [...validColumnProperties, ...invalidColumnProperties];
     }, [validColumnProperties, invalidColumnProperties]);
 
-    const getInvalidPropertiesMessage = useCallback((
-        invalidProperties: string[],
-        isCustomPropertiesInitialized: boolean,
-        propertyType: string,
-    ): string => {
-        if (invalidProperties.length === 0 || !isCustomPropertiesInitialized) {
-            return '';
-        }
-        const invalidPropertyNames = invalidProperties
-          .map(property =>
-                property.endsWith(CUSTOM_PROPERTY_SUFFIX) 
-                    ? property.slice(0, -CUSTOM_PROPERTY_SUFFIX.length) 
-                    : property
-            )
-          .join(', ');
-        return invalidProperties.length === 1
-            ? `The following selected custom ${propertyType} property is not valid: '${invalidPropertyNames}'`
-            : `The following selected custom ${propertyType} properties are not valid: '${invalidPropertyNames}'`;
+    const stripCustomPropertySuffix = useCallback((value: string): string => {
+        return value.endsWith(CUSTOM_PROPERTY_SUFFIX)
+            ? value.slice(0, -CUSTOM_PROPERTY_SUFFIX.length)
+            : value;
     }, []);
 
-    const invalidSelectedDataTablePropertiesMessage = useMemo(() => {
-        return getInvalidPropertiesMessage(
-            invalidDataTableProperties.map(property => property.value),
+    const invalidSelectedDataTablePropertiesMessage = useMemo(
+        () => {
+            return getInvalidSelectionsMessage(
+                invalidDataTableProperties.map(
+                    property => (stripCustomPropertySuffix(property.value))
+                ),
+                isCustomPropertiesInitialized,
+                'custom data table property',
+                'custom data table properties'
+            );
+        },
+        [
+            getInvalidSelectionsMessage,
+            invalidDataTableProperties,
             isCustomPropertiesInitialized,
-            'data table'
-        );
-    }, [
-        getInvalidPropertiesMessage,
-        invalidDataTableProperties,
-        isCustomPropertiesInitialized
-    ]);
+            stripCustomPropertySuffix
+        ]
+    );
 
-    const invalidSelectedColumnPropertiesMessage = useMemo(() => {
-        return getInvalidPropertiesMessage(
-            invalidColumnProperties.map(property => property.value),
+    const invalidSelectedColumnPropertiesMessage = useMemo(
+        () => {
+            return getInvalidSelectionsMessage(
+                invalidColumnProperties.map(
+                    property => (stripCustomPropertySuffix(property.value))
+                ),
+                isCustomPropertiesInitialized,
+                'custom column property',
+                'custom column properties'
+            );
+        },
+        [
+            getInvalidSelectionsMessage,
+            invalidColumnProperties,
             isCustomPropertiesInitialized,
-            'column'
-        );
-    }, [
-        getInvalidPropertiesMessage,
-        invalidColumnProperties,
-        isCustomPropertiesInitialized
-    ]);
+            stripCustomPropertySuffix
+        ]
+    );
 
     const xColumnSelection = useMemo((): {
         isInvalid: boolean;
