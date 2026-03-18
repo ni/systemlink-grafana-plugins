@@ -52,6 +52,8 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const dashboardTimeTo = timeRange.to.isValid() ? timeRange.to.valueOf() : undefined;
   const panelXAxisMin = options.xAxis.min;
   const panelXAxisMax = options.xAxis.max;
+
+  const isBarOrPointsPlotType = (plotType: string) => plotType === 'bar' || plotType === 'points';
   const hasBarOrPointsSeries = isBarOrPointsPlotType(options.series.plotType)
     || (options.showYAxis2 && isBarOrPointsPlotType(options.series2.plotType));
 
@@ -533,8 +535,6 @@ const getConfig = (options: PanelOptions, handleImageDownload: (gd: PlotlyHTMLEl
   displaylogo: false,
   showTips: false,
 });
-
-const isBarOrPointsPlotType = (plotType: string) => plotType === 'bar' || plotType === 'points';
 
 const getLayout = (theme: GrafanaTheme2, traceColors: string[], options: PanelOptions, data: Array<Partial<PlotData>>, axisLabels: AxisLabels, dragMode: Plotly.Layout['dragmode']) => {
   const originalAxisTitleX = getTemplateSrv().replace(options.xAxis.title) || axisLabels.xAxis;
