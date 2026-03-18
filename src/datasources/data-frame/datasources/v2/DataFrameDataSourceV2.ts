@@ -8,7 +8,7 @@ import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
-import { catchError, combineLatestWith, concatMap, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap, takeUntil, Subject } from "rxjs";
+import { catchError, combineLatestWith, concatMap, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap, takeUntil, Subject, shareReplay } from "rxjs";
 import { ResultsQueryBuilderFieldNames } from "shared/components/ResultsQueryBuilder/ResultsQueryBuilder.constants";
 import { replaceVariables } from "core/utils";
 import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
@@ -1965,39 +1965,33 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             take: processedQuery.take,
             projections
         });
-        let tables$ = cachedCustomPropertiesQuery?.response ?? [];
-        if (
-            cachedCustomPropertiesQuery === undefined 
-            || this.hasPropertiesChanged(
-                    requestInputs,
-                    [
-                        ...selectedDataTableProperties.standardProperties, 
-                        ...selectedColumnProperties.standardProperties
-                    ],
-                    cachedCustomPropertiesQuery
-                )
-        ) {
+
+        const hasPropertiesQueryChanged = this.hasPropertiesQueryChanged(
+            requestInputs,
+            [ ...selectedStandardProperties],
+            cachedCustomPropertiesQuery
+        )
+        let tables$ = cachedCustomPropertiesQuery?.response ?? of([]);
+        if (!cachedCustomPropertiesQuery || hasPropertiesQueryChanged) {
             tables$ = this.queryTables$(
                 filters,
                 processedQuery.take,
                 projectionExcludingId
-            );
-
-            const updatedQueryCache = {
-
-            this.customPropertiesQueryCache.set(processedQuery.refId, {
-                requestInputs: JSON.stringify({
-                    filters,
-                    take: processedQuery.take,
-                    projections
-                }),
-                selectedProperties: projections,
-                response: tables$
-            });
-
-        } else {
-            tables$ = cachedCustomPropertiesQuery!.response;
+            ).pipe(shareReplay(1))
         }
+
+        const updatedPropertiesQueryCache: CustomPropertiesQueryCache = {
+            requestInputs,
+            selectedProperties: [
+                ...selectedStandardProperties
+            ],
+            response: tables$
+        };
+        this.customPropertiesQueryCache.set(
+            processedQuery.refId,
+            updatedPropertiesQueryCache
+        );
+
         const flattenedTablesWithColumns$ = tables$.pipe(
             map(tables => this.flattenTablesWithColumns(tables))
         );
@@ -2154,16 +2148,18 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return areDataTableCustomPropertiesValid && areColumnCustomPropertiesValid;
     }
 
-    private hasPropertiesChanged(
+    private hasPropertiesQueryChanged(
         requestInputs: string,
         selectedProperties: string[],
         cachedCustomPropertiesQuery: CustomPropertiesQueryCache | undefined
-    ): boolean {
-        const propertiesChanged = cachedCustomPropertiesQuery
-            && cachedCustomPropertiesQuery.requestInputs === requestInputs
-            && cachedCustomPropertiesQuery.selectedProperties !== selectedProperties;
+    ): boolean | undefined{
+        const propertiesQueryChanged = cachedCustomPropertiesQuery
+            && (
+                cachedCustomPropertiesQuery.requestInputs !== requestInputs
+                || !_.isEqual(cachedCustomPropertiesQuery.selectedProperties, selectedProperties)
+            );
        
-        return propertiesChanged!;
+        return propertiesQueryChanged;
     }
 
     private createFieldsFromCustomProperties(
