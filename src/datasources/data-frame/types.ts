@@ -20,10 +20,10 @@ export type DataFrameDataQuery = DataFrameQueryV1 | DataFrameQueryV2;
 export type DataFrameVariableQuery = DataFrameQueryV1 | DataFrameVariableQueryV2;
 export type DataFrameQuery = DataFrameDataQuery | DataFrameVariableQuery;
 
-export interface CustomPropertiesQueryCache {
-  requestInputs: string;
-  selectedProperties: string[];
-  response: Observable<TableProperties[]>;
+export interface PropertiesQueryCache {
+    requestInputs: string;
+    selectedProperties: string[];
+    response: Observable<TableProperties[]>;
 }
 
 export interface DataFrameQueryV1 extends DataQuery {

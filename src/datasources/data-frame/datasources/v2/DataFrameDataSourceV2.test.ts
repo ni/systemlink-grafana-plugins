@@ -7439,6 +7439,54 @@ describe('DataFrameDataSourceV2', () => {
                 expect(queryTablesSpy$).toHaveBeenCalledTimes(2);
             });
 
+            it('should call queryTables$ again when the resultFilter changes', async () => {
+                const mockTables = [
+                    { id: 'table-1', name: 'Table 1', properties: { key: 'value' } }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                const query1 = {
+                    type: DataFrameQueryType.Properties,
+                    resultFilter: 'status = "passed"',
+                    dataTableProperties: [DataTableProperties.Name],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'A',
+                };
+                const query2 = {
+                    ...query1,
+                    resultFilter: 'status = "failed"',
+                };
+
+                await lastValueFrom(ds.runQuery(query1, options));
+                await lastValueFrom(ds.runQuery(query2, options));
+
+                expect(queryTablesSpy$).toHaveBeenCalledTimes(2);
+            });
+
+            it('should call queryTables$ again when the columnFilter changes', async () => {
+                const mockTables = [
+                    { id: 'table-1', name: 'Table 1', properties: { key: 'value' } }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                const query1 = {
+                    type: DataFrameQueryType.Properties,
+                    columnFilter: 'name = "ColumnA"',
+                    dataTableProperties: [DataTableProperties.Name],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'A',
+                };
+                const query2 = {
+                    ...query1,
+                    columnFilter: 'name = "ColumnB"',
+                };
+
+                await lastValueFrom(ds.runQuery(query1, options));
+                await lastValueFrom(ds.runQuery(query2, options));
+
+                expect(queryTablesSpy$).toHaveBeenCalledTimes(2);
+            });
+
             it('should call queryTables$ again when the selected properties change', async () => {
                 const mockTables = [
                     { id: 'table-1', name: 'Table 1', properties: { key: 'value' } }
