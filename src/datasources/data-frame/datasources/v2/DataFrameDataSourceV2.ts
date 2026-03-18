@@ -1966,11 +1966,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             projections
         });
 
-        const hasPropertiesQueryChanged = this.hasPropertiesQueryChanged(
-            requestInputs,
-            [ ...selectedStandardProperties],
-            cachedCustomPropertiesQuery
-        )
+        const hasPropertiesQueryChanged = cachedCustomPropertiesQuery
+            && (
+                cachedCustomPropertiesQuery.requestInputs !== requestInputs
+                || !_.isEqual(
+                        cachedCustomPropertiesQuery.selectedProperties,
+                        [...selectedStandardProperties]
+                    )
+            );
         let tables$ = cachedCustomPropertiesQuery?.response ?? of([]);
         if (!cachedCustomPropertiesQuery || hasPropertiesQueryChanged) {
             tables$ = this.queryTables$(
@@ -2146,20 +2149,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
 
         return areDataTableCustomPropertiesValid && areColumnCustomPropertiesValid;
-    }
-
-    private hasPropertiesQueryChanged(
-        requestInputs: string,
-        selectedProperties: string[],
-        cachedCustomPropertiesQuery: CustomPropertiesQueryCache | undefined
-    ): boolean | undefined{
-        const propertiesQueryChanged = cachedCustomPropertiesQuery
-            && (
-                cachedCustomPropertiesQuery.requestInputs !== requestInputs
-                || !_.isEqual(cachedCustomPropertiesQuery.selectedProperties, selectedProperties)
-            );
-       
-        return propertiesQueryChanged;
     }
 
     private createFieldsFromCustomProperties(
