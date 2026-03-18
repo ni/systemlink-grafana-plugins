@@ -125,8 +125,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         } catch (error) {
             setCustomDataTablePropertyOptions([]);
             setCustomColumnPropertyOptions([]);
-        }
-        finally {
+        } finally {
             setCustomPropertiesInitialized(true);
         }
       },
@@ -138,14 +137,14 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         customPropertyOptions: Array<ComboboxOption<string>>,
         standardPropertyOptions: Array<ComboboxOption<string>>,
     ) => {
-            const allPropertyOptions = new Set([
+            const allPropertyOptions = [
                 ...customPropertyOptions.map(property => property.value),
                 ...standardPropertyOptions.map(option => option.value),
-            ]);
+            ];
             const validProperties = selectedProperties
-                .filter(property => allPropertyOptions.has(property));
+                .filter(property => allPropertyOptions.includes(property));
             const invalidProperties = selectedProperties
-                .filter(property => !allPropertyOptions.has(property));
+                .filter(property => !allPropertyOptions.includes(property));
             return { validProperties, invalidProperties };
         },
         []
@@ -200,7 +199,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         );
         const invalidOptions = invalidProperties.map(property => ({
             label: property,
-            value: property.slice(0, -CUSTOM_PROPERTY_SUFFIX.length),
+            value: property
         }));
         return [...validOptions, ...invalidOptions];
     }, []);
@@ -244,8 +243,12 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
             return '';
         }
         const invalidPropertyNames = invalidProperties
-            .map(property => property.slice(0, -CUSTOM_PROPERTY_SUFFIX.length))
-            .join(', ');
+          .map(property =>
+                property.endsWith(CUSTOM_PROPERTY_SUFFIX) 
+                    ? property.slice(0, -CUSTOM_PROPERTY_SUFFIX.length) 
+                    : property
+            )
+          .join(', ');
         return invalidProperties.length === 1
             ? `The following selected custom ${propertyType} property is not valid: '${invalidPropertyNames}'`
             : `The following selected custom ${propertyType} properties are not valid: '${invalidPropertyNames}'`;
@@ -414,8 +417,8 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                 return;
             }
 
-            if (!isColumnOptionsInitialized) {
-                setIsColumnOptionsInitialized(true);
+            if (!customPropertiesInitialized) {
+                setCustomPropertiesInitialized(true);
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -423,7 +426,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
             migratedQuery.type,
             migratedQuery.take,
             transformedFilters,
-            fetchAndSetCustomPropertyOptions, 
+            fetchAndSetCustomPropertyOptions,
         ]
     );
 

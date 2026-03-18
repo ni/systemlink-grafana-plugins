@@ -3518,14 +3518,21 @@ describe("DataFrameQueryEditorV2", () => {
         });
 
         describe('custom property validation and error handling', () => {
+            let offsetHeightSpy: jest.SpyInstance;
             beforeAll(() => {
-                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
+                offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
             });
 
             beforeEach(() => {
                 cleanup();
                 jest.clearAllMocks();
             });
+
+            afterAll(() => {
+                 if (offsetHeightSpy) {
+                     offsetHeightSpy.mockRestore();
+                 }
+             });
 
             const renderWithCustomProperties = (
                 queryOverrides: Partial<DataFrameDataQuery>,
@@ -3643,6 +3650,22 @@ describe("DataFrameQueryEditorV2", () => {
                     await waitFor(() => {
                         expect(
                             screen.getByText(`The following selected custom column properties are not valid: 'missingColA, missingColB'`)
+                        ).toBeInTheDocument();
+                    });
+                });
+
+                it('should only show error for invalid column properties when some are valid', async () => {
+                    renderWithCustomProperties(
+                        { columnProperties: [DataTableProperties.ColumnName, `validColCustom${CUSTOM_PROPERTY_SUFFIX}`, `invalidColCustom${CUSTOM_PROPERTY_SUFFIX}`] },
+                        {
+                            dataTableCustomPropertyOptions: [],
+                            columnCustomPropertyOptions: [{ label: 'validColCustom', value: `validColCustom${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
+                        }
+                    );
+
+                    await waitFor(() => {
+                        expect(
+                            screen.getByText(`The following selected custom column property is not valid: 'invalidColCustom'`)
                         ).toBeInTheDocument();
                     });
                 });
