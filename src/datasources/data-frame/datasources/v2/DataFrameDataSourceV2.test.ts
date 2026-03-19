@@ -2,7 +2,7 @@ import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
 import { BackendSrv, locationService, TemplateSrv } from '@grafana/runtime';
 import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
-import { COLUMN_SELECTION_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, MAXIMUM_DATA_POINTS, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_SELECTION_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, MAXIMUM_DATA_POINTS, propertiesCacheTTL, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
 import { Workspace } from 'core/types';
@@ -8045,6 +8045,65 @@ describe('DataFrameDataSourceV2', () => {
 
                 expect(result.fields).toBeDefined();
                 expect(postSpy).toHaveBeenCalledTimes(2);
+            });
+
+            it('should call the API again when cache has expired after TTL', async () => {
+                const originalPerformance = performance;
+                jest.useFakeTimers();
+                
+                const startTime = 1000;
+                const performanceNowSpy = jest.spyOn(originalPerformance, 'now');
+                performanceNowSpy.mockReturnValue(startTime);
+
+                const mockTables = [
+                    {
+                        name: 'Table 1',
+                        properties: { author: 'John', version: '1.0' }
+                    }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                const query = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableProperties: [
+                        DataTableProperties.Name,
+                        'author-(custom-properties)'
+                    ],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'A',
+                };
+
+                await lastValueFrom(ds.runQuery(query, options));
+                queryTablesSpy$.mockClear();
+
+                const queryWithDifferentCustomProperty = {
+                    ...query,
+                    dataTableProperties: [
+                        DataTableProperties.Name,
+                        'version-(custom-properties)'
+                    ],
+                };
+                await lastValueFrom(ds.runQuery(queryWithDifferentCustomProperty, options));
+
+                expect(queryTablesSpy$).not.toHaveBeenCalled();
+                queryTablesSpy$.mockClear();
+
+                performanceNowSpy.mockReturnValue(startTime + propertiesCacheTTL + 1);
+                jest.advanceTimersByTime(propertiesCacheTTL + 1);
+
+                const queryAfterExpiry = {
+                    ...query,
+                    dataTableProperties: [
+                        DataTableProperties.Name,
+                        'author-(custom-properties)'
+                    ],
+                };
+                await lastValueFrom(ds.runQuery(queryAfterExpiry, options));
+
+                expect(queryTablesSpy$).toHaveBeenCalledTimes(1);
+
+                performanceNowSpy.mockRestore();
+                jest.useRealTimers();
             });
         });
 
