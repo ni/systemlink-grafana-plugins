@@ -8,7 +8,7 @@ import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
-import { catchError, combineLatestWith, concatMap, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap, takeUntil, Subject, share, ReplaySubject } from "rxjs";
+import { catchError, combineLatestWith, concatMap, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap, takeUntil, Subject, shareReplay } from "rxjs";
 import { ResultsQueryBuilderFieldNames } from "shared/components/ResultsQueryBuilder/ResultsQueryBuilder.constants";
 import { replaceVariables } from "core/utils";
 import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
@@ -1975,12 +1975,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 processedQuery.take,
                 projectionExcludingId
             ).pipe(
-                share(
-                    { 
-                        connector: () => new ReplaySubject(1),
-                        resetOnError: true
-                    }
-                ),
+                shareReplay({ bufferSize: 1, refCount: false }),
                 catchError(error => {
                     this.propertiesQueryCache.delete(processedQuery.refId);
                     throw error;
