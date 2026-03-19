@@ -1,3 +1,9 @@
+## [4.141.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.140.0...v4.141.0) (2026-03-19)
+
+### Features
+
+* **dataframes:** add validation for custom property selections ([#701](https://github.com/ni/systemlink-grafana-plugins/issues/701)) ([9f4e1a3](https://github.com/ni/systemlink-grafana-plugins/commit/9f4e1a3f0e495f154b97456c849febd8603eaac8))
+
 ## [4.140.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.139.0...v4.140.0) (2026-03-17)
 
 ### Features
