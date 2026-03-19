@@ -22,7 +22,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     private scopedVars: ScopedVars = {};
     private isQueryUndecimatedDataFeatureEnabled: boolean;
     private isHighResolutionZoomFeatureEnabled: boolean;
-    private readonly customPropertiesQueryCache: TTLCache<string, PropertiesQueryCache> = new TTLCache(
+    private readonly propertiesQueryCache: TTLCache<string, PropertiesQueryCache> = new TTLCache(
         {
             ttl: propertiesCacheTTL
         }
@@ -1959,17 +1959,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             columnFilter: processedQuery.columnFilter
         };
 
-        const cachedCustomPropertiesQuery = this.customPropertiesQueryCache.get(processedQuery.refId);
+        const cachedPropertiesQuery = this.propertiesQueryCache.get(processedQuery.refId);
         const requestInputs = JSON.stringify({
             filters,
             take: processedQuery.take,
             projections
         });
 
-        const hasPropertiesQueryChanged = cachedCustomPropertiesQuery
-            && cachedCustomPropertiesQuery.requestInputs !== requestInputs
-        let tables$ = cachedCustomPropertiesQuery?.response ?? of([]);
-        if (!cachedCustomPropertiesQuery || hasPropertiesQueryChanged) {
+        const hasPropertiesQueryChanged = cachedPropertiesQuery
+            && cachedPropertiesQuery.requestInputs !== requestInputs
+        let tables$ = cachedPropertiesQuery?.response ?? of([]);
+        if (!cachedPropertiesQuery || hasPropertiesQueryChanged) {
             tables$ = this.queryTables$(
                 filters,
                 processedQuery.take,
@@ -1978,11 +1978,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 share(
                     { 
                         connector: () => new ReplaySubject(1),
-                        resetOnError: true 
+                        resetOnError: true
                     }
                 ),
                 catchError(error => {
-                    this.customPropertiesQueryCache.delete(processedQuery.refId);
+                    this.propertiesQueryCache.delete(processedQuery.refId);
                     throw error;
                 })
             );
@@ -1990,12 +1990,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         const updatedPropertiesQueryCache: PropertiesQueryCache = {
             requestInputs,
-            selectedProperties: [
-                ...selectedStandardProperties
-            ],
             response: tables$
         };
-        this.customPropertiesQueryCache.set(
+        this.propertiesQueryCache.set(
             processedQuery.refId,
             updatedPropertiesQueryCache
         );
