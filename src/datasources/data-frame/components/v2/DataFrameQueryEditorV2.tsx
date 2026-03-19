@@ -175,12 +175,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     );
 
     const validatedColumnSelections = useMemo(() => {
-        const validatedOptions = validateSelectedOptions(
+        return validateSelectedOptions(
             selectedColumnIds,
             columnOptions,
             getSelectedColumnLabelForInvalidColumn
         );
-        return validatedOptions;
     }, [
         validateSelectedOptions,
         selectedColumnIds,
@@ -211,14 +210,14 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     }, []);
 
     const invalidSelectedColumnsMessage = useMemo(() => {
-        const invalidSelectionsMessage = getInvalidSelectionsMessage(
-            validatedColumnSelections.invalidSelections
-                .map(column => column.label ?? column.value),
+        const invalidColumnSelectionsLabels = validatedColumnSelections
+            .invalidSelections.map(column => column.label ?? column.value);
+        return getInvalidSelectionsMessage(
+            invalidColumnSelectionsLabels,
             isColumnOptionsInitialized,
             'column',
             'columns'
         );
-        return invalidSelectionsMessage;
     }, [
         getInvalidSelectionsMessage,
         validatedColumnSelections,
@@ -334,11 +333,10 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
 
 
     const validatedDataTablePropertySelections = useMemo(() => {
-            const validatedDataTableOptions = validateSelectedOptions(
+            return validateSelectedOptions(
                 migratedQuery.dataTableProperties,
                 dataTablePropertyOptions
             );
-            return validatedDataTableOptions;
         },
         [
             validateSelectedOptions,
@@ -348,11 +346,10 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     );
 
     const validatedColumnPropertySelections = useMemo(() => {
-            const validatedColumnOptions = validateSelectedOptions(
+            return validateSelectedOptions(
                 migratedQuery.columnProperties,
                 columnPropertyOptions
             );
-            return validatedColumnOptions;
         }, 
         [
             validateSelectedOptions,
@@ -383,15 +380,16 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
 
     const invalidSelectedDataTablePropertiesMessage = useMemo(
         () => {
-            const invalidDataTablePropertySelectionsMessage = getInvalidSelectionsMessage(
-                validatedDataTablePropertySelections.invalidSelections.map(
+            const invalidDataTablePropertySelectionsLabels = validatedDataTablePropertySelections
+                .invalidSelections.map(
                     property => stripCustomPropertySuffix(property.value)
-                ),
+                );
+            return getInvalidSelectionsMessage(
+                invalidDataTablePropertySelectionsLabels,
                 isCustomPropertiesInitialized,
                 'custom data table property',
                 'custom data table properties'
             );
-            return invalidDataTablePropertySelectionsMessage;
         },
         [
             getInvalidSelectionsMessage,
@@ -403,15 +401,16 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
 
     const invalidSelectedColumnPropertiesMessage = useMemo(
         () => {
-            const invalidColumnPropertySelectionsMessage = getInvalidSelectionsMessage(
-                validatedColumnPropertySelections.invalidSelections.map(
+            const invalidColumnPropertySelectionsLabels = validatedColumnPropertySelections
+                .invalidSelections.map(
                     property => stripCustomPropertySuffix(property.value)
-                ),
+                );
+            return getInvalidSelectionsMessage(
+                invalidColumnPropertySelectionsLabels,
                 isCustomPropertiesInitialized,
                 'custom column property',
                 'custom column properties'
             );
-            return invalidColumnPropertySelectionsMessage;
         },
         [
             getInvalidSelectionsMessage,
