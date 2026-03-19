@@ -8,9 +8,9 @@ The **SystemLink Data Frames** data source allows you to display data table prop
 
 ## 🎯 Key Features
 
-* **Flexible Filtering:** Filter data tables by result properties, data table properties, and column properties.
-* **Display Data Table Properties:** Retrieve and display properties such as Data table name, ID, row count, column properties, and workspace.
-* **Display Data Table Data:** Retrieve and display row data from selected columns across one or more filtered data tables.
+- **Flexible Filtering:** Filter data tables by result properties, data table properties, and column properties.
+- **Display Data Table Properties:** Retrieve and display properties such as Data table name, ID, row count, column properties, and workspace.
+- **Display Data Table Data:** Retrieve and display row data from selected columns across one or more filtered data tables.
 
 ---
 
@@ -24,13 +24,14 @@ The **SystemLink Data Frames** data source allows you to display data table prop
 
 ## ℹ️ Data Limits
 
-| Configuration        | Max limit per query   | Behavior                                                                                                                |
-| -------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| **Data Tables**      | 1,000 tables          | If a filter matches more than 1,000 tables, the data source only processes the first 1,000 tables. |
-| **Columns Options**  | 10,000 unique columns | If more than 10,000 unique columns exist, the data source only displays the first 10,000 columns in the drop-down menu. |
-| **Column Selection** | 20 columns            | If you select more than 20 columns, the data source will not query the data and instead return an error. |
-| **Data Points**      | 1 million points      | The data source caps all results at 1 million data points (rows × columns). |
-| **Data Table Custom Properties** | 100 properties | If the matching data tables contain more than 100 unique custom property keys, the data source only returns the first 100 properties. |
+| Configuration                              | Max limit per query   | Behavior                                                                                                                              |
+| ------------------------------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| **Data Tables**                            | 1,000 tables          | If a filter matches more than 1,000 tables, the data source only processes the first 1,000 tables.                                    |
+| **Columns Options**                        | 10,000 unique columns | If more than 10,000 unique columns exist, the data source only displays the first 10,000 columns in the drop-down menu.               |
+| **Column Selection**                       | 20 columns            | If you select more than 20 columns, the data source will not query the data and instead return an error.                              |
+| **Data Points**                            | 1 million points      | The data source caps all results at 1 million data points (rows × columns).                                                           |
+| **Data Table Custom Properties**           | 100 properties        | If the matching data tables contain more than 100 unique custom property keys, the data source only returns the first 100 properties. |
+| **Data Table Custom Properties Selection** | No strict limit       | If you select more than 20 custom properties, the performance of the data source may be impacted.                                     |
 
 ---
 
