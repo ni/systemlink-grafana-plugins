@@ -1,3 +1,9 @@
+## [4.141.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.141.0...v4.141.1) (2026-03-19)
+
+### Bug Fixes
+
+* **systems:** Add "virtualCount" property to systems summary table ([#705](https://github.com/ni/systemlink-grafana-plugins/issues/705)) ([9a55f55](https://github.com/ni/systemlink-grafana-plugins/commit/9a55f55fb0c08f16fefd523ef66131cabf4c21d8))
+
 ## [4.141.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.140.0...v4.141.0) (2026-03-19)
 
 ### Features
