@@ -1971,11 +1971,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             ...selectedDataTableProperties.customProperties,
             ...selectedColumnProperties.customProperties,
         ]
-        const shouldRequery = !cachedPropertiesQuery 
+        const shouldRequeryProperties = !cachedPropertiesQuery 
             || cachedPropertiesQuery.requestInputs !== requestInputs 
             || cachedPropertiesQuery.selectedProperties === selectedProperties;
         let tables$ = cachedPropertiesQuery?.response ?? of([]);
-        if (shouldRequery) {
+        if (shouldRequeryProperties) {
             tables$ = this.queryTables$(
                 filters,
                 processedQuery.take,
