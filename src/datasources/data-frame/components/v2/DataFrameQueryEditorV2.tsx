@@ -47,7 +47,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const [isColumnOptionsInitialized, setIsColumnOptionsInitialized] = useState<boolean>(false);
     const [customDataTablePropertyOptions, setCustomDataTablePropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
     const [customColumnPropertyOptions, setCustomColumnPropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
-    const [isCustomPropertiesInitialized, setCustomPropertiesInitialized] = useState<boolean>(false);
+    const [isCustomPropertiesInitialized, setIsCustomPropertiesInitialized] = useState<boolean>(false);
 
     const getStandardPropertyOptions = (
         type: DataTableProjectionType
@@ -126,7 +126,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
             setCustomDataTablePropertyOptions([]);
             setCustomColumnPropertyOptions([]);
         } finally {
-            setCustomPropertiesInitialized(true);
+            setIsCustomPropertiesInitialized(true);
         }
       },
       [datasource]
@@ -174,10 +174,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         []
     );
 
-    const {
-        validSelections: validColumnSelections,
-        invalidSelections: invalidColumnSelections
-    } = useMemo(() => {
+    const columnSelections = useMemo(() => {
         return validateSelectedOptions(
             selectedColumnIds,
             columnOptions,
@@ -191,8 +188,11 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     ]);
 
     const selectedColumnOptions = useMemo((): Array<ComboboxOption<string>> => {
-        return [...validColumnSelections, ...invalidColumnSelections];
-    }, [validColumnSelections, invalidColumnSelections]);
+        return [
+            ...columnSelections.validSelections,
+            ...columnSelections.invalidSelections
+        ];
+    }, [columnSelections]);
 
     const getInvalidSelectionsMessage = useCallback((
         invalidSelections: string[],
@@ -211,14 +211,15 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
 
     const invalidSelectedColumnsMessage = useMemo(() => {
         return getInvalidSelectionsMessage(
-            invalidColumnSelections.map(column => column.label ?? column.value),
+            columnSelections.invalidSelections
+                .map(column => column.label ?? column.value),
             isColumnOptionsInitialized,
             'column',
             'columns'
         );
     }, [
         getInvalidSelectionsMessage,
-        invalidColumnSelections,
+        columnSelections,
         isColumnOptionsInitialized
     ]);
 
@@ -330,10 +331,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     ], [standardColumnPropertyOptions, customColumnPropertyOptions]);
 
 
-    const {
-        validSelections: validDataTableProperties,
-        invalidSelections: invalidDataTableProperties
-    } = useMemo(() => {
+    const dataTablePropertySelections = useMemo(() => {
             return validateSelectedOptions(
                 migratedQuery.dataTableProperties,
                 dataTablePropertyOptions
@@ -346,10 +344,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         ]
     );
 
-    const {
-        validSelections: validColumnProperties,
-        invalidSelections: invalidColumnProperties
-    } = useMemo(() => {
+    const columnPropertySelections = useMemo(() => {
             return validateSelectedOptions(
                 migratedQuery.columnProperties,
                 columnPropertyOptions
@@ -363,12 +358,18 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     );
 
     const selectedDataTablePropertyOptions = useMemo(() => {
-      return [...validDataTableProperties, ...invalidDataTableProperties];
-    }, [invalidDataTableProperties, validDataTableProperties]);
+      return [
+        ...dataTablePropertySelections.validSelections,
+        ...dataTablePropertySelections.invalidSelections
+      ];
+    }, [dataTablePropertySelections]);
 
     const selectedColumnPropertyOptions = useMemo(() => {
-        return [...validColumnProperties, ...invalidColumnProperties];
-    }, [validColumnProperties, invalidColumnProperties]);
+        return [
+            ...columnPropertySelections.validSelections,
+            ...columnPropertySelections.invalidSelections
+        ];
+    }, [columnPropertySelections]);
 
     const stripCustomPropertySuffix = useCallback((value: string): string => {
         return value.endsWith(CUSTOM_PROPERTY_SUFFIX)
@@ -379,7 +380,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const invalidSelectedDataTablePropertiesMessage = useMemo(
         () => {
             return getInvalidSelectionsMessage(
-                invalidDataTableProperties.map(
+                dataTablePropertySelections.invalidSelections.map(
                     property => (stripCustomPropertySuffix(property.value))
                 ),
                 isCustomPropertiesInitialized,
@@ -389,7 +390,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         },
         [
             getInvalidSelectionsMessage,
-            invalidDataTableProperties,
+            dataTablePropertySelections,
             isCustomPropertiesInitialized,
             stripCustomPropertySuffix
         ]
@@ -398,7 +399,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
     const invalidSelectedColumnPropertiesMessage = useMemo(
         () => {
             return getInvalidSelectionsMessage(
-                invalidColumnProperties.map(
+                columnPropertySelections.invalidSelections.map(
                     property => (stripCustomPropertySuffix(property.value))
                 ),
                 isCustomPropertiesInitialized,
@@ -408,7 +409,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         },
         [
             getInvalidSelectionsMessage,
-            invalidColumnProperties,
+            columnPropertySelections,
             isCustomPropertiesInitialized,
             stripCustomPropertySuffix
         ]
