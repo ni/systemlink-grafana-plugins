@@ -1962,14 +1962,20 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const cachedPropertiesQuery = this.propertiesQueryCache.get(processedQuery.refId);
         const requestInputs = JSON.stringify({
             filters,
+            projections,
             take: processedQuery.take,
-            projections
         });
 
-        const hasPropertiesQueryChanged = cachedPropertiesQuery
-            && cachedPropertiesQuery.requestInputs !== requestInputs
+        const selectedProperties = [
+            ...selectedStandardProperties,
+            ...selectedDataTableProperties.customProperties,
+            ...selectedColumnProperties.customProperties,
+        ]
+        const shouldRequery = !cachedPropertiesQuery 
+            || cachedPropertiesQuery.requestInputs !== requestInputs 
+            || cachedPropertiesQuery.selectedProperties === selectedProperties;
         let tables$ = cachedPropertiesQuery?.response ?? of([]);
-        if (!cachedPropertiesQuery || hasPropertiesQueryChanged) {
+        if (shouldRequery) {
             tables$ = this.queryTables$(
                 filters,
                 processedQuery.take,
@@ -1985,6 +1991,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         const updatedPropertiesQueryCache: PropertiesQueryCache = {
             requestInputs,
+            selectedProperties: selectedProperties,
             response: tables$
         };
         this.propertiesQueryCache.set(

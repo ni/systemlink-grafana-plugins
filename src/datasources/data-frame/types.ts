@@ -22,6 +22,7 @@ export type DataFrameQuery = DataFrameDataQuery | DataFrameVariableQuery;
 
 export interface PropertiesQueryCache {
   requestInputs: string;
+  selectedProperties: string[];
   response: Observable<TableProperties[]>;
 }
 
