@@ -3520,7 +3520,7 @@ describe("DataFrameQueryEditorV2", () => {
         describe('custom property validation and error handling', () => {
             let offsetHeightSpy: jest.SpyInstance;
             beforeAll(() => {
-                offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(300);
+                offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(500);
             });
 
             beforeEach(() => {
@@ -3529,9 +3529,9 @@ describe("DataFrameQueryEditorV2", () => {
             });
 
             afterAll(() => {
-                 if (offsetHeightSpy) {
-                     offsetHeightSpy.mockRestore();
-                 }
+                if (offsetHeightSpy) {
+                   offsetHeightSpy.mockRestore();
+                }
              });
 
             const renderWithCustomProperties = (
@@ -3717,7 +3717,6 @@ describe("DataFrameQueryEditorV2", () => {
             });
 
             it('should display both valid and invalid data table properties in the combobox', async () => {
-                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(500);
                 renderWithCustomProperties(
                     {
                         dataTableProperties: [
@@ -3740,7 +3739,6 @@ describe("DataFrameQueryEditorV2", () => {
             });
 
             it('should display both valid and invalid column properties in the combobox', async () => {
-                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(500);
                 renderWithCustomProperties(
                     {
                         columnProperties: [

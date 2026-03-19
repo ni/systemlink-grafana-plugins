@@ -156,15 +156,19 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
             const allOptionsMap = new Map(
                 allOptions.map(option => [option.value, option])
             );
-            const validSelections = selectedOptions
-                .filter(option => allOptionsMap.has(option))
-                .map(option => allOptionsMap.get(option)!);
-            const invalidSelections = selectedOptions
-                .filter(option => !allOptionsMap.has(option))
-                .map(option => ({
-                    label: getInvalidLabel ? getInvalidLabel(option) : option,
-                    value: option,
-                }));
+            const validSelections: Array<ComboboxOption<string>> = [];
+            const invalidSelections: Array<ComboboxOption<string>> = [];
+            for (const option of selectedOptions) {
+                const validOption = allOptionsMap.get(option);
+                if (validOption) {
+                    validSelections.push(validOption);
+                } else {
+                    invalidSelections.push({
+                        label: getInvalidLabel ? getInvalidLabel(option) : option,
+                        value: option,
+                    });
+                }
+            }
             return { validSelections, invalidSelections };
         },
         []
@@ -207,7 +211,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
 
     const invalidSelectedColumnsMessage = useMemo(() => {
         return getInvalidSelectionsMessage(
-            invalidColumnSelections.map(column => column.label),
+            invalidColumnSelections.map(column => column.label ?? column.value),
             isColumnOptionsInitialized,
             'column',
             'columns'
