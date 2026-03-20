@@ -18,6 +18,7 @@ import {
 } from 'datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants';
 import { isObservable, lastValueFrom } from 'rxjs';
 import _ from 'lodash';
+import './DataFrameQueryEditorV2.scss';
 
 export const DataFrameQueryEditorV2: React.FC<Props> = (
     { query, onChange, onRunQuery, datasource }: Props
@@ -800,7 +801,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
             )}
 
             {migratedQuery.type === DataFrameQueryType.Properties && (
-                <>
+                <div className="properties-section">
                     {isPropertiesNotSelected && (
                         <Alert 
                             title='Error' 
@@ -846,7 +847,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                             isClearable={true}
                         />
                     </InlineField>
-                </>
+                </div>
             )}
 
             <FloatingError
