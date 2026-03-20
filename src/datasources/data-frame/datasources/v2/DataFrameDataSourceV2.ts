@@ -1951,14 +1951,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         const projections = [...selectedStandardProperties]
             .map(property => DataTableProjectionLabelLookup[property].projection);
-        const filters = {
-            resultFilter: processedQuery.resultFilter,
-            dataTableFilter: processedQuery.dataTableFilter,
-            columnFilter: processedQuery.columnFilter
-        };
         const tables$ = this.getTables$(
             processedQuery,
-            filters,
             projections
         );
         const flattenedTablesWithColumns$ = tables$.pipe(
@@ -2067,10 +2061,14 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private getTables$(
         processedQuery: ValidDataFrameQueryV2,
-        filters: CombinedFilters,
-        projections: DataTableProjections[],
+        projections: DataTableProjections[]
     ): Observable<TableProperties[]> {
         const propertiesQueryCache = this.propertiesQueryCache.get(processedQuery.refId);
+        const filters = {
+            resultFilter: processedQuery.resultFilter,
+            dataTableFilter: processedQuery.dataTableFilter,
+            columnFilter: processedQuery.columnFilter
+        };
         const requestInputs = JSON.stringify({
             filters,
             projections,
