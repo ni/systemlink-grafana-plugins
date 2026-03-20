@@ -15,7 +15,6 @@ const defaultProps: DataSourcePluginOptionsEditorProps<any> = {
     options: {
         jsonData: {
             featureToggles: {
-                queryUndecimatedData: false,
                 highResolutionZoom: false
             },
         },
@@ -40,32 +39,11 @@ describe('DataFrameConfigEditor', () => {
         expect(dataTableQueryBuilderToggle).toBeInTheDocument();
     });
 
-    test('should update the queryUndecimatedData feature toggles option when it is toggled', async () => {
-        const queryUndecimatedDataToggle = screen.getAllByRole('switch')[0];
-        const expectedJsonData = {
-            "jsonData": { 
-                "featureToggles": { 
-                    "queryUndecimatedData": true,
-                    "highResolutionZoom": false
-                } 
-            }
-        };  
-        expect(queryUndecimatedDataToggle).not.toBeChecked();
-
-        await userEvent.click(queryUndecimatedDataToggle);
-        await waitFor(() => {
-            expect(mockOnOptionsChange).toHaveBeenCalledWith(
-                expect.objectContaining(expectedJsonData)
-            );
-        });
-    });
-
     test('should update the highResolutionZoom feature toggles option when it is toggled', async () => {
         const highResolutionZoomToggle = screen.getAllByRole('switch')[1];
         const expectedJsonData = {
             "jsonData": { 
                 "featureToggles": { 
-                    "queryUndecimatedData": false,
                     "highResolutionZoom": true
                 } 
             }

@@ -28,20 +28,6 @@ export const DataFrameConfigEditor: React.FC<Props> = ({ options, onOptionsChang
                 </div>
                 <InlineSegmentGroup> 
                     <InlineField
-                        label={labels.queryUndecimatedData}
-                        labelWidth={30}
-                    >
-                        <InlineSwitch
-                            value={
-                                options.jsonData?.featureToggles?.queryUndecimatedData
-                                ?? DataFrameFeatureTogglesDefaults.queryUndecimatedData
-                            }
-                            onChange={handleFeatureChange('queryUndecimatedData')}
-                    />
-                    </InlineField>
-                </InlineSegmentGroup>
-                <InlineSegmentGroup> 
-                    <InlineField
                         label={labels.highResolutionZoom}
                         labelWidth={30}
                     >
@@ -61,6 +47,5 @@ export const DataFrameConfigEditor: React.FC<Props> = ({ options, onOptionsChang
 
 const labels = {
     features: 'Features',
-    queryUndecimatedData: 'Query undecimated data',
     highResolutionZoom: 'Filter by x-axis range on zoom or pan',
 };

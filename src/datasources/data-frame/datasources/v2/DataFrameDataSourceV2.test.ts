@@ -2667,7 +2667,6 @@ describe('DataFrameDataSourceV2', () => {
                                     jsonData: {
                                         ...instanceSettings.jsonData,
                                         featureToggles: {
-                                            queryUndecimatedData: true,
                                             highResolutionZoom: false
                                         }
                                     }
@@ -2726,7 +2725,6 @@ describe('DataFrameDataSourceV2', () => {
                                     jsonData: {
                                         ...instanceSettings.jsonData,
                                         featureToggles: {
-                                            queryUndecimatedData: false,
                                             highResolutionZoom: false
                                         }
                                     }
@@ -3689,7 +3687,6 @@ describe('DataFrameDataSourceV2', () => {
                 let postSpy: jest.SpyInstance;
                 let datasource: DataFrameDataSourceV2;
                 let featureToggles = {
-                    queryUndecimatedData: true,
                     highResolutionZoom: true
                 }
                 const undecimatedInstanceSettings = {
@@ -4800,7 +4797,6 @@ describe('DataFrameDataSourceV2', () => {
                                     jsonData: {
                                         ...instanceSettings.jsonData,
                                         featureToggles: {
-                                            queryUndecimatedData: true,
                                             highResolutionZoom: false
                                         }
                                     }
@@ -4861,7 +4857,6 @@ describe('DataFrameDataSourceV2', () => {
                                     jsonData: {
                                         ...instanceSettings.jsonData,
                                         featureToggles: {
-                                            queryUndecimatedData: true,
                                             highResolutionZoom: false
                                         }
                                     }

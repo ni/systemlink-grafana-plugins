@@ -72,7 +72,6 @@ export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
 };
 
 export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
-  queryUndecimatedData: false,
   highResolutionZoom: false
 };
 
@@ -349,7 +348,6 @@ export interface TableDataRows {
 }
 
 export interface DataFrameFeatureToggles {
-  queryUndecimatedData: boolean;
   highResolutionZoom: boolean;
 }
 

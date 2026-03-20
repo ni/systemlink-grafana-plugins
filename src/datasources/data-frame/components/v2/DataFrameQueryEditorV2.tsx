@@ -22,11 +22,6 @@ import _ from 'lodash';
 export const DataFrameQueryEditorV2: React.FC<Props> = (
     { query, onChange, onRunQuery, datasource }: Props
 ) => {
-    const isQueryUndecimatedDataFeatureEnabled = useMemo(() => 
-        datasource.instanceSettings.jsonData?.featureToggles?.queryUndecimatedData ?? false,
-        [datasource]
-    );
-
     const isHighResolutionZoomFeatureEnabled = useMemo(() =>
         datasource.instanceSettings.jsonData?.featureToggles?.highResolutionZoom ?? false,
         [datasource]
@@ -464,13 +459,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
         return '';
     }
 
-    const decimationMethodOptions = useMemo(() => {
-        if (isQueryUndecimatedDataFeatureEnabled) {
-            return [decimationNoneOption, ...decimationMethods];
-        }
-        return decimationMethods;
-    }, [isQueryUndecimatedDataFeatureEnabled]);
-
     return (
         <>
             <InlineField
@@ -606,7 +594,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                                 width={INLINE_LABEL_WIDTH}
                                 value={migratedQuery.decimationMethod}
                                 onChange={onDecimationMethodChange}
-                                options={decimationMethodOptions}
+                                options={[decimationNoneOption, ...decimationMethods]}
                                 createCustomValue={false}
                             />
                         </InlineField>
@@ -639,8 +627,6 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
                         </InlineField>
                         { 
                             (
-                                isQueryUndecimatedDataFeatureEnabled 
-                                && 
                                 migratedQuery.decimationMethod === 'NONE'
                             ) && (
                                 <InlineField
