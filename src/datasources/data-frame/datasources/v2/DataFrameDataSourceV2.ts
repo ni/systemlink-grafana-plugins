@@ -2071,8 +2071,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         };
         const requestInputs = JSON.stringify({
             filters,
-            projections,
             take: processedQuery.take,
+            projections,
         });
         const selectedProperties: string[] = [
             ...processedQuery.dataTableProperties,
