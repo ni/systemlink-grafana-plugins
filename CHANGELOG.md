@@ -1,3 +1,9 @@
+## [4.142.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.142.0...v4.142.1) (2026-03-20)
+
+### Bug Fixes
+
+* **dataframes:** adjust inline alert width in properties section ([#706](https://github.com/ni/systemlink-grafana-plugins/issues/706)) ([523fbbc](https://github.com/ni/systemlink-grafana-plugins/commit/523fbbcf4f0ead3ff69e3b0c5402f3a513037eca))
+
 ## [4.142.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.141.1...v4.142.0) (2026-03-20)
 
 ### Features
