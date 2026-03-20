@@ -1,3 +1,13 @@
+## [4.142.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.141.1...v4.142.0) (2026-03-20)
+
+### Features
+
+* **dataframes:** add caching for custom property selections ([#703](https://github.com/ni/systemlink-grafana-plugins/issues/703)) ([e854c2e](https://github.com/ni/systemlink-grafana-plugins/commit/e854c2ecfa104a9fbb8936b937d30ef6c1601e35))
+
+### Bug Fixes
+
+* **plotly:** Persist drag mode across data re-renders ([#702](https://github.com/ni/systemlink-grafana-plugins/issues/702)) ([675b376](https://github.com/ni/systemlink-grafana-plugins/commit/675b376cdbee041fa41348644edff1b537247b8d))
+
 ## [4.141.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.141.0...v4.141.1) (2026-03-19)
 
 ### Bug Fixes
