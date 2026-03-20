@@ -8,7 +8,7 @@ import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
-import { catchError, combineLatestWith, concatMap, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap, takeUntil, Subject, shareReplay, tap } from "rxjs";
+import { catchError, combineLatestWith, concatMap, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap, takeUntil, Subject, tap } from "rxjs";
 import { ResultsQueryBuilderFieldNames } from "shared/components/ResultsQueryBuilder/ResultsQueryBuilder.constants";
 import { replaceVariables } from "core/utils";
 import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
@@ -1956,20 +1956,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             dataTableFilter: processedQuery.dataTableFilter,
             columnFilter: processedQuery.columnFilter
         };
-
-        const selectedProperties = [
-            ...selectedStandardProperties,
-            ...selectedDataTableProperties.customProperties,
-            ...selectedColumnProperties.customProperties,
-        ];
-
         const tables$ = this.getTables$(
             processedQuery,
             filters,
-            projections,
-            selectedProperties
+            projections
         );
-
         const flattenedTablesWithColumns$ = tables$.pipe(
             map(tables => this.flattenTablesWithColumns(tables))
         );
@@ -2078,7 +2069,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         processedQuery: ValidDataFrameQueryV2,
         filters: CombinedFilters,
         projections: DataTableProjections[],
-        selectedProperties: string[]
     ): Observable<TableProperties[]> {
         const propertiesQueryCache = this.propertiesQueryCache.get(processedQuery.refId);
         const requestInputs = JSON.stringify({
@@ -2086,6 +2076,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             projections,
             take: processedQuery.take,
         });
+        const selectedProperties: string[] = [
+            ...processedQuery.dataTableProperties,
+            ...processedQuery.columnProperties
+        ];
 
         const isOnlyCustomPropertiesChanged = this.isOnlyCustomPropertySelectionsChanged(
             propertiesQueryCache,
@@ -2104,7 +2098,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             projectionExcludingId,
         ).pipe(
             tap(response => {
-                
                 const updatedPropertiesQueryCache: PropertiesQueryCache = {
                     requestInputs,
                     selectedProperties,
