@@ -1,6 +1,6 @@
 import { Page } from "playwright/test";
 
-export class GlobalVariableComponent {
+export class DashboardVariableBaseComponent {
     readonly page: Page;
 
     constructor(page: Page) {
@@ -15,12 +15,12 @@ export class GlobalVariableComponent {
         return this.page.getByTestId('data-testid Select a data source');
     }
 
-    public get queryReturnTypeDropdown() {
-        return this.page.locator('div').filter({ hasText: /^Asset Tag Path$/ }).nth(2);
-    }
-
     public get applyButton() {
         return this.page.getByTestId('data-testid Variable editor Apply button');
+    }
+
+    public get runQueryButton() {
+        return this.page.getByTestId('data-testid Variable editor Run Query button');
     }
 
     async setVariableName(name: string): Promise<void> {
@@ -32,12 +32,11 @@ export class GlobalVariableComponent {
         await this.page.click(`text=${dataSourceName}`);
     }
 
-    async selectQueryReturnType(returnType: string): Promise<void> {
-        await this.queryReturnTypeDropdown.click();
-        await this.page.getByRole('option', { name: returnType }).click();
-    }
-
     async applyVariableChanges(): Promise<void> {
         await this.applyButton.click();
+    }
+
+    async pressRunQueryButton(): Promise<void> {
+        await this.runQueryButton.click();
     }
 }

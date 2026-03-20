@@ -1,6 +1,6 @@
 import { Page, Locator } from '@playwright/test';
 import { GRAFANA_URL, FAKE_API_URL } from '../../config/environment';
-import { timeOutPeriod } from '../../constants/asset-list-properties.constant';
+import { timeOutPeriod } from '../../constants/global.constant';
 
 export class DataSourcesPage {
     readonly page: Page;
@@ -58,7 +58,7 @@ export class DataSourcesPage {
     }
 
     async navigateToDatasourcesPage(): Promise<void> {
-        await this.page.goto(`${GRAFANA_URL}/connections/datasources`)
+        await this.page.goto(`${GRAFANA_URL}/connections/datasources`);
     }
 
     async addDataSource(dataSource: string, dataSourceNameField: string): Promise<void> {

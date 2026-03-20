@@ -5,6 +5,7 @@ import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sour
 import { pressEscape } from '../../../../utils/keyboard-utilities';
 import { interceptApiRoute } from '../../../../utils/intercept-api-route';
 import { CalibrationForecastResponse, FieldDTOWithDescriptor } from '../../../../../src/datasources/asset/types/CalibrationForecastQuery.types';
+import { timeOutPeriod } from '../../../../constants/global.constant';
 
 test.describe('Calibration Forecast', () => {
     let dashboard: DashboardPage;
@@ -48,7 +49,7 @@ test.describe('Calibration Forecast', () => {
             ]);
 
             await dashboard.panel.assetQueryEditor.switchToTableView();
-            await dashboard.panel.table.getTable.waitFor({ timeout: 10000 });
+            await dashboard.panel.table.getTable.waitFor({ timeout: timeOutPeriod });
 
             expect(forecastResponse).toBeDefined();
             expect(forecastResponse.calibrationForecast.columns).toBeDefined();

@@ -2,7 +2,8 @@ import { test, expect } from '@playwright/test';
 import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
-import { assetColumn, timeOutPeriod } from '../../../../constants/asset-list-properties.constant';
+import { assetColumn } from '../../../../constants/asset-list-properties.constant';
+import { timeOutPeriod } from '../../../../constants/global.constant';
 
 test.describe('Asset data source with minion id return type', () => {
     let dashboard: DashboardPage;
@@ -28,10 +29,10 @@ test.describe('Asset data source with minion id return type', () => {
             await dashboard.toolbar.openSettings();
             await dashboard.settings.goToVariablesTab();
             await dashboard.settings.addNewVariable();
-            await dashboard.settings.variable.setVariableName('id');
-            await dashboard.settings.variable.selectDataSource(createdDataSourceName);
-            await dashboard.settings.variable.selectQueryReturnType('Asset Id');
-            await dashboard.settings.variable.applyVariableChanges();
+            await dashboard.settings.assetVariable.setVariableName('id');
+            await dashboard.settings.assetVariable.selectDataSource(createdDataSourceName);
+            await dashboard.settings.assetVariable.selectQueryReturnType('Asset Tag Path', 'Asset Id');
+            await dashboard.settings.assetVariable.applyVariableChanges();
 
             expect(dashboard.settings.createdVariable('id')).toBeDefined();
 

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { DataSourcesPage } from '../../../page-objects/data-sources/data-sources.pageobject';
 import { FAKE_API_URL } from '../../../config/environment';
-import { timeOutPeriod } from '../../../constants/asset-list-properties.constant';
+import { timeOutPeriod } from '../../../constants/global.constant';
 
 test.describe('Datasource Configuration', () => {
     let dataSource: DataSourcesPage;

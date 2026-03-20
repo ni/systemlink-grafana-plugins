@@ -2,8 +2,9 @@ import { test, expect } from '@playwright/test';
 import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
-import { assetColumn, timeOutPeriod } from '../../../../constants/asset-list-properties.constant';
+import { assetColumn } from '../../../../constants/asset-list-properties.constant';
 import { pressEscape } from '../../../../utils/keyboard-utilities';
+import { timeOutPeriod } from '../../../../constants/global.constant';
 
 test.describe('Asset data source with scan code return type', () => {
     let dashboard: DashboardPage;
@@ -29,10 +30,10 @@ test.describe('Asset data source with scan code return type', () => {
             await dashboard.toolbar.openSettings();
             await dashboard.settings.goToVariablesTab();
             await dashboard.settings.addNewVariable();
-            await dashboard.settings.variable.setVariableName('scanCode');
-            await dashboard.settings.variable.selectDataSource(createdDataSourceName);
-            await dashboard.settings.variable.selectQueryReturnType('Scan Code');
-            await dashboard.settings.variable.applyVariableChanges();
+            await dashboard.settings.assetVariable.setVariableName('scanCode');
+            await dashboard.settings.assetVariable.selectDataSource(createdDataSourceName);
+            await dashboard.settings.assetVariable.selectQueryReturnType('Asset Tag Path', 'Scan Code');
+            await dashboard.settings.assetVariable.applyVariableChanges();
 
             expect(dashboard.settings.createdVariable('scanCode')).toBeDefined();
 

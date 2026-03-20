@@ -1,6 +1,6 @@
 import { Page, Locator } from '@playwright/test';
-import { pressEnter } from '../../../utils/keyboard-utilities';
-import { assetColumn, timeOutPeriod } from '../../../constants/asset-list-properties.constant';
+import { pressEnter } from '../../../../utils/keyboard-utilities';
+import { assetColumn } from '../../../../constants/asset-list-properties.constant';
 
 export class AssetQueryEditorComponent {
     readonly page: Page;

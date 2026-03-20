@@ -9,9 +9,9 @@ export const data = [
         vendor: "Vendor1",
         osFullName: "OS1",
         ip4Interfaces: {
-            lo: [
-                "127.6.0.1"
-            ]
+            "IP1": [
+                "172.10.1.37"
+            ],
         },
         workspace: "workspace1",
         scanCode: "scanCode1",
@@ -26,7 +26,7 @@ export const data = [
         vendor: "Vendor2",
         osFullName: "OS2",
         ip4Interfaces: {
-            lo: [
+            "IP2": [
                 "10.5.136.55"
             ]
         },
@@ -43,7 +43,7 @@ export const data = [
         vendor: "Vendor3",
         osFullName: "OS3",
         ip4Interfaces: {
-            lo: [
+            "IP3": [
                 "10.5.136.44"
             ]
         },
@@ -60,7 +60,7 @@ export const data = [
         vendor: "Vendor4",
         osFullName: "OS4",
         ip4Interfaces: {
-            lo: [
+            "IP4": [
                 "10.8.127.44"
             ]
         },
@@ -77,7 +77,7 @@ export const data = [
         vendor: "Vendor5",
         osFullName: "OS5",
         ip4Interfaces: {
-            lo: [
+            "IP5": [
                 "127.6.0.1"
             ]
         },
@@ -94,7 +94,7 @@ export const data = [
         vendor: "Vendor6",
         osFullName: "OS6",
         ip4Interfaces: {
-            lo: [
+            "IP6": [
                 "10.6.0.1"
             ]
         },
@@ -111,7 +111,7 @@ export const data = [
         vendor: "Vendor7",
         osFullName: "OS7",
         ip4Interfaces: {
-            lo: [
+            "IP7": [
                 "10.6.0.1"
             ]
         },
@@ -128,7 +128,7 @@ export const data = [
         vendor: "Vendor8",
         osFullName: "OS8",
         ip4Interfaces: {
-            lo: [
+            "IP8": [
                 "10.8.0.1"
             ]
         },
@@ -145,7 +145,7 @@ export const data = [
         vendor: "Vendor9",
         osFullName: "OS9",
         ip4Interfaces: {
-            lo: [
+            "IP9": [
                 "10.8.0.2"
             ]
         },
@@ -162,7 +162,7 @@ export const data = [
         vendor: "Vendor10",
         osFullName: "OS10",
         ip4Interfaces: {
-            lo: [
+            "IP10": [
                 "10.9.0.11"
             ]
         },

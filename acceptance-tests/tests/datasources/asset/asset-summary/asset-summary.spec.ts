@@ -3,8 +3,8 @@ import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { interceptApiRoute } from '../../../../utils/intercept-api-route';
-import { timeOutPeriod } from '../../../../constants/asset-list-properties.constant';
 import { AssetSummaryResponse } from '../../../../../src/datasources/asset/types/AssetSummaryQuery.types';
+import { timeOutPeriod } from '../../../../constants/global.constant';
 
 test.describe('Asset Summary Table', () => {
     let dashboard: DashboardPage;
