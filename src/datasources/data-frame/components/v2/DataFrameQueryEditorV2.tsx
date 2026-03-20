@@ -801,7 +801,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
             )}
 
             {migratedQuery.type === DataFrameQueryType.Properties && (
-                <div className="properties-section">
+                <div className="property-selection-section">
                     {isPropertiesNotSelected && (
                         <Alert 
                             title='Error' 
