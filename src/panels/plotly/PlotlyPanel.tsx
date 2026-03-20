@@ -32,6 +32,7 @@ interface Props extends PanelProps<PanelOptions> {}
 export const PlotlyPanel: React.FC<Props> = (props) => {
   const { data, width, height, options, timeRange, onOptionsChange } = props;
   const [menu, setMenu] = useState<MenuState>({ x: 0, y: 0, show: false, items: [] });
+  const [dragMode, setDragMode] = useState<Plotly.Layout['dragmode']>('zoom');
   const theme = useTheme2();
 
   const traceColors = useTraceColors(theme);
@@ -51,6 +52,39 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const dashboardTimeTo = timeRange.to.isValid() ? timeRange.to.valueOf() : undefined;
   const panelXAxisMin = options.xAxis.min;
   const panelXAxisMax = options.xAxis.max;
+
+  useEffect(() => {
+    if (dragMode === false) {
+      return;
+    }
+
+    const isSelectionDragMode = ['lasso', 'select'].includes(dragMode);
+
+    if (!isSelectionDragMode) {
+      return;
+    }
+
+    const isPlotTypeSupportsSelectionDragMode = (plotType: string) => {
+      return ['bar', 'points'].includes(plotType);
+    };
+
+    const isMainSeriesSupportsSelectionDragMode =
+      isPlotTypeSupportsSelectionDragMode(options.series.plotType);
+    const isSecondarySeriesSupportsSelectionDragMode = options.showYAxis2 &&
+      isPlotTypeSupportsSelectionDragMode(options.series2.plotType);
+
+    if (
+      !isMainSeriesSupportsSelectionDragMode
+      && !isSecondarySeriesSupportsSelectionDragMode
+    ) {
+      setDragMode('zoom');
+    }
+  }, [
+    dragMode,
+    options.series.plotType,
+    options.series2.plotType,
+    options.showYAxis2
+  ]);
 
   useEffect(() => {
     if (
@@ -205,6 +239,10 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   };
 
   const handlePlotRelayout = (event: Readonly<Plotly.PlotRelayoutEvent>) => {
+    if (event.dragmode !== undefined) {
+      setDragMode(event.dragmode);
+    }
+
     const { "xaxis.range[0]": xAxisMin, "xaxis.range[1]": xAxisMax, "xaxis.autorange": autoRange } = event;
 
     if (autoRange) {
@@ -362,7 +400,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           height,
           annotations:
             plotData.length === 0 || !plotData.find((d) => d.y?.length) ? [{ text: 'No data', showarrow: false }] : [],
-          ...getLayout(theme, traceColors, effectiveOptions, plotData, axisLabels),
+          ...getLayout(theme, traceColors, effectiveOptions, plotData, axisLabels, dragMode),
         }}
         config={getConfig(options, handleImageDownload)}
         onClick={handlePlotClick}
@@ -523,7 +561,7 @@ const getConfig = (options: PanelOptions, handleImageDownload: (gd: PlotlyHTMLEl
   showTips: false,
 });
 
-const getLayout = (theme: GrafanaTheme2, traceColors: string[], options: PanelOptions, data: Array<Partial<PlotData>>, axisLabels: AxisLabels) => {
+const getLayout = (theme: GrafanaTheme2, traceColors: string[], options: PanelOptions, data: Array<Partial<PlotData>>, axisLabels: AxisLabels, dragMode: Plotly.Layout['dragmode']) => {
   const originalAxisTitleX = getTemplateSrv().replace(options.xAxis.title) || axisLabels.xAxis;
   const originalAxisTitleY = getTemplateSrv().replace(options.yAxis.title) || axisLabels.yAxis.join(', ');
   const xAxisOptions = options.displayVertically ? options.xAxis : options.yAxis;
@@ -606,6 +644,7 @@ const getLayout = (theme: GrafanaTheme2, traceColors: string[], options: PanelOp
     legend: getLegendLayout(options.legendPosition, showYAxis2, !!xAxisOptions.title),
     barmode: options.series.stackBars ? 'stack' : 'group',
     hovermode: 'closest',
+    dragmode: dragMode,
   };
 
   return layout;
