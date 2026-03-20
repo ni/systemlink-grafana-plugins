@@ -1951,55 +1951,26 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         const projections = [...selectedStandardProperties]
             .map(property => DataTableProjectionLabelLookup[property].projection);
-        const projectionExcludingId = projections
-            .filter(projection => projection !== DataTableProjections.Id);
         const filters = {
             resultFilter: processedQuery.resultFilter,
             dataTableFilter: processedQuery.dataTableFilter,
             columnFilter: processedQuery.columnFilter
         };
 
-        const cachedPropertiesQuery = this.propertiesQueryCache.get(processedQuery.refId);
-        const requestInputs = JSON.stringify({
-            filters,
-            projections,
-            take: processedQuery.take,
-        });
-
         const selectedProperties = [
             ...selectedStandardProperties,
             ...selectedDataTableProperties.customProperties,
             ...selectedColumnProperties.customProperties,
         ];
-        const shouldRequeryProperties = !cachedPropertiesQuery 
-            || cachedPropertiesQuery.requestInputs !== requestInputs 
-            || _.isEqual(cachedPropertiesQuery.selectedProperties, selectedProperties);
-        let tables$ = of(cachedPropertiesQuery?.response ?? []);
-        if (shouldRequeryProperties) {
-            tables$ = this.queryTables$(
-                filters,
-                processedQuery.take,
-                projectionExcludingId
-            ).pipe(
-                catchError(error => {
-                    this.propertiesQueryCache.delete(processedQuery.refId);
-                    throw error;
-                })
-            );
-        }
+
+        const tables$ = this.getTables$(
+            processedQuery,
+            filters,
+            projections,
+            selectedProperties
+        );
 
         const flattenedTablesWithColumns$ = tables$.pipe(
-            tap(response => {
-                const updatedPropertiesQueryCache: PropertiesQueryCache = {
-                    requestInputs,
-                    selectedProperties: selectedProperties,
-                    response
-                };
-                this.propertiesQueryCache.set(
-                    processedQuery.refId,
-                    updatedPropertiesQueryCache
-                );
-            }),
             map(tables => this.flattenTablesWithColumns(tables))
         );
         const workspaces$ = from(this.loadWorkspaces());
@@ -2101,6 +2072,69 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
 
         return dataFrame$;
+    }
+
+    private getTables$(
+        processedQuery: ValidDataFrameQueryV2,
+        filters: CombinedFilters,
+        projections: DataTableProjections[],
+        selectedProperties: string[]
+    ): Observable<TableProperties[]> {
+        const propertiesQueryCache = this.propertiesQueryCache.get(processedQuery.refId);
+        const requestInputs = JSON.stringify({
+            filters,
+            projections,
+            take: processedQuery.take,
+        });
+
+        const isOnlyCustomPropertiesChanged = this.isOnlyCustomPropertySelectionsChanged(
+            propertiesQueryCache,
+            requestInputs,
+            selectedProperties
+        );
+        if (isOnlyCustomPropertiesChanged) {
+            return of(propertiesQueryCache!.response);
+        }
+
+        const projectionExcludingId = projections
+            .filter(projection => projection !== DataTableProjections.Id);
+        return this.queryTables$(
+            filters,
+            processedQuery.take,
+            projectionExcludingId,
+        ).pipe(
+            tap(response => {
+                
+                const updatedPropertiesQueryCache: PropertiesQueryCache = {
+                    requestInputs,
+                    selectedProperties,
+                    response
+                };
+                this.propertiesQueryCache.set(
+                    processedQuery.refId,
+                    updatedPropertiesQueryCache
+                );
+            }),
+            catchError(error => {
+                this.propertiesQueryCache.delete(processedQuery.refId);
+                throw error;
+            })
+        );
+    }
+
+    private isOnlyCustomPropertySelectionsChanged(
+        propertiesQueryCache: PropertiesQueryCache | undefined,
+        requestInputs: string,
+        selectedProperties: string[]
+    ): boolean {
+        if (
+            !propertiesQueryCache
+            || propertiesQueryCache.requestInputs !== requestInputs
+        ) {
+            return false;
+        }
+
+        return !_.isEqual(propertiesQueryCache.selectedProperties, selectedProperties);
     }
 
     private areSelectedCustomPropertiesValid(
