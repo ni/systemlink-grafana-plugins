@@ -1,6 +1,4 @@
-import { time } from "console";
 import { Page } from "playwright/test";
-import { timeOutPeriod } from "../../../../constants/global.constant";
 
 export class DashboardVariableBaseComponent {
     readonly page: Page;
@@ -21,14 +19,6 @@ export class DashboardVariableBaseComponent {
         return this.page.getByTestId('data-testid Variable editor Apply button');
     }
 
-    public get runQueryButton() {
-        return this.page.getByTestId('data-testid Variable editor Run Query button');
-    }
-
-    public get previewOfValuesText() {
-        return this.page.getByRole('heading', { name: 'Preview of values' });
-    }
-
     async setVariableName(name: string): Promise<void> {
         await this.nameInputField.fill(name);
     }
@@ -40,10 +30,5 @@ export class DashboardVariableBaseComponent {
 
     async applyVariableChanges(): Promise<void> {
         await this.applyButton.click();
-    }
-
-    async pressRunQueryButton(): Promise<void> {
-        await this.runQueryButton.click();
-        await this.previewOfValuesText.waitFor({ state: 'visible', timeout: timeOutPeriod });
     }
 }

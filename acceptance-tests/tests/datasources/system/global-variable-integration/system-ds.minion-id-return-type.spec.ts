@@ -31,7 +31,7 @@ test.describe('Systems data source with minion id return type', () => {
             await dashboard.settings.addNewVariable();
             await dashboard.settings.systemVariable.setVariableName('id');
             await dashboard.settings.systemVariable.selectDataSource(createdDataSourceName);
-            await dashboard.settings.systemVariable.pressRunQueryButton();
+            await dashboard.settings.systemVariable.selectQueryReturnType('Minion Id', 'Minion Id');
             await dashboard.settings.systemVariable.applyVariableChanges();
 
             expect(dashboard.settings.createdVariable('id')).toBeDefined();
