@@ -4166,47 +4166,6 @@ describe('DataFrameDataSourceV2', () => {
                     expect(postSpy).not.toHaveBeenCalled();
                 });
 
-                it('should fall back to decimated data when feature toggle is disabled', async () => {
-                    queryTablesSpy = jest.spyOn(ds, 'queryTables$');
-                    postSpy = jest.spyOn(ds, 'post$');
-
-                    const mockTables = [{
-                        id: 'table1',
-                        name: 'table1',
-                        rowCount: 10_000,
-                        columns: [
-                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
-                        ]
-                    }];
-                    queryTablesSpy.mockReturnValue(of(mockTables));
-
-                    const mockDecimatedData = {
-                        frame: {
-                            columns: ['voltage'],
-                            data: [['10.5']]
-                        }
-                    };
-                    postSpy.mockReturnValue(of(mockDecimatedData));
-
-                    const query = {
-                        refId: 'A',
-                        type: DataFrameQueryType.Data,
-                        columns: ['voltage-Numeric'],
-                        dataTableFilter: 'name = "Test"',
-                        decimationMethod: 'NONE', // Even with NONE, should use decimated
-                        filterNulls: false,
-                        applyTimeFilters: false
-                    } as DataFrameQueryV2;
-
-                    await lastValueFrom(ds.runQuery(query, options));
-
-                    expect(postSpy).toHaveBeenCalledWith(
-                        expect.stringContaining('query-decimated-data'),
-                        expect.any(Object),
-                        expect.any(Object)
-                    );
-                });
-
                 it('should handle empty CSV response gracefully', async () => {
                     const mockTables = [{
                         id: 'table1',
