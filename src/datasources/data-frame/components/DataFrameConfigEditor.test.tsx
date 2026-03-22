@@ -40,7 +40,7 @@ describe('DataFrameConfigEditor', () => {
     });
 
     test('should update the highResolutionZoom feature toggles option when it is toggled', async () => {
-        const highResolutionZoomToggle = screen.getAllByRole('switch')[1];
+        const highResolutionZoomToggle = screen.getAllByRole('switch')[0];
         const expectedJsonData = {
             "jsonData": { 
                 "featureToggles": { 
