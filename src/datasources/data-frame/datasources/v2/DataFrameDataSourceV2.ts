@@ -1,25 +1,31 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, QueryResultMetaNotice, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL, CustomPropertyOptions, PropertySelections, ALL_STANDARD_PROPERTIES } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, CUSTOM_PROPERTY_SUFFIX } from "datasources/data-frame/constants";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL, CustomPropertyOptions, PropertySelections, ALL_STANDARD_PROPERTIES, PropertiesQueryCache } from "../../types";
+import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, CUSTOM_PROPERTY_SUFFIX, propertiesCacheTTL } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
-import { catchError, combineLatestWith, concatMap, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap, takeUntil, Subject } from "rxjs";
+import { catchError, combineLatestWith, concatMap, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap, takeUntil, Subject, tap } from "rxjs";
 import { ResultsQueryBuilderFieldNames } from "shared/components/ResultsQueryBuilder/ResultsQueryBuilder.constants";
 import { replaceVariables } from "core/utils";
 import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
 import { QueryBuilderOperations } from "core/query-builder.constants";
 import { DataFrameQueryParamsHandler } from "./DataFrameQueryParamsHandler";
 import Papa from 'papaparse';
+import TTLCache from "@isaacs/ttlcache";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
     private scopedVars: ScopedVars = {};
     private isHighResolutionZoomFeatureEnabled: boolean;
+    private readonly propertiesQueryCache: TTLCache<string, PropertiesQueryCache> = new TTLCache(
+        {
+            ttl: propertiesCacheTTL
+        }
+    );
 
     public constructor(
         public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
@@ -1941,17 +1947,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         const projections = [...selectedStandardProperties]
             .map(property => DataTableProjectionLabelLookup[property].projection);
-        const projectionExcludingId = projections
-            .filter(projection => projection !== DataTableProjections.Id);
-        const filters = {
-            resultFilter: processedQuery.resultFilter,
-            dataTableFilter: processedQuery.dataTableFilter,
-            columnFilter: processedQuery.columnFilter
-        };
-        const tables$ = this.queryTables$(
-            filters,
-            processedQuery.take,
-            projectionExcludingId
+        const tables$ = this.getTables$(
+            processedQuery,
+            projections
         );
         const flattenedTablesWithColumns$ = tables$.pipe(
             map(tables => this.flattenTablesWithColumns(tables))
@@ -2055,6 +2053,75 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
 
         return dataFrame$;
+    }
+
+    private getTables$(
+        processedQuery: ValidDataFrameQueryV2,
+        projections: DataTableProjections[]
+    ): Observable<TableProperties[]> {
+        const propertiesQueryCache = this.propertiesQueryCache.get(processedQuery.refId);
+        const filters = {
+            resultFilter: processedQuery.resultFilter,
+            dataTableFilter: processedQuery.dataTableFilter,
+            columnFilter: processedQuery.columnFilter
+        };
+        const requestInputs = JSON.stringify({
+            filters,
+            take: processedQuery.take,
+            projections,
+        });
+        const selectedProperties: string[] = [
+            ...processedQuery.dataTableProperties,
+            ...processedQuery.columnProperties
+        ];
+
+        const isOnlyCustomPropertiesChanged = this.isOnlyCustomPropertySelectionsChanged(
+            propertiesQueryCache,
+            requestInputs,
+            selectedProperties
+        );
+        if (isOnlyCustomPropertiesChanged) {
+            return of(propertiesQueryCache!.response);
+        }
+
+        const projectionExcludingId = projections
+            .filter(projection => projection !== DataTableProjections.Id);
+        return this.queryTables$(
+            filters,
+            processedQuery.take,
+            projectionExcludingId,
+        ).pipe(
+            tap(response => {
+                const updatedPropertiesQueryCache: PropertiesQueryCache = {
+                    requestInputs,
+                    selectedProperties,
+                    response
+                };
+                this.propertiesQueryCache.set(
+                    processedQuery.refId,
+                    updatedPropertiesQueryCache
+                );
+            }),
+            catchError(error => {
+                this.propertiesQueryCache.delete(processedQuery.refId);
+                throw error;
+            })
+        );
+    }
+
+    private isOnlyCustomPropertySelectionsChanged(
+        propertiesQueryCache: PropertiesQueryCache | undefined,
+        requestInputs: string,
+        selectedProperties: string[]
+    ): boolean {
+        if (
+            !propertiesQueryCache
+            || propertiesQueryCache.requestInputs !== requestInputs
+        ) {
+            return false;
+        }
+
+        return !_.isEqual(propertiesQueryCache.selectedProperties, selectedProperties);
     }
 
     private areSelectedCustomPropertiesValid(

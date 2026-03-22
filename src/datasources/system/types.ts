@@ -24,6 +24,7 @@ export interface SystemVariableQuery {
 export interface SystemSummary {
   connectedCount: number;
   disconnectedCount: number;
+  virtualCount: number;
 }
 
 export interface SystemProperties {
