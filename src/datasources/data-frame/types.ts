@@ -67,15 +67,6 @@ export const defaultVariableQueryV2: Omit<ValidDataFrameVariableQuery, 'refId'> 
   columnFilter: ''
 };
 
-export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
-  type: DataFrameQueryType.Data,
-  tableId: '',
-  columns: [],
-  decimationMethod: 'LOSSY',
-  filterNulls: false,
-  applyTimeFilters: false
-};
-
 export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
   queryUndecimatedData: false,
   highResolutionZoom: false
@@ -266,11 +257,9 @@ export const metadataFieldOptions: Option[] = [
   { label: DATA_TABLE_NAME_LABEL, value: DATA_TABLE_NAME_FIELD, group: METADATA_GROUP }
 ];
 
-export type ValidDataFrameQuery = ValidDataFrameQueryV1 | ValidDataFrameQueryV2;
+export type ValidDataFrameQuery = ValidDataFrameQueryV2;
 
 export type ValidDataFrameVariableQuery = DataFrameVariableQueryV2 & Required<Omit<DataFrameVariableQueryV2, keyof DataQuery>>;
-
-export type ValidDataFrameQueryV1 = DataFrameQueryV1 & Required<Omit<DataFrameQueryV1, keyof DataQuery>>;
 
 export type ValidDataFrameQueryV2 = DataFrameQueryV2 & Required<Omit<DataFrameQueryV2, keyof DataQuery>>;
 
