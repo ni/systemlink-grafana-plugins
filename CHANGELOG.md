@@ -1,3 +1,9 @@
+## [4.142.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.142.1...v4.142.2) (2026-03-23)
+
+### Bug Fixes
+
+* **dataframe:** Remove undecimated data feature flag ([#707](https://github.com/ni/systemlink-grafana-plugins/issues/707)) ([004a0f8](https://github.com/ni/systemlink-grafana-plugins/commit/004a0f86baaa29637f002c913b455fae602cc6f4))
+
 ## [4.142.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.142.0...v4.142.1) (2026-03-20)
 
 ### Bug Fixes
