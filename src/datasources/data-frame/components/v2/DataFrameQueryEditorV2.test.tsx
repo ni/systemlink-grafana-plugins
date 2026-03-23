@@ -3703,9 +3703,7 @@ describe("DataFrameQueryEditorV2", () => {
                     parseColumnIdentifier: mockParseColumnIdentifier,
                     instanceSettings: {
                         jsonData: {
-                            featureToggles: {
-                                queryUndecimatedData: true
-                            }
+                            featureToggles: {}
                         }
                     }
                 } as any;
@@ -3779,9 +3777,7 @@ describe("DataFrameQueryEditorV2", () => {
                     parseColumnIdentifier: mockParseColumnIdentifier,
                     instanceSettings: {
                         jsonData: {
-                            featureToggles: {
-                                queryUndecimatedData: true
-                            }
+                            featureToggles: {}
                         }
                     }
                 } as any;
