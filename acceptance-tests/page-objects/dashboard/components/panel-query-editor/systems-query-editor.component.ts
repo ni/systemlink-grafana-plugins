@@ -1,5 +1,6 @@
 import { Page, Locator } from '@playwright/test';
-import { pressEnter } from '../../../../utils/keyboard-utilities';
+import { pressEnter, pressEscape } from '../../../../utils/keyboard-utilities';
+import { fieldsWithGetByTestIdSelectorForSystemsQueryEditor, getByLabelSelectorFieldsForSystemsQueryEditor } from '../../../../constants/systems-properties.constant';
 
 export class SystemsQueryEditorComponent {
     readonly page: Page;
@@ -24,11 +25,32 @@ export class SystemsQueryEditorComponent {
         return this.page.getByText('Table view');
     }
 
+    public get addGroupFilterButton(): Locator {
+        return this.page.getByRole('button', { name: 'Add group' });
+    }
+
+    public get andFilterGroupButton(): Locator {
+        return this.page.getByLabel('And', { exact: true }).getByText('And');
+    }
+
+    public get orFilterGroupButton(): Locator {
+        return this.page.getByText('Or', { exact: true });
+    }
+
+    public get allFiltersWithOperators(): Locator {
+        return this.page.locator('.smart-scroll-viewer-content-container');
+    }
+
     public getQueryType(queryType: string): Locator {
         return this.page.getByRole('radio', { name: queryType });
     }
 
     public selectQueryBuilderPropertyOption(optionName: string): Locator {
+        if (fieldsWithGetByTestIdSelectorForSystemsQueryEditor.includes(optionName)) {
+            return this.page.getByTestId(`query-editor-row`).getByText(optionName);
+        } else if (getByLabelSelectorFieldsForSystemsQueryEditor.includes(optionName)) {
+            return this.page.getByLabel(optionName, { exact: true }).getByText(optionName);
+        }
         return this.page.getByRole('option', { name: optionName }).locator('a');
     }
 
@@ -41,14 +63,18 @@ export class SystemsQueryEditorComponent {
     }
 
     async addFilter(property: string, operation: string, value: string): Promise<void> {
-        await this.queryBuilderPropertyField.click();
+        await this.queryBuilderPropertyField.last().click();
+        if (!(this.selectQueryBuilderPropertyOption('Workspace').isVisible())) {
+            await pressEscape(this.page);
+            await this.queryBuilderPropertyField.last().click();
+        }
         await this.selectQueryBuilderPropertyOption(property).click();
         await this.page.getByRole('option', { name: property }).waitFor({ state: 'hidden' });
         // The library makes the Operator field unclickable via CSS (pointer-events: none).
         // Using dispatchEvent bypasses this restriction and fires the event directly on the element.
-        await this.queryBuilderOperationField.dispatchEvent('pointerdown', { bubbles: true, isPrimary: true });
-        await this.page.getByText(operation.toLowerCase()).click();
-        await this.queryBuilderValueField.click();
+        await this.queryBuilderOperationField.last().dispatchEvent('pointerdown', { bubbles: true, isPrimary: true });
+        await this.page.getByRole('option', { name: operation }).click();
+        await this.queryBuilderValueField.last().click();
         await this.page.keyboard.type(value);
         await pressEnter(this.page);
     }
@@ -64,5 +90,14 @@ export class SystemsQueryEditorComponent {
 
     async selectQueryType(queryType: string): Promise<void> {
         await this.getQueryType(queryType).click();
+    }
+
+    async addFilterGroup(operator: string): Promise<void> {
+        await this.addGroupFilterButton.click();
+        if (operator.toLowerCase() === 'and') {
+            await this.andFilterGroupButton.click();
+        } else if (operator.toLowerCase() === 'or') {
+            await this.orFilterGroupButton.click();
+        }
     }
 }

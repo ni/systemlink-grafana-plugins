@@ -4,6 +4,7 @@ import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.page
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { systemsColumn } from '../../../../constants/systems-properties.constant';
 import { timeOutPeriod } from '../../../../constants/global.constant';
+import { pressEnter } from '../../../../utils/keyboard-utilities';
 
 test.describe('Systems data source with minion id return type', () => {
     let dashboard: DashboardPage;
@@ -91,6 +92,24 @@ test.describe('Systems data source with minion id return type', () => {
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.ip_address, '10.5.136.55')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.workspace, 'workspace2')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.scan_code, 'scanCode2')).toBeTruthy();
+        });
+
+        test('should add complex filter', async () => {
+            await dashboard.panel.systemsQueryEditor.addFilterGroup('And');
+            await dashboard.panel.systemsQueryEditor.addFilter('Connection status', 'equals', 'Disconnected');
+            await pressEnter(dashboard.page);
+
+            await expect(dashboard.panel.table.secondFilterRow).toContainText('Connection status');
+            await expect(dashboard.panel.table.secondFilterRow).toContainText('equals');
+            await expect(dashboard.panel.table.secondFilterRow).toContainText('Disconnected');
+
+            await dashboard.panel.systemsQueryEditor.addFilterGroup('Or');
+            await dashboard.panel.systemsQueryEditor.addFilter('Locked status', 'equals', 'True');
+            await pressEnter(dashboard.page);
+
+            await expect(dashboard.panel.table.thirdFilterRow).toContainText('Locked status');
+            await expect(dashboard.panel.table.thirdFilterRow).toContainText('equals');
+            await expect(dashboard.panel.table.thirdFilterRow).toContainText('True');
         });
     });
 });

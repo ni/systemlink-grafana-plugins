@@ -11,3 +11,6 @@ export enum systemsColumn {
     workspace = 'workspace',
     scan_code = 'scan code',
 }
+
+export const fieldsWithGetByTestIdSelectorForSystemsQueryEditor = ['Alias', 'Locked status', 'Model', 'Operating system', 'Scan code', 'Vendor', 'Workspace'];
+export const getByLabelSelectorFieldsForSystemsQueryEditor = ['Connection status', 'Minion ID'];

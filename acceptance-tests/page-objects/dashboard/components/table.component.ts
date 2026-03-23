@@ -11,6 +11,14 @@ export class Table {
         return this.page.getByRole('group').first();
     }
 
+    public get secondFilterRow(): Locator {
+        return this.page.getByRole('group').nth(2);
+    }
+
+    public get thirdFilterRow(): Locator {
+        return this.page.getByRole('group').nth(4);
+    }
+
     public get getTable(): Locator {
         return this.page.getByTestId('data-testid table body');
     }
