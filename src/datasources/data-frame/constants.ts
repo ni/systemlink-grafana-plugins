@@ -24,6 +24,8 @@ export const decimationNoneOption = {
   description: nbsp`Data in full resolution without decimation`,
 };
 
+export const decimationOptions = [decimationNoneOption, ...decimationMethods];
+
 export const errorCodes: { [key: number]: string; } = {
   [-255134]: 'Invalid table ID',
   [-255130]: 'Table does not exist',
