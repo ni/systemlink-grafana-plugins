@@ -240,7 +240,7 @@ describe('ListAlarmsQueryHandler', () => {
               name: 'Acknowledged on',
               type: 'time',
               values: ['2025-09-16T10:30:00Z'],
-              config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
+              config: { unit: 'time:YYYY-MM-DD HH:mm:ss' },
             },
             {
               name: 'Acknowledged by',
@@ -713,6 +713,7 @@ describe('ListAlarmsQueryHandler', () => {
         const result = await datastore.runQuery(query, options);
 
         const expectedTimeFormat = 'time:YYYY-MM-DD HH:mm:ss';
+        expect(result.fields).toBeDefined();
         result.fields?.forEach(field => {
           expect(field.type).toBe('time');
           expect(field.config).toEqual({ unit: expectedTimeFormat });

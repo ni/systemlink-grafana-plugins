@@ -241,7 +241,9 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
         values: fieldValues, 
         type: fieldType, 
         ...(fieldType === FieldType.time && {
-          config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
+          config: { 
+            unit: 'time:YYYY-MM-DD HH:mm:ss'
+          }
         })
       };
     });
