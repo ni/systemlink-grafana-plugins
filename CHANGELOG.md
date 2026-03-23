@@ -1,3 +1,9 @@
+## [4.142.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.142.2...v4.142.3) (2026-03-23)
+
+### Bug Fixes
+
+* **alarms:** add time format configuration to time fields ([#709](https://github.com/ni/systemlink-grafana-plugins/issues/709)) ([c9eccbc](https://github.com/ni/systemlink-grafana-plugins/commit/c9eccbc7f6c2950d6ffda5aafe1b3b8d19b13b8a))
+
 ## [4.142.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.142.1...v4.142.2) (2026-03-23)
 
 ### Bug Fixes
