@@ -236,7 +236,14 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
             return value ?? '';
         }
       });
-      return { name: fieldName, values: fieldValues, type: fieldType };
+      return { 
+        name: fieldName, 
+        values: fieldValues, 
+        type: fieldType, 
+        ...(fieldType === FieldType.time && {
+          config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
+        })
+      };
     });
 
     return mappedFields;

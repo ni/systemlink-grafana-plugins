@@ -240,6 +240,7 @@ describe('ListAlarmsQueryHandler', () => {
               name: 'Acknowledged on',
               type: 'time',
               values: ['2025-09-16T10:30:00Z'],
+              config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
             },
             {
               name: 'Acknowledged by',
@@ -310,16 +311,19 @@ describe('ListAlarmsQueryHandler', () => {
               name: 'Last occurrence',
               type: 'time',
               values: ['2025-09-16T09:00:00Z'],
+              config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
             },
             {
               name: 'Last transition occurrence',
               type: 'time',
               values: ['2025-09-16T10:00:00Z'],
+              config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
             },
             {
               name: 'First occurrence',
               type: 'time',
               values: ['2025-09-16T09:00:00Z'],
+              config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
             },
             {
               name: 'Properties',
@@ -350,6 +354,7 @@ describe('ListAlarmsQueryHandler', () => {
               name: 'Updated',
               type: 'time',
               values: ['2025-09-16T10:29:00Z'],
+              config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
             },
             {
               name: 'Workspace',
@@ -661,29 +666,83 @@ describe('ListAlarmsQueryHandler', () => {
               name: 'First occurrence',
               type: 'time',
               values: ['2019-05-20T09:00:00Z', null, null],
+              config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
             },
             {
               name: 'Acknowledged on',
               type: 'time',
               values: ['2021-11-20T10:30:00Z', null, null],
+              config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
             },
             {
               name: 'Updated',
               type: 'time',
               values: ['2025-10-31T23:59:59Z', null, null],
+              config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
             },
             {
               name: 'Last occurrence',
               type: 'time',
               values: ['2001-09-09T09:00:00Z', null, null],
+              config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
             },
             {
               name: 'Last transition occurrence',
               type: 'time',
               values: ['2001-04-22T23:59:59Z', null, null],
+              config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
             },
           ],
         });
+      });
+
+      it('should add config with YYYY-MM-DD HH:mm:ss format to all time fields', async () => {
+        const query = buildAlarmsQuery({
+          properties: [
+            AlarmsSpecificProperties.occurredAt,
+            AlarmsSpecificProperties.acknowledgedAt,
+            AlarmsSpecificProperties.updatedAt,
+            AlarmsSpecificProperties.mostRecentSetOccurredAt,
+            AlarmsSpecificProperties.mostRecentTransitionOccurredAt,
+          ],
+        });
+        jest
+          .spyOn(datastore as any, 'queryAlarmsInBatches')
+          .mockResolvedValueOnce(buildAlarmsResponse([sampleAlarm]));
+
+        const result = await datastore.runQuery(query, options);
+
+        const expectedTimeFormat = 'time:YYYY-MM-DD HH:mm:ss';
+        result.fields?.forEach(field => {
+          expect(field.type).toBe('time');
+          expect(field.config).toEqual({ unit: expectedTimeFormat });
+        });
+      });
+
+      it('should add config with unit only to time field types', async () => {
+        const query = buildAlarmsQuery({
+          properties: [
+            AlarmsSpecificProperties.occurredAt,
+            AlarmsSpecificProperties.displayName,
+            AlarmsSpecificProperties.acknowledged,
+            AlarmsSpecificProperties.transitionOverflowCount,
+          ],
+        });
+        jest
+          .spyOn(datastore as any, 'queryAlarmsInBatches')
+          .mockResolvedValueOnce(buildAlarmsResponse([sampleAlarm]));
+
+        const result = await datastore.runQuery(query, options);
+
+        const timeField = result.fields?.find(f => f.name === 'First occurrence');
+        const stringField = result.fields?.find(f => f.name === 'Alarm name');
+        const booleanField = result.fields?.find(f => f.name === 'Acknowledged');
+        const numberField = result.fields?.find(f => f.name === 'Transition overflow count');
+
+        expect(timeField).toHaveProperty('config', { unit: 'time:YYYY-MM-DD HH:mm:ss' });
+        expect(stringField).not.toHaveProperty('config');
+        expect(booleanField).not.toHaveProperty('config');
+        expect(numberField).not.toHaveProperty('config');
       });
 
       it('should map keyword property correctly', async () => {
@@ -880,7 +939,7 @@ describe('ListAlarmsQueryHandler', () => {
             fields: [
               { name: 'Acknowledged', type: 'boolean', values: [true] },
               { name: 'Acknowledged by', type: 'string', values: ['user123'] },
-              { name: 'Acknowledged on', type: 'time', values: ['2025-09-16T10:30:00Z'] },
+              { name: 'Acknowledged on', type: 'time', values: ['2025-09-16T10:30:00Z'], config: { unit: 'time:YYYY-MM-DD HH:mm:ss' } },
               { name: 'Active', type: 'boolean', values: [true] },
               { name: 'Alarm ID', type: 'string', values: ['ALARM-001'] },
               { name: 'Alarm name', type: 'string', values: ['High Temperature Alarm'] },
@@ -890,12 +949,12 @@ describe('ListAlarmsQueryHandler', () => {
               { name: 'Created by', type: 'string', values: ['admin'] },
               { name: 'Current severity', type: 'string', values: ['High (3)'] },
               { name: 'Description', type: 'string', values: ['Alarm triggered when temperature exceeds safe limit.'] },
-              { name: 'First occurrence', type: 'time', values: ['2025-09-16T09:00:00Z'] },
+              { name: 'First occurrence', type: 'time', values: ['2025-09-16T09:00:00Z'], config: { unit: 'time:YYYY-MM-DD HH:mm:ss' } },
               { name: 'Highest severity', type: 'string', values: ['High (3)'] },
               { name: 'Instance ID', type: 'string', values: ['INST-001'] },
               { name: 'Keywords', type: 'other', values: [['temperature']] },
-              { name: 'Last occurrence', type: 'time', values: ['2025-09-16T09:00:00Z'] },
-              { name: 'Last transition occurrence', type: 'time', values: ['2025-09-16T10:00:00Z'] },
+              { name: 'Last occurrence', type: 'time', values: ['2025-09-16T09:00:00Z'], config: { unit: 'time:YYYY-MM-DD HH:mm:ss' } },
+              { name: 'Last transition occurrence', type: 'time', values: ['2025-09-16T10:00:00Z'], config: { unit: 'time:YYYY-MM-DD HH:mm:ss' } },
               { name: 'Properties', type: 'other', values: [{"location":"Lab-1"}] },
               { name: 'Resource type', type: 'string', values: [''] },
               { name: 'Source', type: 'string', values: [''] },
@@ -903,14 +962,14 @@ describe('ListAlarmsQueryHandler', () => {
               { name: 'Transition condition', type: 'string', values: ['Humidity'] },
               { name: 'Transition detail', type: 'string', values: ['Humidity back to normal'] },
               { name: 'Transition keywords', type: 'other', values: [['humidity', 'normal']] },
-              { name: 'Transition occurred at', type: 'time', values: ['2025-09-16T10:00:00Z'] },
+              { name: 'Transition occurred at', type: 'time', values: ['2025-09-16T10:00:00Z'], config: { unit: 'time:YYYY-MM-DD HH:mm:ss' } },
               { name: 'Transition overflow count', type: 'number', values: [0] },
               { name: 'Transition properties', type: 'other', values: [{"sensorId":"SENSOR-90"}] },
               { name: 'Transition severity', type: 'string', values: [''] },
               { name: 'Transition short text', type: 'string', values: ['Humidity Normal'] },
               { name: 'Transition type', type: 'string', values: ['CLEAR'] },
               { name: 'Transition value', type: 'string', values: ['Clear'] },
-              { name: 'Updated', type: 'time', values: ['2025-09-16T10:29:00Z'] },
+              { name: 'Updated', type: 'time', values: ['2025-09-16T10:29:00Z'], config: { unit: 'time:YYYY-MM-DD HH:mm:ss' } },
               { name: 'Workspace', type: 'string', values: ['Lab-1'] },
             ],
           });
@@ -946,11 +1005,13 @@ describe('ListAlarmsQueryHandler', () => {
                 name: 'First occurrence',
                 type: 'time',
                 values: ['2025-09-16T09:00:00Z', '2025-09-16T09:00:00Z'],
+                config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
               },
               {
                 name: 'Transition occurred at',
                 type: 'time',
                 values: ['2025-09-16T09:00:00Z', '2001-01-01T11:00:00Z'],
+                config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
               },
             ],
           });
@@ -1141,6 +1202,7 @@ describe('ListAlarmsQueryHandler', () => {
                 name: 'Transition occurred at',
                 type: 'time',
                 values: ['2025-09-16T09:00:00Z', '2025-09-16T10:00:00Z'],
+                config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
               },
               {
                 name: 'Transition properties',
@@ -1211,6 +1273,7 @@ describe('ListAlarmsQueryHandler', () => {
                 name: 'Transition occurred at',
                 type: 'time',
                 values: ['2025-09-16T09:00:00Z'],
+                config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
               },
               {
                 name: 'Transition properties',
@@ -1280,6 +1343,7 @@ describe('ListAlarmsQueryHandler', () => {
                 name: 'Transition occurred at',
                 type: 'time',
                 values: ['2025-09-16T09:00:00Z'],
+                config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
               },
               {
                 name: 'Transition properties',
@@ -1456,6 +1520,7 @@ describe('ListAlarmsQueryHandler', () => {
                 values: [
                   '2025-09-16T09:00:00Z',
                 ],
+                config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
               },
             ],
           });
@@ -1723,6 +1788,7 @@ describe('ListAlarmsQueryHandler', () => {
                 values: [
                   '2025-09-16T09:00:00Z',
                 ],
+                config: { unit: 'time:YYYY-MM-DD HH:mm:ss' }
               },
             ],
           });
