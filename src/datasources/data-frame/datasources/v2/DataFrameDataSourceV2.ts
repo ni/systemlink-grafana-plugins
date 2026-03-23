@@ -20,7 +20,6 @@ import TTLCache from "@isaacs/ttlcache";
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
     private scopedVars: ScopedVars = {};
-    private isQueryUndecimatedDataFeatureEnabled: boolean;
     private isHighResolutionZoomFeatureEnabled: boolean;
     private readonly propertiesQueryCache: TTLCache<string, PropertiesQueryCache> = new TTLCache(
         {
@@ -34,8 +33,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         public readonly templateSrv: TemplateSrv = getTemplateSrv()
     ) {
         super(instanceSettings, backendSrv, templateSrv);
-        this.isQueryUndecimatedDataFeatureEnabled = this.instanceSettings
-            .jsonData?.featureToggles?.queryUndecimatedData ?? false;
         this.isHighResolutionZoomFeatureEnabled = this.instanceSettings
             .jsonData?.featureToggles?.highResolutionZoom ?? false;
     }
@@ -1199,8 +1196,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private isUndecimatedDataQuery(query: ValidDataFrameQueryV2): boolean {
-        return this.isQueryUndecimatedDataFeatureEnabled
-            && query.decimationMethod === 'NONE';
+        return query.decimationMethod === 'NONE';
     }
 
     private getFieldsForDataQuery$(

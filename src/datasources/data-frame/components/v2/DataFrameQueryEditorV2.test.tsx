@@ -87,9 +87,7 @@ const renderComponent = (
         parseColumnIdentifier: mockParseColumnIdentifier,
         instanceSettings: {
             jsonData: {
-                featureToggles: {
-                    queryUndecimatedData: true
-                }
+                featureToggles: {}
             }
         },
         ...mockDatasource
@@ -1182,9 +1180,7 @@ describe("DataFrameQueryEditorV2", () => {
                             parseColumnIdentifier: mockParseColumnIdentifier,
                             instanceSettings: {
                                 jsonData: {
-                                    featureToggles: {
-                                        queryUndecimatedData: true
-                                    }
+                                    featureToggles: {}
                                 }
                             }
                         } as any;
@@ -1786,79 +1782,6 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(onChange).not.toHaveBeenCalled();
                             expect(onRunQuery).not.toHaveBeenCalled();
-                        });
-                    });
-                });
-
-                describe("when queryUndecimatedData feature flag is disabled", () => {
-                    let mockDatasource: Partial<DataFrameDataSource>;
-
-                    beforeEach(() => {
-                        cleanup();
-                        mockDatasource = {
-                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
-                            getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
-                                uniqueColumnsAcrossTables: [],
-                                commonColumnsAcrossTables: []
-                            }),
-                            transformDataTableQuery: jest.fn((filter: string) => filter),
-                            transformResultQuery: jest.fn((filter: string) => filter),
-                            transformColumnQuery: jest.fn((filter: string) => filter),
-                            hasRequiredFilters: mockHasRequiredFilters,
-                            parseColumnIdentifier: mockParseColumnIdentifier,
-                            instanceSettings: {
-                                jsonData: {
-                                    featureToggles: {
-                                        queryUndecimatedData: false
-                                    }
-                                }
-                            }
-                        } as unknown as Partial<DataFrameDataSource>;
-                    });
-
-                    it("should not include 'None' as a decimation method option", async () => {
-                        const user = userEvent.setup();
-
-                        renderComponent(
-                            { type: DataFrameQueryType.Data },
-                            '',
-                            '',
-                            [],
-                            [],
-                            undefined,
-                            {},
-                            mockDatasource
-                        );
-
-                        const decimationMethodField = screen.getAllByRole('combobox')[1];
-                        await user.click(decimationMethodField);
-
-                        await waitFor(() => {
-                            const options = within(document.body).getAllByRole('option');
-                            const optionTexts = options.map(opt => opt.textContent);
-                            expect(optionTexts.some(text => text?.startsWith('None'))).toBe(false);
-                        });
-                    });
-
-                    it("should not display undecimated record count field even when decimation method is 'NONE'", async () => {
-                        renderComponent(
-                            { 
-                                type: DataFrameQueryType.Data,
-                                decimationMethod: 'NONE'
-                            },
-                            '',
-                            '',
-                            [],
-                            [],
-                            undefined,
-                            {},
-                            mockDatasource
-                        );
-
-                        await waitFor(() => {
-                            const recordCountInput = screen.queryAllByRole('spinbutton');
-                            // Should have no record count inputs when feature flag is disabled
-                            expect(recordCountInput.length).toBe(0);
                         });
                     });
                 });
@@ -3780,9 +3703,7 @@ describe("DataFrameQueryEditorV2", () => {
                     parseColumnIdentifier: mockParseColumnIdentifier,
                     instanceSettings: {
                         jsonData: {
-                            featureToggles: {
-                                queryUndecimatedData: true
-                            }
+                            featureToggles: {}
                         }
                     }
                 } as any;
@@ -3856,9 +3777,7 @@ describe("DataFrameQueryEditorV2", () => {
                     parseColumnIdentifier: mockParseColumnIdentifier,
                     instanceSettings: {
                         jsonData: {
-                            featureToggles: {
-                                queryUndecimatedData: true
-                            }
+                            featureToggles: {}
                         }
                     }
                 } as any;
