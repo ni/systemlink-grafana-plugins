@@ -9678,7 +9678,7 @@ describe('DataFrameDataSourceV2', () => {
             expect(result).toBe(mockTables);
         });
 
-        it('should include result IDs and data table IDs and build query tables filter with substitutions', async () => {
+        it('should include result IDs and data table IDs in query tables filter with substitutions', async () => {
             const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
             await lastValueFrom(ds.queryTables$(filters));
 
@@ -9740,7 +9740,7 @@ describe('DataFrameDataSourceV2', () => {
                 return of({ tables: mockTables });
             });
 
-            const filters = { 
+            const filters = {
                 resultFilter: 'status = "Passed"',
                 dataTableFilter: ''
             };
