@@ -220,15 +220,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     return of([]);
                 }
 
-                const resultIds = results.map(({ id }) => id);
-                const allAssociatedDataTableIds = results.flatMap(
-                    ({ dataTableIds }) => dataTableIds || []
-                );
-                const uniqueDataTableIds = [...new Set(allAssociatedDataTableIds)];
-
+                const { resultIds, dataTableIds } = this.extractIdsFromResults(results);
                 const resultFilter = this.buildResultFilter(
                     resultIds,
-                    uniqueDataTableIds
+                    dataTableIds
                 );
                 const combinedFilter = this.buildCombinedFilter({
                     resultFilter,
@@ -236,7 +231,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     columnFilter: filters.columnFilter
                 });
 
-                const substitutionValues = [...resultIds, ...uniqueDataTableIds];
+                const substitutionValues = [...resultIds, ...dataTableIds];
 
                 return this.queryTablesInternal$(
                     combinedFilter,
@@ -2278,7 +2273,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 }
                 return response.results.map(result => ({
                     id: result.id,
-                    dataTableIds: result.dataTableIds ?? []
+                    dataTableIds: result.dataTableIds
                 }));
             }),
             catchError(error => {
@@ -2316,15 +2311,28 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             resultIds.length
         );
         return `(${resultIdFilter}) || (${dataTableIdFilter})`;
-    }
+    } 
 
-    
     private buildContainsFilter(fieldName: string, count: number, startIndex: number): string {
         const placeholders = Array.from(
             { length: count },
             (_, i) => `@${startIndex + i}`
         ).join(',');
         return `new[]{${placeholders}}.Contains(${fieldName})`;
+    }
+
+    private extractIdsFromResults(
+        results: ResultsResponseProperties[]
+    ): { resultIds: string[]; dataTableIds: string[] } {
+        const resultIds: string[] = [];
+        const dataTableIdSet = new Set<string>();
+
+        for (const { id, dataTableIds } of results) {
+            resultIds.push(id);
+            dataTableIds?.forEach(dataTableId => dataTableIdSet.add(dataTableId));
+        }
+
+        return { resultIds, dataTableIds: [...dataTableIdSet] };
     }
 
     private buildCombinedFilter(filters: CombinedFilters): string {
