@@ -1,11 +1,9 @@
 import { from, lastValueFrom, of } from 'rxjs';
 import { DataFrameDataSource } from './DataFrameDataSource';
-import { DataFrameDataSourceV1 } from './datasources/v1/DataFrameDataSourceV1';
 import { DataFrameDataSourceV2 } from './datasources/v2/DataFrameDataSourceV2';
 import { DataSourceInstanceSettings, TimeRange } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 
-jest.mock('./datasources/v1/DataFrameDataSourceV1');
 jest.mock('./datasources/v2/DataFrameDataSourceV2');
 
 const mockInstanceSettings: DataSourceInstanceSettings<any> = {
@@ -17,7 +15,6 @@ const mockInstanceSettings: DataSourceInstanceSettings<any> = {
 } as any;
 
 describe('DataFrameDataSource', () => {
-    let v1Mock: jest.Mocked<DataFrameDataSourceV1>;
     let v2Mock: jest.Mocked<DataFrameDataSourceV2>;
     let templateSrv: TemplateSrv;
     let backendSrv: BackendSrv;
@@ -28,30 +25,12 @@ describe('DataFrameDataSource', () => {
     };
 
     beforeEach(() => {
-        (DataFrameDataSourceV1 as unknown as jest.Mock).mockClear();
         (DataFrameDataSourceV2 as unknown as jest.Mock).mockClear();
         backendSrv = {} as BackendSrv;
         templateSrv = {
             getVariables: jest.fn(() => []),
             replace: jest.fn((input: string) => input),
         } as unknown as TemplateSrv;
-
-        v1Mock = {
-            defaultQuery: { value: 'v1-default' } as any,
-            runQuery: jest.fn().mockResolvedValue('v1-runQuery'),
-            shouldRunQuery: jest.fn().mockReturnValue(true),
-            metricFindQuery: jest.fn().mockResolvedValue(['v1-metric']),
-            getTableProperties: jest.fn().mockResolvedValue('v1-tableProps'),
-            getDecimatedTableData: jest.fn().mockResolvedValue('v1-decimated'),
-            queryTables$: jest.fn().mockReturnValue(of(['v1-tables'])),
-            queryTables: jest.fn().mockResolvedValue(['v1-tables']),
-            processQuery: jest.fn().mockReturnValue('v1-processed'),
-            prepareQuery: jest.fn().mockReturnValue('v1-prepared'),
-            processVariableQuery: jest.fn().mockReturnValue('v1-processed'),
-            transformDataTableQuery: jest.fn((query: string) => `v1-${query}`),
-            transformResultQuery: jest.fn((query: string) => `v1-${query}`),
-            transformColumnQuery: jest.fn((query: string) => `v1-${query}`),
-        } as any;
 
         v2Mock = {
             defaultQuery: { value: 'v2-default' } as any,
@@ -70,14 +49,12 @@ describe('DataFrameDataSource', () => {
             transformColumnQuery: jest.fn((query: string) => `v2-${query}`),
         } as any;
 
-        (DataFrameDataSourceV1 as unknown as jest.Mock).mockImplementation(() => v1Mock);
         (DataFrameDataSourceV2 as unknown as jest.Mock).mockImplementation(() => v2Mock);
     });
 
     it('should use DataFrameDataSourceV2', async () => {
         const ds = new DataFrameDataSource(mockInstanceSettings, backendSrv, templateSrv);
         expect(DataFrameDataSourceV2).toHaveBeenCalled();
-        expect(DataFrameDataSourceV1).not.toHaveBeenCalled();
 
         await expect(
             lastValueFrom(from(ds.runQuery({} as any, {} as any)))
