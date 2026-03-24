@@ -146,10 +146,10 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
 };
 
 export interface QueryResultsResponse {
-  results: TestResultResponse[];
+  results: ResultsResponseProperties[];
 }
 
-export interface TestResultResponse {
+export interface ResultsResponseProperties {
   id: string;
   dataTableIds: string[];
 }
