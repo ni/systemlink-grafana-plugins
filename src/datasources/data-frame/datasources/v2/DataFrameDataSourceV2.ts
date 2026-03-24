@@ -231,7 +231,10 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     columnFilter: filters.columnFilter
                 });
 
-                const substitutionValues = [...resultIds, ...dataTableIds];
+                const substitutionValues = [
+                    ...resultIds,
+                    ...dataTableIds
+                ];
 
                 return this.queryTablesInternal$(
                     combinedFilter,
