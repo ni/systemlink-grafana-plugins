@@ -9594,20 +9594,6 @@ describe('DataFrameDataSourceV2', () => {
         });
     });
 
-    describe('getTableProperties', () => {
-        it('should throw "Method not implemented."', async () => {
-            await expect(ds.getTableProperties()).rejects.toThrow('Method not implemented.');
-        });
-    });
-
-    describe('getDecimatedTableData', () => {
-        it('should throw "Method not implemented."', async () => {
-            await expect(
-                ds.getDecimatedTableData({} as any, [] as any, {} as any)
-            ).rejects.toThrow('Method not implemented.');
-        });
-    });
-
     describe('queryTables$', () => {
         let postMock$: jest.SpyInstance;
         const publishMock = jest.fn();
@@ -10009,15 +9995,6 @@ describe('DataFrameDataSourceV2', () => {
                     'The query to fetch data tables failed due to too many requests. Please try again later.'
                 ],
             });
-        });
-    });
-
-    describe('queryTables', () => {
-        it('should return empty list', async () => {
-            const result = await ds.queryTables('test-filter', 5, [
-                DataTableProjections.Name,
-            ]);
-            expect(result).toEqual([]);
         });
     });
 

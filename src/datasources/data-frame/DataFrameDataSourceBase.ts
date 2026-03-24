@@ -1,7 +1,6 @@
 import {
     DataSourceInstanceSettings,
     TestDataSourceResponse,
-    TimeRange,
 } from '@grafana/data';
 import { DataSourceBase } from 'core/DataSourceBase';
 import {
@@ -9,7 +8,6 @@ import {
     DataFrameDataSourceOptions,
     ValidDataFrameQuery,
     TableProperties,
-    TableDataRows,
     Column,
     DataTableProjections,
     ValidDataFrameVariableQuery,
@@ -57,26 +55,11 @@ export abstract class DataFrameDataSourceBase<
         return query as ValidDataFrameVariableQuery;
     }
 
-    public abstract getTableProperties(id?: string): Promise<TableProperties>;
-
-    public abstract getDecimatedTableData(
-        query: DataFrameDataQuery,
-        columns: Column[],
-        timeRange: TimeRange,
-        intervals?: number
-    ): Promise<TableDataRows>;
-
     public abstract queryTables$(
         filters: CombinedFilters,
         take?: number,
         projection?: DataTableProjections[]
     ): Observable<TableProperties[]>;
-
-    public abstract queryTables(
-        query: string,
-        take?: number,
-        projection?: DataTableProjections[]
-    ): Promise<TableProperties[]>;
 
     public async testDatasource(): Promise<TestDataSourceResponse> {
         await this.get(`${this.baseUrl}/tables`, { params: { take: 1 } });

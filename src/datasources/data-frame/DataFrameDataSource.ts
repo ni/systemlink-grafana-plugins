@@ -1,12 +1,10 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetricFindQueryOptions, MetricFindValue, TimeRange } from "@grafana/data";
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, LegacyMetricFindQueryOptions, MetricFindValue } from "@grafana/data";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
 import {
-  Column,
   DataFrameDataQuery,
   DataFrameDataSourceOptions,
   DataFrameVariableQuery,
   DataTableProjections,
-  TableDataRows,
   TableProperties,
   ValidDataFrameQuery,
   ValidDataFrameVariableQuery, DataFrameQuery,
@@ -80,33 +78,12 @@ export class DataFrameDataSource extends DataFrameDataSourceBase {
     return this.datasource.metricFindQuery(query, options);
   }
 
-  public async getTableProperties(id?: string): Promise<TableProperties> {
-    return this.datasource.getTableProperties(id);
-  }
-
-  public async getDecimatedTableData(
-    query: DataFrameDataQuery,
-    columns: Column[],
-    timeRange: TimeRange,
-    intervals?: number
-  ): Promise<TableDataRows> {
-    return this.datasource.getDecimatedTableData(query, columns, timeRange, intervals);
-  }
-
   public queryTables$(
     filters: CombinedFilters,
     take?: number,
     projection?: DataTableProjections[]
   ): Observable<TableProperties[]> {
     return this.datasource.queryTables$(filters, take, projection);
-  }
-
-  public queryTables(
-    query: string,
-    take?: number,
-    projection?: DataTableProjections[]
-  ): Promise<TableProperties[]> {
-    return this.datasource.queryTables(query, take, projection);
   }
 
   public processQuery(

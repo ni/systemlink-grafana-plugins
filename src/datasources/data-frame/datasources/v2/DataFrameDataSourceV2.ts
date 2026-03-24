@@ -191,20 +191,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         } as ValidDataFrameVariableQuery;
     }
 
-    async getTableProperties(_id?: string): Promise<TableProperties> {
-        throw new Error('Method not implemented.');
-    }
-
-    async getDecimatedTableData(
-        _query: DataFrameDataQuery,
-        _columns: Column[],
-        _timeRange: TimeRange,
-        _intervals?: number | undefined
-    ): Promise<TableDataRows> {
-        // TODO: Implement logic to fetch and return decimated table data based on the query, columns, time range, and intervals.
-        throw new Error('Method not implemented.');
-    }
-
     queryTables$(
         filters: CombinedFilters,
         take?: number,
@@ -271,14 +257,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 throw new Error(errorMessage);
             })
         );
-    }
-
-    queryTables(
-        filter: string,
-        take = TAKE_LIMIT,
-        projection?: DataTableProjections[]
-    ): Promise<TableProperties[]> {
-        return Promise.resolve([]);
     }
 
     public async getColumnOptionsWithVariables(
