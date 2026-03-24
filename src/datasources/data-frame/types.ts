@@ -151,7 +151,7 @@ export interface QueryResultsResponse {
 
 export interface ResultsResponseProperties {
   id: string;
-  dataTableIds: string[];
+  dataTableIds?: string[];
 }
 
 export const DataTableProjectionLabelLookup: Record<DataTableProperties, {

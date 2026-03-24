@@ -220,9 +220,9 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     return of([]);
                 }
 
-                const resultIds = results.map(result => result.id);
+                const resultIds = results.map(({ id }) => id);
                 const allAssociatedDataTableIds = results.flatMap(
-                    result => result.dataTableIds
+                    ({ dataTableIds }) => dataTableIds || []
                 );
                 const uniqueDataTableIds = [...new Set(allAssociatedDataTableIds)];
 
@@ -2300,13 +2300,21 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return '';
         }
 
-        const resultIdFilter = this.buildContainsFilter('testResultId', resultIds.length, 0);
+        const resultIdFilter = this.buildContainsFilter(
+            'testResultId',
+            resultIds.length,
+            0
+        );
 
         if (dataTableIds.length === 0) {
             return resultIdFilter;
         }
 
-        const dataTableIdFilter = this.buildContainsFilter('id', dataTableIds.length, resultIds.length);
+        const dataTableIdFilter = this.buildContainsFilter(
+            'id',
+            dataTableIds.length,
+            resultIds.length
+        );
         return `(${resultIdFilter}) || (${dataTableIdFilter})`;
     }
 
