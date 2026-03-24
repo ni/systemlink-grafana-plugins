@@ -9643,7 +9643,7 @@ describe('DataFrameDataSourceV2', () => {
             (ds as any).appEvents = { publish: publishMock };
         });
 
-        it('should extract result IDs and data table IDs and build filter with substitutions', async () => {
+        it('should include result IDs and data table IDs and build query tables filter with substitutions', async () => {
             const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
             await lastValueFrom(ds.queryTables$(filters));
 
@@ -9689,6 +9689,32 @@ describe('DataFrameDataSourceV2', () => {
             expect(result).toEqual([]);
             // Should not call DataFrames API when no results
             expect(postMock$).toHaveBeenCalledTimes(1);
+        });
+
+        it('should include only result IDs in filter when data table IDs are not present in Test Monitor API response', async () => {
+            postMock$.mockImplementation((url) => {
+                if (url.includes('query-results')) {
+                    return of({ results: [{ id: 'result-1' }, { id: 'result-2' }] });
+                }
+                return of({ tables: mockTables });
+            });
+
+            const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
+            await lastValueFrom(ds.queryTables$(filters));
+
+            expect(postMock$).toHaveBeenCalledWith(
+                `${ds.baseUrl}/query-tables`,
+                {
+                    interactive: true,
+                    orderBy: 'ROWS_MODIFIED_AT',
+                    orderByDescending: true,
+                    filter: '(new[]{@0,@1}.Contains(testResultId))',
+                    take: TAKE_LIMIT,
+                    projection: [DataTableProjections.RowsModifiedAt],
+                    substitutions: ['result-1', 'result-2']
+                },
+                { useApiIngress: true, showErrorAlert: false }
+            );
         });
 
         it('should not query result IDs when result filter is empty string', async () => {

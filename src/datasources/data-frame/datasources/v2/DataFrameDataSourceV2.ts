@@ -2300,22 +2300,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             return '';
         }
 
-        let parameterIndex = 0;
+        const resultIdFilter = this.buildContainsFilter('testResultId', resultIds.length, 0);
 
-        const resultIdPlaceholders = resultIds
-            .map(() => `@${parameterIndex++}`)
-            .join(',');
-        const resultIdFilter = `new[]{${resultIdPlaceholders}}.Contains(testResultId)`;
-
-        if (dataTableIds.length > 0) {
-            const dataTablePlaceholders = dataTableIds
-                .map(() => `@${parameterIndex++}`)
-                .join(',');
-            const dataTableIdFilter = `new[]{${dataTablePlaceholders}}.Contains(id)`;
-            return `(${resultIdFilter}) || (${dataTableIdFilter})`;
+        if (dataTableIds.length === 0) {
+            return resultIdFilter;
         }
 
-        return resultIdFilter;
+        const dataTableIdFilter = this.buildContainsFilter('id', dataTableIds.length, resultIds.length);
+        return `(${resultIdFilter}) || (${dataTableIdFilter})`;
+    }
+
+    
+    private buildContainsFilter(fieldName: string, count: number, startIndex: number): string {
+        const placeholders = Array.from(
+            { length: count },
+            (_, i) => `@${startIndex + i}`
+        ).join(',');
+        return `new[]{${placeholders}}.Contains(${fieldName})`;
     }
 
     private buildCombinedFilter(filters: CombinedFilters): string {
