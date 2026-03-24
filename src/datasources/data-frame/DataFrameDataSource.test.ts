@@ -1,7 +1,7 @@
 import { from, lastValueFrom, of } from 'rxjs';
 import { DataFrameDataSource } from './DataFrameDataSource';
 import { DataFrameDataSourceV2 } from './datasources/v2/DataFrameDataSourceV2';
-import { DataSourceInstanceSettings, TimeRange } from '@grafana/data';
+import { DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 
 jest.mock('./datasources/v2/DataFrameDataSourceV2');
@@ -37,10 +37,7 @@ describe('DataFrameDataSource', () => {
             runQuery: jest.fn().mockReturnValue(of('v2-runQuery')),
             shouldRunQuery: jest.fn().mockReturnValue(false),
             metricFindQuery: jest.fn().mockResolvedValue(['v2-metric']),
-            getTableProperties: jest.fn().mockResolvedValue('v2-tableProps'),
-            getDecimatedTableData: jest.fn().mockResolvedValue('v2-decimated'),
             queryTables$: jest.fn().mockReturnValue(of(['v2-tables'])),
-            queryTables: jest.fn().mockResolvedValue(['v2-tables']),
             processQuery: jest.fn().mockReturnValue('v2-processed'),
             prepareQuery: jest.fn().mockReturnValue('v2-prepared'),
             processVariableQuery: jest.fn().mockReturnValue('v2-processed'),
@@ -67,17 +64,8 @@ describe('DataFrameDataSource', () => {
         await expect(ds.metricFindQuery({} as any, {} as any)).resolves.toEqual(['v2-metric']);
         expect(v2Mock.metricFindQuery).toHaveBeenCalled();
 
-        await expect(ds.getTableProperties('id')).resolves.toBe('v2-tableProps');
-        expect(v2Mock.getTableProperties).toHaveBeenCalledWith('id');
-
-        await expect(ds.getDecimatedTableData({} as any, [], {} as TimeRange, 10)).resolves.toBe('v2-decimated');
-        expect(v2Mock.getDecimatedTableData).toHaveBeenCalled();
-
         await expect(lastValueFrom(ds.queryTables$(mockFilter))).resolves.toEqual(['v2-tables']);
         expect(v2Mock.queryTables$).toHaveBeenCalledWith(mockFilter, undefined, undefined);
-
-        await expect(ds.queryTables('query')).resolves.toEqual(['v2-tables']);
-        expect(v2Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined);
 
         const query = { refId: '1' };
         expect(ds.processQuery(query as any)).toBe('v2-processed');

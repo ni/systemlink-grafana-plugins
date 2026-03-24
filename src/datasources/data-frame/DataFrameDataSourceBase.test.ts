@@ -1,7 +1,7 @@
-import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, TimeRange } from '@grafana/data';
+import { DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 import { DataFrameDataSourceBase } from './DataFrameDataSourceBase';
-import { DataFrameQuery, DataFrameDataSourceOptions, TableProperties, TableDataRows, Column, DataFrameVariableQuery, ValidDataFrameVariableQuery, DataFrameDataQuery, CombinedFilters, ColumnType, ColumnFilter, ValidDataFrameQuery } from './types';
+import { DataFrameQuery, DataFrameDataSourceOptions, TableProperties, Column, DataFrameVariableQuery, ValidDataFrameVariableQuery, DataFrameDataQuery, CombinedFilters, ColumnType, ColumnFilter, ValidDataFrameQuery } from './types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { Workspace } from 'core/types';
 import { lastValueFrom, Observable, of } from 'rxjs';
@@ -64,25 +64,8 @@ describe('DataFrameDataSourceBase', () => {
             return query as ValidDataFrameVariableQuery;
         }
 
-        public getTableProperties(_id?: string): Promise<TableProperties> {
-            return Promise.resolve({} as TableProperties);
-        }
-
-        public getDecimatedTableData(
-            _query: DataFrameDataQuery,
-            _columns: Column[],
-            _timeRange: TimeRange,
-            _intervals?: number
-        ): Promise<TableDataRows> {
-            return Promise.resolve([] as unknown as TableDataRows);
-        }
-
         public queryTables$(_filters: CombinedFilters): Observable<TableProperties[]> {
             return of([]);
-        }
-
-        public queryTables(_query: string): Promise<TableProperties[]> {
-            return Promise.resolve([]);
         }
 
         public constructNullFiltersWrapper(columns: Column[]): ColumnFilter[] {
@@ -128,10 +111,7 @@ describe('DataFrameDataSourceBase', () => {
 
         expect(ds.processQuery({} as DataFrameDataQuery)).toEqual({});
         expect(ds.processVariableQuery({} as DataFrameVariableQuery)).toEqual({});
-        await expect(ds.getTableProperties()).resolves.toEqual({});
-        await expect(ds.getDecimatedTableData({} as DataFrameDataQuery, [], {} as TimeRange)).resolves.toEqual([]);
         await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: '' }))).resolves.toEqual([]);
-        await expect(ds.queryTables('')).resolves.toEqual([]);
     });
 
     it('should return global variable options when the `globalVariableOptions` is called', async () => {
