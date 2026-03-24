@@ -9612,7 +9612,12 @@ describe('DataFrameDataSourceV2', () => {
         let postMock$: jest.SpyInstance;
         const publishMock = jest.fn();
         const mockTables = [{ id: '1', name: 'Table 1' }, { id: '2', name: 'Table 2' }];
-        const mockResultsResponse = { results: [{ id: 'result-1' }, { id: 'result-2' },] };
+        const mockResultsResponse = { 
+            results: [
+                { id: 'result-1', dataTableIds: ['dt-1', 'dt-2'] }, 
+                { id: 'result-2', dataTableIds: ['dt-3'] }
+            ] 
+        };
 
         function createQueryTablesError(status: number) {
             return new Error(
@@ -9638,7 +9643,7 @@ describe('DataFrameDataSourceV2', () => {
             (ds as any).appEvents = { publish: publishMock };
         });
 
-        it('should extract result IDs and build filter with substitutions', async () => {
+        it('should extract result IDs and data table IDs and build filter with substitutions', async () => {
             const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
             await lastValueFrom(ds.queryTables$(filters));
 
@@ -9647,7 +9652,7 @@ describe('DataFrameDataSourceV2', () => {
                 `${instanceSettings.url}/nitestmonitor/v2/query-results`,
                 {
                     filter: 'status = "Passed"',
-                    projection: ['id'],
+                    projection: ['id', 'dataTableIds'],
                     take: 1000,
                     orderBy: 'UPDATED_AT',
                     descending: true
@@ -9661,10 +9666,10 @@ describe('DataFrameDataSourceV2', () => {
                     interactive: true,
                     orderBy: 'ROWS_MODIFIED_AT',
                     orderByDescending: true,
-                    filter: '(new[]{@0,@1}.Contains(testResultId))',
+                    filter: '((new[]{@0,@1}.Contains(testResultId)) || (new[]{@2,@3,@4}.Contains(id)))',
                     take: TAKE_LIMIT,
                     projection: [DataTableProjections.RowsModifiedAt],
-                    substitutions: ['result-1', 'result-2']
+                    substitutions: ['result-1', 'result-2', 'dt-1', 'dt-2', 'dt-3']
                 },
                 { useApiIngress: true, showErrorAlert: false }
             );
@@ -9723,7 +9728,7 @@ describe('DataFrameDataSourceV2', () => {
                 `${instanceSettings.url}/nitestmonitor/v2/query-results`,
                 {
                     filter: 'status = "Passed"',
-                    projection: ['id'],
+                    projection: ['id', 'dataTableIds'],
                     take: 1000,
                     orderBy: 'UPDATED_AT',
                     descending: true
@@ -9736,10 +9741,10 @@ describe('DataFrameDataSourceV2', () => {
                     interactive: true,
                     orderBy: 'ROWS_MODIFIED_AT',
                     orderByDescending: true,
-                    filter: '(new[]{@0,@1}.Contains(testResultId))&&(name = "Table1")&&(columns.any(it.name = "Column1"))',
+                    filter: '((new[]{@0,@1}.Contains(testResultId)) || (new[]{@2,@3,@4}.Contains(id)))&&(name = "Table1")&&(columns.any(it.name = "Column1"))',
                     take: 10,
                     projection: [DataTableProjections.RowsModifiedAt],
-                    substitutions: ['result-1', 'result-2']
+                    substitutions: ['result-1', 'result-2', 'dt-1', 'dt-2', 'dt-3']
                 },
                 { useApiIngress: true, showErrorAlert: false }
             );
@@ -9783,10 +9788,10 @@ describe('DataFrameDataSourceV2', () => {
                     interactive: true,
                     orderBy: 'ROWS_MODIFIED_AT',
                     orderByDescending: true,
-                    filter: '(new[]{@0,@1}.Contains(testResultId))',
+                    filter: '((new[]{@0,@1}.Contains(testResultId)) || (new[]{@2,@3,@4}.Contains(id)))',
                     take: 10,
                     projection: [DataTableProjections.RowsModifiedAt],
-                    substitutions: ['result-1', 'result-2']
+                    substitutions: ['result-1', 'result-2', 'dt-1', 'dt-2', 'dt-3']
                 },
                 { useApiIngress: true, showErrorAlert: false }
             );
