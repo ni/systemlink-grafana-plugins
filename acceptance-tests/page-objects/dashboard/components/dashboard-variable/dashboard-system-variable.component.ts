@@ -1,7 +1,7 @@
 import { Locator, Page } from "playwright/test";
 import { DashboardVariableBaseComponent } from "./dashboard-variable-base.component";
 import { pressEnter } from "../../../../utils/keyboard-utilities";
-import { fieldsWithGetByTestIdSelectorForSystemsQueryEditor, getByLabelSelectorFieldsForSystemsQueryEditor, systemsColumn } from "../../../../constants/systems-properties.constant";
+import { systemsColumn } from "../../../../constants/systems-properties.constant";
 
 export class DashboardSystemVariableComponent extends DashboardVariableBaseComponent {
     constructor(page: Page) {
@@ -51,6 +51,7 @@ export class DashboardSystemVariableComponent extends DashboardVariableBaseCompo
             await this.page.keyboard.type(value);
             // The jqx query builder needs some time to process the typed text, otherwise the next click action will not find the option in the dropdown and will fail
             await new Promise(resolve => setTimeout(resolve, 100));
+            await this.page.locator('a').filter({ hasText: new RegExp(`^${value}$`) }).waitFor({ state: 'visible' });
             await this.page.locator('a').filter({ hasText: new RegExp(`^${value}$`) }).click();
         } else {
             await this.queryBuilderValueField(property).click();
@@ -63,12 +64,13 @@ export class DashboardSystemVariableComponent extends DashboardVariableBaseCompo
         await this.queryBuilderPropertyFieldOpened.clear();
         await this.page.keyboard.type(property);
         // The jqx query builder needs some time to process the typed text, otherwise the next click action will not find the option in the dropdown and will fail
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await this.page.getByRole('option', { name: property }).waitFor({ state: 'visible' });
         await pressEnter(this.page);
         await this.page.getByRole('option', { name: property }).waitFor({ state: 'hidden' });
         // The library makes the Operator field unclickable via CSS (pointer-events: none).
         // Using dispatchEvent bypasses this restriction and fires the event directly on the element.
         await this.queryBuilderOperationField.last().dispatchEvent('pointerdown', { bubbles: true, isPrimary: true });
+        await this.page.getByRole('option', { name: operation }).waitFor({ state: 'visible' });
         await this.page.getByRole('option', { name: operation }).click();
         await this.selectQueryBuilderValueOption(property, value);
         await pressEnter(this.page);
@@ -77,8 +79,10 @@ export class DashboardSystemVariableComponent extends DashboardVariableBaseCompo
     async addFilterGroup(operator: string): Promise<void> {
         await this.addGroupFilterButton.click();
         if (operator.toLowerCase() === 'and') {
+            await this.andFilterGroupButton.waitFor({ state: 'visible' });
             await this.andFilterGroupButton.click();
         } else if (operator.toLowerCase() === 'or') {
+            await this.orFilterGroupButton.waitFor({ state: 'visible' });
             await this.orFilterGroupButton.click();
         }
     }
