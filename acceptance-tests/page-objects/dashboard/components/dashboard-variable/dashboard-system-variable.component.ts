@@ -58,17 +58,13 @@ export class DashboardSystemVariableComponent extends DashboardVariableBaseCompo
         }
     }
 
-    async selectQueryBuilderPropertyOption(property: string): Promise<void> {
+    async addFilterBySelectingProperty(property: string, operation: string, value: string): Promise<void> {
         await this.queryBuilderPropertyField.last().click();
         await this.queryBuilderPropertyFieldOpened.clear();
         await this.page.keyboard.type(property);
         // The jqx query builder needs some time to process the typed text, otherwise the next click action will not find the option in the dropdown and will fail
         await new Promise(resolve => setTimeout(resolve, 100));
-        await this.page.locator('a').filter({ hasText: new RegExp(`^${property}$`) }).click();
-    }
-
-    async addFilterBySelectingProperty(property: string, operation: string, value: string): Promise<void> {
-        await this.selectQueryBuilderPropertyOption(property);
+        await pressEnter(this.page);
         await this.page.getByRole('option', { name: property }).waitFor({ state: 'hidden' });
         // The library makes the Operator field unclickable via CSS (pointer-events: none).
         // Using dispatchEvent bypasses this restriction and fires the event directly on the element.
