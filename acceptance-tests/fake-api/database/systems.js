@@ -2,7 +2,7 @@ export const data = [
     {
         alias: 'System-1',
         id: 'SYSTEM-1',
-        state: "DISCONNECTED",
+        state: "CONNECTED",
         locked: false,
         systemStartTime: "2025-12-18T16:59:31.000Z",
         model: "Model1",
@@ -13,14 +13,14 @@ export const data = [
                 "172.10.1.37"
             ],
         },
-        workspace: "workspace1",
+        workspace: "Default",
         scanCode: "scanCode1",
     },
     {
         alias: 'System-2',
         id: 'SYSTEM-2',
-        state: "CONNECTED",
-        locked: true,
+        state: "DISCONNECTED",
+        locked: false,
         systemStartTime: "2025-01-8T16:59:31.000Z",
         model: "Model2",
         vendor: "Vendor2",
@@ -30,7 +30,7 @@ export const data = [
                 "10.5.136.55"
             ]
         },
-        workspace: "workspace2",
+        workspace: "Default",
         scanCode: "scanCode2",
     },
     {
@@ -98,14 +98,14 @@ export const data = [
                 "10.6.0.1"
             ]
         },
-        workspace: "workspace6",
+        workspace: "Default",
         scanCode: "scanCode6",
     },
     {
         alias: 'System-7',
         id: 'SYSTEM-7',
         state: "VIRTUAL",
-        locked: true,
+        locked: false,
         systemStartTime: "2025-06-1T16:59:31.000Z",
         model: "Model7",
         vendor: "Vendor7",
@@ -156,7 +156,7 @@ export const data = [
         alias: 'System-10',
         id: 'SYSTEM-10',
         state: "DISCONNECTED",
-        locked: true,
+        locked: false,
         systemStartTime: "2025-08-21T16:59:31.000Z",
         model: "Model10",
         vendor: "Vendor10",

@@ -4,6 +4,7 @@ import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.page
 import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { systemsColumn } from '../../../../constants/systems-properties.constant';
 import { timeOutPeriod } from '../../../../constants/global.constant';
+import { pressEnter } from '../../../../utils/keyboard-utilities';
 
 test.describe('Systems data source with scan code return type', () => {
     let dashboard: DashboardPage;
@@ -38,6 +39,19 @@ test.describe('Systems data source with scan code return type', () => {
 
         });
 
+        test('should add a complex filter to the creeated systems variable', async () => {
+            await dashboard.settings.editVariable('scanCode');
+            await dashboard.settings.systemVariable.addFilterBySelectingProperty('Connection status', 'equals', 'Connected');
+
+            await dashboard.settings.systemVariable.addFilterGroup('And');
+            await dashboard.settings.systemVariable.addFilterBySelectingProperty('Workspace', 'equals', 'Default');
+            await pressEnter(dashboard.page);
+
+            await dashboard.settings.systemVariable.addFilterGroup('Or');
+            await dashboard.settings.systemVariable.addFilterBySelectingProperty('Model', 'equals', 'Model6');
+            await pressEnter(dashboard.page);
+        });
+
         test('should create a Systemlink Systems visualization', async () => {
             await dashboard.settings.goBackToDashboardPage();
             await dashboard.addVisualizationButton.waitFor();
@@ -50,7 +64,7 @@ test.describe('Systems data source with scan code return type', () => {
 
         test('should add filter by scanCode using the system variable', async () => {
             await dashboard.panel.systemsQueryEditor.selectQueryType('Properties');
-            await dashboard.panel.systemsQueryEditor.addFilter('Scan code', 'equals', '$scanCode');
+            await dashboard.panel.systemsQueryEditor.addFilterByTypingPropertyName('Scan code', 'equals', '$scanCode');
 
             await expect(dashboard.panel.table.firstFilterRow).toContainText('Scan code');
             await expect(dashboard.panel.table.firstFilterRow).toContainText('equals');
@@ -65,14 +79,14 @@ test.describe('Systems data source with scan code return type', () => {
             expect(rowCount).toBe(1);
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.id, 'SYSTEM-1')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.alias, 'System-1')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(systemsColumn.connection_status, 'DISCONNECTED')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(systemsColumn.connection_status, 'CONNECTED')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.locked_status, 'false')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.system_start_time, '2025-12-18T16:59:31.000Z')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.model, 'Model1')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.vendor, 'Vendor1')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.operating_system, 'OS1')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.ip_address, '172.10.1.37')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(systemsColumn.workspace, 'workspace1')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(systemsColumn.workspace, 'Default')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.scan_code, 'scanCode1')).toBeTruthy();
             await dashboard.panel.systemsQueryEditor.openVariableDropdown('System-1', 'System-8');
             await dashboard.panel.toolbar.refreshData();

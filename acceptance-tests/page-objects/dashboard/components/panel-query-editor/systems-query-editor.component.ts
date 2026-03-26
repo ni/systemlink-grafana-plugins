@@ -1,5 +1,5 @@
 import { Page, Locator } from '@playwright/test';
-import { pressEnter, pressEscape } from '../../../../utils/keyboard-utilities';
+import { pressEnter, selectAllAndDeleteTextInInputField } from '../../../../utils/keyboard-utilities';
 import { fieldsWithGetByTestIdSelectorForSystemsQueryEditor, getByLabelSelectorFieldsForSystemsQueryEditor } from '../../../../constants/systems-properties.constant';
 
 export class SystemsQueryEditorComponent {
@@ -37,10 +37,6 @@ export class SystemsQueryEditorComponent {
         return this.page.getByText('Or', { exact: true });
     }
 
-    public get allFiltersWithOperators(): Locator {
-        return this.page.locator('.smart-scroll-viewer-content-container');
-    }
-
     public getQueryType(queryType: string): Locator {
         return this.page.getByRole('radio', { name: queryType });
     }
@@ -62,14 +58,26 @@ export class SystemsQueryEditorComponent {
         return this.page.getByRole('checkbox', { name: optionName });
     }
 
-    async addFilter(property: string, operation: string, value: string): Promise<void> {
+    async addFilterBySelectingProperty(property: string, operation: string, value: string): Promise<void> {
         await this.queryBuilderPropertyField.last().click();
-        if (!(this.selectQueryBuilderPropertyOption('Workspace').isVisible())) {
-            await pressEscape(this.page);
-            await this.queryBuilderPropertyField.last().click();
-        }
         await this.selectQueryBuilderPropertyOption(property).click();
         await this.page.getByRole('option', { name: property }).waitFor({ state: 'hidden' });
+        // The library makes the Operator field unclickable via CSS (pointer-events: none).
+        // Using dispatchEvent bypasses this restriction and fires the event directly on the element.
+        await this.queryBuilderOperationField.last().dispatchEvent('pointerdown', { bubbles: true, isPrimary: true });
+        await this.page.getByRole('option', { name: operation }).click();
+        await this.queryBuilderValueField.last().click();
+        await this.page.keyboard.type(value);
+        await pressEnter(this.page);
+    }
+
+    async addFilterByTypingPropertyName(property: string, operation: string, value: string): Promise<void> {
+        await this.queryBuilderPropertyField.last().click();
+        await selectAllAndDeleteTextInInputField(this.page);
+        await this.page.keyboard.type(property);
+        // The jqx query builder needs some time to process the typed text, otherwise the next click action will not find the option in the dropdown and will fail
+        await new Promise(resolve => setTimeout(resolve, 100));
+        await pressEnter(this.page);
         // The library makes the Operator field unclickable via CSS (pointer-events: none).
         // Using dispatchEvent bypasses this restriction and fires the event directly on the element.
         await this.queryBuilderOperationField.last().dispatchEvent('pointerdown', { bubbles: true, isPrimary: true });

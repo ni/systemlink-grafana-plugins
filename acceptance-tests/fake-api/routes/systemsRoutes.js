@@ -30,6 +30,7 @@ class SystemsRoutes {
         const idFilterForSecondSystemFromDb = 'id = "SYSTEM-2"';
         const scanCodeFilterForFirstSystemFromDb = 'scanCode = "scanCode1"';
         const scanCodeFilterForEighthSystemFromDb = 'scanCode = "scanCode8"';
+        const complexFilter = 'id = "SYSTEM-2" && connected.data.state = "Disconnected" || grains.data.minion_blackout.Equals(True)';
 
         if (req.method !== 'POST') {
             return;
@@ -52,6 +53,11 @@ class SystemsRoutes {
 
         if (req.body.filter === scanCodeFilterForEighthSystemFromDb) {
             res.status(200).json({ count: 1, data: data.filter(data => data.scanCode === 'scanCode8') });
+            return;
+        }
+
+        if (req.body.filter === complexFilter) {
+            res.status(200).json({ count: 2, data: data.filter(data => (data.id === 'SYSTEM-2' && data.state === "DISCONNECTED" || data.locked === true)) });
             return;
         }
 

@@ -17,12 +17,16 @@ export class Settings {
         return this.page.getByTestId('data-testid Tab Variables');
     }
 
-    public createdVariable(variableName: string) {
+    public get closeSettingsButton(): Locator {
+        return this.page.getByTestId('data-testid dashboard-settings-close');
+    }
+
+    public getVariable(variableName: string): Locator {
         return this.page.getByRole('gridcell', { name: `Variable editor Table Definition field ${variableName}` });
     }
 
-    public get closeSettingsButton(): Locator {
-        return this.page.getByTestId('data-testid dashboard-settings-close');
+    public createdVariable(variableName: string) {
+        return this.page.getByRole('gridcell', { name: `Variable editor Table Definition field ${variableName}` });
     }
 
     async goToVariablesTab(): Promise<void> {
@@ -35,5 +39,9 @@ export class Settings {
 
     async goBackToDashboardPage(): Promise<void> {
         await this.closeSettingsButton.click();
+    }
+
+    async editVariable(variableName: string): Promise<void> {
+        await this.getVariable(variableName).click();
     }
 }
