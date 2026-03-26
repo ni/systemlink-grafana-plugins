@@ -9654,68 +9654,19 @@ describe('DataFrameDataSourceV2', () => {
             (ds as any).appEvents = { publish: publishMock };
         });
 
-        it('should limit data table IDs to DATA_TABLES_IDS_LIMIT when there are more than 1000 data table IDs', async () => {
-            const resultIds = ['result-1', 'result-2'];
-            const dataTableIds = Array.from({ length: 1500 }, (_, i) => `dt-${i}`);
-            postMock$.mockImplementation((url) => {
-                if (url.includes('query-results')) {
-                    return of({
-                        results: resultIds.map(id => ({
-                            id,
-                            dataTableIds: dataTableIds.slice(0, 750)
-                        })).concat([{
-                            id: 'result-3',
-                            dataTableIds: dataTableIds.slice(750)
-                        }])
-                    });
-                }
-                return of({ tables: mockTables });
-            });
-
-            const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
-            await lastValueFrom(ds.queryTables$(filters));
-
-            const queryTablesCall = postMock$.mock.calls.find(
-                (call: any[]) => call[0].includes('query-tables')
-            );
-            expect(queryTablesCall).toBeDefined();
-
-            const requestBody = queryTablesCall![1];
-            const substitutions = requestBody.substitutions;
-
-            const expectedResultIds = 3; // result-1, result-2, result-3
-            const expectedDataTableIds = DATA_TABLES_IDS_LIMIT;
-            expect(substitutions.length).toBe(expectedResultIds + expectedDataTableIds);
-
-            const dataTableIdPlaceholders = Array.from(
-                { length: DATA_TABLES_IDS_LIMIT },
-                (_, i) => `@${expectedResultIds + i}`
-            ).join(',');
-            expect(requestBody.filter).toContain(`new[]{${dataTableIdPlaceholders}}.Contains(id)`);
-        });
-
         it('should not query result IDs when result filter is empty string', async () => {
             const filters = {
                 resultFilter: '',
                 dataTableFilter: 'name = "Table1"'
             };
 
-            const result = await lastValueFrom(ds.queryTables$(filters, 10));
+            await lastValueFrom(ds.queryTables$(filters, 10));
 
-            expect(postMock$).toHaveBeenCalledWith(
-                `${ds.baseUrl}/query-tables`,
-                {
-                    interactive: true,
-                    orderBy: 'ROWS_MODIFIED_AT',
-                    orderByDescending: true,
-                    filter: 'name = "Table1"',
-                    take: 10,
-                    projection: [DataTableProjections.RowsModifiedAt],
-                    substitutions: undefined
-                },
-                { useApiIngress: true, showErrorAlert: false }
+            expect(postMock$).not.toHaveBeenCalledWith(
+                `${instanceSettings.url}/nitestmonitor/v2/query-results`,
+                expect.anything(),
+                expect.anything()
             );
-            expect(result).toBe(mockTables);
         });
 
         it('should include result IDs and data table IDs in query tables filter with substitutions', async () => {
@@ -9754,6 +9705,46 @@ describe('DataFrameDataSourceV2', () => {
                 },
                 { useApiIngress: true, showErrorAlert: false }
             );
+        });
+
+        it('should limit data table IDs to DATA_TABLES_IDS_LIMIT when there are more than 1000 data table IDs', async () => {
+            const resultIds = ['result-1', 'result-2'];
+            const dataTableIds = Array.from({ length: 1500 }, (_, i) => `dt-${i}`);
+            postMock$.mockImplementation((url) => {
+                if (url.includes('query-results')) {
+                    return of({
+                        results: resultIds.map(id => ({
+                            id,
+                            dataTableIds: dataTableIds.slice(0, 750)
+                        })).concat([{
+                            id: 'result-3',
+                            dataTableIds: dataTableIds.slice(750)
+                        }])
+                    });
+                }
+                return of({ tables: mockTables });
+            });
+
+            const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
+            await lastValueFrom(ds.queryTables$(filters));
+
+            const queryTablesCall = postMock$.mock.calls.find(
+                (call: any[]) => call[0].includes('query-tables')
+            );
+            expect(queryTablesCall).toBeDefined();
+
+            const requestBody = queryTablesCall![1];
+            const substitutions = requestBody.substitutions;
+
+            const expectedResultIds = 3;
+            const expectedDataTableIds = DATA_TABLES_IDS_LIMIT;
+            expect(substitutions.length).toBe(expectedResultIds + expectedDataTableIds);
+
+            const dataTableIdPlaceholders = Array.from(
+                { length: DATA_TABLES_IDS_LIMIT },
+                (_, i) => `@${expectedResultIds + i}`
+            ).join(',');
+            expect(requestBody.filter).toContain(`new[]{${dataTableIdPlaceholders}}.Contains(id)`);
         });
 
         it('should return empty array when Test Monitor API returns no results', async () => {
