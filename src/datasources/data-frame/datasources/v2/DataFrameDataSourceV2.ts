@@ -2310,7 +2310,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         const dataTableIdFilter = this.buildContainsFilter(
             'id',
-            Math.min(dataTableIds.length, DATA_TABLES_IDS_LIMIT),
+            dataTableIds.length,
             resultIds.length
         );
         return `(${resultIdFilter}) || (${dataTableIdFilter})`;
@@ -2332,7 +2332,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
         for (const { id, dataTableIds } of results) {
             resultIds.push(id);
-            dataTableIds?.forEach(dataTableId => dataTableIdSet.add(dataTableId));
+            dataTableIds?.forEach(dataTableId => {
+                if (dataTableIdSet.size < DATA_TABLES_IDS_LIMIT) {
+                    dataTableIdSet.add(dataTableId);
+                }
+            });
         }
 
         return { resultIds, dataTableIds: [...dataTableIdSet] };

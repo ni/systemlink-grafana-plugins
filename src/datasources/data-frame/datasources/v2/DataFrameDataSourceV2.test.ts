@@ -9683,12 +9683,10 @@ describe('DataFrameDataSourceV2', () => {
             const requestBody = queryTablesCall![1];
             const substitutions = requestBody.substitutions;
 
-            // Result IDs + limited data table IDs
             const expectedResultIds = 3; // result-1, result-2, result-3
             const expectedDataTableIds = DATA_TABLES_IDS_LIMIT;
             expect(substitutions.length).toBe(expectedResultIds + expectedDataTableIds);
 
-            // Verify the filter contains the correct number of placeholders for data table IDs
             const dataTableIdPlaceholders = Array.from(
                 { length: DATA_TABLES_IDS_LIMIT },
                 (_, i) => `@${expectedResultIds + i}`
