@@ -2,7 +2,7 @@ import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
 import { BackendSrv, locationService, TemplateSrv } from '@grafana/runtime';
 import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
-import { COLUMN_SELECTION_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, MAXIMUM_DATA_POINTS, propertiesCacheTTL, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_SELECTION_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, DATA_TABLES_IDS_LIMIT, MAXIMUM_DATA_POINTS, propertiesCacheTTL, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
 import { Workspace } from 'core/types';
@@ -9652,6 +9652,48 @@ describe('DataFrameDataSourceV2', () => {
                 return of({});
             });
             (ds as any).appEvents = { publish: publishMock };
+        });
+
+        it('should limit data table IDs to DATA_TABLES_IDS_LIMIT when there are more than 1000 data table IDs', async () => {
+            const resultIds = ['result-1', 'result-2'];
+            const dataTableIds = Array.from({ length: 1500 }, (_, i) => `dt-${i}`);
+            postMock$.mockImplementation((url) => {
+                if (url.includes('query-results')) {
+                    return of({
+                        results: resultIds.map(id => ({
+                            id,
+                            dataTableIds: dataTableIds.slice(0, 750)
+                        })).concat([{
+                            id: 'result-3',
+                            dataTableIds: dataTableIds.slice(750)
+                        }])
+                    });
+                }
+                return of({ tables: mockTables });
+            });
+
+            const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
+            await lastValueFrom(ds.queryTables$(filters));
+
+            const queryTablesCall = postMock$.mock.calls.find(
+                (call: any[]) => call[0].includes('query-tables')
+            );
+            expect(queryTablesCall).toBeDefined();
+
+            const requestBody = queryTablesCall![1];
+            const substitutions = requestBody.substitutions;
+
+            // Result IDs + limited data table IDs
+            const expectedResultIds = 3; // result-1, result-2, result-3
+            const expectedDataTableIds = DATA_TABLES_IDS_LIMIT;
+            expect(substitutions.length).toBe(expectedResultIds + expectedDataTableIds);
+
+            // Verify the filter contains the correct number of placeholders for data table IDs
+            const dataTableIdPlaceholders = Array.from(
+                { length: DATA_TABLES_IDS_LIMIT },
+                (_, i) => `@${expectedResultIds + i}`
+            ).join(',');
+            expect(requestBody.filter).toContain(`new[]{${dataTableIdPlaceholders}}.Contains(id)`);
         });
 
         it('should not query result IDs when result filter is empty string', async () => {
