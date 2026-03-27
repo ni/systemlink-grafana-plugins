@@ -145,11 +145,11 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   undecimatedRecordCount: 10_000
 };
 
-export interface QueryResultsResponse {
-  results: ResultsResponseProperties[];
+export interface DataFrameQueryResultsResponse {
+  results: DataFrameResultsResponseProperties[];
 }
 
-export interface ResultsResponseProperties {
+export interface DataFrameResultsResponseProperties {
   id: string;
   dataTableIds?: string[];
 }
