@@ -2311,7 +2311,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             dataTableIds
         } = this.extractResultAndDataTableIds(results);
 
-        const resultIdFilter = this.buildContainsFilter(
+        const resultIdFilter = this.buildPlaceholderContainsFilter(
             'testResultId',
             resultIds.length,
             0
@@ -2323,7 +2323,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             };
         }
 
-        const dataTableIdFilter = this.buildContainsFilter(
+        const dataTableIdFilter = this.buildPlaceholderContainsFilter(
             'id',
             dataTableIds.length,
             resultIds.length
@@ -2334,13 +2334,13 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         };
     }
 
-    private buildContainsFilter(
+    private buildPlaceholderContainsFilter(
         fieldName: string,
-        placeholderCount: number,
+        count: number,
         startIndex: number
     ): string {
         const placeholders = Array.from(
-            { length: placeholderCount },
+            { length: count },
             (_, index) => `@${startIndex + index}`
         ).join(',');
         return `new[]{${placeholders}}.Contains(${fieldName})`;
