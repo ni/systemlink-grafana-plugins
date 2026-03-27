@@ -2316,7 +2316,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             resultIds.length,
             0
         );
-
         if (dataTableIds.length === 0) {
             return {
                 filter: resultIdFilter,
