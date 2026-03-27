@@ -1,3 +1,43 @@
+## [4.142.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.142.2...v4.142.3) (2026-03-23)
+
+### Bug Fixes
+
+* **alarms:** add time format configuration to time fields ([#709](https://github.com/ni/systemlink-grafana-plugins/issues/709)) ([c9eccbc](https://github.com/ni/systemlink-grafana-plugins/commit/c9eccbc7f6c2950d6ffda5aafe1b3b8d19b13b8a))
+
+## [4.142.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.142.1...v4.142.2) (2026-03-23)
+
+### Bug Fixes
+
+* **dataframe:** Remove undecimated data feature flag ([#707](https://github.com/ni/systemlink-grafana-plugins/issues/707)) ([004a0f8](https://github.com/ni/systemlink-grafana-plugins/commit/004a0f86baaa29637f002c913b455fae602cc6f4))
+
+## [4.142.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.142.0...v4.142.1) (2026-03-20)
+
+### Bug Fixes
+
+* **dataframes:** adjust inline alert width in properties section ([#706](https://github.com/ni/systemlink-grafana-plugins/issues/706)) ([523fbbc](https://github.com/ni/systemlink-grafana-plugins/commit/523fbbcf4f0ead3ff69e3b0c5402f3a513037eca))
+
+## [4.142.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.141.1...v4.142.0) (2026-03-20)
+
+### Features
+
+* **dataframes:** add caching for custom property selections ([#703](https://github.com/ni/systemlink-grafana-plugins/issues/703)) ([e854c2e](https://github.com/ni/systemlink-grafana-plugins/commit/e854c2ecfa104a9fbb8936b937d30ef6c1601e35))
+
+### Bug Fixes
+
+* **plotly:** Persist drag mode across data re-renders ([#702](https://github.com/ni/systemlink-grafana-plugins/issues/702)) ([675b376](https://github.com/ni/systemlink-grafana-plugins/commit/675b376cdbee041fa41348644edff1b537247b8d))
+
+## [4.141.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.141.0...v4.141.1) (2026-03-19)
+
+### Bug Fixes
+
+* **systems:** Add "virtualCount" property to systems summary table ([#705](https://github.com/ni/systemlink-grafana-plugins/issues/705)) ([9a55f55](https://github.com/ni/systemlink-grafana-plugins/commit/9a55f55fb0c08f16fefd523ef66131cabf4c21d8))
+
+## [4.141.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.140.0...v4.141.0) (2026-03-19)
+
+### Features
+
+* **dataframes:** add validation for custom property selections ([#701](https://github.com/ni/systemlink-grafana-plugins/issues/701)) ([9f4e1a3](https://github.com/ni/systemlink-grafana-plugins/commit/9f4e1a3f0e495f154b97456c849febd8603eaac8))
+
 ## [4.140.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.139.0...v4.140.0) (2026-03-17)
 
 ### Features

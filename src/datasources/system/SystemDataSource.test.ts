@@ -44,7 +44,7 @@ describe('with query builder enabled', () => {
       test('should return summary counts', async () => {
         backendSrv.fetch
           .calledWith(requestMatching({ url: '/nisysmgmt/v1/get-systems-summary' }))
-          .mockReturnValue(createFetchResponse({ connectedCount: 1, disconnectedCount: 2 }));
+          .mockReturnValue(createFetchResponse({ connectedCount: 1, disconnectedCount: 2, virtualCount: 3 }));
 
         const result = await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Summary })));
 
@@ -53,6 +53,7 @@ describe('with query builder enabled', () => {
             fields: [
               { name: 'Connected', values: [1] },
               { name: 'Disconnected', values: [2] },
+              { name: 'Virtual', values: [3] },
             ],
             refId: 'A',
           },
@@ -391,7 +392,7 @@ describe('with query builder disabled (legacy mode)', () => {
   test('query for summary counts', async () => {
     backendSrv.fetch
       .calledWith(requestMatching({ url: '/nisysmgmt/v1/get-systems-summary' }))
-      .mockReturnValue(createFetchResponse({ connectedCount: 1, disconnectedCount: 2 }));
+      .mockReturnValue(createFetchResponse({ connectedCount: 1, disconnectedCount: 2, virtualCount: 3 }));
 
     const result = await firstValueFrom(ds.query(buildQuery({ queryKind: SystemQueryType.Summary })));
 
@@ -400,6 +401,7 @@ describe('with query builder disabled (legacy mode)', () => {
         fields: [
           { name: 'Connected', values: [1] },
           { name: 'Disconnected', values: [2] },
+          { name: 'Virtual', values: [3] },
         ],
         refId: 'A',
       },
