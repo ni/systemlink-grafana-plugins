@@ -2337,11 +2337,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private buildContainsFilter(
         fieldName: string,
-        count: number,
+        placeholderCount: number,
         startIndex: number
     ): string {
         const placeholders = Array.from(
-            { length: count },
+            { length: placeholderCount },
             (_, index) => `@${startIndex + index}`
         ).join(',');
         return `new[]{${placeholders}}.Contains(${fieldName})`;
