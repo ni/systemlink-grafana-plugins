@@ -9694,7 +9694,8 @@ describe('DataFrameDataSourceV2', () => {
 
             const result = await lastValueFrom(ds.queryTables$(filters, 10));
 
-            expect(postMock$).toHaveBeenCalledOnceWith(
+            expect(postMock$).toHaveBeenCalledTimes(1);
+            expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
                 {
                     interactive: true,
@@ -10051,7 +10052,7 @@ describe('DataFrameDataSourceV2', () => {
                         interactive: true,
                         orderBy: 'ROWS_MODIFIED_AT',
                         orderByDescending: true,
-                        filter: '((new[]{@0,@1}.Contains(testResultId)) || (new[]{@2,@3,@4}.Contains(id)))',
+                        filter: '((new[]{@0,@1}.Contains(testResultId))||(new[]{@2,@3,@4}.Contains(id)))',
                         take: TAKE_LIMIT,
                         projection: [DataTableProjections.RowsModifiedAt],
                         substitutions: [
@@ -10107,7 +10108,7 @@ describe('DataFrameDataSourceV2', () => {
                         interactive: true,
                         orderBy: 'ROWS_MODIFIED_AT',
                         orderByDescending: true,
-                        filter: `((new[]{${resultIdPlaceholders}}.Contains(testResultId)) || (new[]{${dataTableIdPlaceholders}}.Contains(id)))`,
+                        filter: `((new[]{${resultIdPlaceholders}}.Contains(testResultId))||(new[]{${dataTableIdPlaceholders}}.Contains(id)))`,
                         take: TAKE_LIMIT,
                         projection: [DataTableProjections.RowsModifiedAt],
                         substitutions: expectedSubstitutions
@@ -10131,7 +10132,7 @@ describe('DataFrameDataSourceV2', () => {
                         interactive: true,
                         orderBy: 'ROWS_MODIFIED_AT',
                         orderByDescending: true,
-                        filter: '((new[]{@0,@1}.Contains(testResultId)) || (new[]{@2,@3,@4}.Contains(id)))&&(name = "Table1")&&(columns.any(it.name = "Column1"))',
+                        filter: '((new[]{@0,@1}.Contains(testResultId))||(new[]{@2,@3,@4}.Contains(id)))&&(name = "Table1")&&(columns.any(it.name = "Column1"))',
                         take: 10,
                         projection: [DataTableProjections.RowsModifiedAt],
                         substitutions: [

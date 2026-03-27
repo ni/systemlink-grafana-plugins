@@ -2329,7 +2329,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             resultIds.length
         );
         return {
-            filter: `(${resultIdFilter}) || (${dataTableIdFilter})`,
+            filter: `(${resultIdFilter})||(${dataTableIdFilter})`,
             substitutions: [...resultIds, ...dataTableIds]
         };
     }
