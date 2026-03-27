@@ -9612,23 +9612,7 @@ describe('DataFrameDataSourceV2', () => {
         let postMock$: jest.SpyInstance;
         const publishMock = jest.fn();
         const mockTables = [{ id: '1', name: 'Table 1' }, { id: '2', name: 'Table 2' }];
-        const mockResultsResponse = { 
-            results: [
-                { 
-                    id: 'result-1',
-                    dataTableIds: [
-                        'dt-1', 
-                        'dt-2'
-                    ] 
-                }, 
-                { 
-                    id: 'result-2',
-                    dataTableIds: [
-                        'dt-3'
-                    ]
-                }
-            ] 
-        };
+        const mockResultsResponse = { results: [{ id: 'result-1' }, { id: 'result-2' },] };
 
         function createQueryTablesError(status: number) {
             return new Error(
@@ -9654,7 +9638,7 @@ describe('DataFrameDataSourceV2', () => {
             (ds as any).appEvents = { publish: publishMock };
         });
 
-        it('should include result IDs and associated data table IDs from results in query tables filter with substitutions', async () => {
+        it('should extract result IDs and build filter with substitutions', async () => {
             const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
             await lastValueFrom(ds.queryTables$(filters));
 
@@ -9671,101 +9655,6 @@ describe('DataFrameDataSourceV2', () => {
                 { showErrorAlert: false }
             );
             // Check that the data tables API was called with the correct filter
-            expect(postMock$).toHaveBeenCalledWith(
-                `${ds.baseUrl}/query-tables`,
-                {
-                    interactive: true,
-                    orderBy: 'ROWS_MODIFIED_AT',
-                    orderByDescending: true,
-                    filter: '((new[]{@0,@1}.Contains(testResultId)) || (new[]{@2,@3,@4}.Contains(id)))',
-                    take: TAKE_LIMIT,
-                    projection: [DataTableProjections.RowsModifiedAt],
-                    substitutions: [
-                        'result-1',
-                        'result-2',
-                        'dt-1',
-                        'dt-2',
-                        'dt-3'
-                    ]
-                },
-                { useApiIngress: true, showErrorAlert: false }
-            );
-        });
-
-        it('should limit associated data table IDs from results to 1000', async () => {
-            const dataTableIds = Array.from(
-                { length: 1500 },
-                (_, index) => `dt-${index}`
-            );
-            postMock$.mockImplementation((url) => {
-                if (url.includes('query-results')) {
-                    return of({
-                        results: [
-                            {
-                                id: 'result-1',
-                                dataTableIds: dataTableIds.slice(0, 750)
-                            },
-                            {
-                                id: 'result-2',
-                                dataTableIds: dataTableIds.slice(750, 1500)
-                            }
-                        ]
-                    });
-                }
-                return of({ tables: mockTables });
-            });
-
-            const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
-            await lastValueFrom(ds.queryTables$(filters));
-
-            const expectedResultIds = ['result-1', 'result-2'];
-            const expectedDataTableIds = dataTableIds.slice(0, DATA_TABLES_IDS_LIMIT);
-            const expectedSubstitutions = [...expectedResultIds, ...expectedDataTableIds];
-            const resultIdPlaceholders = expectedResultIds.map(
-                (_, index) => `@${index}`
-            ).join(',');
-            const dataTableIdPlaceholders = expectedDataTableIds.map(
-                (_, index) => `@${expectedResultIds.length + index}`
-            ).join(',');
-
-            expect(postMock$).toHaveBeenCalledWith(
-                `${ds.baseUrl}/query-tables`,
-                {
-                    interactive: true,
-                    orderBy: 'ROWS_MODIFIED_AT',
-                    orderByDescending: true,
-                    filter: `((new[]{${resultIdPlaceholders}}.Contains(testResultId)) || (new[]{${dataTableIdPlaceholders}}.Contains(id)))`,
-                    take: TAKE_LIMIT,
-                    projection: [DataTableProjections.RowsModifiedAt],
-                    substitutions: expectedSubstitutions
-                },
-                { useApiIngress: true, showErrorAlert: false }
-            );
-        });
-
-        it('should include only result IDs in filter when no data tables are associated with results', async () => {
-            postMock$.mockImplementation((url) => {
-                if (url.includes('query-results')) {
-                    return of({
-                        results: [
-                            {
-                                id: 'result-1'
-                            },
-                            {
-                                id: 'result-2'
-                            }
-                        ]
-                    });
-                }
-                return of({ tables: mockTables });
-            });
-
-            const filters = {
-                resultFilter: 'status = "Passed"',
-                dataTableFilter: ''
-            };
-            await lastValueFrom(ds.queryTables$(filters));
-
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
                 {
@@ -9852,16 +9741,10 @@ describe('DataFrameDataSourceV2', () => {
                     interactive: true,
                     orderBy: 'ROWS_MODIFIED_AT',
                     orderByDescending: true,
-                    filter: '((new[]{@0,@1}.Contains(testResultId)) || (new[]{@2,@3,@4}.Contains(id)))&&(name = "Table1")&&(columns.any(it.name = "Column1"))',
+                    filter: '(new[]{@0,@1}.Contains(testResultId))&&(name = "Table1")&&(columns.any(it.name = "Column1"))',
                     take: 10,
                     projection: [DataTableProjections.RowsModifiedAt],
-                    substitutions: [
-                        'result-1',
-                        'result-2',
-                        'dt-1',
-                        'dt-2',
-                        'dt-3'
-                    ]
+                    substitutions: ['result-1', 'result-2']
                 },
                 { useApiIngress: true, showErrorAlert: false }
             );
@@ -9905,16 +9788,10 @@ describe('DataFrameDataSourceV2', () => {
                     interactive: true,
                     orderBy: 'ROWS_MODIFIED_AT',
                     orderByDescending: true,
-                    filter: '((new[]{@0,@1}.Contains(testResultId)) || (new[]{@2,@3,@4}.Contains(id)))',
+                    filter: '(new[]{@0,@1}.Contains(testResultId))',
                     take: 10,
                     projection: [DataTableProjections.RowsModifiedAt],
-                    substitutions: [
-                        'result-1',
-                        'result-2',
-                        'dt-1',
-                        'dt-2',
-                        'dt-3'
-                    ]
+                    substitutions: ['result-1', 'result-2']
                 },
                 { useApiIngress: true, showErrorAlert: false }
             );
@@ -10136,6 +10013,166 @@ describe('DataFrameDataSourceV2', () => {
                     'Error during data tables query',
                     'The query to fetch data tables failed due to too many requests. Please try again later.'
                 ],
+            });
+        });
+
+        describe('when data table ids are associated with results', () => {
+            beforeEach(() => {
+                postMock$.mockImplementation((url) => {
+                    if (url.includes('query-results')) {
+                        return of({
+                            results: [
+                                {
+                                    id: 'result-1',
+                                    dataTableIds: [
+                                        'dt-1', 
+                                        'dt-2'
+                                    ] 
+                                },
+                                {
+                                    id: 'result-2',
+                                    dataTableIds: [
+                                        'dt-3'
+                                    ]
+                                }
+                            ]
+                        });
+                    }
+                    return of({ tables: mockTables });
+                });
+            });
+
+            it('should include result IDs and associated data table IDs from results in query tables filter with substitutions', async () => {
+                const filters = {
+                    resultFilter: 'status = "Passed"',
+                    dataTableFilter: ''
+                };
+                await lastValueFrom(ds.queryTables$(filters));
+
+                // Check that the Test Monitor API was called with the correct filter
+                expect(postMock$).toHaveBeenCalledWith(
+                    `${instanceSettings.url}/nitestmonitor/v2/query-results`,
+                    {
+                        filter: 'status = "Passed"',
+                        projection: ['id', 'dataTableIds'],
+                        take: 1000,
+                        orderBy: 'UPDATED_AT',
+                        descending: true
+                    },
+                    { showErrorAlert: false }
+                );
+                // Check that the data tables API was called with the correct filter
+                expect(postMock$).toHaveBeenCalledWith(
+                    `${ds.baseUrl}/query-tables`,
+                    {
+                        interactive: true,
+                        orderBy: 'ROWS_MODIFIED_AT',
+                        orderByDescending: true,
+                        filter: '((new[]{@0,@1}.Contains(testResultId)) || (new[]{@2,@3,@4}.Contains(id)))',
+                        take: TAKE_LIMIT,
+                        projection: [DataTableProjections.RowsModifiedAt],
+                        substitutions: [
+                            'result-1',
+                            'result-2',
+                            'dt-1',
+                            'dt-2',
+                            'dt-3'
+                        ]
+                    },
+                    { useApiIngress: true, showErrorAlert: false }
+                );
+            });
+
+            it('should limit associated data table IDs from results to 1000', async () => {
+                const dataTableIds = Array.from(
+                    { length: 1500 },
+                    (_, index) => `dt-${index}`
+                );
+                postMock$.mockImplementation((url) => {
+                    if (url.includes('query-results')) {
+                        return of({
+                            results: [
+                                {
+                                    id: 'result-1',
+                                    dataTableIds: dataTableIds.slice(0, 750)
+                                },
+                                {
+                                    id: 'result-2',
+                                    dataTableIds: dataTableIds.slice(750, 1500)
+                                }
+                            ]
+                        });
+                    }
+                    return of({ tables: mockTables });
+                });
+
+                const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
+                await lastValueFrom(ds.queryTables$(filters));
+
+                const expectedResultIds = ['result-1', 'result-2'];
+                const expectedDataTableIds = dataTableIds.slice(0, DATA_TABLES_IDS_LIMIT);
+                const expectedSubstitutions = [...expectedResultIds, ...expectedDataTableIds];
+                const resultIdPlaceholders = expectedResultIds.map(
+                    (_, index) => `@${index}`
+                ).join(',');
+                const dataTableIdPlaceholders = expectedDataTableIds.map(
+                    (_, index) => `@${expectedResultIds.length + index}`
+                ).join(',');
+
+                expect(postMock$).toHaveBeenCalledWith(
+                    `${ds.baseUrl}/query-tables`,
+                    {
+                        interactive: true,
+                        orderBy: 'ROWS_MODIFIED_AT',
+                        orderByDescending: true,
+                        filter: `((new[]{${resultIdPlaceholders}}.Contains(testResultId)) || (new[]{${dataTableIdPlaceholders}}.Contains(id)))`,
+                        take: TAKE_LIMIT,
+                        projection: [DataTableProjections.RowsModifiedAt],
+                        substitutions: expectedSubstitutions
+                    },
+                    { useApiIngress: true, showErrorAlert: false }
+                );
+            });
+
+            it('should combine result filter, data table filter and column filter with AND when provided', async () => {
+                const filters = {
+                    resultFilter: 'status = "Passed"',
+                    dataTableFilter: 'name = "Table1"',
+                    columnFilter: 'columns.any(it.name = "Column1")'
+                };
+
+                await lastValueFrom(ds.queryTables$(filters, 10));
+
+                expect(postMock$).toHaveBeenCalledWith(
+                    `${instanceSettings.url}/nitestmonitor/v2/query-results`,
+                    {
+                        filter: 'status = "Passed"',
+                        projection: ['id', 'dataTableIds'],
+                        take: 1000,
+                        orderBy: 'UPDATED_AT',
+                        descending: true
+                    },
+                    { showErrorAlert: false }
+                );
+                expect(postMock$).toHaveBeenCalledWith(
+                    `${ds.baseUrl}/query-tables`,
+                    {
+                        interactive: true,
+                        orderBy: 'ROWS_MODIFIED_AT',
+                        orderByDescending: true,
+                        filter: '((new[]{@0,@1}.Contains(testResultId)) || (new[]{@2,@3,@4}.Contains(id)))&&(name = "Table1")&&(columns.any(it.name = "Column1"))',
+                        take: 10,
+                        projection: [DataTableProjections.RowsModifiedAt],
+                        substitutions: [
+                            'result-1',
+                            'result-2',
+                            'dt-1',
+                            'dt-2',
+                            'dt-3'
+                        ]
+                    },
+                    { useApiIngress: true, showErrorAlert: false }
+                );
             });
         });
     });
