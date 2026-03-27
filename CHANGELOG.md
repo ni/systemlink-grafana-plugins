@@ -1,3 +1,9 @@
+## [4.143.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.142.3...v4.143.0) (2026-03-27)
+
+### Features
+
+* **dataframe:** Include associated data table from results ([#712](https://github.com/ni/systemlink-grafana-plugins/issues/712)) ([5786c7e](https://github.com/ni/systemlink-grafana-plugins/commit/5786c7e300886fec495440482289fa11d7ee9d0a))
+
 ## [4.142.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.142.2...v4.142.3) (2026-03-23)
 
 ### Bug Fixes
