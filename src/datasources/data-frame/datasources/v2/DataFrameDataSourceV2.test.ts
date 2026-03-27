@@ -9654,21 +9654,6 @@ describe('DataFrameDataSourceV2', () => {
             (ds as any).appEvents = { publish: publishMock };
         });
 
-        it('should not query result IDs when result filter is empty string', async () => {
-            const filters = {
-                resultFilter: '',
-                dataTableFilter: 'name = "Table1"'
-            };
-
-            await lastValueFrom(ds.queryTables$(filters, 10));
-
-            expect(postMock$).not.toHaveBeenCalledWith(
-                `${instanceSettings.url}/nitestmonitor/v2/query-results`,
-                expect.anything(),
-                expect.anything()
-            );
-        });
-
         it('should include result IDs and data table IDs in query tables filter with substitutions', async () => {
             const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
             await lastValueFrom(ds.queryTables$(filters));
@@ -9761,6 +9746,35 @@ describe('DataFrameDataSourceV2', () => {
             expect(result).toEqual([]);
             // Should not call DataFrames API when no results
             expect(postMock$).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not query result IDs when result filter is empty string', async () => {
+            const filters = {
+                resultFilter: '',
+                dataTableFilter: 'name = "Table1"'
+            };
+
+            const result = await lastValueFrom(ds.queryTables$(filters, 10));
+
+            expect(postMock$).not.toHaveBeenCalledWith(
+                `${instanceSettings.url}/nitestmonitor/v2/query-results`,
+                expect.anything(),
+                expect.anything()
+            );
+            expect(postMock$).toHaveBeenCalledWith(
+                `${ds.baseUrl}/query-tables`,
+                {
+                    interactive: true,
+                    orderBy: 'ROWS_MODIFIED_AT',
+                    orderByDescending: true,
+                    filter: 'name = "Table1"',
+                    take: 10,
+                    projection: [DataTableProjections.RowsModifiedAt],
+                    substitutions: undefined
+                },
+                { useApiIngress: true, showErrorAlert: false }
+            );
+            expect(result).toBe(mockTables);
         });
 
         it('should include only result IDs in filter when data table IDs are not present in Test Monitor API response', async () => {
