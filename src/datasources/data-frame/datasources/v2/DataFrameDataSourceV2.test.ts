@@ -9694,12 +9694,7 @@ describe('DataFrameDataSourceV2', () => {
 
             const result = await lastValueFrom(ds.queryTables$(filters, 10));
 
-            expect(postMock$).not.toHaveBeenCalledWith(
-                `${instanceSettings.url}/nitestmonitor/v2/query-results`,
-                expect.anything(),
-                expect.anything()
-            );
-            expect(postMock$).toHaveBeenCalledWith(
+            expect(postMock$).toHaveBeenCalledOnceWith(
                 `${ds.baseUrl}/query-tables`,
                 {
                     interactive: true,
@@ -10019,26 +10014,27 @@ describe('DataFrameDataSourceV2', () => {
         describe('when data table ids are associated with results', () => {
             beforeEach(() => {
                 postMock$.mockImplementation((url) => {
-                    if (url.includes('query-results')) {
-                        return of({
-                            results: [
-                                {
-                                    id: 'result-1',
-                                    dataTableIds: [
-                                        'dt-1', 
-                                        'dt-2'
-                                    ] 
-                                },
-                                {
-                                    id: 'result-2',
-                                    dataTableIds: [
-                                        'dt-3'
-                                    ]
-                                }
-                            ]
-                        });
+                    if (!url.includes('query-results')) {
+                        return of({ tables: mockTables });
                     }
-                    return of({ tables: mockTables });
+
+                    return of({
+                        results: [
+                            {
+                                id: 'result-1',
+                                dataTableIds: [
+                                    'dt-1', 
+                                    'dt-2'
+                                ] 
+                            },
+                            {
+                                id: 'result-2',
+                                dataTableIds: [
+                                    'dt-3'
+                                ]
+                            }
+                        ]
+                    });
                 });
             });
 
@@ -10049,19 +10045,6 @@ describe('DataFrameDataSourceV2', () => {
                 };
                 await lastValueFrom(ds.queryTables$(filters));
 
-                // Check that the Test Monitor API was called with the correct filter
-                expect(postMock$).toHaveBeenCalledWith(
-                    `${instanceSettings.url}/nitestmonitor/v2/query-results`,
-                    {
-                        filter: 'status = "Passed"',
-                        projection: ['id', 'dataTableIds'],
-                        take: 1000,
-                        orderBy: 'UPDATED_AT',
-                        descending: true
-                    },
-                    { showErrorAlert: false }
-                );
-                // Check that the data tables API was called with the correct filter
                 expect(postMock$).toHaveBeenCalledWith(
                     `${ds.baseUrl}/query-tables`,
                     {
@@ -10105,10 +10088,6 @@ describe('DataFrameDataSourceV2', () => {
                     }
                     return of({ tables: mockTables });
                 });
-
-                const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
-                await lastValueFrom(ds.queryTables$(filters));
-
                 const expectedResultIds = ['result-1', 'result-2'];
                 const expectedDataTableIds = dataTableIds.slice(0, DATA_TABLES_IDS_LIMIT);
                 const expectedSubstitutions = [...expectedResultIds, ...expectedDataTableIds];
@@ -10118,6 +10097,9 @@ describe('DataFrameDataSourceV2', () => {
                 const dataTableIdPlaceholders = expectedDataTableIds.map(
                     (_, index) => `@${expectedResultIds.length + index}`
                 ).join(',');
+
+                const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
+                await lastValueFrom(ds.queryTables$(filters));
 
                 expect(postMock$).toHaveBeenCalledWith(
                     `${ds.baseUrl}/query-tables`,
@@ -10143,17 +10125,6 @@ describe('DataFrameDataSourceV2', () => {
 
                 await lastValueFrom(ds.queryTables$(filters, 10));
 
-                expect(postMock$).toHaveBeenCalledWith(
-                    `${instanceSettings.url}/nitestmonitor/v2/query-results`,
-                    {
-                        filter: 'status = "Passed"',
-                        projection: ['id', 'dataTableIds'],
-                        take: 1000,
-                        orderBy: 'UPDATED_AT',
-                        descending: true
-                    },
-                    { showErrorAlert: false }
-                );
                 expect(postMock$).toHaveBeenCalledWith(
                     `${ds.baseUrl}/query-tables`,
                     {
