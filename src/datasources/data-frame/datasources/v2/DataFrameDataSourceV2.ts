@@ -210,52 +210,52 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         take?: number,
         projections?: DataTableProjections[]
     ): Observable<TableProperties[]> {
-        return this.buildQueryTablesFilterAndSubstitutions$(filters)
-            .pipe(
-                switchMap(filterAndSubstitutions => {
-                    if (!filterAndSubstitutions) {
-                        return of([]);
-                    }
+        const filterAndSubstitutions$ = this.buildQueryTablesFilterAndSubstitutions$(filters);
+        return filterAndSubstitutions$.pipe(
+            switchMap(filterAndSubstitutions => {
+                if (!filterAndSubstitutions) {
+                    return of([]);
+                }
 
-                    return this.queryTablesInternal$(
-                        filterAndSubstitutions.filter,
-                        take,
-                        projections,
-                        filterAndSubstitutions.substitutions
-                    );
-                })
-            );
+                return this.queryTablesInternal$(
+                    filterAndSubstitutions.filter,
+                    take,
+                    projections,
+                    filterAndSubstitutions.substitutions
+                );
+            })
+        );
     }
 
     private buildQueryTablesFilterAndSubstitutions$(
         filters: CombinedFilters
     ): Observable<{ filter: string; substitutions?: string[] } | null> {
         if (!filters.resultFilter) {
-            return of({ 
+            return of({
                 filter: filters.dataTableFilter || '' 
             });
         }
 
-        return this.queryResults$(filters.resultFilter)
-            .pipe(
-                map(results => {
-                    if (results.length === 0) {
-                        return null;
-                    }
+        const results$ = this.queryResults$(filters.resultFilter);
+        return results$.pipe(
+            map(results => {
+                if (results.length === 0) {
+                    return null;
+                }
 
-                    const {
-                        filter: resultFilter,
-                        substitutions 
-                    } = this.buildResultFilter(results);
-                    const filter = this.buildCombinedFilter({
-                        resultFilter,
-                        dataTableFilter: filters.dataTableFilter,
-                        columnFilter: filters.columnFilter
-                    });
+                const {
+                    filter: resultFilter,
+                    substitutions 
+                } = this.buildResultFilter(results);
+                const filter = this.buildCombinedFilter({
+                    resultFilter,
+                    dataTableFilter: filters.dataTableFilter,
+                    columnFilter: filters.columnFilter
+                });
 
-                    return { filter, substitutions };
-                })
-            );
+                return { filter, substitutions };
+            })
+        );
     }
 
     private queryTablesInternal$(
