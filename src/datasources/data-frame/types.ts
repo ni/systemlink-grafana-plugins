@@ -145,8 +145,13 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   undecimatedRecordCount: 10_000
 };
 
-export interface QueryResultsResponse {
-  results: Array<{id: string}>;
+export interface DataFrameQueryResultsResponse {
+  results: DataFrameResultsResponseProperties[];
+}
+
+export interface DataFrameResultsResponseProperties {
+  id: string;
+  dataTableIds?: string[];
 }
 
 export const DataTableProjectionLabelLookup: Record<DataTableProperties, {

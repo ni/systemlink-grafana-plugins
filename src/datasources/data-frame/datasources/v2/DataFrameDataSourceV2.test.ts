@@ -2,7 +2,7 @@ import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
 import { BackendSrv, locationService, TemplateSrv } from '@grafana/runtime';
 import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
-import { COLUMN_SELECTION_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, MAXIMUM_DATA_POINTS, propertiesCacheTTL, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_SELECTION_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, DATA_TABLES_IDS_LIMIT, MAXIMUM_DATA_POINTS, propertiesCacheTTL, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
 import { Workspace } from 'core/types';
@@ -9633,7 +9633,7 @@ describe('DataFrameDataSourceV2', () => {
                 `${instanceSettings.url}/nitestmonitor/v2/query-results`,
                 {
                     filter: 'status = "Passed"',
-                    projection: ['id'],
+                    projection: ['id', 'dataTableIds'],
                     take: 1000,
                     orderBy: 'UPDATED_AT',
                     descending: true
@@ -9680,6 +9680,7 @@ describe('DataFrameDataSourceV2', () => {
 
             const result = await lastValueFrom(ds.queryTables$(filters, 10));
 
+            expect(postMock$).toHaveBeenCalledTimes(1);
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
                 {
@@ -9709,7 +9710,7 @@ describe('DataFrameDataSourceV2', () => {
                 `${instanceSettings.url}/nitestmonitor/v2/query-results`,
                 {
                     filter: 'status = "Passed"',
-                    projection: ['id'],
+                    projection: ['id', 'dataTableIds'],
                     take: 1000,
                     orderBy: 'UPDATED_AT',
                     descending: true
@@ -9994,6 +9995,142 @@ describe('DataFrameDataSourceV2', () => {
                     'Error during data tables query',
                     'The query to fetch data tables failed due to too many requests. Please try again later.'
                 ],
+            });
+        });
+
+        describe('when data table ids are associated with results', () => {
+            beforeEach(() => {
+                postMock$.mockImplementation((url) => {
+                    if (!url.includes('query-results')) {
+                        return of({ tables: mockTables });
+                    }
+
+                    return of({
+                        results: [
+                            {
+                                id: 'result-1',
+                                dataTableIds: [
+                                    'dt-1', 
+                                    'dt-2'
+                                ] 
+                            },
+                            {
+                                id: 'result-2',
+                                dataTableIds: [
+                                    'dt-3'
+                                ]
+                            }
+                        ]
+                    });
+                });
+            });
+
+            it('should include result IDs and associated data table IDs from results in query tables filter with substitutions', async () => {
+                const filters = {
+                    resultFilter: 'status = "Passed"',
+                    dataTableFilter: ''
+                };
+                await lastValueFrom(ds.queryTables$(filters));
+
+                expect(postMock$).toHaveBeenCalledWith(
+                    `${ds.baseUrl}/query-tables`,
+                    {
+                        interactive: true,
+                        orderBy: 'ROWS_MODIFIED_AT',
+                        orderByDescending: true,
+                        filter: '((new[]{@0,@1}.Contains(testResultId))||(new[]{@2,@3,@4}.Contains(id)))',
+                        take: TAKE_LIMIT,
+                        projection: [DataTableProjections.RowsModifiedAt],
+                        substitutions: [
+                            'result-1',
+                            'result-2',
+                            'dt-1',
+                            'dt-2',
+                            'dt-3'
+                        ]
+                    },
+                    { useApiIngress: true, showErrorAlert: false }
+                );
+            });
+
+            it('should limit associated data table IDs from results to 1000', async () => {
+                const dataTableIds = Array.from(
+                    { length: 1500 },
+                    (_, index) => `dt-${index}`
+                );
+                postMock$.mockImplementation((url) => {
+                    if (url.includes('query-results')) {
+                        return of({
+                            results: [
+                                {
+                                    id: 'result-1',
+                                    dataTableIds: dataTableIds.slice(0, 750)
+                                },
+                                {
+                                    id: 'result-2',
+                                    dataTableIds: dataTableIds.slice(750, 1500)
+                                }
+                            ]
+                        });
+                    }
+                    return of({ tables: mockTables });
+                });
+                const expectedResultIds = ['result-1', 'result-2'];
+                const expectedDataTableIds = dataTableIds.slice(0, DATA_TABLES_IDS_LIMIT);
+                const expectedSubstitutions = [...expectedResultIds, ...expectedDataTableIds];
+                const resultIdPlaceholders = expectedResultIds.map(
+                    (_, index) => `@${index}`
+                ).join(',');
+                const dataTableIdPlaceholders = expectedDataTableIds.map(
+                    (_, index) => `@${expectedResultIds.length + index}`
+                ).join(',');
+
+                const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
+                await lastValueFrom(ds.queryTables$(filters));
+
+                expect(postMock$).toHaveBeenCalledWith(
+                    `${ds.baseUrl}/query-tables`,
+                    {
+                        interactive: true,
+                        orderBy: 'ROWS_MODIFIED_AT',
+                        orderByDescending: true,
+                        filter: `((new[]{${resultIdPlaceholders}}.Contains(testResultId))||(new[]{${dataTableIdPlaceholders}}.Contains(id)))`,
+                        take: TAKE_LIMIT,
+                        projection: [DataTableProjections.RowsModifiedAt],
+                        substitutions: expectedSubstitutions
+                    },
+                    { useApiIngress: true, showErrorAlert: false }
+                );
+            });
+
+            it('should combine result filter, data table filter and column filter with AND when provided', async () => {
+                const filters = {
+                    resultFilter: 'status = "Passed"',
+                    dataTableFilter: 'name = "Table1"',
+                    columnFilter: 'columns.any(it.name = "Column1")'
+                };
+
+                await lastValueFrom(ds.queryTables$(filters, 10));
+
+                expect(postMock$).toHaveBeenCalledWith(
+                    `${ds.baseUrl}/query-tables`,
+                    {
+                        interactive: true,
+                        orderBy: 'ROWS_MODIFIED_AT',
+                        orderByDescending: true,
+                        filter: '((new[]{@0,@1}.Contains(testResultId))||(new[]{@2,@3,@4}.Contains(id)))&&(name = "Table1")&&(columns.any(it.name = "Column1"))',
+                        take: 10,
+                        projection: [DataTableProjections.RowsModifiedAt],
+                        substitutions: [
+                            'result-1',
+                            'result-2',
+                            'dt-1',
+                            'dt-2',
+                            'dt-3'
+                        ]
+                    },
+                    { useApiIngress: true, showErrorAlert: false }
+                );
             });
         });
     });

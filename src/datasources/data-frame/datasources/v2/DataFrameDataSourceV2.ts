@@ -1,8 +1,8 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, QueryResultMetaNotice, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL, CustomPropertyOptions, PropertySelections, ALL_STANDARD_PROPERTIES, PropertiesQueryCache } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, CUSTOM_PROPERTY_SUFFIX, propertiesCacheTTL } from "datasources/data-frame/constants";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, DataFrameQueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL, CustomPropertyOptions, PropertySelections, ALL_STANDARD_PROPERTIES, PropertiesQueryCache, DataFrameResultsResponseProperties } from "../../types";
+import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, CUSTOM_PROPERTY_SUFFIX, propertiesCacheTTL, DATA_TABLES_IDS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
@@ -196,28 +196,52 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         take?: number,
         projections?: DataTableProjections[]
     ): Observable<TableProperties[]> {
-        if (filters.resultFilter) {
-            return this.queryResultIds$(filters.resultFilter).pipe(
-                switchMap(resultIds => {
-                    if (resultIds.length === 0) {
-                        return of([]);
-                    }
-                    const resultFilter = this.buildResultIdFilter(resultIds);
-                    const combinedFilter = this.buildCombinedFilter({
-                        resultFilter,
-                        dataTableFilter: filters.dataTableFilter,
-                        columnFilter: filters.columnFilter
-                    });
-                    return this.queryTablesInternal$(
-                        combinedFilter,
-                        take,
-                        projections,
-                        resultIds
-                    );
-                })
-            );
+        const filterAndSubstitutions$ = this.buildQueryTablesFilterAndSubstitutions$(filters);
+        return filterAndSubstitutions$.pipe(
+            switchMap(filterAndSubstitutions => {
+                if (!filterAndSubstitutions) {
+                    return of([]);
+                }
+
+                return this.queryTablesInternal$(
+                    filterAndSubstitutions.filter,
+                    take,
+                    projections,
+                    filterAndSubstitutions.substitutions
+                );
+            })
+        );
+    }
+
+    private buildQueryTablesFilterAndSubstitutions$(
+        filters: CombinedFilters
+    ): Observable<{ filter: string; substitutions?: string[] } | null> {
+        if (!filters.resultFilter) {
+            return of({
+                filter: filters.dataTableFilter || ''
+            });
         }
-        return this.queryTablesInternal$(filters.dataTableFilter || '', take, projections, undefined);
+
+        const results$ = this.queryResults$(filters.resultFilter);
+        return results$.pipe(
+            map(results => {
+                if (results.length === 0) {
+                    return null;
+                }
+
+                const {
+                    filter: resultFilter,
+                    substitutions
+                } = this.buildResultFilter(results);
+                const filter = this.buildCombinedFilter({
+                    resultFilter,
+                    dataTableFilter: filters.dataTableFilter,
+                    columnFilter: filters.columnFilter
+                });
+
+                return { filter, substitutions };
+            })
+        );
     }
 
     private queryTablesInternal$(
@@ -2219,17 +2243,19 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return propertyKeysSet;
     }
 
-    private queryResultIds$(resultFilter: string): Observable<string[]> {
+    private queryResults$(
+        resultFilter: string
+    ): Observable<DataFrameResultsResponseProperties[]> {
         const queryResultsUrl = `${this.instanceSettings.url}/nitestmonitor/v2/query-results`;
         const requestBody = {
             filter: resultFilter,
-            projection: ['id'],
+            projection: ['id', 'dataTableIds'],
             take: RESULT_IDS_LIMIT,
             orderBy: 'UPDATED_AT',
             descending: true
         };
 
-        return this.post$<QueryResultsResponse>(
+        return this.post$<DataFrameQueryResultsResponse>(
             queryResultsUrl,
             requestBody,
             { showErrorAlert: false }
@@ -2238,7 +2264,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 if (!response.results || response.results.length === 0) {
                     return [];
                 }
-                return response.results.map(result => result.id);
+                return response.results;
             }),
             catchError(error => {
                 const errorMessage = this.getErrorMessage(error, 'results');
@@ -2251,13 +2277,51 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
-    private buildResultIdFilter(resultIds: string[]): string {
-        if (resultIds.length === 0) {
-            return '';
+    private buildResultFilter(
+        results: DataFrameResultsResponseProperties[]
+    ): { filter: string; substitutions?: string[] } {
+        if (results.length === 0) {
+            return { filter: '' };
         }
-        const placeholders = resultIds.map((_, index) => `@${index}`).join(',');
-        const resultFilter = `new[]{${placeholders}}.Contains(testResultId)`;
-        return resultFilter;
+
+        const {
+            resultIds,
+            dataTableIds
+        } = this.extractResultAndDataTableIds(results);
+
+        const resultIdFilter = this.buildPlaceholderContainsFilter(
+            'testResultId',
+            resultIds.length,
+            0
+        );
+        if (dataTableIds.length === 0) {
+            return {
+                filter: resultIdFilter,
+                substitutions: resultIds
+            };
+        }
+
+        const dataTableIdFilter = this.buildPlaceholderContainsFilter(
+            'id',
+            dataTableIds.length,
+            resultIds.length
+        );
+        return {
+            filter: `(${resultIdFilter})||(${dataTableIdFilter})`,
+            substitutions: [...resultIds, ...dataTableIds]
+        };
+    }
+
+    private buildPlaceholderContainsFilter(
+        fieldName: string,
+        count: number,
+        startIndex: number
+    ): string {
+        const placeholders = Array.from(
+            { length: count },
+            (_, index) => `@${startIndex + index}`
+        ).join(',');
+        return `new[]{${placeholders}}.Contains(${fieldName})`;
     }
 
     private buildCombinedFilter(filters: CombinedFilters): string {
@@ -2333,5 +2397,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         return defaultQueryV2.filterXRangeOnZoomPan;
+    }
+
+    private extractResultAndDataTableIds(
+        results: DataFrameResultsResponseProperties[]
+    ): { resultIds: string[]; dataTableIds: string[] } {
+        const resultIds: string[] = [];
+        const dataTableIdSet = new Set<string>();
+
+        for (const { id, dataTableIds } of results) {
+            resultIds.push(id);
+            dataTableIds?.forEach(dataTableId => {
+                if (dataTableIdSet.size < DATA_TABLES_IDS_LIMIT) {
+                    dataTableIdSet.add(dataTableId);
+                }
+            });
+        }
+
+        return { resultIds, dataTableIds: [...dataTableIdSet] };
     }
 }
