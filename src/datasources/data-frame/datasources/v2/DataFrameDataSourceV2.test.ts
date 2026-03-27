@@ -9654,7 +9654,7 @@ describe('DataFrameDataSourceV2', () => {
             (ds as any).appEvents = { publish: publishMock };
         });
 
-        it('should include result IDs and data table IDs in query tables filter with substitutions', async () => {
+        it('should include result IDs and associated data table IDs from results in query tables filter with substitutions', async () => {
             const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
             await lastValueFrom(ds.queryTables$(filters));
 
@@ -9692,19 +9692,24 @@ describe('DataFrameDataSourceV2', () => {
             );
         });
 
-        it('should limit data table IDs to DATA_TABLES_IDS_LIMIT when there are more than 1000 data table IDs', async () => {
-            const resultIds = ['result-1', 'result-2'];
-            const dataTableIds = Array.from({ length: 1500 }, (_, i) => `dt-${i}`);
+        it('should limit associated data table IDs from results to 1000', async () => {
+            const dataTableIds = Array.from(
+                { length: 1500 },
+                (_, index) => `dt-${index}`
+            );
             postMock$.mockImplementation((url) => {
                 if (url.includes('query-results')) {
                     return of({
-                        results: resultIds.map(id => ({
-                            id,
-                            dataTableIds: dataTableIds.slice(0, 750)
-                        })).concat([{
-                            id: 'result-3',
-                            dataTableIds: dataTableIds.slice(750)
-                        }])
+                        results: [
+                            {
+                                id: 'result-1',
+                                dataTableIds: dataTableIds.slice(0, 750)
+                            },
+                            {
+                                id: 'result-2',
+                                dataTableIds: dataTableIds.slice(750, 1500)
+                            }
+                        ]
                     });
                 }
                 return of({ tables: mockTables });
@@ -9713,23 +9718,67 @@ describe('DataFrameDataSourceV2', () => {
             const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
             await lastValueFrom(ds.queryTables$(filters));
 
-            const queryTablesCall = postMock$.mock.calls.find(
-                (call: any[]) => call[0].includes('query-tables')
-            );
-            expect(queryTablesCall).toBeDefined();
-
-            const requestBody = queryTablesCall![1];
-            const substitutions = requestBody.substitutions;
-
-            const expectedResultIds = 3;
-            const expectedDataTableIds = DATA_TABLES_IDS_LIMIT;
-            expect(substitutions.length).toBe(expectedResultIds + expectedDataTableIds);
-
-            const dataTableIdPlaceholders = Array.from(
-                { length: DATA_TABLES_IDS_LIMIT },
-                (_, i) => `@${expectedResultIds + i}`
+            const expectedResultIds = ['result-1', 'result-2'];
+            const expectedDataTableIds = dataTableIds.slice(0, DATA_TABLES_IDS_LIMIT);
+            const expectedSubstitutions = [...expectedResultIds, ...expectedDataTableIds];
+            const resultIdPlaceholders = expectedResultIds.map(
+                (_, index) => `@${index}`
             ).join(',');
-            expect(requestBody.filter).toContain(`new[]{${dataTableIdPlaceholders}}.Contains(id)`);
+            const dataTableIdPlaceholders = expectedDataTableIds.map(
+                (_, index) => `@${expectedResultIds.length + index}`
+            ).join(',');
+
+            expect(postMock$).toHaveBeenCalledWith(
+                `${ds.baseUrl}/query-tables`,
+                {
+                    interactive: true,
+                    orderBy: 'ROWS_MODIFIED_AT',
+                    orderByDescending: true,
+                    filter: `((new[]{${resultIdPlaceholders}}.Contains(testResultId)) || (new[]{${dataTableIdPlaceholders}}.Contains(id)))`,
+                    take: TAKE_LIMIT,
+                    projection: [DataTableProjections.RowsModifiedAt],
+                    substitutions: expectedSubstitutions
+                },
+                { useApiIngress: true, showErrorAlert: false }
+            );
+        });
+
+        it('should include only result IDs in filter when no data tables are associated with results', async () => {
+            postMock$.mockImplementation((url) => {
+                if (url.includes('query-results')) {
+                    return of({
+                        results: [
+                            {
+                                id: 'result-1'
+                            },
+                            {
+                                id: 'result-2'
+                            }
+                        ]
+                    });
+                }
+                return of({ tables: mockTables });
+            });
+
+            const filters = {
+                resultFilter: 'status = "Passed"',
+                dataTableFilter: ''
+            };
+            await lastValueFrom(ds.queryTables$(filters));
+
+            expect(postMock$).toHaveBeenCalledWith(
+                `${ds.baseUrl}/query-tables`,
+                {
+                    interactive: true,
+                    orderBy: 'ROWS_MODIFIED_AT',
+                    orderByDescending: true,
+                    filter: '(new[]{@0,@1}.Contains(testResultId))',
+                    take: TAKE_LIMIT,
+                    projection: [DataTableProjections.RowsModifiedAt],
+                    substitutions: ['result-1', 'result-2']
+                },
+                { useApiIngress: true, showErrorAlert: false }
+            );
         });
 
         it('should return empty array when Test Monitor API returns no results', async () => {
@@ -9775,35 +9824,6 @@ describe('DataFrameDataSourceV2', () => {
                 { useApiIngress: true, showErrorAlert: false }
             );
             expect(result).toBe(mockTables);
-        });
-
-        it('should include only result IDs in filter when data table IDs are not present in Test Monitor API response', async () => {
-            postMock$.mockImplementation((url) => {
-                if (url.includes('query-results')) {
-                    return of({ results: [{ id: 'result-1' }, { id: 'result-2' }] });
-                }
-                return of({ tables: mockTables });
-            });
-
-            const filters = {
-                resultFilter: 'status = "Passed"',
-                dataTableFilter: ''
-            };
-            await lastValueFrom(ds.queryTables$(filters));
-
-            expect(postMock$).toHaveBeenCalledWith(
-                `${ds.baseUrl}/query-tables`,
-                {
-                    interactive: true,
-                    orderBy: 'ROWS_MODIFIED_AT',
-                    orderByDescending: true,
-                    filter: '(new[]{@0,@1}.Contains(testResultId))',
-                    take: TAKE_LIMIT,
-                    projection: [DataTableProjections.RowsModifiedAt],
-                    substitutions: ['result-1', 'result-2']
-                },
-                { useApiIngress: true, showErrorAlert: false }
-            );
         });
 
         it('should combine result filter, data table filter and column filter with AND when provided', async () => {
