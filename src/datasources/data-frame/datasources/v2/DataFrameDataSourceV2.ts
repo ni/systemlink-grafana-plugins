@@ -232,7 +232,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     ): Observable<{ filter: string; substitutions?: string[] } | null> {
         if (!filters.resultFilter) {
             return of({
-                filter: filters.dataTableFilter || '' 
+                filter: filters.dataTableFilter || ''
             });
         }
 
@@ -245,7 +245,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
                 const {
                     filter: resultFilter,
-                    substitutions 
+                    substitutions
                 } = this.buildResultFilter(results);
                 const filter = this.buildCombinedFilter({
                     resultFilter,
