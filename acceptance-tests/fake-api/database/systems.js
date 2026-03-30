@@ -19,7 +19,7 @@ export const data = [
     {
         alias: 'System-2',
         id: 'SYSTEM-2',
-        state: "CONNECTED",
+        state: "DISCONNECTED",
         locked: false,
         systemStartTime: "2025-01-8T16:59:31.000Z",
         model: "Model2",

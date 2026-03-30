@@ -2,6 +2,7 @@ import { Locator, Page } from "playwright/test";
 import { DashboardVariableBaseComponent } from "./dashboard-variable-base.component";
 import { pressEnter } from "../../../../utils/keyboard-utilities";
 import { systemsColumn } from "../../../../constants/systems-properties.constant";
+import { timeOutPeriod } from "../../../../constants/global.constant";
 
 export class DashboardSystemVariableComponent extends DashboardVariableBaseComponent {
     constructor(page: Page) {
@@ -94,7 +95,7 @@ export class DashboardSystemVariableComponent extends DashboardVariableBaseCompo
         await expect(async () => {
             await this.addGroupFilterButton.click();
             await menuButton.waitFor({ state: 'visible', timeout: 2000 });
-        }).toPass({ timeout: 10000 });
+        }).toPass({ timeout: timeOutPeriod });
         await menuButton.click();
         // Scroll back so the new empty condition row (appended at the bottom of the QB) is visible.
         await this.page.evaluate(() => {
