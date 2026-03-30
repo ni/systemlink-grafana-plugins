@@ -1,4 +1,4 @@
-import { Locator, Page } from "playwright/test";
+import { expect, Locator, Page } from "playwright/test";
 import { DashboardVariableBaseComponent } from "./dashboard-variable-base.component";
 import { pressEnter } from "../../../../utils/keyboard-utilities";
 import { systemsColumn } from "../../../../constants/systems-properties.constant";
@@ -53,7 +53,6 @@ export class DashboardSystemVariableComponent extends DashboardVariableBaseCompo
             const option = this.page.locator('[data-label="' + value + '"]');
             await option.waitFor({ state: 'visible' });
             await option.click();
-
         } else {
             await this.queryBuilderValueField(property).click();
             await this.page.keyboard.type(value);
@@ -64,7 +63,6 @@ export class DashboardSystemVariableComponent extends DashboardVariableBaseCompo
         await this.queryBuilderPropertyField.last().click();
         await this.queryBuilderPropertyFieldOpened.clear();
         await this.page.keyboard.type(property);
-        // The jqx query builder needs some time to process the typed text, otherwise the next click action will not find the option in the dropdown and will fail
         await this.page.getByRole('option', { name: property }).waitFor({ state: 'visible' });
         await pressEnter(this.page);
         // The library makes the Operator field unclickable via CSS (pointer-events: none).

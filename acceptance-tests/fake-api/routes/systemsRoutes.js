@@ -63,7 +63,7 @@ class SystemsRoutes {
         }
 
         if (req.body.filter === complexFilterForVariable) {
-            res.status(200).json({ count: 3, data: data.filter(data => (data.state === "CONNECTED" && data.workspace === "default-workspace" || data.productName === "Model8")) });
+            res.status(200).json({ count: 3, data: data.filter(data => (data.state === "CONNECTED" && data.workspace === "default-workspace" || data.model === "Model8")) });
             return;
         }
 
