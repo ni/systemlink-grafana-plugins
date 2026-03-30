@@ -1,5 +1,5 @@
 import { Page, Locator } from '@playwright/test';
-import { pressEnter, selectAllAndDeleteTextInInputField } from '../../../../utils/keyboard-utilities';
+import { pressEnter } from '../../../../utils/keyboard-utilities';
 
 export class SystemsQueryEditorComponent {
     readonly page: Page;
