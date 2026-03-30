@@ -13,13 +13,13 @@ export const data = [
                 "172.10.1.37"
             ],
         },
-        workspace: "Default",
+        workspace: "default-workspace",
         scanCode: "scanCode1",
     },
     {
         alias: 'System-2',
         id: 'SYSTEM-2',
-        state: "DISCONNECTED",
+        state: "CONNECTED",
         locked: false,
         systemStartTime: "2025-01-8T16:59:31.000Z",
         model: "Model2",
@@ -30,7 +30,7 @@ export const data = [
                 "10.5.136.55"
             ]
         },
-        workspace: "Default",
+        workspace: "default-workspace",
         scanCode: "scanCode2",
     },
     {
@@ -47,7 +47,7 @@ export const data = [
                 "10.5.136.44"
             ]
         },
-        workspace: "workspace3",
+        workspace: "default-workspace",
         scanCode: "scanCode3",
     },
     {
@@ -64,7 +64,7 @@ export const data = [
                 "10.8.127.44"
             ]
         },
-        workspace: "workspace4",
+        workspace: "default-workspace",
         scanCode: "scanCode4",
     },
     {
@@ -81,7 +81,7 @@ export const data = [
                 "127.6.0.1"
             ]
         },
-        workspace: "workspace5",
+        workspace: "workspace-2",
         scanCode: "scanCode5",
     },
     {
@@ -98,7 +98,7 @@ export const data = [
                 "10.6.0.1"
             ]
         },
-        workspace: "Default",
+        workspace: "default-workspace",
         scanCode: "scanCode6",
     },
     {
@@ -115,7 +115,7 @@ export const data = [
                 "10.6.0.1"
             ]
         },
-        workspace: "workspace7",
+        workspace: "workspace-2",
         scanCode: "scanCode7",
     },
     {
@@ -132,7 +132,7 @@ export const data = [
                 "10.8.0.1"
             ]
         },
-        workspace: "workspace8",
+        workspace: "workspace-2",
         scanCode: "scanCode8",
     },
     {
@@ -149,7 +149,7 @@ export const data = [
                 "10.8.0.2"
             ]
         },
-        workspace: "workspace9",
+        workspace: "default-workspace",
         scanCode: "scanCode9",
     },
     {
@@ -166,7 +166,7 @@ export const data = [
                 "10.9.0.11"
             ]
         },
-        workspace: "workspace10",
+        workspace: "default-workspace",
         scanCode: "scanCode10",
     },
 ]

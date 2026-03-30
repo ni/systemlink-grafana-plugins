@@ -30,7 +30,8 @@ class SystemsRoutes {
         const idFilterForSecondSystemFromDb = 'id = "SYSTEM-2"';
         const scanCodeFilterForFirstSystemFromDb = 'scanCode = "scanCode1"';
         const scanCodeFilterForEighthSystemFromDb = 'scanCode = "scanCode8"';
-        const complexFilter = 'id = "SYSTEM-2" && connected.data.state = "Disconnected" || grains.data.minion_blackout.Equals(True)';
+        const complexFilterForPanel = 'id = "SYSTEM-2" && connected.data.state = "Disconnected" || grains.data.minion_blackout.Equals(True)';
+        const complexFilterForVariable = 'connected.data.state = "CONNECTED" && workspace = "default-workspace" || grains.data.productname = "Model8"';
 
         if (req.method !== 'POST') {
             return;
@@ -56,8 +57,13 @@ class SystemsRoutes {
             return;
         }
 
-        if (req.body.filter === complexFilter) {
+        if (req.body.filter === complexFilterForPanel) {
             res.status(200).json({ count: 2, data: data.filter(data => (data.id === 'SYSTEM-2' && data.state === "DISCONNECTED" || data.locked === true)) });
+            return;
+        }
+
+        if (req.body.filter === complexFilterForVariable) {
+            res.status(200).json({ count: 3, data: data.filter(data => (data.state === "CONNECTED" && data.workspace === "default-workspace" || data.productName === "Model8")) });
             return;
         }
 

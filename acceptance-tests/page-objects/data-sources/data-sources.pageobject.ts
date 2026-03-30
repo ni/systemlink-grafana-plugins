@@ -49,6 +49,10 @@ export class DataSourcesPage {
         return this.page.getByTestId('data-testid Alert success').getByText('Data source connected and authentication successful!Next, you can start to');
     }
 
+    public get systemsFeatureFlagsSwitch(): Locator {
+        return this.page.locator('div').filter({ hasText: /^System query builder$/ }).locator('input[role="switch"]');
+    }
+
     public existentDataSourceLink(dataSourceName: string): Locator {
         return this.page.getByRole('link', { name: dataSourceName, exact: true });
     }

@@ -51,7 +51,7 @@ test.describe('Systems data source with minion id return type', () => {
 
         test('should add filter by minionId using the system variable', async () => {
             await dashboard.panel.systemsQueryEditor.selectQueryType('Properties');
-            await dashboard.panel.systemsQueryEditor.addFilterBySelectingProperty('Minion ID', 'equals', '$id');
+            await dashboard.panel.systemsQueryEditor.addFilterByTypingPropertyName('Minion ID', 'equals', '$id');
 
             await expect(dashboard.panel.table.firstFilterRow).toContainText('Minion ID');
             await expect(dashboard.panel.table.firstFilterRow).toContainText('equals');
@@ -96,7 +96,7 @@ test.describe('Systems data source with minion id return type', () => {
 
         test('should add complex filter', async () => {
             await dashboard.panel.systemsQueryEditor.addFilterGroup('And');
-            await dashboard.panel.systemsQueryEditor.addFilterBySelectingProperty('Connection status', 'equals', 'Disconnected');
+            await dashboard.panel.systemsQueryEditor.addFilterByTypingPropertyName('Connection status', 'equals', 'Disconnected');
             await pressEnter(dashboard.page);
 
             await expect(dashboard.panel.table.secondFilterRow).toContainText('Connection status');

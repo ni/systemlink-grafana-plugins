@@ -25,11 +25,11 @@ export class DashboardSystemVariableComponent extends DashboardVariableBaseCompo
     }
 
     public get andFilterGroupButton(): Locator {
-        return this.page.getByLabel('And', { exact: true }).getByText('And');
+        return this.page.getByRole('menuitem', { name: 'And', exact: true });
     }
 
     public get orFilterGroupButton(): Locator {
-        return this.page.getByText('Or', { exact: true });
+        return this.page.getByRole('menuitem', { name: 'Or', exact: true });
     }
 
     public queryBuilderValueField(property: string): Locator {
@@ -49,24 +49,23 @@ export class DashboardSystemVariableComponent extends DashboardVariableBaseCompo
         if (property.toLowerCase() === systemsColumn.workspace || property.toLowerCase() === systemsColumn.connection_status || property.toLowerCase() === systemsColumn.locked_status) {
             await this.queryBuilderValueField(property).click();
             await this.page.keyboard.type(value);
-            // The jqx query builder needs some time to process the typed text, otherwise the next click action will not find the option in the dropdown and will fail
-            await new Promise(resolve => setTimeout(resolve, 100));
-            await this.page.locator('a').filter({ hasText: new RegExp(`^${value}$`) }).waitFor({ state: 'visible' });
-            await this.page.locator('a').filter({ hasText: new RegExp(`^${value}$`) }).click();
+            const option = this.page.locator('[data-label="' + value + '"]');
+            await option.waitFor({ state: 'visible' });
+            await option.click();
+
         } else {
             await this.queryBuilderValueField(property).click();
             await this.page.keyboard.type(value);
         }
     }
 
-    async addFilterBySelectingProperty(property: string, operation: string, value: string): Promise<void> {
+    async addFilterByTypingPropertyName(property: string, operation: string, value: string): Promise<void> {
         await this.queryBuilderPropertyField.last().click();
         await this.queryBuilderPropertyFieldOpened.clear();
         await this.page.keyboard.type(property);
         // The jqx query builder needs some time to process the typed text, otherwise the next click action will not find the option in the dropdown and will fail
         await this.page.getByRole('option', { name: property }).waitFor({ state: 'visible' });
         await pressEnter(this.page);
-        await this.page.getByRole('option', { name: property }).waitFor({ state: 'hidden' });
         // The library makes the Operator field unclickable via CSS (pointer-events: none).
         // Using dispatchEvent bypasses this restriction and fires the event directly on the element.
         await this.queryBuilderOperationField.last().dispatchEvent('pointerdown', { bubbles: true, isPrimary: true });
@@ -77,13 +76,32 @@ export class DashboardSystemVariableComponent extends DashboardVariableBaseCompo
     }
 
     async addFilterGroup(operator: string): Promise<void> {
-        await this.addGroupFilterButton.click();
-        if (operator.toLowerCase() === 'and') {
-            await this.andFilterGroupButton.waitFor({ state: 'visible' });
-            await this.andFilterGroupButton.click();
-        } else if (operator.toLowerCase() === 'or') {
-            await this.orFilterGroupButton.waitFor({ state: 'visible' });
-            await this.orFilterGroupButton.click();
-        }
+        // The conditionsMenu popup is clipped by the variable-settings form's scroll container.
+        // The QB itself has overflow:visible, so the popup escapes the QB element, but Grafana's
+        // form panel clips it. Scrolling the form to the bottom before clicking ensures the popup
+        // opens in visible space below the button. After selecting the option, scroll back to top
+        // so subsequent interactions can find the newly added condition row.
+        await this.page.evaluate(() => {
+            const scrollContainer = document.querySelector('[class*="scrollbar-view"]') as HTMLElement
+                ?? document.querySelector('.scrollbar-view') as HTMLElement;
+            if (scrollContainer) { scrollContainer.scrollTop = scrollContainer.scrollHeight; }
+        });
+        // Wait for the button to be stable after scrolling before clicking.
+        await this.addGroupFilterButton.waitFor({ state: 'visible' });
+        const menuButton = operator.toLowerCase() === 'and' ? this.andFilterGroupButton : this.orFilterGroupButton;
+        // The first click can miss the dropdown opening if the page hasn't fully settled after
+        // the scroll. Retry until the And/Or menu item becomes visible.
+        await expect(async () => {
+            await this.addGroupFilterButton.click();
+            await menuButton.waitFor({ state: 'visible', timeout: 2000 });
+        }).toPass({ timeout: 10000 });
+        await menuButton.click();
+        // Scroll back so the new empty condition row (appended at the bottom of the QB) is visible.
+        await this.page.evaluate(() => {
+            const scrollContainer = document.querySelector('[class*="scrollbar-view"]') as HTMLElement
+                ?? document.querySelector('.scrollbar-view') as HTMLElement;
+            if (scrollContainer) { scrollContainer.scrollTop = 0; }
+        });
+        await this.queryBuilderPropertyField.last().waitFor({ state: 'visible' });
     }
 }

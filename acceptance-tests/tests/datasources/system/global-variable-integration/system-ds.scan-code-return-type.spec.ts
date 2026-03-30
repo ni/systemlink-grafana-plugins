@@ -39,16 +39,16 @@ test.describe('Systems data source with scan code return type', () => {
 
         });
 
-        test('should add a complex filter to the creeated systems variable', async () => {
+        test('should add a complex filter to the created systems variable', async () => {
             await dashboard.settings.editVariable('scanCode');
-            await dashboard.settings.systemVariable.addFilterBySelectingProperty('Connection status', 'equals', 'Connected');
+            await dashboard.settings.systemVariable.addFilterByTypingPropertyName('Connection status', 'equals', 'Connected');
 
             await dashboard.settings.systemVariable.addFilterGroup('And');
-            await dashboard.settings.systemVariable.addFilterBySelectingProperty('Workspace', 'equals', 'Default');
+            await dashboard.settings.systemVariable.addFilterByTypingPropertyName('Workspace', 'equals', 'Default');
             await pressEnter(dashboard.page);
 
             await dashboard.settings.systemVariable.addFilterGroup('Or');
-            await dashboard.settings.systemVariable.addFilterBySelectingProperty('Model', 'equals', 'Model6');
+            await dashboard.settings.systemVariable.addFilterByTypingPropertyName('Model', 'equals', 'Model8');
             await pressEnter(dashboard.page);
         });
 
@@ -103,7 +103,7 @@ test.describe('Systems data source with scan code return type', () => {
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.vendor, 'Vendor8')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.operating_system, 'OS8')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.ip_address, '10.8.0.1')).toBeTruthy();
-            expect(await dashboard.panel.table.checkColumnValue(systemsColumn.workspace, 'workspace8')).toBeTruthy();
+            expect(await dashboard.panel.table.checkColumnValue(systemsColumn.workspace, 'Workspace 2')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.scan_code, 'scanCode8')).toBeTruthy();
         });
     });
