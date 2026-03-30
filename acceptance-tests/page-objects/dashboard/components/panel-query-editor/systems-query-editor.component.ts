@@ -36,6 +36,10 @@ export class SystemsQueryEditorComponent {
         return this.page.getByText('Or', { exact: true });
     }
 
+    public get queryBuilderPropertyFieldOpened(): Locator {
+        return this.page.getByRole('searchbox', { name: 'Input' });
+    }
+
     public getQueryType(queryType: string): Locator {
         return this.page.getByRole('radio', { name: queryType });
     }
@@ -50,7 +54,7 @@ export class SystemsQueryEditorComponent {
 
     async addFilterByTypingPropertyName(property: string, operation: string, value: string): Promise<void> {
         await this.queryBuilderPropertyField.last().click();
-        await selectAllAndDeleteTextInInputField(this.page);
+        await this.queryBuilderPropertyFieldOpened.clear();
         await this.page.keyboard.type(property);
         await this.page.getByRole('option', { name: property }).waitFor({ state: 'visible' });
         await pressEnter(this.page);
