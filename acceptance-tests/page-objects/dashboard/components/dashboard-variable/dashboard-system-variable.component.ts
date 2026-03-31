@@ -76,27 +76,21 @@ export class DashboardSystemVariableComponent extends DashboardVariableBaseCompo
     }
 
     async addFilterGroup(operator: string): Promise<void> {
-        // The conditionsMenu popup is clipped by the variable-settings form's scroll container.
-        // The QB itself has overflow:visible, so the popup escapes the QB element, but Grafana's
-        // form panel clips it. Scrolling the form to the bottom before clicking ensures the popup
-        // opens in visible space below the button. After selecting the option, scroll back to top
-        // so subsequent interactions can find the newly added condition row.
+        // This scrolling is needed as the "Add group" button can appear at the bottom of the page which would make the selector unable to find it.
         await this.page.evaluate(() => {
             const scrollContainer = document.querySelector('[class*="scrollbar-view"]') as HTMLElement
                 ?? document.querySelector('.scrollbar-view') as HTMLElement;
             if (scrollContainer) { scrollContainer.scrollTop = scrollContainer.scrollHeight; }
         });
-        // Wait for the button to be stable after scrolling before clicking.
         await this.addGroupFilterButton.waitFor({ state: 'visible' });
         const menuButton = operator.toLowerCase() === 'and' ? this.andFilterGroupButton : this.orFilterGroupButton;
-        // The first click can miss the dropdown opening if the page hasn't fully settled after
-        // the scroll. Retry until the And/Or menu item becomes visible.
+        // The first click can miss opening the dropdown if the page hasn't fully settled after the scroll. This issue is resolved by retrying the click until the dropdown is visible.
         await expect(async () => {
             await this.addGroupFilterButton.click();
             await menuButton.waitFor({ state: 'visible', timeout: 2000 });
         }).toPass({ timeout: timeOutPeriod });
         await menuButton.click();
-        // Scroll back so the new empty condition row (appended at the bottom of the QB) is visible.
+        // Scroll back is needed so the new empty condition row will be visible.
         await this.page.evaluate(() => {
             const scrollContainer = document.querySelector('[class*="scrollbar-view"]') as HTMLElement
                 ?? document.querySelector('.scrollbar-view') as HTMLElement;
