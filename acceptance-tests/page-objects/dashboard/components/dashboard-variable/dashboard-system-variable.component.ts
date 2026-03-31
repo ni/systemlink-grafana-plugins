@@ -49,6 +49,7 @@ export class DashboardSystemVariableComponent extends DashboardVariableBaseCompo
     async selectQueryBuilderValueOption(property: string, value: string): Promise<void> {
         if (property.toLowerCase() === systemsColumn.workspace || property.toLowerCase() === systemsColumn.connection_status || property.toLowerCase() === systemsColumn.locked_status) {
             await this.queryBuilderValueField(property).click();
+            await this.page.locator('input:focus').waitFor({ state: 'visible' });
             await this.page.keyboard.type(value);
             const option = this.page.locator('[data-label="' + value + '"]');
             await option.waitFor({ state: 'visible' });
