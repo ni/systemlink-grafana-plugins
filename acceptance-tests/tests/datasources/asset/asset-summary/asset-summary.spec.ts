@@ -29,7 +29,7 @@ test.describe('Asset Summary Table', () => {
             await dashboard.addVisualizationButton.waitFor();
             await dashboard.addVisualization();
             await dashboard.selectDataSource(createdDataSourceName);
-            await dashboard.panel.assetQueryEditor.switchToTableView();
+            await dashboard.panel.toolbar.switchToTableView();
 
             await expect(dashboard.dataSourcePicker).toHaveAttribute('placeholder', createdDataSourceName);
         });

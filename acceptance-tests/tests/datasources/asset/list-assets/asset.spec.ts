@@ -25,7 +25,7 @@ test.describe('Asset data source with asset variable', () => {
     test('should verify all table data properties are correct', async () => {
         await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
         await dashboard.createFirstVisualization(createdDataSourceName);
-        await dashboard.panel.assetQueryEditor.switchToTableView();
+        await dashboard.panel.toolbar.switchToTableView();
         await dashboard.panel.assetQueryEditor.addFilter('Scan Code', 'equals', 'scanCode6');
 
         await dashboard.panel.assetQueryEditor.openQueryProperties();

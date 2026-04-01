@@ -29,7 +29,7 @@ test.describe('System Summary Table', () => {
             await dashboard.addVisualizationButton.waitFor();
             await dashboard.addVisualization();
             await dashboard.selectDataSource(createdDataSourceName);
-            await dashboard.panel.systemsQueryEditor.switchToTableView();
+            await dashboard.panel.toolbar.switchToTableView();
 
             await expect(dashboard.dataSourcePicker).toHaveAttribute('placeholder', createdDataSourceName);
         });

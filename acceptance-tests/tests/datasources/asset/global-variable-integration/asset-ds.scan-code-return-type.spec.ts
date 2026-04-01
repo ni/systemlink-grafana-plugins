@@ -44,7 +44,7 @@ test.describe('Asset data source with scan code return type', () => {
             await dashboard.addVisualizationButton.waitFor();
             await dashboard.addVisualization();
             await dashboard.selectDataSource(createdDataSourceName);
-            await dashboard.panel.assetQueryEditor.switchToTableView();
+            await dashboard.panel.toolbar.switchToTableView();
 
             await expect(dashboard.dataSourcePicker).toHaveAttribute('placeholder', createdDataSourceName);
         });

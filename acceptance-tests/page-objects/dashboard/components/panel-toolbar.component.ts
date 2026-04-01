@@ -35,6 +35,10 @@ export class PanelToolbarComponent {
         return this.page.getByTestId('data-testid Time zone picker select container').getByRole('combobox', { name: 'Time zone picker' });
     }
 
+    public get switchToTableViewButton(): Locator {
+        return this.page.getByText('Table view');
+    }
+
     public timeZoneOption(option: string): Locator {
         return this.page.getByRole('option', { name: option });
     }
@@ -45,6 +49,10 @@ export class PanelToolbarComponent {
 
     async openDateTimePicker(): Promise<void> {
         await this.dateTimePicker.click();
+    }
+
+    async switchToTableView(): Promise<void> {
+        await this.switchToTableViewButton.click();
     }
 
     async setTimeRange(from: string, to: string, timeZoneOption: string): Promise<void> {

@@ -29,10 +29,6 @@ export class AssetQueryEditorComponent {
         return this.page.getByTestId('query-editor-row').getByText('Value');
     }
 
-    public get switchToTableViewButton(): Locator {
-        return this.page.getByText('Table view');
-    }
-
     public selectQueryBuilderPropertyOption(optionName: string): Locator {
         return this.page.getByRole('option', { name: optionName }).locator('a');
     }
@@ -88,10 +84,6 @@ export class AssetQueryEditorComponent {
         await this.queryBuilderValueField.click();
         await this.page.keyboard.type(value);
         await pressEnter(this.page);
-    }
-
-    async switchToTableView(): Promise<void> {
-        await this.switchToTableViewButton.click();
     }
 
     async openVariableDropdown(variableName: string, variableOption: string): Promise<void> {

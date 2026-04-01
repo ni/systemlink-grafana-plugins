@@ -20,10 +20,6 @@ export class SystemsQueryEditorComponent {
         return this.page.getByTestId('query-editor-row').getByText('Value');
     }
 
-    public get switchToTableViewButton(): Locator {
-        return this.page.getByText('Table view');
-    }
-
     public get addGroupFilterButton(): Locator {
         return this.page.getByRole('button', { name: 'Add group' });
     }
@@ -65,10 +61,6 @@ export class SystemsQueryEditorComponent {
         await this.queryBuilderValueField.last().click();
         await this.page.keyboard.type(value);
         await pressEnter(this.page);
-    }
-
-    async switchToTableView(): Promise<void> {
-        await this.switchToTableViewButton.click();
     }
 
     async openVariableDropdown(variableName: string, variableOption: string): Promise<void> {

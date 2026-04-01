@@ -48,7 +48,7 @@ test.describe('Calibration Forecast', () => {
                 dashboard.panel.toolbar.refreshData()
             ]);
 
-            await dashboard.panel.assetQueryEditor.switchToTableView();
+            await dashboard.panel.toolbar.switchToTableView();
             await dashboard.panel.table.getTable.waitFor({ timeout: timeOutPeriod });
 
             expect(forecastResponse).toBeDefined();
