@@ -1,19 +1,19 @@
 import { test, expect } from '@playwright/test';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
-import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
+import { DataSourcePage } from '../../../../page-objects/data-sources/data-source.pageobject';
 import { GRAFANA_URL } from '../../../../config/environment';
 import { assetColumn, nonDefaultAssetListProperties } from '../../../../constants/asset-list-properties.constant';
 import { pressEscape } from '../../../../utils/keyboard-utilities';
 
 test.describe('Asset data source with asset variable', () => {
     let dashboard: DashboardPage;
-    let dataSources: DataSourcesPage;
+    let dataSources: DataSourcePage;
     const createdDataSourceName = 'Systemlink Assets General';
 
     test.beforeAll(async ({ browser }) => {
         const context = await browser.newContext();
         const page = await context.newPage();
-        dataSources = new DataSourcesPage(page);
+        dataSources = new DataSourcePage(page);
         dashboard = new DashboardPage(page);
         await dataSources.addDataSource('SystemLink Assets', createdDataSourceName);
     });

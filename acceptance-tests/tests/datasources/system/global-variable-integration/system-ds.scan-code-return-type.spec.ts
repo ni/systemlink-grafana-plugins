@@ -1,20 +1,20 @@
 import { test, expect } from '@playwright/test';
 import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
-import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { systemsColumn } from '../../../../constants/systems-properties.constant';
 import { timeOutPeriod } from '../../../../constants/global.constant';
 import { pressEnter } from '../../../../utils/keyboard-utilities';
+import { SystemDataSource } from '../../../../page-objects/data-sources/systems-data-source.pageobject';
 
 test.describe('Systems data source with scan code return type', () => {
     let dashboard: DashboardPage;
-    let dataSources: DataSourcesPage;
+    let dataSources: SystemDataSource;
     let createdDataSourceName = 'Systemlink Systems Scan Code Return Type';
 
     test.beforeAll(async ({ browser }) => {
         const context = await browser.newContext();
         const page = await context.newPage();
-        dataSources = new DataSourcesPage(page);
+        dataSources = new SystemDataSource(page);
         dashboard = new DashboardPage(page);
         await dataSources.addDataSource('SystemLink Systems', createdDataSourceName);
     });

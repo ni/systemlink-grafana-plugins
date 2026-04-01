@@ -2,7 +2,7 @@ import { Page, Locator } from '@playwright/test';
 import { GRAFANA_URL, FAKE_API_URL } from '../../config/environment';
 import { timeOutPeriod } from '../../constants/global.constant';
 
-export class DataSourcesPage {
+export class DataSourcePage {
     readonly page: Page;
 
     constructor(page: Page) {
@@ -47,10 +47,6 @@ export class DataSourcesPage {
 
     public get dataSourceConnectedSuccessMessage(): Locator {
         return this.page.getByTestId('data-testid Alert success').getByText('Data source connected and authentication successful!Next, you can start to');
-    }
-
-    public get systemsFeatureFlagsSwitch(): Locator {
-        return this.page.locator('div').filter({ hasText: /^System query builder$/ }).locator('input[role="switch"]');
     }
 
     public existentDataSourceLink(dataSourceName: string): Locator {
