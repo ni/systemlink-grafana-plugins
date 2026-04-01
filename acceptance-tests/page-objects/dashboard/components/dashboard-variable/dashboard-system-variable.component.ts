@@ -33,8 +33,8 @@ export class DashboardSystemVariableComponent extends DashboardVariableBaseCompo
         return this.page.getByRole('menuitem', { name: 'Or', exact: true });
     }
 
-    public queryBuilderValueField(property: string): Locator {
-        return this.page.getByLabel(`${property}`).getByText('Value');
+    public queryBuilderValueField(value: string): Locator {
+        return this.page.getByLabel(`${value}`).getByText('Value');
     }
 
     public queryReturnTypeDropdown(dropdownOptionName: string) {
