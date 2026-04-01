@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { expect, Page, Locator } from '@playwright/test';
 import { GRAFANA_URL, FAKE_API_URL } from '../../config/environment';
 import { timeOutPeriod } from '../../constants/global.constant';
 
@@ -62,11 +62,13 @@ export class DataSourcePage {
     }
 
     async addDataSource(dataSource: string, dataSourceNameField: string): Promise<void> {
-        await this.navigateToDatasourcesPage();
-        await this.addDataSourceButton.click();
-        await this.dataSource(dataSource).click();
-        await this.nameSettingsInputField.waitFor({ state: 'visible', timeout: timeOutPeriod });
-        await this.httpSettingsURL.waitFor({ state: 'visible', timeout: timeOutPeriod });
+        await expect(async () => {
+            await this.navigateToDatasourcesPage();
+            await this.addDataSourceButton.click();
+            await this.dataSource(dataSource).click();
+            await this.nameSettingsInputField.waitFor({ state: 'visible', timeout: timeOutPeriod });
+            await this.httpSettingsURL.waitFor({ state: 'visible', timeout: timeOutPeriod });
+        }).toPass({ timeout: timeOutPeriod });
         await this.changeNameInputFieldValue(dataSourceNameField);
         await this.httpSettingsURL.fill(FAKE_API_URL);
         await this.saveAndTestButton.click();
