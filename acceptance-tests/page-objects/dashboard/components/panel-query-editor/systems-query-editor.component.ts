@@ -85,5 +85,6 @@ export class SystemsQueryEditorComponent {
         const menuButton = operator.toLowerCase() === 'and' ? this.andFilterGroupButton : this.orFilterGroupButton;
         await menuButton.waitFor({ state: 'visible' });
         await menuButton.click();
+        await this.queryBuilderPropertyField.last().waitFor({ state: 'visible' });
     }
 }
