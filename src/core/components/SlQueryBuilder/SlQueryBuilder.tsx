@@ -102,6 +102,43 @@ export const SlQueryBuilder: React.FC<SlQueryBuilderProps> = ({
     }
   };
 
+  // Fixes the position of the conditions menu popup opened by the "Add group" button in variable editor.
+  useEffect(() => {
+    const menu = wrapperRef.current?.querySelector<HTMLElement & { controlledBy?: HTMLElement }>('.smart-conditions-menu');
+    if (!menu) {
+      return;
+    }
+
+    const reposition = () => {
+      const trigger = menu.controlledBy;
+      if (!trigger) {
+        return;
+      }
+      const { left, bottom } = trigger.getBoundingClientRect();
+      menu.style.position = 'fixed';
+      menu.style.left = `${left}px`;
+      menu.style.top = `${bottom + 3}px`;
+    };
+
+    const handleOpen = () => {
+      reposition();
+      window.addEventListener('scroll', reposition, { capture: true, passive: true });
+    };
+
+    const handleClose = () => {
+      window.removeEventListener('scroll', reposition, { capture: true });
+    };
+
+    menu.addEventListener('open', handleOpen);
+    menu.addEventListener('close', handleClose);
+    return () => {
+      menu.removeEventListener('open', handleOpen);
+      menu.removeEventListener('close', handleClose);
+      window.removeEventListener('scroll', reposition, { capture: true });
+      menu.style.position = '';
+    };
+  }, []);
+
   useEffect(() => {
     if (isLegacyFilter || isInitializedRef.current) {
       return;

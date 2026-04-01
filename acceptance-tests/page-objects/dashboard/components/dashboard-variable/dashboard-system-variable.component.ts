@@ -1,8 +1,7 @@
-import { expect, Locator, Page } from "playwright/test";
+import { Locator, Page } from "playwright/test";
 import { DashboardVariableBaseComponent } from "./dashboard-variable-base.component";
 import { pressEnter } from "../../../../utils/keyboard-utilities";
 import { systemsColumn } from "../../../../constants/systems-properties.constant";
-import { timeOutPeriod } from "../../../../constants/global.constant";
 
 export class DashboardSystemVariableComponent extends DashboardVariableBaseComponent {
     constructor(page: Page) {
@@ -76,26 +75,10 @@ export class DashboardSystemVariableComponent extends DashboardVariableBaseCompo
     }
 
     async addFilterGroup(operator: string): Promise<void> {
-        // This scrolling is needed as the "Add group" button can appear at the bottom of the page which would make the selector unable to find it.
-        await this.page.evaluate(() => {
-            const scrollContainer = document.querySelector('[class*="scrollbar-view"]') as HTMLElement
-                ?? document.querySelector('.scrollbar-view') as HTMLElement;
-            if (scrollContainer) { scrollContainer.scrollTop = scrollContainer.scrollHeight; }
-        });
-        await this.addGroupFilterButton.waitFor({ state: 'visible' });
+        await this.addGroupFilterButton.dispatchEvent('pointerdown', { bubbles: true, isPrimary: true });
         const menuButton = operator.toLowerCase() === 'and' ? this.andFilterGroupButton : this.orFilterGroupButton;
-        // The first click can miss opening the dropdown if the page hasn't fully settled after the scroll. This issue is resolved by retrying the click until the dropdown is visible.
-        await expect(async () => {
-            await this.addGroupFilterButton.click();
-            await menuButton.waitFor({ state: 'visible', timeout: 2000 });
-        }).toPass({ timeout: timeOutPeriod });
+        await menuButton.waitFor({ state: 'visible' });
         await menuButton.click();
-        // Scroll back is needed so the new empty condition row will be visible.
-        await this.page.evaluate(() => {
-            const scrollContainer = document.querySelector('[class*="scrollbar-view"]') as HTMLElement
-                ?? document.querySelector('.scrollbar-view') as HTMLElement;
-            if (scrollContainer) { scrollContainer.scrollTop = 0; }
-        });
         await this.queryBuilderPropertyField.last().waitFor({ state: 'visible' });
     }
 }

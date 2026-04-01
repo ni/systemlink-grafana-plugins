@@ -81,11 +81,9 @@ export class SystemsQueryEditorComponent {
     }
 
     async addFilterGroup(operator: string): Promise<void> {
-        await this.addGroupFilterButton.click();
-        if (operator.toLowerCase() === 'and') {
-            await this.andFilterGroupButton.click();
-        } else if (operator.toLowerCase() === 'or') {
-            await this.orFilterGroupButton.click();
-        }
+        await this.addGroupFilterButton.dispatchEvent('pointerdown', { bubbles: true, isPrimary: true });
+        const menuButton = operator.toLowerCase() === 'and' ? this.andFilterGroupButton : this.orFilterGroupButton;
+        await menuButton.waitFor({ state: 'visible' });
+        await menuButton.click();
     }
 }
