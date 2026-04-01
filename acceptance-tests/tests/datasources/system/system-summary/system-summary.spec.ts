@@ -8,19 +8,19 @@ import { SystemDataSource } from '../../../../page-objects/data-sources/systems-
 
 test.describe('System Summary Table', () => {
     let dashboard: DashboardPage;
-    let dataSources: SystemDataSource;
+    let dataSource: SystemDataSource;
     let createdDataSourceName = 'Systemlink System Summary Table';
 
     test.beforeAll(async ({ browser }) => {
         const context = await browser.newContext();
         const page = await context.newPage();
-        dataSources = new SystemDataSource(page);
+        dataSource = new SystemDataSource(page);
         dashboard = new DashboardPage(page);
-        await dataSources.addDataSource('SystemLink Systems', createdDataSourceName);
+        await dataSource.addDataSource('SystemLink Systems', createdDataSourceName);
     });
 
     test.afterAll(async () => {
-        await dataSources.deleteDataSource(createdDataSourceName);
+        await dataSource.deleteDataSource(createdDataSourceName);
     });
 
     test.describe.serial('System Summary query', () => {
