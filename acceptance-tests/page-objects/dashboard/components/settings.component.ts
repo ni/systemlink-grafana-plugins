@@ -21,10 +21,6 @@ export class Settings {
         return this.page.getByTestId('data-testid dashboard-settings-close');
     }
 
-    public getVariable(variableName: string): Locator {
-        return this.page.getByRole('gridcell', { name: `Variable editor Table Definition field ${variableName}` });
-    }
-
     public createdVariable(variableName: string) {
         return this.page.getByRole('gridcell', { name: `Variable editor Table Definition field ${variableName}` });
     }
@@ -42,6 +38,6 @@ export class Settings {
     }
 
     async editVariable(variableName: string): Promise<void> {
-        await this.getVariable(variableName).click();
+        await this.createdVariable(variableName).click();
     }
 }
