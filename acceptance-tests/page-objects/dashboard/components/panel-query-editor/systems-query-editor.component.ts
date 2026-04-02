@@ -25,11 +25,11 @@ export class SystemsQueryEditorComponent {
     }
 
     public get andFilterGroupButton(): Locator {
-        return this.page.getByLabel('And', { exact: true }).getByText('And');
+        return this.page.getByRole('menuitem', { name: 'And', exact: true });
     }
 
     public get orFilterGroupButton(): Locator {
-        return this.page.getByText('Or', { exact: true });
+        return this.page.getByRole('menuitem', { name: 'Or', exact: true });
     }
 
     public get queryBuilderPropertyFieldOpened(): Locator {
