@@ -43,6 +43,14 @@ export class PanelToolbarComponent {
         return this.page.getByRole('option', { name: option });
     }
 
+    public variableDropdown(variableName: string): Locator {
+        return this.page.getByTestId(`data-testid Dashboard template variables Variable Value DropDown value link text ${variableName}`);
+    }
+
+    public variableDropdownOption(optionName: string): Locator {
+        return this.page.getByRole('checkbox', { name: optionName });
+    }
+
     async refreshData(): Promise<void> {
         await this.refreshButton.click();
     }
@@ -62,5 +70,10 @@ export class PanelToolbarComponent {
         await this.timeRangeFromField.fill(from);
         await this.timeRangeToField.fill(to);
         await this.applyTimeRangeButton.click();
+    }
+
+    async openVariableDropdown(variableName: string, variableOption: string): Promise<void> {
+        await this.variableDropdown(variableName).click();
+        await this.variableDropdownOption(variableOption).click();
     }
 }

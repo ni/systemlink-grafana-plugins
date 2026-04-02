@@ -75,7 +75,7 @@ test.describe('Asset data source with scan code return type', () => {
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.workspace, 'Default')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.location, 'System-1')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.scan_code, 'scanCode1')).toBeTruthy();
-            await dashboard.panel.assetQueryEditor.openVariableDropdown('name1 (serial1)', 'name6 (serial6)');
+            await dashboard.panel.toolbar.openVariableDropdown('name1 (serial1)', 'name6 (serial6)');
             await dashboard.panel.toolbar.refreshData();
 
             rowCount = await dashboard.panel.table.getTableRowCount();

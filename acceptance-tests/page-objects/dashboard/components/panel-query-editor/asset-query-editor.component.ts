@@ -52,14 +52,6 @@ export class AssetQueryEditorComponent {
         return this.page.getByRole('option', { name: optionName });
     }
 
-    public variableDropdown(variableName: string): Locator {
-        return this.page.getByTestId(`data-testid Dashboard template variables Variable Value DropDown value link text ${variableName}`);
-    }
-
-    public variableDropdownOption(optionName: string): Locator {
-        return this.page.getByRole('checkbox', { name: optionName });
-    }
-
     public getQueryTypeOption(optionName: string): Locator {
         return this.selectMenu.getByText(optionName, { exact: true });
     }
@@ -84,11 +76,6 @@ export class AssetQueryEditorComponent {
         await this.queryBuilderValueField.click();
         await this.page.keyboard.type(value);
         await pressEnter(this.page);
-    }
-
-    async openVariableDropdown(variableName: string, variableOption: string): Promise<void> {
-        await this.variableDropdown(variableName).click();
-        await this.variableDropdownOption(variableOption).click();
     }
 
     async openQueryProperties(): Promise<void> {

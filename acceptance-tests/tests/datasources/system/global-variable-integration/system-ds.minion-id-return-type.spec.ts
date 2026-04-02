@@ -75,7 +75,7 @@ test.describe('Systems data source with minion id return type', () => {
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.ip_address, '172.10.1.37')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.workspace, 'Default')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.scan_code, 'scanCode1')).toBeTruthy();
-            await dashboard.panel.systemsQueryEditor.openVariableDropdown('System-1', 'System-2');
+            await dashboard.panel.toolbar.openVariableDropdown('System-1', 'System-2');
             await dashboard.panel.toolbar.refreshData();
 
             rowCount = await dashboard.panel.table.getTableRowCount();

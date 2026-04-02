@@ -40,14 +40,6 @@ export class SystemsQueryEditorComponent {
         return this.page.getByRole('radio', { name: queryType });
     }
 
-    public variableDropdown(variableName: string): Locator {
-        return this.page.getByTestId(`data-testid Dashboard template variables Variable Value DropDown value link text ${variableName}`);
-    }
-
-    public variableDropdownOption(optionName: string): Locator {
-        return this.page.getByRole('checkbox', { name: optionName });
-    }
-
     async addFilterByTypingPropertyName(property: string, operation: string, value: string): Promise<void> {
         await this.queryBuilderPropertyField.last().click();
         await this.queryBuilderPropertyFieldOpened.clear();
@@ -61,11 +53,6 @@ export class SystemsQueryEditorComponent {
         await this.queryBuilderValueField.last().click();
         await this.page.keyboard.type(value);
         await pressEnter(this.page);
-    }
-
-    async openVariableDropdown(variableName: string, variableOption: string): Promise<void> {
-        await this.variableDropdown(variableName).click();
-        await this.variableDropdownOption(variableOption).click();
     }
 
     async selectQueryType(queryType: string): Promise<void> {
