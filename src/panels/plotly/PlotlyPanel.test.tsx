@@ -1096,6 +1096,90 @@ describe('PlotlyPanel', () => {
       lineWidth: 2,
     };
 
+    describe('Histogram', () => {
+      it('should render a histogram for a single selected numeric field', () => {
+        const props = createMockProps({
+          yAxis: { fields: ['value'], min: undefined, max: undefined },
+          series: { ...defaultSeriesOptions, plotType: 'histogram', nbinsx: 6 },
+        });
+
+        props.data.series = [
+          {
+            name: 'Series 1',
+            fields: [
+              {
+                name: 'value',
+                type: 'number',
+                values: { toArray: () => [10, 20, 20, 30] },
+                config: {},
+              },
+            ],
+            length: 4,
+          },
+        ] as any;
+
+        renderPlotlyElement(props);
+
+        expect(plotlyData).toHaveLength(1);
+        expect(plotlyData[0].type).toBe('histogram');
+        expect(plotlyData[0].x).toEqual([10, 20, 20, 30]);
+      });
+
+      it('should default histogram mode to overlay', () => {
+        const props = createMockProps({
+          yAxis: { fields: ['value'], min: undefined, max: undefined },
+          series: { ...defaultSeriesOptions, plotType: 'histogram' },
+        });
+
+        props.data.series = [
+          {
+            name: 'Series 1',
+            fields: [
+              {
+                name: 'value',
+                type: 'number',
+                values: { toArray: () => [10, 20, 20, 30] },
+                config: {},
+              },
+            ],
+            length: 4,
+          },
+        ] as any;
+
+        renderPlotlyElement(props);
+
+        expect(plotlyLayout.barmode).toBe('overlay');
+      });
+
+      (['overlay', 'group', 'stack'] as const).forEach((histogramMode) => {
+        it(`should apply '${histogramMode}' as barmode for histogram`, () => {
+          const props = createMockProps({
+            yAxis: { fields: ['value'], min: undefined, max: undefined },
+            series: { ...defaultSeriesOptions, plotType: 'histogram', histogramMode },
+          });
+
+          props.data.series = [
+            {
+              name: 'Series 1',
+              fields: [
+                {
+                  name: 'value',
+                  type: 'number',
+                  values: { toArray: () => [10, 20, 20, 30] },
+                  config: {},
+                },
+              ],
+              length: 4,
+            },
+          ] as any;
+
+          renderPlotlyElement(props);
+
+          expect(plotlyLayout.barmode).toBe(histogramMode);
+        });
+      });
+    });
+
     describe('Primary Y axis', () => {
       describe('when plotType is line or points', () => {
         it('should default to scatter when isWebGLEnabled is not set', () => {

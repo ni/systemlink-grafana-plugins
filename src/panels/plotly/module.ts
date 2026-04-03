@@ -137,10 +137,36 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
             { label: 'Bar', value: 'bar' },
             { label: 'Points', value: 'points' },
             { label: 'Box', value: 'box' },
-            { label: 'Violin', value: 'violin' }
+            { label: 'Violin', value: 'violin' },
+            { label: 'Histogram', value: 'histogram' },
           ],
         },
         defaultValue: 'line',
+        category: ['Y Axis'],
+      })
+      .addNumberInput({
+        path: 'series.nbinsx',
+        name: 'Bin granularity',
+        settings: {
+          placeholder: 'Auto',
+          min: 1,
+        },
+        showIf: (options) => options.series.plotType === 'histogram',
+        category: ['Y Axis'],
+      })
+      .addSelect({
+        path: 'series.histogramMode',
+        name: 'Bar mode',
+        settings: {
+          options: [
+            { label: 'Overlaid', value: 'overlay' },
+            { label: 'Side by Side', value: 'group' },
+            { label: 'Stacked', value: 'stack' },
+            { label: 'Positive/Negative Stacked', value: 'relative' },
+          ],
+        },
+        defaultValue: 'overlay',
+        showIf: (options) => options.series.plotType === 'histogram',
         category: ['Y Axis'],
       })
       .addBooleanSwitch({
@@ -196,6 +222,7 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         path: 'showYAxis2',
         name: 'Show',
         defaultValue: false,
+        showIf: (options) => options.series.plotType !== 'histogram',
         category: ['Secondary Y Axis'],
       })
       .addMultiSelect<string, SelectFieldConfigSettings<string>>({

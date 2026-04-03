@@ -37,6 +37,8 @@ export interface SeriesOptions {
   staircase: boolean;
   markerSize: number;
   lineWidth: number;
+  nbinsx?: number;
+  histogramMode?: 'overlay' | 'stack' | 'group' | 'relative';
 }
 
 export interface AxisLabels {

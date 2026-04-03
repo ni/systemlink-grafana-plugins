@@ -34,16 +34,18 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const [menu, setMenu] = useState<MenuState>({ x: 0, y: 0, show: false, items: [] });
   const [dragMode, setDragMode] = useState<Plotly.Layout['dragmode']>('zoom');
   const theme = useTheme2();
+  const isHistogram = options.series.plotType === 'histogram';
 
   const traceColors = useTraceColors(theme);
   const debounceDelayInMs = 700;
   const xAxisPrecisionDecimals = 6;
 
   const xFields = useMemo(
-    () => _.attempt(() => getXFields(data.series, options.xAxis.field)),
-    [data.series, options.xAxis.field]
+    () => (isHistogram ? [] : _.attempt(() => getXFields(data.series, options.xAxis.field))),
+    [data.series, options.xAxis.field, isHistogram]
   );
   const isTimeBasedXAxis =
+    !isHistogram &&
     !_.isError(xFields) &&
     xFields.length > 0 &&
     xFields[0].type === FieldType.time;
@@ -152,7 +154,8 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     return renderErrorView(props, xFields.message);
   }
 
-  axisLabels.xAxis = _(xFields).map('name').uniq().join(',');
+  axisLabels.xAxis = isHistogram ? '' : _(xFields).map('name').uniq().join(',');
+  axisLabels.yAxis = isHistogram ? ['Count'] : [];
 
   for (let i = 0; i < data.series.length; i++) {
     const dataframe = data.series[i];
@@ -160,30 +163,45 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
 
     setDataFrameId(dataframe);
 
-    const { yFields, yFields2 } = getYFields(dataframe, xField, options.yAxis.fields, options.yAxis2?.fields);
+    const { yFields, yFields2 } = isHistogram
+      ? { yFields: getHistogramFields(dataframe, options.yAxis.fields), yFields2: [] }
+      : getYFields(dataframe, xField, options.yAxis.fields, options.yAxis2?.fields);
 
     for (const yField of yFields) {
       const yName = getFieldDisplayName(yField, dataframe, data.series);
-      const plotlyXAxisField = options.displayVertically ? xField : yField;
-      const plotlyYAxisField = options.displayVertically ? yField : xField;
-      axisLabels.yAxis = _.union(axisLabels.yAxis, [(yField).name]);
-      plotData.push({
-        x: plotlyXAxisField ? getFieldValues(plotlyXAxisField) : [],
-        y: plotlyYAxisField ? getFieldValues(plotlyYAxisField) : [],
-        name: yName,
-        ...getModeAndType(options.series.plotType, options.series.isWebGLEnabled),
-        fill: options.series.areaFill && options.series.plotType === 'line' ? 'tozeroy' : 'none',
-        marker: {
-          size: options.series.markerSize,
-          color: getFixedColor(yField, theme)
-        },
-        line: {
-          width: options.series.lineWidth,
-          shape: options.series.staircase ? 'hv' : 'linear',
-        },
-        orientation: options.displayVertically ? 'v' : 'h',
-        customdata: [dataframe.meta?.custom?.id],
-      });
+      if (isHistogram) {
+        axisLabels.xAxis = _.union(axisLabels.xAxis ? axisLabels.xAxis.split(',') : [], [yField.name]).join(',');
+        plotData.push({
+          x: getFieldValues(yField),
+          type: 'histogram' as PlotType,
+          name: yName,
+          nbinsx: options.series.nbinsx || undefined,
+          opacity: 0.7,
+          marker: { color: getFixedColor(yField, theme) },
+          customdata: [dataframe.meta?.custom?.id],
+        } as Partial<PlotData>);
+      } else {
+        axisLabels.yAxis = _.union(axisLabels.yAxis, [(yField).name]);
+        const plotlyXAxisField = options.displayVertically ? xField : yField;
+        const plotlyYAxisField = options.displayVertically ? yField : xField;
+        plotData.push({
+          x: plotlyXAxisField ? getFieldValues(plotlyXAxisField) : [],
+          y: plotlyYAxisField ? getFieldValues(plotlyYAxisField) : [],
+          name: yName,
+          ...getModeAndType(options.series.plotType, options.series.isWebGLEnabled),
+          fill: options.series.areaFill && options.series.plotType === 'line' ? 'tozeroy' : 'none',
+          marker: {
+            size: options.series.markerSize,
+            color: getFixedColor(yField, theme)
+          },
+          line: {
+            width: options.series.lineWidth,
+            shape: options.series.staircase ? 'hv' : 'linear',
+          },
+          orientation: options.displayVertically ? 'v' : 'h',
+          customdata: [dataframe.meta?.custom?.id],
+        });
+      }
     }
 
     if (yFields2 && props.options.showYAxis2) {
@@ -299,7 +317,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   };
 
   const syncNumericXAxisRange = (xAxisMin: number, xAxisMax: number) => {
-    const xAxisFieldName = xFields[0].name;
+    const xAxisFieldName = xFields[0]?.name;
 
     if (!xAxisFieldName) {
       return;
@@ -342,7 +360,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       return undefined;
     }
 
-    const xAxisFieldName = xFields[0].name;
+    const xAxisFieldName = xFields[0]?.name;
     if (!xAxisFieldName) {
       return undefined;
     }
@@ -399,7 +417,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           width,
           height,
           annotations:
-            plotData.length === 0 || !plotData.find((d) => d.y?.length) ? [{ text: 'No data', showarrow: false }] : [],
+            plotData.length === 0 || !plotData.find((d) => d.y?.length || d.x?.length) ? [{ text: 'No data', showarrow: false }] : [],
           ...getLayout(theme, traceColors, effectiveOptions, plotData, axisLabels, dragMode),
         }}
         config={getConfig(options, handleImageDownload)}
@@ -498,6 +516,12 @@ const getYFields = (frame: DataFrame, xField: Field, selectedYFields: string[] =
   return { yFields, yFields2 };
 };
 
+const getHistogramFields = (frame: DataFrame, selectedYFields: string[] = []) => {
+  return selectedYFields.length ?
+    frame.fields.filter(f => selectedYFields.includes(f.name)) :
+    frame.fields.filter(f => f.type === FieldType.number);
+};
+
 const getFixedColor = (field: Field, theme: GrafanaTheme2) => {
   if (!field.config.color?.fixedColor || field.config.color.mode !== FieldColorModeId.Fixed) {
     return;
@@ -570,6 +594,7 @@ const getLayout = (theme: GrafanaTheme2, traceColors: string[], options: PanelOp
   const yAxisTitle = options.displayVertically ? originalAxisTitleY : originalAxisTitleX;
   const showXAxis2 = options.showYAxis2 && !options.displayVertically;
   const showYAxis2 = options.showYAxis2 && options.displayVertically;
+  const histogramMode = options.series.histogramMode ?? 'overlay';
   const layout: Partial<Plotly.Layout> = {
     colorway: traceColors,
     margin: { r: 40, l: 40, t: 20, b: 40 },
@@ -642,7 +667,7 @@ const getLayout = (theme: GrafanaTheme2, traceColors: string[], options: PanelOp
     },
     showlegend: options.showLegend,
     legend: getLegendLayout(options.legendPosition, showYAxis2, !!xAxisOptions.title),
-    barmode: options.series.stackBars ? 'stack' : 'group',
+    barmode: options.series.plotType === 'histogram' ? histogramMode : (options.series.stackBars ? 'stack' : 'group'),
     hovermode: 'closest',
     dragmode: dragMode,
   };
