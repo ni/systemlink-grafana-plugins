@@ -30,7 +30,7 @@ class SystemsRoutes {
         const idFilterForSecondSystemFromDb = 'id = "SYSTEM-2"';
         const scanCodeFilterForFirstSystemFromDb = 'scanCode = "scanCode1"';
         const scanCodeFilterForEighthSystemFromDb = 'scanCode = "scanCode8"';
-        const complexFilterForPanel = 'id = "SYSTEM-2" && connected.data.state = "Disconnected" || grains.data.minion_blackout.Equals(True)';
+        const complexFilterForPanel = 'id = "SYSTEM-2" && connected.data.state = "DISCONNECTED" || grains.data.minion_blackout.Equals(true)';
         const complexFilterForVariable = 'connected.data.state = "CONNECTED" && workspace = "default-workspace" || grains.data.productname = "Model8"';
 
         if (req.method !== 'POST') {

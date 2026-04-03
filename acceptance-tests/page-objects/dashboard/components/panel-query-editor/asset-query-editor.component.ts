@@ -1,12 +1,14 @@
 import { Page, Locator } from '@playwright/test';
-import { pressEnter } from '../../../../utils/keyboard-utilities';
 import { assetColumn } from '../../../../constants/asset-list-properties.constant';
+import { AssetQueryBuilderComponent } from '../query-builder/asset-query-builder.component';
 
 export class AssetQueryEditorComponent {
     readonly page: Page;
+    public readonly queryBuilder: AssetQueryBuilderComponent;
 
     constructor(page: Page) {
         this.page = page;
+        this.queryBuilder = new AssetQueryBuilderComponent(page);
     }
 
     public get queryTypeDropdown(): Locator {
@@ -15,22 +17,6 @@ export class AssetQueryEditorComponent {
 
     public get selectMenu(): Locator {
         return this.page.getByTestId('data-testid Select menu');
-    }
-
-    public get queryBuilderPropertyField(): Locator {
-        return this.page.getByText('Property');
-    }
-
-    public get queryBuilderOperationField(): Locator {
-        return this.page.getByText('Operator');
-    }
-
-    public get queryBuilderValueField(): Locator {
-        return this.page.getByTestId('query-editor-row').getByText('Value');
-    }
-
-    public selectQueryBuilderPropertyOption(optionName: string): Locator {
-        return this.page.getByRole('option', { name: optionName }).locator('a');
     }
 
     public get propertiesField(): Locator {
@@ -65,19 +51,6 @@ export class AssetQueryEditorComponent {
         await this.getQueryTypeOption(optionName).click();
     }
 
-    async addFilter(property: string, operation: string, value: string): Promise<void> {
-        await this.queryBuilderPropertyField.click();
-        await this.selectQueryBuilderPropertyOption(property).click();
-        await this.page.getByRole('option', { name: property }).waitFor({ state: 'hidden' });
-        // The library makes the Operator field unclickable via CSS (pointer-events: none).
-        // Using dispatchEvent bypasses this restriction and fires the event directly on the element.
-        await this.queryBuilderOperationField.dispatchEvent('pointerdown', { bubbles: true, isPrimary: true });
-        await this.page.getByText(operation.toLowerCase()).click();
-        await this.queryBuilderValueField.click();
-        await this.page.keyboard.type(value);
-        await pressEnter(this.page);
-    }
-
     async openQueryProperties(): Promise<void> {
         await this.propertiesField.click();
     }
@@ -99,5 +72,9 @@ export class AssetQueryEditorComponent {
     async selectGroupBy(option: string): Promise<void> {
         await this.openEmptyGroupByDropdown();
         await this.selectGroupByOption(option).click();
+    }
+
+    async addFilter(property: string, operation: string, value: string): Promise<void> {
+        await this.queryBuilder.addFilter(property, operation, value);
     }
 }

@@ -64,11 +64,12 @@ export class DataSourcePage {
     async addDataSource(dataSource: string, dataSourceNameField: string): Promise<void> {
         await expect(async () => {
             await this.navigateToDatasourcesPage();
+            await this.page.waitForLoadState('networkidle');
             await this.addDataSourceButton.click();
             await this.dataSource(dataSource).click();
-            await this.nameSettingsInputField.waitFor({ state: 'visible', timeout: timeOutPeriod });
-            await this.httpSettingsURL.waitFor({ state: 'visible', timeout: timeOutPeriod });
-        }).toPass({ timeout: timeOutPeriod });
+            await this.nameSettingsInputField.waitFor({ state: 'visible', timeout: timeOutPeriod / 2 });
+            await this.httpSettingsURL.waitFor({ state: 'visible', timeout: timeOutPeriod / 2 });
+        }).toPass({ timeout: timeOutPeriod * 2 });
         await this.changeNameInputFieldValue(dataSourceNameField);
         await this.httpSettingsURL.fill(FAKE_API_URL);
         await this.saveAndTestButton.click();

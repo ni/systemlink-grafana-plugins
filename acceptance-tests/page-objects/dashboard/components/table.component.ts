@@ -7,16 +7,8 @@ export class Table {
         this.page = page;
     }
 
-    public get firstFilterRow(): Locator {
-        return this.page.getByRole('group').first();
-    }
-
-    public get secondFilterRow(): Locator {
-        return this.page.getByRole('group').nth(2);
-    }
-
-    public get thirdFilterRow(): Locator {
-        return this.page.getByRole('group').nth(4);
+    public filterRow(index: number): Locator {
+        return this.page.locator('.smart-filter-group-condition[role="group"]').nth(index);
     }
 
     public get getTable(): Locator {

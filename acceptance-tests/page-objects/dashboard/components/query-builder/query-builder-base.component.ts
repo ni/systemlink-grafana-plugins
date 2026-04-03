@@ -1,7 +1,7 @@
 import { Page, Locator } from '@playwright/test';
 import { pressEnter } from '../../../../utils/keyboard-utilities';
 
-export class SystemsQueryEditorComponent {
+export class QueryBuilderBaseComponent {
     readonly page: Page;
 
     constructor(page: Page) {
@@ -12,12 +12,16 @@ export class SystemsQueryEditorComponent {
         return this.page.getByText('Property');
     }
 
+    public get queryBuilderPropertyFieldOpened(): Locator {
+        return this.page.getByRole('searchbox', { name: 'Input' });
+    }
+
     public get queryBuilderOperationField(): Locator {
         return this.page.getByText('Operator');
     }
 
     public get queryBuilderValueField(): Locator {
-        return this.page.getByTestId('query-editor-row').getByText('Value');
+        return this.page.locator('.smart-value-container').getByText('Value');
     }
 
     public get addGroupFilterButton(): Locator {
@@ -32,37 +36,26 @@ export class SystemsQueryEditorComponent {
         return this.page.getByRole('menuitem', { name: 'Or', exact: true });
     }
 
-    public get queryBuilderPropertyFieldOpened(): Locator {
-        return this.page.getByRole('searchbox', { name: 'Input' });
-    }
-
-    public getQueryType(queryType: string): Locator {
-        return this.page.getByRole('radio', { name: queryType });
-    }
-
-    async addFilterByTypingPropertyName(property: string, operation: string, value: string): Promise<void> {
+    async addFiltersPropertyByTyping(property: string): Promise<void> {
         await this.queryBuilderPropertyField.last().click();
         await this.queryBuilderPropertyFieldOpened.clear();
         await this.page.keyboard.type(property);
-        await this.page.getByRole('option', { name: property }).waitFor({ state: 'visible' });
-        await pressEnter(this.page);
-        // The library makes the Operator field unclickable via CSS (pointer-events: none).
-        // Using dispatchEvent bypasses this restriction and fires the event directly on the element.
-        await this.queryBuilderOperationField.last().dispatchEvent('pointerdown', { bubbles: true, isPrimary: true });
-        await this.page.getByRole('option', { name: operation }).click();
-        await this.queryBuilderValueField.last().click();
-        await this.page.keyboard.type(value);
+        await this.page.getByRole('option', { name: property, exact: true }).waitFor({ state: 'visible' });
         await pressEnter(this.page);
     }
 
-    async selectQueryType(queryType: string): Promise<void> {
-        await this.getQueryType(queryType).click();
+    async addFiltersOperation(operation: string): Promise<void> {
+        await this.queryBuilderOperationField.last().dispatchEvent('pointerdown', { bubbles: true, isPrimary: true });
+        await this.page.getByRole('option', { name: operation }).waitFor({ state: 'visible' });
+        await this.page.getByRole('option', { name: operation }).click();
     }
 
     async addFilterGroup(operator: string): Promise<void> {
+        await this.addGroupFilterButton.scrollIntoViewIfNeeded();
         await this.addGroupFilterButton.dispatchEvent('pointerdown', { bubbles: true, isPrimary: true });
         const menuButton = operator.toLowerCase() === 'and' ? this.andFilterGroupButton : this.orFilterGroupButton;
         await menuButton.waitFor({ state: 'visible' });
+        await menuButton.scrollIntoViewIfNeeded();
         await menuButton.click();
         await this.queryBuilderPropertyField.last().waitFor({ state: 'visible' });
     }

@@ -50,10 +50,17 @@ test.describe('Systems data source with scan code return type', () => {
             await dashboard.settings.systemVariable.addFilterGroup('Or');
             await dashboard.settings.systemVariable.addFilterByTypingPropertyName('Model', 'equals', 'Model8');
             await pressEnter(dashboard.page);
+            await dashboard.settings.goBackToDashboardPage();
+
+            await dashboard.variableDropdown('System-1').click();
+            await expect(dashboard.variableDropdownOption('System-1')).toBeVisible();
+            await expect(dashboard.variableDropdownOption('System-6')).toBeVisible();
+            await expect(dashboard.variableDropdownOption('System-8')).toBeVisible();
+
+            await dashboard.page.keyboard.press('Escape');
         });
 
         test('should create a Systemlink Systems visualization', async () => {
-            await dashboard.settings.goBackToDashboardPage();
             await dashboard.addVisualizationButton.waitFor();
             await dashboard.addVisualization();
             await dashboard.selectDataSource(createdDataSourceName);
@@ -66,9 +73,9 @@ test.describe('Systems data source with scan code return type', () => {
             await dashboard.panel.systemsQueryEditor.selectQueryType('Properties');
             await dashboard.panel.systemsQueryEditor.addFilterByTypingPropertyName('Scan code', 'equals', '$scanCode');
 
-            await expect(dashboard.panel.table.firstFilterRow).toContainText('Scan code');
-            await expect(dashboard.panel.table.firstFilterRow).toContainText('equals');
-            await expect(dashboard.panel.table.firstFilterRow).toContainText('$scanCode');
+            await expect(dashboard.panel.table.filterRow(0)).toContainText('Scan code');
+            await expect(dashboard.panel.table.filterRow(0)).toContainText('equals');
+            await expect(dashboard.panel.table.filterRow(0)).toContainText('$scanCode');
         });
 
         test('should verify that table data changes as the variable value changes', async () => {

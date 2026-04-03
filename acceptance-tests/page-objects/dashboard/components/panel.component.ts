@@ -2,7 +2,7 @@ import { Page } from "playwright/test";
 import { AssetQueryEditorComponent } from "./panel-query-editor/asset-query-editor.component";
 import { Table } from "./table.component";
 import { PanelToolbarComponent } from "./panel-toolbar.component";
-import { SystemsQueryEditorComponent } from "./panel-query-editor/systems-query-editor.component";
+import { SystemsQueryEditorComponent } from "./panel-query-editor/system-query-editor.component";
 
 export class Panel {
     readonly page: Page;
