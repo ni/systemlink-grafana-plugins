@@ -64,7 +64,6 @@ export class DataSourcePage {
     async addDataSource(dataSource: string, dataSourceNameField: string): Promise<void> {
         await expect(async () => {
             await this.navigateToDatasourcesPage();
-            await this.page.waitForLoadState('networkidle');
             await this.addDataSourceButton.click();
             await this.dataSource(dataSource).click();
             await this.nameSettingsInputField.waitFor({ state: 'visible', timeout: timeOutPeriod });
