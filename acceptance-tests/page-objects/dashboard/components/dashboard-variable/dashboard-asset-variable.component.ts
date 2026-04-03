@@ -1,4 +1,4 @@
-import { Page } from "playwright/test";
+import { Locator, Page } from "playwright/test";
 import { DashboardVariableBaseComponent } from "./dashboard-variable-base.component";
 
 export class DashboardAssetVariableComponent extends DashboardVariableBaseComponent {
@@ -6,7 +6,7 @@ export class DashboardAssetVariableComponent extends DashboardVariableBaseCompon
         super(page);
     }
 
-    public queryReturnTypeDropdown(dropdownOptionName: string) {
+    public queryReturnTypeDropdown(dropdownOptionName: string): Locator {
         return this.page.locator('div').filter({ hasText: new RegExp(`^${dropdownOptionName}$`) }).nth(2);
     }
 
