@@ -53,9 +53,10 @@ test.describe('Systems data source with minion id return type', () => {
             await dashboard.panel.systemsQueryEditor.selectQueryType('Properties');
             await dashboard.panel.systemsQueryEditor.addFilterByTypingPropertyName('Minion ID', 'equals', '$id');
 
-            await expect(dashboard.panel.table.filterRow(0)).toContainText('Minion ID');
-            await expect(dashboard.panel.table.filterRow(0)).toContainText('equals');
-            await expect(dashboard.panel.table.filterRow(0)).toContainText('$id');
+            const firstFilterRow = dashboard.panel.table.filterRow(0);
+            await expect(firstFilterRow).toContainText('Minion ID');
+            await expect(firstFilterRow).toContainText('equals');
+            await expect(firstFilterRow).toContainText('$id');
         });
 
         test('should verify that table data changes as the variable value changes', async () => {
@@ -99,17 +100,20 @@ test.describe('Systems data source with minion id return type', () => {
             await dashboard.panel.systemsQueryEditor.addFilterByTypingPropertyName('Connection status', 'equals', 'Disconnected');
             await pressEnter(dashboard.page);
 
-            await expect(dashboard.panel.table.filterRow(1)).toContainText('Connection status');
-            await expect(dashboard.panel.table.filterRow(1)).toContainText('equals');
-            await expect(dashboard.panel.table.filterRow(1)).toContainText('Disconnected');
+            const secondFilterRow = dashboard.panel.table.filterRow(1);
+            const thirdFilterRow = dashboard.panel.table.filterRow(2);
+
+            await expect(secondFilterRow).toContainText('Connection status');
+            await expect(secondFilterRow).toContainText('equals');
+            await expect(secondFilterRow).toContainText('Disconnected');
 
             await dashboard.panel.systemsQueryEditor.addFilterGroup('Or');
             await dashboard.panel.systemsQueryEditor.addFilterByTypingPropertyName('Locked status', 'equals', 'True');
             await pressEnter(dashboard.page);
 
-            await expect(dashboard.panel.table.filterRow(2)).toContainText('Locked status');
-            await expect(dashboard.panel.table.filterRow(2)).toContainText('equals');
-            await expect(dashboard.panel.table.filterRow(2)).toContainText('True');
+            await expect(thirdFilterRow).toContainText('Locked status');
+            await expect(thirdFilterRow).toContainText('equals');
+            await expect(thirdFilterRow).toContainText('True');
         });
 
         test('should verify that table data changes as the complex filter was added', async () => {

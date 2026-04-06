@@ -73,9 +73,10 @@ test.describe('Systems data source with scan code return type', () => {
             await dashboard.panel.systemsQueryEditor.selectQueryType('Properties');
             await dashboard.panel.systemsQueryEditor.addFilterByTypingPropertyName('Scan code', 'equals', '$scanCode');
 
-            await expect(dashboard.panel.table.filterRow(0)).toContainText('Scan code');
-            await expect(dashboard.panel.table.filterRow(0)).toContainText('equals');
-            await expect(dashboard.panel.table.filterRow(0)).toContainText('$scanCode');
+            const filterRow = dashboard.panel.table.filterRow(0);
+            await expect(filterRow).toContainText('Scan code');
+            await expect(filterRow).toContainText('equals');
+            await expect(filterRow).toContainText('$scanCode');
         });
 
         test('should verify that table data changes as the variable value changes', async () => {
