@@ -3,7 +3,7 @@ import { assetColumn } from '../../../../constants/asset-list-properties.constan
 import { AssetQueryBuilderComponent } from '../query-builder/asset-query-builder.component';
 
 export class AssetQueryEditorComponent {
-    readonly page: Page;
+    private readonly page: Page;
     public readonly queryBuilder: AssetQueryBuilderComponent;
 
     constructor(page: Page) {
@@ -42,39 +42,39 @@ export class AssetQueryEditorComponent {
         return this.selectMenu.getByText(optionName, { exact: true });
     }
 
-    async openQueryTypeDropdown(): Promise<void> {
+    public async openQueryTypeDropdown(): Promise<void> {
         await this.queryTypeDropdown.click();
     }
 
-    async selectQueryType(optionName: string): Promise<void> {
+    public async selectQueryType(optionName: string): Promise<void> {
         await this.openQueryTypeDropdown();
         await this.getQueryTypeOption(optionName).click();
     }
 
-    async openQueryProperties(): Promise<void> {
+    public async openQueryProperties(): Promise<void> {
         await this.propertiesField.click();
     }
 
-    async selectQueryProperty(optionName: string): Promise<void> {
+    public async selectQueryProperty(optionName: string): Promise<void> {
         await this.propertiesOptions(optionName).click();
     }
 
-    async addSelectedPropertyToTable(propertiesList: string[]): Promise<void> {
+    public async addSelectedPropertyToTable(propertiesList: string[]): Promise<void> {
         for (const property of propertiesList) {
             await this.selectQueryProperty(property);
         }
     }
 
-    async openEmptyGroupByDropdown(): Promise<void> {
+    public async openEmptyGroupByDropdown(): Promise<void> {
         await this.emptyGroupByDropdown.click();
     }
 
-    async selectGroupBy(option: string): Promise<void> {
+    public async selectGroupBy(option: string): Promise<void> {
         await this.openEmptyGroupByDropdown();
         await this.selectGroupByOption(option).click();
     }
 
-    async addFilter(property: string, operation: string, value: string): Promise<void> {
+    public async addFilter(property: string, operation: string, value: string): Promise<void> {
         await this.queryBuilder.addFilter(property, operation, value);
     }
 }

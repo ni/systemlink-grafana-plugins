@@ -2,7 +2,7 @@ import { Page, Locator } from '@playwright/test';
 import { pressEnter } from '../../../../utils/keyboard-utilities';
 
 export class QueryBuilderBaseComponent {
-    readonly page: Page;
+    protected readonly page: Page;
 
     constructor(page: Page) {
         this.page = page;
@@ -36,7 +36,7 @@ export class QueryBuilderBaseComponent {
         return this.page.getByRole('menuitem', { name: 'Or', exact: true });
     }
 
-    async addFiltersPropertyByTyping(property: string): Promise<void> {
+    public async addFiltersPropertyByTyping(property: string): Promise<void> {
         await this.queryBuilderPropertyField.last().click();
         await this.queryBuilderPropertyFieldOpened.clear();
         await this.page.keyboard.type(property);
@@ -44,13 +44,13 @@ export class QueryBuilderBaseComponent {
         await pressEnter(this.page);
     }
 
-    async addFiltersOperation(operation: string): Promise<void> {
+    public async addFiltersOperation(operation: string): Promise<void> {
         await this.queryBuilderOperationField.last().dispatchEvent('pointerdown', { bubbles: true, isPrimary: true });
         await this.page.getByRole('option', { name: operation }).waitFor({ state: 'visible' });
         await this.page.getByRole('option', { name: operation }).click();
     }
 
-    async addFilterGroup(operator: string): Promise<void> {
+    public async addFilterGroup(operator: string): Promise<void> {
         await this.addGroupFilterButton.scrollIntoViewIfNeeded();
         await this.addGroupFilterButton.dispatchEvent('pointerdown', { bubbles: true, isPrimary: true });
         const menuButton = operator.toLowerCase() === 'and' ? this.andFilterGroupButton : this.orFilterGroupButton;

@@ -1,7 +1,7 @@
 import { Page, Locator } from '@playwright/test';
 
 export class PanelToolbarComponent {
-    readonly page: Page;
+    private readonly page: Page;
 
     constructor(page: Page) {
         this.page = page;
@@ -51,19 +51,19 @@ export class PanelToolbarComponent {
         return this.page.getByRole('checkbox', { name: optionName });
     }
 
-    async refreshData(): Promise<void> {
+    public async refreshData(): Promise<void> {
         await this.refreshButton.click();
     }
 
-    async openDateTimePicker(): Promise<void> {
+    public async openDateTimePicker(): Promise<void> {
         await this.dateTimePicker.click();
     }
 
-    async switchToTableView(): Promise<void> {
+    public async switchToTableView(): Promise<void> {
         await this.switchToTableViewButton.click();
     }
 
-    async setTimeRange(from: string, to: string, timeZoneOption: string): Promise<void> {
+    public async setTimeRange(from: string, to: string, timeZoneOption: string): Promise<void> {
         await this.changeTimeSettingsButton.click();
         await this.typeToSearchDropdown.click();
         await this.timeZoneOption(timeZoneOption).click();
@@ -72,7 +72,7 @@ export class PanelToolbarComponent {
         await this.applyTimeRangeButton.click();
     }
 
-    async openVariableDropdown(variableName: string, variableOption: string): Promise<void> {
+    public async openVariableDropdown(variableName: string, variableOption: string): Promise<void> {
         await this.variableDropdown(variableName).click();
         await this.variableDropdownOption(variableOption).click();
     }

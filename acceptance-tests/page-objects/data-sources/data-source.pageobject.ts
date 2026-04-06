@@ -3,7 +3,7 @@ import { GRAFANA_URL, FAKE_API_URL } from '../../config/environment';
 import { timeOutPeriod } from '../../constants/global.constant';
 
 export class DataSourcePage {
-    readonly page: Page;
+    protected readonly page: Page;
 
     constructor(page: Page) {
         this.page = page;
@@ -53,15 +53,15 @@ export class DataSourcePage {
         return this.page.getByRole('link', { name: dataSourceName, exact: true });
     }
 
-    async accessExistentDataSource(dataSourceName: string): Promise<void> {
+    public async accessExistentDataSource(dataSourceName: string): Promise<void> {
         await this.existentDataSourceLink(dataSourceName).click();
     }
 
-    async navigateToDatasourcesPage(): Promise<void> {
+    public async navigateToDatasourcesPage(): Promise<void> {
         await this.page.goto(`${GRAFANA_URL}/connections/datasources`);
     }
 
-    async addDataSource(dataSource: string, dataSourceNameField: string): Promise<void> {
+    public async addDataSource(dataSource: string, dataSourceNameField: string): Promise<void> {
         await expect(async () => {
             await this.navigateToDatasourcesPage();
             await this.addDataSourceButton.click();
@@ -74,18 +74,18 @@ export class DataSourcePage {
         await this.saveAndTestButton.click();
     }
 
-    async deleteDataSource(dataSourceName: string): Promise<void> {
+    public async deleteDataSource(dataSourceName: string): Promise<void> {
         await this.navigateToDatasourcesPage();
         await this.accessExistentDataSource(dataSourceName);
         await this.deleteButton.click();
         await this.deletePopUpButton.click();
     }
 
-    async nameInputFieldValue(): Promise<string> {
+    public async nameInputFieldValue(): Promise<string> {
         return await this.nameSettingsInputField.inputValue();
     }
 
-    async changeNameInputFieldValue(newValue: string): Promise<void> {
+    public async changeNameInputFieldValue(newValue: string): Promise<void> {
         await this.nameSettingsInputField.fill(newValue);
     }
 }

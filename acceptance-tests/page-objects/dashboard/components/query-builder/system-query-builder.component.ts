@@ -8,7 +8,7 @@ export class SystemsQueryBuilderComponent extends QueryBuilderBaseComponent {
         super(page);
     }
 
-    async selectQueryBuilderValueOption(property: string, value: string): Promise<void> {
+    public async selectQueryBuilderValueOption(property: string, value: string): Promise<void> {
         if (property.toLowerCase() === systemsColumn.workspace || property.toLowerCase() === systemsColumn.connection_status || property.toLowerCase() === systemsColumn.locked_status) {
             await this.queryBuilderValueField.last().click();
             await this.page.locator('input:focus').waitFor({ state: 'visible' });
@@ -22,12 +22,12 @@ export class SystemsQueryBuilderComponent extends QueryBuilderBaseComponent {
         }
     }
 
-    async addFiltersValue(property: string, value: string): Promise<void> {
+    public async addFiltersValue(property: string, value: string): Promise<void> {
         await this.selectQueryBuilderValueOption(property, value);
         await pressEnter(this.page);
     }
 
-    async addFilterByTypingPropertyName(property: string, operation: string, value: string): Promise<void> {
+    public async addFilterByTypingPropertyName(property: string, operation: string, value: string): Promise<void> {
         await this.addFiltersPropertyByTyping(property);
         await this.addFiltersOperation(operation);
         await this.addFiltersValue(property, value);

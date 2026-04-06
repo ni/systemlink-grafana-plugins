@@ -3,9 +3,9 @@ import { DashboardAssetVariableComponent } from './dashboard-variable/dashboard-
 import { DashboardSystemVariableComponent } from './dashboard-variable/dashboard-system-variable.component';
 
 export class Settings {
-    readonly page: Page;
-    readonly assetVariable: DashboardAssetVariableComponent;
-    readonly systemVariable: DashboardSystemVariableComponent;
+    private readonly page: Page;
+    public readonly assetVariable: DashboardAssetVariableComponent;
+    public readonly systemVariable: DashboardSystemVariableComponent;
 
     constructor(page: Page) {
         this.page = page;
@@ -25,19 +25,19 @@ export class Settings {
         return this.page.getByRole('gridcell', { name: `Variable editor Table Definition field ${variableName}` });
     }
 
-    async goToVariablesTab(): Promise<void> {
+    public async goToVariablesTab(): Promise<void> {
         await this.variableButton.click();
     }
 
-    async addNewVariable(): Promise<void> {
+    public async addNewVariable(): Promise<void> {
         await this.page.getByRole('button', { name: 'Add variable' }).click();
     }
 
-    async goBackToDashboardPage(): Promise<void> {
+    public async goBackToDashboardPage(): Promise<void> {
         await this.closeSettingsButton.click();
     }
 
-    async editVariable(variableName: string): Promise<void> {
+    public async editVariable(variableName: string): Promise<void> {
         await this.createdVariable(variableName).click();
     }
 }

@@ -1,7 +1,7 @@
 import { Page, Locator } from '@playwright/test';
 
 export class ToolbarComponent {
-    readonly page: Page;
+    private readonly page: Page;
 
     constructor(page: Page) {
         this.page = page;
@@ -23,25 +23,25 @@ export class ToolbarComponent {
         return this.page.getByText('Last 6 hours');
     }
 
-    async openAddMenu(): Promise<void> {
+    public async openAddMenu(): Promise<void> {
         await this.addButton.click();
     }
 
-    async addVisualization(): Promise<void> {
+    public async addVisualization(): Promise<void> {
         await this.openAddMenu();
         await this.page.click('text=Add visualization');
     }
 
-    async addLibraryPanel(): Promise<void> {
+    public async addLibraryPanel(): Promise<void> {
         await this.openAddMenu();
         await this.page.click('button:has-text("Add library panel")');
     }
 
-    async saveDashboard(): Promise<void> {
+    public async saveDashboard(): Promise<void> {
         await this.saveButton.click();
     }
 
-    async openSettings(): Promise<void> {
+    public async openSettings(): Promise<void> {
         await this.settingsButton.click();
     }
 }

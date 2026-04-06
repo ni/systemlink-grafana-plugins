@@ -1,7 +1,7 @@
 import { Page } from "playwright/test";
 
 export class DashboardVariableBaseComponent {
-    readonly page: Page;
+    protected readonly page: Page;
 
     constructor(page: Page) {
         this.page = page;
@@ -19,16 +19,16 @@ export class DashboardVariableBaseComponent {
         return this.page.getByTestId('data-testid Variable editor Apply button');
     }
 
-    async setVariableName(name: string): Promise<void> {
+    public async setVariableName(name: string): Promise<void> {
         await this.nameInputField.fill(name);
     }
 
-    async selectDataSource(dataSourceName: string): Promise<void> {
+    public async selectDataSource(dataSourceName: string): Promise<void> {
         await this.dataSourceDropdown.click();
         await this.page.click(`text=${dataSourceName}`);
     }
 
-    async applyVariableChanges(): Promise<void> {
+    public async applyVariableChanges(): Promise<void> {
         await this.applyButton.click();
     }
 }

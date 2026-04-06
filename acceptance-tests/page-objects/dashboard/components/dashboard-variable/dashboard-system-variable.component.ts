@@ -14,16 +14,16 @@ export class DashboardSystemVariableComponent extends DashboardVariableBaseCompo
         return this.page.locator('div').filter({ hasText: new RegExp(`^${dropdownOptionName}$`) }).nth(2);
     }
 
-    async selectQueryReturnType(initialDropdownOptionName: string, returnType: string): Promise<void> {
+    public async selectQueryReturnType(initialDropdownOptionName: string, returnType: string): Promise<void> {
         await this.queryReturnTypeDropdown(initialDropdownOptionName).click();
         await this.page.getByRole('option', { name: returnType }).click();
     }
 
-    async addFilterGroup(operator: string): Promise<void> {
+    public async addFilterGroup(operator: string): Promise<void> {
         await this.queryBuilder.addFilterGroup(operator);
     }
 
-    async addFilterByTypingPropertyName(property: string, operation: string, value: string): Promise<void> {
+    public async addFilterByTypingPropertyName(property: string, operation: string, value: string): Promise<void> {
         await this.queryBuilder.addFilterByTypingPropertyName(property, operation, value);
     }
 }

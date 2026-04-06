@@ -11,19 +11,19 @@ export class AssetQueryBuilderComponent extends QueryBuilderBaseComponent {
         return this.page.getByRole('option', { name: optionName }).locator('a');
     }
 
-    async addFiltersPropertyBySelectingOption(property: string): Promise<void> {
+    public async addFiltersPropertyBySelectingOption(property: string): Promise<void> {
         await this.queryBuilderPropertyField.last().click();
         await this.selectQueryBuilderPropertyOption(property).click();
         await this.page.getByRole('option', { name: property }).waitFor({ state: 'hidden' });
     }
 
-    async addFiltersValueByTyping(value: string): Promise<void> {
+    public async addFiltersValueByTyping(value: string): Promise<void> {
         await this.queryBuilderValueField.click();
         await this.page.keyboard.type(value);
         await pressEnter(this.page);
     }
 
-    async addFilter(property: string, operation: string, value: string): Promise<void> {
+    public async addFilter(property: string, operation: string, value: string): Promise<void> {
         await this.addFiltersPropertyBySelectingOption(property);
         await this.addFiltersOperation(operation);
         await this.addFiltersValueByTyping(value);
