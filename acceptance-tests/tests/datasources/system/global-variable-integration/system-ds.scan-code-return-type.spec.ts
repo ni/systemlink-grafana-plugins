@@ -53,6 +53,7 @@ test.describe('Systems data source with scan code return type', () => {
             await dashboard.settings.goBackToDashboardPage();
 
             await dashboard.variableDropdown('System-1').click();
+            await expect(dashboard.allVariableDropdownOptions('scanCode')).toHaveCount(3);
             await expect(dashboard.variableDropdownOption('System-1')).toBeVisible();
             await expect(dashboard.variableDropdownOption('System-6')).toBeVisible();
             await expect(dashboard.variableDropdownOption('System-8')).toBeVisible();
