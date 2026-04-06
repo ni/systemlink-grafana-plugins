@@ -1,14 +1,14 @@
 import { Locator, Page } from "playwright/test";
 
 export class Table {
-    readonly page: Page;
+    private readonly page: Page;
 
     constructor(page: Page) {
         this.page = page;
     }
 
-    public get firstFilterRow(): Locator {
-        return this.page.getByRole('group').first();
+    public filterRow(index: number): Locator {
+        return this.page.locator('.smart-filter-group-condition[role="group"]').nth(index);
     }
 
     public get getTable(): Locator {
@@ -23,7 +23,7 @@ export class Table {
         return this.getTable.getByRole('cell', { name: value });
     }
 
-    async getTableRowCount(): Promise<number> {
+    public async getTableRowCount(): Promise<number> {
         return await this.tableRow.count();
     }
 
@@ -31,20 +31,20 @@ export class Table {
         return this.page.getByRole('columnheader').nth(index);
     }
 
-    async getColumnHeaderText(index: number): Promise<string> {
+    public async getColumnHeaderText(index: number): Promise<string> {
         return await this.getColumnHeaderByIndex(index).textContent() || '';
     }
 
-    async getCellInRowByIndex(rowIndex: number, cellIndex: number): Promise<string> {
+    public async getCellInRowByIndex(rowIndex: number, cellIndex: number): Promise<string> {
         return await this.tableRow.nth(rowIndex).getByRole('cell').nth(cellIndex).textContent() || '';
     }
 
-    async getSelectedColumnIndex(propertyName: string): Promise<number> {
+    public async getSelectedColumnIndex(propertyName: string): Promise<number> {
         const columnHeaders = await this.page.getByRole('columnheader').locator('button > div').filter({ hasText: /\S/ }).allTextContents();
         return columnHeaders.indexOf(propertyName);
     };
 
-    async checkColumnValue(columnName: string, expectedValue: string, rowIndex = 0): Promise<boolean> {
+    public async checkColumnValue(columnName: string, expectedValue: string, rowIndex = 0): Promise<boolean> {
         const columnIndex = await this.getSelectedColumnIndex(columnName);
 
         if (columnIndex === -1) {

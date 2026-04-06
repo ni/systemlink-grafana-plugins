@@ -1,7 +1,7 @@
 import { Page, Locator } from '@playwright/test';
 
 export class PanelToolbarComponent {
-    readonly page: Page;
+    private readonly page: Page;
 
     constructor(page: Page) {
         this.page = page;
@@ -35,24 +35,45 @@ export class PanelToolbarComponent {
         return this.page.getByTestId('data-testid Time zone picker select container').getByRole('combobox', { name: 'Time zone picker' });
     }
 
+    public get switchToTableViewButton(): Locator {
+        return this.page.getByText('Table view');
+    }
+
     public timeZoneOption(option: string): Locator {
         return this.page.getByRole('option', { name: option });
     }
 
-    async refreshData(): Promise<void> {
+    public variableDropdown(variableName: string): Locator {
+        return this.page.getByTestId(`data-testid Dashboard template variables Variable Value DropDown value link text ${variableName}`);
+    }
+
+    public variableDropdownOption(optionName: string): Locator {
+        return this.page.getByRole('checkbox', { name: optionName });
+    }
+
+    public async refreshData(): Promise<void> {
         await this.refreshButton.click();
     }
 
-    async openDateTimePicker(): Promise<void> {
+    public async openDateTimePicker(): Promise<void> {
         await this.dateTimePicker.click();
     }
 
-    async setTimeRange(from: string, to: string, timeZoneOption: string): Promise<void> {
+    public async switchToTableView(): Promise<void> {
+        await this.switchToTableViewButton.click();
+    }
+
+    public async setTimeRange(from: string, to: string, timeZoneOption: string): Promise<void> {
         await this.changeTimeSettingsButton.click();
         await this.typeToSearchDropdown.click();
         await this.timeZoneOption(timeZoneOption).click();
         await this.timeRangeFromField.fill(from);
         await this.timeRangeToField.fill(to);
         await this.applyTimeRangeButton.click();
+    }
+
+    public async openVariableDropdown(variableName: string, variableOption: string): Promise<void> {
+        await this.variableDropdown(variableName).click();
+        await this.variableDropdownOption(variableOption).click();
     }
 }
