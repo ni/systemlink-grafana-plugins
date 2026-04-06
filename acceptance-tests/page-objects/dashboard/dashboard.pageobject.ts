@@ -29,7 +29,7 @@ export class DashboardPage {
     }
 
     public variableDropdownOption(optionName: string): Locator {
-        return this.page.getByRole('checkbox', { name: optionName });
+        return this.page.getByRole('checkbox', { name: optionName, exact: true });
     }
 
     async selectDataSource(datasourceName: string): Promise<void> {
