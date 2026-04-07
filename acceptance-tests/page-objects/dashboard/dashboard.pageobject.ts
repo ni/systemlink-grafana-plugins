@@ -28,6 +28,10 @@ export class DashboardPage {
         return this.page.getByTestId(`data-testid Dashboard template variables Variable Value DropDown value link text ${variableName}`);
     }
 
+    public allVariableDropdownOptions(variableName: string): Locator {
+        return this.page.locator(`#options-${variableName} li`);
+    }
+
     public variableDropdownOption(optionName: string): Locator {
         return this.page.getByRole('checkbox', { name: optionName, exact: true });
     }

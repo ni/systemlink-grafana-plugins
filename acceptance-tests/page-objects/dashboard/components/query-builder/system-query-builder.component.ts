@@ -15,9 +15,10 @@ export class SystemsQueryBuilderComponent extends QueryBuilderBaseComponent {
             await this.page.keyboard.type(value);
             const option = this.page.locator(`[data-label="${value}"]`);
             await option.waitFor({ state: 'visible' });
-            await option.click({ force: true });
+            await option.evaluate(el => (el as HTMLElement).click());
         } else {
             await this.queryBuilderValueField.last().click();
+            await this.page.locator('input:focus').waitFor({ state: 'visible' });
             await this.page.keyboard.type(value);
         }
     }

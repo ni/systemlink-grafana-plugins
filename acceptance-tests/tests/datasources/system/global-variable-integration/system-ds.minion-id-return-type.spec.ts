@@ -60,7 +60,7 @@ test.describe('Systems data source with minion id return type', () => {
         });
 
         test('should verify that table data changes as the variable value changes', async () => {
-            await dashboard.panel.table.getTable.first().waitFor({ state: 'visible', timeout: timeOutPeriod });
+            await dashboard.panel.table.getTableBody.first().waitFor({ state: 'visible', timeout: timeOutPeriod });
 
             let rowCount = await dashboard.panel.table.getTableRowCount();
 

@@ -11,16 +11,16 @@ export class Table {
         return this.page.locator('.smart-filter-group-condition[role="group"]').nth(index);
     }
 
-    public get getTable(): Locator {
+    public get getTableBody(): Locator {
         return this.page.getByTestId('data-testid table body');
     }
 
     public get tableRow(): Locator {
-        return this.getTable.getByRole('row');
+        return this.getTableBody.getByRole('row');
     }
 
     public cellValue(value: string): Locator {
-        return this.getTable.getByRole('cell', { name: value });
+        return this.getTableBody.getByRole('cell', { name: value });
     }
 
     public async getTableRowCount(): Promise<number> {

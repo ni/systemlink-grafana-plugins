@@ -1,5 +1,6 @@
 import { Page, Locator } from '@playwright/test';
 import { pressEnter } from '../../../../utils/keyboard-utilities';
+import { time } from 'console';
 
 export class QueryBuilderBaseComponent {
     protected readonly page: Page;
@@ -51,11 +52,11 @@ export class QueryBuilderBaseComponent {
     }
 
     public async addFilterGroup(operator: string): Promise<void> {
-        await this.addGroupFilterButton.scrollIntoViewIfNeeded();
+        await this.addGroupFilterButton.evaluate(el => el.scrollIntoView({ block: 'center' }));
         await this.addGroupFilterButton.dispatchEvent('pointerdown', { bubbles: true, isPrimary: true });
         const menuButton = operator.toLowerCase() === 'and' ? this.andFilterGroupButton : this.orFilterGroupButton;
         await menuButton.waitFor({ state: 'visible' });
-        await menuButton.scrollIntoViewIfNeeded();
+        await menuButton.evaluate(el => el.scrollIntoView({ block: 'center' }));
         await menuButton.click({ force: true });
         await this.queryBuilderPropertyField.last().waitFor({ state: 'visible' });
     }

@@ -40,7 +40,7 @@ test.describe('Asset Summary Table', () => {
                 dashboard.panel.assetQueryEditor.selectQueryType('Asset Summary')
             ]);
 
-            await dashboard.panel.table.getTable.waitFor({ timeout: timeOutPeriod });
+            await dashboard.panel.table.getTableBody.waitFor({ timeout: timeOutPeriod });
 
             expect(assetSummaryResponse).toBeDefined();
             expect(await dashboard.panel.table.getTableRowCount()).toBe(1);
