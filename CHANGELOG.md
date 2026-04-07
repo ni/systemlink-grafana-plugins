@@ -1,3 +1,9 @@
+## [4.144.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.144.0...v4.144.1) (2026-04-07)
+
+### Bug Fixes
+
+* **systems:** Fix flaky query builder value selection and improve variable dropdown assertions ([#713](https://github.com/ni/systemlink-grafana-plugins/issues/713)) ([d728f12](https://github.com/ni/systemlink-grafana-plugins/commit/d728f125c9d955e6b6f3ecd0529ce2d1d9b29cc0))
+
 ## [4.144.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.143.0...v4.144.0) (2026-04-06)
 
 ### Features
