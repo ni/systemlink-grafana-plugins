@@ -49,7 +49,7 @@ test.describe('Calibration Forecast', () => {
             ]);
 
             await dashboard.panel.toolbar.switchToTableView();
-            await dashboard.panel.table.getTable.waitFor({ timeout: timeOutPeriod });
+            await dashboard.panel.table.getTableBody.waitFor({ timeout: timeOutPeriod });
 
             expect(forecastResponse).toBeDefined();
             expect(forecastResponse.calibrationForecast.columns).toBeDefined();

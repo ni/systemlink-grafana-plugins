@@ -40,7 +40,7 @@ test.describe('System Summary Table', () => {
                 dashboard.panel.toolbar.refreshButton.click()
             ]);
 
-            await dashboard.panel.table.getTable.waitFor({ timeout: timeOutPeriod });
+            await dashboard.panel.table.getTableBody.waitFor({ timeout: timeOutPeriod });
 
             expect(systemSummaryResponse).toBeDefined();
             expect(await dashboard.panel.table.getTableRowCount()).toBe(1);
