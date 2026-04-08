@@ -19,11 +19,6 @@ export class DashboardVariableBaseComponent {
         return this.page.getByTestId('data-testid Variable editor Apply button');
     }
 
-    public get notebookVariableDropdown() {
-        // return this.page.locator('#react-select-6-input');
-        return this.page.locator('text=Select notebook').first();
-    }
-
     public async setVariableName(name: string): Promise<void> {
         await this.nameInputField.fill(name);
     }
@@ -35,10 +30,5 @@ export class DashboardVariableBaseComponent {
 
     public async applyVariableChanges(): Promise<void> {
         await this.applyButton.click();
-    }
-
-    async selectNotebookVariableDropdownOption(option: string): Promise<void> {
-        await this.notebookVariableDropdown.click({ force: true });
-        await this.page.getByText(option).click();
     }
 }
