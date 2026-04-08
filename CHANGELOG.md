@@ -1,3 +1,99 @@
+## [4.144.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.144.0...v4.144.1) (2026-04-07)
+
+### Bug Fixes
+
+* **systems:** Fix flaky query builder value selection and improve variable dropdown assertions ([#713](https://github.com/ni/systemlink-grafana-plugins/issues/713)) ([d728f12](https://github.com/ni/systemlink-grafana-plugins/commit/d728f125c9d955e6b6f3ecd0529ce2d1d9b29cc0))
+
+## [4.144.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.143.0...v4.144.0) (2026-04-06)
+
+### Features
+
+* **systems:** Add acceptance tests for systems data source ([#710](https://github.com/ni/systemlink-grafana-plugins/issues/710)) ([738ba28](https://github.com/ni/systemlink-grafana-plugins/commit/738ba2897f9e63637627de9a7b7b6b3d4d068288))
+
+## [4.143.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.142.3...v4.143.0) (2026-03-27)
+
+### Features
+
+* **dataframe:** Include associated data table from results ([#712](https://github.com/ni/systemlink-grafana-plugins/issues/712)) ([5786c7e](https://github.com/ni/systemlink-grafana-plugins/commit/5786c7e300886fec495440482289fa11d7ee9d0a))
+
+## [4.142.3](https://github.com/ni/systemlink-grafana-plugins/compare/v4.142.2...v4.142.3) (2026-03-23)
+
+### Bug Fixes
+
+* **alarms:** add time format configuration to time fields ([#709](https://github.com/ni/systemlink-grafana-plugins/issues/709)) ([c9eccbc](https://github.com/ni/systemlink-grafana-plugins/commit/c9eccbc7f6c2950d6ffda5aafe1b3b8d19b13b8a))
+
+## [4.142.2](https://github.com/ni/systemlink-grafana-plugins/compare/v4.142.1...v4.142.2) (2026-03-23)
+
+### Bug Fixes
+
+* **dataframe:** Remove undecimated data feature flag ([#707](https://github.com/ni/systemlink-grafana-plugins/issues/707)) ([004a0f8](https://github.com/ni/systemlink-grafana-plugins/commit/004a0f86baaa29637f002c913b455fae602cc6f4))
+
+## [4.142.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.142.0...v4.142.1) (2026-03-20)
+
+### Bug Fixes
+
+* **dataframes:** adjust inline alert width in properties section ([#706](https://github.com/ni/systemlink-grafana-plugins/issues/706)) ([523fbbc](https://github.com/ni/systemlink-grafana-plugins/commit/523fbbcf4f0ead3ff69e3b0c5402f3a513037eca))
+
+## [4.142.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.141.1...v4.142.0) (2026-03-20)
+
+### Features
+
+* **dataframes:** add caching for custom property selections ([#703](https://github.com/ni/systemlink-grafana-plugins/issues/703)) ([e854c2e](https://github.com/ni/systemlink-grafana-plugins/commit/e854c2ecfa104a9fbb8936b937d30ef6c1601e35))
+
+### Bug Fixes
+
+* **plotly:** Persist drag mode across data re-renders ([#702](https://github.com/ni/systemlink-grafana-plugins/issues/702)) ([675b376](https://github.com/ni/systemlink-grafana-plugins/commit/675b376cdbee041fa41348644edff1b537247b8d))
+
+## [4.141.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.141.0...v4.141.1) (2026-03-19)
+
+### Bug Fixes
+
+* **systems:** Add "virtualCount" property to systems summary table ([#705](https://github.com/ni/systemlink-grafana-plugins/issues/705)) ([9a55f55](https://github.com/ni/systemlink-grafana-plugins/commit/9a55f55fb0c08f16fefd523ef66131cabf4c21d8))
+
+## [4.141.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.140.0...v4.141.0) (2026-03-19)
+
+### Features
+
+* **dataframes:** add validation for custom property selections ([#701](https://github.com/ni/systemlink-grafana-plugins/issues/701)) ([9f4e1a3](https://github.com/ni/systemlink-grafana-plugins/commit/9f4e1a3f0e495f154b97456c849febd8603eaac8))
+
+## [4.140.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.139.0...v4.140.0) (2026-03-17)
+
+### Features
+
+* **dataframes:** return the selected custom properties in output ([#697](https://github.com/ni/systemlink-grafana-plugins/issues/697)) ([13e15de](https://github.com/ni/systemlink-grafana-plugins/commit/13e15deb8ccda0e8761c299e5a9bb2c7ab414f6c))
+
+## [4.139.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.138.0...v4.139.0) (2026-03-16)
+
+### Features
+
+* **dataframes:** add support to show custom properties in the query editor ([#692](https://github.com/ni/systemlink-grafana-plugins/issues/692)) ([a8b911b](https://github.com/ni/systemlink-grafana-plugins/commit/a8b911b076032faa1a609797325c30a875550c62))
+
+## [4.138.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.137.1...v4.138.0) (2026-03-13)
+
+### Features
+
+* **systems:** Add query builder to systems variable editor ([#677](https://github.com/ni/systemlink-grafana-plugins/issues/677)) ([c44aeb3](https://github.com/ni/systemlink-grafana-plugins/commit/c44aeb3cc4281f9647e97b6100d2ec143d8367fd))
+
+## [4.137.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.137.0...v4.137.1) (2026-03-12)
+
+### Bug Fixes
+
+* **plotly:** Add control to toggle between Scatter and ScatterGL ([#698](https://github.com/ni/systemlink-grafana-plugins/issues/698)) ([c020045](https://github.com/ni/systemlink-grafana-plugins/commit/c0200456edd37806461742b7f365d379343f5c21))
+
+## [4.137.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.136.0...v4.137.0) (2026-03-10)
+
+### Features
+
+* Add upload playwright report option to PR workflow ([#689](https://github.com/ni/systemlink-grafana-plugins/issues/689)) ([1a680e8](https://github.com/ni/systemlink-grafana-plugins/commit/1a680e892bd4c7f59212a72bd04e1a729518287a))
+* **asset:** Add acceptance tests for calibration forecast query type ([#688](https://github.com/ni/systemlink-grafana-plugins/issues/688)) ([f273099](https://github.com/ni/systemlink-grafana-plugins/commit/f2730993f6618ea35d160a1687e220ff0e009c8c))
+
+### Bug Fixes
+
+* **plotly:** Fix synced Plotly panel not resetting on auto-range and rejecting zero range values ([#694](https://github.com/ni/systemlink-grafana-plugins/issues/694)) ([e061da4](https://github.com/ni/systemlink-grafana-plugins/commit/e061da491e1a63b0c50a1c9747368b9f07cc6d07))
+* **plotly:** Sync x-axis range min and max range ([#693](https://github.com/ni/systemlink-grafana-plugins/issues/693)) ([0890a87](https://github.com/ni/systemlink-grafana-plugins/commit/0890a87a2bbde1d59afd2d2a06a481e554bd7290))
+* **plotly:** Use URL x-axis range in plot layout to prevent flicker on synced panels ([#690](https://github.com/ni/systemlink-grafana-plugins/issues/690)) ([ae95fd3](https://github.com/ni/systemlink-grafana-plugins/commit/ae95fd34257b0af05ea3c5af9923be306e24bca0))
+* **release:** Allow for manual runs of CI ([#700](https://github.com/ni/systemlink-grafana-plugins/issues/700)) ([fc5b377](https://github.com/ni/systemlink-grafana-plugins/commit/fc5b377b0068fe1c5bc6cf7bb076720529896240))
+
 ## [4.136.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.135.2...v4.136.0) (2026-02-27)
 
 ### Features

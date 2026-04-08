@@ -2,7 +2,7 @@ import { DataFrameDataSourceV2 } from './DataFrameDataSourceV2';
 import { DataQueryRequest, DataSourceInstanceSettings, FieldDTO } from '@grafana/data';
 import { BackendSrv, locationService, TemplateSrv } from '@grafana/runtime';
 import { ColumnType, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_FIELD, DataFrameDataQuery, DataFrameFeatureTogglesDefaults, DataFrameQueryType, DataFrameQueryV1, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataFrameVariableQueryV2, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, ValidDataFrameQueryV2 } from '../../types';
-import { COLUMN_SELECTION_LIMIT, MAXIMUM_DATA_POINTS, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
+import { COLUMN_SELECTION_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, DATA_TABLES_IDS_LIMIT, MAXIMUM_DATA_POINTS, propertiesCacheTTL, REQUESTS_PER_SECOND, TAKE_LIMIT } from 'datasources/data-frame/constants';
 import * as queryBuilderUtils from 'core/query-builder.utils';
 import { DataTableQueryBuilderFieldNames } from 'datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants';
 import { Workspace } from 'core/types';
@@ -2667,7 +2667,6 @@ describe('DataFrameDataSourceV2', () => {
                                     jsonData: {
                                         ...instanceSettings.jsonData,
                                         featureToggles: {
-                                            queryUndecimatedData: true,
                                             highResolutionZoom: false
                                         }
                                     }
@@ -2726,7 +2725,6 @@ describe('DataFrameDataSourceV2', () => {
                                     jsonData: {
                                         ...instanceSettings.jsonData,
                                         featureToggles: {
-                                            queryUndecimatedData: false,
                                             highResolutionZoom: false
                                         }
                                     }
@@ -3689,7 +3687,6 @@ describe('DataFrameDataSourceV2', () => {
                 let postSpy: jest.SpyInstance;
                 let datasource: DataFrameDataSourceV2;
                 let featureToggles = {
-                    queryUndecimatedData: true,
                     highResolutionZoom: true
                 }
                 const undecimatedInstanceSettings = {
@@ -4167,47 +4164,6 @@ describe('DataFrameDataSourceV2', () => {
                     );
                     expect(queryTablesSpy).not.toHaveBeenCalled();
                     expect(postSpy).not.toHaveBeenCalled();
-                });
-
-                it('should fall back to decimated data when feature toggle is disabled', async () => {
-                    queryTablesSpy = jest.spyOn(ds, 'queryTables$');
-                    postSpy = jest.spyOn(ds, 'post$');
-
-                    const mockTables = [{
-                        id: 'table1',
-                        name: 'table1',
-                        rowCount: 10_000,
-                        columns: [
-                            { name: 'voltage', dataType: 'FLOAT64', columnType: ColumnType.Index }
-                        ]
-                    }];
-                    queryTablesSpy.mockReturnValue(of(mockTables));
-
-                    const mockDecimatedData = {
-                        frame: {
-                            columns: ['voltage'],
-                            data: [['10.5']]
-                        }
-                    };
-                    postSpy.mockReturnValue(of(mockDecimatedData));
-
-                    const query = {
-                        refId: 'A',
-                        type: DataFrameQueryType.Data,
-                        columns: ['voltage-Numeric'],
-                        dataTableFilter: 'name = "Test"',
-                        decimationMethod: 'NONE', // Even with NONE, should use decimated
-                        filterNulls: false,
-                        applyTimeFilters: false
-                    } as DataFrameQueryV2;
-
-                    await lastValueFrom(ds.runQuery(query, options));
-
-                    expect(postSpy).toHaveBeenCalledWith(
-                        expect.stringContaining('query-decimated-data'),
-                        expect.any(Object),
-                        expect.any(Object)
-                    );
                 });
 
                 it('should handle empty CSV response gracefully', async () => {
@@ -4800,7 +4756,6 @@ describe('DataFrameDataSourceV2', () => {
                                     jsonData: {
                                         ...instanceSettings.jsonData,
                                         featureToggles: {
-                                            queryUndecimatedData: true,
                                             highResolutionZoom: false
                                         }
                                     }
@@ -4861,7 +4816,6 @@ describe('DataFrameDataSourceV2', () => {
                                     jsonData: {
                                         ...instanceSettings.jsonData,
                                         featureToggles: {
-                                            queryUndecimatedData: true,
                                             highResolutionZoom: false
                                         }
                                     }
@@ -6791,6 +6745,1649 @@ describe('DataFrameDataSourceV2', () => {
                         expect(result.fields.length).toBe(100);
                     });
                 });
+
+                describe('when custom properties are selected', () => {
+                    describe('when only custom properties are selected', () => {
+                        let query: DataFrameDataQuery;
+                        describe('column custom properties', () => {
+                            beforeEach(() => {
+                                const mockTables = [
+                                    {
+                                        properties: {},
+                                        columns: [
+                                            { properties: { sensor: 'temp', unit: 'C' } },
+                                            { properties: { sensor: 'pressure' } },
+                                        ]
+                                    }
+                                ];
+                                queryTablesSpy$.mockReturnValue(of(mockTables));
+                            });
+
+                            it('should include `COLUMN PROPERTIES` in the projection', async () => {
+                                query = {
+                                    type: DataFrameQueryType.Properties,
+                                    dataTableProperties: [],
+                                    columnProperties: [
+                                        DataTableProperties.ColumnName,
+                                        'sensor-(custom-properties)'
+                                    ],
+                                    take: 1000,
+                                    refId: 'A',
+                                };
+                                await lastValueFrom(ds.runQuery(query, options));
+
+                                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                                    expect.any(Object),
+                                    1000,
+                                    expect.arrayContaining([
+                                        DataTableProjections.ColumnName,
+                                        DataTableProjections.ColumnProperties
+                                    ])
+                                );
+                            })
+
+                            it('should include the selected custom property in the output fields', async () => {
+                                query = {
+                                    type: DataFrameQueryType.Properties,
+                                    dataTableProperties: [],
+                                    columnProperties: [
+                                        DataTableProperties.ColumnName,
+                                        'sensor-(custom-properties)',
+                                        'unit-(custom-properties)'],
+                                    take: 1000,
+                                    refId: 'A',
+                                };
+                                const result = await lastValueFrom(ds.runQuery(query, options));
+
+                                expect(findField(result.fields, 'sensor')?.values).toEqual(['temp', 'pressure']);
+                                expect(findField(result.fields, 'unit')?.values).toEqual(['C', undefined]);
+                            })
+
+                            it('when multiple custom properties are selected, then it should sort the fields alphabetically', async () => {
+                                const query = {
+                                    type: DataFrameQueryType.Properties,
+                                    dataTableProperties: [],
+                                    columnProperties: [
+                                        'unit-(custom-properties)',
+                                        'sensor-(custom-properties)'
+                                    ],
+                                    take: 1000,
+                                    refId: 'A',
+                                };
+
+                                const result = await lastValueFrom(ds.runQuery(query, options));
+
+                                const fieldNames = result.fields.map((f: FieldDTO) => f.name);
+                                expect(fieldNames).toEqual(['sensor', 'unit']);
+                            });
+                        });
+
+                        describe('data table custom properties', () => {
+                            beforeEach(() => {
+                                const mockTables = [
+                                    {
+                                        properties: {
+                                            author: 'John',
+                                            version: '1.0',
+                                            department: 'Engineering'
+                                        }
+                                    }
+                                ];
+                                queryTablesSpy$.mockReturnValue(of(mockTables));
+                            });
+
+                            it('should include `PROPERTIES` in the projection', async () => {
+                                query = {
+                                    type: DataFrameQueryType.Properties,
+                                    dataTableProperties: ['author-(custom-properties)'],
+                                    columnProperties: [],
+                                    take: 1000,
+                                    refId: 'A',
+                                };
+                                await lastValueFrom(ds.runQuery(query, options));
+
+                                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                                    expect.any(Object),
+                                    1000,
+                                    expect.arrayContaining([DataTableProjections.Properties])
+                                );
+                            });
+
+                            it('should include the selected custom property in the output fields', async () => {
+                                query = {
+                                    type: DataFrameQueryType.Properties,
+                                    dataTableProperties: [
+                                        'author-(custom-properties)',
+                                        'department-(custom-properties)'
+                                    ],
+                                    columnProperties: [],
+                                    take: 1000,
+                                    refId: 'A',
+                                };
+                                const result = await lastValueFrom(ds.runQuery(query, options));
+
+                                expect(findField(result.fields, 'author')?.values).toEqual(['John']);
+                                expect(findField(result.fields, 'department')?.values).toEqual(['Engineering']);
+                            });
+
+                            it('when multiple custom properties are selected, then it should sort the fields alphabetically', async () => {
+                                const query = {
+                                    type: DataFrameQueryType.Properties,
+                                    dataTableProperties: ['zebra-(custom-properties)', 'alpha-(custom-properties)', 'middle-(custom-properties)'],
+                                    columnProperties: [],
+                                    take: 1000,
+                                    refId: 'A',
+                                };
+                                const mockTables = [
+                                    {
+                                        id: 'table-1', name: 'Table 1',
+                                        properties: { zebra: 'z', alpha: 'a', middle: 'm' }
+                                    }
+                                ];
+                                queryTablesSpy$.mockReturnValue(of(mockTables));
+    
+                                const result = await lastValueFrom(ds.runQuery(query, options));
+    
+                                const fieldNames = result.fields.map((f: FieldDTO) => f.name);
+                                expect(fieldNames).toEqual(['alpha', 'middle', 'zebra']);
+                            });
+                        });
+                    });
+
+                    describe('when custom properties and standard properties are both selected', () => {
+                        beforeEach(() => {
+                            const mockTables = [
+                                {
+                                    name: 'Table 1',
+                                    properties: {
+                                        author: 'John',
+                                        version: '1.0',
+                                        extra: 'ignored'
+                                    },
+                                    columns: [
+                                        {
+                                            name: 'Col1',
+                                            properties: {
+                                                sensor: 'temp',
+                                                unit: 'C'
+                                            }
+                                        },
+                                    ]
+                                }
+                            ];
+                            queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                        });
+
+                        it('should include the standard property fields along with the custom properties in the output fields', async () => {
+                            const query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: [DataTableProperties.Name, 'author-(custom-properties)'],
+                                columnProperties: [DataTableProperties.ColumnName, 'unit-(custom-properties)'],
+                                take: 1000,
+                                refId: 'A',
+                            }
+                            const result = await lastValueFrom(ds.runQuery(query, options));
+
+                            expect(queryTablesSpy$).toHaveBeenCalledWith(
+                                expect.any(Object),
+                                1000,
+                                expect.arrayContaining([
+                                    DataTableProjections.Name,
+                                    DataTableProjections.Properties,
+                                    DataTableProjections.ColumnName,
+                                    DataTableProjections.ColumnProperties
+                                ])
+                            );
+
+                            const nameField = findField(result.fields, DataTableProjectionLabelLookup[DataTableProperties.Name].label);
+                            expect(nameField?.values).toEqual(['Table 1']);
+
+                            const authorField = findField(result.fields, 'author');
+                            expect(authorField?.values).toEqual(['John']);
+
+                            const columnNameField = findField(result.fields, DataTableProjectionLabelLookup[DataTableProperties.ColumnName].label);
+                            expect(columnNameField?.values).toEqual(['Col1']);
+
+                            const sensorField = findField(result.fields, 'unit');
+                            expect(sensorField?.values).toEqual(['C']);
+                        });
+
+                        it('when DataTableProperties.Properties and a custom property is selected within the CUSTOM_PROPERTY_COLUMNS_LIMIT, it should deduplicate the fields', async () => {
+                            const query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: [DataTableProperties.Properties, 'author-(custom-properties)'],
+                                columnProperties: [],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            const result = await lastValueFrom(ds.runQuery(query, options));
+
+                            const authorFields = result.fields.filter((f: FieldDTO) => f.name === 'author');
+                            expect(authorFields).toHaveLength(1);
+                            expect(findField(result.fields, 'author')?.values).toEqual(['John']);
+                            expect(findField(result.fields, 'version')?.values).toEqual(['1.0']);
+                        });
+
+                        it('when  Column.properties and a specific column custom property is selected within the CUSTOM_PROPERTY_COLUMNS_LIMIT, it should deduplicate the fields', async () => {
+                            const query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: [],
+                                columnProperties: [DataTableProperties.ColumnProperties, 'unit-(custom-properties)'],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            const result = await lastValueFrom(ds.runQuery(query, options));
+
+                            const unitFields = result.fields.filter((f: FieldDTO) => f.name === 'unit');
+                            expect(unitFields).toHaveLength(1);
+                            expect(findField(result.fields, 'unit')?.values).toEqual(['C']);
+                        });
+
+                        it('when a data table custom property is selected outside the CUSTOM_PROPERTY_COLUMNS_LIMIT, should include the field', async () => {
+                            let query: DataFrameDataQuery;
+                            const mockTables = [
+                                {
+                                    name: 'Table 1',
+                                    properties: Object.fromEntries(
+                                        Array.from(
+                                            { length: 101 },
+                                            (_, i) => [
+                                                `tableProp${i + 1}`,
+                                                `value${i + 1}`
+                                            ]
+                                        )
+                                    ),
+                                    columns: []
+                                }
+                            ];
+                            queryTablesSpy$.mockReturnValue(of(mockTables));
+                            query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: [DataTableProperties.Properties],
+                                columnProperties: [],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            let result = await lastValueFrom(ds.runQuery(query, options));
+                            expect(result.fields.length).toBe(100);
+
+                            query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: [DataTableProperties.Properties, 'tableProp101-(custom-properties)'],
+                                columnProperties: [],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            result = await lastValueFrom(ds.runQuery(query, options));
+
+                            const customField101 = findField(result.fields, 'tableProp101');
+                            expect(customField101).toBeDefined();
+                        })
+
+                        it('when a column custom property is selected outside the CUSTOM_PROPERTY_COLUMNS_LIMIT, should include the field', async () => {
+                            let query: DataFrameDataQuery;
+                            const mockTables = [
+                                {
+                                    columns: [
+                                        {
+                                            properties: Object.fromEntries(
+                                                Array.from(
+                                                    { length: 101 },
+                                                    (_, i) => [
+                                                        `colProp${i + 1}`,
+                                                        `value${i + 1}`
+                                                    ]
+                                                )
+                                            ),
+                                        }
+                                    ]
+                                }
+                            ];
+                            queryTablesSpy$.mockReturnValue(of(mockTables));
+                            query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: [],
+                                columnProperties: [DataTableProperties.ColumnProperties],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            let result = await lastValueFrom(ds.runQuery(query, options));
+                            expect(result.fields.length).toBe(100);
+
+                            query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: [],
+                                columnProperties: [DataTableProperties.ColumnProperties, 'colProp101-(custom-properties)'],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            result = await lastValueFrom(ds.runQuery(query, options));
+
+                            const customField101 = findField(result.fields, 'colProp101');
+                            expect(customField101).toBeDefined();
+                        })
+
+                        it('when a custom property name conflicts with a standard property name, it should add a suffix to the custom property field', async () => {
+                            const query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: [
+                                    DataTableProperties.Name,
+                                    `${DataTableProjectionLabelLookup[DataTableProperties.Name].label}-(custom-properties)`
+                                ],
+                                columnProperties: [],
+                                take: 1000,
+                                refId: 'A',
+                            };
+                            const nameLabel = DataTableProjectionLabelLookup[DataTableProperties.Name].label;
+                            const mockTables = [
+                                {
+                                    id: 'table-1', name: 'Table 1',
+                                    properties: { [nameLabel]: 'custom-value' }
+                                }
+                            ];
+                            queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                            const result = await lastValueFrom(ds.runQuery(query, options));
+
+                            expect(result.fields).toHaveLength(2);
+                            const standardField = findField(result.fields, nameLabel);
+                            expect(standardField?.values).toEqual(['Table 1']);
+                            const customField = findField(result.fields, `${nameLabel} (Data table)`);
+                            expect(customField?.values).toEqual(['custom-value']);
+                        });
+                    });
+
+                    describe('when selected custom properties are invalid', () => {
+                        const propertiesErrorMessage = 'One or more selected properties are invalid. Please update your properties selection or refine your filters.';
+
+                        it('should throw error when a selected data table custom property does not exist in any table', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table-1', name: 'Table 1',
+                                    properties: { existingProp: 'value1' }
+                                }
+                            ];
+                            queryTablesSpy$.mockReturnValue(of(mockTables));
+                            const query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: ['nonExistentProp-(custom-properties)'],
+                                columnProperties: [],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            await expect(
+                                lastValueFrom(ds.runQuery(query, options))
+                            ).rejects.toThrow(propertiesErrorMessage);
+                        });
+
+                        it('should throw error when a selected column custom property does not exist in any table column', async () => {
+                            const mockTables = [
+                                {
+                                    properties: {},
+                                    columns: [
+                                        { properties: { sensor: 'temp' } },
+                                    ]
+                                }
+                            ];
+                            queryTablesSpy$.mockReturnValue(of(mockTables));
+                            const query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: [],
+                                columnProperties: ['nonExistentColumnProp-(custom-properties)'],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            await expect(
+                                lastValueFrom(ds.runQuery(query, options))
+                            ).rejects.toThrow(propertiesErrorMessage);
+                        });
+
+                        it('should throw error when both data table and column custom properties are invalid', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table-1', name: 'Table 1',
+                                    properties: { prop1: 'val1' },
+                                    columns: [
+                                        { properties: { colProp1: 'colVal1' } }
+                                    ]
+                                }
+                            ];
+                            queryTablesSpy$.mockReturnValue(of(mockTables));
+                            const query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: ['invalidTableProp-(custom-properties)'],
+                                columnProperties: ['invalidColProp-(custom-properties)'],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            await expect(
+                                lastValueFrom(ds.runQuery(query, options))
+                            ).rejects.toThrow(propertiesErrorMessage);
+                        });
+
+                        it('should publish alert error when selected custom properties are invalid', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table-1', name: 'Table 1',
+                                    properties: { existingProp: 'value1' }
+                                }
+                            ];
+                            const publishMock = jest.fn();
+                            (ds as any).appEvents = { publish: publishMock };
+                            queryTablesSpy$.mockReturnValue(of(mockTables));
+                            const query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: ['missingProp-(custom-properties)'],
+                                columnProperties: [],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            await expect(
+                                lastValueFrom(ds.runQuery(query, options))
+                            ).rejects.toThrow(propertiesErrorMessage);
+
+                            expect(publishMock).toHaveBeenCalledWith({
+                                type: 'alert-error',
+                                payload: [
+                                    'Properties selection error',
+                                    propertiesErrorMessage
+                                ]
+                            });
+                        });
+
+                        it('should throw error when only data table custom properties are invalid while column custom properties are valid', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table-1', name: 'Table 1',
+                                    properties: { existingProp: 'val1' },
+                                    columns: [
+                                        { properties: { validColProp: 'colVal1' } }
+                                    ]
+                                }
+                            ];
+                            queryTablesSpy$.mockReturnValue(of(mockTables));
+                            const query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: ['invalidProp-(custom-properties)'],
+                                columnProperties: ['validColProp-(custom-properties)'],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            await expect(
+                                lastValueFrom(ds.runQuery(query, options))
+                            ).rejects.toThrow(propertiesErrorMessage);
+                        });
+
+                        it('should throw error when only column custom properties are invalid while data table custom properties are valid', async () => {
+                            const mockTables = [
+                                {
+                                    id: 'table-1', name: 'Table 1',
+                                    properties: { validProp: 'val1' },
+                                    columns: [
+                                        { properties: { existingColProp: 'colVal1' } }
+                                    ]
+                                }
+                            ];
+                            queryTablesSpy$.mockReturnValue(of(mockTables));
+                            const query = {
+                                type: DataFrameQueryType.Properties,
+                                dataTableProperties: ['validProp-(custom-properties)'],
+                                columnProperties: ['invalidColProp-(custom-properties)'],
+                                take: 1000,
+                                refId: 'A',
+                            };
+
+                            await expect(
+                                lastValueFrom(ds.runQuery(query, options))
+                            ).rejects.toThrow(propertiesErrorMessage);
+                        });
+                    });
+                });
+
+                it('should not throw error when no custom properties are selected', async () => {
+                    const mockTables = [
+                        {
+                            name: 'Table 1',
+                            properties: { author: 'John' }
+                        }
+                    ];
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    const query = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableProperties: [DataTableProperties.Name],
+                        columnProperties: [],
+                        take: 1000,
+                        refId: 'A',
+                    };
+
+                    const result = await lastValueFrom(ds.runQuery(query, options));
+
+                    expect(result.fields).toBeDefined();
+                });
+
+                it('should not throw error when selected custom properties exist in the tables', async () => {
+                    const mockTables = [
+                        {
+                            id: 'table-1', name: 'Table 1',
+                            properties: { author: 'John' },
+                            columns: [
+                                { properties: { sensor: 'temp' } }
+                            ]
+                        }
+                    ];
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    const query = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableProperties: ['author-(custom-properties)'],
+                        columnProperties: ['sensor-(custom-properties)'],
+                        take: 1000,
+                        refId: 'A',
+                    };
+
+                    const result = await lastValueFrom(ds.runQuery(query, options));
+
+                    expect(findField(result.fields, 'author')?.values).toEqual(['John']);
+                    expect(findField(result.fields, 'sensor')?.values).toEqual(['temp']);
+                });
+
+
+                it('should not throw error when tables have no standard properties and no custom properties are selected', async () => {
+                    const mockTables = [
+                        {
+                            id: 'table-1', name: 'Table 1',
+                        }
+                    ];
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    const query = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableProperties: [],
+                        columnProperties: [],
+                        take: 1000,
+                        refId: 'A',
+                    };
+
+                    const result = await lastValueFrom(ds.runQuery(query, options));
+
+                    expect(result.fields).toBeDefined();
+                });
+            });
+        });
+
+        describe('properties query caching', () => {
+            let queryTablesSpy$: jest.SpyInstance;
+
+            beforeEach(() => {
+                queryTablesSpy$ = jest.spyOn(ds, 'queryTables$');
+            });
+
+            it('should call queryTables$ again when the dataTableFilter changes', async () => {
+                const mockTables = [
+                    { name: 'Table 1' }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                const query1 = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableFilter: 'name = "Table 1"',
+                    dataTableProperties: [DataTableProperties.Name],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'A',
+                };
+                const query2 = {
+                    ...query1,
+                    dataTableFilter: 'name = "Table 2"',
+                };
+
+                await lastValueFrom(ds.runQuery(query1, options));
+                await lastValueFrom(ds.runQuery(query2, options));
+
+                expect(queryTablesSpy$).toHaveBeenCalledTimes(2);
+            });
+
+            it('should call queryTables$ again when the resultFilter changes', async () => {
+                const mockTables = [
+                    { name: 'Table 1' }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                const query1 = {
+                    type: DataFrameQueryType.Properties,
+                    resultFilter: 'status = "passed"',
+                    dataTableProperties: [DataTableProperties.Name],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'A',
+                };
+                const query2 = {
+                    ...query1,
+                    resultFilter: 'status = "failed"',
+                };
+
+                await lastValueFrom(ds.runQuery(query1, options));
+                await lastValueFrom(ds.runQuery(query2, options));
+
+                expect(queryTablesSpy$).toHaveBeenCalledTimes(2);
+            });
+
+            it('should call queryTables$ again when the columnFilter changes', async () => {
+                const mockTables = [
+                    { name: 'Table 1' }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                const query1 = {
+                    type: DataFrameQueryType.Properties,
+                    columnFilter: 'name = "ColumnA"',
+                    dataTableProperties: [DataTableProperties.Name],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'A',
+                };
+                const query2 = {
+                    ...query1,
+                    columnFilter: 'name = "ColumnB"',
+                };
+
+                await lastValueFrom(ds.runQuery(query1, options));
+                await lastValueFrom(ds.runQuery(query2, options));
+
+                expect(queryTablesSpy$).toHaveBeenCalledTimes(2);
+            });
+
+            it('should call queryTables$ on the first data table property selection query', async () => {
+                const mockTables = [
+                    { name: 'Table 1' }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                const query = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableProperties: [DataTableProperties.Name],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'A',
+                };
+
+                await lastValueFrom(ds.runQuery(query, options));
+
+                expect(queryTablesSpy$).toHaveBeenCalledTimes(1);
+            });
+
+            it('should call queryTables$ on the first column property selection query', async () => {
+                const mockTables = [
+                    { columns: [
+                            {
+                                name: 'Column1',
+                            }
+                        ] 
+                    }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                const query = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableProperties: [],
+                    columnProperties: [DataTableProperties.ColumnName],
+                    take: 1000,
+                    refId: 'A',
+                };
+
+                await lastValueFrom(ds.runQuery(query, options));
+
+                expect(queryTablesSpy$).toHaveBeenCalledTimes(1);
+            });
+
+            it('should call queryTables$ again when the selected standard data table properties change', async () => {
+                const mockTables = [
+                    { id: 'table-1', name: 'Table 1' }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                const query1 = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableProperties: [DataTableProperties.Name],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'A',
+                };
+                const query2 = {
+                    ...query1,
+                    dataTableProperties: [DataTableProperties.Name, DataTableProperties.Id],
+                };
+
+                await lastValueFrom(ds.runQuery(query1, options));
+                await lastValueFrom(ds.runQuery(query2, options));
+
+                expect(queryTablesSpy$).toHaveBeenCalledTimes(2);
+            });
+
+            it('should call queryTables$ again when the selected standard column properties change', async () => {
+                const mockTables = [
+                    {
+                        columns: [
+                            { 
+                                name: 'Column1',
+                                type: 'number'
+                            }
+                        ]
+                    }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                const query1 = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableProperties: [],
+                    columnProperties: [DataTableProperties.ColumnName],
+                    take: 1000,
+                    refId: 'A',
+                };
+                const query2 = {
+                    ...query1,
+                    columnProperties: [
+                        DataTableProperties.ColumnName, DataTableProperties.ColumnType],
+                };
+
+                await lastValueFrom(ds.runQuery(query1, options));
+                await lastValueFrom(ds.runQuery(query2, options));
+
+                expect(queryTablesSpy$).toHaveBeenCalledTimes(2);
+            });
+            
+            it('should call queryTables$ again when the take value changes', async () => {
+                const mockTables = [
+                    { 
+                        properties: { key: 'value' } 
+                    }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                const query1 = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableProperties: [DataTableProperties.Name],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'A',
+                };
+                const query2 = {
+                    ...query1,
+                    take: 500,
+                };
+
+                await lastValueFrom(ds.runQuery(query1, options));
+                await lastValueFrom(ds.runQuery(query2, options));
+
+                expect(queryTablesSpy$).toHaveBeenCalledTimes(2);
+            });
+
+            describe('custom data table properties selection', () => {
+                it('should call queryTables$ when adding the first custom data table property', async () => {
+                    const mockTables = [
+                        {
+                            name: 'Table 1',
+                            properties: { author: 'John' }
+                        }
+                    ];
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    const query1 = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableProperties: [DataTableProperties.Name],
+                        columnProperties: [],
+                        take: 1000,
+                        refId: 'A',
+                    };
+                    const query2 = {
+                        ...query1,
+                        dataTableProperties: [
+                            DataTableProperties.Name,
+                            'author-(custom-properties)'
+                        ],
+                    };
+
+                    await lastValueFrom(ds.runQuery(query1, options));
+                    await lastValueFrom(ds.runQuery(query2, options));
+
+                    expect(queryTablesSpy$).toHaveBeenCalledTimes(2);
+                });
+
+                it('should not call queryTables$ when only custom data table properties selection changes', async () => {
+                    const mockTables = [
+                        {
+                            name: 'Table 1',
+                            properties: {
+                                author: 'John',
+                                version: '1.0' 
+                            }
+                        }
+                    ];
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    const query1 = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableProperties: [
+                            DataTableProperties.Name,
+                            'author-(custom-properties)'
+                        ],
+                        columnProperties: [],
+                        take: 1000,
+                        refId: 'A',
+                    };
+                    const query2 = {
+                        ...query1,
+                        dataTableProperties: [
+                            DataTableProperties.Name,
+                            'version-(custom-properties)'
+                        ],
+                    };
+
+                    await lastValueFrom(ds.runQuery(query1, options));
+                    await lastValueFrom(ds.runQuery(query2, options));
+
+                    expect(queryTablesSpy$).toHaveBeenCalledTimes(1);
+                });
+
+                it('should return custom data table property fields from cached data when selection changes', async () => {
+                    const mockTables = [
+                        {
+                            name: 'Table 1',
+                            properties: {
+                                author: 'John',
+                                version: '1.0'
+                            }
+                        }
+                    ];
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    const query1 = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableProperties: [
+                            DataTableProperties.Name,
+                            'author-(custom-properties)'
+                        ],
+                        columnProperties: [],
+                        take: 1000,
+                        refId: 'A',
+                    };
+                    const query2 = {
+                        ...query1,
+                        dataTableProperties: [
+                            DataTableProperties.Name,
+                            'version-(custom-properties)'
+                        ],
+                    };
+
+                    const result1 = await lastValueFrom(ds.runQuery(query1, options));
+                    const result2 = await lastValueFrom(ds.runQuery(query2, options));
+
+                    expect(findField(result1.fields, 'author')?.values).toEqual(['John']);
+                    expect(findField(result2.fields, 'version')?.values).toEqual(['1.0']);
+                    expect(queryTablesSpy$).toHaveBeenCalledTimes(1);
+                });
+
+                it('should call queryTables$ when removing all custom data table properties', async () => {
+                    const mockTables = [
+                        {
+                            name: 'Table 1',
+                            properties: { author: 'John' }
+                        }
+                    ];
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    const query1 = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableProperties: [
+                            DataTableProperties.Name,
+                            'author-(custom-properties)'
+                        ],
+                        columnProperties: [],
+                        take: 1000,
+                        refId: 'A',
+                    };
+                    const query2 = {
+                        ...query1,
+                        dataTableProperties: [DataTableProperties.Name],
+                    };
+
+                    await lastValueFrom(ds.runQuery(query1, options));
+                    await lastValueFrom(ds.runQuery(query2, options));
+
+                    expect(queryTablesSpy$).toHaveBeenCalledTimes(2);
+                });
+            });
+
+            describe('custom column properties selection', () => {
+                it('should call queryTables$ when adding the first custom column property', async () => {
+                    const mockTables = [
+                        {
+                            columns: [
+                                {
+                                    name: 'Column1',
+                                    properties: { prop1: 'value1' }
+                                }
+                            ]
+                        }
+                    ];
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    const query1 = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableProperties: [],
+                        columnProperties: [DataTableProperties.ColumnName],
+                        take: 1000,
+                        refId: 'A',
+                    };
+                    const query2 = {
+                        ...query1,
+                        columnProperties: [
+                            DataTableProperties.ColumnName,
+                            'prop1-(custom-properties)'
+                        ],
+                    };
+
+                    await lastValueFrom(ds.runQuery(query1, options));
+                    await lastValueFrom(ds.runQuery(query2, options));
+
+                    expect(queryTablesSpy$).toHaveBeenCalledTimes(2);
+                });
+
+                it('should not call queryTables$ when only custom column properties selection changes', async () => {
+                    const mockTables = [
+                        {
+                            columns: [
+                                {
+                                    name: 'Column1',
+                                    properties: { 
+                                        prop1: 'value1',
+                                        prop2: 'value2' 
+                                    } 
+                                }
+                            ]
+                        }
+                    ];
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    const query1 = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableProperties: [],
+                        columnProperties: [
+                            DataTableProperties.ColumnName,
+                            'prop1-(custom-properties)'
+                        ],
+                        take: 1000,
+                        refId: 'A',
+                    };
+                    const query2 = {
+                        ...query1,
+                        columnProperties: [
+                            DataTableProperties.ColumnName,
+                            'prop2-(custom-properties)'
+                        ],
+                    };
+
+                    await lastValueFrom(ds.runQuery(query1, options));
+                    await lastValueFrom(ds.runQuery(query2, options));
+
+                    expect(queryTablesSpy$).toHaveBeenCalledTimes(1);
+                });
+
+                it('should return custom column property fields from cached data when selection changes', async () => {
+                    const mockTables = [
+                        {
+                            columns: [
+                                {
+                                    name: 'Column1',
+                                    properties: {
+                                        prop1: 'value1',
+                                        prop2: 'value2'
+                                    }
+                                }
+                            ]
+                        }
+                    ];
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    const query1 = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableProperties: [],
+                        columnProperties: [
+                            DataTableProperties.ColumnName,
+                            'prop1-(custom-properties)'
+                        ],
+                        take: 1000,
+                        refId: 'A',
+                    };
+                    const query2 = {
+                        ...query1,
+                        columnProperties: [
+                            DataTableProperties.ColumnName,
+                            'prop2-(custom-properties)'
+                        ],
+                    };
+
+                    const result1 = await lastValueFrom(ds.runQuery(query1, options));
+                    const result2 = await lastValueFrom(ds.runQuery(query2, options));
+
+                    expect(findField(result1.fields, 'prop1')?.values).toEqual(['value1']);
+                    expect(findField(result2.fields, 'prop2')?.values).toEqual(['value2']);
+                    expect(queryTablesSpy$).toHaveBeenCalledTimes(1);
+                });
+
+                it('should call queryTables$ when removing all custom column properties', async () => {
+                    const mockTables = [
+                        {
+                            columns: [
+                                {
+                                    name: 'Column1',
+                                    properties: { prop1: 'value1' }
+                                }
+                            ]
+                        }
+                    ];
+                    queryTablesSpy$.mockReturnValue(of(mockTables));
+                    const query1 = {
+                        type: DataFrameQueryType.Properties,
+                        dataTableProperties: [],
+                        columnProperties: [
+                            DataTableProperties.ColumnName,
+                            'prop1-(custom-properties)'
+                        ],
+                        take: 1000,
+                        refId: 'A',
+                    };
+                    const query2 = {
+                        ...query1,
+                        columnProperties: [DataTableProperties.ColumnName],
+                    };
+
+                    await lastValueFrom(ds.runQuery(query1, options));
+                    await lastValueFrom(ds.runQuery(query2, options));
+
+                    expect(queryTablesSpy$).toHaveBeenCalledTimes(2);
+                });
+            });
+
+            it('should not thrash cache when multiple query editors have different filters', async () => {
+                const mockTables = [
+                    {
+                        name: 'Table 1',
+                        properties: { author: 'John', version: '1.0' }
+                    }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                const queryA = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableFilter: 'name = "Table A"',
+                    dataTableProperties: [
+                        DataTableProperties.Name,
+                        'author-(custom-properties)'
+                    ],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'A',
+                };
+                const queryB = {
+                    ...queryA,
+                    dataTableFilter: 'name = "Table B"',
+                    refId: 'B',
+                };
+
+                await lastValueFrom(ds.runQuery(queryA, options));
+                await lastValueFrom(ds.runQuery(queryB, options));
+                queryTablesSpy$.mockClear();
+
+                const queryA2 = {
+                    ...queryA,
+                    dataTableProperties: [
+                        DataTableProperties.Name,
+                        'version-(custom-properties)'
+                    ],
+                };
+                const queryB2 = {
+                    ...queryB,
+                    dataTableProperties: [
+                        DataTableProperties.Name,
+                        'version-(custom-properties)'
+                    ],
+                };
+
+                await lastValueFrom(ds.runQuery(queryA2, options));
+                await lastValueFrom(ds.runQuery(queryB2, options));
+
+                expect(queryTablesSpy$).not.toHaveBeenCalled();
+            });
+
+            it('should return correct cached data when multiple concurrent queries change only custom properties', async () => {
+                const mockTablesA = [
+                    {
+                        name: 'Table A',
+                        properties: { author: 'John', version: '1.0' }
+                    }
+                ];
+                const mockTablesB = [
+                    {
+                        name: 'Table B',
+                        properties: { author: 'Jane', version: '2.0' }
+                    }
+                ];
+                queryTablesSpy$
+                    .mockReturnValueOnce(of(mockTablesA))
+                    .mockReturnValueOnce(of(mockTablesB));
+
+                const query1 = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableFilter: 'name = "Table A"',
+                    dataTableProperties: [
+                        DataTableProperties.Name,
+                        'author-(custom-properties)'
+                    ],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'A',
+                };
+                const query2 = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableFilter: 'name = "Table B"',
+                    dataTableProperties: [
+                        DataTableProperties.Name,
+                        'author-(custom-properties)'
+                    ],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'B',
+                };
+
+                const result1 = await lastValueFrom(ds.runQuery(query1, options));
+                const result2 = await lastValueFrom(ds.runQuery(query2, options));
+
+                expect(findField(result1.fields, 'author')?.values).toEqual(['John']);
+                expect(findField(result2.fields, 'author')?.values).toEqual(['Jane']);
+
+                queryTablesSpy$.mockClear();
+
+                const query1Updated = {
+                    ...query1,
+                    dataTableProperties: [
+                        DataTableProperties.Name,
+                        'version-(custom-properties)'
+                    ],
+                };
+                const query2Updated = {
+                    ...query2,
+                    dataTableProperties: [
+                        DataTableProperties.Name,
+                        'version-(custom-properties)'
+                    ],
+                };
+
+                const result1Updated = await lastValueFrom(ds.runQuery(query1Updated, options));
+                const result2Updated = await lastValueFrom(ds.runQuery(query2Updated, options));
+
+                expect(queryTablesSpy$).not.toHaveBeenCalled();
+                expect(findField(result1Updated.fields, 'version')?.values).toEqual(['1.0']);
+                expect(findField(result2Updated.fields, 'version')?.values).toEqual(['2.0']);
+            });
+
+            it('should maintain separate caches for different refIds', async () => {
+                const mockTables = [
+                    { 
+                        properties: { key: 'value' } 
+                    }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                const queryA = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableProperties: [DataTableProperties.Name],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'A',
+                };
+                const queryB = {
+                    ...queryA,
+                    refId: 'B',
+                };
+
+                await lastValueFrom(ds.runQuery(queryA, options));
+                await lastValueFrom(ds.runQuery(queryB, options));
+
+                expect(queryTablesSpy$).toHaveBeenCalledTimes(2);
+            });
+
+            it('should call queryTables$ again on refresh when query is identical', async () => {
+                const mockTables = [
+                    {
+                        name: 'Table 1',
+                        properties: { author: 'John' }
+                    }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                const query = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableProperties: [
+                        DataTableProperties.Name,
+                        'author-(custom-properties)'
+                    ],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'A',
+                };
+
+                await lastValueFrom(ds.runQuery(query, options));
+                await lastValueFrom(ds.runQuery(query, options));
+
+                expect(queryTablesSpy$).toHaveBeenCalledTimes(2);
+            });
+
+            it('should re-query when the previous query ended in error', async () => {
+                const postSpy = jest.spyOn(ds, 'post$');
+                postSpy.mockReturnValueOnce(throwError(() => new Error('API error')));
+                const query = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableProperties: [DataTableProperties.Name],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'A',
+                };
+
+                await expect(
+                    lastValueFrom(ds.runQuery(query, options))
+                ).rejects.toThrow();
+
+                const mockTables = [
+                    { id: 'table-1', name: 'Table 1', properties: { key: 'value' } }
+                ];
+                postSpy.mockReturnValue(of({ tables: mockTables }));
+
+                const result = await lastValueFrom(ds.runQuery(query, options));
+
+                expect(result.fields).toBeDefined();
+                expect(postSpy).toHaveBeenCalledTimes(2);
+            });
+
+            it('should call the API again when cache has expired after TTL', async () => {
+                const originalPerformance = performance;
+                jest.useFakeTimers();
+                
+                const startTime = 1000;
+                const performanceNowSpy = jest.spyOn(originalPerformance, 'now');
+                performanceNowSpy.mockReturnValue(startTime);
+
+                const mockTables = [
+                    {
+                        name: 'Table 1',
+                        properties: { author: 'John', version: '1.0' }
+                    }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+                const query = {
+                    type: DataFrameQueryType.Properties,
+                    dataTableProperties: [
+                        DataTableProperties.Name,
+                        'author-(custom-properties)'
+                    ],
+                    columnProperties: [],
+                    take: 1000,
+                    refId: 'A',
+                };
+
+                await lastValueFrom(ds.runQuery(query, options));
+                queryTablesSpy$.mockClear();
+
+                const queryWithDifferentCustomProperty = {
+                    ...query,
+                    dataTableProperties: [
+                        DataTableProperties.Name,
+                        'version-(custom-properties)'
+                    ],
+                };
+                await lastValueFrom(ds.runQuery(queryWithDifferentCustomProperty, options));
+
+                expect(queryTablesSpy$).not.toHaveBeenCalled();
+                queryTablesSpy$.mockClear();
+
+                performanceNowSpy.mockReturnValue(startTime + propertiesCacheTTL + 1);
+                jest.advanceTimersByTime(propertiesCacheTTL + 1);
+
+                const queryAfterExpiry = {
+                    ...query,
+                    dataTableProperties: [
+                        DataTableProperties.Name,
+                        'author-(custom-properties)'
+                    ],
+                };
+                await lastValueFrom(ds.runQuery(queryAfterExpiry, options));
+
+                expect(queryTablesSpy$).toHaveBeenCalledTimes(1);
+
+                performanceNowSpy.mockRestore();
+                jest.useRealTimers();
+            });
+        });
+
+        describe('getCustomPropertyOptions', () => {
+            let queryTablesSpy$: jest.SpyInstance;
+            const filters = { dataTableFilter: '', resultFilter: '', columnFilter: '' };
+            
+            beforeEach(() => {
+                queryTablesSpy$ = jest.spyOn(ds, 'queryTables$');
+                const mockTables = [
+                    {
+                        properties: {
+                            zprop: 'val1',
+                            aprop: 'val2',
+                            bprop: 'val3'
+                        },
+                        columns: [
+                            {
+                                properties: { 
+                                    yprop: 'v1',
+                                    xprop: 'v2',
+                                    zprop: 'v3'
+                                }
+                            },
+                        ]
+                    }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+            });
+
+            it('should call queryTables$ with Properties and ColumnProperties projections', async () => {
+                queryTablesSpy$.mockReturnValue(of([]));
+
+                await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    filters,
+                    TAKE_LIMIT,
+                    [DataTableProjections.Properties, DataTableProjections.ColumnProperties]
+                );
+            });
+
+            it('should pass custom take value to queryTables$', async () => {
+                queryTablesSpy$.mockReturnValue(of([]));
+                const customTake = 500;
+
+                await ds.getCustomPropertyOptions(filters, customTake);
+
+                expect(queryTablesSpy$).toHaveBeenCalledWith(
+                    filters,
+                    customTake,
+                    [DataTableProjections.Properties, DataTableProjections.ColumnProperties]
+                );
+            });
+
+            it('should return empty options when tables have no data table properties and column properties', async () => {
+                queryTablesSpy$.mockReturnValue(of([]));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
+                const columnCustomPropertyOptions = result.columnCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
+                expect(dataTableCustomPropertyOptions).toEqual([]);
+                expect(columnCustomPropertyOptions).toEqual([]);
+            });
+
+            it('should return data table custom properties as options when only data table properties are available', async () => {
+                const mockTables = [
+                    { properties: { propA: 'valueA', propB: 'valueB' } },
+                    { properties: { propB: 'valueB2', propC: 'valueC' } },
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
+                expect(dataTableCustomPropertyOptions).toEqual([
+                    {
+                        label: 'propA',
+                        value: 'propA-(custom-properties)',
+                        group: CUSTOM_DATA_TABLE_PROPERTIES_GROUP
+                    },
+                    {
+                        label: 'propB',
+                        value: 'propB-(custom-properties)',
+                        group: CUSTOM_DATA_TABLE_PROPERTIES_GROUP
+                    },
+                    {
+                        label: 'propC',
+                        value: 'propC-(custom-properties)',
+                        group: CUSTOM_DATA_TABLE_PROPERTIES_GROUP
+                    },
+                ]);
+            });
+
+            it('should return column custom properties as options when only column properties are available', async () => {
+                const mockTables = [
+                    {
+                        columns: [
+                            { properties: { colPropX: 'val1' } },
+                            { properties: { colPropY: 'val2' } },
+                        ]
+                    },
+                    {
+                        columns: [
+                            { properties: { colPropX: 'val3', colPropZ: 'val4' } },
+                        ]
+                    },
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const columnCustomPropertyOptions = result.columnCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
+                expect(columnCustomPropertyOptions).toEqual([
+                    {
+                        label: 'colPropX',
+                        value: 'colPropX-(custom-properties)',
+                        group: CUSTOM_COLUMN_PROPERTIES_GROUP
+                    },
+                    {
+                        label: 'colPropY',
+                        value: 'colPropY-(custom-properties)',
+                        group: CUSTOM_COLUMN_PROPERTIES_GROUP
+                    },
+                    {
+                        label: 'colPropZ',
+                        value: 'colPropZ-(custom-properties)',
+                        group: CUSTOM_COLUMN_PROPERTIES_GROUP
+                    },
+                ]);
+            });
+
+            it('should deduplicate data table property keys across tables', async () => {
+                const mockTables = [
+                    { properties: { sharedProp: 'val1' } },
+                    { properties: { sharedProp: 'val2' } },
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
+                expect(dataTableCustomPropertyOptions).toEqual([
+                    {
+                        label: 'sharedProp',
+                        value: 'sharedProp-(custom-properties)',
+                        group: CUSTOM_DATA_TABLE_PROPERTIES_GROUP
+                    },
+                ]);
+            });
+
+            it('should deduplicate column property keys across tables', async () => {
+                const mockTables = [
+                    {
+                        columns: [
+                            { properties: { sharedColProp: 'val1' } },
+                        ]
+                    },
+                    {
+                        columns: [
+                            { properties: { sharedColProp: 'val2' } },
+                        ]
+                    },
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const columnCustomPropertyOptions = result.columnCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
+                expect(columnCustomPropertyOptions).toEqual([
+                    {
+                        label: 'sharedColProp',
+                        value: 'sharedColProp-(custom-properties)',
+                        group: CUSTOM_COLUMN_PROPERTIES_GROUP
+                    },
+                ]);
+            });
+
+            it('should return custom properties sorted alphabetically', async () => {
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const dataTableCustomPropertyLabels = result.dataTableCustomPropertyOptions
+                    .map(option => option.label);
+                const columnCustomPropertyLabels = result.columnCustomPropertyOptions
+                    .map(option => option.label);
+
+                expect(dataTableCustomPropertyLabels).toEqual(['aprop', 'bprop', 'zprop']);
+                expect(columnCustomPropertyLabels).toEqual(['xprop', 'yprop', 'zprop']);
+            });
+
+            it('should skip tables without properties', async () => {
+                const mockTables = [
+                    {
+                        columns: []
+                    },
+                    {
+                        columns: [],
+                        properties: { tableProp: 'val1' },
+                    }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
+                expect(dataTableCustomPropertyOptions).toEqual([
+                    {
+                        label: 'tableProp',
+                        value: 'tableProp-(custom-properties)',
+                        group: CUSTOM_DATA_TABLE_PROPERTIES_GROUP
+                    },
+                ]);
+            });
+
+            it('should skip columns without properties', async () => {
+                const mockTables = [
+                    {
+                        columns: [
+                            { properties: { colProp: 'val' } },
+                            { properties: {} },
+                        ]
+                    },
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const columnCustomPropertyOptions = result.columnCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
+                expect(columnCustomPropertyOptions).toEqual([
+                    {
+                        label: 'colProp',
+                        value: 'colProp-(custom-properties)',
+                        group: CUSTOM_COLUMN_PROPERTIES_GROUP
+                    },
+                ]);
+            });
+
+            it('should return empty options when all tables lack properties', async () => {
+                const mockTables = [
+                    {
+                        columns: []
+                    },
+                    {
+                        columns: []
+                    }
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
+                expect(dataTableCustomPropertyOptions).toEqual([]);
+            });
+
+            it('should return empty column options when all columns lack properties', async () => {
+                const mockTables = [
+                    {
+                        columns: [
+                            { properties: {} },
+                            { properties: {} },
+                        ]
+                    },
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const columnCustomPropertyOptions = result.columnCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
+                expect(columnCustomPropertyOptions).toEqual([]);
+            });
+
+            it('should return empty dataTableCustomPropertyOptions and columnCustomPropertyOptions when all properties are empty', async () => {
+                const mockTables = [
+                    {
+                        properties: {},
+                        columns: [
+                            { properties: {} },
+                        ]
+                    },
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                expect(result.dataTableCustomPropertyOptions).toEqual([]);
+                expect(result.columnCustomPropertyOptions).toEqual([]);
+            });
+
+            it('should return both data table and column custom properties', async () => {
+                const mockTables = [
+                    {
+                        properties: { tableProp: 'val1' },
+                        columns: [
+                            { properties: { colProp: 'val2' } },
+                        ]
+                    },
+                ];
+                queryTablesSpy$.mockReturnValue(of(mockTables));
+
+                const result = await ds.getCustomPropertyOptions(filters, TAKE_LIMIT);
+
+                const dataTableCustomPropertyOptions = result.dataTableCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_DATA_TABLE_PROPERTIES_GROUP);
+                const columnCustomPropertyOptions = result.columnCustomPropertyOptions
+                    .filter(option => option.group === CUSTOM_COLUMN_PROPERTIES_GROUP);
+                expect(dataTableCustomPropertyOptions).toEqual([
+                    {
+                        label: 'tableProp',
+                        value: 'tableProp-(custom-properties)',
+                        group: CUSTOM_DATA_TABLE_PROPERTIES_GROUP
+                    },
+                ]);
+                expect(columnCustomPropertyOptions).toEqual([
+                    {
+                        label: 'colProp',
+                        value: 'colProp-(custom-properties)',
+                        group: CUSTOM_COLUMN_PROPERTIES_GROUP
+                    },
+                ]);
             });
         });
 
@@ -7997,20 +9594,6 @@ describe('DataFrameDataSourceV2', () => {
         });
     });
 
-    describe('getTableProperties', () => {
-        it('should throw "Method not implemented."', async () => {
-            await expect(ds.getTableProperties()).rejects.toThrow('Method not implemented.');
-        });
-    });
-
-    describe('getDecimatedTableData', () => {
-        it('should throw "Method not implemented."', async () => {
-            await expect(
-                ds.getDecimatedTableData({} as any, [] as any, {} as any)
-            ).rejects.toThrow('Method not implemented.');
-        });
-    });
-
     describe('queryTables$', () => {
         let postMock$: jest.SpyInstance;
         const publishMock = jest.fn();
@@ -8050,7 +9633,7 @@ describe('DataFrameDataSourceV2', () => {
                 `${instanceSettings.url}/nitestmonitor/v2/query-results`,
                 {
                     filter: 'status = "Passed"',
-                    projection: ['id'],
+                    projection: ['id', 'dataTableIds'],
                     take: 1000,
                     orderBy: 'UPDATED_AT',
                     descending: true
@@ -8097,6 +9680,7 @@ describe('DataFrameDataSourceV2', () => {
 
             const result = await lastValueFrom(ds.queryTables$(filters, 10));
 
+            expect(postMock$).toHaveBeenCalledTimes(1);
             expect(postMock$).toHaveBeenCalledWith(
                 `${ds.baseUrl}/query-tables`,
                 {
@@ -8126,7 +9710,7 @@ describe('DataFrameDataSourceV2', () => {
                 `${instanceSettings.url}/nitestmonitor/v2/query-results`,
                 {
                     filter: 'status = "Passed"',
-                    projection: ['id'],
+                    projection: ['id', 'dataTableIds'],
                     take: 1000,
                     orderBy: 'UPDATED_AT',
                     descending: true
@@ -8413,14 +9997,141 @@ describe('DataFrameDataSourceV2', () => {
                 ],
             });
         });
-    });
 
-    describe('queryTables', () => {
-        it('should return empty list', async () => {
-            const result = await ds.queryTables('test-filter', 5, [
-                DataTableProjections.Name,
-            ]);
-            expect(result).toEqual([]);
+        describe('when data table ids are associated with results', () => {
+            beforeEach(() => {
+                postMock$.mockImplementation((url) => {
+                    if (!url.includes('query-results')) {
+                        return of({ tables: mockTables });
+                    }
+
+                    return of({
+                        results: [
+                            {
+                                id: 'result-1',
+                                dataTableIds: [
+                                    'dt-1', 
+                                    'dt-2'
+                                ] 
+                            },
+                            {
+                                id: 'result-2',
+                                dataTableIds: [
+                                    'dt-3'
+                                ]
+                            }
+                        ]
+                    });
+                });
+            });
+
+            it('should include result IDs and associated data table IDs from results in query tables filter with substitutions', async () => {
+                const filters = {
+                    resultFilter: 'status = "Passed"',
+                    dataTableFilter: ''
+                };
+                await lastValueFrom(ds.queryTables$(filters));
+
+                expect(postMock$).toHaveBeenCalledWith(
+                    `${ds.baseUrl}/query-tables`,
+                    {
+                        interactive: true,
+                        orderBy: 'ROWS_MODIFIED_AT',
+                        orderByDescending: true,
+                        filter: '((new[]{@0,@1}.Contains(testResultId))||(new[]{@2,@3,@4}.Contains(id)))',
+                        take: TAKE_LIMIT,
+                        projection: [DataTableProjections.RowsModifiedAt],
+                        substitutions: [
+                            'result-1',
+                            'result-2',
+                            'dt-1',
+                            'dt-2',
+                            'dt-3'
+                        ]
+                    },
+                    { useApiIngress: true, showErrorAlert: false }
+                );
+            });
+
+            it('should limit associated data table IDs from results to 1000', async () => {
+                const dataTableIds = Array.from(
+                    { length: 1500 },
+                    (_, index) => `dt-${index}`
+                );
+                postMock$.mockImplementation((url) => {
+                    if (url.includes('query-results')) {
+                        return of({
+                            results: [
+                                {
+                                    id: 'result-1',
+                                    dataTableIds: dataTableIds.slice(0, 750)
+                                },
+                                {
+                                    id: 'result-2',
+                                    dataTableIds: dataTableIds.slice(750, 1500)
+                                }
+                            ]
+                        });
+                    }
+                    return of({ tables: mockTables });
+                });
+                const expectedResultIds = ['result-1', 'result-2'];
+                const expectedDataTableIds = dataTableIds.slice(0, DATA_TABLES_IDS_LIMIT);
+                const expectedSubstitutions = [...expectedResultIds, ...expectedDataTableIds];
+                const resultIdPlaceholders = expectedResultIds.map(
+                    (_, index) => `@${index}`
+                ).join(',');
+                const dataTableIdPlaceholders = expectedDataTableIds.map(
+                    (_, index) => `@${expectedResultIds.length + index}`
+                ).join(',');
+
+                const filters = { resultFilter: 'status = "Passed"', dataTableFilter: '' };
+                await lastValueFrom(ds.queryTables$(filters));
+
+                expect(postMock$).toHaveBeenCalledWith(
+                    `${ds.baseUrl}/query-tables`,
+                    {
+                        interactive: true,
+                        orderBy: 'ROWS_MODIFIED_AT',
+                        orderByDescending: true,
+                        filter: `((new[]{${resultIdPlaceholders}}.Contains(testResultId))||(new[]{${dataTableIdPlaceholders}}.Contains(id)))`,
+                        take: TAKE_LIMIT,
+                        projection: [DataTableProjections.RowsModifiedAt],
+                        substitutions: expectedSubstitutions
+                    },
+                    { useApiIngress: true, showErrorAlert: false }
+                );
+            });
+
+            it('should combine result filter, data table filter and column filter with AND when provided', async () => {
+                const filters = {
+                    resultFilter: 'status = "Passed"',
+                    dataTableFilter: 'name = "Table1"',
+                    columnFilter: 'columns.any(it.name = "Column1")'
+                };
+
+                await lastValueFrom(ds.queryTables$(filters, 10));
+
+                expect(postMock$).toHaveBeenCalledWith(
+                    `${ds.baseUrl}/query-tables`,
+                    {
+                        interactive: true,
+                        orderBy: 'ROWS_MODIFIED_AT',
+                        orderByDescending: true,
+                        filter: '((new[]{@0,@1}.Contains(testResultId))||(new[]{@2,@3,@4}.Contains(id)))&&(name = "Table1")&&(columns.any(it.name = "Column1"))',
+                        take: 10,
+                        projection: [DataTableProjections.RowsModifiedAt],
+                        substitutions: [
+                            'result-1',
+                            'result-2',
+                            'dt-1',
+                            'dt-2',
+                            'dt-3'
+                        ]
+                    },
+                    { useApiIngress: true, showErrorAlert: false }
+                );
+            });
         });
     });
 

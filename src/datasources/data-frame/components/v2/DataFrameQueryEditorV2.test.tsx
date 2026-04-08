@@ -1,6 +1,10 @@
 jest.mock('datasources/data-frame/constants', () => {
     const actual = jest.requireActual('datasources/data-frame/constants');
-    return { ...actual, COLUMN_OPTIONS_LIMIT: 10 }; // reduce column option limit for tests
+    return { 
+        ...actual, 
+        COLUMN_OPTIONS_LIMIT: 10, 
+        CUSTOM_PROPERTY_OPTIONS_LIMIT: 5
+    };
 });
 
 import React from "react";
@@ -10,7 +14,7 @@ import { DataFrameQueryEditorV2 } from "./DataFrameQueryEditorV2";
 import { DataFrameQueryV2, DataFrameQueryType, ValidDataFrameQuery, ValidDataFrameQueryV2, defaultQueryV2, DataTableProjectionLabelLookup, DataTableProperties, DataFrameDataQuery } from "../../types";
 import { DataFrameDataSource } from "datasources/data-frame/DataFrameDataSource";
 import { DataFrameQueryBuilderWrapper } from "./query-builders/DataFrameQueryBuilderWrapper";
-import { COLUMN_OPTIONS_LIMIT } from "datasources/data-frame/constants";
+import { COLUMN_OPTIONS_LIMIT, TAKE_LIMIT, CUSTOM_PROPERTY_SUFFIX } from "datasources/data-frame/constants";
 import { ComboboxOption } from "@grafana/ui";
 import { errorMessages, infoMessage } from "datasources/data-frame/constants/v2/DataFrameQueryEditorV2.constants";
 import { of } from "rxjs";
@@ -34,6 +38,11 @@ const mockParseColumnIdentifier = (columnIdentifier: string) => {
 const mockHasRequiredFilters = jest.fn((query: ValidDataFrameQueryV2) => {
     return (query.resultFilter !== '' || query.dataTableFilter !== '');
 });
+
+const customPropertiesOptions = {
+    dataTableCustomPropertyOptions: [],
+    columnCustomPropertyOptions: [],
+};
 
 const renderComponent = (
     queryOverrides: Partial<DataFrameDataQuery> = {},
@@ -73,13 +82,12 @@ const renderComponent = (
         transformResultQuery: jest.fn((filter: string) => filter),
         transformColumnQuery: jest.fn((filter: string) => filter),
         hasRequiredFilters: mockHasRequiredFilters,
+        getCustomPropertyOptions: jest.fn().mockResolvedValue(customPropertiesOptions),
         variablesCache,
         parseColumnIdentifier: mockParseColumnIdentifier,
         instanceSettings: {
             jsonData: {
-                featureToggles: {
-                    queryUndecimatedData: true
-                }
+                featureToggles: {}
             }
         },
         ...mockDatasource
@@ -1172,9 +1180,7 @@ describe("DataFrameQueryEditorV2", () => {
                             parseColumnIdentifier: mockParseColumnIdentifier,
                             instanceSettings: {
                                 jsonData: {
-                                    featureToggles: {
-                                        queryUndecimatedData: true
-                                    }
+                                    featureToggles: {}
                                 }
                             }
                         } as any;
@@ -1776,79 +1782,6 @@ describe("DataFrameQueryEditorV2", () => {
                         await waitFor(() => {
                             expect(onChange).not.toHaveBeenCalled();
                             expect(onRunQuery).not.toHaveBeenCalled();
-                        });
-                    });
-                });
-
-                describe("when queryUndecimatedData feature flag is disabled", () => {
-                    let mockDatasource: Partial<DataFrameDataSource>;
-
-                    beforeEach(() => {
-                        cleanup();
-                        mockDatasource = {
-                            processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
-                            getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
-                                uniqueColumnsAcrossTables: [],
-                                commonColumnsAcrossTables: []
-                            }),
-                            transformDataTableQuery: jest.fn((filter: string) => filter),
-                            transformResultQuery: jest.fn((filter: string) => filter),
-                            transformColumnQuery: jest.fn((filter: string) => filter),
-                            hasRequiredFilters: mockHasRequiredFilters,
-                            parseColumnIdentifier: mockParseColumnIdentifier,
-                            instanceSettings: {
-                                jsonData: {
-                                    featureToggles: {
-                                        queryUndecimatedData: false
-                                    }
-                                }
-                            }
-                        } as unknown as Partial<DataFrameDataSource>;
-                    });
-
-                    it("should not include 'None' as a decimation method option", async () => {
-                        const user = userEvent.setup();
-
-                        renderComponent(
-                            { type: DataFrameQueryType.Data },
-                            '',
-                            '',
-                            [],
-                            [],
-                            undefined,
-                            {},
-                            mockDatasource
-                        );
-
-                        const decimationMethodField = screen.getAllByRole('combobox')[1];
-                        await user.click(decimationMethodField);
-
-                        await waitFor(() => {
-                            const options = within(document.body).getAllByRole('option');
-                            const optionTexts = options.map(opt => opt.textContent);
-                            expect(optionTexts.some(text => text?.startsWith('None'))).toBe(false);
-                        });
-                    });
-
-                    it("should not display undecimated record count field even when decimation method is 'NONE'", async () => {
-                        renderComponent(
-                            { 
-                                type: DataFrameQueryType.Data,
-                                decimationMethod: 'NONE'
-                            },
-                            '',
-                            '',
-                            [],
-                            [],
-                            undefined,
-                            {},
-                            mockDatasource
-                        );
-
-                        await waitFor(() => {
-                            const recordCountInput = screen.queryAllByRole('spinbutton');
-                            // Should have no record count inputs when feature flag is disabled
-                            expect(recordCountInput.length).toBe(0);
                         });
                     });
                 });
@@ -2867,10 +2800,443 @@ describe("DataFrameQueryEditorV2", () => {
             });
         });
 
+        describe("fetch custom property options", () => {
+            beforeEach(() => {
+                cleanup();
+                (DataFrameQueryBuilderWrapper as jest.Mock).mockClear();
+                jest.clearAllMocks();
+            });
+
+            describe('custom properties option based on query type', () => {
+                it('should not fetch custom properties when query type is Data', async () => {
+                        const { datasource } = renderComponent({
+                        type: DataFrameQueryType.Data,
+                    });
+
+                    await waitFor(() => {
+                        expect(datasource.getCustomPropertyOptions).not.toHaveBeenCalled();
+                    });
+                });
+
+                it('should not fetch custom properties when query is Data and filter is changed', async () => {
+                    const { datasource } = renderComponent({
+                        type: DataFrameQueryType.Data,
+                    });
+
+                    const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                    const { onDataTableFilterChange } = props;
+                    const mockEvent = {
+                        detail: { linq: 'InitialFilter' },
+                    } as Event & { detail: { linq: string } };
+                    onDataTableFilterChange(mockEvent);
+
+                    await waitFor(() => {
+                        expect(datasource.getCustomPropertyOptions).not.toHaveBeenCalled();
+                    });
+                });
+
+                it('should not fetch custom properties when switching to Data query with filters', async () => {
+                    const user = userEvent.setup();
+                    const { datasource } = renderComponent({
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'ExistingFilter',
+                    });
+                    const getCustomPropertyOptionsSpy = jest.spyOn(datasource, 'getCustomPropertyOptions');
+                    getCustomPropertyOptionsSpy.mockClear();
+
+                    const dataRadios = screen.getAllByRole('radio', {
+                        name: DataFrameQueryType.Data,
+                    });
+                    await user.click(dataRadios[0]);
+
+                    expect(datasource.getCustomPropertyOptions).not.toHaveBeenCalled();                    
+                })
+
+                it('should fetch custom properties when switching to Properties query type without filters', async () => {
+                    const user = userEvent.setup();
+                    const { datasource } = renderComponent({
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: '',
+                    });
+
+                    const dataRadios = screen.getAllByRole('radio', {
+                        name: DataFrameQueryType.Properties,
+                    });
+                    await user.click(dataRadios[0]);
+
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
+                        dataTableFilter: '',
+                        resultFilter: '',
+                        columnFilter: '',
+                    }, TAKE_LIMIT);
+                });
+
+                it('should fetch custom properties when switching to Properties query type after changing filters in the Data query type', async () => {
+                    const user = userEvent.setup();
+                    const { datasource } = renderComponent({
+                        type: DataFrameQueryType.Data,
+                        dataTableFilter: 'InitialFilter',
+                    });
+                    const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                    const { onDataTableFilterChange } = props;
+                    const getCustomPropertyOptions = jest.spyOn(datasource, 'getCustomPropertyOptions');
+
+                    expect(getCustomPropertyOptions).not.toHaveBeenCalled();
+
+                    // Change the filter while in Data query type
+                    const mockEvent = {
+                        detail: { linq: 'UpdatedFilter' },
+                    } as Event & { detail: { linq: string } };
+                    onDataTableFilterChange(mockEvent);
+
+                    // Still should not fetch custom properties in Data query type
+                    expect(getCustomPropertyOptions).not.toHaveBeenCalled();
+
+                    // Switch query type to Properties (use first matching radio)
+                    const dataRadios = screen.getAllByRole('radio', {
+                        name: DataFrameQueryType.Properties,
+                    });
+                    await user.click(dataRadios[0]);
+
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
+                        dataTableFilter: 'UpdatedFilter',
+                        resultFilter: '',
+                        columnFilter: ''
+                    }, TAKE_LIMIT);
+                });
+            });
+
+            describe('custom properties option based on filter and take', () => {
+                it('should fetch custom properties on initial render with empty filters', () => {
+                    const customPropertyOptions = {
+                        dataTableCustomPropertyOptions: [
+                          {
+                            label: 'Custom Prop A',
+                            value: 'customPropA',
+                            group: 'Custom',
+                          },
+                        ],
+                        columnCustomPropertyOptions: [
+                          {
+                            label: 'Custom Col Prop',
+                            value: 'customColProp',
+                            group: 'Custom',
+                          },
+                        ],
+                    };
+
+                    const mockGetCustomPropertyOptions = jest.fn()
+                        .mockResolvedValue(customPropertyOptions);
+                    renderComponent(
+                        { type: DataFrameQueryType.Properties },
+                        '',
+                        '',
+                        [],
+                        [],
+                        undefined,
+                        {},
+                        {
+                            getCustomPropertyOptions: mockGetCustomPropertyOptions,
+                        }
+                    );
+
+                    expect(mockGetCustomPropertyOptions).toHaveBeenCalledTimes(1);
+                    expect(mockGetCustomPropertyOptions).toHaveBeenCalledWith({
+                        dataTableFilter: '',
+                        resultFilter: '',
+                        columnFilter: ''
+                    }, TAKE_LIMIT);
+                })
+
+                it('should fetch custom properties when only the filters change', async () => {
+                    const { datasource } = renderComponent({
+                      type: DataFrameQueryType.Properties,
+                      dataTableFilter: 'InitialFilter'
+                    });
+    
+                    const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                    const { 
+                        onDataTableFilterChange,
+                        onResultFilterChange,
+                        onColumnFilterChange 
+                    } = props;
+                    const mockEvent = {
+                        detail: { linq: 'UpdatedFilter' }
+                    } as Event & { detail: { linq: string; }; };
+            
+                    onDataTableFilterChange(mockEvent);
+                    onResultFilterChange(mockEvent);
+                    onColumnFilterChange(mockEvent);
+    
+                    await waitFor(() => {
+                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(4); // 1 call on initial render + 3 calls for each filter change
+                    });
+                });
+    
+                it('should fetch custom properties when only take changes', async () => {
+                    const { datasource } = renderComponent({
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'InitialFilter',
+                    });
+                    const getCustomPropertyOptionsSpy = jest.spyOn(datasource, 'getCustomPropertyOptions');
+                    
+                    expect(getCustomPropertyOptionsSpy).toHaveBeenCalledTimes(1); 
+                    getCustomPropertyOptionsSpy.mockClear();
+
+                    const takeInput = screen.getByRole('spinbutton');
+                    await userEvent.type(takeInput, '500');
+                    await userEvent.tab();
+    
+                    await waitFor(() => {
+                        expect(getCustomPropertyOptionsSpy).toHaveBeenCalledTimes(1); 
+                    });
+                })
+    
+                it('should not fetch custom properties when neither filters change nor take change', async () => {
+                    const { datasource } = renderComponent(
+                        {
+                            type: DataFrameQueryType.Properties,
+                            dataTableFilter: 'InitialFilter',
+                            resultFilter: 'InitialFilter',
+                            columnFilter: 'InitialFilter',
+                            take: 1000
+                        }
+                    );
+                    const getCustomPropertyOptionsSpy = jest.spyOn(datasource, 'getCustomPropertyOptions');
+                    expect(getCustomPropertyOptionsSpy).toHaveBeenCalledTimes(1);
+                    getCustomPropertyOptionsSpy.mockClear();
+    
+                    const [[props]] = (DataFrameQueryBuilderWrapper as jest.Mock).mock.calls;
+                    const { 
+                        onDataTableFilterChange,
+                        onResultFilterChange,
+                        onColumnFilterChange 
+                    } = props;
+                    const mockEvent = {
+                        detail: { linq: 'InitialFilter' }
+                    } as Event & { detail: { linq: string; }; };
+                    onDataTableFilterChange(mockEvent);
+                    onResultFilterChange(mockEvent);
+                    onColumnFilterChange(mockEvent);
+    
+                    await waitFor(() => {
+                        expect(getCustomPropertyOptionsSpy).not.toHaveBeenCalled();
+                    });
+                });
+
+                it('should transform variables in filters before deciding to load custom property options', async () => {
+                    const datasource = {
+                        processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                        getCustomPropertyOptions: jest.fn().mockResolvedValue({
+                          dataTableCustomPropertyOptions: [],
+                          columnCustomPropertyOptions: [],
+                        }),
+                        getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                          uniqueColumnsAcrossTables: [],
+                          commonColumnsAcrossTables: [],
+                        }),
+                        transformDataTableQuery: jest.fn(() => 'TransformedFilterX'),
+                        transformResultQuery: jest.fn(() => 'TransformedFilterY'),
+                        transformColumnQuery: jest.fn(() => 'TransformedFilterZ'),
+                        hasRequiredFilters: mockHasRequiredFilters,
+                    } as any;
+                    renderComponent(
+                        {
+                          ...defaultQueryV2,
+                          refId: 'A',
+                          type: DataFrameQueryType.Properties,
+                          dataTableFilter: 'FilterX',
+                          resultFilter: 'FilterY',
+                          columnFilter: 'FilterZ',
+                        },
+                        '',
+                        '',
+                        [],
+                        [],
+                        undefined,
+                        {},
+                        datasource
+                    );
+
+                    await waitFor(() => {
+                        expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterX');
+                        expect(datasource.transformResultQuery).toHaveBeenCalledWith('FilterY');
+                        expect(datasource.transformColumnQuery).toHaveBeenCalledWith('FilterZ');
+                        expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
+                            dataTableFilter: 'TransformedFilterX',
+                            resultFilter: 'TransformedFilterY',
+                            columnFilter: 'TransformedFilterZ',
+                        }, TAKE_LIMIT);
+                    });
+                });
+            });
+
+            it('should trigger useEffect when variables cache object reference changes', async () => {
+                cleanup()
+                const initialVariablesCache = { var1: 'value1' };
+                const updatedVariablesCache = { var1: 'value2' };
+                const datasource = {
+                    processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                    getCustomPropertyOptions: jest.fn().mockResolvedValue({
+                        dataTableCustomPropertyOptions: [],
+                        columnCustomPropertyOptions: [],
+                    }),
+                    getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                        uniqueColumnsAcrossTables: [],
+                        commonColumnsAcrossTables: [],
+                    }),
+                    transformDataTableQuery: jest.fn(f => f),
+                    transformResultQuery: jest.fn(f => f),
+                    transformColumnQuery: jest.fn(f => f),
+                    hasRequiredFilters: mockHasRequiredFilters,
+                } as any;
+
+                renderComponent(
+                    {
+                        ...defaultQueryV2,
+                        refId: 'A',
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'FilterWithVar',
+                        resultFilter: 'ResultWithVar',
+                        columnFilter: 'ColumnWithVar',
+                    },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    initialVariablesCache,
+                    datasource,
+                );
+
+                await waitFor(() => {
+                    expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
+                    expect(datasource.transformResultQuery).toHaveBeenCalledWith('ResultWithVar');
+                    expect(datasource.transformColumnQuery).toHaveBeenCalledWith('ColumnWithVar');
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledWith({
+                        dataTableFilter: 'FilterWithVar',
+                        resultFilter: 'ResultWithVar',
+                        columnFilter: 'ColumnWithVar',
+                    }, TAKE_LIMIT);
+                });
+
+                datasource.getCustomPropertyOptions.mockClear();
+                datasource.transformDataTableQuery.mockClear();
+                cleanup();
+
+                // Update variables cache reference and rerender
+                renderComponent(
+                    {
+                        ...defaultQueryV2,
+                        refId: 'A',
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'FilterWithVar',
+                    },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    updatedVariablesCache,
+                    datasource,
+                );
+
+                await waitFor(() => {
+                    expect(datasource.transformDataTableQuery).toHaveBeenCalledWith('FilterWithVar');
+                    expect(datasource.getCustomPropertyOptions).toHaveBeenCalledTimes(1);
+                });
+            });
+
+            it('should populate data table and column custom properties options from getCustomPropertyOptions', async () => {
+                const mockOptions = {
+                    dataTableCustomPropertyOptions: [
+                        { 
+                            label: 'Custom Prop A',
+                            value: 'customPropA',
+                            group: 'Custom' 
+                        },
+                    ],
+                    columnCustomPropertyOptions: [
+                        {
+                            label: 'Custom Col Prop',
+                            value: 'customColProp',
+                            group: 'Custom' 
+                        },
+                    ],
+                };
+                const mockGetCustomPropertyOptions = jest.fn()
+                    .mockResolvedValue(mockOptions);
+                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
+                    .mockReturnValue(500);
+                const { renderResult: result} = renderComponent(
+                    { type: DataFrameQueryType.Properties },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    {
+                        getCustomPropertyOptions: mockGetCustomPropertyOptions,
+                    }
+                );
+
+                // Data table properties
+                const user = userEvent.setup();
+                const dataTablePropertiesField = result.getAllByRole('combobox')[0];
+                await user.click(dataTablePropertiesField);
+
+                const dataTableCustomPropertyOptions = screen.getAllByRole('option');
+                expect(dataTableCustomPropertyOptions).toHaveLength(12);
+
+                const dataTableCustomPropertyOption = dataTableCustomPropertyOptions.find(opt =>  
+                    opt.textContent && opt.textContent.includes('Custom Prop A')  
+                );  
+                expect(dataTableCustomPropertyOption).toBeDefined();
+
+                // Column Properties 
+                const columnPropertiesField = result.getAllByRole('combobox')[1];
+                await user.click(columnPropertiesField);
+                
+                const columnCustomPropertyOptions = screen.getAllByRole('option');
+                expect(columnCustomPropertyOptions).toHaveLength(5);
+
+                const columnCustomPropertyOption = columnCustomPropertyOptions.find(opt =>  
+                    opt.textContent && opt.textContent.includes('Custom Col Prop')  
+                );  
+                expect(columnCustomPropertyOption).toBeDefined();
+            });
+
+            it('should set custom properties options to empty arrays when getCustomPropertyOptions returns error', async () => {
+                const mockGetCustomPropertyOptions = jest.fn().mockRejectedValue(new Error('Failed to fetch options'));
+                const { datasource } = renderComponent(
+                    { type: DataFrameQueryType.Properties },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    {
+                      getCustomPropertyOptions: mockGetCustomPropertyOptions,
+                    }
+                );
+                const getCustomPropertiesOptionsSpy = jest.spyOn(datasource, 'getCustomPropertyOptions');
+
+                await waitFor(() => {
+                    expect(getCustomPropertiesOptionsSpy).toHaveBeenCalled();
+                    expect(screen.queryByText('Custom Prop A')).not.toBeInTheDocument();
+                    expect(screen.queryByText('Custom Col Prop')).not.toBeInTheDocument();
+                });
+            })
+        });
+
         describe("data table properties fields", () => {
             let dataTablePropertiesField: HTMLElement;
 
             beforeEach(() => {
+                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(400);
                 dataTablePropertiesField = renderResult.getAllByRole('combobox')[0];
             });
 
@@ -2923,7 +3289,7 @@ describe("DataFrameQueryEditorV2", () => {
                 const optionControls = screen.getAllByRole('option');
                 const optionTexts = optionControls.map(opt => opt.textContent);
                 expect(optionTexts).toEqual([
-                    "Columns",
+                    "Data table propertiesColumns", // The group label gets appended to the first option
                     "Created",
                     "Data table ID",
                     "Data table name",
@@ -2935,6 +3301,49 @@ describe("DataFrameQueryEditorV2", () => {
                     "Supports append",
                     "Workspace"
                 ]);
+            });
+
+            it("should limit custom data table properties options to CUSTOM_PROPERTIES_OPTIONS_LIMIT", async () => {
+                cleanup();
+                const dataTableCustomPropertyOptions = Array.from(
+                    { length: 10 }, (_, i) => ({
+                        label: `Prop ${i}`,
+                        value: `prop${i}`,
+                        group: 'Custom',
+                    })
+                );
+                const mockOptions = {
+                    dataTableCustomPropertyOptions: dataTableCustomPropertyOptions,
+                    columnCustomPropertyOptions: [],
+                };
+                const mockGetCustomPropertiesOptions = jest.fn().mockResolvedValue(
+                    mockOptions
+                );
+                jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get')
+                    .mockReturnValue(500);
+                const { renderResult: result } = renderComponent(
+                    { type: DataFrameQueryType.Properties },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    {
+                        getCustomPropertyOptions: mockGetCustomPropertiesOptions,
+                    }
+                );
+
+                await waitFor(() => {
+                    expect(mockGetCustomPropertiesOptions).toHaveBeenCalled();
+                });
+
+                const user = userEvent.setup();
+                const dataTablePropertiesField = result.getAllByRole('combobox')[0];
+                await user.click(dataTablePropertiesField);
+
+                const dataTableCustomPropertyOptionControl = screen.getAllByRole('option');
+                expect(dataTableCustomPropertyOptionControl).toHaveLength(16);// 11 default options + 5 custom options(CUSTOM_PROPERTIES_OPTIONS_LIMIT is 5)
             });
         });
 
@@ -2983,11 +3392,467 @@ describe("DataFrameQueryEditorV2", () => {
                 const optionControls = screen.getAllByRole('option');
                 const optionTexts = optionControls.map(opt => opt.textContent);
                 expect(optionTexts).toEqual([
-                    "Column data type",
+                    "Column propertiesColumn data type", // The group label gets appended to the first option
                     "Column name",
                     "Column properties",
                     "Column type"
                 ]);
+            });
+
+            it("should limit custom column properties options to CUSTOM_PROPERTIES_OPTIONS_LIMIT", async () => {
+                cleanup();
+                const columnCustomPropertiesOptions = Array.from(
+                    { length: 10 }, (_, i) => ({
+                        label: `ColProp ${i}`,
+                        value: `colProp${i}`,
+                        group: 'Custom',
+                    })
+                );
+                const mockOptions = {
+                    dataTableCustomPropertyOptions: [],
+                    columnCustomPropertyOptions: columnCustomPropertiesOptions,
+                };
+                const mockGetPropertiesOptions = jest.fn()
+                    .mockResolvedValue(mockOptions);
+                const { renderResult: result } = renderComponent(
+                    { type: DataFrameQueryType.Properties },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    {
+                        getCustomPropertyOptions: mockGetPropertiesOptions,
+                    }
+                );
+
+                await waitFor(() => {
+                    expect(mockGetPropertiesOptions).toHaveBeenCalled();
+                });
+
+                const user = userEvent.setup();
+                const columnPropertiesField = result.getAllByRole('combobox')[1];
+                await user.click(columnPropertiesField);
+
+                const columnCustomPropertyOptionControl = screen.getAllByRole('option');
+                expect(columnCustomPropertyOptionControl).toHaveLength(9);// 4 default options + 5 custom options(CUSTOM_PROPERTIES_OPTIONS_LIMIT is 5)
+            });
+        });
+
+        describe('custom property validation and error handling', () => {
+            let offsetHeightSpy: jest.SpyInstance;
+            beforeAll(() => {
+                offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(500);
+            });
+
+            beforeEach(() => {
+                cleanup();
+                jest.clearAllMocks();
+            });
+
+            afterAll(() => {
+                if (offsetHeightSpy) {
+                   offsetHeightSpy.mockRestore();
+                }
+             });
+
+            const renderWithCustomProperties = (
+                queryOverrides: Partial<DataFrameDataQuery>,
+                customPropertyOptions = { dataTableCustomPropertyOptions: [] as ComboboxOption[], columnCustomPropertyOptions: [] as ComboboxOption[] }
+            ) => {
+                const mockGetCustomPropertyOptions = jest.fn().mockResolvedValue(customPropertyOptions);
+                return renderComponent(
+                    { type: DataFrameQueryType.Properties, ...queryOverrides },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    { getCustomPropertyOptions: mockGetCustomPropertyOptions }
+                );
+            };
+
+            describe('when selected data table custom properties are valid', () => {
+                it('should not show an error message', async () => {
+                    renderWithCustomProperties(
+                        { dataTableProperties: [`propA${CUSTOM_PROPERTY_SUFFIX}`] },
+                        {
+                            dataTableCustomPropertyOptions: [{ label: 'propA', value: `propA${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
+                            columnCustomPropertyOptions: [],
+                        }
+                    );
+
+                    await waitFor(() => {
+                        expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+                    });
+                });
+            });
+
+            describe('when selected data table custom properties are invalid', () => {
+                it('should show an error message for a single invalid custom data table property', async () => {
+                    renderWithCustomProperties(
+                        { dataTableProperties: [`missingProp${CUSTOM_PROPERTY_SUFFIX}`] },
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
+                    );
+
+                    await waitFor(() => {
+                        expect(
+                            screen.getByText(`The following selected custom data table property is not valid: 'missingProp'`)
+                        ).toBeInTheDocument();
+                    });
+                });
+
+                it('should show an error message for multiple invalid custom data table properties', async () => {
+                    renderWithCustomProperties(
+                        { dataTableProperties: [`missingA${CUSTOM_PROPERTY_SUFFIX}`, `missingB${CUSTOM_PROPERTY_SUFFIX}`] },
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
+                    );
+
+                    await waitFor(() => {
+                        expect(
+                            screen.getByText(`The following selected custom data table properties are not valid: 'missingA, missingB'`)
+                        ).toBeInTheDocument();
+                    });
+                });
+
+                it('should only show error for invalid data table properties when some are valid', async () => {
+                    renderWithCustomProperties(
+                        { dataTableProperties: [DataTableProperties.Name, `validCustom${CUSTOM_PROPERTY_SUFFIX}`, `invalidCustom${CUSTOM_PROPERTY_SUFFIX}`] },
+                        {
+                            dataTableCustomPropertyOptions: [{ label: 'validCustom', value: `validCustom${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
+                            columnCustomPropertyOptions: [],
+                        }
+                    );
+
+                    await waitFor(() => {
+                        expect(
+                            screen.getByText(`The following selected custom data table property is not valid: 'invalidCustom'`)
+                        ).toBeInTheDocument();
+                    });
+                });
+            });
+
+            describe('when selected column custom properties are valid', () => {
+                it('should not show an error message', async () => {
+                    renderWithCustomProperties(
+                        { columnProperties: [`colPropA${CUSTOM_PROPERTY_SUFFIX}`] },
+                        {
+                            dataTableCustomPropertyOptions: [],
+                            columnCustomPropertyOptions: [{ label: 'colPropA', value: `colPropA${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
+                        }
+                    );
+
+                    await waitFor(() => {
+                        expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+                    });
+                });
+            });
+
+            describe('when selected column custom properties are invalid', () => {
+                it('should show an error message for a single invalid custom column property', async () => {
+                    renderWithCustomProperties(
+                        { columnProperties: [`missingColProp${CUSTOM_PROPERTY_SUFFIX}`] },
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
+                    );
+
+                    await waitFor(() => {
+                        expect(
+                            screen.getByText(`The following selected custom column property is not valid: 'missingColProp'`)
+                        ).toBeInTheDocument();
+                    });
+                });
+
+                it('should show an error message for multiple invalid custom column properties', async () => {
+                    renderWithCustomProperties(
+                        { columnProperties: [DataTableProperties.ColumnName,`missingColA${CUSTOM_PROPERTY_SUFFIX}`, `missingColB${CUSTOM_PROPERTY_SUFFIX}`] },
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
+                    );
+
+                    await waitFor(() => {
+                        expect(
+                            screen.getByText(`The following selected custom column properties are not valid: 'missingColA, missingColB'`)
+                        ).toBeInTheDocument();
+                    });
+                });
+
+                it('should only show error for invalid column properties when some are valid', async () => {
+                    renderWithCustomProperties(
+                        { columnProperties: [DataTableProperties.ColumnName, `validColCustom${CUSTOM_PROPERTY_SUFFIX}`, `invalidColCustom${CUSTOM_PROPERTY_SUFFIX}`] },
+                        {
+                            dataTableCustomPropertyOptions: [],
+                            columnCustomPropertyOptions: [{ label: 'validColCustom', value: `validColCustom${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }],
+                        }
+                    );
+
+                    await waitFor(() => {
+                        expect(
+                            screen.getByText(`The following selected custom column property is not valid: 'invalidColCustom'`)
+                        ).toBeInTheDocument();
+                    });
+                });
+            });
+
+            describe('when both data table and column custom properties have invalid selections', () => {
+                it('should show error messages for both data table and column properties', async () => {
+                    renderWithCustomProperties(
+                        {
+                            dataTableProperties: [`invalidTableProp${CUSTOM_PROPERTY_SUFFIX}`],
+                            columnProperties: [`invalidColProp${CUSTOM_PROPERTY_SUFFIX}`],
+                        },
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
+                    );
+
+                    await waitFor(() => {
+                        expect(
+                            screen.getByText(`The following selected custom data table property is not valid: 'invalidTableProp'`)
+                        ).toBeInTheDocument();
+                        expect(
+                            screen.getByText(`The following selected custom column property is not valid: 'invalidColProp'`)
+                        ).toBeInTheDocument();
+                    });
+                });
+            });
+
+            describe('when standard properties are selected', () => {
+                it('should not treat standard data table properties as invalid', async () => {
+                    renderWithCustomProperties(
+                        { dataTableProperties: [DataTableProperties.Name, DataTableProperties.RowCount] },
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
+                    );
+
+                    await waitFor(() => {
+                        expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+                    });
+                });
+
+                it('should not treat standard column properties as invalid', async () => {
+                    renderWithCustomProperties(
+                        { columnProperties: [DataTableProperties.ColumnName, DataTableProperties.ColumnDataType] },
+                        { dataTableCustomPropertyOptions: [], columnCustomPropertyOptions: [] }
+                    );
+
+                    await waitFor(() => {
+                        expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+                    });
+                });
+            });
+
+            it('should display both valid and invalid data table properties in the combobox', async () => {
+                renderWithCustomProperties(
+                    {
+                        dataTableProperties: [
+                            `validProp${CUSTOM_PROPERTY_SUFFIX}`,
+                            `invalidProp${CUSTOM_PROPERTY_SUFFIX}`
+                        ]
+                    },
+                    {
+                        dataTableCustomPropertyOptions: [
+                            { label: 'validProp', value: `validProp${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }
+                        ],
+                        columnCustomPropertyOptions: [],
+                    }
+                );
+
+                await waitFor(() => {
+                    expect(document.body).toHaveTextContent('validProp');
+                    expect(document.body).toHaveTextContent('invalidProp');
+                });
+            });
+
+            it('should display both valid and invalid column properties in the combobox', async () => {
+                renderWithCustomProperties(
+                    {
+                        columnProperties: [
+                            `validColProp${CUSTOM_PROPERTY_SUFFIX}`,
+                            `invalidColProp${CUSTOM_PROPERTY_SUFFIX}`
+                        ]
+                    },
+                    {
+                        dataTableCustomPropertyOptions: [],
+                        columnCustomPropertyOptions: [
+                            { label: 'validColProp', value: `validColProp${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }
+                        ],
+                    }
+                );
+
+                await waitFor(() => {
+                    expect(document.body).toHaveTextContent('validColProp');
+                    expect(document.body).toHaveTextContent('invalidColProp');
+                });
+            });
+
+            it('should clear data table property error when invalid properties become valid after filter change', async () => {
+                const mockGetCustomPropertyOptions = jest.fn().mockResolvedValue({
+                    dataTableCustomPropertyOptions: [],
+                    columnCustomPropertyOptions: [],
+                });
+
+                const mockCustomPropDatasource = {
+                    processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                    getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                        uniqueColumnsAcrossTables: [],
+                        commonColumnsAcrossTables: []
+                    }),
+                    transformDataTableQuery: jest.fn((filter: string) => filter),
+                    transformResultQuery: jest.fn((filter: string) => filter),
+                    transformColumnQuery: jest.fn((filter: string) => filter),
+                    hasRequiredFilters: mockHasRequiredFilters,
+                    getCustomPropertyOptions: mockGetCustomPropertyOptions,
+                    parseColumnIdentifier: mockParseColumnIdentifier,
+                    instanceSettings: {
+                        jsonData: {
+                            featureToggles: {}
+                        }
+                    }
+                } as any;
+
+                const { renderResult } = renderComponent(
+                    {
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'InitialFilter',
+                        dataTableProperties: [`myProp${CUSTOM_PROPERTY_SUFFIX}`],
+                    },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    mockCustomPropDatasource
+                );
+
+                await waitFor(() => {
+                    expect(
+                        screen.getByText(`The following selected custom data table property is not valid: 'myProp'`)
+                    ).toBeInTheDocument();
+                });
+
+                // Update mock to return the property as valid
+                mockCustomPropDatasource.getCustomPropertyOptions = jest.fn().mockResolvedValue({
+                    dataTableCustomPropertyOptions: [
+                        { label: 'myProp', value: `myProp${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }
+                    ],
+                    columnCustomPropertyOptions: [],
+                });
+
+                // Change filter to trigger refetch
+                renderResult.rerender(
+                    <DataFrameQueryEditorV2
+                        query={{
+                            refId: 'A',
+                            type: DataFrameQueryType.Properties,
+                            dataTableFilter: 'UpdatedFilter',
+                            dataTableProperties: [`myProp${CUSTOM_PROPERTY_SUFFIX}`],
+                        }}
+                        onChange={jest.fn()}
+                        onRunQuery={jest.fn()}
+                        datasource={mockCustomPropDatasource}
+                    />
+                );
+
+                await waitFor(() => {
+                    expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+                });
+            });
+
+            it('should clear column property error when invalid properties become valid after filter change', async () => {
+                const mockGetCustomPropertyOptions = jest.fn().mockResolvedValue({
+                    dataTableCustomPropertyOptions: [],
+                    columnCustomPropertyOptions: [],
+                });
+
+                const mockCustomPropDatasource = {
+                    processQuery: jest.fn(query => ({ ...defaultQueryV2, ...query })),
+                    getColumnOptionsWithVariables: jest.fn().mockResolvedValue({
+                        uniqueColumnsAcrossTables: [],
+                        commonColumnsAcrossTables: []
+                    }),
+                    transformDataTableQuery: jest.fn((filter: string) => filter),
+                    transformResultQuery: jest.fn((filter: string) => filter),
+                    transformColumnQuery: jest.fn((filter: string) => filter),
+                    hasRequiredFilters: mockHasRequiredFilters,
+                    getCustomPropertyOptions: mockGetCustomPropertyOptions,
+                    parseColumnIdentifier: mockParseColumnIdentifier,
+                    instanceSettings: {
+                        jsonData: {
+                            featureToggles: {}
+                        }
+                    }
+                } as any;
+
+                const { renderResult } = renderComponent(
+                    {
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'InitialFilter',
+                        columnProperties: [`myColProp${CUSTOM_PROPERTY_SUFFIX}`],
+                    },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    mockCustomPropDatasource
+                );
+
+                await waitFor(() => {
+                    expect(
+                        screen.getByText(`The following selected custom column property is not valid: 'myColProp'`)
+                    ).toBeInTheDocument();
+                });
+
+                // Update mock to return the property as valid
+                mockCustomPropDatasource.getCustomPropertyOptions = jest.fn().mockResolvedValue({
+                    dataTableCustomPropertyOptions: [],
+                    columnCustomPropertyOptions: [
+                        { label: 'myColProp', value: `myColProp${CUSTOM_PROPERTY_SUFFIX}`, group: 'Custom' }
+                    ],
+                });
+
+                // Change filter to trigger refetch
+                renderResult.rerender(
+                    <DataFrameQueryEditorV2
+                        query={{
+                            refId: 'A',
+                            type: DataFrameQueryType.Properties,
+                            dataTableFilter: 'UpdatedFilter',
+                            columnProperties: [`myColProp${CUSTOM_PROPERTY_SUFFIX}`],
+                        }}
+                        onChange={jest.fn()}
+                        onRunQuery={jest.fn()}
+                        datasource={mockCustomPropDatasource}
+                    />
+                );
+
+                await waitFor(() => {
+                    expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
+                });
+            });
+
+            it('should not show custom property error before fetching custom property options', () => {
+                const mockGetCustomPropertyOptions = jest.fn().mockReturnValue(
+                    new Promise(() => {})
+                );
+
+                renderComponent(
+                    {
+                        type: DataFrameQueryType.Properties,
+                        dataTableFilter: 'name = "TestTable"',
+                        dataTableProperties: [`missingProp${CUSTOM_PROPERTY_SUFFIX}`],
+                        columnProperties: [`missingColProp${CUSTOM_PROPERTY_SUFFIX}`],
+                    },
+                    '',
+                    '',
+                    [],
+                    [],
+                    undefined,
+                    {},
+                    { getCustomPropertyOptions: mockGetCustomPropertyOptions }
+                );
+
+                expect(screen.queryByText(/not valid/i)).not.toBeInTheDocument();
             });
         });
 

@@ -1,19 +1,20 @@
 import { test, expect } from '@playwright/test';
 import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
-import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
-import { assetColumn, timeOutPeriod } from '../../../../constants/asset-list-properties.constant';
+import { DataSourcePage } from '../../../../page-objects/data-sources/data-source.pageobject';
+import { assetColumn } from '../../../../constants/asset-list-properties.constant';
 import { pressEscape } from '../../../../utils/keyboard-utilities';
+import { timeOutPeriod } from '../../../../constants/global.constant';
 
 test.describe('Asset data source with scan code return type', () => {
     let dashboard: DashboardPage;
-    let dataSources: DataSourcesPage;
+    let dataSources: DataSourcePage;
     let createdDataSourceName = 'Systemlink Assets Scan Code Return Type';
 
     test.beforeAll(async ({ browser }) => {
         const context = await browser.newContext();
         const page = await context.newPage();
-        dataSources = new DataSourcesPage(page);
+        dataSources = new DataSourcePage(page);
         dashboard = new DashboardPage(page);
         await dataSources.addDataSource('SystemLink Assets', createdDataSourceName);
     });
@@ -29,10 +30,10 @@ test.describe('Asset data source with scan code return type', () => {
             await dashboard.toolbar.openSettings();
             await dashboard.settings.goToVariablesTab();
             await dashboard.settings.addNewVariable();
-            await dashboard.settings.variable.setVariableName('scanCode');
-            await dashboard.settings.variable.selectDataSource(createdDataSourceName);
-            await dashboard.settings.variable.selectQueryReturnType('Scan Code');
-            await dashboard.settings.variable.applyVariableChanges();
+            await dashboard.settings.assetVariable.setVariableName('scanCode');
+            await dashboard.settings.assetVariable.selectDataSource(createdDataSourceName);
+            await dashboard.settings.assetVariable.selectQueryReturnType('Asset Tag Path', 'Scan Code');
+            await dashboard.settings.assetVariable.applyVariableChanges();
 
             expect(dashboard.settings.createdVariable('scanCode')).toBeDefined();
 
@@ -43,7 +44,7 @@ test.describe('Asset data source with scan code return type', () => {
             await dashboard.addVisualizationButton.waitFor();
             await dashboard.addVisualization();
             await dashboard.selectDataSource(createdDataSourceName);
-            await dashboard.panel.assetQueryEditor.switchToTableView();
+            await dashboard.panel.toolbar.switchToTableView();
 
             await expect(dashboard.dataSourcePicker).toHaveAttribute('placeholder', createdDataSourceName);
         });
@@ -57,13 +58,14 @@ test.describe('Asset data source with scan code return type', () => {
         test('should add filter by scanCode using the asset variable', async () => {
             await dashboard.panel.assetQueryEditor.addFilter('Scan Code', 'equals', '$scanCode');
 
-            await expect(dashboard.panel.table.firstFilterRow).toContainText('Scan Code');
-            await expect(dashboard.panel.table.firstFilterRow).toContainText('equals');
-            await expect(dashboard.panel.table.firstFilterRow).toContainText('$scanCode');
+            const filterRow = dashboard.panel.table.filterRow(0);
+            await expect(filterRow).toContainText('Scan Code');
+            await expect(filterRow).toContainText('equals');
+            await expect(filterRow).toContainText('$scanCode');
         });
 
         test('should verify that table data changes as the variable value changes', async () => {
-            await dashboard.panel.table.getTable.first().waitFor({ state: 'visible', timeout: timeOutPeriod });
+            await dashboard.panel.table.getTableBody.first().waitFor({ state: 'visible', timeout: timeOutPeriod });
 
             let rowCount = await dashboard.panel.table.getTableRowCount();
 
@@ -74,7 +76,7 @@ test.describe('Asset data source with scan code return type', () => {
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.workspace, 'Default')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.location, 'System-1')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.scan_code, 'scanCode1')).toBeTruthy();
-            await dashboard.panel.assetQueryEditor.openVariableDropdown('name1 (serial1)', 'name6 (serial6)');
+            await dashboard.panel.toolbar.openVariableDropdown('name1 (serial1)', 'name6 (serial6)');
             await dashboard.panel.toolbar.refreshData();
 
             rowCount = await dashboard.panel.table.getTableRowCount();

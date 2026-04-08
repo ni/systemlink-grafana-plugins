@@ -58,5 +58,3 @@ export const nonDefaultAssetListProperties = [
     assetColumn.calibration_status,
     assetColumn.scan_code
 ];
-
-export const timeOutPeriod = 15000;

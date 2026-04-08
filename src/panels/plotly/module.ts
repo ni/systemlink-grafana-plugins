@@ -144,6 +144,14 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         category: ['Y Axis'],
       })
       .addBooleanSwitch({
+        path: 'series.isWebGLEnabled',
+        name: 'Use WebGL for rendering',
+        description: 'Turn it on for better performance while visualizing large data sets. WebGL is resource-limited in your browser — enable only when needed to avoid rendering issues.',
+        defaultValue: false,
+        showIf: (options) => options.series.plotType === 'line' || options.series.plotType === 'points',
+        category: ['Y Axis'],
+      })
+      .addBooleanSwitch({
         path: 'series.stackBars',
         name: 'Stack bars',
         defaultValue: false,
@@ -271,6 +279,14 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         },
         defaultValue: 'line',
         showIf: (options) => options.showYAxis2,
+        category: ['Secondary Y Axis'],
+      })
+      .addBooleanSwitch({
+        path: 'series2.isWebGLEnabled',
+        name: 'Use WebGL for rendering',
+        description: 'Turn it on for better performance while visualizing large data sets. WebGL is resource-limited in your browser - enable only when needed to avoid rendering issues.',
+        defaultValue: false,
+        showIf: (options) => options.showYAxis2 && (options.series2.plotType === 'line' || options.series2.plotType === 'points'),
         category: ['Secondary Y Axis'],
       })
       .addBooleanSwitch({

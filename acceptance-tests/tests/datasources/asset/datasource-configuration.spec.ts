@@ -1,16 +1,16 @@
 import { test, expect } from '@playwright/test';
-import { DataSourcesPage } from '../../../page-objects/data-sources/data-sources.pageobject';
 import { FAKE_API_URL } from '../../../config/environment';
-import { timeOutPeriod } from '../../../constants/asset-list-properties.constant';
+import { timeOutPeriod } from '../../../constants/global.constant';
+import { DataSourcePage } from '../../../page-objects/data-sources/data-source.pageobject';
 
 test.describe('Datasource Configuration', () => {
-    let dataSource: DataSourcesPage;
+    let dataSource: DataSourcePage;
     const dataSourceName = 'Systemlink Assets Configuration';
 
     test.beforeAll(async ({ browser }) => {
         const context = await browser.newContext();
         const page = await context.newPage();
-        dataSource = new DataSourcesPage(page);
+        dataSource = new DataSourcePage(page);
     });
 
     test.describe.serial('Creation and Deletion of SystemLink Assets data source', () => {

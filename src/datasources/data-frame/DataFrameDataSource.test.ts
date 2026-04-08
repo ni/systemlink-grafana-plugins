@@ -1,11 +1,9 @@
 import { from, lastValueFrom, of } from 'rxjs';
 import { DataFrameDataSource } from './DataFrameDataSource';
-import { DataFrameDataSourceV1 } from './datasources/v1/DataFrameDataSourceV1';
 import { DataFrameDataSourceV2 } from './datasources/v2/DataFrameDataSourceV2';
-import { DataSourceInstanceSettings, TimeRange } from '@grafana/data';
+import { DataSourceInstanceSettings } from '@grafana/data';
 import { BackendSrv, TemplateSrv } from '@grafana/runtime';
 
-jest.mock('./datasources/v1/DataFrameDataSourceV1');
 jest.mock('./datasources/v2/DataFrameDataSourceV2');
 
 const mockInstanceSettings: DataSourceInstanceSettings<any> = {
@@ -17,7 +15,6 @@ const mockInstanceSettings: DataSourceInstanceSettings<any> = {
 } as any;
 
 describe('DataFrameDataSource', () => {
-    let v1Mock: jest.Mocked<DataFrameDataSourceV1>;
     let v2Mock: jest.Mocked<DataFrameDataSourceV2>;
     let templateSrv: TemplateSrv;
     let backendSrv: BackendSrv;
@@ -28,7 +25,6 @@ describe('DataFrameDataSource', () => {
     };
 
     beforeEach(() => {
-        (DataFrameDataSourceV1 as unknown as jest.Mock).mockClear();
         (DataFrameDataSourceV2 as unknown as jest.Mock).mockClear();
         backendSrv = {} as BackendSrv;
         templateSrv = {
@@ -36,32 +32,12 @@ describe('DataFrameDataSource', () => {
             replace: jest.fn((input: string) => input),
         } as unknown as TemplateSrv;
 
-        v1Mock = {
-            defaultQuery: { value: 'v1-default' } as any,
-            runQuery: jest.fn().mockResolvedValue('v1-runQuery'),
-            shouldRunQuery: jest.fn().mockReturnValue(true),
-            metricFindQuery: jest.fn().mockResolvedValue(['v1-metric']),
-            getTableProperties: jest.fn().mockResolvedValue('v1-tableProps'),
-            getDecimatedTableData: jest.fn().mockResolvedValue('v1-decimated'),
-            queryTables$: jest.fn().mockReturnValue(of(['v1-tables'])),
-            queryTables: jest.fn().mockResolvedValue(['v1-tables']),
-            processQuery: jest.fn().mockReturnValue('v1-processed'),
-            prepareQuery: jest.fn().mockReturnValue('v1-prepared'),
-            processVariableQuery: jest.fn().mockReturnValue('v1-processed'),
-            transformDataTableQuery: jest.fn((query: string) => `v1-${query}`),
-            transformResultQuery: jest.fn((query: string) => `v1-${query}`),
-            transformColumnQuery: jest.fn((query: string) => `v1-${query}`),
-        } as any;
-
         v2Mock = {
             defaultQuery: { value: 'v2-default' } as any,
             runQuery: jest.fn().mockReturnValue(of('v2-runQuery')),
             shouldRunQuery: jest.fn().mockReturnValue(false),
             metricFindQuery: jest.fn().mockResolvedValue(['v2-metric']),
-            getTableProperties: jest.fn().mockResolvedValue('v2-tableProps'),
-            getDecimatedTableData: jest.fn().mockResolvedValue('v2-decimated'),
             queryTables$: jest.fn().mockReturnValue(of(['v2-tables'])),
-            queryTables: jest.fn().mockResolvedValue(['v2-tables']),
             processQuery: jest.fn().mockReturnValue('v2-processed'),
             prepareQuery: jest.fn().mockReturnValue('v2-prepared'),
             processVariableQuery: jest.fn().mockReturnValue('v2-processed'),
@@ -70,14 +46,12 @@ describe('DataFrameDataSource', () => {
             transformColumnQuery: jest.fn((query: string) => `v2-${query}`),
         } as any;
 
-        (DataFrameDataSourceV1 as unknown as jest.Mock).mockImplementation(() => v1Mock);
         (DataFrameDataSourceV2 as unknown as jest.Mock).mockImplementation(() => v2Mock);
     });
 
     it('should use DataFrameDataSourceV2', async () => {
         const ds = new DataFrameDataSource(mockInstanceSettings, backendSrv, templateSrv);
         expect(DataFrameDataSourceV2).toHaveBeenCalled();
-        expect(DataFrameDataSourceV1).not.toHaveBeenCalled();
 
         await expect(
             lastValueFrom(from(ds.runQuery({} as any, {} as any)))
@@ -90,17 +64,8 @@ describe('DataFrameDataSource', () => {
         await expect(ds.metricFindQuery({} as any, {} as any)).resolves.toEqual(['v2-metric']);
         expect(v2Mock.metricFindQuery).toHaveBeenCalled();
 
-        await expect(ds.getTableProperties('id')).resolves.toBe('v2-tableProps');
-        expect(v2Mock.getTableProperties).toHaveBeenCalledWith('id');
-
-        await expect(ds.getDecimatedTableData({} as any, [], {} as TimeRange, 10)).resolves.toBe('v2-decimated');
-        expect(v2Mock.getDecimatedTableData).toHaveBeenCalled();
-
         await expect(lastValueFrom(ds.queryTables$(mockFilter))).resolves.toEqual(['v2-tables']);
         expect(v2Mock.queryTables$).toHaveBeenCalledWith(mockFilter, undefined, undefined);
-
-        await expect(ds.queryTables('query')).resolves.toEqual(['v2-tables']);
-        expect(v2Mock.queryTables).toHaveBeenCalledWith('query', undefined, undefined);
 
         const query = { refId: '1' };
         expect(ds.processQuery(query as any)).toBe('v2-processed');
@@ -128,6 +93,43 @@ describe('DataFrameDataSource', () => {
 
             expect(v2Mock.getColumnOptionsWithVariables).toHaveBeenCalledWith({ dataTableFilter: 'filter' });
             expect(result).toEqual(mockColumnOptions);
+        });
+    });
+
+    describe('getCustomPropertyOptions', () => {
+        it('should call getCustomPropertyOptions on DataFrameDataSourceV2', async () => {
+            const ds = new DataFrameDataSource(mockInstanceSettings);
+            const mockPropertiesOptions = {
+                dataTableCustomPropertyOptions: [
+                    {
+                        label: 'key1',
+                        value: 'value1'
+                    }
+                ],
+                columnCustomPropertyOptions: [
+                    {
+                        label: 'key2',
+                        value: 'value2'
+                    }
+                ]
+            };
+            v2Mock.getCustomPropertyOptions = jest.fn()
+                .mockResolvedValue(mockPropertiesOptions);
+
+            const result = await ds.getCustomPropertyOptions(
+                {
+                    dataTableFilter: 'filter'
+                },
+                500
+            );
+
+            expect(v2Mock.getCustomPropertyOptions).toHaveBeenCalledWith(
+                {
+                    dataTableFilter: 'filter'
+                },
+                500
+            );
+            expect(result).toEqual(mockPropertiesOptions);
         });
     });
 

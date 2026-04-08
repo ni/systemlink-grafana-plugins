@@ -1,9 +1,9 @@
-import { Page, Locator } from '@playwright/test';
+import { expect, Page, Locator } from '@playwright/test';
 import { GRAFANA_URL, FAKE_API_URL } from '../../config/environment';
-import { timeOutPeriod } from '../../constants/asset-list-properties.constant';
+import { timeOutPeriod } from '../../constants/global.constant';
 
-export class DataSourcesPage {
-    readonly page: Page;
+export class DataSourcePage {
+    protected readonly page: Page;
 
     constructor(page: Page) {
         this.page = page;
@@ -57,38 +57,39 @@ export class DataSourcesPage {
         return this.page.getByRole('link', { name: dataSourceName, exact: true });
     }
 
-    async accessExistentDataSource(dataSourceName: string): Promise<void> {
+    public async accessExistentDataSource(dataSourceName: string): Promise<void> {
         await this.existentDataSourceLink(dataSourceName).click();
     }
 
-    async navigateToDatasourcesPage(): Promise<void> {
-        await this.page.goto(`${GRAFANA_URL}/connections/datasources`)
+    public async navigateToDatasourcesPage(): Promise<void> {
+        await this.page.goto(`${GRAFANA_URL}/connections/datasources`);
     }
 
-    async addDataSource(dataSource: string, dataSourceNameField: string): Promise<void> {
-        await this.navigateToDatasourcesPage();
-        await this.addDataSourceButton.click();
-        await this.page.waitForLoadState('domcontentloaded');
-        await this.dataSource(dataSource).click();
-        await this.nameSettingsInputField.waitFor({ state: 'visible', timeout: timeOutPeriod });
-        await this.httpSettingsURL.waitFor({ state: 'visible', timeout: timeOutPeriod });
+    public async addDataSource(dataSource: string, dataSourceNameField: string): Promise<void> {
+        await expect(async () => {
+            await this.navigateToDatasourcesPage();
+            await this.addDataSourceButton.click();
+            await this.dataSource(dataSource).click();
+            await this.nameSettingsInputField.waitFor({ state: 'visible', timeout: timeOutPeriod });
+            await this.httpSettingsURL.waitFor({ state: 'visible', timeout: timeOutPeriod });
+        }).toPass({ timeout: timeOutPeriod * 3 });
         await this.changeNameInputFieldValue(dataSourceNameField);
         await this.httpSettingsURL.fill(FAKE_API_URL);
         await this.saveAndTestButton.click();
     }
 
-    async deleteDataSource(dataSourceName: string): Promise<void> {
+    public async deleteDataSource(dataSourceName: string): Promise<void> {
         await this.navigateToDatasourcesPage();
         await this.accessExistentDataSource(dataSourceName);
         await this.deleteButton.click();
         await this.deletePopUpButton.click();
     }
 
-    async nameInputFieldValue(): Promise<string> {
+    public async nameInputFieldValue(): Promise<string> {
         return await this.nameSettingsInputField.inputValue();
     }
 
-    async changeNameInputFieldValue(newValue: string): Promise<void> {
+    public async changeNameInputFieldValue(newValue: string): Promise<void> {
         await this.nameSettingsInputField.fill(newValue);
     }
 }

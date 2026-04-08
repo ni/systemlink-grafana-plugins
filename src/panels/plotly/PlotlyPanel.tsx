@@ -32,6 +32,7 @@ interface Props extends PanelProps<PanelOptions> {}
 export const PlotlyPanel: React.FC<Props> = (props) => {
   const { data, width, height, options, timeRange, onOptionsChange } = props;
   const [menu, setMenu] = useState<MenuState>({ x: 0, y: 0, show: false, items: [] });
+  const [dragMode, setDragMode] = useState<Plotly.Layout['dragmode']>('zoom');
   const theme = useTheme2();
 
   const traceColors = useTraceColors(theme);
@@ -51,6 +52,39 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   const dashboardTimeTo = timeRange.to.isValid() ? timeRange.to.valueOf() : undefined;
   const panelXAxisMin = options.xAxis.min;
   const panelXAxisMax = options.xAxis.max;
+
+  useEffect(() => {
+    if (dragMode === false) {
+      return;
+    }
+
+    const isSelectionDragMode = ['lasso', 'select'].includes(dragMode);
+
+    if (!isSelectionDragMode) {
+      return;
+    }
+
+    const isPlotTypeSupportsSelectionDragMode = (plotType: string) => {
+      return ['bar', 'points'].includes(plotType);
+    };
+
+    const isMainSeriesSupportsSelectionDragMode =
+      isPlotTypeSupportsSelectionDragMode(options.series.plotType);
+    const isSecondarySeriesSupportsSelectionDragMode = options.showYAxis2 &&
+      isPlotTypeSupportsSelectionDragMode(options.series2.plotType);
+
+    if (
+      !isMainSeriesSupportsSelectionDragMode
+      && !isSecondarySeriesSupportsSelectionDragMode
+    ) {
+      setDragMode('zoom');
+    }
+  }, [
+    dragMode,
+    options.series.plotType,
+    options.series2.plotType,
+    options.showYAxis2
+  ]);
 
   useEffect(() => {
     if (
@@ -78,17 +112,25 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dashboardTimeFrom, dashboardTimeTo, isTimeBasedXAxis]);
 
+  const updateXAxisRangeInQueryParams = (
+    xAxisFieldName: string,
+    min?: number,
+    max?: number
+  ) => {
+    locationService.partial(
+      {
+        [`nisl-${xAxisFieldName}-min`]: min ?? null,
+        [`nisl-${xAxisFieldName}-max`]: max ?? null,
+      },
+      true,
+    );
+    getAppEvents().publish(new NIRefreshDashboardEvent());
+  };
+
   const publishXAxisRangeUpdate = useMemo(
     () =>
       _.debounce((xAxisMin: number, xAxisMax: number, xAxisField: string) => {
-        locationService.partial(
-          {
-            [`nisl-${xAxisField}-min`]: xAxisMin,
-            [`nisl-${xAxisField}-max`]: xAxisMax,
-          },
-          true,
-        );
-        getAppEvents().publish(new NIRefreshDashboardEvent());
+        updateXAxisRangeInQueryParams(xAxisField, xAxisMin, xAxisMax);
       }, debounceDelayInMs),
     []
   );
@@ -129,7 +171,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
         x: plotlyXAxisField ? getFieldValues(plotlyXAxisField) : [],
         y: plotlyYAxisField ? getFieldValues(plotlyYAxisField) : [],
         name: yName,
-        ...getModeAndType(options.series.plotType),
+        ...getModeAndType(options.series.plotType, options.series.isWebGLEnabled),
         fill: options.series.areaFill && options.series.plotType === 'line' ? 'tozeroy' : 'none',
         marker: {
           size: options.series.markerSize,
@@ -156,7 +198,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           xaxis: options.displayVertically ? 'x' : 'x2',
           yaxis: options.displayVertically ? 'y2' : 'y',
           name: yName,
-          ...getModeAndType(options.series2.plotType),
+          ...getModeAndType(options.series2.plotType, options.series2.isWebGLEnabled),
           fill: options.series2.areaFill && options.series2.plotType === 'line' ? 'tozeroy' : 'none',
           marker: {
             size: options.series2.markerSize,
@@ -197,14 +239,25 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
   };
 
   const handlePlotRelayout = (event: Readonly<Plotly.PlotRelayoutEvent>) => {
+    if (event.dragmode !== undefined) {
+      setDragMode(event.dragmode);
+    }
+
     const { "xaxis.range[0]": xAxisMin, "xaxis.range[1]": xAxisMax, "xaxis.autorange": autoRange } = event;
 
     if (autoRange) {
       onOptionsChange({...options, xAxis: { ...options.xAxis, min: undefined, max: undefined }});
+
+      if (shouldSyncXAxisRange()) {
+        resetNumericXAxisRange();
+      }
       return;
     }
 
-    if (!xAxisMin || !xAxisMax) {
+    if (
+      xAxisMin === undefined ||
+      xAxisMax === undefined
+    ) {
       return;
     }
 
@@ -220,10 +273,29 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       if (!Number.isFinite(xAxisMin) || !Number.isFinite(xAxisMax)) {
         return;
       }
-      
-      props.onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
-      syncNumericXAxisRange(xAxisMin, xAxisMax);
+
+      if (shouldSyncXAxisRange()) {
+        syncNumericXAxisRange(xAxisMin, xAxisMax);
+      } else {
+        onOptionsChange({...options, xAxis: { ...options.xAxis, min: xAxisMin, max: xAxisMax } });
+      }
     }
+  };
+
+  const shouldSyncXAxisRange = (): boolean => {
+    const queryParams = locationService.getSearchObject();
+    const syncTargetsQueryParam = queryParams['nisl-syncXAxisRangeTargets'];
+    const syncTargets =
+      typeof syncTargetsQueryParam === 'string'
+        ? syncTargetsQueryParam
+            .split(',')
+            .map(id => id.trim())
+            .filter(id => id !== '')
+            .map(Number)
+            .filter(id => !isNaN(id) && id >= 0)
+        : [];
+
+    return syncTargets.includes(props.id);
   };
 
   const syncNumericXAxisRange = (xAxisMin: number, xAxisMax: number) => {
@@ -233,30 +305,13 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
       return;
     }
 
-    const queryParams = locationService.getSearchObject();
-    const syncTargetsQueryParam = queryParams['nisl-syncXAxisRangeTargets'];
-    const syncTargets =
-      typeof syncTargetsQueryParam === 'string'
-        ? syncTargetsQueryParam
-            .split(',')
-            .map(id => Number(id.trim()))
-            .filter(id => !isNaN(id) && id >= 0)
-        : [];
-
-    if (!syncTargets.includes(props.id)) {
-      return;
-    }
-    
     const updatedXAxisMin = Number(xAxisMin.toFixed(xAxisPrecisionDecimals));
     const updatedXAxisMax = Number(xAxisMax.toFixed(xAxisPrecisionDecimals));
-    const existingXAxisMinParam = queryParams[`nisl-${xAxisFieldName}-min`];
-    const existingXAxisMaxParam = queryParams[`nisl-${xAxisFieldName}-max`];
-    const existingXAxisMin = parseNumericQueryParam(existingXAxisMinParam);
-    const existingXAxisMax = parseNumericQueryParam(existingXAxisMaxParam);
+    const existingXAxisRange = getExistingXAxisRange(xAxisFieldName);
 
     if (
-      updatedXAxisMin !== existingXAxisMin ||
-      updatedXAxisMax !== existingXAxisMax
+      updatedXAxisMin !== existingXAxisRange.min ||
+      updatedXAxisMax !== existingXAxisRange.max
     ) {
       publishXAxisRangeUpdate(
         updatedXAxisMin, 
@@ -266,13 +321,72 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     }
   };
 
-  const parseNumericQueryParam = (paramValue: UrlQueryValue): number | undefined => {
-    if (typeof paramValue === 'string' && paramValue !== '') {
-      return Number(paramValue);
+  const resetNumericXAxisRange = () => {
+    publishXAxisRangeUpdate.cancel();
+
+    const xAxisFieldName = xFields[0]?.name;
+    if (!xAxisFieldName) {
+      return;
     }
 
-    return undefined;
+    const { min, max } = getExistingXAxisRange(xAxisFieldName);
+    if (min === undefined && max === undefined) {
+      return;
+    }
+
+    updateXAxisRangeInQueryParams(xAxisFieldName);
   };
+
+  const getSyncedXAxisRange = (): { min?: number; max?: number } | undefined => {
+    if (!shouldSyncXAxisRange()) {
+      return undefined;
+    }
+
+    const xAxisFieldName = xFields[0].name;
+    if (!xAxisFieldName) {
+      return undefined;
+    }
+
+    const range = getExistingXAxisRange(xAxisFieldName);
+    if (
+      range.min === undefined
+      || range.max === undefined
+      || range.min > range.max
+    ) {
+      return undefined;
+    }
+
+    return range;
+  };
+
+  const parseNumericQueryParam = (paramValue: UrlQueryValue): number | undefined => {
+    const value = Array.isArray(paramValue) ? paramValue[paramValue.length - 1] : paramValue;
+
+    if (
+      value === undefined
+      || value === null
+      || value === ''
+      || typeof value === 'boolean'
+    ) {
+      return undefined;
+    }
+
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? numericValue : undefined;
+  };
+
+  const getExistingXAxisRange = (fieldName: string): { min?: number; max?: number } => {
+    const queryParams = locationService.getSearchObject();
+    return {
+      min: parseNumericQueryParam(queryParams[`nisl-${fieldName}-min`]),
+      max: parseNumericQueryParam(queryParams[`nisl-${fieldName}-max`]),
+    };
+  };
+
+  const syncedXAxisRange = getSyncedXAxisRange();
+  const effectiveOptions = syncedXAxisRange
+    ? { ...options, xAxis: { ...options.xAxis, min: syncedXAxisRange.min, max: syncedXAxisRange.max } }
+    : options;
 
   const handleImageDownload = (gd: PlotlyHTMLElement) =>
     toImage(gd, { format: 'png', width, height }).then((data) => saveAs(data, props.title));
@@ -286,7 +400,7 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
           height,
           annotations:
             plotData.length === 0 || !plotData.find((d) => d.y?.length) ? [{ text: 'No data', showarrow: false }] : [],
-          ...getLayout(theme, traceColors, options, plotData, axisLabels),
+          ...getLayout(theme, traceColors, effectiveOptions, plotData, axisLabels, dragMode),
         }}
         config={getConfig(options, handleImageDownload)}
         onClick={handlePlotClick}
@@ -392,14 +506,15 @@ const getFixedColor = (field: Field, theme: GrafanaTheme2) => {
   return theme.visualization.getColorByName(field.config.color.fixedColor);
 };
 
-const getModeAndType = (type: string) => {
-  switch (type) {
+const getModeAndType = (plotType: string, isWebGLEnabled = false) => {
+  const scatterType = isWebGLEnabled ? 'scattergl' : 'scatter';
+  switch (plotType) {
     case 'line':
-      return { mode: 'lines' as PlotData['mode'], type: 'scattergl' as PlotType };
+      return { mode: 'lines' as PlotData['mode'], type: scatterType as PlotType };
     case 'points':
-      return { mode: 'markers' as PlotData['mode'], type: 'scattergl' as PlotType };
+      return { mode: 'markers' as PlotData['mode'], type: scatterType as PlotType };
     default:
-      return { type: type as PlotType };
+      return { type: plotType as PlotType };
   }
 };
 
@@ -446,7 +561,7 @@ const getConfig = (options: PanelOptions, handleImageDownload: (gd: PlotlyHTMLEl
   showTips: false,
 });
 
-const getLayout = (theme: GrafanaTheme2, traceColors: string[], options: PanelOptions, data: Array<Partial<PlotData>>, axisLabels: AxisLabels) => {
+const getLayout = (theme: GrafanaTheme2, traceColors: string[], options: PanelOptions, data: Array<Partial<PlotData>>, axisLabels: AxisLabels, dragMode: Plotly.Layout['dragmode']) => {
   const originalAxisTitleX = getTemplateSrv().replace(options.xAxis.title) || axisLabels.xAxis;
   const originalAxisTitleY = getTemplateSrv().replace(options.yAxis.title) || axisLabels.yAxis.join(', ');
   const xAxisOptions = options.displayVertically ? options.xAxis : options.yAxis;
@@ -529,6 +644,7 @@ const getLayout = (theme: GrafanaTheme2, traceColors: string[], options: PanelOp
     legend: getLegendLayout(options.legendPosition, showYAxis2, !!xAxisOptions.title),
     barmode: options.series.stackBars ? 'stack' : 'group',
     hovermode: 'closest',
+    dragmode: dragMode,
   };
 
   return layout;

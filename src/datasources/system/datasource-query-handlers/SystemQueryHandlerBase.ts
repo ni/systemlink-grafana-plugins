@@ -47,6 +47,7 @@ export abstract class SystemQueryHandlerBase {
         fields: [
           { name: 'Connected', values: [summary.connectedCount] },
           { name: 'Disconnected', values: [summary.disconnectedCount] },
+          { name: 'Virtual', values: [summary.virtualCount] },
         ],
       }))
     );

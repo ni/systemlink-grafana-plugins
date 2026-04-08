@@ -20,6 +20,11 @@ export type DataFrameDataQuery = DataFrameQueryV1 | DataFrameQueryV2;
 export type DataFrameVariableQuery = DataFrameQueryV1 | DataFrameVariableQueryV2;
 export type DataFrameQuery = DataFrameDataQuery | DataFrameVariableQuery;
 
+export interface PropertiesQueryCache {
+  requestInputs: string;
+  selectedProperties: string[];
+  response: TableProperties[];
+}
 
 export interface DataFrameQueryV1 extends DataQuery {
   type: DataFrameQueryType;
@@ -35,8 +40,8 @@ export interface DataFrameQueryV2 extends DataQuery {
   resultFilter?: string;
   dataTableFilter?: string;
   columnFilter?: string;
-  dataTableProperties?: DataTableProperties[];
-  columnProperties?: DataTableProperties[];
+  dataTableProperties?: string[];
+  columnProperties?: string[];
   columns?: string[] | Observable<string[]>;
   includeIndexColumns?: boolean;
   filterNulls?: boolean;
@@ -62,17 +67,7 @@ export const defaultVariableQueryV2: Omit<ValidDataFrameVariableQuery, 'refId'> 
   columnFilter: ''
 };
 
-export const defaultQueryV1: Omit<ValidDataFrameQueryV1, 'refId'> = {
-  type: DataFrameQueryType.Data,
-  tableId: '',
-  columns: [],
-  decimationMethod: 'LOSSY',
-  filterNulls: false,
-  applyTimeFilters: false
-};
-
 export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
-  queryUndecimatedData: false,
   highResolutionZoom: false
 };
 
@@ -150,8 +145,13 @@ export const defaultQueryV2: Omit<ValidDataFrameQueryV2, 'refId'> = {
   undecimatedRecordCount: 10_000
 };
 
-export interface QueryResultsResponse {
-  results: Array<{id: string}>;
+export interface DataFrameQueryResultsResponse {
+  results: DataFrameResultsResponseProperties[];
+}
+
+export interface DataFrameResultsResponseProperties {
+  id: string;
+  dataTableIds?: string[];
 }
 
 export const DataTableProjectionLabelLookup: Record<DataTableProperties, {
@@ -261,11 +261,9 @@ export const metadataFieldOptions: Option[] = [
   { label: DATA_TABLE_NAME_LABEL, value: DATA_TABLE_NAME_FIELD, group: METADATA_GROUP }
 ];
 
-export type ValidDataFrameQuery = ValidDataFrameQueryV1 | ValidDataFrameQueryV2;
+export type ValidDataFrameQuery = ValidDataFrameQueryV2;
 
 export type ValidDataFrameVariableQuery = DataFrameVariableQueryV2 & Required<Omit<DataFrameVariableQueryV2, keyof DataQuery>>;
-
-export type ValidDataFrameQueryV1 = DataFrameQueryV1 & Required<Omit<DataFrameQueryV1, keyof DataQuery>>;
 
 export type ValidDataFrameQueryV2 = DataFrameQueryV2 & Required<Omit<DataFrameQueryV2, keyof DataQuery>>;
 
@@ -349,7 +347,6 @@ export interface TableDataRows {
 }
 
 export interface DataFrameFeatureToggles {
-  queryUndecimatedData: boolean;
   highResolutionZoom: boolean;
 }
 
@@ -360,6 +357,16 @@ export interface DataFrameDataSourceOptions extends DataSourceJsonData {
 export interface ColumnOptions {
   uniqueColumnsAcrossTables: Option[];
   commonColumnsAcrossTables: Option[];
+}
+
+export interface CustomPropertyOptions {
+  dataTableCustomPropertyOptions: Option[];
+  columnCustomPropertyOptions: Option[];
+}
+
+export interface PropertySelections {
+  customProperties: string[];
+  standardProperties: DataTableProperties[];
 }
 
 export interface Option {
@@ -398,3 +405,7 @@ export interface TableColumnsData {
 export function isSystemLinkError(error: any): error is SystemLinkError {
   return Boolean(error?.error?.code) && Boolean(error?.error?.name);
 }
+
+export const ALL_STANDARD_PROPERTIES = new Set<string>(
+  Object.values(DataTableProperties)
+); 

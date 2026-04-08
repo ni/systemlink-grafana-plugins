@@ -2,14 +2,15 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 import { SystemFields, SystemStaticFields } from 'datasources/system/SystemsQueryBuilder.constants';
 import { QBField, QueryBuilderOption, Workspace } from 'core/types';
-import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
+import { filterXSSField } from 'core/utils';
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
-import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
 import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
+import { QueryFilterObjects } from 'core/components/SlQueryBuilder/models/SlQueryFilterObjects';
 
 type SystemsQueryBuilderProps = QueryBuilderProps &
     React.HTMLAttributes<Element> & {
         filter?: string;
+        filterObjects?: QueryFilterObjects;
         globalVariableOptions: QueryBuilderOption[];
         workspaces: Workspace[];
         areDependenciesLoaded: boolean;
@@ -17,6 +18,7 @@ type SystemsQueryBuilderProps = QueryBuilderProps &
 
 export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
     filter,
+    filterObjects,
     onChange,
     globalVariableOptions,
     workspaces,
@@ -24,10 +26,6 @@ export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
 }) => {
     const [fields, setFields] = useState<QBField[]>([]);
     const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
-
-    const sanitizedFilter = useMemo(() => {
-        return filterXSSLINQExpression(filter);
-    }, [filter]);
 
     const workspaceField = useMemo(() => {
         const workspaceField = SystemFields.WORKSPACE;
@@ -42,6 +40,10 @@ export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
             },
         }
     }, [workspaces]);
+
+    const filterValue = useMemo(() => {
+            return filterObjects || filter;
+    }, [filter, filterObjects]);
 
     useEffect(() => {
         if (!areDependenciesLoaded) {
@@ -64,20 +66,11 @@ export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
 
         setFields(fields);
 
-        const callbacks = {
-            expressionBuilderCallback: expressionBuilderCallback(fields),
-            expressionReaderCallback: expressionReaderCallback(fields),
-        };
-
         const customOperations = [
             QueryBuilderOperations.EQUALS,
             QueryBuilderOperations.DOES_NOT_EQUAL,
-        ].map(operation => {
-            return {
-                ...operation,
-                ...callbacks,
-            };
-        });
+        ];
+
         setOperations([...customOperations]);
     }, [globalVariableOptions, workspaceField, areDependenciesLoaded]);
 
@@ -87,7 +80,7 @@ export const SystemsQueryBuilder: React.FC<SystemsQueryBuilderProps> = ({
             fields={fields}
             messages={queryBuilderMessages}
             onChange={onChange}
-            value={sanitizedFilter}
+            value={filterValue}
         />
     );
 };

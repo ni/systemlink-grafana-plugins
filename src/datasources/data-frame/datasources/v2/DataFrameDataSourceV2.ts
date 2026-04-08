@@ -1,26 +1,31 @@
 import { AppEvents, createDataFrame, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, dateTime, FieldDTO, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, QueryResultMetaNotice, ScopedVars, TimeRange } from "@grafana/data";
 import { DataFrameDataSourceBase } from "../../DataFrameDataSourceBase";
 import { BackendSrv, getBackendSrv, TemplateSrv, getTemplateSrv } from "@grafana/runtime";
-import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, QueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL } from "../../types";
-import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT } from "datasources/data-frame/constants";
+import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFrameQueryType, DataFrameQueryV2, DataFrameVariableQuery, DataFrameVariableQueryType, DataTableProjectionLabelLookup, DataTableProjections, DataTableProperties, defaultQueryV2, defaultVariableQueryV2, FlattenedTableProperties, TableDataRows, TableProperties, TablePropertiesList, ValidDataFrameQueryV2, ValidDataFrameVariableQuery, DataFrameQueryV1, DecimatedDataRequest, UndecimatedDataRequest, ColumnFilter, CombinedFilters, DataFrameQueryResultsResponse, ColumnOptions, ColumnType, TableColumnsData, ColumnWithDisplayName, ColumnDataType, metadataFieldOptions, DATA_TABLE_NAME_FIELD, DATA_TABLE_ID_FIELD, DATA_TABLE_NAME_LABEL, DATA_TABLE_ID_LABEL, CustomPropertyOptions, PropertySelections, ALL_STANDARD_PROPERTIES, PropertiesQueryCache, DataFrameResultsResponseProperties } from "../../types";
+import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, CUSTOM_PROPERTY_SUFFIX, propertiesCacheTTL, DATA_TABLES_IDS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
 import { extractErrorInfo } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
-import { catchError, combineLatestWith, concatMap, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap, takeUntil, Subject } from "rxjs";
+import { catchError, combineLatestWith, concatMap, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap, takeUntil, Subject, tap } from "rxjs";
 import { ResultsQueryBuilderFieldNames } from "shared/components/ResultsQueryBuilder/ResultsQueryBuilder.constants";
 import { replaceVariables } from "core/utils";
 import { ColumnsQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/ColumnsQueryBuilder.constants";
 import { QueryBuilderOperations } from "core/query-builder.constants";
 import { DataFrameQueryParamsHandler } from "./DataFrameQueryParamsHandler";
 import Papa from 'papaparse';
+import TTLCache from "@isaacs/ttlcache";
 
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
     private scopedVars: ScopedVars = {};
-    private isQueryUndecimatedDataFeatureEnabled: boolean;
     private isHighResolutionZoomFeatureEnabled: boolean;
+    private readonly propertiesQueryCache: TTLCache<string, PropertiesQueryCache> = new TTLCache(
+        {
+            ttl: propertiesCacheTTL
+        }
+    );
 
     public constructor(
         public readonly instanceSettings: DataSourceInstanceSettings<DataFrameDataSourceOptions>,
@@ -28,8 +33,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         public readonly templateSrv: TemplateSrv = getTemplateSrv()
     ) {
         super(instanceSettings, backendSrv, templateSrv);
-        this.isQueryUndecimatedDataFeatureEnabled = this.instanceSettings
-            .jsonData?.featureToggles?.queryUndecimatedData ?? false;
         this.isHighResolutionZoomFeatureEnabled = this.instanceSettings
             .jsonData?.featureToggles?.highResolutionZoom ?? false;
     }
@@ -188,47 +191,57 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         } as ValidDataFrameVariableQuery;
     }
 
-    async getTableProperties(_id?: string): Promise<TableProperties> {
-        throw new Error('Method not implemented.');
-    }
-
-    async getDecimatedTableData(
-        _query: DataFrameDataQuery,
-        _columns: Column[],
-        _timeRange: TimeRange,
-        _intervals?: number | undefined
-    ): Promise<TableDataRows> {
-        // TODO: Implement logic to fetch and return decimated table data based on the query, columns, time range, and intervals.
-        throw new Error('Method not implemented.');
-    }
-
     queryTables$(
         filters: CombinedFilters,
         take?: number,
         projections?: DataTableProjections[]
     ): Observable<TableProperties[]> {
-        if (filters.resultFilter) {
-            return this.queryResultIds$(filters.resultFilter).pipe(
-                switchMap(resultIds => {
-                    if (resultIds.length === 0) {
-                        return of([]);
-                    }
-                    const resultFilter = this.buildResultIdFilter(resultIds);
-                    const combinedFilter = this.buildCombinedFilter({
-                        resultFilter,
-                        dataTableFilter: filters.dataTableFilter,
-                        columnFilter: filters.columnFilter
-                    });
-                    return this.queryTablesInternal$(
-                        combinedFilter,
-                        take,
-                        projections,
-                        resultIds
-                    );
-                })
-            );
+        const filterAndSubstitutions$ = this.buildQueryTablesFilterAndSubstitutions$(filters);
+        return filterAndSubstitutions$.pipe(
+            switchMap(filterAndSubstitutions => {
+                if (!filterAndSubstitutions) {
+                    return of([]);
+                }
+
+                return this.queryTablesInternal$(
+                    filterAndSubstitutions.filter,
+                    take,
+                    projections,
+                    filterAndSubstitutions.substitutions
+                );
+            })
+        );
+    }
+
+    private buildQueryTablesFilterAndSubstitutions$(
+        filters: CombinedFilters
+    ): Observable<{ filter: string; substitutions?: string[] } | null> {
+        if (!filters.resultFilter) {
+            return of({
+                filter: filters.dataTableFilter || ''
+            });
         }
-        return this.queryTablesInternal$(filters.dataTableFilter || '', take, projections, undefined);
+
+        const results$ = this.queryResults$(filters.resultFilter);
+        return results$.pipe(
+            map(results => {
+                if (results.length === 0) {
+                    return null;
+                }
+
+                const {
+                    filter: resultFilter,
+                    substitutions
+                } = this.buildResultFilter(results);
+                const filter = this.buildCombinedFilter({
+                    resultFilter,
+                    dataTableFilter: filters.dataTableFilter,
+                    columnFilter: filters.columnFilter
+                });
+
+                return { filter, substitutions };
+            })
+        );
     }
 
     private queryTablesInternal$(
@@ -270,14 +283,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
-    queryTables(
-        filter: string,
-        take = TAKE_LIMIT,
-        projection?: DataTableProjections[]
-    ): Promise<TableProperties[]> {
-        return Promise.resolve([]);
-    }
-
     public async getColumnOptionsWithVariables(
         filters: CombinedFilters
     ): Promise<ColumnOptions> {
@@ -299,6 +304,53 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return {
             uniqueColumnsAcrossTables: uniqueColumnsAcrossTablesWithVariables,
             commonColumnsAcrossTables: commonColumnsAcrossTablesWithVariables
+        };
+    }
+
+    public async getCustomPropertyOptions(
+        filters: CombinedFilters,
+        take: number
+    ): Promise<CustomPropertyOptions> {
+        const tables = await lastValueFrom(
+            this.queryTables$(
+                filters,
+                take,
+                [
+                    DataTableProjections.Properties,
+                    DataTableProjections.ColumnProperties
+                ]
+            )
+        );
+        
+        if (!this.tablesContainsProperties(tables)) {
+            return { 
+                dataTableCustomPropertyOptions:[],
+                columnCustomPropertyOptions: []
+            };
+        }
+
+        const dataTableProperties = new Set(
+            tables.flatMap(table => table.properties ? Object.keys(table.properties) : [])
+        );
+        const columnProperties = new Set(
+            tables.flatMap(table =>
+                table.columns?.flatMap(column =>
+                    column.properties ? Object.keys(column.properties) : []
+                ) ?? []
+            )
+        );
+
+        const dataTableCustomPropertyOptions = this.createCustomPropertyOptions(
+            dataTableProperties,
+            CUSTOM_DATA_TABLE_PROPERTIES_GROUP
+        );
+        const columnCustomPropertyOptions = this.createCustomPropertyOptions(
+            columnProperties,
+            CUSTOM_COLUMN_PROPERTIES_GROUP
+        );
+        return {
+            dataTableCustomPropertyOptions,
+            columnCustomPropertyOptions
         };
     }
 
@@ -820,12 +872,38 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return { uniqueColumnsAcrossTables, commonColumnsAcrossTables };
     }
 
+    private createCustomPropertyOptions(
+        properties: Set<string>,
+        group: string
+    ): Option[] {
+        const options = Array.from(properties).map(property => ({
+            label: property,
+            value: `${property}${CUSTOM_PROPERTY_SUFFIX}`,
+            group
+        }));
+
+        return this.sortOptionsByLabel(options);
+    }
+
     private sortOptionsByLabel(options: Option[]): Option[] {
         return options.sort((option1, option2) => option1.label.localeCompare(option2.label));
     }
 
     private tablesContainsColumns(tables: TableProperties[]): boolean {
         return tables.length > 0 && tables[0].columns !== undefined;
+    }
+
+    private tablesContainsProperties(tables: TableProperties[]): boolean {
+        if (tables.length === 0) {
+            return false;
+        }
+
+        const hasTableProperties = tables.some(table => table.properties !== undefined);
+        const hasColumnProperties = tables.some(table => 
+            table.columns?.some(column => column.properties !== undefined)
+        );
+
+        return hasTableProperties || hasColumnProperties;
     }
 
     private createColumnIdentifierSet(columns: Column[]): Set<string> {
@@ -1120,8 +1198,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private isUndecimatedDataQuery(query: ValidDataFrameQueryV2): boolean {
-        return this.isQueryUndecimatedDataFeatureEnabled
-            && query.decimationMethod === 'NONE';
+        return query.decimationMethod === 'NONE';
     }
 
     private getFieldsForDataQuery$(
@@ -1828,24 +1905,53 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         });
     }
 
+    private isCustomProperty(property:  string): boolean {
+        return property.endsWith(CUSTOM_PROPERTY_SUFFIX);
+    }
+
+    private extractCustomProperty(property: string): string {
+        return property.slice(0, -CUSTOM_PROPERTY_SUFFIX.length);
+    }
+
+    private getStandardAndCustomProperties(properties: string[]): PropertySelections {
+        const customProperties: string[] = [];
+        const standardProperties: DataTableProperties[] = [];
+        for (const property of properties) {
+            if (this.isCustomProperty(property)) {
+                customProperties.push(property);
+            } else if (ALL_STANDARD_PROPERTIES.has(property)) {
+                standardProperties.push(property as DataTableProperties);
+            }
+        }
+        return { customProperties, standardProperties };
+    }
+
     private getFieldsForPropertiesQuery$(processedQuery: ValidDataFrameQueryV2): Observable<DataFrameDTO> {
-        const propertiesToQuery = [
-            ...processedQuery.dataTableProperties,
-            ...processedQuery.columnProperties
-        ];
-        const projections = propertiesToQuery
+        const selectedDataTableProperties = this.getStandardAndCustomProperties(
+            processedQuery.dataTableProperties
+        );
+        const selectedColumnProperties = this.getStandardAndCustomProperties(
+            processedQuery.columnProperties
+        );
+
+        const selectedStandardProperties = new Set<DataTableProperties>([
+            ...selectedDataTableProperties.standardProperties,
+            ...selectedColumnProperties.standardProperties,
+        ]);
+
+        if (selectedDataTableProperties.customProperties.length > 0) {
+            selectedStandardProperties.add(DataTableProperties.Properties);
+        }
+
+        if (selectedColumnProperties.customProperties.length > 0) {
+            selectedStandardProperties.add(DataTableProperties.ColumnProperties);
+        }
+
+        const projections = [...selectedStandardProperties]
             .map(property => DataTableProjectionLabelLookup[property].projection);
-        const projectionExcludingId = projections
-            .filter(projection => projection !== DataTableProjections.Id);
-        const filters = {
-            resultFilter: processedQuery.resultFilter,
-            dataTableFilter: processedQuery.dataTableFilter,
-            columnFilter: processedQuery.columnFilter
-        };
-        const tables$ = this.queryTables$(
-            filters,
-            processedQuery.take,
-            projectionExcludingId
+        const tables$ = this.getTables$(
+            processedQuery,
+            projections
         );
         const flattenedTablesWithColumns$ = tables$.pipe(
             map(tables => this.flattenTablesWithColumns(tables))
@@ -1854,20 +1960,35 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const dataFrame$ = flattenedTablesWithColumns$.pipe(
             combineLatestWith(workspaces$),
             map(([flattenedTablesWithColumns, workspaces]) => {
+                if (
+                    !this.areSelectedCustomPropertiesValid(
+                        selectedDataTableProperties.customProperties,
+                        selectedColumnProperties.customProperties,
+                        flattenedTablesWithColumns
+                    )
+                ) {
+                    const errorMessage = 'One or more selected properties are invalid. Please update your properties selection or refine your filters.';
+                    this.appEvents?.publish?.({
+                        type: AppEvents.alertError.name,
+                        payload: ['Properties selection error', errorMessage],
+                    });
+                    throw new Error(errorMessage);
+                }
+
                 const fields: FieldDTO[] = [];
-                const includeDataTableCustomProperties = propertiesToQuery.includes(
+                const includeDataTableCustomProperties = selectedStandardProperties.has(
                     DataTableProperties.Properties
                 );
                 const fieldNames = new Set<string>();
-                const includeColumnCustomProperties = propertiesToQuery.includes(
+                const includeColumnCustomProperties = selectedStandardProperties.has(
                     DataTableProperties.ColumnProperties
                 );
-                const propertiesToQueryWithoutCustomProperties = propertiesToQuery.filter(
+                const filteredStandardProperties = [...selectedStandardProperties].filter(
                     property => property !== DataTableProperties.Properties
-                                && property !== DataTableProperties.ColumnProperties
+                    && property !== DataTableProperties.ColumnProperties
                 );
 
-                propertiesToQueryWithoutCustomProperties.forEach(property => {
+                filteredStandardProperties.forEach(property => {
                     const values = this.getFieldValues(
                         flattenedTablesWithColumns,
                         property,
@@ -1888,12 +2009,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                  * flatten it into separate fields in the data frame output
                  */
                 if (includeDataTableCustomProperties) {
+                    const includeAllCustomProperties = selectedDataTableProperties
+                        .standardProperties.includes(DataTableProperties.Properties);
                     const customPropertyFields = this.createFieldsFromCustomProperties(
                         flattenedTablesWithColumns,
-                        customPropertyColumnsLimit,
                         table => table.properties,
+                        customPropertyColumnsLimit,
                         fieldNames,
-                        'Data table'
+                        'Data table',
+                        includeAllCustomProperties,
+                        selectedDataTableProperties.customProperties
                     );
                     customPropertyFields.forEach(field => fieldNames.add(field.name));
                     customPropertyColumnsLimit -= customPropertyFields.length;
@@ -1905,12 +2030,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                  * flatten it into separate fields in the data frame output
                  */
                 if (includeColumnCustomProperties) {
+                    const includeAllCustomProperties = selectedColumnProperties
+                        .standardProperties.includes(DataTableProperties.ColumnProperties);
                     const customPropertyFields = this.createFieldsFromCustomProperties(
                         flattenedTablesWithColumns,
-                        customPropertyColumnsLimit,
                         table => table.columnProperties,
+                        customPropertyColumnsLimit,
                         fieldNames,
-                        'Column'
+                        'Column',
+                        includeAllCustomProperties,
+                        selectedColumnProperties.customProperties
                     );
                     customPropertyFields.forEach(field => fieldNames.add(field.name));
                     customPropertyColumnsLimit -= customPropertyFields.length;
@@ -1928,19 +2057,153 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return dataFrame$;
     }
 
+    private getTables$(
+        processedQuery: ValidDataFrameQueryV2,
+        projections: DataTableProjections[]
+    ): Observable<TableProperties[]> {
+        const propertiesQueryCache = this.propertiesQueryCache.get(processedQuery.refId);
+        const filters = {
+            resultFilter: processedQuery.resultFilter,
+            dataTableFilter: processedQuery.dataTableFilter,
+            columnFilter: processedQuery.columnFilter
+        };
+        const requestInputs = JSON.stringify({
+            filters,
+            take: processedQuery.take,
+            projections,
+        });
+        const selectedProperties: string[] = [
+            ...processedQuery.dataTableProperties,
+            ...processedQuery.columnProperties
+        ];
+
+        const isOnlyCustomPropertiesChanged = this.isOnlyCustomPropertySelectionsChanged(
+            propertiesQueryCache,
+            requestInputs,
+            selectedProperties
+        );
+        if (isOnlyCustomPropertiesChanged) {
+            return of(propertiesQueryCache!.response);
+        }
+
+        const projectionExcludingId = projections
+            .filter(projection => projection !== DataTableProjections.Id);
+        return this.queryTables$(
+            filters,
+            processedQuery.take,
+            projectionExcludingId,
+        ).pipe(
+            tap(response => {
+                const updatedPropertiesQueryCache: PropertiesQueryCache = {
+                    requestInputs,
+                    selectedProperties,
+                    response
+                };
+                this.propertiesQueryCache.set(
+                    processedQuery.refId,
+                    updatedPropertiesQueryCache
+                );
+            }),
+            catchError(error => {
+                this.propertiesQueryCache.delete(processedQuery.refId);
+                throw error;
+            })
+        );
+    }
+
+    private isOnlyCustomPropertySelectionsChanged(
+        propertiesQueryCache: PropertiesQueryCache | undefined,
+        requestInputs: string,
+        selectedProperties: string[]
+    ): boolean {
+        if (
+            !propertiesQueryCache
+            || propertiesQueryCache.requestInputs !== requestInputs
+        ) {
+            return false;
+        }
+
+        return !_.isEqual(propertiesQueryCache.selectedProperties, selectedProperties);
+    }
+
+    private areSelectedCustomPropertiesValid(
+        selectedDataTableCustomProperties: string[],
+        selectedColumnCustomProperties: string[],
+        tables: FlattenedTableProperties[]
+    ): boolean {
+        if( 
+            selectedDataTableCustomProperties.length === 0 
+            && selectedColumnCustomProperties.length === 0
+        ) {
+            return true;
+        }
+
+        let allDataTableCustomPropertyKeys = new Set<string>();
+        if (selectedDataTableCustomProperties.length > 0) {
+            allDataTableCustomPropertyKeys = this.getUniqueCustomPropertyKeys(
+                tables,
+                table => table.properties,
+            );
+        }
+
+        let allColumnCustomPropertyKeys = new Set<string>();
+        if (selectedColumnCustomProperties.length > 0) {
+            allColumnCustomPropertyKeys = this.getUniqueCustomPropertyKeys(
+                tables,
+                table => table.columnProperties,
+            );
+        }
+
+        const areDataTableCustomPropertiesValid = selectedDataTableCustomProperties.every(
+            selectedDataTableCustomProperty => {
+                const selectedCustomProperty = this.extractCustomProperty(
+                    selectedDataTableCustomProperty
+                );
+                return selectedCustomProperty 
+                    ? allDataTableCustomPropertyKeys.has(selectedCustomProperty) 
+                    : false;
+            }
+        );
+        const areColumnCustomPropertiesValid = selectedColumnCustomProperties.every(
+            selectedColumnCustomProperty => {
+                const selectedCustomProperty = this.extractCustomProperty(
+                    selectedColumnCustomProperty
+                );
+                return selectedCustomProperty 
+                    ? allColumnCustomPropertyKeys.has(selectedCustomProperty) 
+                    : false;
+            }
+        );
+
+        return areDataTableCustomPropertiesValid && areColumnCustomPropertiesValid;
+    }
+
     private createFieldsFromCustomProperties(
         tables: FlattenedTableProperties[],
-        limit: number,
         propertyAccessor: (table: FlattenedTableProperties) => Record<string, string> | undefined,
+        limit: number,
         existingFieldNames: Set<string>,
-        fieldNameSuffix: string
+        fieldNameSuffix: string,
+        includeAllCustomProperties: boolean,
+        selectedCustomProperties: string[]
     ): FieldDTO[] {
-        const uniquePropertyKeys = this.getUniqueCustomPropertyKeys(
-            tables,
-            limit,
-            propertyAccessor
-        );
-        const sortedPropertyKeys = Array.from(uniquePropertyKeys)
+        let uniqueCustomPropertyKeys = new Set<string>();
+        if (includeAllCustomProperties) {
+            uniqueCustomPropertyKeys = this.getUniqueCustomPropertyKeys(
+                tables,
+                propertyAccessor,
+                limit,
+            );
+        }
+
+        for (const property of selectedCustomProperties) {
+            const selectedCustomProperty = this.extractCustomProperty(property);
+            if (selectedCustomProperty) {
+                uniqueCustomPropertyKeys.add(selectedCustomProperty);
+            }
+        }
+
+        const sortedPropertyKeys = Array.from(uniqueCustomPropertyKeys)
             .sort((propertyKey1, propertyKey2) => propertyKey1.localeCompare(propertyKey2));
 
         return sortedPropertyKeys.map(propertyKey => (this.createField({
@@ -1962,8 +2225,8 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private getUniqueCustomPropertyKeys(
         tables: FlattenedTableProperties[],
-        limit: number,
-        propertyAccessor: (table: FlattenedTableProperties) => Record<string, string> | undefined
+        propertyAccessor: (table: FlattenedTableProperties) => Record<string, string> | undefined,
+        limit?: number,
     ): Set<string> {
         const propertyKeysSet = new Set<string>();
         for (const table of tables) {
@@ -1971,7 +2234,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             if (properties) {
                 for (const key of Object.keys(properties)) {
                     propertyKeysSet.add(key);
-                    if (propertyKeysSet.size >= limit) {
+                    if (limit !== undefined && propertyKeysSet.size >= limit) {
                         return propertyKeysSet;
                     }
                 }
@@ -1980,17 +2243,19 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return propertyKeysSet;
     }
 
-    private queryResultIds$(resultFilter: string): Observable<string[]> {
+    private queryResults$(
+        resultFilter: string
+    ): Observable<DataFrameResultsResponseProperties[]> {
         const queryResultsUrl = `${this.instanceSettings.url}/nitestmonitor/v2/query-results`;
         const requestBody = {
             filter: resultFilter,
-            projection: ['id'],
+            projection: ['id', 'dataTableIds'],
             take: RESULT_IDS_LIMIT,
             orderBy: 'UPDATED_AT',
             descending: true
         };
 
-        return this.post$<QueryResultsResponse>(
+        return this.post$<DataFrameQueryResultsResponse>(
             queryResultsUrl,
             requestBody,
             { showErrorAlert: false }
@@ -1999,7 +2264,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 if (!response.results || response.results.length === 0) {
                     return [];
                 }
-                return response.results.map(result => result.id);
+                return response.results;
             }),
             catchError(error => {
                 const errorMessage = this.getErrorMessage(error, 'results');
@@ -2012,13 +2277,51 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         );
     }
 
-    private buildResultIdFilter(resultIds: string[]): string {
-        if (resultIds.length === 0) {
-            return '';
+    private buildResultFilter(
+        results: DataFrameResultsResponseProperties[]
+    ): { filter: string; substitutions?: string[] } {
+        if (results.length === 0) {
+            return { filter: '' };
         }
-        const placeholders = resultIds.map((_, index) => `@${index}`).join(',');
-        const resultFilter = `new[]{${placeholders}}.Contains(testResultId)`;
-        return resultFilter;
+
+        const {
+            resultIds,
+            dataTableIds
+        } = this.extractResultAndDataTableIds(results);
+
+        const resultIdFilter = this.buildPlaceholderContainsFilter(
+            'testResultId',
+            resultIds.length,
+            0
+        );
+        if (dataTableIds.length === 0) {
+            return {
+                filter: resultIdFilter,
+                substitutions: resultIds
+            };
+        }
+
+        const dataTableIdFilter = this.buildPlaceholderContainsFilter(
+            'id',
+            dataTableIds.length,
+            resultIds.length
+        );
+        return {
+            filter: `(${resultIdFilter})||(${dataTableIdFilter})`,
+            substitutions: [...resultIds, ...dataTableIds]
+        };
+    }
+
+    private buildPlaceholderContainsFilter(
+        fieldName: string,
+        count: number,
+        startIndex: number
+    ): string {
+        const placeholders = Array.from(
+            { length: count },
+            (_, index) => `@${startIndex + index}`
+        ).join(',');
+        return `new[]{${placeholders}}.Contains(${fieldName})`;
     }
 
     private buildCombinedFilter(filters: CombinedFilters): string {
@@ -2070,7 +2373,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return query.columns ?? defaultQueryV2.columns;
     }
 
-    private resolveDataTableProperties(query: DataFrameDataQuery): DataTableProperties[] {
+    private resolveDataTableProperties(query: DataFrameDataQuery): string[] {
         if ('dataTableProperties' in query && query.dataTableProperties !== undefined) {
             return query.dataTableProperties;
         }
@@ -2094,5 +2397,23 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         }
 
         return defaultQueryV2.filterXRangeOnZoomPan;
+    }
+
+    private extractResultAndDataTableIds(
+        results: DataFrameResultsResponseProperties[]
+    ): { resultIds: string[]; dataTableIds: string[] } {
+        const resultIds: string[] = [];
+        const dataTableIdSet = new Set<string>();
+
+        for (const { id, dataTableIds } of results) {
+            resultIds.push(id);
+            dataTableIds?.forEach(dataTableId => {
+                if (dataTableIdSet.size < DATA_TABLES_IDS_LIMIT) {
+                    dataTableIdSet.add(dataTableId);
+                }
+            });
+        }
+
+        return { resultIds, dataTableIds: [...dataTableIdSet] };
     }
 }

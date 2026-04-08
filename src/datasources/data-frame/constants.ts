@@ -2,6 +2,11 @@ import { nbsp } from "./utils";
 
 export const decimationMethods = [
   {
+    value: 'NONE',
+    label: 'None',
+    description: nbsp`Data in full resolution without decimation`,
+  },
+  {
     value: 'LOSSY',
     label: 'Lossy',
     description: nbsp`Completes faster but is less accurate`,
@@ -18,12 +23,6 @@ export const decimationMethods = [
   },
 ];
 
-export const decimationNoneOption = {
-  value: 'NONE',
-  label: 'None',
-  description: nbsp`Data in full resolution without decimation`,
-};
-
 export const errorCodes: { [key: number]: string; } = {
   [-255134]: 'Invalid table ID',
   [-255130]: 'Table does not exist',
@@ -37,7 +36,11 @@ export const COLUMN_OPTIONS_LIMIT = 10000;
 export const COLUMN_SELECTION_LIMIT = 20;
 export const MAXIMUM_DATA_POINTS = 1000000;
 export const RESULT_IDS_LIMIT = 1000;
+export const DATA_TABLES_IDS_LIMIT = 1000;
 export const CUSTOM_PROPERTY_COLUMNS_LIMIT = 100;
+export const CUSTOM_PROPERTY_OPTIONS_LIMIT = 10_000;
+
+export const CUSTOM_PROPERTY_SUFFIX = '-(custom-properties)';
 
 export const REQUESTS_PER_SECOND = 6;
 export const DELAY_BETWEEN_REQUESTS_MS = 1000;
@@ -54,6 +57,11 @@ export const NUMERIC_DATA_TYPES = [
 
 export const COLUMNS_GROUP = 'Columns';
 export const METADATA_GROUP = 'Metadata';
+
+export const STANDARD_DATA_TABLE_PROPERTIES_GROUP = 'Data table properties';
+export const STANDARD_COLUMN_PROPERTIES_GROUP = 'Column properties';
+export const CUSTOM_DATA_TABLE_PROPERTIES_GROUP = 'Custom data table properties';
+export const CUSTOM_COLUMN_PROPERTIES_GROUP = 'Custom column properties';
 
 export const POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS = ['unit', 'units', 'Unit', 'Units'];
 
