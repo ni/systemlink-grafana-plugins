@@ -1,31 +1,32 @@
 import { test, expect } from '@playwright/test';
 import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
-import { DataSourcesPage } from '../../../../page-objects/data-sources/data-sources.pageobject';
 import { pressEscape } from '../../../../utils/keyboard-utilities';
-import { assetColumn, timeOutPeriod } from '../../../../constants/asset-list-properties.constant';
+import { assetColumn } from '../../../../constants/asset-list-properties.constant';
+import { DataSourcePage } from '../../../../page-objects/data-sources/data-source.pageobject';
+import { timeOutPeriod } from '../../../../constants/global.constant';
 
 test.describe('Asset DataSource with Notebook Variable', () => {
     let dashboard: DashboardPage;
-    let dataSources: DataSourcesPage;
+    let dataSource: DataSourcePage;
     const assetDataSourceName = 'SystemLink Assets With Notebook Variable';
     const notebookDataSourceName = 'SystemLink Notebook for Asset Datasource';
 
     test.beforeAll(async ({ browser }) => {
         const context = await browser.newContext();
         const page = await context.newPage();
-        dataSources = new DataSourcesPage(page);
+        dataSource = new DataSourcePage(page);
         dashboard = new DashboardPage(page);
 
-        await dataSources.addDataSource('SystemLink Assets', assetDataSourceName);
-        await dataSources.dataSourceConnectedSuccessMessage.waitFor({ timeout: timeOutPeriod });
-        await dataSources.addDataSource('SystemLink Notebooks', notebookDataSourceName);
-        await dataSources.notebookDataSourceConnectedSuccessMessage.waitFor({ timeout: timeOutPeriod });
+        await dataSource.addDataSource('SystemLink Assets', assetDataSourceName);
+        await dataSource.dataSourceConnectedSuccessMessage.waitFor({ timeout: timeOutPeriod });
+        await dataSource.addDataSource('SystemLink Notebooks', notebookDataSourceName);
+        await dataSource.notebookDataSourceConnectedSuccessMessage.waitFor({ timeout: timeOutPeriod });
     });
 
     test.afterAll(async () => {
-        await dataSources.deleteDataSource(assetDataSourceName);
-        await dataSources.deleteDataSource(notebookDataSourceName);
+        await dataSource.deleteDataSource(assetDataSourceName);
+        await dataSource.deleteDataSource(notebookDataSourceName);
     });
 
     test.describe.serial('Notebook Variable Integration', () => {
