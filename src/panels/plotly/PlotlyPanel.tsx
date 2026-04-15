@@ -170,12 +170,49 @@ export const PlotlyPanel: React.FC<Props> = (props) => {
     for (const yField of yFields) {
       const yName = getFieldDisplayName(yField, dataframe, data.series);
       if (isHistogram) {
-        axisLabels.xAxis = _.union(axisLabels.xAxis ? axisLabels.xAxis.split(',') : [], [yField.name]).join(',');
+        const normalizedValues = normalizeHistogramValues(yField);
+        if (normalizedValues.length === 0) {
+          continue;
+        }
+        const isVertical = options.displayVertically !== false;
+        const isTimeField = yField.type === FieldType.time;
+        const effectiveBinSize = resolveEffectiveBinSize(
+          options.series.histogramBinSize,
+          isTimeField,
+        );
+        const binConfig = computeHistogramBinConfig(
+          normalizedValues,
+          effectiveBinSize,
+        );
+
+        let binsProp = {};
+        if (binConfig) {
+          const plotlyBinConfig = isTimeField
+            ? {
+                start: new Date(binConfig.start).toISOString(),
+                end: new Date(binConfig.end).toISOString(),
+                size: binConfig.size,
+              }
+            : binConfig;
+          binsProp = isVertical
+            ? { xbins: plotlyBinConfig }
+            : { ybins: plotlyBinConfig };
+        }
+
+        const traceValues = isTimeField
+          ? normalizedValues.map(v => new Date(v))
+          : normalizedValues;
+
+        axisLabels.xAxis = _.union(
+          axisLabels.xAxis ? axisLabels.xAxis.split(',') : [],
+          [yField.name]
+        ).join(',');
         plotData.push({
-          x: getFieldValues(yField),
+          ...(isVertical ? { x: traceValues } : { y: traceValues }),
           type: 'histogram' as PlotType,
+          orientation: isVertical ? 'v' : 'h',
           name: yName,
-          nbinsx: options.series.nbinsx || undefined,
+          ...binsProp,
           opacity: 0.7,
           marker: { color: getFixedColor(yField, theme) },
           customdata: [dataframe.meta?.custom?.id],
@@ -517,9 +554,122 @@ const getYFields = (frame: DataFrame, xField: Field, selectedYFields: string[] =
 };
 
 const getHistogramFields = (frame: DataFrame, selectedYFields: string[] = []) => {
-  return selectedYFields.length ?
-    frame.fields.filter(f => selectedYFields.includes(f.name)) :
-    frame.fields.filter(f => f.type === FieldType.number);
+  if (selectedYFields.length) {
+    return frame.fields.filter(f => selectedYFields.includes(f.name));
+  }
+  return frame.fields.filter(
+    f => f.type === FieldType.number || f.type === FieldType.time || f.type === FieldType.string
+  );
+};
+
+const normalizeHistogramValues = (field: Field): number[] => {
+  const result: number[] = [];
+  for (const value of field.values.toArray()) {
+    if (value === null || value === undefined) {
+      continue;
+    }
+    if (typeof value === 'number') {
+      if (isFinite(value) && !isNaN(value)) {
+        result.push(value);
+      }
+      continue;
+    }
+    if (typeof value === 'string') {
+      const num = Number(value);
+      if (!isNaN(num) && isFinite(num)) {
+        result.push(num);
+        continue;
+      }
+      const dt = Date.parse(value);
+      if (!isNaN(dt)) {
+        result.push(dt);
+      }
+    }
+  }
+  return result;
+};
+
+const computeScottsBinSize = (values: number[]): number => {
+  const n = values.length;
+  if (n < 2) {
+    return 1;
+  }
+  const mean = values.reduce((sum, v) => sum + v, 0) / n;
+  const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / n;
+  const stdDev = Math.sqrt(variance);
+  return 3.5 * (stdDev / Math.cbrt(n));
+};
+
+const MAX_HISTOGRAM_BINS = 1000;
+const PRESET_BIN_SIZES = new Set(['auto', 'coarse', 'medium', 'fine']);
+
+const resolveEffectiveBinSize = (
+  binSize: string | undefined,
+  isTimeField: boolean,
+): string | undefined => {
+  if (!isTimeField || !binSize || PRESET_BIN_SIZES.has(binSize.trim())) {
+    return binSize;
+  }
+  const numeric = Number(binSize);
+  if (isNaN(numeric) || numeric <= 0) {
+    return binSize;
+  }
+  return String(numeric * 1000);
+};
+
+const computeHistogramBinConfig = (
+  values: number[],
+  binSize: string | undefined,
+): { start: number; end: number; size: number } | undefined => {
+  if (values.length === 0) {
+    return undefined;
+  }
+
+  const normalized = binSize?.trim() ?? '';
+  const isPreset = ['coarse', 'medium', 'fine'].includes(normalized);
+  const customWidth = isPreset ? NaN : Number(normalized);
+  const isCustom = !isPreset && normalized !== '' && normalized !== 'auto'
+    && !isNaN(customWidth) && customWidth > 0;
+
+  if (!isPreset && !isCustom) {
+    return undefined;
+  }
+
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+
+  let size: number;
+
+  if (isCustom) {
+    size = customWidth;
+  } else {
+    const baseBinSize = computeScottsBinSize(values);
+    if (baseBinSize <= 0) {
+      return undefined;
+    }
+    switch (normalized) {
+      case 'coarse':
+        size = baseBinSize * 2;
+        break;
+      case 'fine':
+        size = baseBinSize / 2;
+        break;
+      default:
+        size = baseBinSize;
+        break;
+    }
+  }
+
+  if (max > min) {
+    const minSafeSize = (max - min) / MAX_HISTOGRAM_BINS;
+    if (size < minSafeSize) {
+      size = minSafeSize;
+    }
+  }
+
+  const spread = max - min;
+  const end = min + Math.ceil(spread / size) * size;
+  return { start: min, end, size };
 };
 
 const getFixedColor = (field: Field, theme: GrafanaTheme2) => {

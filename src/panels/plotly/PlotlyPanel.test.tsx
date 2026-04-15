@@ -1097,10 +1097,50 @@ describe('PlotlyPanel', () => {
     };
 
     describe('Histogram', () => {
-      it('should render a histogram for a single selected numeric field', () => {
+      const computeScottsBinSize = (values: number[]): number => {
+        const n = values.length;
+        if (n < 2) {
+          return 1;
+        }
+        const mean = values.reduce((a, b) => a + b, 0) / n;
+        const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / n;
+        const stdDev = Math.sqrt(variance);
+        return 3.5 * (stdDev / Math.cbrt(n));
+      };
+
+      const createHistogramProps = (
+        overrides: {
+          values?: number[];
+          fieldType?: string;
+          fieldName?: string;
+          histogramBinSize?: string;
+          histogramMode?: string;
+          displayVertically?: boolean;
+          fields?: string[];
+        } = {}
+      ) => {
+        const {
+          values = [10, 20, 20, 30],
+          fieldType = 'number',
+          fieldName = 'value',
+          histogramBinSize,
+          histogramMode,
+          displayVertically = true,
+          fields = [fieldName],
+        } = overrides;
+
+        const seriesOpts: any = { ...defaultSeriesOptions, plotType: 'histogram' };
+        if (histogramBinSize !== undefined) {
+          seriesOpts.histogramBinSize = histogramBinSize;
+        }
+        if (histogramMode !== undefined) {
+          seriesOpts.histogramMode = histogramMode;
+        }
+
         const props = createMockProps({
-          yAxis: { fields: ['value'], min: undefined, max: undefined },
-          series: { ...defaultSeriesOptions, plotType: 'histogram', nbinsx: 6 },
+          yAxis: { fields, min: undefined, max: undefined },
+          series: seriesOpts,
+          displayVertically,
         });
 
         props.data.series = [
@@ -1108,16 +1148,21 @@ describe('PlotlyPanel', () => {
             name: 'Series 1',
             fields: [
               {
-                name: 'value',
-                type: 'number',
-                values: { toArray: () => [10, 20, 20, 30] },
+                name: fieldName,
+                type: fieldType,
+                values: { toArray: () => values },
                 config: {},
               },
             ],
-            length: 4,
+            length: values.length,
           },
         ] as any;
 
+        return props;
+      };
+
+      it('should render a histogram for a single selected numeric field', () => {
+        const props = createHistogramProps();
         renderPlotlyElement(props);
 
         expect(plotlyData).toHaveLength(1);
@@ -1125,39 +1170,226 @@ describe('PlotlyPanel', () => {
         expect(plotlyData[0].x).toEqual([10, 20, 20, 30]);
       });
 
-      it('should default histogram mode to overlay', () => {
-        const props = createMockProps({
-          yAxis: { fields: ['value'], min: undefined, max: undefined },
-          series: { ...defaultSeriesOptions, plotType: 'histogram' },
-        });
-
-        props.data.series = [
-          {
-            name: 'Series 1',
-            fields: [
-              {
-                name: 'value',
-                type: 'number',
-                values: { toArray: () => [10, 20, 20, 30] },
-                config: {},
-              },
-            ],
-            length: 4,
-          },
-        ] as any;
-
+      it('should render histogram with vertical orientation by default', () => {
+        const props = createHistogramProps();
         renderPlotlyElement(props);
 
-        expect(plotlyLayout.barmode).toBe('overlay');
+        expect(plotlyData[0].x).toBeDefined();
+        expect(plotlyData[0].y).toBeUndefined();
       });
 
-      (['overlay', 'group', 'stack'] as const).forEach((histogramMode) => {
-        it(`should apply '${histogramMode}' as barmode for histogram`, () => {
-          const props = createMockProps({
-            yAxis: { fields: ['value'], min: undefined, max: undefined },
-            series: { ...defaultSeriesOptions, plotType: 'histogram', histogramMode },
-          });
+      it('should render histogram with horizontal orientation', () => {
+        const props = createHistogramProps({ displayVertically: false });
+        renderPlotlyElement(props);
 
+        expect(plotlyData[0].y).toBeDefined();
+        expect(plotlyData[0].x).toBeUndefined();
+        expect(plotlyData[0].orientation).toBe('h');
+      });
+
+      describe('bar modes', () => {
+        it('should default histogram mode to overlay', () => {
+          const props = createHistogramProps();
+          renderPlotlyElement(props);
+          expect(plotlyLayout.barmode).toBe('overlay');
+        });
+
+        (['overlay', 'group', 'stack', 'relative'] as const).forEach((mode) => {
+          it(`should apply '${mode}' as barmode`, () => {
+            const props = createHistogramProps({ histogramMode: mode });
+            renderPlotlyElement(props);
+            expect(plotlyLayout.barmode).toBe(mode);
+          });
+        });
+      });
+
+      describe('bin size - auto', () => {
+        it('should not set xbins when bin size is auto', () => {
+          const props = createHistogramProps({ histogramBinSize: 'auto' });
+          renderPlotlyElement(props);
+
+          expect(plotlyData[0].xbins).toBeUndefined();
+        });
+
+        it('should not set xbins when bin size is undefined', () => {
+          const props = createHistogramProps();
+          renderPlotlyElement(props);
+
+          expect(plotlyData[0].xbins).toBeUndefined();
+        });
+      });
+
+      describe('bin size - presets', () => {
+        it('should compute medium bin size using Scott\'s rule', () => {
+          const values = [10, 20, 20, 30, 40, 50];
+          const props = createHistogramProps({ values, histogramBinSize: 'medium' });
+          renderPlotlyElement(props);
+
+          const expectedSize = computeScottsBinSize(values);
+          expect(plotlyData[0].xbins.size).toBeCloseTo(expectedSize, 5);
+        });
+
+        it('should compute coarse bin size as 2x Scott\'s rule', () => {
+          const values = [10, 20, 20, 30, 40, 50];
+          const props = createHistogramProps({ values, histogramBinSize: 'coarse' });
+          renderPlotlyElement(props);
+
+          const expectedSize = computeScottsBinSize(values) * 2;
+          expect(plotlyData[0].xbins.size).toBeCloseTo(expectedSize, 5);
+        });
+
+        it('should compute fine bin size as 0.5x Scott\'s rule', () => {
+          const values = [10, 20, 20, 30, 40, 50];
+          const props = createHistogramProps({ values, histogramBinSize: 'fine' });
+          renderPlotlyElement(props);
+
+          const expectedSize = computeScottsBinSize(values) * 0.5;
+          expect(plotlyData[0].xbins.size).toBeCloseTo(expectedSize, 5);
+        });
+
+        it('should set xbins start from data minimum', () => {
+          const values = [10, 20, 30, 40];
+          const props = createHistogramProps({ values, histogramBinSize: 'medium' });
+          renderPlotlyElement(props);
+
+          expect(plotlyData[0].xbins.start).toBe(10);
+          expect(plotlyData[0].xbins.end).toBeGreaterThanOrEqual(40);
+        });
+      });
+
+      describe('bin size - custom values', () => {
+        it('should apply a custom numeric bin size', () => {
+          const values = [10, 20, 30, 40];
+          const props = createHistogramProps({ values, histogramBinSize: '5' });
+          renderPlotlyElement(props);
+
+          expect(plotlyData[0].xbins.size).toBe(5);
+        });
+
+        it('should support decimal custom bin sizes', () => {
+          const values = [1, 2, 3, 4, 5];
+          const props = createHistogramProps({ values, histogramBinSize: '1.5' });
+          renderPlotlyElement(props);
+
+          expect(plotlyData[0].xbins.size).toBe(1.5);
+        });
+
+        it('should fall back to auto for zero custom value', () => {
+          const props = createHistogramProps({ histogramBinSize: '0' });
+          renderPlotlyElement(props);
+
+          expect(plotlyData[0].xbins).toBeUndefined();
+        });
+
+        it('should fall back to auto for negative custom value', () => {
+          const props = createHistogramProps({ histogramBinSize: '-5' });
+          renderPlotlyElement(props);
+
+          expect(plotlyData[0].xbins).toBeUndefined();
+        });
+
+        it('should fall back to auto for non-numeric custom value', () => {
+          const props = createHistogramProps({ histogramBinSize: 'abc' });
+          renderPlotlyElement(props);
+
+          expect(plotlyData[0].xbins).toBeUndefined();
+        });
+      });
+
+      describe('horizontal orientation uses ybins', () => {
+        it('should use ybins for preset bin size in horizontal mode', () => {
+          const values = [10, 20, 30, 40, 50];
+          const props = createHistogramProps({
+            values,
+            histogramBinSize: 'medium',
+            displayVertically: false,
+          });
+          renderPlotlyElement(props);
+
+          expect(plotlyData[0].ybins).toBeDefined();
+          expect(plotlyData[0].xbins).toBeUndefined();
+        });
+
+        it('should use ybins for custom bin size in horizontal mode', () => {
+          const values = [10, 20, 30, 40];
+          const props = createHistogramProps({
+            values,
+            histogramBinSize: '5',
+            displayVertically: false,
+          });
+          renderPlotlyElement(props);
+
+          expect(plotlyData[0].ybins.size).toBe(5);
+          expect(plotlyData[0].xbins).toBeUndefined();
+        });
+      });
+
+      describe('time fields', () => {
+        const timeValues = [
+          1609459200000, // 2021-01-01T00:00:00Z
+          1609462800000, // 2021-01-01T01:00:00Z
+          1609466400000, // 2021-01-01T02:00:00Z
+        ];
+
+        it('should convert time values to Date objects for trace data', () => {
+          const props = createHistogramProps({
+            values: timeValues,
+            fieldType: 'time',
+            fieldName: 'timestamp',
+            fields: ['timestamp'],
+          });
+          renderPlotlyElement(props);
+
+          expect(plotlyData[0].x[0]).toBeInstanceOf(Date);
+          expect(plotlyData[0].x[0].getTime()).toBe(timeValues[0]);
+        });
+
+        it('should convert xbins start/end to ISO strings for time fields', () => {
+          const props = createHistogramProps({
+            values: timeValues,
+            fieldType: 'time',
+            fieldName: 'timestamp',
+            fields: ['timestamp'],
+            histogramBinSize: 'medium',
+          });
+          renderPlotlyElement(props);
+
+          expect(typeof plotlyData[0].xbins.start).toBe('string');
+          expect(typeof plotlyData[0].xbins.end).toBe('string');
+        });
+
+        it('should convert custom bin size from seconds to milliseconds for time fields', () => {
+          const props = createHistogramProps({
+            values: timeValues,
+            fieldType: 'time',
+            fieldName: 'timestamp',
+            fields: ['timestamp'],
+            histogramBinSize: '60',
+          });
+          renderPlotlyElement(props);
+
+          expect(plotlyData[0].xbins.size).toBe(60000);
+        });
+
+        it('should not convert preset bin sizes for time fields', () => {
+          const props = createHistogramProps({
+            values: timeValues,
+            fieldType: 'time',
+            fieldName: 'timestamp',
+            fields: ['timestamp'],
+            histogramBinSize: 'medium',
+          });
+          renderPlotlyElement(props);
+
+          // Preset should use computed Scott's rule directly, not multiply by 1000
+          const expectedSize = computeScottsBinSize(timeValues);
+          expect(plotlyData[0].xbins.size).toBeCloseTo(expectedSize, 5);
+        });
+      });
+
+      describe('data normalization', () => {
+        it('should filter out null and undefined values', () => {
+          const props = createHistogramProps();
           props.data.series = [
             {
               name: 'Series 1',
@@ -1165,17 +1397,116 @@ describe('PlotlyPanel', () => {
                 {
                   name: 'value',
                   type: 'number',
-                  values: { toArray: () => [10, 20, 20, 30] },
+                  values: { toArray: () => [10, null, 20, undefined, 30] },
                   config: {},
                 },
               ],
-              length: 4,
+              length: 5,
             },
           ] as any;
-
           renderPlotlyElement(props);
 
-          expect(plotlyLayout.barmode).toBe(histogramMode);
+          expect(plotlyData[0].x).toEqual([10, 20, 30]);
+        });
+
+        it('should filter out NaN and Infinity values', () => {
+          const props = createHistogramProps();
+          props.data.series = [
+            {
+              name: 'Series 1',
+              fields: [
+                {
+                  name: 'value',
+                  type: 'number',
+                  values: { toArray: () => [10, NaN, 20, Infinity, -Infinity, 30] },
+                  config: {},
+                },
+              ],
+              length: 6,
+            },
+          ] as any;
+          renderPlotlyElement(props);
+
+          expect(plotlyData[0].x).toEqual([10, 20, 30]);
+        });
+
+        it('should parse numeric strings', () => {
+          const props = createHistogramProps();
+          props.data.series = [
+            {
+              name: 'Series 1',
+              fields: [
+                {
+                  name: 'value',
+                  type: 'string',
+                  values: { toArray: () => ['10', '20.5', '30'] },
+                  config: {},
+                },
+              ],
+              length: 3,
+            },
+          ] as any;
+          renderPlotlyElement(props);
+
+          expect(plotlyData[0].x).toEqual([10, 20.5, 30]);
+        });
+
+        it('should parse datetime strings to epoch ms', () => {
+          const props = createHistogramProps();
+          props.data.series = [
+            {
+              name: 'Series 1',
+              fields: [
+                {
+                  name: 'value',
+                  type: 'string',
+                  values: { toArray: () => ['2021-01-01T00:00:00Z', '2021-01-02T00:00:00Z'] },
+                  config: {},
+                },
+              ],
+              length: 2,
+            },
+          ] as any;
+          renderPlotlyElement(props);
+
+          expect(plotlyData[0].x).toEqual([
+            Date.parse('2021-01-01T00:00:00Z'),
+            Date.parse('2021-01-02T00:00:00Z'),
+          ]);
+        });
+
+        it('should skip trace when all values are filtered', () => {
+          const props = createHistogramProps();
+          props.data.series = [
+            {
+              name: 'Series 1',
+              fields: [
+                {
+                  name: 'value',
+                  type: 'number',
+                  values: { toArray: () => [null, NaN, undefined] },
+                  config: {},
+                },
+              ],
+              length: 3,
+            },
+          ] as any;
+          renderPlotlyElement(props);
+
+          expect(plotlyData).toHaveLength(0);
+        });
+      });
+
+      describe('bin limiting', () => {
+        it('should cap bins at 1000 by adjusting bin size', () => {
+          const values = Array.from({ length: 100 }, (_, i) => i);
+          const props = createHistogramProps({ values, histogramBinSize: '0.01' });
+          renderPlotlyElement(props);
+
+          // Range is 0..99 = 99. 99/0.01 = 9900 bins > 1000
+          // So bin size should be auto-adjusted to 99/1000 = 0.099
+          const expectedMinSize = (99) / 1000;
+          expect(plotlyData[0].xbins.size).toBeCloseTo(expectedMinSize, 5);
         });
       });
     });

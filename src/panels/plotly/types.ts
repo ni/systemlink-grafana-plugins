@@ -37,7 +37,7 @@ export interface SeriesOptions {
   staircase: boolean;
   markerSize: number;
   lineWidth: number;
-  nbinsx?: number;
+  histogramBinSize?: string;
   histogramMode?: 'overlay' | 'stack' | 'group' | 'relative';
 }
 

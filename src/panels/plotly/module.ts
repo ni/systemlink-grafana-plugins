@@ -17,6 +17,7 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         path: 'xAxis.field',
         name: 'Field',
         settings: { placeholderText: 'Auto' },
+        showIf: (options) => options.series.plotType !== 'histogram',
         category: ['X Axis'],
       })
       .addTextInput({
@@ -144,13 +145,19 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         defaultValue: 'line',
         category: ['Y Axis'],
       })
-      .addNumberInput({
-        path: 'series.nbinsx',
+      .addSelect({
+        path: 'series.histogramBinSize',
         name: 'Bin granularity',
         settings: {
-          placeholder: 'Auto',
-          min: 1,
+          options: [
+            { label: 'Auto', value: 'auto' },
+            { label: 'Coarse', value: 'coarse' },
+            { label: 'Medium', value: 'medium' },
+            { label: 'Fine', value: 'fine' },
+          ],
+          allowCustomValue: true,
         },
+        defaultValue: 'auto',
         showIf: (options) => options.series.plotType === 'histogram',
         category: ['Y Axis'],
       })
@@ -393,7 +400,7 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         path: 'invertXAxis',
         name: 'Invert X axis',
         defaultValue: true,
-        showIf: (options) => options.displayVertically === false,
+        showIf: (options) => options.displayVertically === false && options.series.plotType !== 'histogram',
       });
   })
   .useFieldConfig({
