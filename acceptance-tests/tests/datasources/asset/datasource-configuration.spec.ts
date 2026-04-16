@@ -18,7 +18,6 @@ test.describe('Datasource Configuration', () => {
             await dataSource.navigateToDatasourcesPage();
             await dataSource.addDataSourceButton.click();
             await dataSource.dataSource('SystemLink Assets').click();
-            await dataSource.page.waitForLoadState('domcontentloaded');
             await dataSource.nameSettingsInputField.waitFor({ state: 'visible', timeout: timeOutPeriod });
             await dataSource.httpSettingsURL.waitFor({ state: 'visible', timeout: timeOutPeriod });
             await dataSource.changeNameInputFieldValue(dataSourceName);

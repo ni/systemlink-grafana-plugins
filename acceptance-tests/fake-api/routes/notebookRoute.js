@@ -37,13 +37,6 @@ class NotebookRoutes {
         });
     }
 
-    queryExecutions(_req, res) {
-        res.status(200).json({
-            executions: [],
-            totalCount: 0
-        });
-    }
-
     getNotebookMetadata(_req, res) {
         res.status(200).json({
             metadata: {
@@ -52,6 +45,11 @@ class NotebookRoutes {
                     {
                         id: 'asset_list',
                         display_name: 'Asset List',
+                        type: 'data_frame'
+                    },
+                    {
+                        id: 'decoy_output',
+                        display_name: 'Decoy Output',
                         type: 'data_frame'
                     }
                 ],

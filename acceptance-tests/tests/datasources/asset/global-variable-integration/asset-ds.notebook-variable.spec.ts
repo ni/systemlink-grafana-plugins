@@ -37,12 +37,12 @@ test.describe('Asset DataSource with Notebook Variable', () => {
             await dashboard.settings.goToVariablesTab();
             await dashboard.settings.addNewVariable();
 
-            await dashboard.settings.variable.nameInputField.fill('notebook_asset_id');
-            await dashboard.settings.variable.selectDataSource(notebookDataSourceName);
+            await dashboard.settings.notebookVariable.nameInputField.fill('notebook_asset_id');
+            await dashboard.settings.notebookVariable.selectDataSource(notebookDataSourceName);
             await pressEscape(dashboard.page);
-            await dashboard.settings.variable.selectNotebookVariableDropdownOption('Asset List Notebook');
+            await dashboard.settings.notebookVariable.selectNotebookVariableDropdownOption('Asset List Notebook');
             await pressEscape(dashboard.page);
-            await dashboard.settings.variable.applyVariableChanges();
+            await dashboard.settings.notebookVariable.applyVariableChanges();
             expect(dashboard.settings.createdVariable('notebook_asset_id')).toBeDefined();
         });
 
@@ -63,7 +63,7 @@ test.describe('Asset DataSource with Notebook Variable', () => {
         test('should filter assets by ID using notebook variable', async () => {
             await dashboard.panel.assetQueryEditor.addFilter('Asset Identifier', 'Equals', '$notebook_asset_id');
 
-            await dashboard.panel.assetQueryEditor.switchToTableView();
+            await dashboard.panel.toolbar.switchToTableView();
 
             expect(await dashboard.panel.table.getTableRowCount()).toBe(1);
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.vendor_name, 'vendor1')).toBeTruthy();
@@ -75,7 +75,7 @@ test.describe('Asset DataSource with Notebook Variable', () => {
         });
 
         test('should update filter when variable value changes', async () => {
-            await dashboard.panel.assetQueryEditor.openVariableDropdown('id1', 'id2');
+            await dashboard.panel.toolbar.openVariableDropdown('id1', 'id2');
             await dashboard.panel.toolbar.refreshData();
 
             expect(await dashboard.panel.table.getTableRowCount()).toBe(1);

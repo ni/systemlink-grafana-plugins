@@ -14,6 +14,14 @@ export const notebookExecutions = {
         result: {
             result: [
                 {
+                    id: 'decoy_output',
+                    type: 'data_frame',
+                    data: {
+                        columns: [{ name: 'id', type: 'string' }],
+                        values: []
+                    }
+                },
+                {
                     id: 'asset_list',
                     type: 'data_frame',
                     data: {
