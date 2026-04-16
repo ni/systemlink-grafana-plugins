@@ -235,6 +235,37 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         showIf: (options) => options.series.plotType === 'histogram',
         category: ['Axis'],
       })
+            .addSelect({
+        path: 'series.histogramBinSize',
+        name: 'Bin granularity',
+        settings: {
+          options: [
+            { label: 'Auto', value: 'auto' },
+            { label: 'Coarse', value: 'coarse' },
+            { label: 'Medium', value: 'medium' },
+            { label: 'Fine', value: 'fine' },
+          ],
+          allowCustomValue: true,
+        },
+        defaultValue: 'auto',
+        showIf: (options) => options.series.plotType === 'histogram',
+        category: ['Axis'],
+      })
+      .addSelect({
+        path: 'series.histogramMode',
+        name: 'Bar mode',
+        settings: {
+          options: [
+            { label: 'Overlaid', value: 'overlay' },
+            { label: 'Side by Side', value: 'group' },
+            { label: 'Stacked', value: 'stack' },
+            { label: 'Positive/Negative Stacked', value: 'relative' },
+          ],
+        },
+        defaultValue: 'overlay',
+        showIf: (options) => options.series.plotType === 'histogram',
+        category: ['Axis'],
+      })
       .addTextInput({
         path: 'xAxis.title',
         name: 'Label',
@@ -288,37 +319,6 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         path: 'xAxis.unit',
         name: 'Unit',
         defaultValue: '',
-        showIf: (options) => options.series.plotType === 'histogram',
-        category: ['Axis'],
-      })
-      .addSelect({
-        path: 'series.histogramBinSize',
-        name: 'Bin granularity',
-        settings: {
-          options: [
-            { label: 'Auto', value: 'auto' },
-            { label: 'Coarse', value: 'coarse' },
-            { label: 'Medium', value: 'medium' },
-            { label: 'Fine', value: 'fine' },
-          ],
-          allowCustomValue: true,
-        },
-        defaultValue: 'auto',
-        showIf: (options) => options.series.plotType === 'histogram',
-        category: ['Axis'],
-      })
-      .addSelect({
-        path: 'series.histogramMode',
-        name: 'Bar mode',
-        settings: {
-          options: [
-            { label: 'Overlaid', value: 'overlay' },
-            { label: 'Side by Side', value: 'group' },
-            { label: 'Stacked', value: 'stack' },
-            { label: 'Positive/Negative Stacked', value: 'relative' },
-          ],
-        },
-        defaultValue: 'overlay',
         showIf: (options) => options.series.plotType === 'histogram',
         category: ['Axis'],
       })
