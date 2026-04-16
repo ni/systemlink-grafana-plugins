@@ -27,6 +27,7 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         settings: {
           placeholder: 'Auto',
         },
+        showIf: (options) => options.series.plotType !== 'histogram',
         category: ['X Axis'],
       })
       .addSelect({
@@ -37,6 +38,7 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
           getOptions: getScaleOptions,
         },
         defaultValue: '',
+        showIf: (options) => options.series.plotType !== 'histogram',
         category: ['X Axis'],
       })
       .addNumberInput({
@@ -45,6 +47,7 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         settings: {
           placeholder: 'Auto',
         },
+        showIf: (options) => options.series.plotType !== 'histogram',
         category: ['X Axis'],
       })
       .addNumberInput({
@@ -53,6 +56,7 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         settings: {
           placeholder: 'Auto',
         },
+        showIf: (options) => options.series.plotType !== 'histogram',
         category: ['X Axis'],
       })
       .addNumberInput({
@@ -62,12 +66,14 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
           placeholder: 'Auto',
           min: 0,
         },
+        showIf: (options) => options.series.plotType !== 'histogram',
         category: ['X Axis'],
       })
       .addTextInput({
         path: 'xAxis.unit',
         name: 'Unit',
         defaultValue: '',
+        showIf: (options) => options.series.plotType !== 'histogram',
         category: ['X Axis'],
       })
       .addMultiSelect<string, SelectFieldConfigSettings<string>>({
@@ -77,6 +83,7 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
           options: [],
           getOptions: (context) => getFieldOptions(context, (context.options as PanelOptions)?.yAxis.fields),
         },
+        showIf: (options) => options.series.plotType !== 'histogram',
         category: ['Y Axis'],
       })
       .addTextInput({
@@ -86,6 +93,7 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         settings: {
           placeholder: 'Auto',
         },
+        showIf: (options) => options.series.plotType !== 'histogram',
         category: ['Y Axis'],
       })
       .addSelect({
@@ -96,6 +104,7 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
           getOptions: getScaleOptions,
         },
         defaultValue: '',
+        showIf: (options) => options.series.plotType !== 'histogram',
         category: ['Y Axis'],
       })
       .addNumberInput({
@@ -104,6 +113,7 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         settings: {
           placeholder: 'Auto',
         },
+        showIf: (options) => options.series.plotType !== 'histogram',
         category: ['Y Axis'],
       })
       .addNumberInput({
@@ -112,6 +122,7 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         settings: {
           placeholder: 'Auto',
         },
+        showIf: (options) => options.series.plotType !== 'histogram',
         category: ['Y Axis'],
       })
       .addNumberInput({
@@ -121,12 +132,14 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
           placeholder: 'Auto',
           min: 0,
         },
+        showIf: (options) => options.series.plotType !== 'histogram',
         category: ['Y Axis'],
       })
       .addTextInput({
         path: 'yAxis.unit',
         name: 'Unit',
         defaultValue: '',
+        showIf: (options) => options.series.plotType !== 'histogram',
         category: ['Y Axis'],
       })
       .addRadio({
@@ -143,37 +156,7 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
           ],
         },
         defaultValue: 'line',
-        category: ['Y Axis'],
-      })
-      .addSelect({
-        path: 'series.histogramBinSize',
-        name: 'Bin granularity',
-        settings: {
-          options: [
-            { label: 'Auto', value: 'auto' },
-            { label: 'Coarse', value: 'coarse' },
-            { label: 'Medium', value: 'medium' },
-            { label: 'Fine', value: 'fine' },
-          ],
-          allowCustomValue: true,
-        },
-        defaultValue: 'auto',
-        showIf: (options) => options.series.plotType === 'histogram',
-        category: ['Y Axis'],
-      })
-      .addSelect({
-        path: 'series.histogramMode',
-        name: 'Bar mode',
-        settings: {
-          options: [
-            { label: 'Overlaid', value: 'overlay' },
-            { label: 'Side by Side', value: 'group' },
-            { label: 'Stacked', value: 'stack' },
-            { label: 'Positive/Negative Stacked', value: 'relative' },
-          ],
-        },
-        defaultValue: 'overlay',
-        showIf: (options) => options.series.plotType === 'histogram',
+        showIf: (options) => options.series.plotType !== 'histogram',
         category: ['Y Axis'],
       })
       .addBooleanSwitch({
@@ -224,6 +207,120 @@ export const plugin = new PanelPlugin<PanelOptions>(PlotlyPanel)
         },
         showIf: (options) => options.series.plotType === 'points',
         category: ['Y Axis'],
+      })
+      .addRadio({
+        path: 'series.plotType',
+        name: 'Plot type',
+        settings: {
+          options: [
+            { label: 'Line', value: 'line' },
+            { label: 'Bar', value: 'bar' },
+            { label: 'Points', value: 'points' },
+            { label: 'Box', value: 'box' },
+            { label: 'Violin', value: 'violin' },
+            { label: 'Histogram', value: 'histogram' },
+          ],
+        },
+        defaultValue: 'line',
+        showIf: (options) => options.series.plotType === 'histogram',
+        category: ['Axis'],
+      })
+      .addMultiSelect<string, SelectFieldConfigSettings<string>>({
+        path: 'yAxis.fields',
+        name: 'Field',
+        settings: {
+          options: [],
+          getOptions: (context) => getFieldOptions(context, (context.options as PanelOptions)?.yAxis.fields),
+        },
+        showIf: (options) => options.series.plotType === 'histogram',
+        category: ['Axis'],
+      })
+      .addTextInput({
+        path: 'xAxis.title',
+        name: 'Label',
+        defaultValue: '',
+        settings: {
+          placeholder: 'Auto',
+        },
+        showIf: (options) => options.series.plotType === 'histogram',
+        category: ['Axis'],
+      })
+      .addSelect({
+        path: 'xAxis.scale',
+        name: 'Scale',
+        settings: {
+          options: [],
+          getOptions: getScaleOptions,
+        },
+        defaultValue: '',
+        showIf: (options) => options.series.plotType === 'histogram',
+        category: ['Axis'],
+      })
+      .addNumberInput({
+        path: 'xAxis.min',
+        name: 'Min',
+        settings: {
+          placeholder: 'Auto',
+        },
+        showIf: (options) => options.series.plotType === 'histogram',
+        category: ['Axis'],
+      })
+      .addNumberInput({
+        path: 'xAxis.max',
+        name: 'Max',
+        settings: {
+          placeholder: 'Auto',
+        },
+        showIf: (options) => options.series.plotType === 'histogram',
+        category: ['Axis'],
+      })
+      .addNumberInput({
+        path: 'xAxis.decimals',
+        name: 'Decimals',
+        settings: {
+          placeholder: 'Auto',
+          min: 0,
+        },
+        showIf: (options) => options.series.plotType === 'histogram',
+        category: ['Axis'],
+      })
+      .addTextInput({
+        path: 'xAxis.unit',
+        name: 'Unit',
+        defaultValue: '',
+        showIf: (options) => options.series.plotType === 'histogram',
+        category: ['Axis'],
+      })
+      .addSelect({
+        path: 'series.histogramBinSize',
+        name: 'Bin granularity',
+        settings: {
+          options: [
+            { label: 'Auto', value: 'auto' },
+            { label: 'Coarse', value: 'coarse' },
+            { label: 'Medium', value: 'medium' },
+            { label: 'Fine', value: 'fine' },
+          ],
+          allowCustomValue: true,
+        },
+        defaultValue: 'auto',
+        showIf: (options) => options.series.plotType === 'histogram',
+        category: ['Axis'],
+      })
+      .addSelect({
+        path: 'series.histogramMode',
+        name: 'Bar mode',
+        settings: {
+          options: [
+            { label: 'Overlaid', value: 'overlay' },
+            { label: 'Side by Side', value: 'group' },
+            { label: 'Stacked', value: 'stack' },
+            { label: 'Positive/Negative Stacked', value: 'relative' },
+          ],
+        },
+        defaultValue: 'overlay',
+        showIf: (options) => options.series.plotType === 'histogram',
+        category: ['Axis'],
       })
       .addBooleanSwitch({
         path: 'showYAxis2',
