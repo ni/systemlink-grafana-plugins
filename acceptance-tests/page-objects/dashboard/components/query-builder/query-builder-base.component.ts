@@ -56,7 +56,12 @@ export class QueryBuilderBaseComponent {
         await this.addGroupFilterButton.dispatchEvent('pointerdown', { bubbles: true, isPrimary: true });
         const menuButton = operator.toLowerCase() === 'and' ? this.andFilterGroupButton : this.orFilterGroupButton;
         await menuButton.waitFor({ state: 'visible' });
-        await menuButton.evaluate(el => el.scrollIntoView({ block: 'center' }));
+        // The smart-conditions-menu plays an open animation.
+        // Clicking before it finishes dispatches pointer events at mid-animation coordinates
+        // and can select "And" instead of "Or" under CPU load.
+        await menuButton.evaluate(el =>
+            el.closest('.smart-conditions-menu')?.setAttribute('animation', 'none')
+        );
         await menuButton.click({ force: true });
         await this.queryBuilderPropertyField.last().waitFor({ state: 'visible' });
     }

@@ -50,6 +50,7 @@ test.describe('Systems data source with scan code return type', () => {
             await dashboard.settings.systemVariable.addFilterGroup('Or');
             await dashboard.settings.systemVariable.addFilterByTypingPropertyName('Model', 'equals', 'Model8');
             await pressEnter(dashboard.page);
+            await dashboard.settings.systemVariable.applyVariableChanges();
             await dashboard.settings.goBackToDashboardPage();
 
             await dashboard.variableDropdown('System-1').click();
