@@ -3,19 +3,19 @@ import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { pressEscape } from '../../../../utils/keyboard-utilities';
 import { assetColumn } from '../../../../constants/asset-list-properties.constant';
-import { DataSourcePage } from '../../../../page-objects/data-sources/data-source.pageobject';
 import { timeOutPeriod } from '../../../../constants/global.constant';
+import { NotebookDataSource } from '../../../../page-objects/data-sources/notebook-data-source.pageobject';
 
 test.describe('Asset DataSource with Notebook Variable', () => {
     let dashboard: DashboardPage;
-    let dataSource: DataSourcePage;
+    let dataSource: NotebookDataSource;
     const assetDataSourceName = 'SystemLink Assets With Notebook Variable';
     const notebookDataSourceName = 'SystemLink Notebook for Asset Datasource';
 
     test.beforeAll(async ({ browser }) => {
         const context = await browser.newContext();
         const page = await context.newPage();
-        dataSource = new DataSourcePage(page);
+        dataSource = new NotebookDataSource(page);
         dashboard = new DashboardPage(page);
 
         await dataSource.addDataSource('SystemLink Assets', assetDataSourceName);

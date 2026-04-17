@@ -1,4 +1,4 @@
-import { Locator, Page } from "playwright/test";
+import { Page } from "playwright/test";
 import { DashboardVariableBaseComponent } from "./dashboard-variable-base.component";
 
 export class DashboardNotebookVariableComponent extends DashboardVariableBaseComponent {
@@ -7,12 +7,11 @@ export class DashboardNotebookVariableComponent extends DashboardVariableBaseCom
     }
 
     public get notebookVariableDropdown() {
-        // return this.page.locator('#react-select-6-input');
-        return this.page.locator('text=Select notebook').first();
+        return this.page.getByRole('combobox', { name: 'Select notebook' });
     }
 
     async selectNotebookVariableDropdownOption(option: string): Promise<void> {
-        await this.notebookVariableDropdown.click({ force: true });
+        await this.notebookVariableDropdown.click();
         await this.page.getByText(option).click();
     }
 }
