@@ -7,11 +7,11 @@ export class DashboardNotebookVariableComponent extends DashboardVariableBaseCom
     }
 
     public get notebookVariableDropdown() {
-        return this.page.getByRole('combobox', { name: 'Select notebook' });
+        return this.page.locator('text=Select notebook').first();
     }
 
     async selectNotebookVariableDropdownOption(option: string): Promise<void> {
-        await this.notebookVariableDropdown.click();
+        await this.notebookVariableDropdown.click({ force: true });
         await this.page.getByText(option).click();
     }
 }
