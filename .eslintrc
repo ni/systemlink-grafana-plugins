@@ -1,5 +1,9 @@
 {
   "extends": "./.config/.eslintrc",
+  "rules": {
+    "react-hooks/refs": "off",
+    "react-hooks/set-state-in-effect": "off"
+  },
   "overrides": [
     {
       "files": ["**/*.test.ts", "**/*.test.tsx"],

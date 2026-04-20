@@ -1,7 +1,7 @@
 import { SelectableValue } from '@grafana/data';
 import { AutoSizeInput, InlineField, InlineSwitch, MultiSelect, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
 import { validateNumericInput } from 'core/utils';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { OutputType } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
 import { stepsProjectionLabelLookup, QuerySteps, StepsProperties } from 'datasources/results/types/QuerySteps.types';
@@ -20,6 +20,8 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   const [disableStepsQueryBuilder, setDisableStepsQueryBuilder] = useState(false);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
   const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);
+  const lastUsedResultsFilter = useRef(query.resultsQuery);
+  const lastUsedStepsFilter = useRef(query.stepsQuery);
 
   useEffect(() => {
     setDisableStepsQueryBuilder(!query.resultsQuery);
@@ -65,15 +67,15 @@ export function QueryStepsEditor({ query, handleQueryChange, datasource }: Props
   const onResultsFilterChange = (resultsQuery: string) => {
     if (resultsQuery === '') {
       handleQueryChange({ ...query, resultsQuery });
-    } else if (query.resultsQuery !== resultsQuery) {
-      query.resultsQuery = resultsQuery;
+    } else if (query.resultsQuery !== resultsQuery && lastUsedResultsFilter.current !== resultsQuery) {
+      lastUsedResultsFilter.current = resultsQuery;
       handleQueryChange({ ...query, resultsQuery });
     }
   };
 
   const onStepsFilterChange = (stepsQuery: string) => {
-    if (query.stepsQuery !== stepsQuery) {
-      query.stepsQuery = stepsQuery;
+    if (query.stepsQuery !== stepsQuery && lastUsedStepsFilter.current !== stepsQuery) {
+      lastUsedStepsFilter.current = stepsQuery;
       handleQueryChange({ ...query, stepsQuery: stepsQuery });
     }
   };

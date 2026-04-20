@@ -3,7 +3,7 @@ import { AlarmsDataSource } from '../AlarmsDataSource';
 import { AutoSizeInput, InlineField, InlineSwitch, Stack } from '@grafana/ui';
 import { AlarmsQueryBuilder } from './query-builder/AlarmsQueryBuilder';
 import { Workspace } from 'core/types';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FloatingError } from 'core/errors';
 import { AlarmsVariableQuery } from '../types/types';
 import { ERROR_SEVERITY_WARNING, LABEL_WIDTH, labels, QUERY_EDITOR_MAX_TAKE, QUERY_EDITOR_MIN_TAKE, placeholders, takeErrorMessages, tooltips } from '../constants/AlarmsQueryEditor.constants';
@@ -13,6 +13,7 @@ type Props = QueryEditorProps<AlarmsDataSource, AlarmsVariableQuery>;
 
 export function AlarmsVariableQueryEditor({ query, onChange, datasource }: Props) {
   const preparedQuery = datasource.prepareVariableQuery(query);
+  const lastUsedFilter = useRef(preparedQuery.filter);
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [takeInvalidMessage, setTakeInvalidMessage] = useState<string>('');
 
@@ -26,8 +27,8 @@ export function AlarmsVariableQueryEditor({ query, onChange, datasource }: Props
   }, [datasource]);
 
   const onFilterChange = (filter: string) => {
-    if (preparedQuery.filter !== filter) {
-      preparedQuery.filter = filter;
+    if (preparedQuery.filter !== filter && lastUsedFilter.current !== filter) {
+      lastUsedFilter.current = filter;
       onChange({ ...preparedQuery, filter });
     }
   };
