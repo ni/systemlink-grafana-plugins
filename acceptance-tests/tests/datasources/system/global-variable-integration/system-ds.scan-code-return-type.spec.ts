@@ -84,9 +84,7 @@ test.describe('Systems data source with scan code return type', () => {
         test('should verify that table data changes as the variable value changes', async () => {
             await dashboard.panel.table.getTableBody.first().waitFor({ state: 'visible', timeout: timeOutPeriod });
 
-            let rowCount = await dashboard.panel.table.getTableRowCount();
-
-            expect(rowCount).toBe(1);
+            await expect(dashboard.panel.table.tableRow).toHaveCount(1, { timeout: timeOutPeriod });
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.id, 'SYSTEM-1')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.alias, 'System-1')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.connection_status, 'CONNECTED')).toBeTruthy();
@@ -101,9 +99,7 @@ test.describe('Systems data source with scan code return type', () => {
             await dashboard.panel.toolbar.openVariableDropdown('System-1', 'System-8');
             await dashboard.panel.toolbar.refreshData();
 
-            rowCount = await dashboard.panel.table.getTableRowCount();
-
-            expect(rowCount).toBe(1);
+            await expect(dashboard.panel.table.tableRow).toHaveCount(1, { timeout: timeOutPeriod });
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.id, 'SYSTEM-8')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.alias, 'System-8')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.connection_status, 'CONNECTED_REFRESH_PENDING')).toBeTruthy();

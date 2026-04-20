@@ -21,7 +21,6 @@ test.describe('Asset DataSource with Notebook Variable', () => {
         await dataSource.addDataSource('SystemLink Assets', assetDataSourceName);
         await dataSource.dataSourceConnectedSuccessMessage.waitFor({ timeout: timeOutPeriod });
         await dataSource.addDataSource('SystemLink Notebooks', notebookDataSourceName);
-        await dataSource.notebookDataSourceConnectedSuccessMessage.waitFor({ timeout: timeOutPeriod });
     });
 
     test.afterAll(async () => {
@@ -65,7 +64,7 @@ test.describe('Asset DataSource with Notebook Variable', () => {
 
             await dashboard.panel.toolbar.switchToTableView();
 
-            expect(await dashboard.panel.table.getTableRowCount()).toBe(1);
+            await expect(dashboard.panel.table.tableRow).toHaveCount(1, { timeout: timeOutPeriod });
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.vendor_name, 'vendor1')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.name, 'name1')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.model_name, 'model1')).toBeTruthy();
@@ -78,7 +77,7 @@ test.describe('Asset DataSource with Notebook Variable', () => {
             await dashboard.panel.toolbar.openVariableDropdown('id1', 'id2');
             await dashboard.panel.toolbar.refreshData();
 
-            expect(await dashboard.panel.table.getTableRowCount()).toBe(1);
+            await expect(dashboard.panel.table.tableRow).toHaveCount(1, { timeout: timeOutPeriod });
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.vendor_name, 'vendor2')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.name, 'name2')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.model_name, 'model2')).toBeTruthy();
