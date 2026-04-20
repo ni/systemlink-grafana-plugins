@@ -1,0 +1,63 @@
+name: Pre-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Pre-release channel"
+        required: true
+        default: "alpha"
+        type: choice
+        options:
+          - alpha
+          - beta
+          - rc
+      run_lint:
+        description: "Run lint before publishing pre-release"
+        default: true
+        type: boolean
+      run_tests:
+        description: "Run tests before publishing pre-release"
+        default: true
+        type: boolean
+      run_acceptance_tests:
+        description: "Run acceptance tests before publishing pre-release"
+        default: true
+        type: boolean
+
+jobs:
+  pre-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Need history to determine next version
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint code
+        if: ${{ inputs.run_lint }}
+        run: npm run lint
+
+      - name: Unit tests
+        if: ${{ inputs.run_tests }}
+        run: npm run test:ci
+
+      - name: Acceptance tests
+        if: ${{ inputs.run_acceptance_tests }}
+        run: npm run test:acceptance
+
+      - name: Publish pre-release
+        run: npm run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+          PRERELEASE_CHANNEL: ${{ inputs.channel }}
+          PRERELEASE_BRANCH: ${{ github.ref_name }}
