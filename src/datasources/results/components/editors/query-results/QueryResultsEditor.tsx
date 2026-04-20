@@ -1,7 +1,7 @@
 import { SelectableValue } from '@grafana/data';
 import { AutoSizeInput, InlineField, MultiSelect, RadioButtonGroup, VerticalGroup } from '@grafana/ui';
 import { enumToOptions, validateNumericInput } from 'core/utils';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { resultsProjectionLabelLookup, QueryResults, ResultsProperties } from 'datasources/results/types/QueryResults.types';
 import { OutputType, TestMeasurementStatus } from 'datasources/results/types/types';
 import { TimeRangeControls } from '../time-range/TimeRangeControls';
@@ -23,6 +23,7 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
   const [partNumbers, setPartNumbers] = useState<string[]>([]);
   const [recordCountInvalidMessage, setRecordCountInvalidMessage] = useState<string>('');
   const [isPropertiesValid, setIsPropertiesValid] = useState<boolean>(true);
+  const lastUsedFilter = useRef(query.queryBy);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -71,8 +72,8 @@ export function QueryResultsEditor({ query, handleQueryChange, datasource }: Pro
   }
 
   const onParameterChange = (value: string) => {
-    if (query.queryBy !== value) {
-      query.queryBy = value;
+    if (query.queryBy !== value && lastUsedFilter.current !== value) {
+      lastUsedFilter.current = value;
       handleQueryChange({ ...query, queryBy: value });
     }
   }

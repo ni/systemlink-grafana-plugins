@@ -1,3 +1,13 @@
+## [5.0.0-alpha.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.144.1...v5.0.0-alpha.1) (2026-04-20)
+
+### ⚠ BREAKING CHANGES
+
+* upgrade to v12
+
+### Features
+
+* upgrade to v12 ([c054a9a](https://github.com/ni/systemlink-grafana-plugins/commit/c054a9a174f1be0d116effb860bb9d13a85b9e68))
+
 ## [4.144.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.144.0...v4.144.1) (2026-04-07)
 
 ### Bug Fixes

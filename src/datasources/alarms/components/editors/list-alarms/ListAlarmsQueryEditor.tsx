@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { InlineField } from 'core/components/InlineField';
 import { AlarmsQueryBuilder } from '../../query-builder/AlarmsQueryBuilder';
 import {
@@ -36,6 +36,7 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [isPropertiesControlValid, setIsPropertiesControlValid] = useState<boolean>(true);
   const [takeInvalidMessage, setTakeInvalidMessage] = useState<string>('');
+  const lastUsedFilter = useRef(query.filter);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -50,8 +51,8 @@ export function ListAlarmsQueryEditor({ query, handleQueryChange, datasource }: 
     if (event && 'detail' in event) {
       const value = (event as CustomEvent).detail.linq;
 
-      if (query.filter !== value) {
-        query.filter = value;
+      if (query.filter !== value && lastUsedFilter.current !== value) {
+        lastUsedFilter.current = value;
         handleQueryChange({ ...query, filter: value });
       }
     }
