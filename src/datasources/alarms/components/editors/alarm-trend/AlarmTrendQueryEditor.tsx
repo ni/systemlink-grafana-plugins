@@ -1,5 +1,5 @@
 import { AlarmTrendQuery } from 'datasources/alarms/types/AlarmTrend.types';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { InlineField } from 'core/components/InlineField';
 import { AlarmsQueryBuilder } from '../../query-builder/AlarmsQueryBuilder';
 import { ERROR_SEVERITY_WARNING, LABEL_WIDTH, labels, SECONDARY_LABEL_WIDTH, tooltips } from 'datasources/alarms/constants/AlarmsQueryEditor.constants';
@@ -16,6 +16,7 @@ type Props = {
 
 export function AlarmTrendQueryEditor({ query, handleQueryChange, datasource }: Props) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const lastUsedFilter = useRef(query.filter);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -29,9 +30,8 @@ export function AlarmTrendQueryEditor({ query, handleQueryChange, datasource }: 
   const onFilterChange = (event?: Event | React.FormEvent<Element>) => {
     if (event && 'detail' in event) {
       const value = (event as CustomEvent).detail.linq;
-      
-      if (query.filter !== value) {
-        query.filter = value;
+      if (query.filter !== value && lastUsedFilter.current !== value) {
+        lastUsedFilter.current = value;
         handleQueryChange({ ...query, filter: value });
       }
     }
