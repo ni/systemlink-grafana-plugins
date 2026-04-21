@@ -1,3 +1,9 @@
+## [4.146.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.145.0...v4.146.0) (2026-04-21)
+
+### Features
+
+* Add linting support for acceptance tests ([#716](https://github.com/ni/systemlink-grafana-plugins/issues/716)) ([f2eda6c](https://github.com/ni/systemlink-grafana-plugins/commit/f2eda6c2ba604be2529b6333842c44dc7005ddee))
+
 ## [4.145.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.144.1...v4.145.0) (2026-04-21)
 
 ### Features
