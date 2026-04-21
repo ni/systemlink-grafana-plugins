@@ -7,7 +7,9 @@
     "test:debug": "playwright test --headed --debug",
     "test:ci": "cross-env CI=1 playwright test",
     "playwright:setup": "playwright install --with-deps chromium",
-    "playwright:setup:ci": "playwright install chromium"
+    "playwright:setup:ci": "playwright install chromium",
+    "lint": "eslint --cache --ext .js,.ts .",
+    "lint:fix": "npm run lint -- --fix"
   },
   "dependencies": {
     "playwright": "^1.56.1",

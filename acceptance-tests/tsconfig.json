@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ES2022",
+        "moduleResolution": "node",
+        "strict": true,
+        "esModuleInterop": true,
+        "allowJs": true,
+        "noEmit": true,
+        "lib": [
+            "ES2022",
+            "DOM"
+        ]
+    },
+    "include": [
+        "./**/*.ts",
+        "./**/*.js"
+    ],
+    "exclude": [
+        "node_modules",
+        "playwright-report",
+        "playwright-results"
+    ]
+}
