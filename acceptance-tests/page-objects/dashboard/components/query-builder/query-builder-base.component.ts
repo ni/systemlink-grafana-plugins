@@ -1,5 +1,6 @@
 import { Page, Locator } from '@playwright/test';
 import { pressEnter } from '../../../../utils/keyboard-utilities';
+import { time } from 'console';
 
 export class QueryBuilderBaseComponent {
     protected readonly page: Page;

@@ -5,6 +5,7 @@ import { DataSourcePage } from '../../../../page-objects/data-sources/data-sourc
 import { interceptApiRoute } from '../../../../utils/intercept-api-route';
 import { AssetSummaryResponse } from '../../../../../src/datasources/asset/types/AssetSummaryQuery.types';
 import { timeOutPeriod } from '../../../../constants/global.constant';
+import { time } from 'console';
 
 test.describe('Asset Summary Table', () => {
     let dashboard: DashboardPage;
