@@ -8,7 +8,7 @@
     "test:ci": "cross-env CI=1 playwright test",
     "playwright:setup": "playwright install --with-deps chromium",
     "playwright:setup:ci": "playwright install chromium",
-    "lint": "eslint --cache --ext .js,.ts .",
+    "lint": "eslint --cache --ignore-path .gitignore --ext .js,.ts .",
     "lint:fix": "npm run lint -- --fix"
   },
   "dependencies": {
