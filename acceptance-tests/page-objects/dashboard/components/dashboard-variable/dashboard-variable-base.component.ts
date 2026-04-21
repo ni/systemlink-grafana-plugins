@@ -1,4 +1,4 @@
-import { Page } from "playwright/test";
+import { Locator, Page } from "playwright/test";
 
 export class DashboardVariableBaseComponent {
     protected readonly page: Page;

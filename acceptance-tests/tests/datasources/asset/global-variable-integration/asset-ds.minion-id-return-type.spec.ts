@@ -59,10 +59,7 @@ test.describe('Asset data source with minion id return type', () => {
 
         test('should verify that table data changes as the variable value changes', async () => {
             await dashboard.panel.table.getTableBody.first().waitFor({ state: 'visible', timeout: timeOutPeriod });
-
-            let rowCount = await dashboard.panel.table.getTableRowCount();
-
-            expect(rowCount).toBe(1);
+            await expect(dashboard.panel.table.tableRow).toHaveCount(1, { timeout: timeOutPeriod });
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.vendor_name, 'vendor1')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.name, 'name1')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.model_name, 'model1')).toBeTruthy();
@@ -71,9 +68,7 @@ test.describe('Asset data source with minion id return type', () => {
             await dashboard.panel.toolbar.openVariableDropdown('name1 (serial1)', 'name2 (serial2)');
             await dashboard.panel.toolbar.refreshData();
 
-            rowCount = await dashboard.panel.table.getTableRowCount();
-
-            expect(rowCount).toBe(1);
+            await expect(dashboard.panel.table.tableRow).toHaveCount(1, { timeout: timeOutPeriod });
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.vendor_name, 'vendor2')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.name, 'name2')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.model_name, 'model2')).toBeTruthy();

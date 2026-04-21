@@ -6,5 +6,15 @@ class AuthRoutes {
             workspaces,
         });
     }
+
+    authenticate(_req, res) {
+        res.status(200).json({
+            authenticated: true,
+            user: {
+                id: 'test-user',
+                username: 'testuser'
+            }
+        });
+    }
 }
 export const authRoutes = new AuthRoutes();
