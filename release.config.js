@@ -1,6 +1,9 @@
 const package = 'systemlink-grafana-plugins';
+const prerelease = process.env.PRERELEASE_CHANNEL;
+const branch = process.env.PRERELEASE_BRANCH;
 
 module.exports = {
+    ...(prerelease && { branches: ['main', { name: branch, prerelease, channel: prerelease }] }),
     plugins: [
         ["@semantic-release/commit-analyzer", {
             preset: "conventionalcommits"

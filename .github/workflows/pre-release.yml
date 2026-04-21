@@ -1,0 +1,93 @@
+name: Pre-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Pre-release channel"
+        required: true
+        default: "alpha"
+        type: choice
+        options:
+          - alpha
+          - beta
+          - rc
+      run_lint:
+        description: "Run lint before publishing pre-release"
+        default: true
+        type: boolean
+      run_tests:
+        description: "Run tests before publishing pre-release"
+        default: true
+        type: boolean
+      run_acceptance_tests:
+        description: "Run acceptance tests before publishing pre-release"
+        default: true
+        type: boolean
+
+jobs:
+  pre-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Need history to determine next version
+          token: ${{ secrets.CI_GITHUB_TOKEN }}
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint code
+        if: ${{ inputs.run_lint }}
+        run: npm run lint
+
+      - name: Unit tests
+        if: ${{ inputs.run_tests }}
+        run: npm run test:ci
+
+      - name: Build
+        if: ${{ inputs.run_acceptance_tests }}
+        run: npm run build
+
+      - name: Start test environment
+        if: ${{ inputs.run_acceptance_tests }}
+        run: docker compose -f docker-compose.tests.yaml up -d
+
+      - name: Wait for services
+        if: ${{ inputs.run_acceptance_tests }}
+        run: |
+          timeout 60 sh -c 'until curl -f http://localhost:4000/api/health > /dev/null 2>&1; do sleep 2; done'
+          timeout 60 sh -c 'until curl -f http://localhost:5000/up > /dev/null 2>&1; do sleep 2; done'
+
+      - name: Show docker logs on failure
+        if: ${{ inputs.run_acceptance_tests && failure() }}
+        run: docker compose -f docker-compose.tests.yaml logs --tail=200
+
+      - name: Acceptance tests
+        if: ${{ inputs.run_acceptance_tests }}
+        run: npm run test:acceptance
+
+      - name: Upload Playwright report
+        if: ${{ inputs.run_acceptance_tests && failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: acceptance-tests/playwright-report/
+          retention-days: 7
+
+      - name: Stop test environment
+        if: ${{ inputs.run_acceptance_tests && always() }}
+        run: docker compose -f docker-compose.tests.yaml down
+
+      - name: Publish pre-release
+        run: npm run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+          PRERELEASE_CHANNEL: ${{ inputs.channel }}
+          PRERELEASE_BRANCH: ${{ github.ref_name }}

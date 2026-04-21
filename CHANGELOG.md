@@ -1,3 +1,9 @@
+## [4.145.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.144.1...v4.145.0) (2026-04-21)
+
+### Features
+
+* **assets:** Add acceptance tests for asset data source with notebook variable integration ([#699](https://github.com/ni/systemlink-grafana-plugins/issues/699)) ([c795fb0](https://github.com/ni/systemlink-grafana-plugins/commit/c795fb07c3ac1ba21408d0a87b82e88f72cfe173))
+
 ## [4.144.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.144.0...v4.144.1) (2026-04-07)
 
 ### Bug Fixes
