@@ -3,16 +3,19 @@ import { AssetQueryEditorComponent } from "./panel-query-editor/asset-query-edit
 import { Table } from "./table.component";
 import { PanelToolbarComponent } from "./panel-toolbar.component";
 import { SystemsQueryEditorComponent } from "./panel-query-editor/system-query-editor.component";
+import { NotebookQueryEditorComponent } from "./panel-query-editor/notebook-query-editor.component";
 
 export class Panel {
     public readonly assetQueryEditor: AssetQueryEditorComponent;
     public readonly systemsQueryEditor: SystemsQueryEditorComponent;
+    public readonly notebookQueryEditor: NotebookQueryEditorComponent;
     public readonly toolbar: PanelToolbarComponent;
     public readonly table: Table;
 
     constructor(page: Page) {
         this.assetQueryEditor = new AssetQueryEditorComponent(page);
         this.systemsQueryEditor = new SystemsQueryEditorComponent(page);
+        this.notebookQueryEditor = new NotebookQueryEditorComponent(page);
         this.toolbar = new PanelToolbarComponent(page);
         this.table = new Table(page);
     }
