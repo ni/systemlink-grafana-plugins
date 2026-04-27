@@ -1,3 +1,9 @@
+## [4.147.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.146.0...v4.147.0) (2026-04-27)
+
+### Features
+
+* **notebook:** Add acceptance tests for notebook data source ([#717](https://github.com/ni/systemlink-grafana-plugins/issues/717)) ([ab9b590](https://github.com/ni/systemlink-grafana-plugins/commit/ab9b5906988a04aa3f097aa4ff4afe02aa5f9681))
+
 ## [4.146.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.145.0...v4.146.0) (2026-04-21)
 
 ### Features
