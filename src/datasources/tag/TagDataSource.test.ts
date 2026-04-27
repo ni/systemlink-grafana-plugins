@@ -26,7 +26,7 @@ beforeEach(() => {
   [ds, backendSrv, templateSrv] = setupDataSource(TagDataSource, () => tagOptions);
 });
 
-const buildQuery = getQueryBuilder<TagQuery>()({ type: TagQueryType.Current, workspace: '', properties: false });
+const buildQuery = getQueryBuilder<TagQuery>()({ type: TagQueryType.Current, workspace: '', properties: false, showTagPath: false });
 mockTimers();
 
 
@@ -140,7 +140,7 @@ describe('queries', () => {
       .calledWith(requestMatching({ data: { paths: ['my.tag1'], workspaces: ["*"] } }))
       .mockReturnValue(createQueryTagsResponse([{ tag: { path: 'my.tag1' } }]));
     backendSrv.fetch
-      .calledWith(requestMatching({ data: { paths: ['my.tag2'], workspaces: ["*"] }}))
+      .calledWith(requestMatching({ data: { paths: ['my.tag2'], workspaces: ["*"] } }))
       .mockReturnValue(createQueryTagsResponse([{ tag: { path: 'my.tag2' }, current: { value: { value: '41.3' } } }]));
 
     const result = await firstValueFrom(ds.query(buildQuery({ path: 'my.tag1' }, { path: '' }, { path: 'my.tag2' })));
@@ -497,6 +497,17 @@ describe('queries', () => {
     expect(result.data).toMatchSnapshot();
   });
 
+  test('appends tag path to query result when showTagPath is enabled', async () => {
+    backendSrv.fetch.mockReturnValue(createQueryTagsResponse([
+      { tag: { path: 'my.1.tag', properties: { displayName: 'Tag One' } } },
+      { tag: { path: 'my.2.tag' }, current: { value: { value: '41.3' } } }
+    ]));
+
+    const result = await firstValueFrom(ds.query(buildQuery({ path: 'my.*.tag', showTagPath: true })));
+
+    expect(result.data).toMatchSnapshot();
+  });
+
   test('supports legacy tag service property "workspace_id"', async () => {
     backendSrv.fetch
       .mockReturnValueOnce(
@@ -550,10 +561,10 @@ describe('parseMultiSelectValues', () => {
 
   test('multiple targets - skips invalid queries', async () => {
     backendSrv.fetch
-      .calledWith(requestMatching({  data: { paths: ['my.tag1'], workspaces: ["*"] } }))
+      .calledWith(requestMatching({ data: { paths: ['my.tag1'], workspaces: ["*"] } }))
       .mockReturnValue(createQueryTagsResponse([{ tag: { path: 'my.tag1' } }]));
     backendSrv.fetch
-      .calledWith(requestMatching({  data: { paths: ['my.tag2'], workspaces: ["*"] } }))
+      .calledWith(requestMatching({ data: { paths: ['my.tag2'], workspaces: ["*"] } }))
       .mockReturnValue(createQueryTagsResponse([{ tag: { path: 'my.tag2' }, current: { value: { value: '41.3' } } }]));
 
     const result = await firstValueFrom(ds.query(buildQuery({ path: 'my.tag1' }, { path: '' }, { path: 'my.tag2' })));
