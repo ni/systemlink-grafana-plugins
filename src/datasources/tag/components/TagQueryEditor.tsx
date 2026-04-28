@@ -39,13 +39,13 @@ export function TagQueryEditor({ query, onChange, onRunQuery, datasource }: Prop
 
   return (
     <>
-      <InlineField label="Query type" labelWidth={16} tooltip={tooltips.queryType}>
+      <InlineField label="Query type" labelWidth={18} tooltip={tooltips.queryType}>
         <RadioButtonGroup options={enumToOptions(TagQueryType)} value={query.type} onChange={onTypeChange} />
       </InlineField>
-      <InlineField label="Tag path" labelWidth={16} tooltip={tooltips.tagPath}>
+      <InlineField label="Tag path" labelWidth={18} tooltip={tooltips.tagPath}>
         <AutoSizeInput minWidth={20} maxWidth={80} defaultValue={query.path} onCommitChange={onPathChange} />
       </InlineField>
-      <InlineField label="Workspace" labelWidth={16} tooltip={tooltips.workspace}>
+      <InlineField label="Workspace" labelWidth={18} tooltip={tooltips.workspace}>
         <Select
           isClearable
           isLoading={workspaces.loading}
@@ -57,10 +57,10 @@ export function TagQueryEditor({ query, onChange, onRunQuery, datasource }: Prop
       </InlineField>
       {query.type === TagQueryType.Current && (
         <>
-          <InlineField label="Show properties" labelWidth={16} tooltip={tooltips.properties}>
+          <InlineField label="Show properties" labelWidth={18} tooltip={tooltips.properties}>
             <InlineSwitch onChange={onPropertiesChange} value={query.properties} />
           </InlineField>
-          <InlineField label="Show tag path" labelWidth={16} tooltip={tooltips.showTagPath}>
+          <InlineField label="Show tag path" labelWidth={18} tooltip={tooltips.showTagPath}>
             <InlineSwitch onChange={onShowTagPathChange} value={query.showTagPath} />
           </InlineField>
         </>

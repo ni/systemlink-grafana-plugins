@@ -16,7 +16,7 @@ it('renders with query defaults', async () => {
   expect(screen.getByRole('radio', { name: 'Current' })).toBeChecked();
   expect(screen.getByLabelText('Tag path')).not.toHaveValue();
   expect(screen.getByRole('combobox')).toHaveAccessibleDescription('Any workspace');
-  expect(screen.getByLabelText('Properties')).not.toBeChecked();
+  expect(screen.getByLabelText('Show properties')).not.toBeChecked();
   expect(screen.getByLabelText('Show tag path')).not.toBeChecked();
 });
 
@@ -33,7 +33,7 @@ it('renders with initial query and updates when user makes changes', async () =>
 
   // Users changes query type
   await userEvent.click(screen.getByRole('radio', { name: 'Current' }));
-  expect(screen.queryByLabelText('Properties')).toBeInTheDocument();
+  expect(screen.queryByLabelText('Show properties')).toBeInTheDocument();
   expect(screen.queryByLabelText('Show tag path')).toBeInTheDocument();
   expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ type: TagQueryType.Current }));
 
@@ -46,7 +46,7 @@ it('renders with initial query and updates when user makes changes', async () =>
   expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ workspace: '2' }));
 
   // User toggles properties
-  await userEvent.click(screen.getByLabelText('Properties'));
+  await userEvent.click(screen.getByLabelText('Show properties'));
   expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ properties: false }));
 
   // User toggles show tag path
