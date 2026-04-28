@@ -493,6 +493,48 @@ exports[`queries add workspace prefix only when a tag with the same path exists 
 ]
 `;
 
+exports[`queries appends tag path to query result when showTagPath is enabled 1`] = `
+[
+  {
+    "fields": [
+      {
+        "name": "name",
+        "values": [
+          "Tag One",
+          "my.2.tag",
+        ],
+      },
+      {
+        "name": "value",
+        "values": [
+          3.14,
+          41.3,
+        ],
+      },
+      {
+        "config": {
+          "unit": "dateTimeFromNow",
+        },
+        "name": "updated",
+        "type": "time",
+        "values": [
+          "2023-10-04T00:00:00.000000Z",
+          "2023-10-04T00:00:00.000000Z",
+        ],
+      },
+      {
+        "name": "tag path",
+        "values": [
+          "my.1.tag",
+          "my.2.tag",
+        ],
+      },
+    ],
+    "refId": "A",
+  },
+]
+`;
+
 exports[`queries appends tag properties to query result 1`] = `
 [
   {
