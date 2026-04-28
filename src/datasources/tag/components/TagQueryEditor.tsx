@@ -57,7 +57,7 @@ export function TagQueryEditor({ query, onChange, onRunQuery, datasource }: Prop
       </InlineField>
       {query.type === TagQueryType.Current && (
         <>
-          <InlineField label="Properties" labelWidth={16} tooltip={tooltips.properties}>
+          <InlineField label="Show properties" labelWidth={16} tooltip={tooltips.properties}>
             <InlineSwitch onChange={onPropertiesChange} value={query.properties} />
           </InlineField>
           <InlineField label="Show tag path" labelWidth={16} tooltip={tooltips.showTagPath}>
