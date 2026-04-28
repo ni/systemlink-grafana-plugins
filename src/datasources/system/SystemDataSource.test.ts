@@ -91,6 +91,7 @@ describe('with query builder enabled', () => {
               { name: 'ip address', values: ['172.17.0.1', 'fe80::280:2fff:fe24:fcfa'] },
               { name: 'workspace', values: ['Default workspace', 'Other workspace'] },
               { name: 'scan code', values: ['ABC123DEF456', 'ABC123DEF457'] },
+              { name: 'host name', values: ['DESKTOP-FC1', 'LENOVO-PC'] },
             ],
             refId: 'A',
           },
@@ -120,6 +121,7 @@ describe('with query builder enabled', () => {
               { name: 'ip address', values: ['172.17.0.1'] },
               { name: 'workspace', values: ['Default workspace'] },
               { name: 'scan code', values: ['ABC123DEF456'] },
+              { name: 'host name', values: ['DESKTOP-FC1'] },
             ],
             refId: 'A'
           }
@@ -429,6 +431,7 @@ describe('with query builder disabled (legacy mode)', () => {
           { name: 'ip address', values: ['172.17.0.1', 'fe80::280:2fff:fe24:fcfa'] },
           { name: 'workspace', values: ['Default workspace', 'Other workspace'] },
           { name: 'scan code', values: ['ABC123DEF456', 'ABC123DEF457'] },
+          { name: 'host name', values: ['DESKTOP-FC1', 'LENOVO-PC'] },
         ],
         refId: 'A',
       },
@@ -458,6 +461,7 @@ describe('with query builder disabled (legacy mode)', () => {
           { name: 'ip address', values: ['172.17.0.1'] },
           { name: 'workspace', values: ['Default workspace'] },
           { name: 'scan code', values: ['ABC123DEF456'] },
+          { name: 'host name', values: ['DESKTOP-FC1'] },
         ],
         refId: 'A',
       },
@@ -559,6 +563,7 @@ const fakeSystems: SystemProperties[] = [
       'ni-bridge': ['fe80::38b3:39ff:fe28:69bf'],
       'vxlan.calico': ['fe80::6486:2cff:fe02:5f49'],
     },
+    hostName: 'DESKTOP-FC1',
     workspace: '1',
   },
   {
@@ -583,6 +588,7 @@ const fakeSystems: SystemProperties[] = [
       eth0: ['fe80::280:2fff:fe24:fcf9'],
       lo: ['::1'],
     },
+    hostName: 'LENOVO-PC',
     workspace: '2',
   },
 ];
