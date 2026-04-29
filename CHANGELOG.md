@@ -1,3 +1,10 @@
+## [4.147.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.147.0...v4.147.1) (2026-04-29)
+
+### Bug Fixes
+
+* **systems:** Add "host name" field to the result table ([#719](https://github.com/ni/systemlink-grafana-plugins/issues/719)) ([b439077](https://github.com/ni/systemlink-grafana-plugins/commit/b43907738785787de32e46ecda5250734153ec75))
+* **tags:** Add "tag path" field to the result table ([#718](https://github.com/ni/systemlink-grafana-plugins/issues/718)) ([bbda131](https://github.com/ni/systemlink-grafana-plugins/commit/bbda131ec45c1dd5c5edcd353e4bff7cca048b0d))
+
 ## [4.147.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.146.0...v4.147.0) (2026-04-27)
 
 ### Features
