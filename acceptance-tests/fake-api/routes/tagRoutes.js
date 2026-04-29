@@ -1,13 +1,6 @@
 import { tagsWithValues, tagHistory } from '../database/tags.js';
 
 class TagRoutes {
-    /**
-     * POST /nitag/v2/fetch-tags-with-values
-     * Called by TagDataSource to load the current value of one or more tags.
-     *
-     * Body: { paths: string[], workspaces: string[], take: number }
-     *   - workspaces may contain "*" to match all workspaces.
-     */
     fetchTagsWithValues(req, res) {
         const { paths = [], workspaces = [] } = req.body;
 
@@ -27,16 +20,6 @@ class TagRoutes {
         res.status(200).json({ tagsWithValues: filtered });
     }
 
-    /**
-     * POST /nitaghistorian/v2/tags/query-decimated-history
-     * Called by HistoricalQueryHandler for each workspace batch.
-     *
-     * Body: { paths: string[], workspace: string, startTime: string,
-     *         endTime: string, decimation: number }
-     *
-     * Returns only the paths that exist in the mock database for that workspace.
-     * Values outside [startTime, endTime] are filtered out.
-     */
     queryDecimatedHistory(req, res) {
         const { paths = [], workspace, startTime, endTime } = req.body;
 

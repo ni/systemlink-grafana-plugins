@@ -1,6 +1,3 @@
-// Mock tags matching the TagWithValue shape (V1 + V2 combined).
-// Two tags live in 'default-workspace'; one extra 'temperature' tag lives
-// in 'workspace-2' so workspace-prefix tests are possible.
 export const tagsWithValues = [
     {
         tag: {
@@ -61,8 +58,6 @@ export const tagsWithValues = [
     },
 ];
 
-// Historical values keyed by workspace → path.
-// Used by the /nitaghistorian/v2/tags/query-decimated-history mock.
 export const tagHistory = {
     'default-workspace': {
         temperature: {
