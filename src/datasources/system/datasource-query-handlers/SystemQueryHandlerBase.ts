@@ -34,7 +34,7 @@ export abstract class SystemQueryHandlerBase {
     workspace: ''
   };
 
-  constructor(protected readonly dataSource: SystemDataSourceContext) {}
+  constructor(protected readonly dataSource: SystemDataSourceContext) { }
 
   abstract prepareQuery(query: SystemQuery): SystemQuery;
   abstract runQuery(query: SystemQuery, options: any): Observable<DataFrameDTO>;
@@ -70,7 +70,8 @@ export abstract class SystemQueryHandlerBase {
           values: properties.map(m => NetworkUtils.getIpAddressFromInterfaces(m.ip4Interfaces, m.ip6Interfaces)),
         },
         { name: 'workspace', values: properties.map(m => getWorkspaceName(workspaces, m.workspace)) },
-        { name: 'scan code', values: properties.map(m => m.scanCode) }
+        { name: 'scan code', values: properties.map(m => m.scanCode) },
+        { name: 'hostname', values: properties.map(m => m.hostName) },
       ],
     };
   }

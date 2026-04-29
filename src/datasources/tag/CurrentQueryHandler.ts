@@ -5,15 +5,19 @@ import { Workspace } from "core/types";
 import { Observable, of } from "rxjs";
 
 export class CurrentQueryHandler extends QueryHandler {
-    handleQuery$(tagsWithValues: TagWithValue[], result: DataFrameDTO, _workspaces: Workspace[], _range: TimeRange, _maxDataPoints: number | undefined, queryProperties: boolean): Observable<DataFrameDTO> {
-        return of(this.handleCurrentQuery(queryProperties, tagsWithValues, result));
+    handleQuery$(tagsWithValues: TagWithValue[], result: DataFrameDTO, _workspaces: Workspace[], _range: TimeRange, _maxDataPoints: number | undefined, queryProperties: boolean, queryShowTagPath: boolean): Observable<DataFrameDTO> {
+        return of(this.handleCurrentQuery(queryProperties, queryShowTagPath, tagsWithValues, result));
     }
 
-    private handleCurrentQuery(queryProperties: boolean, tagsWithValues: TagWithValue[], result: DataFrameDTO): DataFrameDTO {
+    private handleCurrentQuery(queryProperties: boolean, queryShowTagPath: boolean, tagsWithValues: TagWithValue[], result: DataFrameDTO): DataFrameDTO {
         this.addDefaultFieldsToResult(result, tagsWithValues);
 
         if (queryProperties) {
             this.addPropertiesFieldsToResult(result, tagsWithValues);
+        }
+
+        if (queryShowTagPath) {
+            this.addTagPathFieldToResult(result, tagsWithValues);
         }
 
         return result;
@@ -63,6 +67,13 @@ export class CurrentQueryHandler extends QueryHandler {
         });
 
         return props;
+    }
+
+    private addTagPathFieldToResult(result: DataFrameDTO, tagsWithValues: TagWithValue[]): void {
+        result.fields.push({
+            name: 'tag path',
+            values: tagsWithValues.map(({ tag }: TagWithValue) => tag.path)
+        });
     }
 }
 

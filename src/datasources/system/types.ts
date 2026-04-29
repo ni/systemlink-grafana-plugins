@@ -36,6 +36,7 @@ export interface SystemProperties {
   model?: string;
   vendor?: string;
   osFullName?: string;
+  hostName?: string;
   ip4Interfaces?: Record<string, string[]>;
   ip6Interfaces?: Record<string, string[]>;
   workspace: string;

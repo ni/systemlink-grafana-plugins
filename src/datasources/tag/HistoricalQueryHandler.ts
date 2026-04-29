@@ -13,7 +13,7 @@ export class HistoricalQueryHandler extends QueryHandler {
         super();
     }
 
-    handleQuery$(tagsWithValues: TagWithValue[], result: DataFrameDTO, workspaces: Workspace[], range: TimeRange, maxDataPoints: number | undefined, _queryProperties: boolean): Observable<DataFrameDTO> {
+    handleQuery$(tagsWithValues: TagWithValue[], result: DataFrameDTO, workspaces: Workspace[], range: TimeRange, maxDataPoints: number | undefined, _queryProperties: boolean, _queryShowTagPath: boolean): Observable<DataFrameDTO> {
         return this.handleHistoricalQuery$(tagsWithValues, workspaces, range, maxDataPoints, result.refId || '');
     }
 
@@ -105,7 +105,7 @@ export class HistoricalQueryHandler extends QueryHandler {
         return forkJoin(observables).pipe(
             map(responses => {
                 const tagsDecimatedHistory: Record<string, TypeAndValues> = {};
-                
+
                 for (const { workspace, results } of responses) {
                     for (const path in results) {
                         const prefixedPath =
@@ -116,7 +116,7 @@ export class HistoricalQueryHandler extends QueryHandler {
                         tagsDecimatedHistory[prefixedPath] = results[path];
                     }
                 }
-                
+
                 return tagsDecimatedHistory;
             })
         );

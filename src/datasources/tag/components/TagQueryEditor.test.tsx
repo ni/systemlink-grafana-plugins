@@ -16,22 +16,25 @@ it('renders with query defaults', async () => {
   expect(screen.getByRole('radio', { name: 'Current' })).toBeChecked();
   expect(screen.getByLabelText('Tag path')).not.toHaveValue();
   expect(screen.getByRole('combobox')).toHaveAccessibleDescription('Any workspace');
-  expect(screen.getByRole('switch')).not.toBeChecked();
+  expect(screen.getByLabelText('Show properties')).not.toBeChecked();
+  expect(screen.getByLabelText('Show tag path')).not.toBeChecked();
 });
 
 it('renders with initial query and updates when user makes changes', async () => {
-  const [onChange] = render({ type: TagQueryType.History, path: 'my.tag', workspace: '1', properties: true });
+  const [onChange] = render({ type: TagQueryType.History, path: 'my.tag', workspace: '1', properties: true, showTagPath: true });
   await workspacesLoaded();
 
   // Renders saved query
   expect(screen.getByRole('radio', { name: 'History' })).toBeChecked();
   expect(screen.getByLabelText('Tag path')).toHaveValue('my.tag');
   expect(screen.getByText('Default workspace')).toBeInTheDocument();
-  expect(screen.queryByRole('switch')).not.toBeInTheDocument();
+  expect(screen.queryByLabelText('Properties')).not.toBeInTheDocument();
+  expect(screen.queryByLabelText('Show tag path')).not.toBeInTheDocument();
 
   // Users changes query type
   await userEvent.click(screen.getByRole('radio', { name: 'Current' }));
-  expect(screen.queryByRole('switch')).toBeInTheDocument();
+  expect(screen.queryByLabelText('Show properties')).toBeInTheDocument();
+  expect(screen.queryByLabelText('Show tag path')).toBeInTheDocument();
   expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ type: TagQueryType.Current }));
 
   // User types in new tag path
@@ -43,6 +46,10 @@ it('renders with initial query and updates when user makes changes', async () =>
   expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ workspace: '2' }));
 
   // User toggles properties
-  await userEvent.click(screen.getByRole('switch'));
+  await userEvent.click(screen.getByLabelText('Show properties'));
   expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ properties: false }));
+
+  // User toggles show tag path
+  await userEvent.click(screen.getByLabelText('Show tag path'));
+  expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ showTagPath: false }));
 });
