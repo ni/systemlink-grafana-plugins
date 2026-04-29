@@ -123,6 +123,7 @@ export const defaultProjection = [
     'grains.data.productname as model',
     'grains.data.manufacturer as vendor',
     'grains.data.osfullname as osFullName',
+    'grains.data.localhost as hostName',
     'grains.data.ip4_interfaces as ip4Interfaces',
     'grains.data.ip6_interfaces as ip6Interfaces',
     'workspace',
