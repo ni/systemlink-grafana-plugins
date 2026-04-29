@@ -71,7 +71,7 @@ export abstract class SystemQueryHandlerBase {
         },
         { name: 'workspace', values: properties.map(m => getWorkspaceName(workspaces, m.workspace)) },
         { name: 'scan code', values: properties.map(m => m.scanCode) },
-        { name: 'host name', values: properties.map(m => m.hostName) },
+        { name: 'hostname', values: properties.map(m => m.hostName) },
       ],
     };
   }
