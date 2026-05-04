@@ -6,6 +6,7 @@ import { authRoutes } from './routes/authRoutes.js';
 import { systemsRoutes } from './routes/systemsRoutes.js';
 import { locationsRoutes } from './routes/locationRoutes.js';
 import { notebookRoutes } from './routes/notebookRoute.js';
+import { tagRoutes } from './routes/tagRoutes.js';
 
 const server = jsonServer.create();
 const router = jsonServer.router(db);
@@ -33,6 +34,9 @@ server.get('/ninbexecution/v1/executions/:executionId', notebookRoutes.getExecut
 server.post('/niapp/v1/webapps/query', notebookRoutes.listNotebooks);
 server.get('/ninbparser/v1/notebook/:id', notebookRoutes.getNotebookMetadata);
 server.get('/niauth/v1/auth', authRoutes.authenticate);
+server.get('/nitag/v2/tags-count', tagRoutes.getTagsCount);
+server.post('/nitag/v2/fetch-tags-with-values', tagRoutes.fetchTagsWithValues);
+server.post('/nitaghistorian/v2/tags/query-decimated-history', tagRoutes.queryDecimatedHistory);
 
 server.use(router);
 server.listen(port);

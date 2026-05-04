@@ -38,12 +38,14 @@ test.describe('Notebook DataSource with Asset Variable', () => {
             await dashboard.settings.assetVariable.selectDataSource(assetDataSourceName);
             await dashboard.settings.assetVariable.selectQueryReturnType('Asset Tag Path', 'Asset Id');
             await dashboard.settings.assetVariable.applyVariableChanges();
+
             expect(dashboard.settings.createdVariable('id')).toBeDefined();
         });
     });
 
     test('should create notebook visualization', async () => {
         await dashboard.settings.goBackToDashboardPage();
+
         await dashboard.addVisualization();
         await dashboard.selectDataSource(notebookDataSourceName);
 
@@ -54,12 +56,13 @@ test.describe('Notebook DataSource with Asset Variable', () => {
         await dashboard.panel.notebookQueryEditor.selectNotebook('Asset Filter Notebook');
         await pressEscape(dashboard.page);
         await dashboard.panel.notebookQueryEditor.selectOutput('Decoy Output', 'Filtered Assets');
-
         await dashboard.panel.toolbar.switchToTableView();
+
         await expect(dashboard.panel.table.tableRow).toHaveCount(6, { timeout: timeOutPeriod });
     });
     test('should display assets filtered by variable in table', async () => {
         await dashboard.panel.notebookQueryEditor.fillParameterInput('$id');
+
         await expect(dashboard.panel.table.tableRow).toHaveCount(1, { timeout: timeOutPeriod });
         expect(await dashboard.panel.table.checkColumnValue('id', 'id1')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue('assetType', 'GENERIC')).toBeTruthy();

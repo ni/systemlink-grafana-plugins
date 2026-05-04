@@ -36,12 +36,12 @@ test.describe('Asset data source with scan code return type', () => {
             await dashboard.settings.assetVariable.applyVariableChanges();
 
             expect(dashboard.settings.createdVariable('scanCode')).toBeDefined();
-
         });
 
         test('should create a Systemlink Assets visualization', async () => {
             await dashboard.settings.goBackToDashboardPage();
             await dashboard.addVisualizationButton.waitFor();
+
             await dashboard.addVisualization();
             await dashboard.selectDataSource(createdDataSourceName);
             await dashboard.panel.toolbar.switchToTableView();
@@ -66,7 +66,6 @@ test.describe('Asset data source with scan code return type', () => {
 
         test('should verify that table data changes as the variable value changes', async () => {
             await dashboard.panel.table.getTableBody.first().waitFor({ state: 'visible', timeout: timeOutPeriod });
-
             await expect(dashboard.panel.table.tableRow).toHaveCount(1, { timeout: timeOutPeriod });
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.vendor_name, 'vendor1')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.name, 'name1')).toBeTruthy();
@@ -74,6 +73,7 @@ test.describe('Asset data source with scan code return type', () => {
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.workspace, 'Default')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.location, 'System-1')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.scan_code, 'scanCode1')).toBeTruthy();
+
             await dashboard.panel.toolbar.openVariableDropdown('name1 (serial1)', 'name6 (serial6)');
             await dashboard.panel.toolbar.refreshData();
 

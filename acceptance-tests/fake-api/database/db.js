@@ -3,6 +3,7 @@ import { workspaces } from './workspaces.js';
 import { data } from './systems.js';
 import { locations } from './locations.js';
 import { notebookExecutions, notebooks } from './notebook.js';
+import { tagsWithValues } from './tags.js';
 
 export const db = {
     assets,
@@ -10,5 +11,6 @@ export const db = {
     data,
     locations,
     notebooks,
-    notebookExecutions
+    notebookExecutions,
+    tagsWithValues,
 };

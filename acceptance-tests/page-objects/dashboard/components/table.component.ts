@@ -27,6 +27,10 @@ export class Table {
             : this.page.getByTestId('data-testid table body').getByRole('row');
     }
 
+    public get tableColumns(): Locator {
+        return this.page.getByRole('columnheader');
+    }
+
     public cellValue(value: string): Locator {
         const cellRole = this.isV12 ? 'gridcell' : 'cell';
         return this.getTableBody.getByRole(cellRole, { name: value });

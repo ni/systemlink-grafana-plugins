@@ -35,12 +35,12 @@ test.describe('Asset data source with minion id return type', () => {
             await dashboard.settings.assetVariable.applyVariableChanges();
 
             expect(dashboard.settings.createdVariable('id')).toBeDefined();
-
         });
 
         test('should create a Systemlink Assets visualization', async () => {
             await dashboard.settings.goBackToDashboardPage();
             await dashboard.addVisualizationButton.waitFor();
+
             await dashboard.addVisualization();
             await dashboard.selectDataSource(createdDataSourceName);
             await dashboard.panel.toolbar.switchToTableView();
@@ -65,6 +65,7 @@ test.describe('Asset data source with minion id return type', () => {
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.model_name, 'model1')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.workspace, 'Default')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(assetColumn.location, 'System-1')).toBeTruthy();
+
             await dashboard.panel.toolbar.openVariableDropdown('name1 (serial1)', 'name2 (serial2)');
             await dashboard.panel.toolbar.refreshData();
 

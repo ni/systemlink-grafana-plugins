@@ -2,9 +2,9 @@ import { test, expect } from '@playwright/test';
 import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { interceptApiRoute } from '../../../../utils/intercept-api-route';
-import { SystemSummary } from '../../../../../src/datasources/system/types.ts';
+import { SystemSummary } from '../../../../../src/datasources/system/types';
 import { timeOutPeriod } from '../../../../constants/global.constant';
-import { SystemDataSource } from '../../../../page-objects/data-sources/systems-data-source.pageobject.ts';
+import { SystemDataSource } from '../../../../page-objects/data-sources/systems-data-source.pageobject';
 
 test.describe('System Summary Table', () => {
     let dashboard: DashboardPage;
@@ -27,6 +27,7 @@ test.describe('System Summary Table', () => {
         test('should create a Systemlink Systems visualization', async () => {
             await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
             await dashboard.addVisualizationButton.waitFor();
+
             await dashboard.addVisualization();
             await dashboard.selectDataSource(createdDataSourceName);
             await dashboard.panel.toolbar.switchToTableView();
