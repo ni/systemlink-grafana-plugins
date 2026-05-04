@@ -1,23 +1,23 @@
 import { test, expect } from '@playwright/test';
 import { FAKE_API_URL } from '../../../config/environment';
 import { timeOutPeriod } from '../../../constants/global.constant';
-import { NotebookDataSource } from '../../../page-objects/data-sources/notebook-data-source.pageobject';
+import { DataSourcePage } from '../../../page-objects/data-sources/data-source.pageobject';
 
 test.describe('Datasource Configuration', () => {
-    let dataSource: NotebookDataSource;
-    const dataSourceName = 'Systemlink Notebooks Configuration';
+    let dataSource: DataSourcePage;
+    const dataSourceName = 'Systemlink Tags Configuration';
 
     test.beforeAll(async ({ browser }) => {
         const context = await browser.newContext();
         const page = await context.newPage();
-        dataSource = new NotebookDataSource(page);
+        dataSource = new DataSourcePage(page);
     });
 
-    test.describe.serial('Creation and Deletion of SystemLink Notebooks data source', () => {
-        test('should create a SystemLink Notebooks data source', async () => {
+    test.describe.serial('Creation and Deletion of SystemLink Tags data source', () => {
+        test('should create a SystemLink Tags data source', async () => {
             await dataSource.navigateToDatasourcesPage();
             await dataSource.addDataSourceButton.click();
-            await dataSource.dataSource('SystemLink Notebooks').click();
+            await dataSource.dataSource('SystemLink Tags').click();
             await dataSource.nameSettingsInputField.waitFor({ state: 'visible', timeout: timeOutPeriod });
             await dataSource.httpSettingsURL.waitFor({ state: 'visible', timeout: timeOutPeriod });
             await dataSource.changeNameInputFieldValue(dataSourceName);
@@ -25,10 +25,10 @@ test.describe('Datasource Configuration', () => {
 
             await dataSource.saveAndTestButton.click();
 
-            await expect(dataSource.notebookDataSourceConnectedSuccessMessage).toBeVisible({ timeout: timeOutPeriod });
+            await expect(dataSource.dataSourceConnectedSuccessMessage).toBeVisible({ timeout: timeOutPeriod });
         });
 
-        test('delete a SystemLink Notebooks data source', async () => {
+        test('delete a SystemLink Tags data source', async () => {
             await dataSource.deleteDataSource(dataSourceName);
 
             await expect(dataSource.dataSourceSuccessMessage).toHaveText('Data source deleted', { timeout: timeOutPeriod });
@@ -38,7 +38,7 @@ test.describe('Datasource Configuration', () => {
     test('should show error message when trying to connect with wrong URL', async () => {
         await dataSource.navigateToDatasourcesPage();
         await dataSource.addDataSourceButton.click();
-        await dataSource.dataSource('SystemLink Notebooks').click();
+        await dataSource.dataSource('SystemLink Tags').click();
         await dataSource.nameSettingsInputField.waitFor({ state: 'visible', timeout: timeOutPeriod });
         await dataSource.httpSettingsURL.waitFor({ state: 'visible', timeout: timeOutPeriod });
         await dataSource.changeNameInputFieldValue(dataSourceName);

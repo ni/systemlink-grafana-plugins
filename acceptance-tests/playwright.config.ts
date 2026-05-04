@@ -37,7 +37,8 @@ const config: PlaywrightTestConfig = {
         navigationTimeout: 60000,
         trace: isCI ? 'retain-on-failure' : 'on',
         video: 'retain-on-failure',
-        screenshot: 'only-on-failure'
+        screenshot: 'only-on-failure',
+        timezoneId: 'UTC'
     },
 
     /* Configure projects for major browsers */
