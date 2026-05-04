@@ -13,6 +13,7 @@ test.describe('Workspace data source', () => {
         const page = await context.newPage();
         dataSources = new DataSourcePage(page);
         dashboard = new DashboardPage(page);
+
         await dataSources.addDataSource('SystemLink Workspaces', createdDataSourceName);
     });
 
@@ -22,6 +23,7 @@ test.describe('Workspace data source', () => {
 
     test('should verify all workspaces are displayed correctly', async () => {
         await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
+
         await dashboard.createFirstVisualization(createdDataSourceName);
         await dashboard.panel.toolbar.switchToTableView();
 
