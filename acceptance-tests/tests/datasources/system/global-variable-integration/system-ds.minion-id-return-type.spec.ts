@@ -36,12 +36,12 @@ test.describe('Systems data source with minion id return type', () => {
             await dashboard.settings.systemVariable.applyVariableChanges();
 
             expect(dashboard.settings.createdVariable('id')).toBeDefined();
-
         });
 
         test('should create a Systemlink Systems visualization', async () => {
             await dashboard.settings.goBackToDashboardPage();
             await dashboard.addVisualizationButton.waitFor();
+
             await dashboard.addVisualization();
             await dashboard.selectDataSource(createdDataSourceName);
             await dashboard.panel.toolbar.switchToTableView();
@@ -74,6 +74,7 @@ test.describe('Systems data source with minion id return type', () => {
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.ip_address, '172.10.1.37')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.workspace, 'Default')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.scan_code, 'scanCode1')).toBeTruthy();
+
             await dashboard.panel.toolbar.openVariableDropdown('System-1', 'System-2');
             await dashboard.panel.toolbar.refreshData();
 

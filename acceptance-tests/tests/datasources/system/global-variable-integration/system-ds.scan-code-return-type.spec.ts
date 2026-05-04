@@ -36,17 +36,15 @@ test.describe('Systems data source with scan code return type', () => {
             await dashboard.settings.systemVariable.applyVariableChanges();
 
             expect(dashboard.settings.createdVariable('scanCode')).toBeDefined();
-
         });
 
         test('should add a complex filter to the created systems variable', async () => {
             await dashboard.settings.editVariable('scanCode');
-            await dashboard.settings.systemVariable.addFilterByTypingPropertyName('Connection status', 'equals', 'Connected');
 
+            await dashboard.settings.systemVariable.addFilterByTypingPropertyName('Connection status', 'equals', 'Connected');
             await dashboard.settings.systemVariable.addFilterGroup('And');
             await dashboard.settings.systemVariable.addFilterByTypingPropertyName('Workspace', 'equals', 'Default');
             await pressEnter(dashboard.page);
-
             await dashboard.settings.systemVariable.addFilterGroup('Or');
             await dashboard.settings.systemVariable.addFilterByTypingPropertyName('Model', 'equals', 'Model8');
             await pressEnter(dashboard.page);
@@ -64,6 +62,7 @@ test.describe('Systems data source with scan code return type', () => {
 
         test('should create a Systemlink Systems visualization', async () => {
             await dashboard.addVisualizationButton.waitFor();
+
             await dashboard.addVisualization();
             await dashboard.selectDataSource(createdDataSourceName);
             await dashboard.panel.toolbar.switchToTableView();
@@ -96,6 +95,7 @@ test.describe('Systems data source with scan code return type', () => {
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.ip_address, '172.10.1.37')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.workspace, 'Default')).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(systemsColumn.scan_code, 'scanCode1')).toBeTruthy();
+
             await dashboard.panel.toolbar.openVariableDropdown('System-1', 'System-8');
             await dashboard.panel.toolbar.refreshData();
 

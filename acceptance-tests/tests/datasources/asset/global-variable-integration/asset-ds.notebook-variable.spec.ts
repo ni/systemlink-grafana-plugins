@@ -35,18 +35,19 @@ test.describe('Asset DataSource with Notebook Variable', () => {
             await dashboard.toolbar.settingsButton.click();
             await dashboard.settings.goToVariablesTab();
             await dashboard.settings.addNewVariable();
-
             await dashboard.settings.notebookVariable.nameInputField.fill('notebook_asset_id');
             await dashboard.settings.notebookVariable.selectDataSource(notebookDataSourceName);
             await pressEscape(dashboard.page);
             await dashboard.settings.notebookVariable.selectNotebookVariableDropdownOption('Asset List Notebook');
             await pressEscape(dashboard.page);
             await dashboard.settings.notebookVariable.applyVariableChanges();
+
             expect(dashboard.settings.createdVariable('notebook_asset_id')).toBeDefined();
         });
 
         test('should create asset visualization with List Assets query', async () => {
             await dashboard.settings.goBackToDashboardPage();
+
             await dashboard.addVisualization();
             await dashboard.selectDataSource(assetDataSourceName);
 
@@ -61,7 +62,6 @@ test.describe('Asset DataSource with Notebook Variable', () => {
 
         test('should filter assets by ID using notebook variable', async () => {
             await dashboard.panel.assetQueryEditor.addFilter('Asset Identifier', 'Equals', '$notebook_asset_id');
-
             await dashboard.panel.toolbar.switchToTableView();
 
             await expect(dashboard.panel.table.tableRow).toHaveCount(1, { timeout: timeOutPeriod });

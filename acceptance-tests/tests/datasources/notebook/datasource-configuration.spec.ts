@@ -21,8 +21,8 @@ test.describe('Datasource Configuration', () => {
             await dataSource.nameSettingsInputField.waitFor({ state: 'visible', timeout: timeOutPeriod });
             await dataSource.httpSettingsURL.waitFor({ state: 'visible', timeout: timeOutPeriod });
             await dataSource.changeNameInputFieldValue(dataSourceName);
-
             await dataSource.httpSettingsURL.fill(FAKE_API_URL);
+
             await dataSource.saveAndTestButton.click();
 
             await expect(dataSource.notebookDataSourceConnectedSuccessMessage).toBeVisible({ timeout: timeOutPeriod });
@@ -30,6 +30,7 @@ test.describe('Datasource Configuration', () => {
 
         test('delete a SystemLink Notebooks data source', async () => {
             await dataSource.deleteDataSource(dataSourceName);
+
             await expect(dataSource.dataSourceSuccessMessage).toHaveText('Data source deleted', { timeout: timeOutPeriod });
         });
     });
@@ -42,7 +43,9 @@ test.describe('Datasource Configuration', () => {
         await dataSource.httpSettingsURL.waitFor({ state: 'visible', timeout: timeOutPeriod });
         await dataSource.changeNameInputFieldValue(dataSourceName);
         await dataSource.httpSettingsURL.fill('http://wrong-url.com');
+
         await dataSource.saveAndTestButton.click();
+
         await expect(dataSource.dataSourceErrorMessage).toContainText("failed with status code: 502", { timeout: timeOutPeriod });
         await dataSource.deleteDataSource(dataSourceName);
     });

@@ -28,6 +28,7 @@ test.describe('Calibration Forecast', () => {
         test('should create a Systemlink Assets visualization with Calibration Forecast', async () => {
             await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
             await dashboard.addVisualizationButton.waitFor();
+
             await dashboard.addVisualization();
             await dashboard.selectDataSource(createdDataSourceName);
 
