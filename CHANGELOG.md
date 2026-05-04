@@ -1,3 +1,9 @@
+## [4.148.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.147.1...v4.148.0) (2026-05-04)
+
+### Features
+
+* **tags:** Add acceptance tests for tag data source ([#720](https://github.com/ni/systemlink-grafana-plugins/issues/720)) ([a88c5f9](https://github.com/ni/systemlink-grafana-plugins/commit/a88c5f9d9b3407d06a001d63c73f97aa6e4d65a4))
+
 ## [4.147.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.147.0...v4.147.1) (2026-04-29)
 
 ### Bug Fixes
