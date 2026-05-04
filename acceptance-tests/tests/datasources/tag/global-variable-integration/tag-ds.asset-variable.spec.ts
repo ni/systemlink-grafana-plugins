@@ -103,7 +103,9 @@ test.describe('Tag DataSource with Asset Variable', () => {
 
     test('should update "historical" query type tags when asset variable changes', async () => {
         await dashboard.panel.toolbar.openVariableDropdown('name2 (serial2)', 'name1 (serial1)');
+
         await dashboard.panel.toolbar.refreshData();
+
         await expect(dashboard.panel.table.tableColumns).toHaveCount(3, { timeout: timeOutPeriod });
         expect(await dashboard.panel.table.checkColumnValue('time', '2026-04-24 08:15:00', 0)).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue('time', '2026-04-24 08:30:00', 1)).toBeTruthy();

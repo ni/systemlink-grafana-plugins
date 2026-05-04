@@ -1,6 +1,7 @@
-const oneDayAgoISO = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString();
-const twoDaysAgoISO = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
-const threeDaysAgoISO = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const oneDayAgoISO = new Date(Date.now() - DAY_IN_MS).toISOString();
+const twoDaysAgoISO = new Date(Date.now() - 2 * DAY_IN_MS).toISOString();
+const threeDaysAgoISO = new Date(Date.now() - 3 * DAY_IN_MS).toISOString();
 
 export const tagsWithValues = [
     {

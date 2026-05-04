@@ -26,7 +26,6 @@ test.describe('Datasource Configuration', () => {
             await dataSource.saveAndTestButton.click();
 
             await expect(dataSource.dataSourceConnectedSuccessMessage).toBeVisible({ timeout: timeOutPeriod });
-
         });
 
         test('delete a SystemLink Tags data source', async () => {
@@ -43,7 +42,9 @@ test.describe('Datasource Configuration', () => {
         await dataSource.httpSettingsURL.waitFor({ state: 'visible', timeout: timeOutPeriod });
         await dataSource.changeNameInputFieldValue(dataSourceName);
         await dataSource.httpSettingsURL.fill('http://wrong-url.com');
+
         await dataSource.saveAndTestButton.click();
+
         await expect(dataSource.dataSourceErrorMessage).toContainText("failed with status code: 502", { timeout: timeOutPeriod });
         await dataSource.deleteDataSource(dataSourceName);
     });
