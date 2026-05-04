@@ -26,13 +26,18 @@ server.get('/niauth/v1/user', authRoutes.getUserWorkspaces);
 server.post('/nisysmgmt/v1/query-systems', systemsRoutes.querySystems);
 server.get('/nisysmgmt/v1/get-systems-summary', systemsRoutes.getSystemsSummary);
 server.get('/nilocation/v1/locations', locationsRoutes.listLocations);
+
 server.get('/niapm/v1/asset-summary', assetRoutes.getAssetSummary);
 server.post('/niapm/v1/assets/calibration-forecast', assetRoutes.getCalibrationForecast);
+
 server.post('/ninbexecution/v1/executions', notebookRoutes.createExecution);
 server.get('/ninbexecution/v1/executions/:executionId', notebookRoutes.getExecution);
 server.post('/niapp/v1/webapps/query', notebookRoutes.listNotebooks);
 server.get('/ninbparser/v1/notebook/:id', notebookRoutes.getNotebookMetadata);
+
 server.get('/niauth/v1/auth', authRoutes.authenticate);
+
+server.get('/niuser/v1/workspaccces', authRoutes.getUserWorkspaces);
 
 server.use(router);
 server.listen(port);

@@ -10,5 +10,17 @@ export const workspaces = [
         name: 'Workspace 2',
         default: false,
         enabled: true
+    },
+    {
+        id: 'workspace-3',
+        name: 'Workspace 3',
+        default: false,
+        enabled: true
+    },
+    {
+        id: 'workspace-4',
+        name: 'Workspace 4',
+        default: false,
+        enabled: true
     }
 ]
