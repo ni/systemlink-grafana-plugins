@@ -48,6 +48,9 @@ test.describe('Datasource Configuration', () => {
         await dataSource.saveAndTestButton.click();
 
         await expect(dataSource.dataSourceErrorMessage).toContainText("failed with status code: 502", { timeout: timeOutPeriod });
-        await dataSource.deleteDataSource(dataSourceName);
+
+        await test.step('Cleanup datasource', async () => {
+            await dataSource.deleteDataSource(dataSourceName);
+        });
     });
 });
