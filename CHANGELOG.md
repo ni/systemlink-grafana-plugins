@@ -1,3 +1,9 @@
+## [4.149.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.148.0...v4.149.0) (2026-05-05)
+
+### Features
+
+* **workspaces:** Add acceptance tests for workspaces data source ([#721](https://github.com/ni/systemlink-grafana-plugins/issues/721)) ([0332b7c](https://github.com/ni/systemlink-grafana-plugins/commit/0332b7c77a73a81c8135c1d3371aba7bca8556cc))
+
 ## [4.148.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.147.1...v4.148.0) (2026-05-04)
 
 ### Features
