@@ -26,7 +26,6 @@ test.describe('Datasource Configuration', () => {
             await dataSource.saveAndTestButton.click();
 
             await expect(dataSource.dataSourceConnectedSuccessMessage).toBeVisible({ timeout: timeOutPeriod });
-
         });
 
         test('delete a SystemLink Workspaces data source', async () => {
