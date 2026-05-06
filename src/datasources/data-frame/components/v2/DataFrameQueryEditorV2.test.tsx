@@ -4220,10 +4220,10 @@ describe("DataFrameQueryEditorV2", () => {
 
     describe("query configuration section", () => {
         it("should render a collapse element with a class containing 'collapse__body'", () => {
-            renderComponent();
+            const { renderResult } = renderComponent();
 
-            const queryConfigSection = document.querySelector('.query-configuration-section');
-            expect(queryConfigSection).toBeInTheDocument();
+            const queryConfigSection = renderResult.container.querySelector('.query-configuration-section');
+            expect(queryConfigSection).not.toBeNull();
 
             const collapseBody = queryConfigSection!.querySelector('[class*="collapse__body"]');
             expect(collapseBody).not.toBeNull();
