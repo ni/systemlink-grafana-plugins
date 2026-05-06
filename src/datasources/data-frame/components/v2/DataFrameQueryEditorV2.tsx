@@ -608,6 +608,7 @@ export const DataFrameQueryEditorV2: React.FC<Props> = (
             </InlineField>
 
             <div
+                className="query-configuration-section"
                 style={{ width: getValuesInPixels(SECTION_WIDTH) }}
             >
                 <Collapse

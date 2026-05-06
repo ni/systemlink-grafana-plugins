@@ -4218,5 +4218,16 @@ describe("DataFrameQueryEditorV2", () => {
         });
     });
 
+    describe("query configuration section", () => {
+        it("should render a collapse element with a class containing 'collapse__body'", () => {
+            const { renderResult } = renderComponent();
+
+            const queryConfigSection = renderResult.container.querySelector('.query-configuration-section');
+            expect(queryConfigSection).not.toBeNull();
+
+            const collapseBody = queryConfigSection!.querySelector('[class*="collapse__body"]');
+            expect(collapseBody).not.toBeNull();
+        });
+    });
 });
 
