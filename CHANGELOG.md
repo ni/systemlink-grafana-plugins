@@ -1,3 +1,9 @@
+## [4.149.1](https://github.com/ni/systemlink-grafana-plugins/compare/v4.149.0...v4.149.1) (2026-05-06)
+
+### Bug Fixes
+
+* **dataframe:** Fix clipped dropdowns in Query configurations collapse ([#722](https://github.com/ni/systemlink-grafana-plugins/issues/722)) ([10b0e66](https://github.com/ni/systemlink-grafana-plugins/commit/10b0e669108b2b917d3c9524c9da01724b1bfd37))
+
 ## [4.149.0](https://github.com/ni/systemlink-grafana-plugins/compare/v4.148.0...v4.149.0) (2026-05-05)
 
 ### Features
