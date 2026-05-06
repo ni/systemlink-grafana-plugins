@@ -1,3 +1,9 @@
+.query-configuration-section {
+    [class*='collapse__body'] {
+        overflow: visible;
+    }
+}
+
 .property-selection-section {
     [role='alert'] {
         width: 524px;
