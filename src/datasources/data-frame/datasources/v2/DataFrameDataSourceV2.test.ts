@@ -11835,4 +11835,61 @@ describe('DataFrameDataSourceV2', () => {
             });
         });
     });
+
+    describe('stripCsvEscapePrefix', () => {
+        it('should strip apostrophe prefix when followed by equals sign', () => {
+            const result = (ds as any).stripCsvEscapePrefix("'=SUM(A1)");
+            expect(result).toBe('=SUM(A1)');
+        });
+
+        it('should strip apostrophe prefix when followed by at sign', () => {
+            const result = (ds as any).stripCsvEscapePrefix("'@value");
+            expect(result).toBe('@value');
+        });
+
+        it('should strip apostrophe prefix when followed by plus sign', () => {
+            const result = (ds as any).stripCsvEscapePrefix("'+5");
+            expect(result).toBe('+5');
+        });
+
+        it('should strip apostrophe prefix when followed by minus sign', () => {
+            const result = (ds as any).stripCsvEscapePrefix("'-5");
+            expect(result).toBe('-5');
+        });
+
+        it('should strip apostrophe prefix when followed by tab character', () => {
+            const result = (ds as any).stripCsvEscapePrefix("'\tvalue");
+            expect(result).toBe('\tvalue');
+        });
+
+        it('should strip apostrophe prefix when followed by carriage return', () => {
+            const result = (ds as any).stripCsvEscapePrefix("'\rvalue");
+            expect(result).toBe('\rvalue');
+        });
+
+        it('should not strip apostrophe when followed by a regular character', () => {
+            const result = (ds as any).stripCsvEscapePrefix("'hello");
+            expect(result).toBe("'hello");
+        });
+
+        it('should not strip apostrophe when it is the only character', () => {
+            const result = (ds as any).stripCsvEscapePrefix("'");
+            expect(result).toBe("'");
+        });
+
+        it('should return null when value is null', () => {
+            const result = (ds as any).stripCsvEscapePrefix(null);
+            expect(result).toBeNull();
+        });
+
+        it('should return empty string when value is empty', () => {
+            const result = (ds as any).stripCsvEscapePrefix('');
+            expect(result).toBe('');
+        });
+
+        it('should return value unchanged when it does not start with apostrophe', () => {
+            const result = (ds as any).stripCsvEscapePrefix('normal value');
+            expect(result).toBe('normal value');
+        });
+    });
 });

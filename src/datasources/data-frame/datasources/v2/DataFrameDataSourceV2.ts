@@ -1481,8 +1481,16 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             case 'TIMESTAMP':
                 return dateTime(value).valueOf();
             default:
-                return value;
+                return this.stripCsvEscapePrefix(value);
         }
+    }
+
+    private stripCsvEscapePrefix(value: string | null): string | null {
+        if (!value || value.length < 2 || value[0] !== "'") {
+            return value;
+        }
+        const csvInjectionTriggers = ['=', '@', '+', '-', '\t', '\r'];
+        return csvInjectionTriggers.includes(value[1]) ? value.substring(1) : value;
     }
 
     private getFieldTypeForDataType(dataType: ColumnDataType): FieldType {
