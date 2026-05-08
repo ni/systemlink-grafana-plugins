@@ -109,6 +109,24 @@ describe('QueryBuilderUtils', () => {
       expect(result).toBe(query);
     });
 
+    it('should handle Any.Contains operations with empty string value', () => {
+      const query = 'Object1.Any(it.Contains(""))';
+      const result = transformComputedFieldsQuery(query, computedDataFields);
+      expect(result).toBe('Object1.Any(obj.prop1.Contains())');
+    });
+
+    it('should handle negated Any.Contains operations with empty string value', () => {
+      const query = 'Object1.Any(!it.Contains(""))';
+      const result = transformComputedFieldsQuery(query, computedDataFields);
+      expect(result).toBe('!Object1.Any(obj.prop1.Contains())');
+    });
+
+    it('should handle mixed Any.Contains operations with empty and non-empty values', () => {
+      const query = 'Object1.Any(it.Contains("") AND it.Contains("value1"))';
+      const result = transformComputedFieldsQuery(query, computedDataFields);
+      expect(result).toBe('Object1.Any(obj.prop1.Contains() AND obj.prop1.Contains(value1))');
+    });
+
     it('should handle StartsWith operations correctly with computed fields', () => {
       const query = 'Object1.StartsWith("value1") AND Object2.EndsWith("value2")';
       const result = transformComputedFieldsQuery(query, computedDataFields);

@@ -104,7 +104,7 @@ function transformListContainsOperations(
     const containsRegex = /(?:!(it\.Contains\("([^"]*)"\))|(it\.Contains\("([^"]*)"\)))/g;
 
     const transformedPredicate = innerPredicate.replace(containsRegex, (_match, _negatedMatch, negatedValue, _positiveMatch, positiveValue) => {
-      const extractedValue = negatedValue || positiveValue;
+      const extractedValue = negatedValue ?? positiveValue;
       return transformation(extractedValue, QueryBuilderOperations.LIST_CONTAINS.name, options?.get(field));
     });
 
