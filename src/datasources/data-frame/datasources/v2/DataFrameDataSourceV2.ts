@@ -1486,11 +1486,17 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private stripCsvEscapePrefix(value: string | null): string | null {
-        if (!value || value.length < 2 || value[0] !== "'") {
+        const csvInjectionTriggers = ['=', '@', '+', '-', '\t', '\r'];
+        if (
+            !value
+            || value.length < 2
+            || value[0] !== "'"
+            || !csvInjectionTriggers.includes(value[1])
+        ) {
             return value;
         }
-        const csvInjectionTriggers = ['=', '@', '+', '-', '\t', '\r'];
-        return csvInjectionTriggers.includes(value[1]) ? value.substring(1) : value;
+
+        return value.substring(1);
     }
 
     private getFieldTypeForDataType(dataType: ColumnDataType): FieldType {
