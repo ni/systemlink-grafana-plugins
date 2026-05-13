@@ -51,6 +51,23 @@ After cloning the repo, `npm install` to fetch dependencies and then `npm run st
    created by the build process mounted. After a brief startup, you should now
    be able to access the Grafana UI at http://localhost:3000.
 
+Docker Compose defaults are defined in `.env` (checked in and safe to share).
+
+To run against the NI fork Grafana image published by the `ni/grafana` build
+workflow, use the dedicated env file in the repo root (`.env.ni`):
+
+```bash
+npm run start:ni
+```
+
+This uses `.env.ni`, which sets `GRAFANA_IMAGE` and `GRAFANA_VERSION` for
+Docker Compose build args. You can run the acceptance tests the same NI image:
+
+```bash
+npm run server:test:ni
+npm run test:acceptance:ni
+```
+
 Alternatively, if you use VS Code as your editor, this repo contains a launch
 configuration that runs the steps above and then attaches to an instance of
 Chrome for debugging. See [Debugging in Visual Studio
