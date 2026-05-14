@@ -6,8 +6,8 @@ services:
     build:
       context: ./.config
       args:
-        grafana_version: ${GRAFANA_VERSION:-11.6.4}
-        grafana_image: ${GRAFANA_IMAGE:-grafana}
+        grafana_version: ${GRAFANA_VERSION}
+        grafana_image: ${GRAFANA_IMAGE}
     environment:
       - GF_USERS_DEFAULT_THEME=system
     ports:

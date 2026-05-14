@@ -10,6 +10,7 @@ on:
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
+    # environment: jfrog-ci
     steps:
       - uses: actions/checkout@v3
 
@@ -34,8 +35,22 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Login to Artifactory
+        id: artifactory_login
+        continue-on-error: true
+        uses: docker/login-action@v1
+        with:
+          registry: niartifacts.jfrog.io
+          username: ${{ vars.JFROG_USERNAME }}
+          password: ${{ secrets.JFROG_ACCESS_TOKEN }}
+
+      - name: Start NI test environment
+        if: ${{ steps.artifactory_login.outcome == 'success' }}
+        run: npm run server:test:ni
+
       - name: Start test environment
-        run: docker compose -f docker-compose.tests.yaml up -d
+        if: ${{ steps.artifactory_login.outcome != 'success'}}
+        run: npm run server:test
 
       - name: Wait for services
         run: |
@@ -46,7 +61,12 @@ jobs:
         if: failure()
         run: docker compose -f docker-compose.tests.yaml logs --tail=200
 
+      - name: Acceptance tests (NI)
+        if: ${{ steps.artifactory_login.outcome == 'success' }}
+        run: npm run test:acceptance:ni
+
       - name: Acceptance tests
+        if: ${{ steps.artifactory_login.outcome != 'success' }}
         run: npm run test:acceptance
 
       - name: Upload Playwright report
