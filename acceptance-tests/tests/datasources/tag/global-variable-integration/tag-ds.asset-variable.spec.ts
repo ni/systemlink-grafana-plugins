@@ -74,9 +74,13 @@ test.describe('Tag DataSource with Asset Variable', () => {
 
         await dashboard.panel.tagQueryEditor.toggleShowTagPath();
 
-        await expect(dashboard.panel.table.tableColumns).toHaveCount(6, { timeout: timeOutPeriod });
         expect(await dashboard.panel.table.checkColumnValue(currentTagColumns.tag_path, 'Assets.vendor1.model1.serial1.Voltage', 0)).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue(currentTagColumns.tag_path, 'Assets.vendor1.model1.serial1.Current', 1)).toBeTruthy();
+        // In Grafana v12, only viewport-fitting columns are rendered. The tag path column is initially
+        // outside the viewport, so toHaveCount(6) must come after checkColumnValue, which scrolls
+        // the grid to reach the cell and brings the column into view.
+        //to do: research other approach if needed
+        await expect(dashboard.panel.table.tableColumns).toHaveCount(6, { timeout: timeOutPeriod });
     });
 
     test('should update "current" query type tags when asset variable changes', async () => {
