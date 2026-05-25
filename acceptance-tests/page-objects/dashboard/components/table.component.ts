@@ -136,6 +136,6 @@ export class Table {
         }
 
         const ariaColCount = await this.page.locator('[role="grid"]').first().getAttribute('aria-colcount');
-        return ariaColCount ? parseInt(ariaColCount) : 0;
+        return ariaColCount ? parseInt(ariaColCount, 10) : 0;
     }
 }
