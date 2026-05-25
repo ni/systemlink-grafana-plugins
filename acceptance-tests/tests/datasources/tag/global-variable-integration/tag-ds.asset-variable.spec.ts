@@ -56,7 +56,7 @@ test.describe('Tag DataSource with Asset Variable', () => {
         await dashboard.panel.tagQueryEditor.selectTagPath('$path.*');
         await dashboard.panel.toolbar.switchToTableView();
 
-        await expect(dashboard.panel.table.tableColumns).toHaveCount(3, { timeout: timeOutPeriod });
+        await expect.poll(() => dashboard.panel.table.getTotalColumnCount(), { timeout: timeOutPeriod }).toBe(3);
         expect(await dashboard.panel.table.checkColumnValue(currentTagColumns.name, 'Voltage', 0)).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue(currentTagColumns.value, '12.1', 0)).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue(currentTagColumns.updated, 'a day ago', 0)).toBeTruthy();
@@ -66,7 +66,7 @@ test.describe('Tag DataSource with Asset Variable', () => {
 
         await dashboard.panel.tagQueryEditor.toggleShowProperties();
 
-        await expect(dashboard.panel.table.tableColumns).toHaveCount(5, { timeout: timeOutPeriod });
+        await expect.poll(() => dashboard.panel.table.getTotalColumnCount(), { timeout: timeOutPeriod }).toBe(5);
         expect(await dashboard.panel.table.checkColumnValue('displayName', 'Voltage', 0)).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue('units', 'volt', 0)).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue('displayName', 'Current', 1)).toBeTruthy();
@@ -74,20 +74,16 @@ test.describe('Tag DataSource with Asset Variable', () => {
 
         await dashboard.panel.tagQueryEditor.toggleShowTagPath();
 
+        await expect.poll(() => dashboard.panel.table.getTotalColumnCount(), { timeout: timeOutPeriod }).toBe(6);
         expect(await dashboard.panel.table.checkColumnValue(currentTagColumns.tag_path, 'Assets.vendor1.model1.serial1.Voltage', 0)).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue(currentTagColumns.tag_path, 'Assets.vendor1.model1.serial1.Current', 1)).toBeTruthy();
-        // In Grafana v12, only viewport-fitting columns are rendered. The tag path column is initially
-        // outside the viewport, so toHaveCount(6) must come after checkColumnValue, which scrolls
-        // the grid to reach the cell and brings the column into view.
-        //to do: research other approach if needed
-        await expect(dashboard.panel.table.tableColumns).toHaveCount(6, { timeout: timeOutPeriod });
     });
 
     test('should update "current" query type tags when asset variable changes', async () => {
         await dashboard.panel.toolbar.openVariableDropdown('name1 (serial1)', 'name2 (serial2)');
         await dashboard.panel.toolbar.refreshData();
 
-        await expect(dashboard.panel.table.tableColumns).toHaveCount(5, { timeout: timeOutPeriod });
+        await expect.poll(() => dashboard.panel.table.getTotalColumnCount(), { timeout: timeOutPeriod }).toBe(5);
         expect(await dashboard.panel.table.checkColumnValue(currentTagColumns.name, 'Assets.vendor2.model2.serial2.Volume', 0)).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue(currentTagColumns.value, '4.10', 0)).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue(currentTagColumns.updated, '2 days ago', 0)).toBeTruthy();
@@ -98,7 +94,7 @@ test.describe('Tag DataSource with Asset Variable', () => {
     test('should load "historical" query type tags based on asset variable', async () => {
         await dashboard.panel.tagQueryEditor.selectHistoryQueryType();
         await dashboard.panel.toolbar.openDateTimePicker();
-        await expect(dashboard.panel.table.tableColumns).toHaveCount(2, { timeout: timeOutPeriod });
+        await expect.poll(() => dashboard.panel.table.getTotalColumnCount(), { timeout: timeOutPeriod }).toBe(2);
 
         await dashboard.panel.toolbar.setTimeRange('2026-01-01 00:00:00', '2026-12-31 23:59:59', 'Coordinated Universal Time');
 
@@ -114,7 +110,7 @@ test.describe('Tag DataSource with Asset Variable', () => {
         await dashboard.panel.toolbar.openVariableDropdown('name2 (serial2)', 'name1 (serial1)');
         await dashboard.panel.toolbar.refreshData();
 
-        await expect(dashboard.panel.table.tableColumns).toHaveCount(3, { timeout: timeOutPeriod });
+        await expect.poll(() => dashboard.panel.table.getTotalColumnCount(), { timeout: timeOutPeriod }).toBe(3);
         expect(await dashboard.panel.table.checkColumnValue('time', '2026-04-24 08:15:00', 0)).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue('time', '2026-04-24 08:30:00', 1)).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue('time', '2026-04-24 08:45:00', 2)).toBeTruthy();

@@ -129,4 +129,13 @@ export class Table {
         const cellValue = await this.getCellInRowByIndex(rowIndex, columnIndex);
         return cellValue === expectedValue;
     }
+
+    public async getTotalColumnCount(): Promise<number> {
+        if (!this.isV12) {
+            return await this.tableColumns.count();
+        }
+
+        const ariaColCount = await this.page.locator('[role="grid"]').first().getAttribute('aria-colcount');
+        return ariaColCount ? parseInt(ariaColCount) : 0;
+    }
 }

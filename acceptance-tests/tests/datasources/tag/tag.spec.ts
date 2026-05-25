@@ -37,31 +37,27 @@ test.describe('Tag DataSource with Asset Variable', () => {
             await dashboard.panel.tagQueryEditor.selectTagPath('Assets.vendor1.model1.serial1.Current');
             await dashboard.panel.toolbar.switchToTableView();
 
-            await expect(dashboard.panel.table.tableColumns).toHaveCount(3, { timeout: timeOutPeriod });
+            await expect.poll(() => dashboard.panel.table.getTotalColumnCount(), { timeout: timeOutPeriod }).toBe(3);
             expect(await dashboard.panel.table.checkColumnValue(currentTagColumns.name, 'Current', 0)).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(currentTagColumns.value, '3.50', 0)).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue(currentTagColumns.updated, '3 days ago', 0)).toBeTruthy();
 
             await dashboard.panel.tagQueryEditor.toggleShowProperties();
 
-            await expect(dashboard.panel.table.tableColumns).toHaveCount(5, { timeout: timeOutPeriod });
+            await expect.poll(() => dashboard.panel.table.getTotalColumnCount(), { timeout: timeOutPeriod }).toBe(5);
             expect(await dashboard.panel.table.checkColumnValue('displayName', 'Current', 0)).toBeTruthy();
             expect(await dashboard.panel.table.checkColumnValue('units', 'ampere', 0)).toBeTruthy();
 
             await dashboard.panel.tagQueryEditor.toggleShowTagPath();
 
+            await expect.poll(() => dashboard.panel.table.getTotalColumnCount(), { timeout: timeOutPeriod }).toBe(6);
             expect(await dashboard.panel.table.checkColumnValue(currentTagColumns.tag_path, 'Assets.vendor1.model1.serial1.Current', 0)).toBeTruthy();
-            // In Grafana v12, only viewport-fitting columns are rendered. The tag path column is initially
-            // outside the viewport, so toHaveCount(6) must come after checkColumnValue, which scrolls
-            // the grid to reach the cell and brings the column into view.
-            //to do: research other approach if needed
-            await expect(dashboard.panel.table.tableColumns).toHaveCount(6, { timeout: timeOutPeriod });
         });
 
         test('should load "historical" query type tag', async () => {
             await dashboard.panel.tagQueryEditor.selectHistoryQueryType();
             await dashboard.panel.toolbar.openDateTimePicker();
-            await expect(dashboard.panel.table.tableColumns).toHaveCount(2, { timeout: timeOutPeriod });
+            await expect.poll(() => dashboard.panel.table.getTotalColumnCount(), { timeout: timeOutPeriod }).toBe(2);
 
             await dashboard.panel.toolbar.setTimeRange('2026-01-01 00:00:00', '2026-12-31 23:59:59', 'Coordinated Universal Time');
 
