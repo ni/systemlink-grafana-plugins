@@ -67,10 +67,6 @@ export const defaultVariableQueryV2: Omit<ValidDataFrameVariableQuery, 'refId'> 
   columnFilter: ''
 };
 
-export const DataFrameFeatureTogglesDefaults: DataFrameFeatureToggles = {
-  highResolutionZoom: false
-};
-
 export enum DataTableProperties {
   Name = 'Name',
   Id = 'Id',
@@ -346,13 +342,7 @@ export interface TableDataRows {
   frame: { columns: string[]; data: string[][]; };
 }
 
-export interface DataFrameFeatureToggles {
-  highResolutionZoom: boolean;
-}
-
-export interface DataFrameDataSourceOptions extends DataSourceJsonData {
-  featureToggles: DataFrameFeatureToggles;
-}
+export interface DataFrameDataSourceOptions extends DataSourceJsonData {}
 
 export interface ColumnOptions {
   uniqueColumnsAcrossTables: Option[];

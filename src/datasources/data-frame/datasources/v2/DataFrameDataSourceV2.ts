@@ -20,7 +20,6 @@ import TTLCache from "@isaacs/ttlcache";
 export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     defaultQuery = defaultQueryV2;
     private scopedVars: ScopedVars = {};
-    private isHighResolutionZoomFeatureEnabled: boolean;
     private readonly propertiesQueryCache: TTLCache<string, PropertiesQueryCache> = new TTLCache(
         {
             ttl: propertiesCacheTTL
@@ -33,8 +32,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         public readonly templateSrv: TemplateSrv = getTemplateSrv()
     ) {
         super(instanceSettings, backendSrv, templateSrv);
-        this.isHighResolutionZoomFeatureEnabled = this.instanceSettings
-            .jsonData?.featureToggles?.highResolutionZoom ?? false;
     }
 
     runQuery(
@@ -45,13 +42,11 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         const processedQuery = this.processQuery(query);
         const transformedQuery = this.transformQuery(processedQuery, options.scopedVars);
 
-        if (this.isHighResolutionZoomFeatureEnabled) {
-            const filterXRangeOnZoomPan = options.targets.some(target => this.resolveFilterXRangeOnZoomPan(target));
-            DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam(
-                filterXRangeOnZoomPan,
-                options.panelId?.toString(),
-            );
-        }
+        const filterXRangeOnZoomPan = options.targets.some(target => this.resolveFilterXRangeOnZoomPan(target));
+        DataFrameQueryParamsHandler.updateSyncXAxisRangeTargetsQueryParam(
+            filterXRangeOnZoomPan,
+            options.panelId?.toString(),
+        );
 
         if (this.shouldQueryForData(transformedQuery)) {
             return this.getFieldsForDataQuery$(
@@ -642,9 +637,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                     timeRange,
                 );
             case 'Numeric':
-                if (!this.isHighResolutionZoomFeatureEnabled) {
-                    return [];
-                }
                 return this.constructNumericRangeFilters(
                     parsedColumnIdentifier.columnName,
                     columns,

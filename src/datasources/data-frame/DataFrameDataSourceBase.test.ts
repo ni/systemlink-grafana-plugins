@@ -26,9 +26,7 @@ describe('DataFrameDataSourceBase', () => {
             type: 'test-type',
             name: 'Test DS',
             url: 'http://localhost',
-            jsonData: {
-                featureToggles: {} as any
-            },
+            jsonData: {},
             meta: {} as any,
             readOnly: false,
             access: 'proxy',
