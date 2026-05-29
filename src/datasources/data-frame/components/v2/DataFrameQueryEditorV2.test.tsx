@@ -1572,7 +1572,7 @@ describe("DataFrameQueryEditorV2", () => {
                     expect(screen.getByText("Decimation settings")).toBeInTheDocument();
                     expect(screen.getByText("Decimation method")).toBeInTheDocument();
                     expect(screen.getByText("X-column")).toBeInTheDocument();
-                    expect(screen.getByText("Use time range")).toBeInTheDocument();
+                    expect(screen.getByText("Filter by x-axis range on zoom or pan")).toBeInTheDocument();
                 });
             });
 
