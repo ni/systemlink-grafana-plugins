@@ -2,9 +2,9 @@ import { DataSourcePlugin } from '@grafana/data';
 import { DataFrameDataSource } from './DataFrameDataSource';
 import { DataFrameQueryEditorWrapper } from './components/DataFrameQueryEditorWrapper';
 import { DataFrameVariableQueryEditorWrapper } from './components/DataFrameVariableQueryEditorWrapper';
-import { DataFrameConfigEditor } from './components/DataFrameConfigEditor';
+import { HttpConfigEditor } from 'core/components/HttpConfigEditor';
 
 export const plugin = new DataSourcePlugin(DataFrameDataSource)
-  .setConfigEditor(DataFrameConfigEditor)
+  .setConfigEditor(HttpConfigEditor)
   .setQueryEditor(DataFrameQueryEditorWrapper)
   .setVariableQueryEditor(DataFrameVariableQueryEditorWrapper);
