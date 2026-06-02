@@ -39,7 +39,6 @@ export const labels = {
     showUnits: 'Show units in data',
     decimationMethod: 'Decimation method',
     xColumn: 'X-column',
-    useTimeRange: 'Use time range',
     filterXRangeOnZoomPan: 'Filter by x-axis range on zoom or pan',
     take: 'Take',
 };
@@ -62,7 +61,6 @@ export const tooltips = {
     columnProperties: 'This field specifies the column properties to be queried.',
     decimationMethod: 'Specifies the method used to decimate the data.',
     xColumn: `Specifies the column to use as the x-axis during data decimation. For undecimated data, SystemLink uses the specified column to order the results. If this field is left blank, SystemLink uses the INDEX column.`,
-    useTimeRange: `Applies the dashboard time range to the selected x-column or alternatively to INDEX column (if either is a timestamp).`,
     filterXRangeOnZoomPan: 'Enable to filter data based on the x-axis range during zoom or pan actions. When the user selects an x-column, the datasource applies the filter to that column. Otherwise, the datasource uses the INDEX column as the default filter.',
 };
 
