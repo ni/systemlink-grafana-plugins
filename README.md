@@ -24,6 +24,7 @@ Tools](https://grafana.github.io/plugin-tools/).
 - [Work orders](src/datasources/work-orders/)
 - [Test plans](src/datasources/test-plans/)
 - [Alarms](src/datasources/alarms/)
+- [Workspaces](src/datasources/workspace/)
 
 ### Panels
 
