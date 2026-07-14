@@ -1,3 +1,9 @@
+## [5.0.2](https://github.com/ni/systemlink-grafana-plugins/compare/v5.0.1...v5.0.2) (2026-07-14)
+
+### Bug Fixes
+
+* **workspace:** add workspace data source to README ([#731](https://github.com/ni/systemlink-grafana-plugins/issues/731)) ([2d7efa7](https://github.com/ni/systemlink-grafana-plugins/commit/2d7efa753b4eb0a195c2177a2a30ab2caf0bfe84))
+
 ## [5.0.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.0.0...v5.0.1) (2026-06-02)
 
 ### Bug Fixes
