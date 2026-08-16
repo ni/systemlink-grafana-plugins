@@ -8,7 +8,14 @@ import {
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { WorkItemsDataSourceOptions, WorkItemsQuery } from './types';
+import {
+  OrderByOptions,
+  OutputType,
+  TAKE_LIMIT,
+  WorkItemsDataSourceOptions,
+  WorkItemsQuery,
+  WorkItemTypeOptions,
+} from './types';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItemsDataSourceOptions> {
   constructor(
@@ -19,7 +26,42 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
     super(instanceSettings, backendSrv, templateSrv);
   }
 
-  defaultQuery = {};
+  defaultQuery = {
+    outputType: OutputType.Properties,
+    types: [WorkItemTypeOptions.All],
+    orderBy: OrderByOptions.UPDATED_AT,
+    descending: true,
+    take: 1000,
+  };
+
+  public prepareQuery(query: WorkItemsQuery): WorkItemsQuery {
+    const prepared = super.prepareQuery(query);
+
+    return {
+      ...prepared,
+      outputType: prepared.outputType ?? this.defaultQuery.outputType,
+      orderBy: prepared.orderBy ?? this.defaultQuery.orderBy,
+      descending: prepared.descending ?? this.defaultQuery.descending,
+      types: this.normalizeTypes(prepared.types),
+      take: this.normalizeTake(prepared.take),
+    };
+  }
+
+  isTypesValid(types?: WorkItemTypeOptions[]): boolean {
+    return Boolean(types && types.length > 0);
+  }
+
+  normalizeTypes(types?: WorkItemTypeOptions[]): WorkItemTypeOptions[] {
+    return this.isTypesValid(types) ? types! : this.defaultQuery.types;
+  }
+
+  normalizeTake(take?: number): number {
+    if (take === undefined || Number.isNaN(take) || take < 0) {
+      return this.defaultQuery.take;
+    }
+
+    return Math.min(take, TAKE_LIMIT);
+  }
 
   async runQuery(query: WorkItemsQuery, _options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {
     return {
