@@ -19,6 +19,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
     super(instanceSettings, backendSrv, templateSrv);
   }
 
+  baseUrl = `${this.instanceSettings.url}/niworkitem/v1`;
+  queryWorkItemsUrl = `${this.baseUrl}/query-workitems`;
   defaultQuery = {};
 
   async runQuery(query: WorkItemsQuery, _options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {
@@ -40,7 +42,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.get('/niauth/v1/user');
+    await this.post(this.queryWorkItemsUrl, { take: 1 }, { showErrorAlert: false });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 
