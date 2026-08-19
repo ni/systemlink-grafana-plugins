@@ -1,9 +1,8 @@
 import { DataSourcePlugin } from '@grafana/data';
+import { HttpConfigEditor } from 'core/components/HttpConfigEditor';
 import { WorkItemsDataSource } from './WorkItemsDataSource';
 import { WorkItemsQueryEditor } from './components/WorkItemsQueryEditor';
-import { WorkItemsConfigEditor } from './WorkItemsConfigEditor';
 
 export const plugin = new DataSourcePlugin(WorkItemsDataSource)
-  .setConfigEditor(WorkItemsConfigEditor)
-  .setQueryEditor(WorkItemsQueryEditor)
-  .setVariableQueryEditor(() => null);
+  .setConfigEditor(HttpConfigEditor)
+  .setQueryEditor(WorkItemsQueryEditor);
