@@ -69,3 +69,7 @@ datasources:
     type: ni-slalarms-datasource
     uid: ni-slalarms-datasource
     <<: *config
+  - name: SystemLink Work Items
+    type: ni-slworkitems-datasource
+    uid: ni-slworkitems-datasource
+    <<: *config
