@@ -8,7 +8,6 @@ import {
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { TAKE_LIMIT } from './constants/QueryEditor.constants';
 import {
   OrderByOptions,
   OutputType,
@@ -46,7 +45,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
       orderBy: prepared.orderBy ?? this.defaultQuery.orderBy,
       descending: prepared.descending ?? this.defaultQuery.descending,
       types: this.normalizeTypes(prepared.types),
-      take: this.normalizeTake(prepared.take),
+      take: prepared.take ?? this.defaultQuery.take,
     };
   }
 
@@ -55,15 +54,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
   }
 
   normalizeTypes(types?: WorkItemTypeOptions[]): WorkItemTypeOptions[] {
-    return this.isTypesValid(types) ? types! : this.defaultQuery.types;
-  }
-
-  normalizeTake(take?: number): number {
-    if (take === undefined || Number.isNaN(take) || take < 0) {
-      return this.defaultQuery.take;
-    }
-
-    return Math.min(take, TAKE_LIMIT);
+    return this.isTypesValid(types) ? [...types!] : [...this.defaultQuery.types];
   }
 
   async runQuery(query: WorkItemsQuery, _options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {

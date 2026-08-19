@@ -1,5 +1,4 @@
 import { WorkItemsDataSource } from './WorkItemsDataSource';
-import { TAKE_LIMIT } from './constants/QueryEditor.constants';
 import { setupDataSource } from 'test/fixtures';
 import { OrderByOptions, OutputType, WorkItemTypeOptions } from './types';
 
@@ -16,7 +15,7 @@ describe('WorkItemsDataSource', () => {
     expect(query.take).toBe(1000);
   });
 
-  it('normalizes invalid types and take values', () => {
+  it('normalizes invalid types and preserves explicit take values', () => {
     const [ds] = setupDataSource(WorkItemsDataSource);
 
     const query = ds.prepareQuery({
@@ -26,7 +25,7 @@ describe('WorkItemsDataSource', () => {
     });
 
     expect(query.types).toEqual([WorkItemTypeOptions.All]);
-    expect(query.take).toBe(TAKE_LIMIT);
+    expect(query.take).toBe(12000);
   });
 
   it('returns a placeholder frame', async () => {

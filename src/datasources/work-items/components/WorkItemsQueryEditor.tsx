@@ -58,13 +58,13 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     if (Number.isNaN(value) || value < 0) {
       setTakeInvalidMessage(takeErrorMessages.greaterOrEqualToZero);
-      handleQueryChange({ ...query, take: datasource.defaultQuery.take }, false);
+      handleQueryChange({ ...query, take: value }, false);
       return;
     }
 
     if (value > TAKE_LIMIT) {
       setTakeInvalidMessage(takeErrorMessages.lessOrEqualToTenThousand);
-      handleQueryChange({ ...query, take: TAKE_LIMIT }, false);
+      handleQueryChange({ ...query, take: value }, false);
       return;
     }
 
