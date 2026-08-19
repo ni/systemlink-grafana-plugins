@@ -58,13 +58,11 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     if (Number.isNaN(value) || value < 0) {
       setTakeInvalidMessage(takeErrorMessages.greaterOrEqualToZero);
-      handleQueryChange({ ...query, take: value }, false);
       return;
     }
 
     if (value > TAKE_LIMIT) {
       setTakeInvalidMessage(takeErrorMessages.lessOrEqualToTenThousand);
-      handleQueryChange({ ...query, take: value }, false);
       return;
     }
 
@@ -124,7 +122,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
               minWidth={26}
               maxWidth={26}
               type='number'
-              value={query.take}
+              defaultValue={query.take}
               onBlur={onTakeChange}
               placeholder="Enter record count"
               onKeyDown={(event) => { validateNumericInput(event); }}

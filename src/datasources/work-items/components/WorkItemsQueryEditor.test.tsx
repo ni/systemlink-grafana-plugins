@@ -42,7 +42,7 @@ describe('WorkItemsQueryEditor', () => {
     fireEvent.blur(takeInput);
 
     expect(screen.getByText(takeErrorMessages.greaterOrEqualToZero)).toBeTruthy();
-    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ take: -5 }));
+    expect(onChange).not.toHaveBeenCalled();
     expect(onRunQuery).not.toHaveBeenCalled();
   });
 });

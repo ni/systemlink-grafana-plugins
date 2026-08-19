@@ -45,7 +45,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
       orderBy: prepared.orderBy ?? this.defaultQuery.orderBy,
       descending: prepared.descending ?? this.defaultQuery.descending,
       types: this.normalizeTypes(prepared.types),
-      take: prepared.take ?? this.defaultQuery.take,
+      take: this.normalizeTake(prepared.take),
     };
   }
 
@@ -55,6 +55,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
 
   normalizeTypes(types?: WorkItemTypeOptions[]): WorkItemTypeOptions[] {
     return this.isTypesValid(types) ? [...types!] : [...this.defaultQuery.types];
+  }
+
+  normalizeTake(take?: number): number {
+    return Number.isFinite(take) && (take as number) >= 0 ? (take as number) : this.defaultQuery.take;
   }
 
   async runQuery(query: WorkItemsQuery, _options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {

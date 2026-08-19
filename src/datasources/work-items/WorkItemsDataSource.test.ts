@@ -28,6 +28,16 @@ describe('WorkItemsDataSource', () => {
     expect(query.take).toBe(12000);
   });
 
+  it('defaults take when it is negative or not finite', () => {
+    const [ds] = setupDataSource(WorkItemsDataSource);
+
+    const negativeTakeQuery = ds.prepareQuery({ refId: 'A', take: -1 });
+    const nanTakeQuery = ds.prepareQuery({ refId: 'A', take: Number.NaN });
+
+    expect(negativeTakeQuery.take).toBe(1000);
+    expect(nanTakeQuery.take).toBe(1000);
+  });
+
   it('returns a placeholder frame', async () => {
     const [ds] = setupDataSource(WorkItemsDataSource);
 
