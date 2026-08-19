@@ -15,6 +15,7 @@ import {
   WorkItemsQuery,
   WorkItemTypeOptions,
 } from './types';
+import { TAKE_LIMIT } from './constants/QueryEditor.constants';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItemsDataSourceOptions> {
   constructor(
@@ -58,7 +59,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
   }
 
   normalizeTake(take?: number): number {
-    return Number.isFinite(take) && (take as number) >= 0 ? (take as number) : this.defaultQuery.take;
+    return Number.isFinite(take) && (take as number) >= 0 && (take as number) <= TAKE_LIMIT
+      ? (take as number)
+      : this.defaultQuery.take;
   }
 
   async runQuery(query: WorkItemsQuery, _options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {

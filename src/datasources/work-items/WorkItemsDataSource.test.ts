@@ -1,6 +1,7 @@
 import { WorkItemsDataSource } from './WorkItemsDataSource';
 import { setupDataSource } from 'test/fixtures';
 import { OrderByOptions, OutputType, WorkItemTypeOptions } from './types';
+import { TAKE_LIMIT } from './constants/QueryEditor.constants';
 
 describe('WorkItemsDataSource', () => {
   it('applies expected default query values', () => {
@@ -15,17 +16,23 @@ describe('WorkItemsDataSource', () => {
     expect(query.take).toBe(1000);
   });
 
-  it('normalizes invalid types and preserves explicit take values', () => {
+  it('normalizes invalid types and defaults out-of-range take values', () => {
     const [ds] = setupDataSource(WorkItemsDataSource);
 
-    const query = ds.prepareQuery({
+    const invalidTakeQuery = ds.prepareQuery({
       refId: 'A',
       types: [],
       take: 12000,
     });
 
-    expect(query.types).toEqual([WorkItemTypeOptions.All]);
-    expect(query.take).toBe(12000);
+    const maxTakeQuery = ds.prepareQuery({
+      refId: 'A',
+      take: TAKE_LIMIT,
+    });
+
+    expect(invalidTakeQuery.types).toEqual([WorkItemTypeOptions.All]);
+    expect(invalidTakeQuery.take).toBe(1000);
+    expect(maxTakeQuery.take).toBe(TAKE_LIMIT);
   });
 
   it('defaults take when it is negative or not finite', () => {
