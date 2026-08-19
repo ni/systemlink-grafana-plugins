@@ -35,15 +35,13 @@ describe('WorkItemsDataSource', () => {
     expect(result.fields[0].name).toBe('message');
   });
 
-  it('tests datasource connection against authenticated endpoint', async () => {
-    const [ds] = setupDataSource(WorkItemsDataSource, () => ({
-      url: 'https://example.com',
-    }));
-    const getSpy = jest.spyOn(ds, 'get').mockResolvedValue({} as any);
+  it('tests datasource connection against the work-items service endpoint', async () => {
+    const [ds] = setupDataSource(WorkItemsDataSource);
+    const postSpy = jest.spyOn(ds, 'post').mockResolvedValue({} as any);
 
     const result = await ds.testDatasource();
 
-    expect(getSpy).toHaveBeenCalledWith('/niauth/v1/user');
+    expect(postSpy).toHaveBeenCalledWith('/niworkitem/v1/query-workitems', { take: 1 }, { showErrorAlert: false });
     expect(result.status).toBe('success');
   });
 });

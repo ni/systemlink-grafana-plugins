@@ -9,7 +9,7 @@ describe('WorkItemsQueryEditor', () => {
   it('renders controls and initializes query', () => {
     const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
-    const [onChange, onRunQuery] = render({});
+    render({});
 
     expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: OutputType.TotalCount })).toBeInTheDocument();

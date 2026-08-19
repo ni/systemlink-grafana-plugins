@@ -82,7 +82,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.get(this.instanceSettings.url + '/niauth/v1/user');
+    await this.post(this.queryWorkItemsUrl, { take: 1 }, { showErrorAlert: false });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 
