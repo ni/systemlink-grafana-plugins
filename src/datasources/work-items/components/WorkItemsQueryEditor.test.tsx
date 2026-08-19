@@ -6,19 +6,17 @@ import { OutputType } from '../types';
 import { WorkItemsQueryEditor } from './WorkItemsQueryEditor';
 
 describe('WorkItemsQueryEditor', () => {
-  it('renders controls and initializes query', () => {
+  it('renders controls', () => {
     const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
     render({});
 
-    expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: OutputType.TotalCount })).toBeInTheDocument();
-    expect(screen.getByText('Type')).toBeInTheDocument();
-    expect(screen.getByText('OrderBy')).toBeInTheDocument();
-    expect(screen.getByText('Descending')).toBeInTheDocument();
-    expect(screen.getByText('Take')).toBeInTheDocument();
-    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ init: true }));
-    expect(onRunQuery).toHaveBeenCalled();
+    expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeTruthy();
+    expect(screen.getByRole('radio', { name: OutputType.TotalCount })).toBeTruthy();
+    expect(screen.getByText('Type')).toBeTruthy();
+    expect(screen.getByText('OrderBy')).toBeTruthy();
+    expect(screen.getByText('Descending')).toBeTruthy();
+    expect(screen.getByText('Take')).toBeTruthy();
   });
 
   it('hides properties-only controls for total count output', async () => {
@@ -27,8 +25,8 @@ describe('WorkItemsQueryEditor', () => {
     render({});
     await userEvent.click(screen.getByRole('radio', { name: OutputType.TotalCount }));
 
-    expect(screen.queryByText('OrderBy')).not.toBeInTheDocument();
-    expect(screen.queryByText('Descending')).not.toBeInTheDocument();
-    expect(screen.queryByText('Take')).not.toBeInTheDocument();
+    expect(screen.queryByText('OrderBy')).toBeNull();
+    expect(screen.queryByText('Descending')).toBeNull();
+    expect(screen.queryByText('Take')).toBeNull();
   });
 });

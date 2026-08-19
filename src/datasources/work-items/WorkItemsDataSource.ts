@@ -8,10 +8,10 @@ import {
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
+import { TAKE_LIMIT } from './constants/QueryEditor.constants';
 import {
   OrderByOptions,
   OutputType,
-  TAKE_LIMIT,
   WorkItemsDataSourceOptions,
   WorkItemsQuery,
   WorkItemTypeOptions,
@@ -25,6 +25,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
   ) {
     super(instanceSettings, backendSrv, templateSrv);
   }
+
+  baseUrl = `${this.instanceSettings.url}/niworkitem/v1`;
+  queryWorkItemsUrl = `${this.baseUrl}/query-workitems`;
 
   defaultQuery = {
     outputType: OutputType.Properties,
@@ -82,7 +85,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.post(this.queryWorkItemsUrl, { take: 1 }, { showErrorAlert: false });
+    await this.post(this.queryWorkItemsUrl, { take: 1 });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 

@@ -1,6 +1,7 @@
 import { WorkItemsDataSource } from './WorkItemsDataSource';
+import { TAKE_LIMIT } from './constants/QueryEditor.constants';
 import { setupDataSource } from 'test/fixtures';
-import { OrderByOptions, OutputType, TAKE_LIMIT, WorkItemTypeOptions } from './types';
+import { OrderByOptions, OutputType, WorkItemTypeOptions } from './types';
 
 describe('WorkItemsDataSource', () => {
   it('applies expected default query values', () => {
@@ -41,7 +42,14 @@ describe('WorkItemsDataSource', () => {
 
     const result = await ds.testDatasource();
 
-    expect(postSpy).toHaveBeenCalledWith('/niworkitem/v1/query-workitems', { take: 1 }, { showErrorAlert: false });
+    expect(postSpy).toHaveBeenCalledWith('/niworkitem/v1/query-workitems', { take: 1 });
     expect(result.status).toBe('success');
+  });
+
+  it('bubbles up exception when datasource connectivity check fails', async () => {
+    const [ds] = setupDataSource(WorkItemsDataSource);
+    jest.spyOn(ds, 'post').mockRejectedValue(new Error('Failed'));
+
+    await expect(ds.testDatasource()).rejects.toThrow('Failed');
   });
 });

@@ -1,18 +1,17 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { AutoSizeInput, Combobox, ComboboxOption, InlineSwitch, MultiCombobox, RadioButtonGroup, Stack } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
 import { validateNumericInput } from 'core/utils';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
+import { TAKE_LIMIT, takeErrorMessages, tooltips } from '../constants/QueryEditor.constants';
 import {
   OrderBy,
   OrderByOptions,
   OutputType,
-  TAKE_LIMIT,
   WorkItemsQuery,
   WorkItemTypeOptions,
   WorkItemTypes,
-  takeErrorMessages,
 } from '../types';
 
 type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
@@ -72,13 +71,6 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     setTakeInvalidMessage('');
     handleQueryChange({ ...query, take: value });
   };
-
-  useEffect(() => {
-    if (!query.init) {
-      handleQueryChange({ ...query, init: true });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query.init]);
 
   return (
     <Stack direction='column' gap={0}>
@@ -143,11 +135,3 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     </Stack>
   );
 }
-
-const tooltips = {
-  outputType: 'Select whether to return work item properties or only total count.',
-  types: 'Choose one or more work item types to query.',
-  orderBy: 'Select which property to sort by for properties output.',
-  descending: 'Toggle descending sort order for properties output.',
-  take: 'Set the maximum number of work items to return. Maximum is 10,000.',
-};

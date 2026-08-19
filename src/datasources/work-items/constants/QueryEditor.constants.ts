@@ -1,0 +1,14 @@
+export const TAKE_LIMIT = 10000;
+
+export const takeErrorMessages = {
+  greaterOrEqualToZero: 'Enter a value greater than or equal to 0',
+  lessOrEqualToTenThousand: 'Enter a value less than or equal to 10,000',
+};
+
+export const tooltips = {
+  outputType: 'Select whether to return work item properties or only total count.',
+  types: 'Choose one or more work item types to query.',
+  orderBy: 'Select which property to sort by for properties output.',
+  descending: 'Toggle descending sort order for properties output.',
+  take: 'Set the maximum number of work items to return. Maximum is 10,000.',
+};
