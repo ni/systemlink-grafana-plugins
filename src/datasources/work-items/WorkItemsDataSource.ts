@@ -9,7 +9,6 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import {
   OrderByOptions,
   OutputType,
-  WorkItemsDataSourceOptions,
   WorkItemsQuery,
   WorkItemTypeOptions,
 } from './types';
