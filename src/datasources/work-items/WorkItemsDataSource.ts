@@ -2,17 +2,15 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
-  FieldType,
-  MetricFindValue,
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { WorkItemsDataSourceOptions, WorkItemsQuery } from './types';
+import { WorkItemsQuery } from './types';
 
-export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItemsDataSourceOptions> {
+export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
-    readonly instanceSettings: DataSourceInstanceSettings<WorkItemsDataSourceOptions>,
+    readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
@@ -21,19 +19,14 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
 
   baseUrl = `${this.instanceSettings.url}/niworkitem/v1`;
   queryWorkItemsUrl = `${this.baseUrl}/query-workitems`;
+
   defaultQuery = {};
 
   async runQuery(query: WorkItemsQuery, _options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {
     return {
       refId: query.refId,
       name: query.refId,
-      fields: [
-        {
-          name: 'message',
-          type: FieldType.string,
-          values: ['Work Items datasource query implementation will be added in follow-up stories.'],
-        },
-      ],
+      fields: [],
     };
   }
 
@@ -44,9 +37,5 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
   async testDatasource(): Promise<TestDataSourceResponse> {
     await this.post(this.queryWorkItemsUrl, { take: 1 }, { showErrorAlert: false });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
-  }
-
-  async metricFindQuery(): Promise<MetricFindValue[]> {
-    return [];
   }
 }

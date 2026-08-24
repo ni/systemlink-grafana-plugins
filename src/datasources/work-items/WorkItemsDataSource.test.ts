@@ -2,11 +2,11 @@ import { WorkItemsDataSource } from './WorkItemsDataSource';
 import { setupDataSource } from 'test/fixtures';
 
 describe('WorkItemsDataSource', () => {
-  it('returns a placeholder frame', async () => {
+  it('returns an empty placeholder frame', async () => {
     const [ds] = setupDataSource(WorkItemsDataSource);
 
     const result = await ds.runQuery({ refId: 'A' }, { scopedVars: {} } as any);
-    expect(result.fields[0].name).toBe('message');
+    expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
   });
 
   it('tests datasource connection against the work-items service endpoint', async () => {
