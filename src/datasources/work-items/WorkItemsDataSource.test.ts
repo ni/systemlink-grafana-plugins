@@ -49,7 +49,7 @@ describe('WorkItemsDataSource', () => {
     const [ds] = setupDataSource(WorkItemsDataSource);
 
     const result = await ds.runQuery({ refId: 'A' }, { scopedVars: {} } as any);
-    expect(result.fields[0].name).toBe('message');
+    expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
   });
 
   it('tests datasource connection against the work-items service endpoint', async () => {
