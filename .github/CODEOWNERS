@@ -30,3 +30,6 @@
 
 /src/panels/qr-code @CiprianAnton @kkerezsi @saradei-ni @BlankaOnodi @OliverCosma
 /acceptance-tests/tests/panels/qr-code @CiprianAnton @kkerezsi @saradei-ni @BlankaOnodi @OliverCosma
+
+/src/datasources/work-items @kartheeswaran-ni @richie-ni @Ahalya-ni
+/acceptance-tests/tests/datasources/work-items @kartheeswaran-ni @richie-ni @Ahalya-ni
