@@ -1,6 +1,5 @@
 * @ni/grafana-codeowners-team
 
-/.snyk @ni/security-scanning-owners
 /.wiz @ni/security-scanning-owners
 
 /src/datasources/notebook @CiprianAnton @kkerezsi @saradei-ni
