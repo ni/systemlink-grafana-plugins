@@ -100,53 +100,55 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
         />
       </InlineField>
 
-      <InlineField label={labels.queryBy} labelWidth={25} tooltip={tooltips.filter}>
-        <WorkItemsQueryBuilder
-          filter={query.filter}
-          workspaces={workspaces}
-          globalVariableOptions={datasource.globalVariableOptions()}
-          onChange={onFilterChange}
-        />
-      </InlineField>
+      <Stack>
+        <InlineField label={labels.queryBy} labelWidth={25} tooltip={tooltips.filter}>
+          <WorkItemsQueryBuilder
+            filter={query.filter}
+            workspaces={workspaces}
+            globalVariableOptions={datasource.globalVariableOptions()}
+            onChange={onFilterChange}
+          />
+        </InlineField>
 
-      {query.outputType === OutputType.Properties && (
-        <>
-          <InlineField label={labels.orderBy} labelWidth={25} tooltip={tooltips.orderBy}>
-            <Combobox
-              options={OrderBy}
-              placeholder="Select a field to set query order"
-              onChange={onOrderByChange}
-              value={query.orderBy}
-              width={26}
-            />
-          </InlineField>
+        {query.outputType === OutputType.Properties && (
+          <Stack direction='column'>
+            <InlineField label={labels.orderBy} labelWidth={18} tooltip={tooltips.orderBy}>
+              <Combobox
+                options={OrderBy}
+                placeholder="Select a field to set query order"
+                onChange={onOrderByChange}
+                value={query.orderBy}
+                width={26}
+              />
+            </InlineField>
 
-          <InlineField label={labels.descending} labelWidth={25} tooltip={tooltips.descending}>
-            <InlineSwitch
-              onChange={event => onDescendingChange(event.currentTarget.checked)}
-              value={query.descending}
-            />
-          </InlineField>
+            <InlineField label={labels.descending} labelWidth={18} tooltip={tooltips.descending}>
+              <InlineSwitch
+                onChange={event => onDescendingChange(event.currentTarget.checked)}
+                value={query.descending}
+              />
+            </InlineField>
 
-          <InlineField
-            label={labels.take}
-            labelWidth={25}
-            tooltip={tooltips.take}
-            invalid={!!takeInvalidMessage}
-            error={takeInvalidMessage}
-          >
-            <AutoSizeInput
-              minWidth={26}
-              maxWidth={26}
-              type='number'
-              defaultValue={query.take}
-              onBlur={onTakeChange}
-              placeholder="Enter record count"
-              onKeyDown={(event) => { validateNumericInput(event); }}
-            />
-          </InlineField>
-        </>
-      )}
+            <InlineField
+              label={labels.take}
+              labelWidth={18}
+              tooltip={tooltips.take}
+              invalid={!!takeInvalidMessage}
+              error={takeInvalidMessage}
+            >
+              <AutoSizeInput
+                minWidth={26}
+                maxWidth={26}
+                type='number'
+                defaultValue={query.take}
+                onBlur={onTakeChange}
+                placeholder="Enter record count"
+                onKeyDown={(event) => { validateNumericInput(event); }}
+              />
+            </InlineField>
+          </Stack>
+        )}
+      </Stack>
     </Stack>
   );
 }
