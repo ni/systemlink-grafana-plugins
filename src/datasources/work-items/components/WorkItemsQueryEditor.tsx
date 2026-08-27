@@ -4,7 +4,7 @@ import { AutoSizeInput, Combobox, ComboboxOption, InlineSwitch, MultiCombobox, R
 import { InlineField } from 'core/components/InlineField';
 import { validateNumericInput } from 'core/utils';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
-import { TAKE_LIMIT, takeErrorMessages, tooltips } from '../constants/QueryEditor.constants';
+import { TAKE_LIMIT, labels, takeErrorMessages, tooltips } from '../constants/QueryEditor.constants';
 import {
   OrderBy,
   OrderByOptions,
@@ -72,7 +72,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   return (
     <Stack direction='column' gap={0}>
-      <InlineField label="Output" labelWidth={25} tooltip={tooltips.outputType}>
+      <InlineField label={labels.outputType} labelWidth={25} tooltip={tooltips.outputType}>
         <RadioButtonGroup
           options={Object.values(OutputType).map((value) => ({ label: value, value })) as SelectableValue[]}
           onChange={onOutputTypeChange}
@@ -80,7 +80,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
         />
       </InlineField>
 
-      <InlineField label="Type" labelWidth={25} tooltip={tooltips.types}>
+      <InlineField label={labels.types} labelWidth={25} tooltip={tooltips.types}>
         <MultiCombobox
           placeholder="Select work item types"
           options={typeOptions}
@@ -94,7 +94,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
       {query.outputType === OutputType.Properties && (
         <>
-          <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
+          <InlineField label={labels.orderBy} labelWidth={25} tooltip={tooltips.orderBy}>
             <Combobox
               options={OrderBy}
               placeholder="Select a field to set query order"
@@ -104,7 +104,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
             />
           </InlineField>
 
-          <InlineField label="Descending" labelWidth={25} tooltip={tooltips.descending}>
+          <InlineField label={labels.descending} labelWidth={25} tooltip={tooltips.descending}>
             <InlineSwitch
               onChange={event => onDescendingChange(event.currentTarget.checked)}
               value={query.descending}
@@ -112,7 +112,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
           </InlineField>
 
           <InlineField
-            label="Take"
+            label={labels.take}
             labelWidth={25}
             tooltip={tooltips.take}
             invalid={!!takeInvalidMessage}
