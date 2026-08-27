@@ -5,6 +5,15 @@ export const takeErrorMessages = {
   lessOrEqualToTenThousand: `Enter a value less than or equal to ${TAKE_LIMIT.toLocaleString()}`,
 };
 
+export const labels = {
+  outputType: 'Output',
+  types: 'Type',
+  queryBy: 'Query By',
+  orderBy: 'OrderBy',
+  descending: 'Descending',
+  take: 'Take',
+};
+
 export const tooltips = {
   outputType: 'Select whether to return work item properties or only total count.',
   types: 'Choose one or more work item types to query.',
