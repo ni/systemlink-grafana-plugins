@@ -2,8 +2,6 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
-  FieldType,
-  MetricFindValue,
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
@@ -12,20 +10,22 @@ import { QueryBuilderOption } from 'core/types';
 import {
   OrderByOptions,
   OutputType,
-  TAKE_LIMIT,
-  WorkItemsDataSourceOptions,
   WorkItemsQuery,
   WorkItemTypeOptions,
 } from './types';
+import { TAKE_LIMIT } from './constants/QueryEditor.constants';
 
-export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItemsDataSourceOptions> {
+export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
-    readonly instanceSettings: DataSourceInstanceSettings<WorkItemsDataSourceOptions>,
+    readonly instanceSettings: DataSourceInstanceSettings,
     readonly backendSrv: BackendSrv = getBackendSrv(),
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
   }
+
+  baseUrl = `${this.instanceSettings.url}/niworkitem/v1`;
+  queryWorkItemsUrl = `${this.baseUrl}/query-workitems`;
 
   defaultQuery = {
     outputType: OutputType.Properties,
@@ -55,15 +55,13 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
   }
 
   normalizeTypes(types?: WorkItemTypeOptions[]): WorkItemTypeOptions[] {
-    return this.isTypesValid(types) ? types! : this.defaultQuery.types;
+    return this.isTypesValid(types) ? [...types!] : [...this.defaultQuery.types];
   }
 
   normalizeTake(take?: number): number {
-    if (take === undefined || Number.isNaN(take) || take < 0) {
-      return this.defaultQuery.take;
-    }
-
-    return Math.min(take, TAKE_LIMIT);
+    return Number.isFinite(take) && (take as number) >= 0 && (take as number) <= TAKE_LIMIT
+      ? (take as number)
+      : this.defaultQuery.take;
   }
 
   async runQuery(query: WorkItemsQuery, _options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {
@@ -79,7 +77,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.get(this.instanceSettings.url + '/niauth/v1/user');
+    await this.post(this.queryWorkItemsUrl, { take: 1 });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }

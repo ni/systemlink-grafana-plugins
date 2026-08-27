@@ -1,8 +1,4 @@
-import { DataSourceJsonData } from '@grafana/data';
 import { DataQuery } from '@grafana/schema';
-
-export interface WorkItemsDataSourceOptions extends DataSourceJsonData {
-}
 
 export enum OutputType {
   Properties = 'Properties',
@@ -49,15 +45,7 @@ export const OrderBy = [
   },
 ];
 
-export const TAKE_LIMIT = 10000;
-
-export const takeErrorMessages = {
-  greaterOrEqualToZero: 'Enter a value greater than or equal to 0',
-  lessOrEqualToTenThousand: 'Enter a value less than or equal to 10,000',
-};
-
 export interface WorkItemsQuery extends DataQuery {
-  init?: boolean;
   outputType?: OutputType;
   types?: WorkItemTypeOptions[];
   filter?: string;

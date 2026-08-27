@@ -1,19 +1,18 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { AutoSizeInput, Combobox, ComboboxOption, InlineSwitch, MultiCombobox, RadioButtonGroup, Stack } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
 import { Workspace } from 'core/types';
 import { validateNumericInput } from 'core/utils';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
+import { TAKE_LIMIT, takeErrorMessages, tooltips } from '../constants/QueryEditor.constants';
 import {
   OrderBy,
   OrderByOptions,
   OutputType,
-  TAKE_LIMIT,
   WorkItemsQuery,
   WorkItemTypeOptions,
   WorkItemTypes,
-  takeErrorMessages,
 } from '../types';
 import { WorkItemsQueryBuilder } from './query-builder/WorkItemsQueryBuilder';
 
@@ -67,26 +66,17 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     const value = parseInt((event.target as HTMLInputElement).value, 10);
     if (Number.isNaN(value) || value < 0) {
       setTakeInvalidMessage(takeErrorMessages.greaterOrEqualToZero);
-      handleQueryChange({ ...query, take: datasource.defaultQuery.take }, false);
       return;
     }
 
     if (value > TAKE_LIMIT) {
       setTakeInvalidMessage(takeErrorMessages.lessOrEqualToTenThousand);
-      handleQueryChange({ ...query, take: TAKE_LIMIT }, false);
       return;
     }
 
     setTakeInvalidMessage('');
     handleQueryChange({ ...query, take: value });
   };
-
-  useEffect(() => {
-    if (!query.init) {
-      handleQueryChange({ ...query, init: true });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query.init]);
 
   return (
     <Stack direction='column' gap={0}>
@@ -149,7 +139,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
               minWidth={26}
               maxWidth={26}
               type='number'
-              value={query.take}
+              defaultValue={query.take}
               onBlur={onTakeChange}
               placeholder="Enter record count"
               onKeyDown={(event) => { validateNumericInput(event); }}
@@ -160,12 +150,3 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     </Stack>
   );
 }
-
-const tooltips = {
-  outputType: 'Select whether to return work item properties or only total count.',
-  types: 'Choose one or more work item types to query.',
-  filter: 'Filter work items by property. Use Grafana template variables or the dashboard time range in date filters.',
-  orderBy: 'Select which property to sort by for properties output.',
-  descending: 'Toggle descending sort order for properties output.',
-  take: 'Set the maximum number of work items to return. Maximum is 10,000.',
-};
