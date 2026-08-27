@@ -60,6 +60,7 @@ export interface WorkItemsQuery extends DataQuery {
   init?: boolean;
   outputType?: OutputType;
   types?: WorkItemTypeOptions[];
+  filter?: string;
   orderBy?: OrderByOptions;
   descending?: boolean;
   take?: number;

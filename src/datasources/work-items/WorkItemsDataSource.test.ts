@@ -46,4 +46,10 @@ describe('WorkItemsDataSource', () => {
     expect(getSpy).toHaveBeenCalledWith('/niauth/v1/user');
     expect(result.status).toBe('success');
   });
+
+  it('exposes global variable options for the query builder', () => {
+    const [ds] = setupDataSource(WorkItemsDataSource);
+
+    expect(Array.isArray(ds.globalVariableOptions())).toBe(true);
+  });
 });

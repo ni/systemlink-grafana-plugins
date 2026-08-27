@@ -14,6 +14,7 @@ describe('WorkItemsQueryEditor', () => {
     expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: OutputType.TotalCount })).toBeInTheDocument();
     expect(screen.getByText('Type')).toBeInTheDocument();
+    expect(screen.getByText('Filter')).toBeInTheDocument();
     expect(screen.getByText('OrderBy')).toBeInTheDocument();
     expect(screen.getByText('Descending')).toBeInTheDocument();
     expect(screen.getByText('Take')).toBeInTheDocument();

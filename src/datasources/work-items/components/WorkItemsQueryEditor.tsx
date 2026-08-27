@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { AutoSizeInput, Combobox, ComboboxOption, InlineSwitch, MultiCombobox, RadioButtonGroup, Stack } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
+import { Workspace } from 'core/types';
 import { validateNumericInput } from 'core/utils';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
 import {
@@ -14,12 +15,15 @@ import {
   WorkItemTypes,
   takeErrorMessages,
 } from '../types';
+import { WorkItemsQueryBuilder } from './query-builder/WorkItemsQueryBuilder';
 
 type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
 
 export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
   const [takeInvalidMessage, setTakeInvalidMessage] = useState<string>('');
+  // Workspace lookups will be wired once the query builder is connected to the backend (Run Query story).
+  const workspaces: Workspace[] | null = null;
 
   const selectedTypes = useMemo(
     () => (query.types ?? []).map((type) => ({ label: WorkItemTypes.find((option) => option.value === type)?.label ?? type, value: type })),
@@ -45,6 +49,10 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   const onTypesChange = (items: Array<ComboboxOption<WorkItemTypeOptions>>) => {
     const types = items.map((item) => item.value).filter(Boolean) as WorkItemTypeOptions[];
     handleQueryChange({ ...query, types: datasource.normalizeTypes(types) });
+  };
+
+  const onFilterChange = (event: any) => {
+    handleQueryChange({ ...query, filter: event.detail.linq });
   };
 
   const onOrderByChange = (item: SelectableValue<OrderByOptions>) => {
@@ -102,6 +110,15 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
         />
       </InlineField>
 
+      <InlineField label="Filter" labelWidth={25} tooltip={tooltips.filter}>
+        <WorkItemsQueryBuilder
+          filter={query.filter}
+          workspaces={workspaces}
+          globalVariableOptions={datasource.globalVariableOptions()}
+          onChange={onFilterChange}
+        />
+      </InlineField>
+
       {query.outputType === OutputType.Properties && (
         <>
           <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
@@ -147,6 +164,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 const tooltips = {
   outputType: 'Select whether to return work item properties or only total count.',
   types: 'Choose one or more work item types to query.',
+  filter: 'Filter work items by property. Use Grafana template variables or the dashboard time range in date filters.',
   orderBy: 'Select which property to sort by for properties output.',
   descending: 'Toggle descending sort order for properties output.',
   take: 'Set the maximum number of work items to return. Maximum is 10,000.',

@@ -8,6 +8,7 @@ import {
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
+import { QueryBuilderOption } from 'core/types';
 import {
   OrderByOptions,
   OutputType,
@@ -33,6 +34,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
     descending: true,
     take: 1000,
   };
+
+  readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   public prepareQuery(query: WorkItemsQuery): WorkItemsQuery {
     const prepared = super.prepareQuery(query);
@@ -67,13 +70,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
     return {
       refId: query.refId,
       name: query.refId,
-      fields: [
-        {
-          name: 'message',
-          type: FieldType.string,
-          values: ['Work Items datasource query implementation will be added in follow-up stories.'],
-        },
-      ],
+      fields: [],
     };
   }
 
@@ -84,9 +81,5 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery, WorkItem
   async testDatasource(): Promise<TestDataSourceResponse> {
     await this.get(this.instanceSettings.url + '/niauth/v1/user');
     return { status: 'success', message: 'Data source connected and authentication successful!' };
-  }
-
-  async metricFindQuery(): Promise<MetricFindValue[]> {
-    return [];
   }
 }
