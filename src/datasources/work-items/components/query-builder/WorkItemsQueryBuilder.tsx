@@ -5,17 +5,21 @@ import { QBField, QueryBuilderOption, Workspace } from 'core/types';
 import { addOptionsToLookup, filterXSSField } from 'core/utils';
 import { WorkItemsQueryBuilderFields, WorkItemsQueryBuilderStaticFields } from 'datasources/work-items/constants/WorkItemsQueryBuilder.constants';
 import React, { useState, useEffect, useMemo } from 'react';
+import { User } from 'shared/types/QueryUsers.types';
+import { UsersUtils } from 'shared/users.utils';
 import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 
 type WorkItemsQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
   filter?: string;
   workspaces?: Workspace[] | null;
+  users?: User[] | null;
   globalVariableOptions: QueryBuilderOption[];
 };
 
 export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
   filter,
   workspaces,
+  users,
   onChange,
   globalVariableOptions,
 }) => {
@@ -48,8 +52,27 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
     return addOptionsToLookup(WorkItemsQueryBuilderFields.WORKSPACE, workspaceOptions);
   }, [workspaces]);
 
+  const usersFields = useMemo(() => {
+    if (!users) {
+      return null;
+    }
+    const usersMap = users.map(user => ({ label: UsersUtils.getUserNameAndEmail(user), value: user.id }));
+
+    return [
+      addOptionsToLookup(WorkItemsQueryBuilderFields.ASSIGNED_TO, usersMap),
+      addOptionsToLookup(WorkItemsQueryBuilderFields.REQUESTED_BY, usersMap),
+      addOptionsToLookup(WorkItemsQueryBuilderFields.CREATED_BY, usersMap),
+      addOptionsToLookup(WorkItemsQueryBuilderFields.UPDATED_BY, usersMap),
+    ];
+  }, [users]);
+
   useEffect(() => {
-    const updatedFields = [...WorkItemsQueryBuilderStaticFields, ...timeFields, ...(workspaceField ? [workspaceField] : [])].map(field => {
+    const updatedFields = [
+      ...WorkItemsQueryBuilderStaticFields,
+      ...timeFields,
+      ...(workspaceField ? [workspaceField] : []),
+      ...(usersFields ?? []),
+    ].map(field => {
       if (field.lookup?.dataSource) {
         return {
           ...field,
@@ -103,7 +126,7 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
     ];
 
     setOperations([...customOperations, ...customDateTimeOperations, ...keyValueOperations]);
-  }, [globalVariableOptions, timeFields, workspaceField]);
+  }, [globalVariableOptions, timeFields, workspaceField, usersFields]);
 
   return (
     <SlQueryBuilder

@@ -2,6 +2,12 @@ import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { QBField } from 'core/types';
 import { WorkItemTypes } from '../types';
 
+/**
+ * Field names below are sourced from the SystemLink Work Items data source FRD
+ * (Grafana-data-source-for-work-items.md), section "SystemLink Work Items data source".
+ * Timeline and schedule fields use the dotted API property paths given in the FRD
+ * (e.g. timeline.earliestStartDateTime, schedule.plannedStartDateTime).
+ */
 export enum WorkItemsQueryBuilderFieldNames {
   Id = 'id',
   Name = 'name',
@@ -9,13 +15,24 @@ export enum WorkItemsQueryBuilderFieldNames {
   State = 'state',
   Substate = 'substate',
   Description = 'description',
+  TestProgram = 'testProgram',
+  PartNumber = 'partNumber',
   Workspace = 'workspace',
-  EarliestStartDate = 'earliestStartDate',
-  DueDate = 'dueDate',
-  PlannedStartDate = 'plannedStartDate',
-  PlannedEndDate = 'plannedEndDate',
+  AssignedTo = 'assignedTo',
+  RequestedBy = 'requestedBy',
+  CreatedBy = 'createdBy',
+  UpdatedBy = 'updatedBy',
   CreatedAt = 'createdAt',
   UpdatedAt = 'updatedAt',
+  ParentWorkItemName = 'parentWorkItemName',
+  ParentWorkItemId = 'parentWorkItemId',
+  TemplateId = 'templateId',
+  EarliestStartDate = 'timeline.earliestStartDateTime',
+  DueDate = 'timeline.dueDateTime',
+  EstimatedDuration = 'timeline.estimatedDurationInSeconds',
+  PlannedStartDate = 'schedule.plannedStartDateTime',
+  PlannedEndDate = 'schedule.plannedEndDateTime',
+  PlannedDuration = 'schedule.plannedDurationInSeconds',
   AssetName = 'assetName',
   AssetId = 'assetId',
   DutName = 'dutName',
@@ -30,13 +47,14 @@ export enum WorkItemsQueryBuilderFieldNames {
 }
 
 export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
+  // Work item details
   ID: {
-    label: 'ID',
+    label: 'Work item ID',
     dataField: WorkItemsQueryBuilderFieldNames.Id,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
   },
   NAME: {
-    label: 'Name',
+    label: 'Work item name',
     dataField: WorkItemsQueryBuilderFieldNames.Name,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
@@ -48,7 +66,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     ],
   },
   TYPE: {
-    label: 'Type',
+    label: 'Work item type',
     dataField: WorkItemsQueryBuilderFieldNames.Type,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
     lookup: {
@@ -75,11 +93,98 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     dataField: WorkItemsQueryBuilderFieldNames.Description,
     filterOperations: [QueryBuilderOperations.CONTAINS.name, QueryBuilderOperations.DOES_NOT_CONTAIN.name],
   },
+  TEST_PROGRAM: {
+    label: 'Test program',
+    dataField: WorkItemsQueryBuilderFieldNames.TestProgram,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.CONTAINS.name,
+      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
+    ],
+  },
+  PART_NUMBER: {
+    label: 'Part Number',
+    dataField: WorkItemsQueryBuilderFieldNames.PartNumber,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.CONTAINS.name,
+      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
+    ],
+  },
   WORKSPACE: {
     label: 'Workspace',
     dataField: WorkItemsQueryBuilderFieldNames.Workspace,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
   },
+  ASSIGNED_TO: {
+    label: 'Assigned to',
+    dataField: WorkItemsQueryBuilderFieldNames.AssignedTo,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.IS_BLANK.name,
+      QueryBuilderOperations.IS_NOT_BLANK.name,
+    ],
+  },
+  REQUESTED_BY: {
+    label: 'Requested by',
+    dataField: WorkItemsQueryBuilderFieldNames.RequestedBy,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.IS_BLANK.name,
+      QueryBuilderOperations.IS_NOT_BLANK.name,
+    ],
+  },
+  CREATED_BY: {
+    label: 'Created by',
+    dataField: WorkItemsQueryBuilderFieldNames.CreatedBy,
+    filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
+  },
+  UPDATED_BY: {
+    label: 'Updated by',
+    dataField: WorkItemsQueryBuilderFieldNames.UpdatedBy,
+    filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
+  },
+  CREATED_AT: {
+    label: 'Created at',
+    dataField: WorkItemsQueryBuilderFieldNames.CreatedAt,
+    filterOperations: [
+      QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
+      QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
+    ],
+  },
+  UPDATED_AT: {
+    label: 'Updated at',
+    dataField: WorkItemsQueryBuilderFieldNames.UpdatedAt,
+    filterOperations: [
+      QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
+      QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
+    ],
+  },
+  PARENT_WORK_ITEM_NAME: {
+    label: 'Parent work item name',
+    dataField: WorkItemsQueryBuilderFieldNames.ParentWorkItemName,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.CONTAINS.name,
+      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
+    ],
+  },
+  PARENT_WORK_ITEM_ID: {
+    label: 'Parent work item ID',
+    dataField: WorkItemsQueryBuilderFieldNames.ParentWorkItemId,
+    filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
+  },
+  TEMPLATE_ID: {
+    label: 'Template ID',
+    dataField: WorkItemsQueryBuilderFieldNames.TemplateId,
+    filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
+  },
+  // Timeline
   EARLIEST_START_DATE: {
     label: 'Earliest start date',
     dataField: WorkItemsQueryBuilderFieldNames.EarliestStartDate,
@@ -98,6 +203,18 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
       QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
       QueryBuilderOperations.DATE_TIME_IS_BLANK.name,
       QueryBuilderOperations.DATE_TIME_IS_NOT_BLANK.name,
+    ],
+  },
+  ESTIMATED_DURATION: {
+    label: 'Estimated duration',
+    dataField: WorkItemsQueryBuilderFieldNames.EstimatedDuration,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.LESS_THAN.name,
+      QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
+      QueryBuilderOperations.GREATER_THAN.name,
+      QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
     ],
   },
   PLANNED_START_DATE: {
@@ -120,24 +237,21 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
       QueryBuilderOperations.DATE_TIME_IS_NOT_BLANK.name,
     ],
   },
-  CREATED_AT: {
-    label: 'Created',
-    dataField: WorkItemsQueryBuilderFieldNames.CreatedAt,
+  PLANNED_DURATION: {
+    label: 'Planned duration',
+    dataField: WorkItemsQueryBuilderFieldNames.PlannedDuration,
     filterOperations: [
-      QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
-      QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.LESS_THAN.name,
+      QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
+      QueryBuilderOperations.GREATER_THAN.name,
+      QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
     ],
   },
-  UPDATED_AT: {
-    label: 'Updated',
-    dataField: WorkItemsQueryBuilderFieldNames.UpdatedAt,
-    filterOperations: [
-      QueryBuilderOperations.DATE_TIME_IS_AFTER.name,
-      QueryBuilderOperations.DATE_TIME_IS_BEFORE.name,
-    ],
-  },
+  // Resources
   ASSET_NAME: {
-    label: 'Asset name',
+    label: 'Asset Name',
     dataField: WorkItemsQueryBuilderFieldNames.AssetName,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
@@ -152,7 +266,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
   },
   DUT_NAME: {
-    label: 'DUT name',
+    label: 'DUT Name',
     dataField: WorkItemsQueryBuilderFieldNames.DutName,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
@@ -167,7 +281,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
   },
   FIXTURE_NAME: {
-    label: 'Fixture name',
+    label: 'Fixture Name',
     dataField: WorkItemsQueryBuilderFieldNames.FixtureName,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
@@ -182,7 +296,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
   },
   SYSTEM_NAME: {
-    label: 'System name',
+    label: 'System Name',
     dataField: WorkItemsQueryBuilderFieldNames.SystemName,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
@@ -216,6 +330,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
       QueryBuilderOperations.DOES_NOT_CONTAIN.name,
     ],
   },
+  // Custom properties
   PROPERTIES: {
     label: 'Properties',
     dataField: WorkItemsQueryBuilderFieldNames.Properties,
@@ -236,6 +351,13 @@ export const WorkItemsQueryBuilderStaticFields = [
   WorkItemsQueryBuilderFields.STATE,
   WorkItemsQueryBuilderFields.SUBSTATE,
   WorkItemsQueryBuilderFields.DESCRIPTION,
+  WorkItemsQueryBuilderFields.TEST_PROGRAM,
+  WorkItemsQueryBuilderFields.PART_NUMBER,
+  WorkItemsQueryBuilderFields.PARENT_WORK_ITEM_NAME,
+  WorkItemsQueryBuilderFields.PARENT_WORK_ITEM_ID,
+  WorkItemsQueryBuilderFields.TEMPLATE_ID,
+  WorkItemsQueryBuilderFields.ESTIMATED_DURATION,
+  WorkItemsQueryBuilderFields.PLANNED_DURATION,
   WorkItemsQueryBuilderFields.ASSET_NAME,
   WorkItemsQueryBuilderFields.ASSET_ID,
   WorkItemsQueryBuilderFields.DUT_NAME,

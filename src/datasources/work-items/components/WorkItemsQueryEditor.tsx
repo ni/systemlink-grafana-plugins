@@ -15,14 +15,16 @@ import {
   WorkItemTypes,
 } from '../types';
 import { WorkItemsQueryBuilder } from './query-builder/WorkItemsQueryBuilder';
+import { User } from 'shared/types/QueryUsers.types';
 
 type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
 
 export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
   const [takeInvalidMessage, setTakeInvalidMessage] = useState<string>('');
-  // Workspace lookups will be wired once the query builder is connected to the backend (Run Query story).
+  // Workspace and user lookups will be wired once the query builder is connected to the backend (Run Query story).
   const workspaces: Workspace[] | null = null;
+  const users: User[] | null = null;
 
   const selectedTypes = useMemo(
     () => (query.types ?? []).map((type) => ({ label: WorkItemTypes.find((option) => option.value === type)?.label ?? type, value: type })),
@@ -105,6 +107,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
           <WorkItemsQueryBuilder
             filter={query.filter}
             workspaces={workspaces}
+            users={users}
             globalVariableOptions={datasource.globalVariableOptions()}
             onChange={onFilterChange}
           />

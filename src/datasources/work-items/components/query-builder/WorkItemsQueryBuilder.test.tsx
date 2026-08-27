@@ -11,9 +11,10 @@ describe('WorkItemsQueryBuilder', () => {
   function renderElement(
     filter: string,
     workspaces: Workspace[] | null = [],
+    users: any[] | null = [],
     globalVariableOptions: QueryBuilderOption[] = []
   ) {
-    reactNode = React.createElement(WorkItemsQueryBuilder, { filter, workspaces, globalVariableOptions, onChange: jest.fn() });
+    reactNode = React.createElement(WorkItemsQueryBuilder, { filter, workspaces, users, globalVariableOptions, onChange: jest.fn() });
     const renderResult = render(reactNode);
     return {
       renderResult,
@@ -38,14 +39,14 @@ describe('WorkItemsQueryBuilder', () => {
   it('should select name option with contains operation', () => {
     const { conditionsContainer } = renderElement('name.Contains("test")');
     expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Name');
+    expect(conditionsContainer.item(0)?.textContent).toContain('Work item name');
     expect(conditionsContainer.item(0)?.textContent).toContain('contains');
   });
 
   it('should select type option', () => {
     const { conditionsContainer } = renderElement('type = "WORK_ORDERS"');
     expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Type');
+    expect(conditionsContainer.item(0)?.textContent).toContain('Work item type');
     expect(conditionsContainer.item(0)?.textContent).toContain('Work orders');
   });
 
@@ -74,7 +75,7 @@ describe('WorkItemsQueryBuilder', () => {
   });
 
   it('should support is blank operation for due date', () => {
-    const { conditionsContainer } = renderElement('dueDate == null || dueDate == ""');
+    const { conditionsContainer } = renderElement('timeline.dueDateTime == null || timeline.dueDateTime == ""');
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain('Due date');
@@ -82,7 +83,7 @@ describe('WorkItemsQueryBuilder', () => {
   });
 
   it('should support is not blank operation for earliest start date', () => {
-    const { conditionsContainer } = renderElement('earliestStartDate != null && earliestStartDate != ""');
+    const { conditionsContainer } = renderElement('timeline.earliestStartDateTime != null && timeline.earliestStartDateTime != ""');
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain('Earliest start date');
@@ -100,7 +101,7 @@ describe('WorkItemsQueryBuilder', () => {
 
   it('should select global variable option', () => {
     const globalVariableOption = { label: 'Global variable', value: '$global_variable' };
-    const { conditionsContainer } = renderElement('type = \"$global_variable\"', [], [globalVariableOption]);
+    const { conditionsContainer } = renderElement('type = \"$global_variable\"', [], [], [globalVariableOption]);
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain(globalVariableOption.label);
@@ -117,6 +118,60 @@ describe('WorkItemsQueryBuilder', () => {
     const { conditionsContainer } = renderElement('assetName = "Asset 1"');
 
     expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Asset name');
+    expect(conditionsContainer.item(0)?.textContent).toContain('Asset Name');
+  });
+
+  it('should select assigned to in query builder', () => {
+    const mockUsers = [
+      { id: '1', firstName: 'User', lastName: '1', email: 'user1@123.com', properties: {}, keywords: [], created: '', updated: '', orgId: '' },
+    ];
+    const { conditionsContainer } = renderElement('assignedTo = "1"', [], mockUsers as any);
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain('Assigned to');
+  });
+
+  it('should select test program option', () => {
+    const { conditionsContainer } = renderElement('testProgram = "Program 1"');
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain('Test program');
+  });
+
+  it('should select part number option', () => {
+    const { conditionsContainer } = renderElement('partNumber = "PN-1"');
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain('Part Number');
+  });
+
+  it('should select parent work item id option', () => {
+    const { conditionsContainer } = renderElement('parentWorkItemId = "1"');
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain('Parent work item ID');
+  });
+
+  it('should select template id option', () => {
+    const { conditionsContainer } = renderElement('templateId = "1"');
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain('Template ID');
+  });
+
+  it('should select estimated duration with greater than operation', () => {
+    const { conditionsContainer } = renderElement('timeline.estimatedDurationInSeconds > "60"');
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain('Estimated duration');
+    expect(conditionsContainer.item(0)?.textContent).toContain('greater than');
+  });
+
+  it('should select planned duration with less than operation', () => {
+    const { conditionsContainer } = renderElement('schedule.plannedDurationInSeconds < "3600"');
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain('Planned duration');
+    expect(conditionsContainer.item(0)?.textContent).toContain('less than');
   });
 });
