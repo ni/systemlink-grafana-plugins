@@ -1,3 +1,9 @@
+## [5.1.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.0.2...v5.1.0) (2026-08-26)
+
+### Features
+
+* **work-items:** add work-items datasource boilerplate ([#734](https://github.com/ni/systemlink-grafana-plugins/issues/734)) ([9652628](https://github.com/ni/systemlink-grafana-plugins/commit/96526288bfbb16c4adc0d8d3c9b29a543d39b81a))
+
 ## [5.0.2](https://github.com/ni/systemlink-grafana-plugins/compare/v5.0.1...v5.0.2) (2026-07-14)
 
 ### Bug Fixes
