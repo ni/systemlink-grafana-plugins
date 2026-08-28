@@ -15,7 +15,7 @@ describe('WorkItemsQueryEditor', () => {
     expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeTruthy();
     expect(screen.getByRole('radio', { name: OutputType.TotalCount })).toBeTruthy();
     expect(screen.getByText(labels.types)).toBeTruthy();
-    expect(screen.getByText(labels.properties)).toBeTruthy();
+    expect(screen.getAllByText(labels.properties)[1]).toBeTruthy();
     expect(screen.getByText(labels.orderBy)).toBeTruthy();
     expect(screen.getByText(labels.descending)).toBeTruthy();
     expect(screen.getByText(labels.take)).toBeTruthy();
@@ -27,7 +27,7 @@ describe('WorkItemsQueryEditor', () => {
     render({});
     await userEvent.click(screen.getByRole('radio', { name: OutputType.TotalCount }));
 
-    expect(screen.queryByText(labels.properties)).toBeNull();
+    expect(screen.getAllByText(labels.properties)).toHaveLength(1);
     expect(screen.queryByText(labels.orderBy)).toBeNull();
     expect(screen.queryByText(labels.descending)).toBeNull();
     expect(screen.queryByText(labels.take)).toBeNull();
@@ -39,7 +39,7 @@ describe('WorkItemsQueryEditor', () => {
     render({});
 
     expect(screen.getByText('Work item ID')).toBeTruthy();
-    expect(screen.getByText(labels.properties)).toBeTruthy();
+    expect(screen.getAllByText(labels.properties)[1]).toBeTruthy();
   });
 
   it('shows properties validation error when all properties are removed, and clears it (without restoring defaults) when a property is re-added', async () => {
