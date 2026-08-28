@@ -9,6 +9,7 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import {
   OrderByOptions,
   OutputType,
+  WorkItemPropertiesOptions,
   WorkItemsQuery,
   WorkItemTypeOptions,
 } from './types';
@@ -29,6 +30,13 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   defaultQuery = {
     outputType: OutputType.Properties,
     types: [WorkItemTypeOptions.All],
+    properties: [
+      WorkItemPropertiesOptions.ID,
+      WorkItemPropertiesOptions.NAME,
+      WorkItemPropertiesOptions.TYPE,
+      WorkItemPropertiesOptions.STATE,
+      WorkItemPropertiesOptions.WORKSPACE,
+    ],
     orderBy: OrderByOptions.UPDATED_AT,
     descending: true,
     take: 1000,
@@ -43,6 +51,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       orderBy: prepared.orderBy ?? this.defaultQuery.orderBy,
       descending: prepared.descending ?? this.defaultQuery.descending,
       types: this.normalizeTypes(prepared.types),
+      properties: this.normalizeProperties(prepared.properties),
       take: this.normalizeTake(prepared.take),
     };
   }
@@ -53,6 +62,14 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   normalizeTypes(types?: WorkItemTypeOptions[]): WorkItemTypeOptions[] {
     return this.isTypesValid(types) ? [...types!] : [...this.defaultQuery.types];
+  }
+
+  isPropertiesValid(properties?: WorkItemPropertiesOptions[]): boolean {
+    return Boolean(properties && properties.length > 0);
+  }
+
+  normalizeProperties(properties?: WorkItemPropertiesOptions[]): WorkItemPropertiesOptions[] {
+    return properties ?? [...this.defaultQuery.properties];
   }
 
   normalizeTake(take?: number): number {
