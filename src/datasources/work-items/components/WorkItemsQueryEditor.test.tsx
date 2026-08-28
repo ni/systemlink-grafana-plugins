@@ -1,5 +1,4 @@
-import { fireEvent } from '@testing-library/react';
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { setupRenderer } from 'test/fixtures';
 import { labels, takeErrorMessages } from '../constants/QueryEditor.constants';
