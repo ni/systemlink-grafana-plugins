@@ -1,10 +1,9 @@
-import { fireEvent } from '@testing-library/react';
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { setupRenderer } from 'test/fixtures';
-import { labels, takeErrorMessages } from '../constants/QueryEditor.constants';
+import { labels, propertiesErrorMessages, takeErrorMessages } from '../constants/QueryEditor.constants';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
-import { OutputType } from '../types';
+import { OutputType, WorkItemPropertiesOptions } from '../types';
 import { WorkItemsQueryEditor } from './WorkItemsQueryEditor';
 
 describe('WorkItemsQueryEditor', () => {
@@ -16,6 +15,7 @@ describe('WorkItemsQueryEditor', () => {
     expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeTruthy();
     expect(screen.getByRole('radio', { name: OutputType.TotalCount })).toBeTruthy();
     expect(screen.getByText(labels.types)).toBeTruthy();
+    expect(screen.getAllByText(labels.properties)[1]).toBeTruthy();
     expect(screen.getByText(labels.queryBy)).toBeTruthy();
     expect(screen.getByText(labels.orderBy)).toBeTruthy();
     expect(screen.getByText(labels.descending)).toBeTruthy();
@@ -28,9 +28,45 @@ describe('WorkItemsQueryEditor', () => {
     render({});
     await userEvent.click(screen.getByRole('radio', { name: OutputType.TotalCount }));
 
+    expect(screen.getAllByText(labels.properties)).toHaveLength(1);
     expect(screen.queryByText(labels.orderBy)).toBeNull();
     expect(screen.queryByText(labels.descending)).toBeNull();
     expect(screen.queryByText(labels.take)).toBeNull();
+  });
+
+  it('renders default selected properties for properties output', () => {
+    const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+
+    render({});
+
+    expect(screen.getByText('Work item ID')).toBeTruthy();
+    expect(screen.getAllByText(labels.properties)[1]).toBeTruthy();
+  });
+
+  it('shows properties validation error when all properties are removed, and clears it (without restoring defaults) when a property is re-added', async () => {
+    const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+
+    try {
+      const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+      const [onChange] = render({ properties: [WorkItemPropertiesOptions.ID] });
+
+      await userEvent.click(screen.getByRole('button', { name: 'Remove Work item ID' }));
+
+      expect(screen.getByText(propertiesErrorMessages.atLeastOneRequired)).toBeTruthy();
+      expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ properties: [] }));
+
+      const propertiesCombobox = screen.getAllByRole('combobox')[1];
+      await userEvent.click(propertiesCombobox);
+      await userEvent.type(propertiesCombobox, 'Work item name');
+      await userEvent.click(await screen.findByRole('option', { name: 'Work item name' }));
+
+      expect(screen.queryByText(propertiesErrorMessages.atLeastOneRequired)).toBeNull();
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ properties: [WorkItemPropertiesOptions.NAME] })
+      );
+    } finally {
+      offsetHeightSpy.mockRestore();
+    }
   });
 
   it('shows take validation error and suppresses query execution for invalid take input', () => {

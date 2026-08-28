@@ -5,11 +5,13 @@ import { InlineField } from 'core/components/InlineField';
 import { Workspace } from 'core/types';
 import { validateNumericInput } from 'core/utils';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
-import { TAKE_LIMIT, labels, takeErrorMessages, tooltips } from '../constants/QueryEditor.constants';
+import { TAKE_LIMIT, labels, propertiesErrorMessages, takeErrorMessages, tooltips } from '../constants/QueryEditor.constants';
 import {
   OrderBy,
   OrderByOptions,
   OutputType,
+  WorkItemProperties,
+  WorkItemPropertiesOptions,
   WorkItemsQuery,
   WorkItemTypeOptions,
   WorkItemTypes,
@@ -22,6 +24,7 @@ type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
 export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
   const [takeInvalidMessage, setTakeInvalidMessage] = useState<string>('');
+  const isPropertiesValid = datasource.isPropertiesValid(query.properties);
   // Workspace and user lookups will be wired once the query builder is connected to the backend (Run Query story).
   const workspaces: Workspace[] | null = null;
   const users: User[] | null = null;
@@ -33,6 +36,24 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const typeOptions = useMemo(
     () => WorkItemTypes.map((option) => ({ label: option.label, value: option.value })),
+    []
+  );
+
+  const selectedProperties = useMemo(
+    () => (query.properties ?? []).map((property) => ({
+      label: WorkItemProperties[property]?.label ?? property,
+      value: property,
+      group: WorkItemProperties[property]?.group,
+    })),
+    [query.properties]
+  );
+
+  const propertiesOptions = useMemo(
+    () => Object.values(WorkItemProperties).map((property) => ({
+      label: property.label,
+      value: property.value,
+      group: property.group,
+    })),
     []
   );
 
@@ -50,6 +71,11 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   const onTypesChange = (items: Array<ComboboxOption<WorkItemTypeOptions>>) => {
     const types = items.map((item) => item.value).filter(Boolean) as WorkItemTypeOptions[];
     handleQueryChange({ ...query, types: datasource.normalizeTypes(types) });
+  };
+
+  const onPropertiesChange = (items: Array<ComboboxOption<WorkItemPropertiesOptions>>) => {
+    const properties = items.map((item) => item.value).filter(Boolean) as WorkItemPropertiesOptions[];
+    handleQueryChange({ ...query, properties });
   };
 
   const onFilterChange = (event: any) => {
@@ -113,17 +139,35 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
           />
         </InlineField>
 
-        {query.outputType === OutputType.Properties && (
-          <Stack direction='column'>
-            <InlineField label={labels.orderBy} labelWidth={18} tooltip={tooltips.orderBy}>
-              <Combobox
-                options={OrderBy}
-                placeholder="Select a field to set query order"
-                onChange={onOrderByChange}
-                value={query.orderBy}
-                width={26}
-              />
-            </InlineField>
+      {query.outputType === OutputType.Properties && (
+        <Stack direction='column'>
+            <InlineField
+            label={labels.properties}
+            labelWidth={25}
+            tooltip={tooltips.properties}
+            invalid={!isPropertiesValid}
+            error={propertiesErrorMessages.atLeastOneRequired}
+          >
+            <MultiCombobox
+              placeholder="Select the properties to query"
+              options={propertiesOptions}
+              value={selectedProperties}
+              onChange={onPropertiesChange}
+              width='auto'
+              minWidth={65}
+              maxWidth={65}
+            />
+          </InlineField>
+
+          <InlineField label={labels.orderBy} labelWidth={25} tooltip={tooltips.orderBy}>
+            <Combobox
+              options={OrderBy}
+              placeholder="Select a field to set query order"
+              onChange={onOrderByChange}
+              value={query.orderBy}
+              width={26}
+            />
+          </InlineField>
 
             <InlineField label={labels.descending} labelWidth={18} tooltip={tooltips.descending}>
               <InlineSwitch

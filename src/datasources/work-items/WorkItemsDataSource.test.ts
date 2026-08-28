@@ -1,6 +1,6 @@
 import { WorkItemsDataSource } from './WorkItemsDataSource';
 import { setupDataSource } from 'test/fixtures';
-import { OrderByOptions, OutputType, WorkItemTypeOptions } from './types';
+import { OrderByOptions, OutputType, WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
 import { TAKE_LIMIT } from './constants/QueryEditor.constants';
 
 describe('WorkItemsDataSource', () => {
@@ -11,6 +11,13 @@ describe('WorkItemsDataSource', () => {
 
     expect(query.outputType).toBe(OutputType.Properties);
     expect(query.types).toEqual([WorkItemTypeOptions.All]);
+    expect(query.properties).toEqual([
+      WorkItemPropertiesOptions.ID,
+      WorkItemPropertiesOptions.NAME,
+      WorkItemPropertiesOptions.TYPE,
+      WorkItemPropertiesOptions.STATE,
+      WorkItemPropertiesOptions.WORKSPACE,
+    ]);
     expect(query.orderBy).toBe(OrderByOptions.UPDATED_AT);
     expect(query.descending).toBe(true);
     expect(query.take).toBe(1000);
@@ -33,6 +40,22 @@ describe('WorkItemsDataSource', () => {
     expect(invalidTakeQuery.types).toEqual([WorkItemTypeOptions.All]);
     expect(invalidTakeQuery.take).toBe(1000);
     expect(maxTakeQuery.take).toBe(TAKE_LIMIT);
+  });
+
+  it('preserves an explicit empty properties selection instead of resetting to defaults', () => {
+    const [ds] = setupDataSource(WorkItemsDataSource);
+
+    const emptyPropertiesQuery = ds.prepareQuery({ refId: 'A', properties: [] });
+    const customPropertiesQuery = ds.prepareQuery({
+      refId: 'A',
+      properties: [WorkItemPropertiesOptions.ASSET_NAME],
+    });
+    const undefinedPropertiesQuery = ds.prepareQuery({ refId: 'A' });
+
+    expect(emptyPropertiesQuery.properties).toEqual([]);
+    expect(ds.isPropertiesValid(emptyPropertiesQuery.properties)).toBe(false);
+    expect(customPropertiesQuery.properties).toEqual([WorkItemPropertiesOptions.ASSET_NAME]);
+    expect(undefinedPropertiesQuery.properties).toEqual(ds.defaultQuery.properties);
   });
 
   it('defaults take when it is negative or not finite', () => {

@@ -5,9 +5,14 @@ export const takeErrorMessages = {
   lessOrEqualToTenThousand: `Enter a value less than or equal to ${TAKE_LIMIT.toLocaleString()}`,
 };
 
+export const propertiesErrorMessages = {
+  atLeastOneRequired: 'You must select at least one property.',
+};
+
 export const labels = {
   outputType: 'Output',
   types: 'Type',
+  properties: 'Properties',
   queryBy: 'Query By',
   orderBy: 'OrderBy',
   descending: 'Descending',
@@ -17,6 +22,7 @@ export const labels = {
 export const tooltips = {
   outputType: 'Select whether to return work item properties or only total count.',
   types: 'Choose one or more work item types to query.',
+  properties: 'Select the work item properties to include in the result.',
   filter: 'Filter work items by property. Use Grafana template variables or the dashboard time range in date filters.',
   orderBy: 'Select which property to sort by for properties output.',
   descending: 'Toggle descending sort order for properties output.',
