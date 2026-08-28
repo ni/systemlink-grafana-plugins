@@ -22,11 +22,11 @@ describe('WorkItemsQueryBuilder', () => {
     };
   }
 
-  it('should render empty query builder', () => {
+  it('should render empty query builder', async () => {
     const { renderResult, conditionsContainer } = renderElement('');
 
     expect(conditionsContainer.length).toBe(1);
-    expect(renderResult.findByLabelText('Empty condition row')).toBeTruthy();
+    expect(await renderResult.findByLabelText('Empty condition row')).toBeTruthy();
   });
 
   it('should select id option', () => {

@@ -128,7 +128,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
         />
       </InlineField>
 
-      <Stack>
+      <Stack direction='column'>
         <InlineField label={labels.queryBy} labelWidth={25} tooltip={tooltips.filter}>
           <WorkItemsQueryBuilder
             filter={query.filter}
@@ -139,35 +139,35 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
           />
         </InlineField>
 
-      {query.outputType === OutputType.Properties && (
-        <Stack direction='column'>
+        {query.outputType === OutputType.Properties && (
+          <Stack direction='column'>
             <InlineField
-            label={labels.properties}
-            labelWidth={25}
-            tooltip={tooltips.properties}
-            invalid={!isPropertiesValid}
-            error={propertiesErrorMessages.atLeastOneRequired}
-          >
-            <MultiCombobox
-              placeholder="Select the properties to query"
-              options={propertiesOptions}
-              value={selectedProperties}
-              onChange={onPropertiesChange}
-              width='auto'
-              minWidth={65}
-              maxWidth={65}
-            />
-          </InlineField>
+              label={labels.properties}
+              labelWidth={25}
+              tooltip={tooltips.properties}
+              invalid={!isPropertiesValid}
+              error={propertiesErrorMessages.atLeastOneRequired}
+            >
+              <MultiCombobox
+                placeholder="Select the properties to query"
+                options={propertiesOptions}
+                value={selectedProperties}
+                onChange={onPropertiesChange}
+                width='auto'
+                minWidth={65}
+                maxWidth={65}
+              />
+            </InlineField>
 
-          <InlineField label={labels.orderBy} labelWidth={25} tooltip={tooltips.orderBy}>
-            <Combobox
-              options={OrderBy}
-              placeholder="Select a field to set query order"
-              onChange={onOrderByChange}
-              value={query.orderBy}
-              width={26}
-            />
-          </InlineField>
+            <InlineField label={labels.orderBy} labelWidth={25} tooltip={tooltips.orderBy}>
+              <Combobox
+                options={OrderBy}
+                placeholder="Select a field to set query order"
+                onChange={onOrderByChange}
+                value={query.orderBy}
+                width={26}
+              />
+            </InlineField>
 
             <InlineField label={labels.descending} labelWidth={18} tooltip={tooltips.descending}>
               <InlineSwitch
