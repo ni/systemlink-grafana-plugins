@@ -1,9 +1,9 @@
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { setupRenderer } from 'test/fixtures';
-import { labels, propertiesErrorMessages, takeErrorMessages } from '../constants/QueryEditor.constants';
+import { labels, propertiesErrorMessages, takeErrorMessages, typesErrorMessages } from '../constants/QueryEditor.constants';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
-import { OutputType, WorkItemPropertiesOptions } from '../types';
+import { OutputType, WorkItemPropertiesOptions, WorkItemTypeOptions } from '../types';
 import { WorkItemsQueryEditor } from './WorkItemsQueryEditor';
 
 describe('WorkItemsQueryEditor', () => {
@@ -40,6 +40,22 @@ describe('WorkItemsQueryEditor', () => {
 
     expect(screen.getByText('Work item ID')).toBeTruthy();
     expect(screen.getAllByText(labels.properties)[1]).toBeTruthy();
+  });
+
+  it('shows types validation error when all types are removed instead of restoring the default selection', async () => {
+    const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+
+    try {
+      const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+      const [onChange] = render({ types: [WorkItemTypeOptions.WorkOrders] });
+
+      await userEvent.click(screen.getByRole('button', { name: 'Remove Work orders' }));
+
+      expect(screen.getByText(typesErrorMessages.atLeastOneRequired)).toBeTruthy();
+      expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ types: [] }));
+    } finally {
+      offsetHeightSpy.mockRestore();
+    }
   });
 
   it('shows properties validation error when all properties are removed, and clears it (without restoring defaults) when a property is re-added', async () => {

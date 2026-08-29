@@ -1,5 +1,5 @@
-# SystemLink Work Items Data Source
+# SystemLink Work Items data source
 
-This is a plugin for Work Items from the Work Items service. It allows you to:
+This is a plugin for Work Items from the Work item service. It allows you to:
 
-- Visualize work item metadata and its count on a dashboard
+- Visualize work items metadata and count on a dashboard
