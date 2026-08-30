@@ -30,7 +30,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   defaultQuery = {
     outputType: OutputType.Properties,
-    types: [WorkItemTypeOptions.All],
+    types: Object.values(WorkItemTypeOptions),
     properties: [
       WorkItemPropertiesOptions.ID,
       WorkItemPropertiesOptions.NAME,
@@ -45,42 +45,19 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
-  public prepareQuery(query: WorkItemsQuery): WorkItemsQuery {
-    const prepared = super.prepareQuery(query);
-
-    return {
-      ...prepared,
-      outputType: prepared.outputType ?? this.defaultQuery.outputType,
-      orderBy: prepared.orderBy ?? this.defaultQuery.orderBy,
-      descending: prepared.descending ?? this.defaultQuery.descending,
-      types: this.normalizeTypes(prepared.types),
-      properties: this.normalizeProperties(prepared.properties),
-      take: this.normalizeTake(prepared.take),
-    };
-  }
-
   isTypesValid(types?: WorkItemTypeOptions[]): boolean {
     return Boolean(types && types.length > 0);
-  }
-
-  normalizeTypes(types?: WorkItemTypeOptions[]): WorkItemTypeOptions[] {
-    return this.isTypesValid(types) ? [...types!] : [...this.defaultQuery.types];
   }
 
   isPropertiesValid(properties?: WorkItemPropertiesOptions[]): boolean {
     return Boolean(properties && properties.length > 0);
   }
 
-  normalizeProperties(properties?: WorkItemPropertiesOptions[]): WorkItemPropertiesOptions[] {
-    return properties ?? [...this.defaultQuery.properties];
+  isTakeValid(take?: number): boolean {
+    return Number.isFinite(take) && take! >= 0 && take! <= TAKE_LIMIT;
   }
 
-  normalizeTake(take?: number): number {
-    return Number.isFinite(take) && (take as number) >= 0 && (take as number) <= TAKE_LIMIT
-      ? (take as number)
-      : this.defaultQuery.take;
-  }
-
+  // TODO: AB#3923375 - Query work items and return the requested properties instead of an empty frame.
   async runQuery(query: WorkItemsQuery, _options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {
     return {
       refId: query.refId,
@@ -94,7 +71,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
-    await this.post(this.queryWorkItemsUrl, { take: 1 });
+    await this.post(this.queryWorkItemsUrl, { take: 1 }, { showErrorAlert: false });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
   }
 }

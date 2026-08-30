@@ -10,7 +10,7 @@ describe('WorkItemsDataSource', () => {
     const query = ds.prepareQuery({ refId: 'A' });
 
     expect(query.outputType).toBe(OutputType.Properties);
-    expect(query.types).toEqual([WorkItemTypeOptions.All]);
+    expect(query.types).toEqual(Object.values(WorkItemTypeOptions));
     expect(query.properties).toEqual([
       WorkItemPropertiesOptions.ID,
       WorkItemPropertiesOptions.NAME,
@@ -23,49 +23,32 @@ describe('WorkItemsDataSource', () => {
     expect(query.take).toBe(1000);
   });
 
-  it('normalizes invalid types and defaults out-of-range take values', () => {
+  it('preserves explicit selections instead of resetting them to defaults', () => {
     const [ds] = setupDataSource(WorkItemsDataSource);
 
-    const invalidTakeQuery = ds.prepareQuery({
+    const clearedQuery = ds.prepareQuery({
       refId: 'A',
       types: [],
+      properties: [],
       take: 12000,
     });
 
-    const maxTakeQuery = ds.prepareQuery({
-      refId: 'A',
-      take: TAKE_LIMIT,
-    });
-
-    expect(invalidTakeQuery.types).toEqual([WorkItemTypeOptions.All]);
-    expect(invalidTakeQuery.take).toBe(1000);
-    expect(maxTakeQuery.take).toBe(TAKE_LIMIT);
+    expect(clearedQuery.types).toEqual([]);
+    expect(clearedQuery.properties).toEqual([]);
+    expect(clearedQuery.take).toBe(12000);
   });
 
-  it('preserves an explicit empty properties selection instead of resetting to defaults', () => {
+  it('reports invalid types, properties and take values', () => {
     const [ds] = setupDataSource(WorkItemsDataSource);
 
-    const emptyPropertiesQuery = ds.prepareQuery({ refId: 'A', properties: [] });
-    const customPropertiesQuery = ds.prepareQuery({
-      refId: 'A',
-      properties: [WorkItemPropertiesOptions.ASSET_NAME],
-    });
-    const undefinedPropertiesQuery = ds.prepareQuery({ refId: 'A' });
-
-    expect(emptyPropertiesQuery.properties).toEqual([]);
-    expect(ds.isPropertiesValid(emptyPropertiesQuery.properties)).toBe(false);
-    expect(customPropertiesQuery.properties).toEqual([WorkItemPropertiesOptions.ASSET_NAME]);
-    expect(undefinedPropertiesQuery.properties).toEqual(ds.defaultQuery.properties);
-  });
-
-  it('defaults take when it is negative or not finite', () => {
-    const [ds] = setupDataSource(WorkItemsDataSource);
-
-    const negativeTakeQuery = ds.prepareQuery({ refId: 'A', take: -1 });
-    const nanTakeQuery = ds.prepareQuery({ refId: 'A', take: Number.NaN });
-
-    expect(negativeTakeQuery.take).toBe(1000);
-    expect(nanTakeQuery.take).toBe(1000);
+    expect(ds.isTypesValid([])).toBe(false);
+    expect(ds.isTypesValid([WorkItemTypeOptions.WorkOrders])).toBe(true);
+    expect(ds.isPropertiesValid([])).toBe(false);
+    expect(ds.isPropertiesValid([WorkItemPropertiesOptions.ID])).toBe(true);
+    expect(ds.isTakeValid(-1)).toBe(false);
+    expect(ds.isTakeValid(Number.NaN)).toBe(false);
+    expect(ds.isTakeValid(TAKE_LIMIT + 1)).toBe(false);
+    expect(ds.isTakeValid(TAKE_LIMIT)).toBe(true);
   });
 
   it('returns a placeholder frame', async () => {
@@ -81,7 +64,7 @@ describe('WorkItemsDataSource', () => {
 
     const result = await ds.testDatasource();
 
-    expect(postSpy).toHaveBeenCalledWith('/niworkitem/v1/query-workitems', { take: 1 });
+    expect(postSpy).toHaveBeenCalledWith('/niworkitem/v1/query-workitems', { take: 1 }, { showErrorAlert: false });
     expect(result.status).toBe('success');
   });
 

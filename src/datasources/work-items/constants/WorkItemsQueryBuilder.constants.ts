@@ -1,6 +1,6 @@
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { QBField } from 'core/types';
-import { WorkItemTypes } from '../types';
+import { WorkItemTypes } from '../constants/QueryEditor.constants';
 
 /**
  * Field names below are sourced from the SystemLink Work Items data source FRD

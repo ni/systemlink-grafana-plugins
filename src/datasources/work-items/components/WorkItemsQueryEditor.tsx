@@ -1,80 +1,79 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
-import { AutoSizeInput, Combobox, ComboboxOption, InlineSwitch, MultiCombobox, RadioButtonGroup, Stack } from '@grafana/ui';
+import {
+  AutoSizeInput,
+  Combobox,
+  ComboboxOption,
+  InlineSwitch,
+  MultiCombobox,
+  RadioButtonGroup,
+  Stack,
+} from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
 import { Workspace } from 'core/types';
 import { validateNumericInput } from 'core/utils';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
-import { TAKE_LIMIT, labels, propertiesErrorMessages, takeErrorMessages, tooltips } from '../constants/QueryEditor.constants';
 import {
+  LABEL_WIDTH,
   OrderBy,
+  TAKE_LIMIT,
+  WorkItemProperties,
+  WorkItemTypes,
+  labels,
+  placeholders,
+  propertiesErrorMessages,
+  takeErrorMessages,
+  tooltips,
+  typesErrorMessages,
+} from '../constants/QueryEditor.constants';
+import {
   OrderByOptions,
   OutputType,
-  WorkItemProperties,
   WorkItemPropertiesOptions,
   WorkItemsQuery,
   WorkItemTypeOptions,
-  WorkItemTypes,
 } from '../types';
 import { WorkItemsQueryBuilder } from './query-builder/WorkItemsQueryBuilder';
 import { User } from 'shared/types/QueryUsers.types';
 
 type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
 
+const propertiesOptions = Object.values(WorkItemProperties).map(property => ({
+  label: property.label,
+  value: property.value,
+  group: property.group,
+}));
+
 export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
   const [takeInvalidMessage, setTakeInvalidMessage] = useState<string>('');
   const isPropertiesValid = datasource.isPropertiesValid(query.properties);
+  const isTypesValid = datasource.isTypesValid(query.types);
   // Workspace and user lookups will be wired once the query builder is connected to the backend (Run Query story).
   const workspaces: Workspace[] | null = null;
   const users: User[] | null = null;
 
-  const selectedTypes = useMemo(
-    () => (query.types ?? []).map((type) => ({ label: WorkItemTypes.find((option) => option.value === type)?.label ?? type, value: type })),
-    [query.types]
+  const handleQueryChange = useCallback(
+    (newQuery: WorkItemsQuery, runQuery = true): void => {
+      onChange(newQuery);
+      if (runQuery) {
+        onRunQuery();
+      }
+    },
+    [onChange, onRunQuery]
   );
-
-  const typeOptions = useMemo(
-    () => WorkItemTypes.map((option) => ({ label: option.label, value: option.value })),
-    []
-  );
-
-  const selectedProperties = useMemo(
-    () => (query.properties ?? []).map((property) => ({
-      label: WorkItemProperties[property]?.label ?? property,
-      value: property,
-      group: WorkItemProperties[property]?.group,
-    })),
-    [query.properties]
-  );
-
-  const propertiesOptions = useMemo(
-    () => Object.values(WorkItemProperties).map((property) => ({
-      label: property.label,
-      value: property.value,
-      group: property.group,
-    })),
-    []
-  );
-
-  const handleQueryChange = useCallback((newQuery: WorkItemsQuery, runQuery = true): void => {
-    onChange(newQuery);
-    if (runQuery) {
-      onRunQuery();
-    }
-  }, [onChange, onRunQuery]);
 
   const onOutputTypeChange = (value: OutputType) => {
     handleQueryChange({ ...query, outputType: value });
   };
 
   const onTypesChange = (items: Array<ComboboxOption<WorkItemTypeOptions>>) => {
-    const types = items.map((item) => item.value).filter(Boolean) as WorkItemTypeOptions[];
-    handleQueryChange({ ...query, types: datasource.normalizeTypes(types) });
+    const types = items.map(item => item.value).filter(Boolean) as WorkItemTypeOptions[];
+    handleQueryChange({ ...query, types });
   };
 
   const onPropertiesChange = (items: Array<ComboboxOption<WorkItemPropertiesOptions>>) => {
-    const properties = items.map((item) => item.value).filter(Boolean) as WorkItemPropertiesOptions[];
+    const properties = items.map(item => item.value).filter(Boolean) as WorkItemPropertiesOptions[];
     handleQueryChange({ ...query, properties });
   };
 
@@ -92,7 +91,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    if (Number.isNaN(value) || value < 0) {
+    if (Number.isNaN(value) || value <= 0) {
       setTakeInvalidMessage(takeErrorMessages.greaterOrEqualToZero);
       return;
     }
@@ -107,29 +106,40 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   };
 
   return (
-    <Stack direction='column' gap={0}>
-      <InlineField label={labels.outputType} labelWidth={25} tooltip={tooltips.outputType}>
+    <Stack
+      direction="column"
+    >
+      <InlineField
+        label={labels.outputType}
+        labelWidth={LABEL_WIDTH}
+        tooltip={tooltips.outputType}
+      >
         <RadioButtonGroup
-          options={Object.values(OutputType).map((value) => ({ label: value, value })) as SelectableValue[]}
+          options={Object.values(OutputType).map(value => ({ label: value, value }))}
           onChange={onOutputTypeChange}
           value={query.outputType}
         />
       </InlineField>
-
-      <InlineField label={labels.types} labelWidth={25} tooltip={tooltips.types}>
+      <InlineField
+        label={labels.types}
+        labelWidth={LABEL_WIDTH}
+        tooltip={tooltips.types}
+        invalid={!isTypesValid}
+        error={typesErrorMessages.atLeastOneRequired}
+      >
         <MultiCombobox
-          placeholder="Select work item types"
-          options={typeOptions}
-          value={selectedTypes}
+          placeholder={placeholders.types}
+          options={WorkItemTypes}
+          value={query.types}
           onChange={onTypesChange}
-          width='auto'
+          enableAllOption
+          width="auto"
           minWidth={65}
           maxWidth={65}
         />
       </InlineField>
-
       <Stack direction='column'>
-        <InlineField label={labels.queryBy} labelWidth={25} tooltip={tooltips.filter}>
+        <InlineField label={labels.queryBy} labelWidth={LABEL_WIDTH} tooltip={tooltips.filter}>
           <WorkItemsQueryBuilder
             filter={query.filter}
             workspaces={workspaces}
@@ -143,15 +153,15 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
           <Stack direction='column'>
             <InlineField
               label={labels.properties}
-              labelWidth={25}
+              labelWidth={LABEL_WIDTH}
               tooltip={tooltips.properties}
               invalid={!isPropertiesValid}
               error={propertiesErrorMessages.atLeastOneRequired}
             >
               <MultiCombobox
-                placeholder="Select the properties to query"
+                placeholder={placeholders.properties}
                 options={propertiesOptions}
-                value={selectedProperties}
+                value={query.properties}
                 onChange={onPropertiesChange}
                 width='auto'
                 minWidth={65}
@@ -159,17 +169,17 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
               />
             </InlineField>
 
-            <InlineField label={labels.orderBy} labelWidth={25} tooltip={tooltips.orderBy}>
+            <InlineField label={labels.orderBy} labelWidth={LABEL_WIDTH} tooltip={tooltips.orderBy}>
               <Combobox
                 options={OrderBy}
-                placeholder="Select a field to set query order"
+                placeholder={placeholders.orderBy}
                 onChange={onOrderByChange}
                 value={query.orderBy}
                 width={26}
               />
             </InlineField>
 
-            <InlineField label={labels.descending} labelWidth={18} tooltip={tooltips.descending}>
+            <InlineField label={labels.descending} labelWidth={LABEL_WIDTH} tooltip={tooltips.descending}>
               <InlineSwitch
                 onChange={event => onDescendingChange(event.currentTarget.checked)}
                 value={query.descending}
@@ -178,7 +188,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
             <InlineField
               label={labels.take}
-              labelWidth={18}
+              labelWidth={LABEL_WIDTH}
               tooltip={tooltips.take}
               invalid={!!takeInvalidMessage}
               error={takeInvalidMessage}
@@ -189,7 +199,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
                 type='number'
                 defaultValue={query.take}
                 onBlur={onTakeChange}
-                placeholder="Enter record count"
+                placeholder={placeholders.take}
                 onKeyDown={(event) => { validateNumericInput(event); }}
               />
             </InlineField>
