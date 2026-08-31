@@ -10,12 +10,15 @@ import {
   Stack,
 } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
+import { Workspace } from 'core/types';
 import { validateNumericInput } from 'core/utils';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
 import {
+  CONTROL_WIDTH,
   LABEL_WIDTH,
   OrderBy,
-  TAKE_LIMIT,
+  QUERY_EDITOR_CONTROL_GAP,
+  SECONDARY_CONTROL_WIDTH,
   WorkItemProperties,
   WorkItemTypes,
   labels,
@@ -25,6 +28,7 @@ import {
   tooltips,
   typesErrorMessages,
 } from '../constants/QueryEditor.constants';
+import { TAKE_LIMIT } from '../constants';
 import {
   OrderByOptions,
   OutputType,
@@ -32,24 +36,37 @@ import {
   WorkItemsQuery,
   WorkItemTypeOptions,
 } from '../types';
+import { WorkItemsQueryBuilder } from './query-builder/WorkItemsQueryBuilder';
+import { User } from 'shared/types/QueryUsers.types';
 
 type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
 
-const propertiesOptions = Object.values(WorkItemProperties).map(property => ({
-  label: property.label,
-  value: property.value,
-  group: property.group,
-}));
-
 export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
+
   const [takeInvalidMessage, setTakeInvalidMessage] = useState<string>('');
-  const isPropertiesValid = datasource.isPropertiesValid(query.properties);
-  const isTypesValid = datasource.isTypesValid(query.types);
+
+  const isPropertiesValid = Boolean(query.properties && query.properties.length > 0);
+  const isTypesValid = Boolean(query.types && query.types.length > 0);
+
+  const propertiesOptions = Object.values(WorkItemProperties).map(property => ({
+    label: property.label,
+    value: property.value,
+    group: property.group,
+  }));
+
+  const outputTypeOptions = Object.values(OutputType).map(value => ({
+    label: value,
+    value,
+  }));
+
+  // TODO: AB#3923383 - workspace/user lookups land with the query builder PR.
+  const workspaces: Workspace[] | null = null;
+  const users: User[] | null = null;
 
   const handleQueryChange = useCallback(
-    (newQuery: WorkItemsQuery, runQuery = true): void => {
-      onChange(newQuery);
+    (query: WorkItemsQuery, runQuery = true): void => {
+      onChange(query);
       if (runQuery) {
         onRunQuery();
       }
@@ -69,6 +86,10 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   const onPropertiesChange = (items: Array<ComboboxOption<WorkItemPropertiesOptions>>) => {
     const properties = items.map(item => item.value).filter(Boolean) as WorkItemPropertiesOptions[];
     handleQueryChange({ ...query, properties });
+  };
+
+  const onFilterChange = (event: any) => {
+    handleQueryChange({ ...query, filter: event.detail.linq });
   };
 
   const onOrderByChange = (item: SelectableValue<OrderByOptions>) => {
@@ -105,7 +126,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
         tooltip={tooltips.outputType}
       >
         <RadioButtonGroup
-          options={Object.values(OutputType).map(value => ({ label: value, value }))}
+          options={outputTypeOptions}
           onChange={onOutputTypeChange}
           value={query.outputType}
         />
@@ -124,73 +145,98 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
           onChange={onTypesChange}
           enableAllOption
           width="auto"
-          minWidth={65}
-          maxWidth={65}
+          minWidth={CONTROL_WIDTH}
+          maxWidth={CONTROL_WIDTH}
         />
       </InlineField>
       {query.outputType === OutputType.Properties && (
-        <>
-          <InlineField
-            label={labels.properties}
-            labelWidth={LABEL_WIDTH}
-            tooltip={tooltips.properties}
-            invalid={!isPropertiesValid}
-            error={propertiesErrorMessages.atLeastOneRequired}
-          >
-            <MultiCombobox
-              placeholder={placeholders.properties}
-              options={propertiesOptions}
-              value={query.properties}
-              onChange={onPropertiesChange}
-              width="auto"
-              minWidth={65}
-              maxWidth={65}
-            />
-          </InlineField>
-          <InlineField
-            label={labels.orderBy}
-            labelWidth={LABEL_WIDTH}
-            tooltip={tooltips.orderBy}
-          >
-            <Combobox
-              options={OrderBy}
-              placeholder={placeholders.orderBy}
-              onChange={onOrderByChange}
-              value={query.orderBy}
-              width={26}
-            />
-          </InlineField>
-          <InlineField
-            label={labels.descending}
-            labelWidth={LABEL_WIDTH}
-            tooltip={tooltips.descending}
-          >
-            <InlineSwitch
-              onChange={event => onDescendingChange(event.currentTarget.checked)}
-              value={query.descending}
-            />
-          </InlineField>
-          <InlineField
-            label={labels.take}
-            labelWidth={LABEL_WIDTH}
-            tooltip={tooltips.take}
-            invalid={!!takeInvalidMessage}
-            error={takeInvalidMessage}
-          >
-            <AutoSizeInput
-              minWidth={26}
-              maxWidth={26}
-              type="number"
-              defaultValue={query.take}
-              onBlur={onTakeChange}
-              placeholder={placeholders.take}
-              onKeyDown={event => {
-                validateNumericInput(event);
-              }}
-            />
-          </InlineField>
-        </>
+        <InlineField
+          label={labels.properties}
+          labelWidth={LABEL_WIDTH}
+          tooltip={tooltips.properties}
+          invalid={!isPropertiesValid}
+          error={propertiesErrorMessages.atLeastOneRequired}
+        >
+          <MultiCombobox
+            placeholder={placeholders.properties}
+            options={propertiesOptions}
+            value={query.properties}
+            onChange={onPropertiesChange}
+            width="auto"
+            minWidth={CONTROL_WIDTH}
+            maxWidth={CONTROL_WIDTH}
+          />
+        </InlineField>
       )}
+      <div
+        style={{
+          display: 'flex',
+        }}
+      >
+        <InlineField
+          label={labels.queryBy}
+          labelWidth={LABEL_WIDTH}
+          tooltip={tooltips.filter}
+        >
+          <WorkItemsQueryBuilder
+            filter={query.filter}
+            workspaces={workspaces}
+            users={users}
+            globalVariableOptions={datasource.globalVariableOptions()}
+            onChange={onFilterChange}
+          />
+        </InlineField>
+        {query.outputType === OutputType.Properties && (
+          <div
+            style={{
+              paddingLeft: QUERY_EDITOR_CONTROL_GAP,
+            }}
+          >
+            <InlineField
+              label={labels.orderBy}
+              labelWidth={LABEL_WIDTH}
+              tooltip={tooltips.orderBy}
+            >
+              <Combobox
+                options={OrderBy}
+                placeholder={placeholders.orderBy}
+                onChange={onOrderByChange}
+                value={query.orderBy}
+                width={SECONDARY_CONTROL_WIDTH}
+              />
+            </InlineField>
+            <InlineField
+              label={labels.descending}
+              labelWidth={LABEL_WIDTH}
+              tooltip={tooltips.descending}
+            >
+              <InlineSwitch
+                onChange={event => onDescendingChange(event.currentTarget.checked)}
+                value={query.descending}
+              />
+            </InlineField>
+            <InlineField
+              label={labels.take}
+              labelWidth={LABEL_WIDTH}
+              tooltip={tooltips.take}
+              invalid={!!takeInvalidMessage}
+              error={takeInvalidMessage}
+            >
+              <AutoSizeInput
+                minWidth={SECONDARY_CONTROL_WIDTH}
+                maxWidth={SECONDARY_CONTROL_WIDTH}
+                type="number"
+                defaultValue={query.take}
+                onBlur={onTakeChange}
+                placeholder={placeholders.take}
+                onKeyDown={event => {
+                  validateNumericInput(event);
+                }}
+              />
+            </InlineField>
+          </div>
+        )}
+      </div>
     </Stack>
   );
 }

@@ -27,6 +27,7 @@ export interface WorkItemsQuery extends DataQuery {
   orderBy?: OrderByOptions;
   descending?: boolean;
   take?: number;
+  filter?: string;
 }
 
 export enum WorkItemPropertiesOptions {

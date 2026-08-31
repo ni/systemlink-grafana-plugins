@@ -1,13 +1,12 @@
 import { WorkItemsDataSource } from './WorkItemsDataSource';
 import { setupDataSource } from 'test/fixtures';
 import { OrderByOptions, OutputType, WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
-import { TAKE_LIMIT } from './constants/QueryEditor.constants';
 
 describe('WorkItemsDataSource', () => {
   it('applies expected default query values', () => {
-    const [ds] = setupDataSource(WorkItemsDataSource);
+    const [datasource] = setupDataSource(WorkItemsDataSource);
 
-    const query = ds.prepareQuery({ refId: 'A' });
+    const query = datasource.prepareQuery({ refId: 'A' });
 
     expect(query.outputType).toBe(OutputType.Properties);
     expect(query.types).toEqual(Object.values(WorkItemTypeOptions));
@@ -24,9 +23,9 @@ describe('WorkItemsDataSource', () => {
   });
 
   it('preserves explicit selections instead of resetting them to defaults', () => {
-    const [ds] = setupDataSource(WorkItemsDataSource);
+    const [datasource] = setupDataSource(WorkItemsDataSource);
 
-    const clearedQuery = ds.prepareQuery({
+    const clearedQuery = datasource.prepareQuery({
       refId: 'A',
       types: [],
       properties: [],
@@ -38,40 +37,20 @@ describe('WorkItemsDataSource', () => {
     expect(clearedQuery.take).toBe(12000);
   });
 
-  it('reports invalid types, properties and take values', () => {
-    const [ds] = setupDataSource(WorkItemsDataSource);
-
-    expect(ds.isTypesValid([])).toBe(false);
-    expect(ds.isTypesValid([WorkItemTypeOptions.WorkOrders])).toBe(true);
-    expect(ds.isPropertiesValid([])).toBe(false);
-    expect(ds.isPropertiesValid([WorkItemPropertiesOptions.ID])).toBe(true);
-    expect(ds.isTakeValid(-1)).toBe(false);
-    expect(ds.isTakeValid(Number.NaN)).toBe(false);
-    expect(ds.isTakeValid(TAKE_LIMIT + 1)).toBe(false);
-    expect(ds.isTakeValid(TAKE_LIMIT)).toBe(true);
-  });
-
-  it('returns a placeholder frame', async () => {
-    const [ds] = setupDataSource(WorkItemsDataSource);
-
-    const result = await ds.runQuery({ refId: 'A' }, { scopedVars: {} } as any);
-    expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
-  });
-
   it('tests datasource connection against the work-items service endpoint', async () => {
-    const [ds] = setupDataSource(WorkItemsDataSource);
-    const postSpy = jest.spyOn(ds, 'post').mockResolvedValue({} as any);
+    const [datasource] = setupDataSource(WorkItemsDataSource);
+    const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({} as any);
 
-    const result = await ds.testDatasource();
+    const result = await datasource.testDatasource();
 
     expect(postSpy).toHaveBeenCalledWith('/niworkitem/v1/query-workitems', { take: 1 }, { showErrorAlert: false });
     expect(result.status).toBe('success');
   });
 
   it('bubbles up exception when datasource connectivity check fails', async () => {
-    const [ds] = setupDataSource(WorkItemsDataSource);
-    jest.spyOn(ds, 'post').mockRejectedValue(new Error('Failed'));
+    const [datasource] = setupDataSource(WorkItemsDataSource);
+    jest.spyOn(datasource, 'post').mockRejectedValue(new Error('Failed'));
 
-    await expect(ds.testDatasource()).rejects.toThrow('Failed');
+    await expect(datasource.testDatasource()).rejects.toThrow('Failed');
   });
 });

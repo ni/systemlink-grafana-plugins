@@ -6,6 +6,7 @@ import {
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
+import { QueryBuilderOption } from 'core/types';
 import {
   OrderByOptions,
   OutputType,
@@ -13,7 +14,6 @@ import {
   WorkItemsQuery,
   WorkItemTypeOptions,
 } from './types';
-import { TAKE_LIMIT } from './constants/QueryEditor.constants';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
@@ -42,17 +42,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     take: 1000,
   };
 
-  isTypesValid(types?: WorkItemTypeOptions[]): boolean {
-    return Boolean(types && types.length > 0);
-  }
-
-  isPropertiesValid(properties?: WorkItemPropertiesOptions[]): boolean {
-    return Boolean(properties && properties.length > 0);
-  }
-
-  isTakeValid(take?: number): boolean {
-    return Number.isFinite(take) && take! >= 0 && take! <= TAKE_LIMIT;
-  }
+  // TODO: AB#3923375 - Dummy Query By scaffolding for the query editor PR
+  globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   // TODO: AB#3923375 - Query work items and return the requested properties instead of an empty frame.
   async runQuery(query: WorkItemsQuery, _options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {

@@ -1,8 +1,14 @@
 import { OrderByOptions, WorkItemPropertiesGroup, WorkItemPropertiesOptions, WorkItemTypeOptions } from '../types';
-
-export const TAKE_LIMIT = 10000;
+import { TAKE_LIMIT } from '../constants';
 
 export const LABEL_WIDTH = 25;
+export const CONTROL_WIDTH = 65;
+export const SECONDARY_CONTROL_WIDTH = 26;
+export const QUERY_EDITOR_CONTROL_GAP = 8;
+export const QUERY_BUILDER_PLACEHOLDER_HEIGHT = 150;
+export const QUERY_BUILDER_PLACEHOLDER_WIDTH = 520;
+export const QUERY_BUILDER_PLACEHOLDER_BORDER = '1px solid rgba(204, 204, 220, 0.2)';
+export const QUERY_BUILDER_PLACEHOLDER_BORDER_RADIUS = 2;
 
 export const takeErrorMessages = {
   greaterOrEqualToZero: 'Enter a value greater than or equal to 0',
@@ -21,6 +27,7 @@ export const labels = {
   outputType: 'Output',
   types: 'Type',
   properties: 'Properties',
+  queryBy: 'Query By',
   orderBy: 'OrderBy',
   descending: 'Descending',
   take: 'Take',
@@ -37,6 +44,7 @@ export const tooltips = {
   outputType: 'Select whether to return work item properties or only total count.',
   types: 'Choose one or more work item types to query.',
   properties: 'Select the work item properties to include in the result.',
+  filter: 'Filter work items by matching one or more properties.',
   orderBy: 'Select which property to sort by for properties output.',
   descending: 'Toggle descending sort order for properties output.',
   take: `Set the maximum number of work items to return. Maximum is ${TAKE_LIMIT.toLocaleString()}.`,

@@ -42,59 +42,61 @@ describe('WorkItemsQueryEditor', () => {
     expect(screen.getAllByText(labels.properties)[1]).toBeTruthy();
   });
 
-  it('shows types validation error when all types are removed instead of restoring the default selection', async () => {
-    const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+  describe('validation', () => {
+    it('shows types validation error when all types are removed instead of restoring the default selection', async () => {
+      const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
 
-    try {
+      try {
+        const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+        const [onChange] = render({ types: [WorkItemTypeOptions.WorkOrders] });
+
+        await userEvent.click(screen.getByRole('button', { name: 'Remove Work orders' }));
+
+        expect(screen.getByText(typesErrorMessages.atLeastOneRequired)).toBeTruthy();
+        expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ types: [] }));
+      } finally {
+        offsetHeightSpy.mockRestore();
+      }
+    });
+
+    it('shows properties validation error when all properties are removed, and clears it (without restoring defaults) when a property is re-added', async () => {
+      const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+
+      try {
+        const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+        const [onChange] = render({ properties: [WorkItemPropertiesOptions.ID] });
+
+        await userEvent.click(screen.getByRole('button', { name: 'Remove Work item ID' }));
+
+        expect(screen.getByText(propertiesErrorMessages.atLeastOneRequired)).toBeTruthy();
+        expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ properties: [] }));
+
+        const propertiesCombobox = screen.getAllByRole('combobox')[1];
+        await userEvent.click(propertiesCombobox);
+        await userEvent.type(propertiesCombobox, 'Work item name');
+        await userEvent.click(await screen.findByRole('option', { name: 'Work item name' }));
+
+        expect(screen.queryByText(propertiesErrorMessages.atLeastOneRequired)).toBeNull();
+        expect(onChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ properties: [WorkItemPropertiesOptions.NAME] })
+        );
+      } finally {
+        offsetHeightSpy.mockRestore();
+      }
+    });
+
+    it('shows take validation error and suppresses query execution for invalid take input', () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
-      const [onChange] = render({ types: [WorkItemTypeOptions.WorkOrders] });
 
-      await userEvent.click(screen.getByRole('button', { name: 'Remove Work orders' }));
+      const [onChange, onRunQuery] = render({});
+      const takeInput = screen.getByRole('spinbutton');
 
-      expect(screen.getByText(typesErrorMessages.atLeastOneRequired)).toBeTruthy();
-      expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ types: [] }));
-    } finally {
-      offsetHeightSpy.mockRestore();
-    }
-  });
+      fireEvent.change(takeInput, { target: { value: '-5' } });
+      fireEvent.blur(takeInput);
 
-  it('shows properties validation error when all properties are removed, and clears it (without restoring defaults) when a property is re-added', async () => {
-    const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
-
-    try {
-      const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
-      const [onChange] = render({ properties: [WorkItemPropertiesOptions.ID] });
-
-      await userEvent.click(screen.getByRole('button', { name: 'Remove Work item ID' }));
-
-      expect(screen.getByText(propertiesErrorMessages.atLeastOneRequired)).toBeTruthy();
-      expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ properties: [] }));
-
-      const propertiesCombobox = screen.getAllByRole('combobox')[1];
-      await userEvent.click(propertiesCombobox);
-      await userEvent.type(propertiesCombobox, 'Work item name');
-      await userEvent.click(await screen.findByRole('option', { name: 'Work item name' }));
-
-      expect(screen.queryByText(propertiesErrorMessages.atLeastOneRequired)).toBeNull();
-      expect(onChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({ properties: [WorkItemPropertiesOptions.NAME] })
-      );
-    } finally {
-      offsetHeightSpy.mockRestore();
-    }
-  });
-
-  it('shows take validation error and suppresses query execution for invalid take input', () => {
-    const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
-
-    const [onChange, onRunQuery] = render({});
-    const takeInput = screen.getByRole('spinbutton');
-
-    fireEvent.change(takeInput, { target: { value: '-5' } });
-    fireEvent.blur(takeInput);
-
-    expect(screen.getByText(takeErrorMessages.greaterOrEqualToZero)).toBeTruthy();
-    expect(onChange).not.toHaveBeenCalled();
-    expect(onRunQuery).not.toHaveBeenCalled();
+      expect(screen.getByText(takeErrorMessages.greaterOrEqualToZero)).toBeTruthy();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(onRunQuery).not.toHaveBeenCalled();
+    });
   });
 });
