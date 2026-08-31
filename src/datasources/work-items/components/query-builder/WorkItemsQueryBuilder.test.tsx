@@ -1,6 +1,7 @@
 import { QueryBuilderOption, Workspace } from 'core/types';
 import React, { ReactNode } from 'react';
 import { render } from '@testing-library/react';
+import { User } from 'shared/types/QueryUsers.types';
 import { WorkItemsQueryBuilder } from './WorkItemsQueryBuilder';
 
 describe('WorkItemsQueryBuilder', () => {
@@ -11,7 +12,7 @@ describe('WorkItemsQueryBuilder', () => {
   function renderElement(
     filter: string,
     workspaces: Workspace[] | null = [],
-    users: any[] | null = [],
+    users: User[] | null = [],
     globalVariableOptions: QueryBuilderOption[] = []
   ) {
     reactNode = React.createElement(WorkItemsQueryBuilder, { filter, workspaces, users, globalVariableOptions, onChange: jest.fn() });
@@ -122,10 +123,10 @@ describe('WorkItemsQueryBuilder', () => {
   });
 
   it('should select assigned to in query builder', () => {
-    const mockUsers = [
+    const mockUsers: User[] = [
       { id: '1', firstName: 'User', lastName: '1', email: 'user1@123.com', properties: {}, keywords: [], created: '', updated: '', orgId: '' },
     ];
-    const { conditionsContainer } = renderElement('assignedTo = "1"', [], mockUsers as any);
+    const { conditionsContainer } = renderElement('assignedTo = "1"', [], mockUsers);
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain('Assigned to');
