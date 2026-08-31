@@ -14,8 +14,11 @@ import { Workspace } from 'core/types';
 import { validateNumericInput } from 'core/utils';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
 import {
+  CONTROL_WIDTH,
   LABEL_WIDTH,
   OrderBy,
+  SECONDARY_CONTROL_WIDTH,
+  SECONDARY_LABEL_WIDTH,
   TAKE_LIMIT,
   WorkItemProperties,
   WorkItemTypes,
@@ -106,9 +109,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   };
 
   return (
-    <Stack
-      direction="column"
-    >
+    <Stack direction='column'>
       <InlineField
         label={labels.outputType}
         labelWidth={LABEL_WIDTH}
@@ -133,13 +134,36 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
           value={query.types}
           onChange={onTypesChange}
           enableAllOption
-          width="auto"
-          minWidth={65}
-          maxWidth={65}
+          width='auto'
+          minWidth={CONTROL_WIDTH}
+          maxWidth={CONTROL_WIDTH}
         />
       </InlineField>
-      <Stack direction='column'>
-        <InlineField label={labels.queryBy} labelWidth={LABEL_WIDTH} tooltip={tooltips.filter}>
+      {query.outputType === OutputType.Properties && (
+        <InlineField
+          label={labels.properties}
+          labelWidth={LABEL_WIDTH}
+          tooltip={tooltips.properties}
+          invalid={!isPropertiesValid}
+          error={propertiesErrorMessages.atLeastOneRequired}
+        >
+          <MultiCombobox
+            placeholder={placeholders.properties}
+            options={propertiesOptions}
+            value={query.properties}
+            onChange={onPropertiesChange}
+            width='auto'
+            minWidth={CONTROL_WIDTH}
+            maxWidth={CONTROL_WIDTH}
+          />
+        </InlineField>
+      )}
+      <Stack>
+        <InlineField
+          label={labels.queryBy}
+          labelWidth={LABEL_WIDTH}
+          tooltip={tooltips.filter}
+        >
           <WorkItemsQueryBuilder
             filter={query.filter}
             workspaces={workspaces}
@@ -152,34 +176,24 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
         {query.outputType === OutputType.Properties && (
           <Stack direction='column'>
             <InlineField
-              label={labels.properties}
-              labelWidth={LABEL_WIDTH}
-              tooltip={tooltips.properties}
-              invalid={!isPropertiesValid}
-              error={propertiesErrorMessages.atLeastOneRequired}
+              label={labels.orderBy}
+              labelWidth={SECONDARY_LABEL_WIDTH}
+              tooltip={tooltips.orderBy}
             >
-              <MultiCombobox
-                placeholder={placeholders.properties}
-                options={propertiesOptions}
-                value={query.properties}
-                onChange={onPropertiesChange}
-                width='auto'
-                minWidth={65}
-                maxWidth={65}
-              />
-            </InlineField>
-
-            <InlineField label={labels.orderBy} labelWidth={LABEL_WIDTH} tooltip={tooltips.orderBy}>
               <Combobox
                 options={OrderBy}
                 placeholder={placeholders.orderBy}
                 onChange={onOrderByChange}
                 value={query.orderBy}
-                width={26}
+                width={SECONDARY_CONTROL_WIDTH}
               />
             </InlineField>
 
-            <InlineField label={labels.descending} labelWidth={LABEL_WIDTH} tooltip={tooltips.descending}>
+            <InlineField
+              label={labels.descending}
+              labelWidth={SECONDARY_LABEL_WIDTH}
+              tooltip={tooltips.descending}
+            >
               <InlineSwitch
                 onChange={event => onDescendingChange(event.currentTarget.checked)}
                 value={query.descending}
@@ -188,14 +202,14 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
             <InlineField
               label={labels.take}
-              labelWidth={LABEL_WIDTH}
+              labelWidth={SECONDARY_LABEL_WIDTH}
               tooltip={tooltips.take}
               invalid={!!takeInvalidMessage}
               error={takeInvalidMessage}
             >
               <AutoSizeInput
-                minWidth={26}
-                maxWidth={26}
+                minWidth={SECONDARY_CONTROL_WIDTH}
+                maxWidth={SECONDARY_CONTROL_WIDTH}
                 type='number'
                 defaultValue={query.take}
                 onBlur={onTakeChange}

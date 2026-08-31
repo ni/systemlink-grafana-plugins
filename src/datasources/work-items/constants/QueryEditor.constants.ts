@@ -3,6 +3,9 @@ import { OrderByOptions, WorkItemPropertiesGroup, WorkItemPropertiesOptions, Wor
 export const TAKE_LIMIT = 10000;
 
 export const LABEL_WIDTH = 25;
+export const CONTROL_WIDTH = 65;
+export const SECONDARY_LABEL_WIDTH = 20;
+export const SECONDARY_CONTROL_WIDTH = 26;
 
 export const takeErrorMessages = {
   greaterOrEqualToZero: 'Enter a value greater than or equal to 0',
