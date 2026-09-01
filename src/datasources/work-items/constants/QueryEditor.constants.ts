@@ -5,6 +5,7 @@ export const LABEL_WIDTH = 25;
 export const CONTROL_WIDTH = 65;
 export const SECONDARY_CONTROL_WIDTH = 26;
 export const QUERY_EDITOR_CONTROL_GAP = 8;
+export const QUERY_EDITOR_ROW_GAP = 8;
 export const QUERY_BUILDER_PLACEHOLDER_HEIGHT = 150;
 export const QUERY_BUILDER_PLACEHOLDER_WIDTH = 520;
 export const QUERY_BUILDER_PLACEHOLDER_BORDER = '1px solid rgba(204, 204, 220, 0.2)';

@@ -18,6 +18,7 @@ import {
   LABEL_WIDTH,
   OrderBy,
   QUERY_EDITOR_CONTROL_GAP,
+  QUERY_EDITOR_ROW_GAP,
   SECONDARY_CONTROL_WIDTH,
   WorkItemProperties,
   WorkItemTypes,
@@ -192,29 +193,35 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
               paddingLeft: QUERY_EDITOR_CONTROL_GAP,
             }}
           >
-            <InlineField
-              label={labels.orderBy}
-              labelWidth={LABEL_WIDTH}
-              tooltip={tooltips.orderBy}
+            <div
+              style={{
+                paddingBottom: QUERY_EDITOR_ROW_GAP,
+              }}
             >
-              <Combobox
-                options={OrderBy}
-                placeholder={placeholders.orderBy}
-                onChange={onOrderByChange}
-                value={query.orderBy}
-                width={SECONDARY_CONTROL_WIDTH}
-              />
-            </InlineField>
-            <InlineField
-              label={labels.descending}
-              labelWidth={LABEL_WIDTH}
-              tooltip={tooltips.descending}
-            >
-              <InlineSwitch
-                onChange={event => onDescendingChange(event.currentTarget.checked)}
-                value={query.descending}
-              />
-            </InlineField>
+              <InlineField
+                label={labels.orderBy}
+                labelWidth={LABEL_WIDTH}
+                tooltip={tooltips.orderBy}
+              >
+                <Combobox
+                  options={OrderBy}
+                  placeholder={placeholders.orderBy}
+                  onChange={onOrderByChange}
+                  value={query.orderBy}
+                  width={SECONDARY_CONTROL_WIDTH}
+                />
+              </InlineField>
+              <InlineField
+                label={labels.descending}
+                labelWidth={LABEL_WIDTH}
+                tooltip={tooltips.descending}
+              >
+                <InlineSwitch
+                  onChange={event => onDescendingChange(event.currentTarget.checked)}
+                  value={query.descending}
+                />
+              </InlineField>
+            </div>
             <InlineField
               label={labels.take}
               labelWidth={LABEL_WIDTH}
@@ -226,7 +233,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
                 minWidth={SECONDARY_CONTROL_WIDTH}
                 maxWidth={SECONDARY_CONTROL_WIDTH}
                 type="number"
-                defaultValue={query.take}
+                value={query.take}
                 onBlur={onTakeChange}
                 placeholder={placeholders.take}
                 onKeyDown={event => {
