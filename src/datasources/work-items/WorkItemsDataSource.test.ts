@@ -48,9 +48,9 @@ describe('WorkItemsDataSource', () => {
   });
 
   it('exposes global variable options for the query builder', () => {
-    const [ds] = setupDataSource(WorkItemsDataSource);
+    const [datasource] = setupDataSource(WorkItemsDataSource);
 
-    expect(Array.isArray(ds.globalVariableOptions())).toBe(true);
+    expect(Array.isArray(datasource.globalVariableOptions())).toBe(true);
   });
 
   it('bubbles up exception when datasource connectivity check fails', async () => {

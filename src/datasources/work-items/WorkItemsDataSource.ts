@@ -14,6 +14,7 @@ import {
   WorkItemsQuery,
   WorkItemTypeOptions,
 } from './types';
+import { DEFAULT_TAKE } from './constants';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
@@ -39,7 +40,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     ],
     orderBy: OrderByOptions.UPDATED_AT,
     descending: true,
-    take: 1000,
+    take: DEFAULT_TAKE,
   };
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
