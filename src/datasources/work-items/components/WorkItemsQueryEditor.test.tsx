@@ -38,7 +38,7 @@ describe('WorkItemsQueryEditor', () => {
 
     render({});
 
-    expect(screen.getByText('Work item ID')).toBeTruthy();
+    expect(screen.getByText('Work item name')).toBeTruthy();
     expect(screen.getAllByText(labels.properties)[1]).toBeTruthy();
   });
 
