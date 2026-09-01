@@ -17,9 +17,9 @@ import {
   CONTROL_WIDTH,
   LABEL_WIDTH,
   OrderBy,
+  QUERY_EDITOR_CONTROL_GAP,
+  QUERY_EDITOR_ROW_GAP,
   SECONDARY_CONTROL_WIDTH,
-  SECONDARY_LABEL_WIDTH,
-  TAKE_LIMIT,
   WorkItemProperties,
   WorkItemTypes,
   labels,
@@ -29,6 +29,7 @@ import {
   tooltips,
   typesErrorMessages,
 } from '../constants/QueryEditor.constants';
+import { TAKE_LIMIT } from '../constants';
 import {
   OrderByOptions,
   OutputType,
@@ -41,24 +42,32 @@ import { User } from 'shared/types/QueryUsers.types';
 
 type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
 
-const propertiesOptions = Object.values(WorkItemProperties).map(property => ({
-  label: property.label,
-  value: property.value,
-  group: property.group,
-}));
-
 export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
+
   const [takeInvalidMessage, setTakeInvalidMessage] = useState<string>('');
-  const isPropertiesValid = datasource.isPropertiesValid(query.properties);
-  const isTypesValid = datasource.isTypesValid(query.types);
-  // Workspace and user lookups will be wired once the query builder is connected to the backend (Run Query story).
+
+  const isPropertiesValid = Boolean(query.properties && query.properties.length > 0);
+  const isTypesValid = Boolean(query.types && query.types.length > 0);
+
+  const propertiesOptions = Object.values(WorkItemProperties).map(property => ({
+    label: property.label,
+    value: property.value,
+    group: property.group,
+  }));
+
+  const outputTypeOptions = Object.values(OutputType).map(value => ({
+    label: value,
+    value,
+  }));
+
+  // TODO: AB#3923383 - workspace/user lookups land with the query builder PR.
   const workspaces: Workspace[] | null = null;
   const users: User[] | null = null;
 
   const handleQueryChange = useCallback(
-    (newQuery: WorkItemsQuery, runQuery = true): void => {
-      onChange(newQuery);
+    (query: WorkItemsQuery, runQuery = true): void => {
+      onChange(query);
       if (runQuery) {
         onRunQuery();
       }
@@ -116,7 +125,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
         tooltip={tooltips.outputType}
       >
         <RadioButtonGroup
-          options={Object.values(OutputType).map(value => ({ label: value, value }))}
+          options={outputTypeOptions}
           onChange={onOutputTypeChange}
           value={query.outputType}
         />
@@ -152,13 +161,17 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
             options={propertiesOptions}
             value={query.properties}
             onChange={onPropertiesChange}
-            width='auto'
+            width="auto"
             minWidth={CONTROL_WIDTH}
             maxWidth={CONTROL_WIDTH}
           />
         </InlineField>
       )}
-      <Stack>
+      <div
+        style={{
+          display: 'flex',
+        }}
+      >
         <InlineField
           label={labels.queryBy}
           labelWidth={LABEL_WIDTH}
@@ -172,37 +185,44 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
             onChange={onFilterChange}
           />
         </InlineField>
-
         {query.outputType === OutputType.Properties && (
-          <Stack direction='column'>
-            <InlineField
-              label={labels.orderBy}
-              labelWidth={SECONDARY_LABEL_WIDTH}
-              tooltip={tooltips.orderBy}
+          <div
+            style={{
+              paddingLeft: QUERY_EDITOR_CONTROL_GAP,
+            }}
+          >
+            <div
+              style={{
+                paddingBottom: QUERY_EDITOR_ROW_GAP,
+              }}
             >
-              <Combobox
-                options={OrderBy}
-                placeholder={placeholders.orderBy}
-                onChange={onOrderByChange}
-                value={query.orderBy}
-                width={SECONDARY_CONTROL_WIDTH}
-              />
-            </InlineField>
-
-            <InlineField
-              label={labels.descending}
-              labelWidth={SECONDARY_LABEL_WIDTH}
-              tooltip={tooltips.descending}
-            >
-              <InlineSwitch
-                onChange={event => onDescendingChange(event.currentTarget.checked)}
-                value={query.descending}
-              />
-            </InlineField>
-
+              <InlineField
+                label={labels.orderBy}
+                labelWidth={LABEL_WIDTH}
+                tooltip={tooltips.orderBy}
+              >
+                <Combobox
+                  options={OrderBy}
+                  placeholder={placeholders.orderBy}
+                  onChange={onOrderByChange}
+                  value={query.orderBy}
+                  width={SECONDARY_CONTROL_WIDTH}
+                />
+              </InlineField>
+              <InlineField
+                label={labels.descending}
+                labelWidth={LABEL_WIDTH}
+                tooltip={tooltips.descending}
+              >
+                <InlineSwitch
+                  onChange={event => onDescendingChange(event.currentTarget.checked)}
+                  value={query.descending}
+                />
+              </InlineField>
+            </div>
             <InlineField
               label={labels.take}
-              labelWidth={SECONDARY_LABEL_WIDTH}
+              labelWidth={LABEL_WIDTH}
               tooltip={tooltips.take}
               invalid={!!takeInvalidMessage}
               error={takeInvalidMessage}
@@ -210,16 +230,18 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
               <AutoSizeInput
                 minWidth={SECONDARY_CONTROL_WIDTH}
                 maxWidth={SECONDARY_CONTROL_WIDTH}
-                type='number'
-                defaultValue={query.take}
+                type="number"
+                value={query.take}
                 onBlur={onTakeChange}
                 placeholder={placeholders.take}
-                onKeyDown={(event) => { validateNumericInput(event); }}
+                onKeyDown={event => {
+                  validateNumericInput(event);
+                }}
               />
             </InlineField>
-          </Stack>
+          </div>
         )}
-      </Stack>
+      </div>
     </Stack>
   );
 }
