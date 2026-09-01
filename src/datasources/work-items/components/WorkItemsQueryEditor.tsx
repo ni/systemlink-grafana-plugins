@@ -10,16 +10,13 @@ import {
   Stack,
 } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
-import { Workspace } from 'core/types';
 import { validateNumericInput } from 'core/utils';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
 import {
   CONTROL_WIDTH,
+  COMBOBOX_WIDTH,
   LABEL_WIDTH,
   OrderBy,
-  QUERY_EDITOR_CONTROL_GAP,
-  QUERY_EDITOR_ROW_GAP,
-  SECONDARY_CONTROL_WIDTH,
   WorkItemProperties,
   WorkItemTypes,
   labels,
@@ -38,7 +35,6 @@ import {
   WorkItemTypeOptions,
 } from '../types';
 import { WorkItemsQueryBuilder } from './query-builder/WorkItemsQueryBuilder';
-import { User } from 'shared/types/QueryUsers.types';
 
 type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
 
@@ -60,10 +56,6 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     label: value,
     value,
   }));
-
-  // TODO: AB#3923383 - workspace/user lookups land with the query builder PR.
-  const workspaces: Workspace[] | null = null;
-  const users: User[] | null = null;
 
   const handleQueryChange = useCallback(
     (query: WorkItemsQuery, runQuery = true): void => {
@@ -87,10 +79,6 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   const onPropertiesChange = (items: Array<ComboboxOption<WorkItemPropertiesOptions>>) => {
     const properties = items.map(item => item.value).filter(Boolean) as WorkItemPropertiesOptions[];
     handleQueryChange({ ...query, properties });
-  };
-
-  const onFilterChange = (event: any) => {
-    handleQueryChange({ ...query, filter: event.detail.linq });
   };
 
   const onOrderByChange = (item: SelectableValue<OrderByOptions>) => {
@@ -121,35 +109,37 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     <Stack
       direction="column"
     >
-      <InlineField
-        label={labels.outputType}
-        labelWidth={LABEL_WIDTH}
-        tooltip={tooltips.outputType}
-      >
-        <RadioButtonGroup
-          options={outputTypeOptions}
-          onChange={onOutputTypeChange}
-          value={query.outputType}
-        />
-      </InlineField>
-      <InlineField
-        label={labels.types}
-        labelWidth={LABEL_WIDTH}
-        tooltip={tooltips.types}
-        invalid={!isTypesValid}
-        error={typesErrorMessages.atLeastOneRequired}
-      >
-        <MultiCombobox
-          placeholder={placeholders.types}
-          options={WorkItemTypes}
-          value={query.types}
-          onChange={onTypesChange}
-          enableAllOption
-          width="auto"
-          minWidth={CONTROL_WIDTH}
-          maxWidth={CONTROL_WIDTH}
-        />
-      </InlineField>
+      <Stack direction="column" gap={0}>
+        <InlineField
+          label={labels.outputType}
+          labelWidth={LABEL_WIDTH}
+          tooltip={tooltips.outputType}
+        >
+          <RadioButtonGroup
+            options={outputTypeOptions}
+            onChange={onOutputTypeChange}
+            value={query.outputType}
+          />
+        </InlineField>
+        <InlineField
+          label={labels.types}
+          labelWidth={LABEL_WIDTH}
+          tooltip={tooltips.types}
+          invalid={!isTypesValid}
+          error={typesErrorMessages.atLeastOneRequired}
+        >
+          <MultiCombobox
+            placeholder={placeholders.types}
+            options={WorkItemTypes}
+            value={query.types}
+            onChange={onTypesChange}
+            enableAllOption
+            width="auto"
+            minWidth={CONTROL_WIDTH}
+            maxWidth={CONTROL_WIDTH}
+          />
+        </InlineField>
+      </Stack>
       {query.outputType === OutputType.Properties && (
         <InlineField
           label={labels.properties}
@@ -169,35 +159,17 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
           />
         </InlineField>
       )}
-      <div
-        style={{
-          display: 'flex',
-        }}
-      >
+      <Stack>
         <InlineField
           label={labels.queryBy}
           labelWidth={LABEL_WIDTH}
           tooltip={tooltips.filter}
         >
-          <WorkItemsQueryBuilder
-            filter={query.filter}
-            workspaces={workspaces}
-            users={users}
-            globalVariableOptions={datasource.globalVariableOptions()}
-            onChange={onFilterChange}
-          />
+          <WorkItemsQueryBuilder />
         </InlineField>
         {query.outputType === OutputType.Properties && (
-          <div
-            style={{
-              paddingLeft: QUERY_EDITOR_CONTROL_GAP,
-            }}
-          >
-            <div
-              style={{
-                paddingBottom: QUERY_EDITOR_ROW_GAP,
-              }}
-            >
+          <Stack direction="column" gap={1}>
+            <Stack direction="column" gap={0}>
               <InlineField
                 label={labels.orderBy}
                 labelWidth={LABEL_WIDTH}
@@ -208,7 +180,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
                   placeholder={placeholders.orderBy}
                   onChange={onOrderByChange}
                   value={query.orderBy}
-                  width={SECONDARY_CONTROL_WIDTH}
+                  width={COMBOBOX_WIDTH}
                 />
               </InlineField>
               <InlineField
@@ -221,7 +193,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
                   value={query.descending}
                 />
               </InlineField>
-            </div>
+            </Stack>
             <InlineField
               label={labels.take}
               labelWidth={LABEL_WIDTH}
@@ -230,8 +202,8 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
               error={takeInvalidMessage}
             >
               <AutoSizeInput
-                minWidth={SECONDARY_CONTROL_WIDTH}
-                maxWidth={SECONDARY_CONTROL_WIDTH}
+                minWidth={COMBOBOX_WIDTH}
+                maxWidth={COMBOBOX_WIDTH}
                 type="number"
                 value={query.take}
                 onBlur={onTakeChange}
@@ -241,9 +213,9 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
                 }}
               />
             </InlineField>
-          </div>
+          </Stack>
         )}
-      </div>
+      </Stack>
     </Stack>
   );
 }
