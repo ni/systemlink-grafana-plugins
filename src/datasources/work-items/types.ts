@@ -24,10 +24,10 @@ export interface WorkItemsQuery extends DataQuery {
   outputType?: OutputType;
   types?: WorkItemTypeOptions[];
   properties?: WorkItemPropertiesOptions[];
-  filter?: string;
   orderBy?: OrderByOptions;
   descending?: boolean;
   take?: number;
+  filter?: string;
 }
 
 export enum WorkItemPropertiesOptions {

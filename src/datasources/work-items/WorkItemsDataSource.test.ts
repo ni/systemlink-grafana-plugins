@@ -32,16 +32,16 @@ describe('WorkItemsDataSource', () => {
     expect(result.status).toBe('success');
   });
 
-  it('should expose global variable options for the query builder', () => {
-    const [datasource] = setupDataSource(WorkItemsDataSource);
-
-    expect(Array.isArray(datasource.globalVariableOptions())).toBe(true);
-  });
-
   it('should bubble up exception when datasource connectivity check fails', async () => {
     const [datasource] = setupDataSource(WorkItemsDataSource);
     jest.spyOn(datasource, 'post').mockRejectedValue(new Error('Failed'));
 
     await expect(datasource.testDatasource()).rejects.toThrow('Failed');
+  });
+
+  it('should expose global variable options for the query builder', () => {
+    const [datasource] = setupDataSource(WorkItemsDataSource);
+
+    expect(Array.isArray(datasource.globalVariableOptions())).toBe(true);
   });
 });
