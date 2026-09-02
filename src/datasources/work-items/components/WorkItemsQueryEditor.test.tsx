@@ -133,7 +133,7 @@ describe('WorkItemsQueryEditor', () => {
       page.setTakeLimit('-5');
 
       expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
-      expect(onChange).not.toHaveBeenCalled();
+      expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ take: -5 }));
       expect(onRunQuery).not.toHaveBeenCalled();
     });
 
@@ -145,7 +145,7 @@ describe('WorkItemsQueryEditor', () => {
       page.setTakeLimit(`${TAKE_LIMIT + 1}`);
 
       expect(page.getErrorByMessage(takeErrorMessages.lessOrEqualToTenThousand)).toBeVisible();
-      expect(onChange).not.toHaveBeenCalled();
+      expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ take: TAKE_LIMIT + 1 }));
       expect(onRunQuery).not.toHaveBeenCalled();
     });
 
@@ -162,6 +162,22 @@ describe('WorkItemsQueryEditor', () => {
       expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeNull();
       expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ take: 500 }));
       expect(onRunQuery).toHaveBeenCalled();
+    });
+
+    it('should show the take validation error on render when the saved query take is not positive', () => {
+      const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+
+      render({ take: -5 });
+
+      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
+    });
+
+    it('should show the take validation error on render when the saved query take exceeds the maximum limit', () => {
+      const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+
+      render({ take: TAKE_LIMIT + 1 });
+
+      expect(page.getErrorByMessage(takeErrorMessages.lessOrEqualToTenThousand)).toBeVisible();
     });
   });
 });

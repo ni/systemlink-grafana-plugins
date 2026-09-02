@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import {
   AutoSizeInput,
@@ -23,11 +23,9 @@ import {
   labels,
   placeholders,
   propertiesErrorMessages,
-  takeErrorMessages,
   tooltips,
   typesErrorMessages,
 } from '../constants/QueryEditor.constants';
-import { TAKE_LIMIT } from '../constants';
 import {
   OrderByOptions,
   OutputType,
@@ -35,6 +33,7 @@ import {
   WorkItemsQuery,
   WorkItemTypeOptions,
 } from '../types';
+import { getTakeError, isPropertiesNonEmpty, isTypesNonEmpty } from '../utils';
 import { WorkItemsQueryBuilder } from './query-builder/WorkItemsQueryBuilder';
 
 type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
@@ -42,10 +41,10 @@ type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
 export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
 
-  const [takeInvalidMessage, setTakeInvalidMessage] = useState<string>('');
-
-  const isPropertiesValid = Boolean(query.properties && query.properties.length > 0);
-  const isTypesValid = Boolean(query.types && query.types.length > 0);
+  const isPropertiesValid = isPropertiesNonEmpty(query.properties);
+  const isTypesValid = isTypesNonEmpty(query.types);
+  const takeInvalidMessage = getTakeError(query.take);
+  const isTakeValid = takeInvalidMessage === '';
 
   const propertiesOptions = Object.values(WorkItemProperties).map(property => ({
     label: property.label,
@@ -74,12 +73,12 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const onTypesChange = (items: Array<ComboboxOption<WorkItemTypeOptions>>) => {
     const types = items.map(item => item.value).filter(Boolean) as WorkItemTypeOptions[];
-    handleQueryChange({ ...query, types }, types.length > 0);
+    handleQueryChange({ ...query, types }, isTypesValid);
   };
 
   const onPropertiesChange = (items: Array<ComboboxOption<WorkItemPropertiesOptions>>) => {
     const properties = items.map(item => item.value).filter(Boolean) as WorkItemPropertiesOptions[];
-    handleQueryChange({ ...query, properties }, properties.length > 0);
+    handleQueryChange({ ...query, properties }, isPropertiesValid);
   };
 
   const onOrderByChange = (item: SelectableValue<OrderByOptions>) => {
@@ -92,18 +91,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    if (Number.isNaN(value) || value <= 0) {
-      setTakeInvalidMessage(takeErrorMessages.greaterOrEqualToZero);
-      return;
-    }
-
-    if (value > TAKE_LIMIT) {
-      setTakeInvalidMessage(takeErrorMessages.lessOrEqualToTenThousand);
-      return;
-    }
-
-    setTakeInvalidMessage('');
-    handleQueryChange({ ...query, take: value });
+    handleQueryChange({ ...query, take: value }, isTakeValid);
   };
 
   return (
@@ -196,7 +184,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
               label={labels.take}
               labelWidth={LABEL_WIDTH}
               tooltip={tooltips.take}
-              invalid={!!takeInvalidMessage}
+              invalid={!isTakeValid}
               error={takeInvalidMessage}
             >
               <AutoSizeInput

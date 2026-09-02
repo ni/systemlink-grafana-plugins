@@ -3,7 +3,7 @@ import { setupDataSource } from 'test/fixtures';
 import { OrderByOptions, OutputType, WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
 
 describe('WorkItemsDataSource', () => {
-  it('applies expected default query values', () => {
+  it('should apply expected default query values', () => {
     const [datasource] = setupDataSource(WorkItemsDataSource);
 
     const query = datasource.prepareQuery({ refId: 'A' });
@@ -22,7 +22,7 @@ describe('WorkItemsDataSource', () => {
     expect(query.take).toBe(1000);
   });
 
-  it('tests datasource connection against the work-items service endpoint', async () => {
+  it('should test datasource connection against the work-items service endpoint', async () => {
     const [datasource] = setupDataSource(WorkItemsDataSource);
     const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({} as any);
 
@@ -32,7 +32,7 @@ describe('WorkItemsDataSource', () => {
     expect(result.status).toBe('success');
   });
 
-  it('bubbles up exception when datasource connectivity check fails', async () => {
+  it('should bubble up exception when datasource connectivity check fails', async () => {
     const [datasource] = setupDataSource(WorkItemsDataSource);
     jest.spyOn(datasource, 'post').mockRejectedValue(new Error('Failed'));
 
