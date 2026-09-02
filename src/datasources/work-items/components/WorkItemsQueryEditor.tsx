@@ -73,12 +73,12 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const onTypesChange = (items: Array<ComboboxOption<WorkItemTypeOptions>>) => {
     const types = items.map(item => item.value).filter(Boolean) as WorkItemTypeOptions[];
-    handleQueryChange({ ...query, types }, isTypesValid);
+    handleQueryChange({ ...query, types }, isTypesNonEmpty(types));
   };
 
   const onPropertiesChange = (items: Array<ComboboxOption<WorkItemPropertiesOptions>>) => {
     const properties = items.map(item => item.value).filter(Boolean) as WorkItemPropertiesOptions[];
-    handleQueryChange({ ...query, properties }, isPropertiesValid);
+    handleQueryChange({ ...query, properties }, isPropertiesNonEmpty(properties));
   };
 
   const onOrderByChange = (item: SelectableValue<OrderByOptions>) => {
@@ -91,7 +91,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    handleQueryChange({ ...query, take: value }, isTakeValid);
+    handleQueryChange({ ...query, take: value }, getTakeError(value) === '');
   };
 
   return (
