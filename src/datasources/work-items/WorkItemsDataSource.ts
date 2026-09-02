@@ -6,7 +6,14 @@ import {
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { WorkItemsQuery } from './types';
+import {
+  OrderByOptions,
+  OutputType,
+  WorkItemPropertiesOptions,
+  WorkItemsQuery,
+  WorkItemTypeOptions,
+} from './types';
+import { DEFAULT_TAKE } from './constants';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
@@ -20,8 +27,22 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   baseUrl = `${this.instanceSettings.url}/niworkitem/v1`;
   queryWorkItemsUrl = `${this.baseUrl}/query-workitems`;
 
-  defaultQuery = {};
+  defaultQuery = {
+    outputType: OutputType.Properties,
+    types: Object.values(WorkItemTypeOptions),
+    properties: [
+      WorkItemPropertiesOptions.NAME,
+      WorkItemPropertiesOptions.STATE,
+      WorkItemPropertiesOptions.ASSIGNED_TO,
+      WorkItemPropertiesOptions.PLANNED_START_DATE,
+      WorkItemPropertiesOptions.DUE_DATE,
+    ],
+    orderBy: OrderByOptions.UPDATED_AT,
+    descending: true,
+    take: DEFAULT_TAKE,
+  };
 
+  // TODO: AB#3923375 - Query work items and return the requested properties instead of an empty frame.
   async runQuery(query: WorkItemsQuery, _options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {
     return {
       refId: query.refId,
