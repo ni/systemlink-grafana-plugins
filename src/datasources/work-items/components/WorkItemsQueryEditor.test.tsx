@@ -92,7 +92,6 @@ describe('WorkItemsQueryEditor', () => {
 
         const propertiesCombobox = page.comboboxes()[1];
         await userEvent.click(propertiesCombobox);
-        await userEvent.type(propertiesCombobox, 'Work item name');
         await userEvent.click(await page.propertyOption('Work item name'));
 
         expect(page.propertiesErrorMessage()).toBeNull();
