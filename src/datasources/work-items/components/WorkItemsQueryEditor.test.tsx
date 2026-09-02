@@ -1,4 +1,4 @@
-import { fireEvent, waitFor } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { setupRenderer } from 'test/fixtures';
 import { takeErrorMessages } from '../constants/QueryEditor.constants';
@@ -37,7 +37,6 @@ describe('WorkItemsQueryEditor', () => {
 
   it('renders default selected properties for properties output', async () => {
     const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
-    const user = userEvent.setup({ delay: null });
 
     try {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
@@ -46,16 +45,14 @@ describe('WorkItemsQueryEditor', () => {
       const propertiesCombobox = page.comboboxes()[1];
       const checkedLabels = ['Work item name', 'State', 'Assigned to', 'Planned start date', 'Due date'];
 
+      fireEvent.click(propertiesCombobox);
       for (const label of checkedLabels) {
-        await user.click(propertiesCombobox);
-        await user.type(propertiesCombobox, label);
-        await waitFor(() => expect(page.propertyCheckbox(label)).toBeChecked());
-        await user.clear(propertiesCombobox);
+        fireEvent.change(propertiesCombobox, { target: { value: label } });
+        expect(page.propertyCheckbox(label)).toBeChecked();
       }
 
-      await user.click(propertiesCombobox);
-      await user.type(propertiesCombobox, 'Work item ID');
-      await waitFor(() => expect(page.propertyCheckbox('Work item ID')).not.toBeChecked());
+      fireEvent.change(propertiesCombobox, { target: { value: 'Work item ID' } });
+      expect(page.propertyCheckbox('Work item ID')).not.toBeChecked();
     } finally {
       offsetHeightSpy.mockRestore();
     }
