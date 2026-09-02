@@ -9,18 +9,18 @@ import { labels, propertiesErrorMessages, typesErrorMessages } from '../constant
 export const workItemsQueryEditorPage = {
   outputTypeRadio: (value: OutputType) => screen.getByRole('radio', { name: value }),
 
-  typesLabel: () => screen.getByText(labels.types),
-  propertiesLabels: () => screen.getAllByText(labels.properties),
-  orderByLabel: () => screen.queryByText(labels.orderBy),
-  descendingLabel: () => screen.queryByText(labels.descending),
-  takeLabel: () => screen.queryByText(labels.take),
+  // MultiCombobox (used for Types/Properties) doesn't forward its id to the underlying
+  // downshift input, so it has no accessible name; select by position among comboboxes instead.
+  typesCombobox: () => screen.queryAllByRole('combobox')[0] ?? null,
+  propertiesCombobox: () => screen.queryAllByRole('combobox')[1] ?? null,
+  orderByCombobox: () => screen.queryByRole('combobox', { name: labels.orderBy }),
+  descendingSwitch: () => screen.queryByRole('switch', { name: labels.descending }),
+  takeInput: () => screen.getByRole('spinbutton'),
+  takeInputQuery: () => screen.queryByRole('spinbutton'),
 
-  propertyTag: (name: string) => screen.getByText(name),
   removeButton: (name: string) => screen.getByRole('button', { name: `Remove ${name}` }),
   propertyOption: (name: string) => screen.findByRole('option', { name }),
   propertyCheckbox: (name: string) => screen.getByRole('checkbox', { name }),
-  comboboxes: () => screen.getAllByRole('combobox'),
-  takeInput: () => screen.getByRole('spinbutton'),
 
   typesErrorMessage: () => screen.getByText(typesErrorMessages.atLeastOneRequired),
   propertiesErrorMessage: () => screen.queryByText(propertiesErrorMessages.atLeastOneRequired),

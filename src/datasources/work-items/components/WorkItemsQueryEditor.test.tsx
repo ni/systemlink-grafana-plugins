@@ -14,13 +14,13 @@ describe('WorkItemsQueryEditor', () => {
 
     render({});
 
-    expect(page.outputTypeRadio(OutputType.Properties)).toBeTruthy();
-    expect(page.outputTypeRadio(OutputType.TotalCount)).toBeTruthy();
-    expect(page.typesLabel()).toBeTruthy();
-    expect(page.propertiesLabels()[1]).toBeTruthy();
-    expect(page.orderByLabel()).toBeTruthy();
-    expect(page.descendingLabel()).toBeTruthy();
-    expect(page.takeLabel()).toBeTruthy();
+    expect(page.outputTypeRadio(OutputType.Properties)).toBeInTheDocument();
+    expect(page.outputTypeRadio(OutputType.TotalCount)).toBeInTheDocument();
+    expect(page.typesCombobox()).toBeVisible();
+    expect(page.propertiesCombobox()).toBeVisible();
+    expect(page.orderByCombobox()).toBeVisible();
+    expect(page.descendingSwitch()).toBeInTheDocument();
+    expect(page.takeInputQuery()).toBeVisible();
   });
 
   it('hides properties-only controls for total count output', async () => {
@@ -29,10 +29,10 @@ describe('WorkItemsQueryEditor', () => {
     render({});
     await userEvent.click(page.outputTypeRadio(OutputType.TotalCount));
 
-    expect(page.propertiesLabels()).toHaveLength(1);
-    expect(page.orderByLabel()).toBeNull();
-    expect(page.descendingLabel()).toBeNull();
-    expect(page.takeLabel()).toBeNull();
+    expect(page.propertiesCombobox()).toBeNull();
+    expect(page.orderByCombobox()).toBeNull();
+    expect(page.descendingSwitch()).toBeNull();
+    expect(page.takeInputQuery()).toBeNull();
   });
 
   it('renders default selected properties for properties output', async () => {
@@ -42,7 +42,7 @@ describe('WorkItemsQueryEditor', () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
       render({});
 
-      const propertiesCombobox = page.comboboxes()[1];
+      const propertiesCombobox = page.propertiesCombobox()!;
       const checkedLabels = ['Work item name', 'State', 'Assigned to', 'Planned start date', 'Due date'];
 
       fireEvent.click(propertiesCombobox);
@@ -68,7 +68,7 @@ describe('WorkItemsQueryEditor', () => {
 
         await userEvent.click(page.removeButton('Work orders'));
 
-        expect(page.typesErrorMessage()).toBeTruthy();
+        expect(page.typesErrorMessage()).toBeVisible();
         expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ types: [] }));
       } finally {
         offsetHeightSpy.mockRestore();
@@ -84,10 +84,10 @@ describe('WorkItemsQueryEditor', () => {
 
         await userEvent.click(page.removeButton('Work item ID'));
 
-        expect(page.propertiesErrorMessage()).toBeTruthy();
+        expect(page.propertiesErrorMessage()).toBeVisible();
         expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ properties: [] }));
 
-        const propertiesCombobox = page.comboboxes()[1];
+        const propertiesCombobox = page.propertiesCombobox()!;
         await userEvent.click(propertiesCombobox);
         await userEvent.click(await page.propertyOption('Work item name'));
 
@@ -109,7 +109,7 @@ describe('WorkItemsQueryEditor', () => {
       fireEvent.change(takeInput, { target: { value: '-5' } });
       fireEvent.blur(takeInput);
 
-      expect(page.errorMessage(takeErrorMessages.greaterOrEqualToZero)).toBeTruthy();
+      expect(page.errorMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
       expect(onChange).not.toHaveBeenCalled();
       expect(onRunQuery).not.toHaveBeenCalled();
     });
@@ -123,7 +123,7 @@ describe('WorkItemsQueryEditor', () => {
       fireEvent.change(takeInput, { target: { value: `${TAKE_LIMIT + 1}` } });
       fireEvent.blur(takeInput);
 
-      expect(page.errorMessage(takeErrorMessages.lessOrEqualToTenThousand)).toBeTruthy();
+      expect(page.errorMessage(takeErrorMessages.lessOrEqualToTenThousand)).toBeVisible();
       expect(onChange).not.toHaveBeenCalled();
       expect(onRunQuery).not.toHaveBeenCalled();
     });
@@ -136,7 +136,7 @@ describe('WorkItemsQueryEditor', () => {
 
       fireEvent.change(takeInput, { target: { value: '-5' } });
       fireEvent.blur(takeInput);
-      expect(page.errorMessage(takeErrorMessages.greaterOrEqualToZero)).toBeTruthy();
+      expect(page.errorMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
 
       fireEvent.change(takeInput, { target: { value: '500' } });
       fireEvent.blur(takeInput);
