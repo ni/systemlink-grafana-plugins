@@ -11,11 +11,11 @@ describe('WorkItemsDataSource', () => {
     expect(query.outputType).toBe(OutputType.Properties);
     expect(query.types).toEqual(Object.values(WorkItemTypeOptions));
     expect(query.properties).toEqual([
-      WorkItemPropertiesOptions.ID,
       WorkItemPropertiesOptions.NAME,
-      WorkItemPropertiesOptions.TYPE,
       WorkItemPropertiesOptions.STATE,
-      WorkItemPropertiesOptions.WORKSPACE,
+      WorkItemPropertiesOptions.ASSIGNED_TO,
+      WorkItemPropertiesOptions.PLANNED_START_DATE,
+      WorkItemPropertiesOptions.DUE_DATE,
     ]);
     expect(query.orderBy).toBe(OrderByOptions.UPDATED_AT);
     expect(query.descending).toBe(true);
