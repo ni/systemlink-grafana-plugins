@@ -37,6 +37,7 @@ describe('WorkItemsQueryEditor', () => {
 
   it('renders default selected properties for properties output', async () => {
     const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+    const user = userEvent.setup({ delay: null });
 
     try {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
@@ -46,14 +47,14 @@ describe('WorkItemsQueryEditor', () => {
       const checkedLabels = ['Work item name', 'State', 'Assigned to', 'Planned start date', 'Due date'];
 
       for (const label of checkedLabels) {
-        await userEvent.click(propertiesCombobox);
-        await userEvent.type(propertiesCombobox, label);
+        await user.click(propertiesCombobox);
+        await user.type(propertiesCombobox, label);
         await waitFor(() => expect(page.propertyCheckbox(label)).toBeChecked());
-        await userEvent.clear(propertiesCombobox);
+        await user.clear(propertiesCombobox);
       }
 
-      await userEvent.click(propertiesCombobox);
-      await userEvent.type(propertiesCombobox, 'Work item ID');
+      await user.click(propertiesCombobox);
+      await user.type(propertiesCombobox, 'Work item ID');
       await waitFor(() => expect(page.propertyCheckbox('Work item ID')).not.toBeChecked());
     } finally {
       offsetHeightSpy.mockRestore();
