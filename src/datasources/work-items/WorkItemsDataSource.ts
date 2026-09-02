@@ -6,7 +6,6 @@ import {
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { QueryBuilderOption } from 'core/types';
 import {
   OrderByOptions,
   OutputType,
@@ -42,9 +41,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     descending: true,
     take: DEFAULT_TAKE,
   };
-
-  // TODO: AB#3923375 - Dummy Query By scaffolding for the query editor PR
-  globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   // TODO: AB#3923375 - Query work items and return the requested properties instead of an empty frame.
   async runQuery(query: WorkItemsQuery, _options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {

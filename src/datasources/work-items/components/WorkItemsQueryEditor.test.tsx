@@ -1,10 +1,12 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { setupRenderer } from 'test/fixtures';
-import { labels, propertiesErrorMessages, takeErrorMessages, typesErrorMessages } from '../constants/QueryEditor.constants';
+import { takeErrorMessages } from '../constants/QueryEditor.constants';
+import { TAKE_LIMIT } from '../constants';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
 import { OutputType, WorkItemPropertiesOptions, WorkItemTypeOptions } from '../types';
 import { WorkItemsQueryEditor } from './WorkItemsQueryEditor';
+import { workItemsQueryEditorPage as page } from './WorkItemsQueryEditor.page';
 
 describe('WorkItemsQueryEditor', () => {
   it('renders controls', () => {
@@ -12,34 +14,48 @@ describe('WorkItemsQueryEditor', () => {
 
     render({});
 
-    expect(screen.getByRole('radio', { name: OutputType.Properties })).toBeTruthy();
-    expect(screen.getByRole('radio', { name: OutputType.TotalCount })).toBeTruthy();
-    expect(screen.getByText(labels.types)).toBeTruthy();
-    expect(screen.getAllByText(labels.properties)[1]).toBeTruthy();
-    expect(screen.getByText(labels.orderBy)).toBeTruthy();
-    expect(screen.getByText(labels.descending)).toBeTruthy();
-    expect(screen.getByText(labels.take)).toBeTruthy();
+    expect(page.outputTypeRadio(OutputType.Properties)).toBeTruthy();
+    expect(page.outputTypeRadio(OutputType.TotalCount)).toBeTruthy();
+    expect(page.typesLabel()).toBeTruthy();
+    expect(page.propertiesLabels()[1]).toBeTruthy();
+    expect(page.orderByLabel()).toBeTruthy();
+    expect(page.descendingLabel()).toBeTruthy();
+    expect(page.takeLabel()).toBeTruthy();
   });
 
   it('hides properties-only controls for total count output', async () => {
     const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
     render({});
-    await userEvent.click(screen.getByRole('radio', { name: OutputType.TotalCount }));
+    await userEvent.click(page.outputTypeRadio(OutputType.TotalCount));
 
-    expect(screen.getAllByText(labels.properties)).toHaveLength(1);
-    expect(screen.queryByText(labels.orderBy)).toBeNull();
-    expect(screen.queryByText(labels.descending)).toBeNull();
-    expect(screen.queryByText(labels.take)).toBeNull();
+    expect(page.propertiesLabels()).toHaveLength(1);
+    expect(page.orderByLabel()).toBeNull();
+    expect(page.descendingLabel()).toBeNull();
+    expect(page.takeLabel()).toBeNull();
   });
 
-  it('renders default selected properties for properties output', () => {
-    const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+  it('renders default selected properties for properties output', async () => {
+    const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(400);
 
-    render({});
+    try {
+      const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+      render({});
 
-    expect(screen.getByText('Work item ID')).toBeTruthy();
-    expect(screen.getAllByText(labels.properties)[1]).toBeTruthy();
+      const propertiesCombobox = page.comboboxes()[1];
+      await userEvent.click(propertiesCombobox);
+
+      await waitFor(() => {
+        expect(page.propertyCheckbox('Work item ID')).toBeChecked();
+        expect(page.propertyCheckbox('Work item name')).toBeChecked();
+        expect(page.propertyCheckbox('Work item type')).toBeChecked();
+        expect(page.propertyCheckbox('State')).toBeChecked();
+        expect(page.propertyCheckbox('Workspace')).toBeChecked();
+        expect(page.propertyCheckbox('Substate')).not.toBeChecked();
+      });
+    } finally {
+      offsetHeightSpy.mockRestore();
+    }
   });
 
   describe('validation', () => {
@@ -50,9 +66,9 @@ describe('WorkItemsQueryEditor', () => {
         const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
         const [onChange] = render({ types: [WorkItemTypeOptions.WorkOrders] });
 
-        await userEvent.click(screen.getByRole('button', { name: 'Remove Work orders' }));
+        await userEvent.click(page.removeButton('Work orders'));
 
-        expect(screen.getByText(typesErrorMessages.atLeastOneRequired)).toBeTruthy();
+        expect(page.typesErrorMessage()).toBeTruthy();
         expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ types: [] }));
       } finally {
         offsetHeightSpy.mockRestore();
@@ -66,17 +82,17 @@ describe('WorkItemsQueryEditor', () => {
         const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
         const [onChange] = render({ properties: [WorkItemPropertiesOptions.ID] });
 
-        await userEvent.click(screen.getByRole('button', { name: 'Remove Work item ID' }));
+        await userEvent.click(page.removeButton('Work item ID'));
 
-        expect(screen.getByText(propertiesErrorMessages.atLeastOneRequired)).toBeTruthy();
+        expect(page.propertiesErrorMessage()).toBeTruthy();
         expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ properties: [] }));
 
-        const propertiesCombobox = screen.getAllByRole('combobox')[1];
+        const propertiesCombobox = page.comboboxes()[1];
         await userEvent.click(propertiesCombobox);
         await userEvent.type(propertiesCombobox, 'Work item name');
-        await userEvent.click(await screen.findByRole('option', { name: 'Work item name' }));
+        await userEvent.click(await page.propertyOption('Work item name'));
 
-        expect(screen.queryByText(propertiesErrorMessages.atLeastOneRequired)).toBeNull();
+        expect(page.propertiesErrorMessage()).toBeNull();
         expect(onChange).toHaveBeenLastCalledWith(
           expect.objectContaining({ properties: [WorkItemPropertiesOptions.NAME] })
         );
@@ -89,14 +105,46 @@ describe('WorkItemsQueryEditor', () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
       const [onChange, onRunQuery] = render({});
-      const takeInput = screen.getByRole('spinbutton');
+      const takeInput = page.takeInput();
 
       fireEvent.change(takeInput, { target: { value: '-5' } });
       fireEvent.blur(takeInput);
 
-      expect(screen.getByText(takeErrorMessages.greaterOrEqualToZero)).toBeTruthy();
+      expect(page.errorMessage(takeErrorMessages.greaterOrEqualToZero)).toBeTruthy();
       expect(onChange).not.toHaveBeenCalled();
       expect(onRunQuery).not.toHaveBeenCalled();
+    });
+
+    it('shows take validation error and suppresses query execution when take exceeds the maximum limit', () => {
+      const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+
+      const [onChange, onRunQuery] = render({});
+      const takeInput = page.takeInput();
+
+      fireEvent.change(takeInput, { target: { value: `${TAKE_LIMIT + 1}` } });
+      fireEvent.blur(takeInput);
+
+      expect(page.errorMessage(takeErrorMessages.lessOrEqualToTenThousand)).toBeTruthy();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(onRunQuery).not.toHaveBeenCalled();
+    });
+
+    it('clears the take validation error and runs the query when a valid take value is entered', () => {
+      const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+
+      const [onChange, onRunQuery] = render({});
+      const takeInput = page.takeInput();
+
+      fireEvent.change(takeInput, { target: { value: '-5' } });
+      fireEvent.blur(takeInput);
+      expect(page.errorMessage(takeErrorMessages.greaterOrEqualToZero)).toBeTruthy();
+
+      fireEvent.change(takeInput, { target: { value: '500' } });
+      fireEvent.blur(takeInput);
+
+      expect(page.errorMessage(takeErrorMessages.greaterOrEqualToZero)).toBeNull();
+      expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ take: 500 }));
+      expect(onRunQuery).toHaveBeenCalled();
     });
   });
 });

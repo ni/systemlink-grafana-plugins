@@ -7,6 +7,7 @@ import {
   InlineSwitch,
   MultiCombobox,
   RadioButtonGroup,
+  Space,
   Stack,
 } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
@@ -106,58 +107,56 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   };
 
   return (
-    <Stack
-      direction="column"
-    >
-      <Stack direction="column" gap={0}>
-        <InlineField
-          label={labels.outputType}
-          labelWidth={LABEL_WIDTH}
-          tooltip={tooltips.outputType}
-        >
-          <RadioButtonGroup
-            options={outputTypeOptions}
-            onChange={onOutputTypeChange}
-            value={query.outputType}
-          />
-        </InlineField>
-        <InlineField
-          label={labels.types}
-          labelWidth={LABEL_WIDTH}
-          tooltip={tooltips.types}
-          invalid={!isTypesValid}
-          error={typesErrorMessages.atLeastOneRequired}
-        >
-          <MultiCombobox
-            placeholder={placeholders.types}
-            options={WorkItemTypes}
-            value={query.types}
-            onChange={onTypesChange}
-            enableAllOption
-            width="auto"
-            minWidth={CONTROL_WIDTH}
-            maxWidth={CONTROL_WIDTH}
-          />
-        </InlineField>
-      </Stack>
+     <Stack direction="column" >
+      <InlineField
+        label={labels.outputType}
+        labelWidth={LABEL_WIDTH}
+        tooltip={tooltips.outputType}
+      >
+        <RadioButtonGroup
+          options={outputTypeOptions}
+          onChange={onOutputTypeChange}
+          value={query.outputType}
+        />
+      </InlineField>
+      <InlineField
+        label={labels.types}
+        labelWidth={LABEL_WIDTH}
+        tooltip={tooltips.types}
+        invalid={!isTypesValid}
+        error={typesErrorMessages.atLeastOneRequired}
+      >
+        <MultiCombobox
+          placeholder={placeholders.types}
+          options={WorkItemTypes}
+          value={query.types}
+          onChange={onTypesChange}
+          enableAllOption
+          width="auto"
+          minWidth={CONTROL_WIDTH}
+          maxWidth={CONTROL_WIDTH}
+        />
+      </InlineField>
       {query.outputType === OutputType.Properties && (
-        <InlineField
-          label={labels.properties}
-          labelWidth={LABEL_WIDTH}
-          tooltip={tooltips.properties}
-          invalid={!isPropertiesValid}
-          error={propertiesErrorMessages.atLeastOneRequired}
-        >
-          <MultiCombobox
-            placeholder={placeholders.properties}
-            options={propertiesOptions}
-            value={query.properties}
-            onChange={onPropertiesChange}
-            width="auto"
-            minWidth={CONTROL_WIDTH}
-            maxWidth={CONTROL_WIDTH}
-          />
-        </InlineField>
+        <>
+          <InlineField
+            label={labels.properties}
+            labelWidth={LABEL_WIDTH}
+            tooltip={tooltips.properties}
+            invalid={!isPropertiesValid}
+            error={propertiesErrorMessages.atLeastOneRequired}
+          >
+            <MultiCombobox
+              placeholder={placeholders.properties}
+              options={propertiesOptions}
+              value={query.properties}
+              onChange={onPropertiesChange}
+              width="auto"
+              minWidth={CONTROL_WIDTH}
+              maxWidth={CONTROL_WIDTH}
+            />
+          </InlineField>
+        </>
       )}
       <Stack>
         <InlineField
@@ -168,8 +167,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
           <WorkItemsQueryBuilder />
         </InlineField>
         {query.outputType === OutputType.Properties && (
-          <Stack direction="column" gap={1}>
-            <Stack direction="column" gap={0}>
+           <Stack direction="column" gap={0}>
               <InlineField
                 label={labels.orderBy}
                 labelWidth={LABEL_WIDTH}
@@ -193,7 +191,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
                   value={query.descending}
                 />
               </InlineField>
-            </Stack>
+            <Space v={1} />
             <InlineField
               label={labels.take}
               labelWidth={LABEL_WIDTH}
