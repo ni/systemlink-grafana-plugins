@@ -74,12 +74,12 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const onTypesChange = (items: Array<ComboboxOption<WorkItemTypeOptions>>) => {
     const types = items.map(item => item.value).filter(Boolean) as WorkItemTypeOptions[];
-    handleQueryChange({ ...query, types });
+    handleQueryChange({ ...query, types }, types.length > 0);
   };
 
   const onPropertiesChange = (items: Array<ComboboxOption<WorkItemPropertiesOptions>>) => {
     const properties = items.map(item => item.value).filter(Boolean) as WorkItemPropertiesOptions[];
-    handleQueryChange({ ...query, properties });
+    handleQueryChange({ ...query, properties }, properties.length > 0);
   };
 
   const onOrderByChange = (item: SelectableValue<OrderByOptions>) => {

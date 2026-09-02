@@ -1,7 +1,7 @@
 import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { setupRenderer } from 'test/fixtures';
-import { takeErrorMessages } from '../constants/QueryEditor.constants';
+import { propertiesErrorMessages, takeErrorMessages, typesErrorMessages } from '../constants/QueryEditor.constants';
 import { TAKE_LIMIT } from '../constants';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
 import { OutputType, WorkItemPropertiesOptions, WorkItemTypeOptions } from '../types';
@@ -9,139 +9,157 @@ import { WorkItemsQueryEditor } from './WorkItemsQueryEditor';
 import { workItemsQueryEditorPage as page } from './WorkItemsQueryEditor.page';
 
 describe('WorkItemsQueryEditor', () => {
-  it('renders controls', () => {
+  it('should show all controls when the editor renders', () => {
     const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
     render({});
 
-    expect(page.outputTypeRadio(OutputType.Properties)).toBeInTheDocument();
-    expect(page.outputTypeRadio(OutputType.TotalCount)).toBeInTheDocument();
-    expect(page.typesCombobox()).toBeVisible();
-    expect(page.propertiesCombobox()).toBeVisible();
+    expect(page.outputTypeRadioButton(OutputType.Properties)).toBeInTheDocument();
+    expect(page.outputTypeRadioButton(OutputType.TotalCount)).toBeInTheDocument();
+    expect(page.typesMultiCombobox()).toBeVisible();
+    expect(page.propertiesMultiCombobox()).toBeVisible();
     expect(page.orderByCombobox()).toBeVisible();
     expect(page.descendingSwitch()).toBeInTheDocument();
-    expect(page.takeInputQuery()).toBeVisible();
+    expect(page.optionalTakeLimitInput()).toBeVisible();
   });
 
-  it('hides properties-only controls for total count output', async () => {
+  it('should hide properties-only controls when the output type is total count', async () => {
     const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
     render({});
-    await userEvent.click(page.outputTypeRadio(OutputType.TotalCount));
+    await userEvent.click(page.outputTypeRadioButton(OutputType.TotalCount));
 
-    expect(page.propertiesCombobox()).toBeNull();
+    expect(page.propertiesMultiCombobox()).toBeNull();
     expect(page.orderByCombobox()).toBeNull();
     expect(page.descendingSwitch()).toBeNull();
-    expect(page.takeInputQuery()).toBeNull();
+    expect(page.optionalTakeLimitInput()).toBeNull();
   });
 
-  it('renders default selected properties for properties output', async () => {
+  it('should show default selected properties when the output type is properties', async () => {
     const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
 
     try {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
       render({});
 
-      const propertiesCombobox = page.propertiesCombobox()!;
+      const propertiesCombobox = page.propertiesMultiCombobox()!;
       const checkedLabels = ['Work item name', 'State', 'Assigned to', 'Planned start date', 'Due date'];
 
       fireEvent.click(propertiesCombobox);
       for (const label of checkedLabels) {
+        // fireEvent.change is used here to filter/search the dropdown options; it does not select or deselect them.
         fireEvent.change(propertiesCombobox, { target: { value: label } });
-        expect(page.propertyCheckbox(label)).toBeChecked();
+        expect(page.propertyOptionCheckbox(label)).toBeChecked();
       }
 
       fireEvent.change(propertiesCombobox, { target: { value: 'Work item ID' } });
-      expect(page.propertyCheckbox('Work item ID')).not.toBeChecked();
+      expect(page.propertyOptionCheckbox('Work item ID')).not.toBeChecked();
     } finally {
       offsetHeightSpy.mockRestore();
     }
   });
 
-  describe('validation', () => {
-    it('shows types validation error when all types are removed instead of restoring the default selection', async () => {
+  describe('validation error', () => {
+    it('should not show types, properties, or take validation errors when the editor renders', () => {
+      const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+
+      render({});
+
+      expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeNull();
+      expect(page.getErrorByMessage(propertiesErrorMessages.atLeastOneRequired)).toBeNull();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeNull();
+      expect(page.getErrorByMessage(takeErrorMessages.lessOrEqualToTenThousand)).toBeNull();
+    });
+
+    it('should clear the types validation error when a type is re-added after all types are removed', async () => {
       const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
 
       try {
         const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
-        const [onChange] = render({ types: [WorkItemTypeOptions.WorkOrders] });
+        const [onChange, onRunQuery] = render({ types: [WorkItemTypeOptions.WorkOrders] });
 
-        await userEvent.click(page.removeButton('Work orders'));
+        await userEvent.click(page.removeOptionButton('Work orders'));
 
-        expect(page.typesErrorMessage()).toBeVisible();
+        expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeVisible();
         expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ types: [] }));
+        expect(onRunQuery).not.toHaveBeenCalled();
+
+        const typesCombobox = page.typesMultiCombobox()!;
+        await userEvent.click(typesCombobox);
+        await userEvent.click(await page.typeSelectOption('Work orders'));
+
+        expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeNull();
+        expect(onChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ types: [WorkItemTypeOptions.WorkOrders] })
+        );
+        expect(onRunQuery).toHaveBeenCalled();
       } finally {
         offsetHeightSpy.mockRestore();
       }
     });
 
-    it('shows properties validation error when all properties are removed, and clears it (without restoring defaults) when a property is re-added', async () => {
+    it('should clear the properties validation error when a property is re-added after all properties are removed', async () => {
       const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
 
       try {
         const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
-        const [onChange] = render({ properties: [WorkItemPropertiesOptions.ID] });
+        const [onChange, onRunQuery] = render({ properties: [WorkItemPropertiesOptions.ID] });
 
-        await userEvent.click(page.removeButton('Work item ID'));
+        await userEvent.click(page.removeOptionButton('Work item ID'));
 
-        expect(page.propertiesErrorMessage()).toBeVisible();
+        expect(page.getErrorByMessage(propertiesErrorMessages.atLeastOneRequired)).toBeVisible();
         expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ properties: [] }));
+        expect(onRunQuery).not.toHaveBeenCalled();
 
-        const propertiesCombobox = page.propertiesCombobox()!;
+        const propertiesCombobox = page.propertiesMultiCombobox()!;
         await userEvent.click(propertiesCombobox);
-        await userEvent.click(await page.propertyOption('Work item name'));
+        await userEvent.click(await page.propertySelectOption('Work item name'));
 
-        expect(page.propertiesErrorMessage()).toBeNull();
+        expect(page.getErrorByMessage(propertiesErrorMessages.atLeastOneRequired)).toBeNull();
         expect(onChange).toHaveBeenLastCalledWith(
           expect.objectContaining({ properties: [WorkItemPropertiesOptions.NAME] })
         );
+        expect(onRunQuery).toHaveBeenCalled();
       } finally {
         offsetHeightSpy.mockRestore();
       }
     });
 
-    it('shows take validation error and suppresses query execution for invalid take input', () => {
+    it('should show a take validation error and suppress query execution when take input is invalid', () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
       const [onChange, onRunQuery] = render({});
-      const takeInput = page.takeInput();
 
-      fireEvent.change(takeInput, { target: { value: '-5' } });
-      fireEvent.blur(takeInput);
+      page.setTakeLimit('-5');
 
-      expect(page.errorMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
       expect(onChange).not.toHaveBeenCalled();
       expect(onRunQuery).not.toHaveBeenCalled();
     });
 
-    it('shows take validation error and suppresses query execution when take exceeds the maximum limit', () => {
+    it('should show a take validation error and suppress query execution when take exceeds the maximum limit', () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
       const [onChange, onRunQuery] = render({});
-      const takeInput = page.takeInput();
 
-      fireEvent.change(takeInput, { target: { value: `${TAKE_LIMIT + 1}` } });
-      fireEvent.blur(takeInput);
+      page.setTakeLimit(`${TAKE_LIMIT + 1}`);
 
-      expect(page.errorMessage(takeErrorMessages.lessOrEqualToTenThousand)).toBeVisible();
+      expect(page.getErrorByMessage(takeErrorMessages.lessOrEqualToTenThousand)).toBeVisible();
       expect(onChange).not.toHaveBeenCalled();
       expect(onRunQuery).not.toHaveBeenCalled();
     });
 
-    it('clears the take validation error and runs the query when a valid take value is entered', () => {
+    it('should clear the take validation error and run the query when a valid take value is entered', () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
       const [onChange, onRunQuery] = render({});
-      const takeInput = page.takeInput();
 
-      fireEvent.change(takeInput, { target: { value: '-5' } });
-      fireEvent.blur(takeInput);
-      expect(page.errorMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
+      page.setTakeLimit('-5');
+      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
 
-      fireEvent.change(takeInput, { target: { value: '500' } });
-      fireEvent.blur(takeInput);
+      page.setTakeLimit('500');
 
-      expect(page.errorMessage(takeErrorMessages.greaterOrEqualToZero)).toBeNull();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeNull();
       expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ take: 500 }));
       expect(onRunQuery).toHaveBeenCalled();
     });

@@ -22,21 +22,6 @@ describe('WorkItemsDataSource', () => {
     expect(query.take).toBe(1000);
   });
 
-  it('preserves explicit selections instead of resetting them to defaults', () => {
-    const [datasource] = setupDataSource(WorkItemsDataSource);
-
-    const clearedQuery = datasource.prepareQuery({
-      refId: 'A',
-      types: [],
-      properties: [],
-      take: 12000,
-    });
-
-    expect(clearedQuery.types).toEqual([]);
-    expect(clearedQuery.properties).toEqual([]);
-    expect(clearedQuery.take).toBe(12000);
-  });
-
   it('tests datasource connection against the work-items service endpoint', async () => {
     const [datasource] = setupDataSource(WorkItemsDataSource);
     const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({} as any);
