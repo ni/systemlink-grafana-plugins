@@ -1,21 +1,22 @@
 import { fireEvent, render } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { setupDataSource } from 'test/fixtures';
-import { takeErrorMessages } from '../constants/QueryEditor.constants';
+import { takeErrorMessages, typesErrorMessages } from '../constants/QueryEditor.constants';
 import { TAKE_LIMIT } from '../constants';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
-import { WorkItemsVariableQuery } from '../types';
+import { WorkItemsVariableQuery, WorkItemsVariableQueryType, WorkItemTypeOptions, WorkItemsQuery } from '../types';
 import { WorkItemsVariableQueryEditor } from './WorkItemsVariableQueryEditor';
 import { workItemsVariableQueryEditorPage as page } from './WorkItemsVariableQueryEditor.page';
 
 function renderEditor(initialQuery: Partial<WorkItemsVariableQuery> = {}) {
-  const onChange = jest.fn<void, [WorkItemsVariableQuery]>();
+  const onChange = jest.fn<void, [WorkItemsQuery]>();
   const [datasource] = setupDataSource(WorkItemsDataSource);
 
-  const createElement = (query: WorkItemsVariableQuery) =>
+  const createElement = (query: WorkItemsQuery) =>
     React.createElement(WorkItemsVariableQueryEditor, { datasource, query, onChange, onRunQuery: jest.fn() });
 
-  const { rerender } = render(createElement({ ...initialQuery, refId: 'A' } as WorkItemsVariableQuery));
+  const { rerender } = render(createElement({ ...initialQuery, refId: 'A' } as WorkItemsQuery));
 
   // Mimics Grafana's variable editor by rerendering when onChange is called.
   onChange.mockImplementation(newQuery => rerender(createElement(newQuery)));
@@ -24,15 +25,32 @@ function renderEditor(initialQuery: Partial<WorkItemsVariableQuery> = {}) {
 }
 
 describe('WorkItemsVariableQueryEditor', () => {
-  it('should show all controls when the editor renders', () => {
+  it('should default to the list work items query type and show its controls', () => {
     renderEditor();
 
+    expect(page.queryTypeRadioButton(WorkItemsVariableQueryType.ListWorkItems)).toBeChecked();
+    expect(page.queryTypeRadioButton(WorkItemsVariableQueryType.ListWorkItemTypes)).not.toBeChecked();
+    expect(page.typesMultiCombobox()).toBeVisible();
     expect(page.orderByCombobox()).toBeVisible();
     expect(page.descendingSwitch()).toBeInTheDocument();
     expect(page.optionalTakeLimitInput()).toBeVisible();
   });
 
-  it('should apply the datasource default values when the editor renders', () => {
+  it('should hide the list work items controls when list work item types is selected', async () => {
+    const { onChange } = renderEditor();
+
+    await userEvent.click(page.queryTypeRadioButton(WorkItemsVariableQueryType.ListWorkItemTypes));
+
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ queryType: WorkItemsVariableQueryType.ListWorkItemTypes })
+    );
+    expect(page.typesMultiCombobox()).toBeNull();
+    expect(page.orderByCombobox()).toBeNull();
+    expect(page.descendingSwitch()).toBeNull();
+    expect(page.optionalTakeLimitInput()).toBeNull();
+  });
+
+  it('should apply the datasource default values for the list work items controls', () => {
     renderEditor();
 
     expect(page.descendingSwitch()).toBeChecked();
@@ -45,6 +63,29 @@ describe('WorkItemsVariableQueryEditor', () => {
     fireEvent.click(page.descendingSwitch()!);
 
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ descending: false }));
+  });
+
+  describe('type validation', () => {
+    it('should not show a type validation error when the editor renders with default types', () => {
+      renderEditor();
+
+      expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeNull();
+    });
+
+    it('should show a type validation error when all types are removed', async () => {
+      const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+
+      try {
+        const { onChange } = renderEditor({ types: [WorkItemTypeOptions.WorkOrders] });
+
+        await userEvent.click(page.removeOptionButton('Work orders'));
+
+        expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeVisible();
+        expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ types: [] }));
+      } finally {
+        offsetHeightSpy.mockRestore();
+      }
+    });
   });
 
   describe('take validation', () => {

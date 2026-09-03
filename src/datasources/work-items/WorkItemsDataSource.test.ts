@@ -1,6 +1,6 @@
 import { WorkItemsDataSource } from './WorkItemsDataSource';
 import { setupDataSource } from 'test/fixtures';
-import { OrderByOptions, OutputType, WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
+import { OrderByOptions, OutputType, WorkItemPropertiesOptions, WorkItemsVariableQueryType, WorkItemTypeOptions } from './types';
 
 describe('WorkItemsDataSource', () => {
   it('should apply expected default query values', () => {
@@ -37,5 +37,38 @@ describe('WorkItemsDataSource', () => {
     jest.spyOn(datasource, 'post').mockRejectedValue(new Error('Failed'));
 
     await expect(datasource.testDatasource()).rejects.toThrow('Failed');
+  });
+
+  describe('metricFindQuery', () => {
+    it('should return the list of work item types when the query type is list work item types', async () => {
+      const [datasource] = setupDataSource(WorkItemsDataSource);
+
+      const result = await datasource.metricFindQuery(
+        { refId: 'A', queryType: WorkItemsVariableQueryType.ListWorkItemTypes },
+        {} as any
+      );
+
+      expect(result).toEqual([
+        { text: 'Work orders', value: WorkItemTypeOptions.WorkOrders },
+        { text: 'Test plans', value: WorkItemTypeOptions.TestPlans },
+        { text: 'Job', value: WorkItemTypeOptions.Job },
+        { text: 'Maintenance', value: WorkItemTypeOptions.Maintenance },
+        { text: 'Calibration', value: WorkItemTypeOptions.Calibration },
+        { text: 'Reservation', value: WorkItemTypeOptions.Reservation },
+        { text: 'Transport Order', value: WorkItemTypeOptions.TransportOrder },
+      ]);
+    });
+
+    // TODO: AB#3923375 - Update once work items querying is implemented.
+    it('should return an empty list for the list work items query type', async () => {
+      const [datasource] = setupDataSource(WorkItemsDataSource);
+
+      const result = await datasource.metricFindQuery(
+        { refId: 'A', queryType: WorkItemsVariableQueryType.ListWorkItems },
+        {} as any
+      );
+
+      expect(result).toEqual([]);
+    });
   });
 });

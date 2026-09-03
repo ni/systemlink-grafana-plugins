@@ -14,9 +14,11 @@ import {
   WorkItemPropertiesOptions,
   WorkItemsQuery,
   WorkItemsVariableQuery,
+  WorkItemsVariableQueryType,
   WorkItemTypeOptions,
 } from './types';
 import { DEFAULT_TAKE } from './constants';
+import { WorkItemTypes } from './constants/QueryEditor.constants';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
@@ -60,9 +62,16 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   // TODO: AB#3923375 - Query work items and return the matching values instead of an empty list.
   async metricFindQuery(
-    _query: WorkItemsVariableQuery,
+    query: WorkItemsVariableQuery,
     _options: LegacyMetricFindQueryOptions
   ): Promise<MetricFindValue[]> {
+    const variableQuery = this.prepareQuery(query);
+    const queryType = variableQuery.queryType ?? WorkItemsVariableQueryType.ListWorkItems;
+
+    if (queryType === WorkItemsVariableQueryType.ListWorkItemTypes) {
+      return WorkItemTypes.map(type => ({ text: type.label, value: type.value }));
+    }
+
     return [];
   }
 
