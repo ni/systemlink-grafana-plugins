@@ -40,7 +40,7 @@ export const tooltips = {
   outputType: 'Select whether to return work item properties or only total count.',
   types: 'Choose one or more work item types to query.',
   properties: 'Select the work item properties to include in the result.',
-  filter: 'Filter work items by property. Use Grafana template variables or the dashboard time range in date filters.',
+  filter: 'Filter work items by matching one or more properties.',
   orderBy: 'Select which property to sort by for properties output.',
   descending: 'Toggle descending sort order for properties output.',
   take: `Set the maximum number of work items to return. Maximum is ${TAKE_LIMIT.toLocaleString()}.`,
