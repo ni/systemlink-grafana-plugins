@@ -1,6 +1,7 @@
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { QBField } from 'core/types';
 import { WorkItemTypes } from '../constants/QueryEditor.constants';
+import { State } from '../types';
 
 /**
  * Field names below are sourced from the SystemLink Work Items data source FRD
@@ -30,9 +31,13 @@ export enum WorkItemsQueryBuilderFieldNames {
   EarliestStartDate = 'timeline.earliestStartDateTime',
   DueDate = 'timeline.dueDateTime',
   EstimatedDuration = 'timeline.estimatedDurationInSeconds',
+  EstimatedDurationInDays = 'estimatedDurationInDays',
+  EstimatedDurationInHours = 'estimatedDurationInHours',
   PlannedStartDate = 'schedule.plannedStartDateTime',
   PlannedEndDate = 'schedule.plannedEndDateTime',
   PlannedDuration = 'schedule.plannedDurationInSeconds',
+  PlannedDurationInDays = 'plannedDurationInDays',
+  PlannedDurationInHours = 'plannedDurationInHours',
   AssetName = 'assetName',
   AssetId = 'assetId',
   DutName = 'dutName',
@@ -77,6 +82,18 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     label: 'State',
     dataField: WorkItemsQueryBuilderFieldNames.State,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
+    lookup: {
+      dataSource: [
+        { label: 'New', value: State.New },
+        { label: 'Defined', value: State.Defined },
+        { label: 'Reviewed', value: State.Reviewed },
+        { label: 'Scheduled', value: State.Scheduled },
+        { label: 'In progress', value: State.InProgress },
+        { label: 'Pending approval', value: State.PendingApproval },
+        { label: 'Closed', value: State.Closed },
+        { label: 'Canceled', value: State.Canceled },
+      ],
+    },
   },
   SUBSTATE: {
     label: 'Substate',
@@ -104,14 +121,15 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     ],
   },
   PART_NUMBER: {
-    label: 'Part Number',
+    label: 'Product name (Part number)',
     dataField: WorkItemsQueryBuilderFieldNames.PartNumber,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.CONTAINS.name,
-      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
     ],
+    lookup: {
+      dataSource: [],
+    },
   },
   WORKSPACE: {
     label: 'Workspace',
@@ -177,7 +195,12 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
   PARENT_WORK_ITEM_ID: {
     label: 'Parent work item ID',
     dataField: WorkItemsQueryBuilderFieldNames.ParentWorkItemId,
-    filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.IS_BLANK.name,
+      QueryBuilderOperations.IS_NOT_BLANK.name,
+    ],
   },
   TEMPLATE_ID: {
     label: 'Template ID',
@@ -205,9 +228,23 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
       QueryBuilderOperations.DATE_TIME_IS_NOT_BLANK.name,
     ],
   },
-  ESTIMATED_DURATION: {
-    label: 'Estimated duration',
-    dataField: WorkItemsQueryBuilderFieldNames.EstimatedDuration,
+  ESTIMATED_DURATION_IN_DAYS: {
+    label: 'Estimated duration (days)',
+    dataField: WorkItemsQueryBuilderFieldNames.EstimatedDurationInDays,
+    dataType: 'number',
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.LESS_THAN.name,
+      QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
+      QueryBuilderOperations.GREATER_THAN.name,
+      QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
+    ],
+  },
+  ESTIMATED_DURATION_IN_HOURS: {
+    label: 'Estimated duration (hours)',
+    dataField: WorkItemsQueryBuilderFieldNames.EstimatedDurationInHours,
+    dataType: 'number',
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -237,9 +274,23 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
       QueryBuilderOperations.DATE_TIME_IS_NOT_BLANK.name,
     ],
   },
-  PLANNED_DURATION: {
-    label: 'Planned duration',
-    dataField: WorkItemsQueryBuilderFieldNames.PlannedDuration,
+  PLANNED_DURATION_IN_DAYS: {
+    label: 'Planned duration (days)',
+    dataField: WorkItemsQueryBuilderFieldNames.PlannedDurationInDays,
+    dataType: 'number',
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.LESS_THAN.name,
+      QueryBuilderOperations.LESS_THAN_OR_EQUAL_TO.name,
+      QueryBuilderOperations.GREATER_THAN.name,
+      QueryBuilderOperations.GREATER_THAN_OR_EQUAL_TO.name,
+    ],
+  },
+  PLANNED_DURATION_IN_HOURS: {
+    label: 'Planned duration (hours)',
+    dataField: WorkItemsQueryBuilderFieldNames.PlannedDurationInHours,
+    dataType: 'number',
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -306,9 +357,17 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     ],
   },
   SYSTEM_ID: {
-    label: 'System ID',
+    label: 'System alias name',
     dataField: WorkItemsQueryBuilderFieldNames.SystemId,
-    filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.IS_BLANK.name,
+      QueryBuilderOperations.IS_NOT_BLANK.name,
+    ],
+    lookup: {
+      dataSource: [],
+    },
   },
   TARGET_LOCATION: {
     label: 'Target location',
@@ -352,12 +411,13 @@ export const WorkItemsQueryBuilderStaticFields = [
   WorkItemsQueryBuilderFields.SUBSTATE,
   WorkItemsQueryBuilderFields.DESCRIPTION,
   WorkItemsQueryBuilderFields.TEST_PROGRAM,
-  WorkItemsQueryBuilderFields.PART_NUMBER,
   WorkItemsQueryBuilderFields.PARENT_WORK_ITEM_NAME,
   WorkItemsQueryBuilderFields.PARENT_WORK_ITEM_ID,
   WorkItemsQueryBuilderFields.TEMPLATE_ID,
-  WorkItemsQueryBuilderFields.ESTIMATED_DURATION,
-  WorkItemsQueryBuilderFields.PLANNED_DURATION,
+  WorkItemsQueryBuilderFields.ESTIMATED_DURATION_IN_DAYS,
+  WorkItemsQueryBuilderFields.ESTIMATED_DURATION_IN_HOURS,
+  WorkItemsQueryBuilderFields.PLANNED_DURATION_IN_DAYS,
+  WorkItemsQueryBuilderFields.PLANNED_DURATION_IN_HOURS,
   WorkItemsQueryBuilderFields.ASSET_NAME,
   WorkItemsQueryBuilderFields.ASSET_ID,
   WorkItemsQueryBuilderFields.DUT_NAME,
@@ -365,7 +425,6 @@ export const WorkItemsQueryBuilderStaticFields = [
   WorkItemsQueryBuilderFields.FIXTURE_NAME,
   WorkItemsQueryBuilderFields.FIXTURE_ID,
   WorkItemsQueryBuilderFields.SYSTEM_NAME,
-  WorkItemsQueryBuilderFields.SYSTEM_ID,
   WorkItemsQueryBuilderFields.TARGET_LOCATION,
   WorkItemsQueryBuilderFields.TARGET_PARENT,
   WorkItemsQueryBuilderFields.PROPERTIES,

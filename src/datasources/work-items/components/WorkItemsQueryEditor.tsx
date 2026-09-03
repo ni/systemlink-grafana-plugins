@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import {
   AutoSizeInput,
@@ -37,6 +37,8 @@ import {
 import { getTakeError, isPropertiesNonEmpty, isTypesNonEmpty } from '../utils';
 import { WorkItemsQueryBuilder } from './query-builder/WorkItemsQueryBuilder';
 import { User } from 'shared/types/QueryUsers.types';
+import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
+import { SystemAlias } from 'shared/types/QuerySystems.types';
 
 type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
 
@@ -59,9 +61,40 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     value,
   }));
 
-  // TODO: AB#3923383 - workspace/user lookups land with the query builder PR.
-  const workspaces: Workspace[] | null = null;
-  const users: User[] | null = null;
+  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
+  const [users, setUsers] = useState<User[] | null>(null);
+  const [products, setProducts] = useState<ProductPartNumberAndName[] | null>(null);
+  const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
+
+  useEffect(() => {
+    const loadWorkspaces = async () => {
+      const workspaces = await datasource.loadWorkspaces();
+      setWorkspaces(Array.from(workspaces.values()));
+    };
+
+    loadWorkspaces();
+
+    const loadUsers = async () => {
+      const users = await datasource.loadUsers();
+      setUsers(Array.from(users.values()));
+    };
+
+    loadUsers();
+
+    const loadProducts = async () => {
+      const products = await datasource.loadProductNamesAndPartNumbers();
+      setProducts(Array.from(products.values()));
+    };
+
+    loadProducts();
+
+    const loadSystemAliases = async () => {
+      const systemAliases = await datasource.loadSystemAliases();
+      setSystemAliases(Array.from(systemAliases.values()));
+    };
+
+    loadSystemAliases();
+  }, [datasource]);
 
   const handleQueryChange = useCallback(
     (query: WorkItemsQuery, runQuery = true): void => {
@@ -166,6 +199,8 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
             filter={query.filter}
             workspaces={workspaces}
             users={users}
+            products={products}
+            systemAliases={systemAliases}
             globalVariableOptions={datasource.globalVariableOptions()}
             onChange={onFilterChange}
           />
