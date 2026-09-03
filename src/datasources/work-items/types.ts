@@ -30,6 +30,13 @@ export interface WorkItemsQuery extends DataQuery {
   filter?: string;
 }
 
+export interface WorkItemsVariableQuery extends DataQuery {
+  orderBy?: OrderByOptions;
+  descending?: boolean;
+  take?: number;
+  filter?: string;
+}
+
 export enum WorkItemPropertiesOptions {
   ID = 'ID',
   NAME = 'NAME',

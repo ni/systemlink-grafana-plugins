@@ -2,6 +2,8 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
+  LegacyMetricFindQueryOptions,
+  MetricFindValue,
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
@@ -11,6 +13,7 @@ import {
   OutputType,
   WorkItemPropertiesOptions,
   WorkItemsQuery,
+  WorkItemsVariableQuery,
   WorkItemTypeOptions,
 } from './types';
 import { DEFAULT_TAKE } from './constants';
@@ -53,6 +56,14 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   shouldRunQuery(query: WorkItemsQuery): boolean {
     return !query.hide;
+  }
+
+  // TODO: AB#3923375 - Query work items and return the matching values instead of an empty list.
+  async metricFindQuery(
+    _query: WorkItemsVariableQuery,
+    _options: LegacyMetricFindQueryOptions
+  ): Promise<MetricFindValue[]> {
+    return [];
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
