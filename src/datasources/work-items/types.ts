@@ -5,7 +5,7 @@ export enum OutputType {
   TotalCount = 'Total Count',
 }
 
-export enum State {
+export enum WorkItemState {
   New = 'NEW',
   Defined = 'DEFINED',
   Reviewed = 'REVIEWED',

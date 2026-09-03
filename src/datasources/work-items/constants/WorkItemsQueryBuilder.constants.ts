@@ -1,14 +1,8 @@
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { QBField } from 'core/types';
 import { WorkItemTypes } from '../constants/QueryEditor.constants';
-import { State } from '../types';
+import { WorkItemState } from '../types';
 
-/**
- * Field names below are sourced from the SystemLink Work Items data source FRD
- * (Grafana-data-source-for-work-items.md), section "SystemLink Work Items data source".
- * Timeline and schedule fields use the dotted API property paths given in the FRD
- * (e.g. timeline.earliestStartDateTime, schedule.plannedStartDateTime).
- */
 export enum WorkItemsQueryBuilderFieldNames {
   Id = 'id',
   Name = 'name',
@@ -45,7 +39,7 @@ export enum WorkItemsQueryBuilderFieldNames {
   FixtureName = 'fixtureName',
   FixtureId = 'fixtureId',
   SystemName = 'systemName',
-  SystemId = 'systemId',
+  SystemAliasName = 'systems',
   TargetLocation = 'targetLocation',
   TargetParent = 'targetParent',
   Properties = 'properties',
@@ -84,14 +78,14 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
     lookup: {
       dataSource: [
-        { label: 'New', value: State.New },
-        { label: 'Defined', value: State.Defined },
-        { label: 'Reviewed', value: State.Reviewed },
-        { label: 'Scheduled', value: State.Scheduled },
-        { label: 'In progress', value: State.InProgress },
-        { label: 'Pending approval', value: State.PendingApproval },
-        { label: 'Closed', value: State.Closed },
-        { label: 'Canceled', value: State.Canceled },
+        { label: 'New', value: WorkItemState.New },
+        { label: 'Defined', value: WorkItemState.Defined },
+        { label: 'Reviewed', value: WorkItemState.Reviewed },
+        { label: 'Scheduled', value: WorkItemState.Scheduled },
+        { label: 'In progress', value: WorkItemState.InProgress },
+        { label: 'Pending approval', value: WorkItemState.PendingApproval },
+        { label: 'Closed', value: WorkItemState.Closed },
+        { label: 'Canceled', value: WorkItemState.Canceled },
       ],
     },
   },
@@ -356,14 +350,14 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
       QueryBuilderOperations.DOES_NOT_CONTAIN.name,
     ],
   },
-  SYSTEM_ID: {
+  SYSTEM_ALIAS_NAME: {
     label: 'System alias name',
-    dataField: WorkItemsQueryBuilderFieldNames.SystemId,
+    dataField: WorkItemsQueryBuilderFieldNames.SystemAliasName,
     filterOperations: [
-      QueryBuilderOperations.EQUALS.name,
-      QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.IS_BLANK.name,
-      QueryBuilderOperations.IS_NOT_BLANK.name,
+      QueryBuilderOperations.LIST_EQUALS.name,
+      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.LIST_IS_EMPTY.name,
+      QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ],
     lookup: {
       dataSource: [],

@@ -48,14 +48,14 @@ describe('WorkItemsQueryBuilder', () => {
     expect(conditionsContainer.item(0)?.textContent).toContain('contains');
   });
 
-  it('should select type field with user-friendly label when filter is on type', () => {
+  it('should show readable label "Work orders" when filter checks type equals WORK_ORDERS', () => {
     const { conditionsContainer } = renderElement('type = "WORK_ORDERS"');
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain('Work item type');
     expect(conditionsContainer.item(0)?.textContent).toContain('Work orders');
   });
 
-  it('should select state option with equals operation and user-friendly label', () => {
+  it('should show readable label "Pending approval" when filter checks state equals PENDING_APPROVAL', () => {
     const { conditionsContainer } = renderElement('state = "PENDING_APPROVAL"');
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain('State');
@@ -128,20 +128,20 @@ describe('WorkItemsQueryBuilder', () => {
     expect(conditionsContainer.item(0)?.textContent).toContain('Asset Name');
   });
 
-  it('should show system alias name when filter is on systemId', () => {
+  it('should show system alias name when filter checks systems contains system ID', () => {
     const systemAlias: SystemAlias = { id: '1', alias: 'System Alias 1' };
-    const { conditionsContainer } = renderElement('systemId = "1"', [], [], [], [], [systemAlias]);
+    const { conditionsContainer } = renderElement('systems.Contains("1")', [], [], [], [], [systemAlias]);
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain(systemAlias.alias);
   });
 
-  it('should show is blank operation when filter checks systemId is null or empty', () => {
-    const { conditionsContainer } = renderElement('string.IsNullOrEmpty(systemId)');
+  it('should show is empty operation when filter checks systems has no values', () => {
+    const { conditionsContainer } = renderElement('systems.Count == 0');
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain('System alias name');
-    expect(conditionsContainer.item(0)?.textContent).toContain('is blank');
+    expect(conditionsContainer.item(0)?.textContent).toContain('is empty');
   });
 
   it('should show user display name when filter is on assignedTo', () => {

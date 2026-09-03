@@ -85,7 +85,7 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
     }
     const systemAliasOptions = systemAliases.map(({ id, alias }) => ({ label: alias, value: id }));
 
-    return addOptionsToLookup(WorkItemsQueryBuilderFields.SYSTEM_ID, systemAliasOptions);
+    return addOptionsToLookup(WorkItemsQueryBuilderFields.SYSTEM_ALIAS_NAME, systemAliasOptions);
   }, [systemAliases]);
 
   const usersFields = useMemo(() => {
@@ -103,19 +103,28 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
   }, [users]);
 
   useEffect(() => {
+    if (!workspaceField || !usersFields || !productsField || !systemAliasField) {
+      setFields([]);
+      setOperations([]);
+      return;
+    }
+
     const updatedFields = [
       ...WorkItemsQueryBuilderStaticFields,
       ...timeFields,
-      ...(workspaceField ? [workspaceField] : []),
-      ...(usersFields ?? []),
-      ...(productsField ? [productsField] : []),
-      ...(systemAliasField ? [systemAliasField] : []),
+      workspaceField,
+      ...usersFields,
+      productsField,
+      systemAliasField,
     ].map(field => {
       if (field.lookup?.dataSource) {
         return {
           ...field,
           lookup: {
-            dataSource: [...globalVariableOptions, ...field.lookup?.dataSource].map(filterXSSField),
+            dataSource: [
+              ...globalVariableOptions, 
+              ...field.lookup?.dataSource
+            ].map(filterXSSField),
           },
         };
       }
@@ -144,6 +153,10 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
       QueryBuilderOperations.IS_NOT_BLANK,
       QueryBuilderOperations.DATE_TIME_IS_AFTER,
       QueryBuilderOperations.DATE_TIME_IS_BEFORE,
+      QueryBuilderOperations.LIST_IS_EMPTY,
+      QueryBuilderOperations.LIST_IS_NOT_EMPTY,
+      QueryBuilderOperations.LIST_EQUALS,
+      QueryBuilderOperations.LIST_DOES_NOT_EQUAL,
     ].map(operation => {
       return {
         ...operation,
@@ -163,8 +176,20 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
       QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS,
     ];
 
-    setOperations([...customOperations, ...customDateTimeOperations, ...keyValueOperations]);
-  }, [globalVariableOptions, timeFields, workspaceField, usersFields, productsField, systemAliasField]);
+    setOperations([
+      ...customOperations, 
+      ...customDateTimeOperations, 
+      ...keyValueOperations
+    ]);
+  }, [
+      globalVariableOptions, 
+      timeFields, 
+      workspaceField, 
+      usersFields, 
+      productsField, 
+      systemAliasField
+    ]
+  );
 
   return (
     <SlQueryBuilder

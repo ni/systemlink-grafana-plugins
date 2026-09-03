@@ -11,6 +11,7 @@ import {
   Stack,
 } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
+import { FloatingError } from 'core/errors';
 import { Workspace } from 'core/types';
 import { validateNumericInput } from 'core/utils';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
@@ -72,27 +73,24 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
       setWorkspaces(Array.from(workspaces.values()));
     };
 
-    loadWorkspaces();
-
     const loadUsers = async () => {
       const users = await datasource.loadUsers();
       setUsers(Array.from(users.values()));
     };
-
-    loadUsers();
 
     const loadProducts = async () => {
       const products = await datasource.loadProductNamesAndPartNumbers();
       setProducts(Array.from(products.values()));
     };
 
-    loadProducts();
-
     const loadSystemAliases = async () => {
       const systemAliases = await datasource.loadSystemAliases();
       setSystemAliases(Array.from(systemAliases.values()));
     };
 
+    loadWorkspaces();
+    loadUsers();
+    loadProducts();
     loadSystemAliases();
   }, [datasource]);
 
@@ -138,6 +136,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   };
 
   return (
+    <>
      <Stack direction="column" >
       <InlineField
         label={labels.outputType}
@@ -253,6 +252,8 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
           </Stack>
         )}
       </Stack>
-    </Stack>
+     </Stack>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
+    </>
   );
 }
