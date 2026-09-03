@@ -138,7 +138,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   };
 
   return (
-    <Stack direction="column">
+     <Stack direction="column" >
       <InlineField
         label={labels.outputType}
         labelWidth={LABEL_WIDTH}
@@ -206,30 +206,30 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
           />
         </InlineField>
         {query.outputType === OutputType.Properties && (
-          <Stack direction="column" gap={0}>
-            <InlineField
-              label={labels.orderBy}
-              labelWidth={LABEL_WIDTH}
-              tooltip={tooltips.orderBy}
-            >
-              <Combobox
-                options={OrderBy}
-                placeholder={placeholders.orderBy}
-                onChange={onOrderByChange}
-                value={query.orderBy}
-                width={COMBOBOX_WIDTH}
-              />
-            </InlineField>
-            <InlineField
-              label={labels.descending}
-              labelWidth={LABEL_WIDTH}
-              tooltip={tooltips.descending}
-            >
-              <InlineSwitch
-                onChange={event => onDescendingChange(event.currentTarget.checked)}
-                value={query.descending}
-              />
-            </InlineField>
+           <Stack direction="column" gap={0}>
+              <InlineField
+                label={labels.orderBy}
+                labelWidth={LABEL_WIDTH}
+                tooltip={tooltips.orderBy}
+              >
+                <Combobox
+                  options={OrderBy}
+                  placeholder={placeholders.orderBy}
+                  onChange={onOrderByChange}
+                  value={query.orderBy}
+                  width={COMBOBOX_WIDTH}
+                />
+              </InlineField>
+              <InlineField
+                label={labels.descending}
+                labelWidth={LABEL_WIDTH}
+                tooltip={tooltips.descending}
+              >
+                <InlineSwitch
+                  onChange={event => onDescendingChange(event.currentTarget.checked)}
+                  value={query.descending}
+                />
+              </InlineField>
             <Space v={1} />
             <InlineField
               label={labels.take}
