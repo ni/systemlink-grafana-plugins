@@ -30,6 +30,20 @@ export interface WorkItemsQuery extends DataQuery {
   filter?: string;
 }
 
+export enum WorkItemsVariableQueryType {
+  ListWorkItems = 'List work items',
+  ListWorkItemTypes = 'List work item types',
+}
+
+export interface WorkItemsVariableQuery extends DataQuery {
+  queryType?: WorkItemsVariableQueryType;
+  types?: WorkItemTypeOptions[];
+  orderBy?: OrderByOptions;
+  descending?: boolean;
+  take?: number;
+  filter?: string;
+}
+
 export enum WorkItemPropertiesOptions {
   ID = 'ID',
   NAME = 'NAME',

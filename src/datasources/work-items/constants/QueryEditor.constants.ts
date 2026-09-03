@@ -21,6 +21,7 @@ export const typesErrorMessages = {
 
 export const labels = {
   outputType: 'Output',
+  queryType: 'Query type',
   types: 'Type',
   properties: 'Properties',
   queryBy: 'Query By',
@@ -38,6 +39,7 @@ export const placeholders = {
 
 export const tooltips = {
   outputType: 'Select whether to return work item properties or only total count.',
+  queryType: 'Select whether to list matching work items or the available work item types.',
   types: 'Choose one or more work item types to query.',
   properties: 'Select the work item properties to include in the result.',
   filter: 'Filter work items by matching one or more properties.',
