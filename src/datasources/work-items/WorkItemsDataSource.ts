@@ -52,9 +52,11 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
+    const typeFilter = this.buildTypeFilter(query.types!);
+    const queryFilter = query.filter?.trim();
     const filter = this.buildQueryFilter(
-      this.buildTypeFilter(query.types!),
-      query.filter ? query.filter : undefined
+      typeFilter ? `(${typeFilter})` : undefined,
+      queryFilter ? `(${queryFilter})` : undefined
     );
 
     if (query.outputType === OutputType.TotalCount) {
@@ -120,10 +122,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     }
   }
 
-  /**
-   * Combines two filter strings into a single query filter using the '&&' operator.
-   * Filters that are undefined or empty are excluded from the final query.
-   */
   protected buildQueryFilter(filterA?: string, filterB?: string): string | undefined {
     const filters = [filterA, filterB].filter(Boolean);
     return filters.length > 0 ? filters.join(' && ') : undefined;
@@ -138,9 +136,13 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private buildTypeFilter(types: WorkItemTypeOptions[]): string | undefined {
+    const allTypesAreSelected = Object.values(WorkItemTypeOptions).every(type => types.includes(type));
+    if (allTypesAreSelected) {
+      return undefined;
+    }
+
     const typeValues = types.map(type => WORK_ITEM_TYPE_FILTER_VALUES[type]);
-    const typeFilter = typeValues.map(value => `type = "${value}"`).join(' || ');
-    return typeValues.length > 1 ? `(${typeFilter})` : typeFilter;
+    return typeValues.map(value => `type = "${value}"`).join(' || ');
   }
 
   shouldRunQuery(query: WorkItemsQuery): boolean {

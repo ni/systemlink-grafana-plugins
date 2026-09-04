@@ -67,10 +67,45 @@ describe('WorkItemsDataSource', () => {
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
         {
-          filter: '(type = "workorder" || type = "testplan") && state = "NEW"',
+          filter: '(type = "workorder" || type = "testplan") && (state = "NEW")',
           take: 0,
           returnCount: true,
         },
+        { showErrorAlert: false }
+      );
+    });
+
+    it('should group each filter when one type is selected', async () => {
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+        types: [WorkItemTypeOptions.WorkOrders],
+        filter: 'state = "NEW"',
+      };
+
+      await datasource.runQuery(query, {} as DataQueryRequest);
+
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        { filter: '(type = "workorder") && (state = "NEW")', take: 0, returnCount: true },
+        { showErrorAlert: false }
+      );
+    });
+
+    it('should omit the type filter when all types are selected', async () => {
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+        types: Object.values(WorkItemTypeOptions),
+      };
+
+      await datasource.runQuery(query, {} as DataQueryRequest);
+
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        { filter: undefined, take: 0, returnCount: true },
         { showErrorAlert: false }
       );
     });
