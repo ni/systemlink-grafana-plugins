@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import {
   AutoSizeInput,
@@ -11,6 +11,8 @@ import {
   Stack,
 } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
+import { FloatingError } from 'core/errors';
+import { Workspace } from 'core/types';
 import { validateNumericInput } from 'core/utils';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
 import {
@@ -35,6 +37,9 @@ import {
 } from '../types';
 import { getTakeError, isPropertiesNonEmpty, isTypesNonEmpty } from '../utils';
 import { WorkItemsQueryBuilder } from './query-builder/WorkItemsQueryBuilder';
+import { User } from 'shared/types/QueryUsers.types';
+import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
+import { SystemAlias } from 'shared/types/QuerySystems.types';
 
 type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
 
@@ -56,6 +61,40 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     label: value,
     value,
   }));
+
+  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
+  const [users, setUsers] = useState<User[] | null>(null);
+  const [products, setProducts] = useState<ProductPartNumberAndName[] | null>(null);
+  const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
+
+  useEffect(() => {
+    const loadWorkspaces = async () => {
+      const workspaces = await datasource.loadWorkspaces();
+      setWorkspaces(Array.from(workspaces.values()));
+    };
+
+    const loadUsers = async () => {
+      const users = await datasource.loadUsers();
+      setUsers(Array.from(users.values()));
+    };
+
+    const loadProducts = async () => {
+      const products = await datasource.loadProductNamesAndPartNumbers();
+      setProducts(Array.from(products.values()));
+    };
+
+    const loadSystemAliases = async () => {
+      const systemAliases = await datasource.loadSystemAliases();
+      setSystemAliases(Array.from(systemAliases.values()));
+    };
+
+    loadWorkspaces();
+    loadUsers();
+    loadProducts();
+    loadSystemAliases();
+  }, [datasource]);
+
+  const globalVariableOptions = useMemo(() => datasource.globalVariableOptions(), [datasource]);
 
   const handleQueryChange = useCallback(
     (query: WorkItemsQuery, runQuery = true): void => {
@@ -81,6 +120,12 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     handleQueryChange({ ...query, properties }, isPropertiesNonEmpty(properties));
   };
 
+  const onFilterChange = (event: any) => {
+    if (query.filter !== event.detail.linq) {
+      handleQueryChange({ ...query, filter: event.detail.linq });
+    }
+  };
+
   const onOrderByChange = (item: SelectableValue<OrderByOptions>) => {
     handleQueryChange({ ...query, orderBy: item.value as OrderByOptions });
   };
@@ -95,6 +140,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   };
 
   return (
+    <>
      <Stack direction="column" >
       <InlineField
         label={labels.outputType}
@@ -152,7 +198,15 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
           labelWidth={LABEL_WIDTH}
           tooltip={tooltips.filter}
         >
-          <WorkItemsQueryBuilder />
+          <WorkItemsQueryBuilder
+            filter={query.filter}
+            workspaces={workspaces}
+            users={users}
+            products={products}
+            systemAliases={systemAliases}
+            globalVariableOptions={globalVariableOptions}
+            onChange={onFilterChange}
+          />
         </InlineField>
         {query.outputType === OutputType.Properties && (
            <Stack direction="column" gap={0}>
@@ -202,6 +256,8 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
           </Stack>
         )}
       </Stack>
-    </Stack>
+     </Stack>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
+    </>
   );
 }
