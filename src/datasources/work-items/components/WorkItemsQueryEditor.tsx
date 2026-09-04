@@ -120,9 +120,9 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     handleQueryChange({ ...query, properties }, isPropertiesNonEmpty(properties));
   };
 
-  const onFilterChange = (linq: string) => {
-    if (query.filter !== linq) {
-      handleQueryChange({ ...query, filter: linq });
+  const onFilterChange = (event: any) => {
+    if (query.filter !== event.detail.linq) {
+      handleQueryChange({ ...query, filter: event.detail.linq });
     }
   };
 
@@ -205,7 +205,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
             products={products}
             systemAliases={systemAliases}
             globalVariableOptions={globalVariableOptions}
-            onChange={(event: any) => {onFilterChange(event.detail.linq)}}
+            onChange={onFilterChange}
           />
         </InlineField>
         {query.outputType === OutputType.Properties && (
