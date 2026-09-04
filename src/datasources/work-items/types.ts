@@ -76,8 +76,25 @@ export enum WorkItemPropertiesGroup {
 }
 
 export interface WorkItemsResponse {
+  workItems?: WorkItem[];
   continuationToken?: string;
   totalCount?: number;
+}
+
+// Flat, directly-mapped work item fields returned by the query-workitems API.
+export interface WorkItem {
+  id?: string;
+  name?: string;
+  type?: string;
+  state?: string;
+  substate?: string;
+  description?: string;
+  parentId?: string;
+  templateId?: string;
+  testProgram?: string;
+  partNumber?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface QueryWorkItemsRequestBody {

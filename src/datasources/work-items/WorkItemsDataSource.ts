@@ -3,20 +3,34 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
+  FieldType,
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
+import { queryInBatches } from 'core/utils';
+import { QueryResponse } from 'core/types';
 import {
   OrderByOptions,
   OutputType,
   QueryWorkItemsRequestBody,
+  WorkItem,
   WorkItemPropertiesOptions,
   WorkItemsQuery,
   WorkItemsResponse,
   WorkItemTypeOptions,
 } from './types';
-import { DEFAULT_TAKE, WORK_ITEM_TYPE_FILTER_VALUES } from './constants';
+import {
+  BASIC_WORK_ITEM_PROPERTIES,
+  DEFAULT_TAKE,
+  WORK_ITEM_PROPERTIES_PROJECTION_VALUES,
+  WORK_ITEM_TYPE_FILTER_VALUES,
+} from './constants';
+import {
+  QUERY_WORK_ITEMS_MAX_TAKE,
+  QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
+} from './constants/QueryWorkItems.constants';
+import { WorkItemProperties } from './constants/QueryEditor.constants';
 import { extractErrorInfo } from 'core/errors';
 import { isTypesNonEmpty } from './utils';
 
@@ -69,10 +83,81 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     }
 
     if (query.outputType === OutputType.Properties) {
-      return this.getEmptyDataFrameDTO(query.refId);
+      return this.processWorkItemsQuery(query, filter);
     }
 
     return this.getEmptyDataFrameDTO(query.refId);
+  }
+
+  async processWorkItemsQuery(query: WorkItemsQuery, filter?: string): Promise<DataFrameDTO> {
+    const workItems = await this.queryWorkItemsData(
+      filter,
+      query.properties,
+      query.orderBy,
+      query.descending,
+      query.take
+    );
+
+    const mappedFields = query.properties?.map(property => {
+      const field = WorkItemProperties[property];
+      const isBasicProperty = BASIC_WORK_ITEM_PROPERTIES.includes(property);
+
+      const fieldValue = workItems.map(workItem =>
+        isBasicProperty ? workItem[field.field as keyof WorkItem] ?? '' : ''
+      );
+
+      return { name: field.label, values: fieldValue, type: FieldType.string };
+    });
+
+    return {
+      refId: query.refId,
+      name: query.refId,
+      fields: mappedFields ?? [],
+    };
+  }
+
+  async queryWorkItemsData(
+    filter?: string,
+    properties?: WorkItemPropertiesOptions[],
+    orderBy?: OrderByOptions,
+    descending?: boolean,
+    take?: number
+  ): Promise<WorkItem[]> {
+    const projection = this.buildProjection(properties);
+
+    const queryRecord = async (currentTake: number, continuationToken?: string): Promise<QueryResponse<WorkItem>> => {
+      const body: QueryWorkItemsRequestBody = {
+        filter,
+        projection,
+        orderBy,
+        descending,
+        take: currentTake,
+        continuationToken,
+      };
+      const response = await this.queryWorkItems(body);
+
+      return {
+        data: response.workItems ?? [],
+        continuationToken: response.continuationToken,
+        totalCount: response.totalCount,
+      };
+    };
+
+    const batchQueryConfig = {
+      maxTakePerRequest: QUERY_WORK_ITEMS_MAX_TAKE,
+      requestsPerSecond: QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
+    };
+    const response = await queryInBatches(queryRecord, batchQueryConfig, take);
+
+    return response.data;
+  }
+
+  private buildProjection(properties?: WorkItemPropertiesOptions[]): string[] | undefined {
+    const projection = (properties ?? [])
+      .map(property => WORK_ITEM_PROPERTIES_PROJECTION_VALUES[property])
+      .filter((value): value is string => Boolean(value));
+
+    return projection.length > 0 ? projection : undefined;
   }
 
   async queryWorkItemsCount(filter?: string): Promise<number> {
