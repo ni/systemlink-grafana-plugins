@@ -1,4 +1,5 @@
 import {
+  AppEvents,
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
@@ -9,11 +10,14 @@ import { DataSourceBase } from 'core/DataSourceBase';
 import {
   OrderByOptions,
   OutputType,
+  QueryWorkItemsRequestBody,
   WorkItemPropertiesOptions,
   WorkItemsQuery,
+  WorkItemsResponse,
   WorkItemTypeOptions,
 } from './types';
-import { DEFAULT_TAKE } from './constants';
+import { DEFAULT_TAKE, WORK_ITEM_TYPE_FILTER_VALUES } from './constants';
+import { extractErrorInfo } from 'core/errors';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
@@ -26,6 +30,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   baseUrl = `${this.instanceSettings.url}/niworkitem/v1`;
   queryWorkItemsUrl = `${this.baseUrl}/query-workitems`;
+  errorTitle = '';
+  errorDescription = '';
 
   defaultQuery = {
     outputType: OutputType.Properties,
@@ -42,13 +48,99 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     take: DEFAULT_TAKE,
   };
 
-  // TODO: AB#3923375 - Query work items and return the requested properties instead of an empty frame.
-  async runQuery(query: WorkItemsQuery, _options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {
+  async runQuery(query: WorkItemsQuery, options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {
+    const filter = this.buildQueryFilter(
+      this.buildTypeFilter(query.types),
+      query.filter ? this.templateSrv.replace(query.filter, options.scopedVars) : undefined
+    );
+
+    if (query.outputType === OutputType.TotalCount) {
+      const totalCount = await this.queryWorkItemsCount(filter);
+      return {
+        refId: query.refId,
+        name: query.refId,
+        fields: [{ name: query.refId, values: [totalCount] }],
+      };
+    }
+
+    if (query.outputType === OutputType.Properties) {
+      return {
+        refId: query.refId,
+        name: query.refId,
+        fields: [],
+      };
+    }
+
     return {
       refId: query.refId,
       name: query.refId,
       fields: [],
     };
+  }
+
+  async queryWorkItemsCount(filter?: string): Promise<number> {
+    const body: QueryWorkItemsRequestBody = {
+      filter,
+      take: 0,
+      returnCount: true,
+    };
+    const response = await this.queryWorkItems(body);
+    return response.totalCount ?? 0;
+  }
+
+  async queryWorkItems(body: QueryWorkItemsRequestBody): Promise<WorkItemsResponse> {
+    try {
+      return await this.post<WorkItemsResponse>(
+        this.queryWorkItemsUrl,
+        body,
+        { showErrorAlert: false } // suppress default error alert since we handle errors manually
+      );
+    } catch (error) {
+      const errorDetails = extractErrorInfo((error as Error).message);
+      let errorMessage: string;
+      switch (errorDetails.statusCode) {
+        case '':
+          errorMessage = 'The query failed due to an unknown error.';
+          break;
+        case '404':
+          errorMessage = 'The query to fetch work items failed because the requested resource was not found. Please check the query parameters and try again.';
+          break;
+        case '429':
+          errorMessage = 'The query to fetch work items failed due to too many requests. Please try again later.';
+          break;
+        case '504':
+          errorMessage = 'The query to fetch work items experienced a timeout error. Narrow your query with a more specific filter and try again.';
+          break;
+        default:
+          errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
+          break;
+      }
+
+      this.appEvents?.publish?.({
+        type: AppEvents.alertError.name,
+        payload: ['Error during work items query', errorMessage],
+      });
+
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Combines two filter strings into a single query filter using the '&&' operator.
+   * Filters that are undefined or empty are excluded from the final query.
+   */
+  protected buildQueryFilter(filterA?: string, filterB?: string): string | undefined {
+    const filters = [filterA, filterB].filter(Boolean);
+    return filters.length > 0 ? filters.join(' && ') : undefined;
+  }
+
+  private buildTypeFilter(types?: WorkItemTypeOptions[]): string | undefined {
+    if (!types || types.length === 0) {
+      return undefined;
+    }
+
+    const typeValues = types.map(type => WORK_ITEM_TYPE_FILTER_VALUES[type]);
+    return typeValues.map(value => `type = "${value}"`).join(' || ');
   }
 
   shouldRunQuery(query: WorkItemsQuery): boolean {
