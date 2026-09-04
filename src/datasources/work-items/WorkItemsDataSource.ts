@@ -54,7 +54,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
     const filter = this.buildQueryFilter(
       this.buildTypeFilter(query.types!),
-      query.filter ? this.templateSrv.replace(query.filter, options.scopedVars) : undefined
+      query.filter ? query.filter : undefined
     );
 
     if (query.outputType === OutputType.TotalCount) {

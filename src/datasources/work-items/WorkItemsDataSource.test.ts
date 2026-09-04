@@ -5,10 +5,9 @@ import { OrderByOptions, OutputType, WorkItemPropertiesOptions, WorkItemTypeOpti
 
 describe('WorkItemsDataSource', () => {
   let datasource: WorkItemsDataSource;
-  let templateSrv: any;
 
   beforeEach(() => {
-    [datasource,, templateSrv] = setupDataSource(WorkItemsDataSource);
+    [datasource] = setupDataSource(WorkItemsDataSource);
   });
 
   it('should apply expected default query values', () => {
@@ -115,27 +114,6 @@ describe('WorkItemsDataSource', () => {
         
         expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
       });
-    });
-    
-    it('should replace template variables in the queryBy filter', async () => {
-      jest.spyOn(templateSrv, 'replace').mockReturnValue('state = "NEW"');
-      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
-
-      const query = {
-        refId: 'A',
-        outputType: OutputType.TotalCount,
-        types: [WorkItemTypeOptions.WorkOrders],
-        filter: 'state = "$state"',
-      };
-      const scopedVars = { state: { text: 'NEW', value: 'NEW' } };
-      await datasource.runQuery(query, { scopedVars } as unknown as DataQueryRequest);
-
-      expect(templateSrv.replace).toHaveBeenCalledWith('state = "$state"', scopedVars);
-      expect(postSpy).toHaveBeenCalledWith(
-        '/niworkitem/v1/query-workitems',
-        { filter: 'type = "workorder" && state = "NEW"', take: 0, returnCount: true },
-        { showErrorAlert: false }
-      );
     });
 
     describe('error handling', () => {
