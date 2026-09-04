@@ -1,14 +1,10 @@
 import { OrderByOptions, WorkItemPropertiesGroup, WorkItemPropertiesOptions, WorkItemTypeOptions } from '../types';
-
-export const TAKE_LIMIT = 10000;
-export const DEFAULT_TAKE = 1000;
-export const QUERY_WORK_ITEMS_MAXIMUM_TAKE = 1000;
-export const QUERY_WORK_ITEMS_REQUESTS_PER_SECOND = 5;
+import { TAKE_LIMIT } from '../constants';
 
 export const LABEL_WIDTH = 25;
 export const CONTROL_WIDTH = 65;
-export const SECONDARY_LABEL_WIDTH = 20;
-export const SECONDARY_CONTROL_WIDTH = 26;
+export const COMBOBOX_WIDTH = 26;
+export const QUERY_BUILDER_PLACEHOLDER_WIDTH = 520;
 
 export const takeErrorMessages = {
   greaterOrEqualToZero: 'Enter a value greater than or equal to 0',
@@ -44,7 +40,7 @@ export const tooltips = {
   outputType: 'Select whether to return work item properties or only total count.',
   types: 'Choose one or more work item types to query.',
   properties: 'Select the work item properties to include in the result.',
-  filter: 'Filter work items by property. Use Grafana template variables or the dashboard time range in date filters.',
+  filter: 'Filter work items by matching one or more properties.',
   orderBy: 'Select which property to sort by for properties output.',
   descending: 'Toggle descending sort order for properties output.',
   take: `Set the maximum number of work items to return. Maximum is ${TAKE_LIMIT.toLocaleString()}.`,

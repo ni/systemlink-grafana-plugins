@@ -28,13 +28,7 @@ import {
   WorkItemsQuery,
   WorkItemTypeOptions,
 } from './types';
-import {
-  DEFAULT_TAKE,
-  QUERY_WORK_ITEMS_MAXIMUM_TAKE,
-  QUERY_WORK_ITEMS_REQUESTS_PER_SECOND,
-  TAKE_LIMIT,
-  WorkItemProperties,
-} from './constants/QueryEditor.constants';
+import { WorkItemProperties } from './constants/QueryEditor.constants';
 import {
   ExpressionTransformFunction,
   multipleValuesQuery,
@@ -42,6 +36,12 @@ import {
   transformComputedFieldsQuery,
 } from 'core/query-builder.utils';
 import { queryInBatches } from 'core/utils';
+import {
+  DEFAULT_TAKE,
+  QUERY_WORK_ITEMS_MAXIMUM_TAKE,
+  QUERY_WORK_ITEMS_REQUESTS_PER_SECOND,
+  TAKE_LIMIT,
+} from './constants';
 import {
   WorkItemsQueryBuilderFieldNames,
   WorkItemsQueryBuilderFields,

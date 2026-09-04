@@ -5,6 +5,8 @@ import { QBField, QueryBuilderOption, Workspace } from 'core/types';
 import { addOptionsToLookup, filterXSSField } from 'core/utils';
 import { WorkItemsQueryBuilderFields, WorkItemsQueryBuilderStaticFields } from 'datasources/work-items/constants/WorkItemsQueryBuilder.constants';
 import React, { useState, useEffect, useMemo } from 'react';
+import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
+import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { User } from 'shared/types/QueryUsers.types';
 import { UsersUtils } from 'shared/users.utils';
 import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
@@ -13,6 +15,8 @@ type WorkItemsQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Eleme
   filter?: string;
   workspaces?: Workspace[] | null;
   users?: User[] | null;
+  products?: ProductPartNumberAndName[] | null;
+  systemAliases?: SystemAlias[] | null;
   globalVariableOptions: QueryBuilderOption[];
 };
 
@@ -20,11 +24,34 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
   filter,
   workspaces,
   users,
+  products,
+  systemAliases,
   onChange,
   globalVariableOptions,
 }) => {
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
+
+  const productsField = useMemo(() => {
+    const productField = WorkItemsQueryBuilderFields.PART_NUMBER;
+    if (!products) {
+      return null;
+    }
+
+    return {
+      ...productField,
+      lookup: {
+        ...productField.lookup,
+        dataSource: [
+          ...(productField.lookup?.dataSource || []),
+          ...products.map(({ partNumber, name }) => ({
+            label: name ? `${name} (${partNumber})` : partNumber,
+            value: partNumber,
+          })),
+        ],
+      },
+    };
+  }, [products]);
 
   const timeFields = useMemo(() => {
     const timeOptions = [
@@ -52,6 +79,15 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
     return addOptionsToLookup(WorkItemsQueryBuilderFields.WORKSPACE, workspaceOptions);
   }, [workspaces]);
 
+  const systemAliasField = useMemo(() => {
+    if (!systemAliases) {
+      return null;
+    }
+    const systemAliasOptions = systemAliases.map(({ id, alias }) => ({ label: alias, value: id }));
+
+    return addOptionsToLookup(WorkItemsQueryBuilderFields.SYSTEM_ALIAS_NAME, systemAliasOptions);
+  }, [systemAliases]);
+
   const usersFields = useMemo(() => {
     if (!users) {
       return null;
@@ -67,21 +103,35 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
   }, [users]);
 
   useEffect(() => {
-    const updatedFields = [
-      ...WorkItemsQueryBuilderStaticFields,
+    if (!workspaceField || !usersFields || !productsField || !systemAliasField) {
+      setFields([]);
+      setOperations([]);
+      return;
+    }
+
+    const fieldsByDataField = new Map([
       ...timeFields,
-      ...(workspaceField ? [workspaceField] : []),
-      ...(usersFields ?? []),
-    ].map(field => {
-      if (field.lookup?.dataSource) {
+      workspaceField,
+      ...usersFields,
+      productsField,
+      systemAliasField,
+    ].map(field => [field.dataField, field]));
+
+    const updatedFields = WorkItemsQueryBuilderStaticFields.map(field => {
+      const fieldWithLookupOptions = fieldsByDataField.get(field.dataField) ?? field;
+
+      if (fieldWithLookupOptions.lookup?.dataSource) {
         return {
-          ...field,
+          ...fieldWithLookupOptions,
           lookup: {
-            dataSource: [...globalVariableOptions, ...field.lookup?.dataSource].map(filterXSSField),
+            dataSource: [
+              ...globalVariableOptions, 
+              ...fieldWithLookupOptions.lookup.dataSource
+            ].map(filterXSSField),
           },
         };
       }
-      return field;
+      return fieldWithLookupOptions;
     });
 
     setFields(updatedFields);
@@ -106,6 +156,10 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
       QueryBuilderOperations.IS_NOT_BLANK,
       QueryBuilderOperations.DATE_TIME_IS_AFTER,
       QueryBuilderOperations.DATE_TIME_IS_BEFORE,
+      QueryBuilderOperations.LIST_IS_EMPTY,
+      QueryBuilderOperations.LIST_IS_NOT_EMPTY,
+      QueryBuilderOperations.LIST_EQUALS,
+      QueryBuilderOperations.LIST_DOES_NOT_EQUAL,
     ].map(operation => {
       return {
         ...operation,
@@ -125,8 +179,20 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
       QueryBuilderOperations.KEY_VALUE_DOES_NOT_CONTAINS,
     ];
 
-    setOperations([...customOperations, ...customDateTimeOperations, ...keyValueOperations]);
-  }, [globalVariableOptions, timeFields, workspaceField, usersFields]);
+    setOperations([
+      ...customOperations, 
+      ...customDateTimeOperations, 
+      ...keyValueOperations
+    ]);
+  }, [
+      globalVariableOptions, 
+      timeFields, 
+      workspaceField, 
+      usersFields, 
+      productsField, 
+      systemAliasField
+    ]
+  );
 
   return (
     <SlQueryBuilder

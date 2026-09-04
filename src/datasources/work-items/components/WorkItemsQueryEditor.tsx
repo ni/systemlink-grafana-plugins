@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import {
   AutoSizeInput,
@@ -7,25 +7,24 @@ import {
   InlineSwitch,
   MultiCombobox,
   RadioButtonGroup,
+  Space,
   Stack,
 } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
+import { FloatingError } from 'core/errors';
 import { Workspace } from 'core/types';
 import { validateNumericInput } from 'core/utils';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
 import {
   CONTROL_WIDTH,
+  COMBOBOX_WIDTH,
   LABEL_WIDTH,
   OrderBy,
-  SECONDARY_CONTROL_WIDTH,
-  SECONDARY_LABEL_WIDTH,
-  TAKE_LIMIT,
   WorkItemProperties,
   WorkItemTypes,
   labels,
   placeholders,
   propertiesErrorMessages,
-  takeErrorMessages,
   tooltips,
   typesErrorMessages,
 } from '../constants/QueryEditor.constants';
@@ -36,29 +35,68 @@ import {
   WorkItemsQuery,
   WorkItemTypeOptions,
 } from '../types';
+import { getTakeError, isPropertiesNonEmpty, isTypesNonEmpty } from '../utils';
 import { WorkItemsQueryBuilder } from './query-builder/WorkItemsQueryBuilder';
 import { User } from 'shared/types/QueryUsers.types';
+import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
+import { SystemAlias } from 'shared/types/QuerySystems.types';
 
 type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
 
-const propertiesOptions = Object.values(WorkItemProperties).map(property => ({
-  label: property.label,
-  value: property.value,
-  group: property.group,
-}));
-
 export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
-  const [takeInvalidMessage, setTakeInvalidMessage] = useState<string>('');
-  const isPropertiesValid = datasource.isPropertiesValid(query.properties);
-  const isTypesValid = datasource.isTypesValid(query.types);
-  // Workspace and user lookups will be wired once the query builder is connected to the backend (Run Query story).
-  const workspaces: Workspace[] | null = null;
-  const users: User[] | null = null;
+
+  const isPropertiesValid = isPropertiesNonEmpty(query.properties);
+  const isTypesValid = isTypesNonEmpty(query.types);
+  const takeInvalidMessage = getTakeError(query.take);
+  const isTakeValid = takeInvalidMessage === '';
+
+  const propertiesOptions = Object.values(WorkItemProperties).map(property => ({
+    label: property.label,
+    value: property.value,
+    group: property.group,
+  }));
+
+  const outputTypeOptions = Object.values(OutputType).map(value => ({
+    label: value,
+    value,
+  }));
+
+  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
+  const [users, setUsers] = useState<User[] | null>(null);
+  const [products, setProducts] = useState<ProductPartNumberAndName[] | null>(null);
+  const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
+
+  useEffect(() => {
+    const loadWorkspaces = async () => {
+      const workspaces = await datasource.loadWorkspaces();
+      setWorkspaces(Array.from(workspaces.values()));
+    };
+
+    const loadUsers = async () => {
+      const users = await datasource.loadUsers();
+      setUsers(Array.from(users.values()));
+    };
+
+    const loadProducts = async () => {
+      const products = await datasource.loadProductNamesAndPartNumbers();
+      setProducts(Array.from(products.values()));
+    };
+
+    const loadSystemAliases = async () => {
+      const systemAliases = await datasource.loadSystemAliases();
+      setSystemAliases(Array.from(systemAliases.values()));
+    };
+
+    loadWorkspaces();
+    loadUsers();
+    loadProducts();
+    loadSystemAliases();
+  }, [datasource]);
 
   const handleQueryChange = useCallback(
-    (newQuery: WorkItemsQuery, runQuery = true): void => {
-      onChange(newQuery);
+    (query: WorkItemsQuery, runQuery = true): void => {
+      onChange(query);
       if (runQuery) {
         onRunQuery();
       }
@@ -72,12 +110,12 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const onTypesChange = (items: Array<ComboboxOption<WorkItemTypeOptions>>) => {
     const types = items.map(item => item.value).filter(Boolean) as WorkItemTypeOptions[];
-    handleQueryChange({ ...query, types });
+    handleQueryChange({ ...query, types }, isTypesNonEmpty(types));
   };
 
   const onPropertiesChange = (items: Array<ComboboxOption<WorkItemPropertiesOptions>>) => {
     const properties = items.map(item => item.value).filter(Boolean) as WorkItemPropertiesOptions[];
-    handleQueryChange({ ...query, properties });
+    handleQueryChange({ ...query, properties }, isPropertiesNonEmpty(properties));
   };
 
   const onFilterChange = (event: any) => {
@@ -94,29 +132,19 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    if (Number.isNaN(value) || value <= 0) {
-      setTakeInvalidMessage(takeErrorMessages.greaterOrEqualToZero);
-      return;
-    }
-
-    if (value > TAKE_LIMIT) {
-      setTakeInvalidMessage(takeErrorMessages.lessOrEqualToTenThousand);
-      return;
-    }
-
-    setTakeInvalidMessage('');
-    handleQueryChange({ ...query, take: value });
+    handleQueryChange({ ...query, take: value }, getTakeError(value) === '');
   };
 
   return (
-    <Stack direction='column'>
+    <>
+     <Stack direction="column" >
       <InlineField
         label={labels.outputType}
         labelWidth={LABEL_WIDTH}
         tooltip={tooltips.outputType}
       >
         <RadioButtonGroup
-          options={Object.values(OutputType).map(value => ({ label: value, value }))}
+          options={outputTypeOptions}
           onChange={onOutputTypeChange}
           value={query.outputType}
         />
@@ -134,29 +162,31 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
           value={query.types}
           onChange={onTypesChange}
           enableAllOption
-          width='auto'
+          width="auto"
           minWidth={CONTROL_WIDTH}
           maxWidth={CONTROL_WIDTH}
         />
       </InlineField>
       {query.outputType === OutputType.Properties && (
-        <InlineField
-          label={labels.properties}
-          labelWidth={LABEL_WIDTH}
-          tooltip={tooltips.properties}
-          invalid={!isPropertiesValid}
-          error={propertiesErrorMessages.atLeastOneRequired}
-        >
-          <MultiCombobox
-            placeholder={placeholders.properties}
-            options={propertiesOptions}
-            value={query.properties}
-            onChange={onPropertiesChange}
-            width='auto'
-            minWidth={CONTROL_WIDTH}
-            maxWidth={CONTROL_WIDTH}
-          />
-        </InlineField>
+        <>
+          <InlineField
+            label={labels.properties}
+            labelWidth={LABEL_WIDTH}
+            tooltip={tooltips.properties}
+            invalid={!isPropertiesValid}
+            error={propertiesErrorMessages.atLeastOneRequired}
+          >
+            <MultiCombobox
+              placeholder={placeholders.properties}
+              options={propertiesOptions}
+              value={query.properties}
+              onChange={onPropertiesChange}
+              width="auto"
+              minWidth={CONTROL_WIDTH}
+              maxWidth={CONTROL_WIDTH}
+            />
+          </InlineField>
+        </>
       )}
       <Stack>
         <InlineField
@@ -168,58 +198,62 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
             filter={query.filter}
             workspaces={workspaces}
             users={users}
+            products={products}
+            systemAliases={systemAliases}
             globalVariableOptions={datasource.globalVariableOptions()}
             onChange={onFilterChange}
           />
         </InlineField>
-
         {query.outputType === OutputType.Properties && (
-          <Stack direction='column'>
-            <InlineField
-              label={labels.orderBy}
-              labelWidth={SECONDARY_LABEL_WIDTH}
-              tooltip={tooltips.orderBy}
-            >
-              <Combobox
-                options={OrderBy}
-                placeholder={placeholders.orderBy}
-                onChange={onOrderByChange}
-                value={query.orderBy}
-                width={SECONDARY_CONTROL_WIDTH}
-              />
-            </InlineField>
-
-            <InlineField
-              label={labels.descending}
-              labelWidth={SECONDARY_LABEL_WIDTH}
-              tooltip={tooltips.descending}
-            >
-              <InlineSwitch
-                onChange={event => onDescendingChange(event.currentTarget.checked)}
-                value={query.descending}
-              />
-            </InlineField>
-
+           <Stack direction="column" gap={0}>
+              <InlineField
+                label={labels.orderBy}
+                labelWidth={LABEL_WIDTH}
+                tooltip={tooltips.orderBy}
+              >
+                <Combobox
+                  options={OrderBy}
+                  placeholder={placeholders.orderBy}
+                  onChange={onOrderByChange}
+                  value={query.orderBy}
+                  width={COMBOBOX_WIDTH}
+                />
+              </InlineField>
+              <InlineField
+                label={labels.descending}
+                labelWidth={LABEL_WIDTH}
+                tooltip={tooltips.descending}
+              >
+                <InlineSwitch
+                  onChange={event => onDescendingChange(event.currentTarget.checked)}
+                  value={query.descending}
+                />
+              </InlineField>
+            <Space v={1} />
             <InlineField
               label={labels.take}
-              labelWidth={SECONDARY_LABEL_WIDTH}
+              labelWidth={LABEL_WIDTH}
               tooltip={tooltips.take}
-              invalid={!!takeInvalidMessage}
+              invalid={!isTakeValid}
               error={takeInvalidMessage}
             >
               <AutoSizeInput
-                minWidth={SECONDARY_CONTROL_WIDTH}
-                maxWidth={SECONDARY_CONTROL_WIDTH}
-                type='number'
-                defaultValue={query.take}
+                minWidth={COMBOBOX_WIDTH}
+                maxWidth={COMBOBOX_WIDTH}
+                type="number"
+                value={query.take}
                 onBlur={onTakeChange}
                 placeholder={placeholders.take}
-                onKeyDown={(event) => { validateNumericInput(event); }}
+                onKeyDown={event => {
+                  validateNumericInput(event);
+                }}
               />
             </InlineField>
           </Stack>
         )}
       </Stack>
-    </Stack>
+     </Stack>
+      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
+    </>
   );
 }

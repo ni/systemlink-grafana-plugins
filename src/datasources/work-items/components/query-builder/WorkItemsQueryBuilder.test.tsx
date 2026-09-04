@@ -1,6 +1,8 @@
 import { QueryBuilderOption, Workspace } from 'core/types';
 import React, { ReactNode } from 'react';
 import { render } from '@testing-library/react';
+import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
+import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { User } from 'shared/types/QueryUsers.types';
 import { WorkItemsQueryBuilder } from './WorkItemsQueryBuilder';
 
@@ -13,9 +15,11 @@ describe('WorkItemsQueryBuilder', () => {
     filter: string,
     workspaces: Workspace[] | null = [],
     users: User[] | null = [],
-    globalVariableOptions: QueryBuilderOption[] = []
+    globalVariableOptions: QueryBuilderOption[] = [],
+    products: ProductPartNumberAndName[] | null = [],
+    systemAliases: SystemAlias[] | null = []
   ) {
-    reactNode = React.createElement(WorkItemsQueryBuilder, { filter, workspaces, users, globalVariableOptions, onChange: jest.fn() });
+    reactNode = React.createElement(WorkItemsQueryBuilder, { filter, workspaces, users, products, systemAliases, globalVariableOptions, onChange: jest.fn() });
     const renderResult = render(reactNode);
     return {
       renderResult,
@@ -23,49 +27,43 @@ describe('WorkItemsQueryBuilder', () => {
     };
   }
 
-  it('should render empty query builder', async () => {
+  it('should render empty condition row when filter is empty', async () => {
     const { renderResult, conditionsContainer } = renderElement('');
 
     expect(conditionsContainer.length).toBe(1);
     expect(await renderResult.findByLabelText('Empty condition row')).toBeTruthy();
   });
 
-  it('should select id option', () => {
+  it('should select id field with equals operation when filter is on id', () => {
     const { conditionsContainer } = renderElement('id = "1"');
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain('ID');
     expect(conditionsContainer.item(0)?.textContent).toContain('equals');
   });
 
-  it('should select name option with contains operation', () => {
+  it('should select name field with contains operation when filter uses Contains', () => {
     const { conditionsContainer } = renderElement('name.Contains("test")');
     expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Work item name');
+    expect(conditionsContainer.item(0)?.textContent).toContain('Name');
     expect(conditionsContainer.item(0)?.textContent).toContain('contains');
   });
 
-  it('should select type option', () => {
+  it('should show readable label "Work orders" when filter checks type equals WORK_ORDERS', () => {
     const { conditionsContainer } = renderElement('type = "WORK_ORDERS"');
     expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Work item type');
+    expect(conditionsContainer.item(0)?.textContent).toContain('Type');
     expect(conditionsContainer.item(0)?.textContent).toContain('Work orders');
   });
 
-  it('should select state option', () => {
-    const { conditionsContainer } = renderElement('state = "Active"');
+  it('should show readable label "Pending approval" when filter checks state equals PENDING_APPROVAL', () => {
+    const { conditionsContainer } = renderElement('state = "PENDING_APPROVAL"');
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain('State');
+    expect(conditionsContainer.item(0)?.textContent).toContain('equals');
+    expect(conditionsContainer.item(0)?.textContent).toContain('Pending approval');
   });
 
-  it('should support is blank operation for substate', () => {
-    const { conditionsContainer } = renderElement('string.IsNullOrEmpty(substate)');
-
-    expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Substate');
-    expect(conditionsContainer.item(0)?.textContent).toContain('is blank');
-  });
-
-  it('should support key value operations for properties', () => {
+  it('should show key/value matches operation when filter is on a custom property', () => {
     const { conditionsContainer } = renderElement('properties["key"] = "value"');
 
     expect(conditionsContainer?.length).toBe(1);
@@ -75,7 +73,7 @@ describe('WorkItemsQueryBuilder', () => {
     expect(conditionsContainer.item(0)?.textContent).toContain('value');
   });
 
-  it('should support is blank operation for due date', () => {
+  it('should show is blank operation when filter checks due date is null or empty', () => {
     const { conditionsContainer } = renderElement('timeline.dueDateTime == null || timeline.dueDateTime == ""');
 
     expect(conditionsContainer?.length).toBe(1);
@@ -83,7 +81,7 @@ describe('WorkItemsQueryBuilder', () => {
     expect(conditionsContainer.item(0)?.textContent).toContain('is blank');
   });
 
-  it('should support is not blank operation for earliest start date', () => {
+  it('should show is not blank operation when filter checks earliest start date is not null or empty', () => {
     const { conditionsContainer } = renderElement('timeline.earliestStartDateTime != null && timeline.earliestStartDateTime != ""');
 
     expect(conditionsContainer?.length).toBe(1);
@@ -92,7 +90,7 @@ describe('WorkItemsQueryBuilder', () => {
   });
 
   [['${__from:date}', 'From'], ['${__to:date}', 'To'], ['${__now:date}', 'Now']].forEach(([value, label]) => {
-    it(`should select user friendly value for updated date`, () => {
+    it(`should show user-friendly label "${label}" when updated date filter uses the ${label} global variable`, () => {
       const { conditionsContainer } = renderElement(`updatedAt > \"${value}\"`);
 
       expect(conditionsContainer?.length).toBe(1);
@@ -100,29 +98,30 @@ describe('WorkItemsQueryBuilder', () => {
     });
   });
 
-  it('should select global variable option', () => {
-    const globalVariableOption = { label: 'Global variable', value: '$global_variable' };
-    const { conditionsContainer } = renderElement('type = \"$global_variable\"', [], [], [globalVariableOption]);
-
-    expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain(globalVariableOption.label);
-  });
-
-  it('should select workspace in query builder', () => {
+  it('should show workspace name when filter is on workspace', () => {
     const { conditionsContainer } = renderElement('workspace = "1"', [workspace]);
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name);
   });
 
-  it('should select asset name option', () => {
-    const { conditionsContainer } = renderElement('assetName = "Asset 1"');
+  it('should show system alias name when filter checks systems contains system ID', () => {
+    const systemAlias: SystemAlias = { id: '1', alias: 'System Alias 1' };
+    const { conditionsContainer } = renderElement('systems.Contains("1")', [], [], [], [], [systemAlias]);
 
     expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Asset Name');
+    expect(conditionsContainer.item(0)?.textContent).toContain(systemAlias.alias);
   });
 
-  it('should select assigned to in query builder', () => {
+  it('should show is empty operation when filter checks systems has no values', () => {
+    const { conditionsContainer } = renderElement('systems.Count == 0');
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain('System alias name');
+    expect(conditionsContainer.item(0)?.textContent).toContain('is empty');
+  });
+
+  it('should show user display name when filter is on assignedTo', () => {
     const mockUsers: User[] = [
       { id: '1', firstName: 'User', lastName: '1', email: 'user1@123.com', properties: {}, keywords: [], created: '', updated: '', orgId: '' },
     ];
@@ -132,47 +131,71 @@ describe('WorkItemsQueryBuilder', () => {
     expect(conditionsContainer.item(0)?.textContent).toContain('Assigned to');
   });
 
-  it('should select test program option', () => {
+  it('should select test program field when filter is on testProgram', () => {
     const { conditionsContainer } = renderElement('testProgram = "Program 1"');
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain('Test program');
   });
 
-  it('should select part number option', () => {
+  it('should show product name (part number) label when filter is on partNumber', () => {
     const { conditionsContainer } = renderElement('partNumber = "PN-1"');
 
     expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Part Number');
+    expect(conditionsContainer.item(0)?.textContent).toContain('Product name (Part number)');
   });
 
-  it('should select parent work item id option', () => {
-    const { conditionsContainer } = renderElement('parentWorkItemId = "1"');
+  it('should select work order id field when filter is on parentId', () => {
+    const { conditionsContainer } = renderElement('parentId = "1"');
 
     expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Parent work item ID');
+    expect(conditionsContainer.item(0)?.textContent).toContain('Work order ID');
   });
 
-  it('should select template id option', () => {
+  it('should show is blank operation when filter checks parentId is null or empty', () => {
+    const { conditionsContainer } = renderElement('string.IsNullOrEmpty(parentId)');
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain('Work order ID');
+    expect(conditionsContainer.item(0)?.textContent).toContain('is blank');
+  });
+
+  it('should select template id field when filter is on templateId', () => {
     const { conditionsContainer } = renderElement('templateId = "1"');
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain('Template ID');
   });
 
-  it('should select estimated duration with greater than operation', () => {
-    const { conditionsContainer } = renderElement('timeline.estimatedDurationInSeconds > "60"');
+  it('should show greater than operation when filter is on estimated duration in days', () => {
+    const { conditionsContainer } = renderElement('estimatedDurationInDays > "1"');
 
     expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Estimated duration');
+    expect(conditionsContainer.item(0)?.textContent).toContain('Estimated duration (days)');
     expect(conditionsContainer.item(0)?.textContent).toContain('greater than');
   });
 
-  it('should select planned duration with less than operation', () => {
-    const { conditionsContainer } = renderElement('schedule.plannedDurationInSeconds < "3600"');
+  it('should show greater than operation when filter is on estimated duration in hours', () => {
+    const { conditionsContainer } = renderElement('estimatedDurationInHours > "1"');
 
     expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Planned duration');
+    expect(conditionsContainer.item(0)?.textContent).toContain('Estimated duration (hours)');
+    expect(conditionsContainer.item(0)?.textContent).toContain('greater than');
+  });
+
+  it('should show less than operation when filter is on planned duration in days', () => {
+    const { conditionsContainer } = renderElement('plannedDurationInDays < "1"');
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain('Planned duration (days)');
+    expect(conditionsContainer.item(0)?.textContent).toContain('less than');
+  });
+
+  it('should show less than operation when filter is on planned duration in hours', () => {
+    const { conditionsContainer } = renderElement('plannedDurationInHours < "1"');
+
+    expect(conditionsContainer?.length).toBe(1);
+    expect(conditionsContainer.item(0)?.textContent).toContain('Planned duration (hours)');
     expect(conditionsContainer.item(0)?.textContent).toContain('less than');
   });
 });

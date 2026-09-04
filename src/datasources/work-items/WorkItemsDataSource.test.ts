@@ -2,7 +2,7 @@ import { WorkItemsDataSource } from './WorkItemsDataSource';
 import { setupDataSource } from 'test/fixtures';
 import { DataQueryRequest, FieldType } from '@grafana/data';
 import { firstValueFrom } from 'rxjs';
-import { TAKE_LIMIT } from './constants/QueryEditor.constants';
+import { TAKE_LIMIT } from './constants';
 import {
   OrderByOptions,
   OutputType,
