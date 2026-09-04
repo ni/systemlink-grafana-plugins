@@ -109,26 +109,29 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
       return;
     }
 
-    const updatedFields = [
-      ...WorkItemsQueryBuilderStaticFields,
+    const fieldsByDataField = new Map([
       ...timeFields,
       workspaceField,
       ...usersFields,
       productsField,
       systemAliasField,
-    ].map(field => {
-      if (field.lookup?.dataSource) {
+    ].map(field => [field.dataField, field]));
+
+    const updatedFields = WorkItemsQueryBuilderStaticFields.map(field => {
+      const fieldWithLookupOptions = fieldsByDataField.get(field.dataField) ?? field;
+
+      if (fieldWithLookupOptions.lookup?.dataSource) {
         return {
-          ...field,
+          ...fieldWithLookupOptions,
           lookup: {
             dataSource: [
               ...globalVariableOptions, 
-              ...field.lookup?.dataSource
+              ...fieldWithLookupOptions.lookup.dataSource
             ].map(filterXSSField),
           },
         };
       }
-      return field;
+      return fieldWithLookupOptions;
     });
 
     setFields(updatedFields);

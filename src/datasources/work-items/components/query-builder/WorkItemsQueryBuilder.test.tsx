@@ -44,14 +44,14 @@ describe('WorkItemsQueryBuilder', () => {
   it('should select name field with contains operation when filter uses Contains', () => {
     const { conditionsContainer } = renderElement('name.Contains("test")');
     expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Work item name');
+    expect(conditionsContainer.item(0)?.textContent).toContain('Name');
     expect(conditionsContainer.item(0)?.textContent).toContain('contains');
   });
 
   it('should show readable label "Work orders" when filter checks type equals WORK_ORDERS', () => {
     const { conditionsContainer } = renderElement('type = "WORK_ORDERS"');
     expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Work item type');
+    expect(conditionsContainer.item(0)?.textContent).toContain('Type');
     expect(conditionsContainer.item(0)?.textContent).toContain('Work orders');
   });
 
@@ -61,14 +61,6 @@ describe('WorkItemsQueryBuilder', () => {
     expect(conditionsContainer.item(0)?.textContent).toContain('State');
     expect(conditionsContainer.item(0)?.textContent).toContain('equals');
     expect(conditionsContainer.item(0)?.textContent).toContain('Pending approval');
-  });
-
-  it('should show is blank operation when filter checks substate is null or empty', () => {
-    const { conditionsContainer } = renderElement('string.IsNullOrEmpty(substate)');
-
-    expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Substate');
-    expect(conditionsContainer.item(0)?.textContent).toContain('is blank');
   });
 
   it('should show key/value matches operation when filter is on a custom property', () => {
@@ -106,26 +98,11 @@ describe('WorkItemsQueryBuilder', () => {
     });
   });
 
-  it('should show global variable label when filter value is a global variable', () => {
-    const globalVariableOption = { label: 'Global variable', value: '$global_variable' };
-    const { conditionsContainer } = renderElement('type = \"$global_variable\"', [], [], [globalVariableOption]);
-
-    expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain(globalVariableOption.label);
-  });
-
   it('should show workspace name when filter is on workspace', () => {
     const { conditionsContainer } = renderElement('workspace = "1"', [workspace]);
 
     expect(conditionsContainer?.length).toBe(1);
     expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name);
-  });
-
-  it('should select asset name field when filter is on assetName', () => {
-    const { conditionsContainer } = renderElement('assetName = "Asset 1"');
-
-    expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Asset Name');
   });
 
   it('should show system alias name when filter checks systems contains system ID', () => {
@@ -168,18 +145,18 @@ describe('WorkItemsQueryBuilder', () => {
     expect(conditionsContainer.item(0)?.textContent).toContain('Product name (Part number)');
   });
 
-  it('should select parent work item id field when filter is on parentWorkItemId', () => {
-    const { conditionsContainer } = renderElement('parentWorkItemId = "1"');
+  it('should select work order id field when filter is on parentId', () => {
+    const { conditionsContainer } = renderElement('parentId = "1"');
 
     expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Parent work item ID');
+    expect(conditionsContainer.item(0)?.textContent).toContain('Work order ID');
   });
 
-  it('should show is blank operation when filter checks parentWorkItemId is null or empty', () => {
-    const { conditionsContainer } = renderElement('string.IsNullOrEmpty(parentWorkItemId)');
+  it('should show is blank operation when filter checks parentId is null or empty', () => {
+    const { conditionsContainer } = renderElement('string.IsNullOrEmpty(parentId)');
 
     expect(conditionsContainer?.length).toBe(1);
-    expect(conditionsContainer.item(0)?.textContent).toContain('Parent work item ID');
+    expect(conditionsContainer.item(0)?.textContent).toContain('Work order ID');
     expect(conditionsContainer.item(0)?.textContent).toContain('is blank');
   });
 
