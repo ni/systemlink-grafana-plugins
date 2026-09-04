@@ -1,6 +1,9 @@
 import { OrderByOptions, WorkItemPropertiesGroup, WorkItemPropertiesOptions, WorkItemTypeOptions } from '../types';
 
 export const TAKE_LIMIT = 10000;
+export const DEFAULT_TAKE = 1000;
+export const QUERY_WORK_ITEMS_MAXIMUM_TAKE = 1000;
+export const QUERY_WORK_ITEMS_REQUESTS_PER_SECOND = 5;
 
 export const LABEL_WIDTH = 25;
 export const CONTROL_WIDTH = 65;

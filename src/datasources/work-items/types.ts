@@ -30,6 +30,61 @@ export interface WorkItemsQuery extends DataQuery {
   take?: number;
 }
 
+export interface QueryWorkItemsRequest {
+  filter?: string;
+  substitutions?: string[];
+  take?: number;
+  orderBy?: OrderByOptions;
+  descending?: boolean;
+  continuationToken?: string;
+  returnCount?: boolean;
+  projection?: WorkItemPropertiesOptions[];
+}
+
+export interface QueryWorkItemsResponse {
+  workItems: WorkItem[];
+  continuationToken?: string;
+  totalCount?: number;
+}
+
+export interface WorkItem {
+  id?: string;
+  name?: string;
+  type?: string;
+  state?: string;
+  substate?: string;
+  description?: string;
+  testProgram?: string;
+  partNumber?: string;
+  workspace?: string;
+  assignedTo?: string;
+  requestedBy?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  parentId?: string;
+  parentWorkItemId?: string;
+  parentWorkItemName?: string;
+  templateId?: string;
+  timeline?: WorkItemTimeline;
+  schedule?: WorkItemSchedule;
+  properties?: Record<string, string>;
+  [key: string]: unknown;
+}
+
+export interface WorkItemTimeline {
+  earliestStartDateTime?: string;
+  dueDateTime?: string;
+  estimatedDurationInSeconds?: number;
+}
+
+export interface WorkItemSchedule {
+  plannedStartDateTime?: string;
+  plannedEndDateTime?: string;
+  plannedDurationInSeconds?: number;
+}
+
 export enum WorkItemPropertiesOptions {
   ID = 'ID',
   NAME = 'NAME',
