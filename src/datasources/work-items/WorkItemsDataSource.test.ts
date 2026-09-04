@@ -165,6 +165,14 @@ describe('WorkItemsDataSource', () => {
               partNumber: '156502A-11L',
               createdAt: '2018-05-09T15:07:42.527921Z',
               updatedAt: '2018-05-09T15:07:42.527921Z',
+              timeline: {
+                earliestStartDateTime: '2018-05-19T15:07:42.527921Z',
+                dueDateTime: '2018-05-23T15:07:42.527921Z',
+              },
+              schedule: {
+                plannedStartDateTime: '2018-05-20T15:07:42.527921Z',
+                plannedEndDateTime: '2018-05-22T15:07:42.527921Z',
+              },
             },
           ],
           continuationToken: '',
@@ -180,6 +188,8 @@ describe('WorkItemsDataSource', () => {
             WorkItemPropertiesOptions.NAME,
             WorkItemPropertiesOptions.PARENT_WORK_ITEM_ID,
             WorkItemPropertiesOptions.CREATED_AT,
+            WorkItemPropertiesOptions.EARLIEST_START_DATE,
+            WorkItemPropertiesOptions.PLANNED_START_DATE,
           ],
         };
 
@@ -189,7 +199,9 @@ describe('WorkItemsDataSource', () => {
           { name: 'Work item ID', values: ['1'], type: 'string' },
           { name: 'Work item name', values: ['Battery Cycle Test'], type: 'string' },
           { name: 'Parent work item ID', values: ['1000'], type: 'string' },
-          { name: 'Created at', values: ['2018-05-09T15:07:42.527921Z'], type: 'string' },
+          { name: 'Created at', values: ['2018-05-09T15:07:42.527921Z'], type: 'time' },
+          { name: 'Earliest start date', values: ['2018-05-19T15:07:42.527921Z'], type: 'time' },
+          { name: 'Planned start date', values: ['2018-05-20T15:07:42.527921Z'], type: 'time' },
         ]);
       });
 
@@ -204,14 +216,14 @@ describe('WorkItemsDataSource', () => {
           refId: 'A',
           outputType: OutputType.Properties,
           types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.ASSIGNED_TO, WorkItemPropertiesOptions.PLANNED_START_DATE],
+          properties: [WorkItemPropertiesOptions.ASSIGNED_TO, WorkItemPropertiesOptions.ESTIMATED_DURATION],
         };
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
         expect(result.fields).toEqual([
           { name: 'Assigned to', values: [''], type: 'string' },
-          { name: 'Planned start date', values: [''], type: 'string' },
+          { name: 'Estimated duration', values: [''], type: 'string' },
         ]);
       });
 
@@ -229,7 +241,7 @@ describe('WorkItemsDataSource', () => {
         );
       });
 
-      it('should request only the projection fields for basic, supported properties', async () => {
+      it('should request projections for every selected property, supported or not', async () => {
         const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ workItems: [], totalCount: 0 });
         const query = {
           refId: 'A',
@@ -242,7 +254,32 @@ describe('WorkItemsDataSource', () => {
 
         expect(postSpy).toHaveBeenCalledWith(
           '/niworkitem/v1/query-workitems',
-          expect.objectContaining({ projection: ['ID'] }),
+          expect.objectContaining({ projection: ['ID', 'ASSIGNED_TO'] }),
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should request multiple projections and de-duplicate them for a single property', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ workItems: [], totalCount: 0 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.TARGET_LOCATION, WorkItemPropertiesOptions.ASSET_NAME],
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          expect.objectContaining({
+            projection: [
+              'RESOURCES_ASSETS_SELECTIONS_TARGET_SYSTEM_ID',
+              'RESOURCES_DUTS_SELECTIONS_TARGET_SYSTEM_ID',
+              'RESOURCES_FIXTURES_SELECTIONS_TARGET_SYSTEM_ID',
+              'RESOURCES_ASSETS_SELECTIONS_ID',
+            ],
+          }),
           { showErrorAlert: false }
         );
       });

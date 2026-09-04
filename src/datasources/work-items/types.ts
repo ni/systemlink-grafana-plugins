@@ -81,6 +81,18 @@ export interface WorkItemsResponse {
   totalCount?: number;
 }
 
+export interface WorkItemTimeline {
+  earliestStartDateTime?: string;
+  dueDateTime?: string;
+  estimatedDurationInSeconds?: number;
+}
+
+export interface WorkItemSchedule {
+  plannedStartDateTime?: string;
+  plannedEndDateTime?: string;
+  plannedDurationInSeconds?: number;
+}
+
 // Flat, directly-mapped work item fields returned by the query-workitems API.
 export interface WorkItem {
   id?: string;
@@ -95,6 +107,8 @@ export interface WorkItem {
   partNumber?: string;
   createdAt?: string;
   updatedAt?: string;
+  timeline?: WorkItemTimeline;
+  schedule?: WorkItemSchedule;
 }
 
 export interface QueryWorkItemsRequestBody {

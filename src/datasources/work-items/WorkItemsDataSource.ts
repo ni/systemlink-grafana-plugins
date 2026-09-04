@@ -21,9 +21,8 @@ import {
   WorkItemTypeOptions,
 } from './types';
 import {
-  BASIC_WORK_ITEM_PROPERTIES,
   DEFAULT_TAKE,
-  WORK_ITEM_PROPERTIES_PROJECTION_VALUES,
+  WORK_ITEM_PROPERTIES_PROJECTIONS,
   WORK_ITEM_TYPE_FILTER_VALUES,
 } from './constants';
 import {
@@ -99,14 +98,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     );
 
     const mappedFields = query.properties?.map(property => {
-      const field = WorkItemProperties[property];
-      const isBasicProperty = BASIC_WORK_ITEM_PROPERTIES.includes(property);
-
-      const fieldValue = workItems.map(workItem =>
-        isBasicProperty ? workItem[field.field as keyof WorkItem] ?? '' : ''
-      );
-
-      return { name: field.label, values: fieldValue, type: FieldType.string };
+      const fieldValue = workItems.map(workItem => this.getPropertyValue(property, workItem));
+      const fieldType = this.getPropertyFieldType(property);
+      return { name: WorkItemProperties[property].label, values: fieldValue, type: fieldType };
     });
 
     return {
@@ -114,6 +108,60 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       name: query.refId,
       fields: mappedFields ?? [],
     };
+  }
+
+  // Only properties with no lookups or transformations required have a case here; everything else is left blank.
+  private getPropertyValue(property: WorkItemPropertiesOptions, workItem: WorkItem): string {
+    switch (property) {
+      case WorkItemPropertiesOptions.ID:
+        return workItem.id ?? '';
+      case WorkItemPropertiesOptions.NAME:
+        return workItem.name ?? '';
+      case WorkItemPropertiesOptions.TYPE:
+        return workItem.type ?? '';
+      case WorkItemPropertiesOptions.STATE:
+        return workItem.state ?? '';
+      case WorkItemPropertiesOptions.SUBSTATE:
+        return workItem.substate ?? '';
+      case WorkItemPropertiesOptions.DESCRIPTION:
+        return workItem.description ?? '';
+      case WorkItemPropertiesOptions.TEST_PROGRAM:
+        return workItem.testProgram ?? '';
+      case WorkItemPropertiesOptions.PART_NUMBER:
+        return workItem.partNumber ?? '';
+      case WorkItemPropertiesOptions.PARENT_WORK_ITEM_ID:
+        return workItem.parentId ?? '';
+      case WorkItemPropertiesOptions.TEMPLATE_ID:
+        return workItem.templateId ?? '';
+      case WorkItemPropertiesOptions.CREATED_AT:
+        return workItem.createdAt ?? '';
+      case WorkItemPropertiesOptions.UPDATED_AT:
+        return workItem.updatedAt ?? '';
+      case WorkItemPropertiesOptions.EARLIEST_START_DATE:
+        return workItem.timeline?.earliestStartDateTime ?? '';
+      case WorkItemPropertiesOptions.DUE_DATE:
+        return workItem.timeline?.dueDateTime ?? '';
+      case WorkItemPropertiesOptions.PLANNED_START_DATE:
+        return workItem.schedule?.plannedStartDateTime ?? '';
+      case WorkItemPropertiesOptions.PLANNED_END_DATE:
+        return workItem.schedule?.plannedEndDateTime ?? '';
+      default:
+        return '';
+    }
+  }
+
+  private getPropertyFieldType(property: WorkItemPropertiesOptions): FieldType {
+    switch (property) {
+      case WorkItemPropertiesOptions.CREATED_AT:
+      case WorkItemPropertiesOptions.UPDATED_AT:
+      case WorkItemPropertiesOptions.EARLIEST_START_DATE:
+      case WorkItemPropertiesOptions.DUE_DATE:
+      case WorkItemPropertiesOptions.PLANNED_START_DATE:
+      case WorkItemPropertiesOptions.PLANNED_END_DATE:
+        return FieldType.time;
+      default:
+        return FieldType.string;
+    }
   }
 
   async queryWorkItemsData(
@@ -153,11 +201,12 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private buildProjection(properties?: WorkItemPropertiesOptions[]): string[] | undefined {
-    const projection = (properties ?? [])
-      .map(property => WORK_ITEM_PROPERTIES_PROJECTION_VALUES[property])
-      .filter((value): value is string => Boolean(value));
+    const projection = new Set<string>();
+    (properties ?? []).forEach(property => {
+      WORK_ITEM_PROPERTIES_PROJECTIONS[property]?.forEach(value => projection.add(value));
+    });
 
-    return projection.length > 0 ? projection : undefined;
+    return projection.size > 0 ? [...projection] : undefined;
   }
 
   async queryWorkItemsCount(filter?: string): Promise<number> {
