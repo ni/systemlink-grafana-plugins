@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import {
   AutoSizeInput,
@@ -94,6 +94,8 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     loadSystemAliases();
   }, [datasource]);
 
+  const globalVariableOptions = useMemo(() => datasource.globalVariableOptions(), [datasource]);
+
   const handleQueryChange = useCallback(
     (query: WorkItemsQuery, runQuery = true): void => {
       onChange(query);
@@ -120,7 +122,6 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const onFilterChange = (linq: string) => {
     if (query.filter !== linq) {
-      query.filter = linq;
       handleQueryChange({ ...query, filter: linq });
     }
   };
@@ -203,7 +204,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
             users={users}
             products={products}
             systemAliases={systemAliases}
-            globalVariableOptions={datasource.globalVariableOptions()}
+            globalVariableOptions={globalVariableOptions}
             onChange={(event: any) => {onFilterChange(event.detail.linq)}}
           />
         </InlineField>

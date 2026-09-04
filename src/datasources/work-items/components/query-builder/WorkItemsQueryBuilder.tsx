@@ -104,8 +104,6 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
 
   useEffect(() => {
     if (!workspaceField || !usersFields || !productsField || !systemAliasField) {
-      setFields([]);
-      setOperations([]);
       return;
     }
 
