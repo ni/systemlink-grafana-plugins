@@ -66,7 +66,7 @@ describe('WorkItemsDataSource', () => {
       );
     });
 
-    describe('Total count output type', () => {
+    describe('total count output type', () => {
       it('should return the total count when outputType is TotalCount', async () => {
         jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 42 });
 
@@ -90,7 +90,7 @@ describe('WorkItemsDataSource', () => {
       });
     });
 
-    describe('Properties output type', () => {
+    describe('properties output type', () => {
       it('should return an empty fields array when outputType is Properties', async () => {
         const query = { refId: 'A', outputType: OutputType.Properties };
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
@@ -116,14 +116,64 @@ describe('WorkItemsDataSource', () => {
     });
 
 
-    it('should surface an error message when the total count request fails', async () => {
-      jest.spyOn(datasource, 'post').mockRejectedValue(new Error('Request failed with status code: 404'));
+    describe('error handling', () => {
+      const errorCases = [
+        {
+          description: 'an unknown status code',
+          rejectedError: 'Request failed',
+          expectedMessage: 'The query failed due to an unknown error.',
+        },
+        {
+          description: 'status code 404',
+          rejectedError: 'Request failed with status code: 404',
+          expectedMessage:
+            'The query to fetch work items failed because the requested resource was not found. Please check the query parameters and try again.',
+        },
+        {
+          description: 'status code 429',
+          rejectedError: 'Request failed with status code: 429',
+          expectedMessage: 'The query to fetch work items failed due to too many requests. Please try again later.',
+        },
+        {
+          description: 'status code 504',
+          rejectedError: 'Request failed with status code: 504',
+          expectedMessage:
+            'The query to fetch work items experienced a timeout error. Narrow your query with a more specific filter and try again.',
+        },
+        {
+          description: 'an unhandled status code',
+          rejectedError: 'Request failed with status code: 500 Error message: Internal error',
+          expectedMessage: 'The query failed due to the following error: (status 500) Internal error.',
+        },
+      ];
 
-      const query = { refId: 'A', outputType: OutputType.TotalCount };
+      it.each(errorCases)(
+        'should display when the request fails with $description',
+        async ({ rejectedError, expectedMessage }) => {
+          jest.spyOn(datasource, 'post').mockRejectedValue(new Error(rejectedError));
 
-      await expect(datasource.runQuery(query, {} as DataQueryRequest)).rejects.toThrow(
-        'The query to fetch work items failed because the requested resource was not found. Please check the query parameters and try again.'
+          const query = { refId: 'A', outputType: OutputType.TotalCount };
+
+          await expect(datasource.runQuery(query, {} as DataQueryRequest)).rejects.toThrow(expectedMessage);
+        }
       );
+
+      it('should publish an alertError event when the request fails', async () => {
+        const publishMock = jest.fn();
+        (datasource as any).appEvents = { publish: publishMock };
+        jest.spyOn(datasource, 'post').mockRejectedValue(new Error('Request failed with status code: 404'));
+
+        const query = { refId: 'A', outputType: OutputType.TotalCount };
+
+        await expect(datasource.runQuery(query, {} as DataQueryRequest)).rejects.toThrow();
+        expect(publishMock).toHaveBeenCalledWith({
+          type: 'alert-error',
+          payload: [
+            'Error during work items query',
+            'The query to fetch work items failed because the requested resource was not found. Please check the query parameters and try again.',
+          ],
+        });
+      });
     });
   });
 
