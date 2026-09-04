@@ -18,6 +18,7 @@ import {
 } from './types';
 import { DEFAULT_TAKE, WORK_ITEM_TYPE_FILTER_VALUES } from './constants';
 import { extractErrorInfo } from 'core/errors';
+import { isTypesNonEmpty } from './utils';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
@@ -30,8 +31,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   baseUrl = `${this.instanceSettings.url}/niworkitem/v1`;
   queryWorkItemsUrl = `${this.baseUrl}/query-workitems`;
-  errorTitle = '';
-  errorDescription = '';
 
   defaultQuery = {
     outputType: OutputType.Properties,
@@ -49,8 +48,12 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   };
 
   async runQuery(query: WorkItemsQuery, options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {
+    if (!isTypesNonEmpty(query.types)) {
+      return this.getEmptyDataFrameDTO(query.refId);
+    }
+
     const filter = this.buildQueryFilter(
-      this.buildTypeFilter(query.types),
+      this.buildTypeFilter(query.types!),
       query.filter ? this.templateSrv.replace(query.filter, options.scopedVars) : undefined
     );
 
@@ -64,18 +67,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     }
 
     if (query.outputType === OutputType.Properties) {
-      return {
-        refId: query.refId,
-        name: query.refId,
-        fields: [],
-      };
+      return this.getEmptyDataFrameDTO(query.refId);
     }
 
-    return {
-      refId: query.refId,
-      name: query.refId,
-      fields: [],
-    };
+    return this.getEmptyDataFrameDTO(query.refId);
   }
 
   async queryWorkItemsCount(filter?: string): Promise<number> {
@@ -134,13 +129,18 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return filters.length > 0 ? filters.join(' && ') : undefined;
   }
 
-  private buildTypeFilter(types?: WorkItemTypeOptions[]): string | undefined {
-    if (!types || types.length === 0) {
-      return undefined;
-    }
+  private getEmptyDataFrameDTO(refId: string): DataFrameDTO {
+    return {
+      refId: refId,
+      name: refId,
+      fields: [],
+    };
+  }
 
+  private buildTypeFilter(types: WorkItemTypeOptions[]): string | undefined {
     const typeValues = types.map(type => WORK_ITEM_TYPE_FILTER_VALUES[type]);
-    return typeValues.map(value => `type = "${value}"`).join(' || ');
+    const typeFilter = typeValues.map(value => `type = "${value}"`).join(' || ');
+    return typeValues.length > 1 ? `(${typeFilter})` : typeFilter;
   }
 
   shouldRunQuery(query: WorkItemsQuery): boolean {

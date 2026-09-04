@@ -44,6 +44,16 @@ describe('WorkItemsDataSource', () => {
   });
 
   describe('runQuery', () => {
+    it('should return an empty data frame without querying when no types are selected', async () => {
+      const postSpy = jest.spyOn(datasource, 'post');
+      const query = { refId: 'A', outputType: OutputType.TotalCount, types: [] };
+
+      const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+      expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
+      expect(postSpy).not.toHaveBeenCalled();
+    });
+
     it('should combine the type filter and the queryBy filter', async () => {
       const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
       const query = {
@@ -58,7 +68,7 @@ describe('WorkItemsDataSource', () => {
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
         {
-          filter: 'type = "workorder" || type = "testplan" && state = "NEW"',
+          filter: '(type = "workorder" || type = "testplan") && state = "NEW"',
           take: 0,
           returnCount: true,
         },
@@ -70,7 +80,11 @@ describe('WorkItemsDataSource', () => {
       it('should return the total count when outputType is TotalCount', async () => {
         jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 42 });
 
-        const query = { refId: 'A', outputType: OutputType.TotalCount };
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: [WorkItemTypeOptions.WorkOrders],
+        };
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
         expect(result).toEqual({
@@ -82,7 +96,11 @@ describe('WorkItemsDataSource', () => {
 
       it('should return 0 as total count when the API returns no totalCount', async () => {
         jest.spyOn(datasource, 'post').mockResolvedValue({});
-        const query = { refId: 'A', outputType: OutputType.TotalCount };
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: [WorkItemTypeOptions.WorkOrders],
+        };
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
@@ -103,18 +121,22 @@ describe('WorkItemsDataSource', () => {
       jest.spyOn(templateSrv, 'replace').mockReturnValue('state = "NEW"');
       const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
 
-      const query = { refId: 'A', outputType: OutputType.TotalCount, filter: 'state = "$state"' };
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+        types: [WorkItemTypeOptions.WorkOrders],
+        filter: 'state = "$state"',
+      };
       const scopedVars = { state: { text: 'NEW', value: 'NEW' } };
       await datasource.runQuery(query, { scopedVars } as unknown as DataQueryRequest);
 
       expect(templateSrv.replace).toHaveBeenCalledWith('state = "$state"', scopedVars);
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
-        { filter: 'state = "NEW"', take: 0, returnCount: true },
+        { filter: 'type = "workorder" && state = "NEW"', take: 0, returnCount: true },
         { showErrorAlert: false }
       );
     });
-
 
     describe('error handling', () => {
       const errorCases = [
@@ -148,11 +170,15 @@ describe('WorkItemsDataSource', () => {
       ];
 
       it.each(errorCases)(
-        'should display when the request fails with $description',
+        'should display an error message when the request fails with $description',
         async ({ rejectedError, expectedMessage }) => {
           jest.spyOn(datasource, 'post').mockRejectedValue(new Error(rejectedError));
 
-          const query = { refId: 'A', outputType: OutputType.TotalCount };
+          const query = {
+            refId: 'A',
+            outputType: OutputType.TotalCount,
+            types: [WorkItemTypeOptions.WorkOrders],
+          };
 
           await expect(datasource.runQuery(query, {} as DataQueryRequest)).rejects.toThrow(expectedMessage);
         }
@@ -163,7 +189,11 @@ describe('WorkItemsDataSource', () => {
         (datasource as any).appEvents = { publish: publishMock };
         jest.spyOn(datasource, 'post').mockRejectedValue(new Error('Request failed with status code: 404'));
 
-        const query = { refId: 'A', outputType: OutputType.TotalCount };
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: [WorkItemTypeOptions.WorkOrders],
+        };
 
         await expect(datasource.runQuery(query, {} as DataQueryRequest)).rejects.toThrow();
         expect(publishMock).toHaveBeenCalledWith({
