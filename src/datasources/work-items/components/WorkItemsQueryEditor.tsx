@@ -118,8 +118,11 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     handleQueryChange({ ...query, properties }, isPropertiesNonEmpty(properties));
   };
 
-  const onFilterChange = (event: any) => {
-    handleQueryChange({ ...query, filter: event.detail.linq });
+  const onFilterChange = (linq: string) => {
+    if (query.filter !== linq) {
+      query.filter = linq;
+      handleQueryChange({ ...query, filter: linq });
+    }
   };
 
   const onOrderByChange = (item: SelectableValue<OrderByOptions>) => {
@@ -201,7 +204,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
             products={products}
             systemAliases={systemAliases}
             globalVariableOptions={datasource.globalVariableOptions()}
-            onChange={onFilterChange}
+            onChange={(event: any) => {onFilterChange(event.detail.linq)}}
           />
         </InlineField>
         {query.outputType === OutputType.Properties && (

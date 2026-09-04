@@ -156,10 +156,10 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
       QueryBuilderOperations.IS_NOT_BLANK,
       QueryBuilderOperations.DATE_TIME_IS_AFTER,
       QueryBuilderOperations.DATE_TIME_IS_BEFORE,
-      QueryBuilderOperations.LIST_IS_EMPTY,
-      QueryBuilderOperations.LIST_IS_NOT_EMPTY,
       QueryBuilderOperations.LIST_EQUALS,
       QueryBuilderOperations.LIST_DOES_NOT_EQUAL,
+      QueryBuilderOperations.LIST_IS_EMPTY,
+      QueryBuilderOperations.LIST_IS_NOT_EMPTY,
     ].map(operation => {
       return {
         ...operation,
