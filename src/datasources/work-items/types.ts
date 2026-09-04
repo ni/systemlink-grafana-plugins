@@ -121,7 +121,6 @@ export interface WorkItemResources {
   systems?: SystemResourceGroup;
 }
 
-// Flat, directly-mapped work item fields returned by the query-workitems API.
 export interface WorkItem {
   id?: string;
   name?: string;

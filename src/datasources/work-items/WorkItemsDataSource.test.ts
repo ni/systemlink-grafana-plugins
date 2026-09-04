@@ -186,11 +186,115 @@ describe('WorkItemsDataSource', () => {
           properties: [
             WorkItemPropertiesOptions.ID,
             WorkItemPropertiesOptions.NAME,
+            WorkItemPropertiesOptions.SUBSTATE,
+            WorkItemPropertiesOptions.DESCRIPTION,
+            WorkItemPropertiesOptions.TEST_PROGRAM,
+            WorkItemPropertiesOptions.PART_NUMBER,
             WorkItemPropertiesOptions.PARENT_WORK_ITEM_ID,
+            WorkItemPropertiesOptions.TEMPLATE_ID,
             WorkItemPropertiesOptions.CREATED_AT,
+            WorkItemPropertiesOptions.UPDATED_AT,
             WorkItemPropertiesOptions.EARLIEST_START_DATE,
+            WorkItemPropertiesOptions.DUE_DATE,
             WorkItemPropertiesOptions.PLANNED_START_DATE,
+            WorkItemPropertiesOptions.PLANNED_END_DATE,
           ],
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        const timeConfig = { unit: 'time:YYYY-MM-DD HH:mm:ss' };
+
+        expect(result.fields).toEqual([
+          { name: 'Work item ID', values: ['1'], type: 'string' },
+          { name: 'Work item name', values: ['Battery Cycle Test'], type: 'string' },
+          { name: 'Substate', values: ['substate1'], type: 'string' },
+          { name: 'Description', values: ['Battery cycle test at various temperatures.'], type: 'string' },
+          { name: 'Test program', values: ['Battery cycle test'], type: 'string' },
+          { name: 'Part number', values: ['156502A-11L'], type: 'string' },
+          { name: 'Parent work item ID', values: ['1000'], type: 'string' },
+          { name: 'Template ID', values: ['2000'], type: 'string' },
+          { name: 'Created at', values: ['2018-05-09T15:07:42.527921Z'], type: 'time', config: timeConfig },
+          { name: 'Updated at', values: ['2018-05-09T15:07:42.527921Z'], type: 'time', config: timeConfig },
+          {
+            name: 'Earliest start date',
+            values: ['2018-05-19T15:07:42.527921Z'],
+            type: 'time',
+            config: timeConfig,
+          },
+          { name: 'Due date', values: ['2018-05-23T15:07:42.527921Z'], type: 'time', config: timeConfig },
+          { name: 'Planned start date', values: ['2018-05-20T15:07:42.527921Z'], type: 'time', config: timeConfig },
+          { name: 'Planned end date', values: ['2018-05-22T15:07:42.527921Z'], type: 'time', config: timeConfig },
+        ]);
+      });
+
+      it('should return null for time fields with missing timeline or schedule data', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [
+            WorkItemPropertiesOptions.EARLIEST_START_DATE,
+            WorkItemPropertiesOptions.DUE_DATE,
+            WorkItemPropertiesOptions.PLANNED_START_DATE,
+            WorkItemPropertiesOptions.PLANNED_END_DATE,
+          ],
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        const timeConfig = { unit: 'time:YYYY-MM-DD HH:mm:ss' };
+
+        expect(result.fields).toEqual([
+          { name: 'Earliest start date', values: [null], type: 'time', config: timeConfig },
+          { name: 'Due date', values: [null], type: 'time', config: timeConfig },
+          { name: 'Planned start date', values: [null], type: 'time', config: timeConfig },
+          { name: 'Planned end date', values: [null], type: 'time', config: timeConfig },
+        ]);
+      });
+
+      it('should return null for created at and updated at when missing', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.CREATED_AT, WorkItemPropertiesOptions.UPDATED_AT],
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        const timeConfig = { unit: 'time:YYYY-MM-DD HH:mm:ss' };
+
+        expect(result.fields).toEqual([
+          { name: 'Created at', values: [null], type: 'time', config: timeConfig },
+          { name: 'Updated at', values: [null], type: 'time', config: timeConfig },
+        ]);
+      });
+
+      it('should not include a config on string typed fields', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', name: 'Battery Cycle Test' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
         };
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
@@ -198,11 +302,8 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([
           { name: 'Work item ID', values: ['1'], type: 'string' },
           { name: 'Work item name', values: ['Battery Cycle Test'], type: 'string' },
-          { name: 'Parent work item ID', values: ['1000'], type: 'string' },
-          { name: 'Created at', values: ['2018-05-09T15:07:42.527921Z'], type: 'time' },
-          { name: 'Earliest start date', values: ['2018-05-19T15:07:42.527921Z'], type: 'time' },
-          { name: 'Planned start date', values: ['2018-05-20T15:07:42.527921Z'], type: 'time' },
         ]);
+        result.fields.forEach(field => expect(field).not.toHaveProperty('config'));
       });
 
       it('should format known type and state values into human-readable labels', async () => {
@@ -274,18 +375,29 @@ describe('WorkItemsDataSource', () => {
         ]);
       });
 
-      it('should return an empty fields array when no properties are selected', async () => {
+      it('should return an empty fields array without querying when no properties are selected', async () => {
         const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ workItems: [], totalCount: 0 });
         const query = { refId: 'A', outputType: OutputType.Properties, types: [WorkItemTypeOptions.WorkOrders] };
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
         expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
-        expect(postSpy).toHaveBeenCalledWith(
-          '/niworkitem/v1/query-workitems',
-          expect.objectContaining({ projection: undefined }),
-          { showErrorAlert: false }
-        );
+        expect(postSpy).not.toHaveBeenCalled();
+      });
+
+      it('should return an empty fields array without querying when properties is an empty array', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ workItems: [], totalCount: 0 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [],
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
+        expect(postSpy).not.toHaveBeenCalled();
       });
 
       it('should request projections for every selected property, supported or not', async () => {

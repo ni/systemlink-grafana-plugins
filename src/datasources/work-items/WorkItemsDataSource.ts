@@ -33,7 +33,7 @@ import {
 } from './constants/QueryWorkItems.constants';
 import { WorkItemProperties } from './constants/QueryEditor.constants';
 import { extractErrorInfo } from 'core/errors';
-import { isTypesNonEmpty } from './utils';
+import { isPropertiesNonEmpty, isTypesNonEmpty } from './utils';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
@@ -83,7 +83,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       };
     }
 
-    if (query.outputType === OutputType.Properties) {
+    if (query.outputType === OutputType.Properties && isPropertiesNonEmpty(query.properties)) {
       return this.processWorkItemsQuery(query, filter);
     }
 
@@ -102,7 +102,12 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const mappedFields = query.properties?.map(property => {
       const fieldValue = workItems.map(workItem => this.getPropertyValue(property, workItem));
       const fieldType = this.getPropertyFieldType(property);
-      return { name: WorkItemProperties[property].label, values: fieldValue, type: fieldType };
+      return {
+        name: WorkItemProperties[property].label,
+        values: fieldValue,
+        type: fieldType,
+        ...(fieldType === FieldType.time && { config: { unit: 'time:YYYY-MM-DD HH:mm:ss' } }),
+      };
     });
 
     return {
@@ -112,7 +117,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     };
   }
 
-  private getPropertyValue(property: WorkItemPropertiesOptions, workItem: WorkItem): string {
+  private getPropertyValue(
+    property: WorkItemPropertiesOptions,
+    workItem: WorkItem
+  ): string | null {
     switch (property) {
       case WorkItemPropertiesOptions.ID:
         return workItem.id ?? '';
@@ -135,17 +143,17 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       case WorkItemPropertiesOptions.TEMPLATE_ID:
         return workItem.templateId ?? '';
       case WorkItemPropertiesOptions.CREATED_AT:
-        return workItem.createdAt ?? '';
+        return workItem.createdAt ?? null;
       case WorkItemPropertiesOptions.UPDATED_AT:
-        return workItem.updatedAt ?? '';
+        return workItem.updatedAt ?? null;
       case WorkItemPropertiesOptions.EARLIEST_START_DATE:
-        return workItem.timeline?.earliestStartDateTime ?? '';
+        return workItem.timeline?.earliestStartDateTime ?? null;
       case WorkItemPropertiesOptions.DUE_DATE:
-        return workItem.timeline?.dueDateTime ?? '';
+        return workItem.timeline?.dueDateTime ?? null;
       case WorkItemPropertiesOptions.PLANNED_START_DATE:
-        return workItem.schedule?.plannedStartDateTime ?? '';
+        return workItem.schedule?.plannedStartDateTime ?? null;
       case WorkItemPropertiesOptions.PLANNED_END_DATE:
-        return workItem.schedule?.plannedEndDateTime ?? '';
+        return workItem.schedule?.plannedEndDateTime ?? null;
       default:
         return '';
     }
