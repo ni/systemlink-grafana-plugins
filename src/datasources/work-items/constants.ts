@@ -61,3 +61,26 @@ export const WORK_ITEM_TYPE_FILTER_VALUES: Record<WorkItemTypeOptions, string> =
   [WorkItemTypeOptions.Reservation]: 'reservation',
   [WorkItemTypeOptions.TransportOrder]: 'transportorder',
 };
+
+// Maps normalized work item type values to human-readable labels.
+export const WORK_ITEM_TYPE_LABEL_MAP: Record<string, string> = {
+  testplan: 'Test plan',
+  workorder: 'Work order',
+  job: 'Job',
+  maintenance: 'Maintenance',
+  calibration: 'Calibration',
+  reservation: 'Reservation',
+  transportorder: 'Transport order',
+};
+
+// Maps work item state values to human-readable labels.
+export const WORK_ITEM_STATE_LABEL_MAP: Record<string, string> = {
+  NEW: 'New',
+  DEFINED: 'Defined',
+  REVIEWED: 'Reviewed',
+  SCHEDULED: 'Scheduled',
+  IN_PROGRESS: 'In progress',
+  PENDING_APPROVAL: 'Pending approval',
+  CLOSED: 'Closed',
+  CANCELED: 'Canceled',
+};

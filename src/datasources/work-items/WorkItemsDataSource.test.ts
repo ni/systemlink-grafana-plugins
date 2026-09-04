@@ -205,6 +205,53 @@ describe('WorkItemsDataSource', () => {
         ]);
       });
 
+      it('should format known type and state values into human-readable labels', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [
+            { id: '1', type: 'testplan', state: 'IN_PROGRESS' },
+            { id: '2', type: 'transportorder', state: 'PENDING_APPROVAL' },
+          ],
+          continuationToken: '',
+          totalCount: 2,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.TYPE, WorkItemPropertiesOptions.STATE],
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([
+          { name: 'Work item type', values: ['Test plan', 'Transport order'], type: 'string' },
+          { name: 'State', values: ['In progress', 'Pending approval'], type: 'string' },
+        ]);
+      });
+
+      it('should fall back to the raw value for unknown type and state values', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', type: 'customtype', state: 'UNKNOWN_STATE' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.TYPE, WorkItemPropertiesOptions.STATE],
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([
+          { name: 'Work item type', values: ['customtype'], type: 'string' },
+          { name: 'State', values: ['UNKNOWN_STATE'], type: 'string' },
+        ]);
+      });
+
       it('should return an empty column for properties that are not yet supported', async () => {
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [{ id: '1' }],

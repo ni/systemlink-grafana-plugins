@@ -93,6 +93,34 @@ export interface WorkItemSchedule {
   plannedDurationInSeconds?: number;
 }
 
+export interface ResourceSelection {
+  id?: string;
+  targetLocationId?: string;
+  targetSystemId?: string;
+  targetParentId?: string;
+}
+
+export interface ResourceGroup {
+  selections?: ResourceSelection[];
+  filter?: string;
+}
+
+export interface SystemResourceSelection {
+  id?: string;
+  targetLocationId?: string;
+}
+export interface SystemResourceGroup {
+  selections?: SystemResourceSelection[];
+  filter?: string;
+}
+
+export interface WorkItemResources {
+  assets?: ResourceGroup;
+  duts?: ResourceGroup;
+  fixtures?: ResourceGroup;
+  systems?: SystemResourceGroup;
+}
+
 // Flat, directly-mapped work item fields returned by the query-workitems API.
 export interface WorkItem {
   id?: string;
@@ -105,10 +133,17 @@ export interface WorkItem {
   templateId?: string;
   testProgram?: string;
   partNumber?: string;
+  assignedTo?: string;
+  requestedBy?: string;
+  workspace?: string;
+  createdBy?: string;
+  updatedBy?: string;
   createdAt?: string;
   updatedAt?: string;
   timeline?: WorkItemTimeline;
   schedule?: WorkItemSchedule;
+  resources?: WorkItemResources;
+  properties?: Record<string, string>;
 }
 
 export interface QueryWorkItemsRequestBody {

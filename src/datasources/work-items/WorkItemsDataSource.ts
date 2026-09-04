@@ -24,6 +24,8 @@ import {
   DEFAULT_TAKE,
   WORK_ITEM_PROPERTIES_PROJECTIONS,
   WORK_ITEM_TYPE_FILTER_VALUES,
+  WORK_ITEM_TYPE_LABEL_MAP,
+  WORK_ITEM_STATE_LABEL_MAP,
 } from './constants';
 import {
   QUERY_WORK_ITEMS_MAX_TAKE,
@@ -110,7 +112,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     };
   }
 
-  // Only properties with no lookups or transformations required have a case here; everything else is left blank.
   private getPropertyValue(property: WorkItemPropertiesOptions, workItem: WorkItem): string {
     switch (property) {
       case WorkItemPropertiesOptions.ID:
@@ -118,9 +119,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       case WorkItemPropertiesOptions.NAME:
         return workItem.name ?? '';
       case WorkItemPropertiesOptions.TYPE:
-        return workItem.type ?? '';
+        return this.formatWorkItemTypeLabel(workItem.type);
       case WorkItemPropertiesOptions.STATE:
-        return workItem.state ?? '';
+        return this.formatStateLabel(workItem.state);
       case WorkItemPropertiesOptions.SUBSTATE:
         return workItem.substate ?? '';
       case WorkItemPropertiesOptions.DESCRIPTION:
@@ -162,6 +163,23 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       default:
         return FieldType.string;
     }
+  }
+
+  private formatWorkItemTypeLabel(type?: string): string {
+    if (!type) {
+      return '';
+    }
+
+    const normalizedType = type.toLowerCase().replace(/[_\-\s]+/g, '');
+    return WORK_ITEM_TYPE_LABEL_MAP[normalizedType] ?? type;
+  }
+
+  private formatStateLabel(state?: string): string {
+    if (!state) {
+      return '';
+    }
+
+    return WORK_ITEM_STATE_LABEL_MAP[state] ?? state;
   }
 
   async queryWorkItemsData(
