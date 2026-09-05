@@ -3,22 +3,37 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
+  FieldType,
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
+import { queryInBatches } from 'core/utils';
+import { QueryResponse } from 'core/types';
 import {
   OrderByOptions,
   OutputType,
   QueryWorkItemsRequestBody,
+  WorkItem,
   WorkItemPropertiesOptions,
   WorkItemsQuery,
   WorkItemsResponse,
   WorkItemTypeOptions,
 } from './types';
-import { DEFAULT_TAKE, WORK_ITEM_TYPE_FILTER_VALUES } from './constants';
+import {
+  DEFAULT_TAKE,
+  WORK_ITEM_PROPERTIES_PROJECTIONS,
+  WORK_ITEM_TYPE_FILTER_VALUES,
+  WORK_ITEM_TYPE_LABEL_MAP,
+  WORK_ITEM_STATE_LABEL_MAP,
+} from './constants';
+import {
+  QUERY_WORK_ITEMS_MAX_TAKE,
+  QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
+} from './constants/QueryWorkItems.constants';
+import { WorkItemProperties } from './constants/QueryEditor.constants';
 import { extractErrorInfo } from 'core/errors';
-import { isTypesNonEmpty } from './utils';
+import { isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty } from './utils';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
@@ -68,11 +83,164 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       };
     }
 
-    if (query.outputType === OutputType.Properties) {
-      return this.getEmptyDataFrameDTO(query.refId);
+    if (
+      query.outputType === OutputType.Properties &&
+      isPropertiesNonEmpty(query.properties) &&
+      isTakeValid(query.take)
+    ) {
+      return this.processWorkItemsQuery(query, filter);
     }
 
     return this.getEmptyDataFrameDTO(query.refId);
+  }
+
+  async processWorkItemsQuery(query: WorkItemsQuery, filter?: string): Promise<DataFrameDTO> {
+    const workItems = await this.queryWorkItemsData(
+      filter,
+      query.properties,
+      query.orderBy,
+      query.descending,
+      query.take
+    );
+
+    return {
+      refId: query.refId,
+      name: query.refId,
+      fields: this.buildFields(query.properties, workItems),
+    };
+  }
+
+  private buildFields(properties: WorkItemPropertiesOptions[] | undefined, workItems: WorkItem[]) {
+    return (
+      properties?.map(property => {
+        const fieldValue = workItems.map(workItem => this.getPropertyValue(property, workItem));
+        const fieldType = this.getPropertyFieldType(property);
+        return {
+          name: WorkItemProperties[property].label,
+          values: fieldValue,
+          type: fieldType,
+          ...(fieldType === FieldType.time && { config: { unit: 'time:YYYY-MM-DD HH:mm:ss' } }),
+        };
+      }) ?? []
+    );
+  }
+
+  private getPropertyValue(
+    property: WorkItemPropertiesOptions,
+    workItem: WorkItem
+  ): string | null {
+    switch (property) {
+      case WorkItemPropertiesOptions.ID:
+        return workItem.id ?? '';
+      case WorkItemPropertiesOptions.NAME:
+        return workItem.name ?? '';
+      case WorkItemPropertiesOptions.TYPE:
+        return this.formatWorkItemTypeLabel(workItem.type);
+      case WorkItemPropertiesOptions.STATE:
+        return this.formatStateLabel(workItem.state);
+      case WorkItemPropertiesOptions.SUBSTATE:
+        return workItem.substate ?? '';
+      case WorkItemPropertiesOptions.DESCRIPTION:
+        return workItem.description ?? '';
+      case WorkItemPropertiesOptions.TEST_PROGRAM:
+        return workItem.testProgram ?? '';
+      case WorkItemPropertiesOptions.PART_NUMBER:
+        return workItem.partNumber ?? '';
+      case WorkItemPropertiesOptions.PARENT_WORK_ITEM_ID:
+        return workItem.parentId ?? '';
+      case WorkItemPropertiesOptions.TEMPLATE_ID:
+        return workItem.templateId ?? '';
+      case WorkItemPropertiesOptions.CREATED_AT:
+        return workItem.createdAt ?? null;
+      case WorkItemPropertiesOptions.UPDATED_AT:
+        return workItem.updatedAt ?? null;
+      case WorkItemPropertiesOptions.EARLIEST_START_DATE:
+        return workItem.timeline?.earliestStartDateTime ?? null;
+      case WorkItemPropertiesOptions.DUE_DATE:
+        return workItem.timeline?.dueDateTime ?? null;
+      case WorkItemPropertiesOptions.PLANNED_START_DATE:
+        return workItem.schedule?.plannedStartDateTime ?? null;
+      case WorkItemPropertiesOptions.PLANNED_END_DATE:
+        return workItem.schedule?.plannedEndDateTime ?? null;
+      default:
+        return '';
+    }
+  }
+
+  private getPropertyFieldType(property: WorkItemPropertiesOptions): FieldType {
+    switch (property) {
+      case WorkItemPropertiesOptions.CREATED_AT:
+      case WorkItemPropertiesOptions.UPDATED_AT:
+      case WorkItemPropertiesOptions.EARLIEST_START_DATE:
+      case WorkItemPropertiesOptions.DUE_DATE:
+      case WorkItemPropertiesOptions.PLANNED_START_DATE:
+      case WorkItemPropertiesOptions.PLANNED_END_DATE:
+        return FieldType.time;
+      default:
+        return FieldType.string;
+    }
+  }
+
+  private formatWorkItemTypeLabel(type?: string): string {
+    if (!type) {
+      return '';
+    }
+
+    const normalizedType = type.toLowerCase().replace(/[_\-\s]+/g, '');
+    return WORK_ITEM_TYPE_LABEL_MAP[normalizedType] ?? type;
+  }
+
+  private formatStateLabel(state?: string): string {
+    if (!state) {
+      return '';
+    }
+
+    return WORK_ITEM_STATE_LABEL_MAP[state] ?? state;
+  }
+
+  async queryWorkItemsData(
+    filter?: string,
+    properties?: WorkItemPropertiesOptions[],
+    orderBy?: OrderByOptions,
+    descending?: boolean,
+    take?: number
+  ): Promise<WorkItem[]> {
+    const projection = this.buildProjection(properties);
+
+    const queryRecord = async (currentTake: number, continuationToken?: string): Promise<QueryResponse<WorkItem>> => {
+      const body: QueryWorkItemsRequestBody = {
+        filter,
+        projection,
+        orderBy,
+        descending,
+        take: currentTake,
+        continuationToken,
+      };
+      const response = await this.queryWorkItems(body);
+
+      return {
+        data: response.workItems ?? [],
+        continuationToken: response.continuationToken,
+        totalCount: response.totalCount,
+      };
+    };
+
+    const batchQueryConfig = {
+      maxTakePerRequest: QUERY_WORK_ITEMS_MAX_TAKE,
+      requestsPerSecond: QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
+    };
+    const response = await queryInBatches(queryRecord, batchQueryConfig, take);
+
+    return response.data;
+  }
+
+  private buildProjection(properties?: WorkItemPropertiesOptions[]): string[] | undefined {
+    const projection = new Set<string>();
+    (properties ?? []).forEach(property => {
+      WORK_ITEM_PROPERTIES_PROJECTIONS[property]?.forEach(value => projection.add(value));
+    });
+
+    return projection.size > 0 ? [...projection] : undefined;
   }
 
   async queryWorkItemsCount(filter?: string): Promise<number> {

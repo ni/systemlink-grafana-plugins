@@ -76,8 +76,73 @@ export enum WorkItemPropertiesGroup {
 }
 
 export interface WorkItemsResponse {
+  workItems?: WorkItem[];
   continuationToken?: string;
   totalCount?: number;
+}
+
+export interface WorkItemTimeline {
+  earliestStartDateTime?: string;
+  dueDateTime?: string;
+  estimatedDurationInSeconds?: number;
+}
+
+export interface WorkItemSchedule {
+  plannedStartDateTime?: string;
+  plannedEndDateTime?: string;
+  plannedDurationInSeconds?: number;
+}
+
+export interface ResourceSelection {
+  id?: string;
+  targetLocationId?: string;
+  targetSystemId?: string;
+  targetParentId?: string;
+}
+
+export interface ResourceGroup {
+  selections?: ResourceSelection[];
+  filter?: string;
+}
+
+export interface SystemResourceSelection {
+  id?: string;
+  targetLocationId?: string;
+}
+export interface SystemResourceGroup {
+  selections?: SystemResourceSelection[];
+  filter?: string;
+}
+
+export interface WorkItemResources {
+  assets?: ResourceGroup;
+  duts?: ResourceGroup;
+  fixtures?: ResourceGroup;
+  systems?: SystemResourceGroup;
+}
+
+export interface WorkItem {
+  id?: string;
+  name?: string;
+  type?: string;
+  state?: string;
+  substate?: string;
+  description?: string;
+  parentId?: string;
+  templateId?: string;
+  testProgram?: string;
+  partNumber?: string;
+  assignedTo?: string;
+  requestedBy?: string;
+  workspace?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  timeline?: WorkItemTimeline;
+  schedule?: WorkItemSchedule;
+  resources?: WorkItemResources;
+  properties?: Record<string, string>;
 }
 
 export interface QueryWorkItemsRequestBody {

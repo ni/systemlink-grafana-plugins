@@ -177,7 +177,7 @@ export const WorkItemProperties: Record<
   [WorkItemPropertiesOptions.PARENT_WORK_ITEM_ID]: {
     label: 'Parent work item ID',
     value: WorkItemPropertiesOptions.PARENT_WORK_ITEM_ID,
-    field: 'parentWorkItemId',
+    field: 'parentId',
     group: WorkItemPropertiesGroup.WORK_ITEM_DETAILS,
   },
   [WorkItemPropertiesOptions.TEMPLATE_ID]: {
