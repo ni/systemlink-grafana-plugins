@@ -1,7 +1,7 @@
 import { TAKE_LIMIT } from './constants';
 import { takeErrorMessages } from './constants/QueryEditor.constants';
 import { WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
-import { getTakeError, isPropertiesNonEmpty, isTypesNonEmpty } from './utils';
+import { getTakeError, isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty } from './utils';
 
 describe('getTakeError', () => {
   it('should return no error for a value within the valid range', () => {
@@ -44,5 +44,27 @@ describe('isPropertiesNonEmpty', () => {
   it('should return false for an empty or undefined list', () => {
     expect(isPropertiesNonEmpty([])).toBe(false);
     expect(isPropertiesNonEmpty(undefined)).toBe(false);
+  });
+});
+
+describe('isTakeValid', () => {
+  it('should return true for a value within the valid range', () => {
+    expect(isTakeValid(1)).toBe(true);
+    expect(isTakeValid(500)).toBe(true);
+    expect(isTakeValid(TAKE_LIMIT)).toBe(true);
+  });
+
+  it('should return false when the value is undefined', () => {
+    expect(isTakeValid(undefined)).toBe(false);
+  });
+
+  it('should return false for NaN, zero, or negative values', () => {
+    expect(isTakeValid(NaN)).toBe(false);
+    expect(isTakeValid(0)).toBe(false);
+    expect(isTakeValid(-5)).toBe(false);
+  });
+
+  it('should return false when the value exceeds the maximum', () => {
+    expect(isTakeValid(TAKE_LIMIT + 1)).toBe(false);
   });
 });

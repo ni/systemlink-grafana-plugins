@@ -33,7 +33,7 @@ import {
 } from './constants/QueryWorkItems.constants';
 import { WorkItemProperties } from './constants/QueryEditor.constants';
 import { extractErrorInfo } from 'core/errors';
-import { isPropertiesNonEmpty, isTypesNonEmpty } from './utils';
+import { isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty } from './utils';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
@@ -83,7 +83,11 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       };
     }
 
-    if (query.outputType === OutputType.Properties && isPropertiesNonEmpty(query.properties)) {
+    if (
+      query.outputType === OutputType.Properties &&
+      isPropertiesNonEmpty(query.properties) &&
+      isTakeValid(query.take)
+    ) {
       return this.processWorkItemsQuery(query, filter);
     }
 
@@ -99,22 +103,26 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       query.take
     );
 
-    const mappedFields = query.properties?.map(property => {
-      const fieldValue = workItems.map(workItem => this.getPropertyValue(property, workItem));
-      const fieldType = this.getPropertyFieldType(property);
-      return {
-        name: WorkItemProperties[property].label,
-        values: fieldValue,
-        type: fieldType,
-        ...(fieldType === FieldType.time && { config: { unit: 'time:YYYY-MM-DD HH:mm:ss' } }),
-      };
-    });
-
     return {
       refId: query.refId,
       name: query.refId,
-      fields: mappedFields ?? [],
+      fields: this.buildFields(query.properties, workItems),
     };
+  }
+
+  private buildFields(properties: WorkItemPropertiesOptions[] | undefined, workItems: WorkItem[]) {
+    return (
+      properties?.map(property => {
+        const fieldValue = workItems.map(workItem => this.getPropertyValue(property, workItem));
+        const fieldType = this.getPropertyFieldType(property);
+        return {
+          name: WorkItemProperties[property].label,
+          values: fieldValue,
+          type: fieldType,
+          ...(fieldType === FieldType.time && { config: { unit: 'time:YYYY-MM-DD HH:mm:ss' } }),
+        };
+      }) ?? []
+    );
   }
 
   private getPropertyValue(

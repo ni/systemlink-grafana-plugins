@@ -186,6 +186,8 @@ describe('WorkItemsDataSource', () => {
           properties: [
             WorkItemPropertiesOptions.ID,
             WorkItemPropertiesOptions.NAME,
+            WorkItemPropertiesOptions.TYPE,
+            WorkItemPropertiesOptions.STATE,
             WorkItemPropertiesOptions.SUBSTATE,
             WorkItemPropertiesOptions.DESCRIPTION,
             WorkItemPropertiesOptions.TEST_PROGRAM,
@@ -199,6 +201,7 @@ describe('WorkItemsDataSource', () => {
             WorkItemPropertiesOptions.PLANNED_START_DATE,
             WorkItemPropertiesOptions.PLANNED_END_DATE,
           ],
+          take: 1000,
         };
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
@@ -208,6 +211,8 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([
           { name: 'Work item ID', values: ['1'], type: 'string' },
           { name: 'Work item name', values: ['Battery Cycle Test'], type: 'string' },
+          { name: 'Work item type', values: ['Test plan'], type: 'string' },
+          { name: 'State', values: ['New'], type: 'string' },
           { name: 'Substate', values: ['substate1'], type: 'string' },
           { name: 'Description', values: ['Battery cycle test at various temperatures.'], type: 'string' },
           { name: 'Test program', values: ['Battery cycle test'], type: 'string' },
@@ -228,7 +233,7 @@ describe('WorkItemsDataSource', () => {
         ]);
       });
 
-      it('should return null for time fields with missing timeline or schedule data', async () => {
+      it('should return null for all time fields with missing data', async () => {
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [{ id: '1' }],
           continuationToken: '',
@@ -240,37 +245,14 @@ describe('WorkItemsDataSource', () => {
           outputType: OutputType.Properties,
           types: [WorkItemTypeOptions.WorkOrders],
           properties: [
+            WorkItemPropertiesOptions.CREATED_AT,
+            WorkItemPropertiesOptions.UPDATED_AT,
             WorkItemPropertiesOptions.EARLIEST_START_DATE,
             WorkItemPropertiesOptions.DUE_DATE,
             WorkItemPropertiesOptions.PLANNED_START_DATE,
             WorkItemPropertiesOptions.PLANNED_END_DATE,
           ],
-        };
-
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
-
-        const timeConfig = { unit: 'time:YYYY-MM-DD HH:mm:ss' };
-
-        expect(result.fields).toEqual([
-          { name: 'Earliest start date', values: [null], type: 'time', config: timeConfig },
-          { name: 'Due date', values: [null], type: 'time', config: timeConfig },
-          { name: 'Planned start date', values: [null], type: 'time', config: timeConfig },
-          { name: 'Planned end date', values: [null], type: 'time', config: timeConfig },
-        ]);
-      });
-
-      it('should return null for created at and updated at when missing', async () => {
-        jest.spyOn(datasource, 'post').mockResolvedValue({
-          workItems: [{ id: '1' }],
-          continuationToken: '',
-          totalCount: 1,
-        });
-
-        const query = {
-          refId: 'A',
-          outputType: OutputType.Properties,
-          types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.CREATED_AT, WorkItemPropertiesOptions.UPDATED_AT],
+          take: 1000,
         };
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
@@ -280,6 +262,10 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([
           { name: 'Created at', values: [null], type: 'time', config: timeConfig },
           { name: 'Updated at', values: [null], type: 'time', config: timeConfig },
+          { name: 'Earliest start date', values: [null], type: 'time', config: timeConfig },
+          { name: 'Due date', values: [null], type: 'time', config: timeConfig },
+          { name: 'Planned start date', values: [null], type: 'time', config: timeConfig },
+          { name: 'Planned end date', values: [null], type: 'time', config: timeConfig },
         ]);
       });
 
@@ -295,6 +281,7 @@ describe('WorkItemsDataSource', () => {
           outputType: OutputType.Properties,
           types: [WorkItemTypeOptions.WorkOrders],
           properties: [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
+          take: 1000,
         };
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
@@ -306,7 +293,7 @@ describe('WorkItemsDataSource', () => {
         result.fields.forEach(field => expect(field).not.toHaveProperty('config'));
       });
 
-      it('should format known type and state values into human-readable labels', async () => {
+      it('should format known type and state values into readable labels', async () => {
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [
             { id: '1', type: 'testplan', state: 'IN_PROGRESS' },
@@ -321,6 +308,7 @@ describe('WorkItemsDataSource', () => {
           outputType: OutputType.Properties,
           types: [WorkItemTypeOptions.WorkOrders],
           properties: [WorkItemPropertiesOptions.TYPE, WorkItemPropertiesOptions.STATE],
+          take: 1000,
         };
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
@@ -343,6 +331,7 @@ describe('WorkItemsDataSource', () => {
           outputType: OutputType.Properties,
           types: [WorkItemTypeOptions.WorkOrders],
           properties: [WorkItemPropertiesOptions.TYPE, WorkItemPropertiesOptions.STATE],
+          take: 1000,
         };
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
@@ -350,28 +339,6 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([
           { name: 'Work item type', values: ['customtype'], type: 'string' },
           { name: 'State', values: ['UNKNOWN_STATE'], type: 'string' },
-        ]);
-      });
-
-      it('should return an empty column for properties that are not yet supported', async () => {
-        jest.spyOn(datasource, 'post').mockResolvedValue({
-          workItems: [{ id: '1' }],
-          continuationToken: '',
-          totalCount: 1,
-        });
-
-        const query = {
-          refId: 'A',
-          outputType: OutputType.Properties,
-          types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.ASSIGNED_TO, WorkItemPropertiesOptions.ESTIMATED_DURATION],
-        };
-
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
-
-        expect(result.fields).toEqual([
-          { name: 'Assigned to', values: [''], type: 'string' },
-          { name: 'Estimated duration', values: [''], type: 'string' },
         ]);
       });
 
@@ -400,31 +367,14 @@ describe('WorkItemsDataSource', () => {
         expect(postSpy).not.toHaveBeenCalled();
       });
 
-      it('should request projections for every selected property, supported or not', async () => {
+      it('should request the deduplicated projection for every selected property', async () => {
         const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ workItems: [], totalCount: 0 });
         const query = {
           refId: 'A',
           outputType: OutputType.Properties,
           types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.ASSIGNED_TO],
-        };
-
-        await datasource.runQuery(query, {} as DataQueryRequest);
-
-        expect(postSpy).toHaveBeenCalledWith(
-          '/niworkitem/v1/query-workitems',
-          expect.objectContaining({ projection: ['ID', 'ASSIGNED_TO'] }),
-          { showErrorAlert: false }
-        );
-      });
-
-      it('should request multiple projections and de-duplicate them for a single property', async () => {
-        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ workItems: [], totalCount: 0 });
-        const query = {
-          refId: 'A',
-          outputType: OutputType.Properties,
-          types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_LOCATION, WorkItemPropertiesOptions.ASSET_NAME],
+          properties: Object.values(WorkItemPropertiesOptions),
+          take: 1000,
         };
 
         await datasource.runQuery(query, {} as DataQueryRequest);
@@ -433,10 +383,40 @@ describe('WorkItemsDataSource', () => {
           '/niworkitem/v1/query-workitems',
           expect.objectContaining({
             projection: [
+              'ID',
+              'NAME',
+              'TYPE',
+              'STATE',
+              'SUBSTATE',
+              'DESCRIPTION',
+              'TEST_PROGRAM',
+              'PART_NUMBER',
+              'WORKSPACE',
+              'ASSIGNED_TO',
+              'REQUESTED_BY',
+              'CREATED_BY',
+              'UPDATED_BY',
+              'CREATED_AT',
+              'UPDATED_AT',
+              'PARENT_ID',
+              'TEMPLATE_ID',
+              'TIMELINE_EARLIEST_START_DATE_TIME',
+              'TIMELINE_DUE_DATE_TIME',
+              'TIMELINE_ESTIMATED_DURATION_IN_SECONDS',
+              'SCHEDULE_PLANNED_START_DATE_TIME',
+              'SCHEDULE_PLANNED_END_DATE_TIME',
+              'SCHEDULE_PLANNED_DURATION_IN_SECONDS',
+              'RESOURCES_ASSETS_SELECTIONS_ID',
+              'RESOURCES_DUTS_SELECTIONS_ID',
+              'RESOURCES_FIXTURES_SELECTIONS_ID',
               'RESOURCES_ASSETS_SELECTIONS_TARGET_SYSTEM_ID',
               'RESOURCES_DUTS_SELECTIONS_TARGET_SYSTEM_ID',
               'RESOURCES_FIXTURES_SELECTIONS_TARGET_SYSTEM_ID',
-              'RESOURCES_ASSETS_SELECTIONS_ID',
+              'RESOURCES_ASSETS_SELECTIONS_TARGET_PARENT_ID',
+              'RESOURCES_DUTS_SELECTIONS_TARGET_PARENT_ID',
+              'RESOURCES_FIXTURES_SELECTIONS_TARGET_PARENT_ID',
+              'RESOURCES_SYSTEMS_SELECTIONS_ID',
+              'PROPERTIES',
             ],
           }),
           { showErrorAlert: false }
@@ -461,6 +441,25 @@ describe('WorkItemsDataSource', () => {
           5000
         );
       });
+
+      it.each([0, -1])(
+        'should return an empty data frame without querying when take is %d',
+        async take => {
+          const postSpy = jest.spyOn(datasource, 'post');
+          const query = {
+            refId: 'A',
+            outputType: OutputType.Properties,
+            types: [WorkItemTypeOptions.WorkOrders],
+            properties: [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
+            take,
+          };
+
+          const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+          expect(postSpy).not.toHaveBeenCalled();
+          expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
+        }
+      );
     });
 
     describe('error handling', () => {

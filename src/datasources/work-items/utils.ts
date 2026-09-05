@@ -27,3 +27,16 @@ export const isPropertiesNonEmpty = (
     properties?: WorkItemPropertiesOptions[]
 ): boolean =>
   Boolean(properties && properties.length > 0);
+
+export const isTakeValid = (take?: number): boolean => {
+  if (
+    take === undefined ||
+    Number.isNaN(take) ||
+    take <= 0 ||
+    take > TAKE_LIMIT
+  ) {
+    return false;
+  }
+
+  return true;
+};
