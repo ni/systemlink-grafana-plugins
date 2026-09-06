@@ -1,7 +1,7 @@
 import { TAKE_LIMIT } from './constants';
 import { takeErrorMessages } from './constants/QueryEditor.constants';
 import { WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
-import { getTakeError, isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty } from './utils';
+import { getTakeError, isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty, transformDuration } from './utils';
 
 describe('getTakeError', () => {
   it('should return no error for a value within the valid range', () => {
@@ -67,4 +67,12 @@ describe('isTakeValid', () => {
   it('should return false when the value exceeds the maximum', () => {
     expect(isTakeValid(TAKE_LIMIT + 1)).toBe(false);
   });
+});
+
+test('transformDuration', () => {
+    expect(transformDuration(0)).toBe('0 sec');
+    expect(transformDuration(61)).toBe('1 min, 1 sec');
+    expect(transformDuration(3661)).toBe('1 hr, 1 min, 1 sec');
+    expect(transformDuration(90061)).toBe('1 day, 1 hr, 1 min, 1 sec');
+    expect(transformDuration(172800)).toBe('2 days');
 });

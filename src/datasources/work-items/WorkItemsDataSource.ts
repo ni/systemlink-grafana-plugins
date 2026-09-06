@@ -33,7 +33,7 @@ import {
 } from './constants/QueryWorkItems.constants';
 import { WorkItemProperties } from './constants/QueryEditor.constants';
 import { extractErrorInfo } from 'core/errors';
-import { isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty } from './utils';
+import { isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty, transformDuration } from './utils';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
@@ -158,10 +158,18 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         return workItem.timeline?.earliestStartDateTime ?? null;
       case WorkItemPropertiesOptions.DUE_DATE:
         return workItem.timeline?.dueDateTime ?? null;
+      case WorkItemPropertiesOptions.ESTIMATED_DURATION: {
+        const seconds = workItem.timeline?.estimatedDurationInSeconds;
+        return seconds != null ? transformDuration(seconds) : '';
+      }
       case WorkItemPropertiesOptions.PLANNED_START_DATE:
         return workItem.schedule?.plannedStartDateTime ?? null;
       case WorkItemPropertiesOptions.PLANNED_END_DATE:
         return workItem.schedule?.plannedEndDateTime ?? null;
+      case WorkItemPropertiesOptions.PLANNED_DURATION: {
+        const seconds = workItem.schedule?.plannedDurationInSeconds;
+        return seconds != null ? transformDuration(seconds) : '';
+      }
       default:
         return '';
     }

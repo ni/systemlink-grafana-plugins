@@ -233,6 +233,42 @@ describe('WorkItemsDataSource', () => {
         ]);
       });
 
+      it('should format estimated and planned duration properties', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [
+            {
+              timeline: { estimatedDurationInSeconds: 90061 },
+              schedule: { plannedDurationInSeconds: 3661 },
+            },
+          ],
+        });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [
+            WorkItemPropertiesOptions.ESTIMATED_DURATION,
+            WorkItemPropertiesOptions.PLANNED_DURATION,
+          ],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([
+          {
+            name: 'Estimated duration',
+            values: ['1 day, 1 hr, 1 min, 1 sec'],
+            type: 'string',
+          },
+          {
+            name: 'Planned duration',
+            values: ['1 hr, 1 min, 1 sec'],
+            type: 'string',
+          },
+        ]);
+      });
+
       it('should return null for all time fields with missing data', async () => {
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [{ id: '1' }],
