@@ -25,6 +25,7 @@ import {
 } from './types';
 import {
   DEFAULT_TAKE,
+  USER_PROPERTY_FIELDS,
   WORK_ITEM_PROPERTIES_PROJECTIONS,
   WORK_ITEM_TYPE_FILTER_VALUES,
   WORK_ITEM_TYPE_LABEL_MAP,
@@ -53,15 +54,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   queryWorkItemsUrl = `${this.baseUrl}/query-workitems`;
   workspaceUtils: WorkspaceUtils;
   usersUtils: UsersUtils;
-
-  private static readonly USER_PROPERTY_FIELDS: Partial<
-    Record<WorkItemPropertiesOptions, keyof WorkItem>
-  > = {
-    [WorkItemPropertiesOptions.ASSIGNED_TO]: 'assignedTo',
-    [WorkItemPropertiesOptions.REQUESTED_BY]: 'requestedBy',
-    [WorkItemPropertiesOptions.CREATED_BY]: 'createdBy',
-    [WorkItemPropertiesOptions.UPDATED_BY]: 'updatedBy',
-  };
 
   defaultQuery = {
     outputType: OutputType.Properties,
@@ -228,7 +220,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       case WorkItemPropertiesOptions.REQUESTED_BY:
       case WorkItemPropertiesOptions.CREATED_BY:
       case WorkItemPropertiesOptions.UPDATED_BY: {
-        const userField = WorkItemsDataSource.USER_PROPERTY_FIELDS[property]!;
+        const userField = USER_PROPERTY_FIELDS[property]!;
         const userId = workItem[userField] as string | undefined;
         const user = users.get(userId ?? '');
         return user ? UsersUtils.getUserFullName(user) : userId ?? '';

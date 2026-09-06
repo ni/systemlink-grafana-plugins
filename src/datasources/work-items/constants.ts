@@ -1,8 +1,16 @@
-import { WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
+import { WorkItem, WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
 
 export const TAKE_LIMIT = 10000;
 export const DEFAULT_TAKE = 1000;
 
+export const USER_PROPERTY_FIELDS: Partial<
+  Record<WorkItemPropertiesOptions, keyof WorkItem>
+> = {
+  [WorkItemPropertiesOptions.ASSIGNED_TO]: 'assignedTo',
+  [WorkItemPropertiesOptions.REQUESTED_BY]: 'requestedBy',
+  [WorkItemPropertiesOptions.CREATED_BY]: 'createdBy',
+  [WorkItemPropertiesOptions.UPDATED_BY]: 'updatedBy',
+};
 
 // Maps every work item property to its backend `projection` enum value(s).
 export const WORK_ITEM_PROPERTIES_PROJECTIONS: Record<WorkItemPropertiesOptions, string[]> = {
