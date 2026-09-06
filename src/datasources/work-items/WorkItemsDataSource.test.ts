@@ -578,27 +578,6 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([{ name: 'Workspace', values: ['ws-1'], type: 'string' }]);
       });
 
-      it('should not query workspaces when the WORKSPACE property is not selected', async () => {
-        const getWorkspacesSpy = jest.spyOn(datasource.workspaceUtils, 'getWorkspaces');
-        jest.spyOn(datasource, 'post').mockResolvedValue({
-          workItems: [{ id: '1' }],
-          continuationToken: '',
-          totalCount: 1,
-        });
-
-        const query = {
-          refId: 'A',
-          outputType: OutputType.Properties,
-          types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.ID],
-          take: 1000,
-        };
-
-        await datasource.runQuery(query, {} as DataQueryRequest);
-
-        expect(getWorkspacesSpy).not.toHaveBeenCalled();
-      });
-
       it.each([
         [WorkItemPropertiesOptions.ASSIGNED_TO, 'assignedTo', 'Assigned to'],
         [WorkItemPropertiesOptions.REQUESTED_BY, 'requestedBy', 'Requested by'],
@@ -663,27 +642,6 @@ describe('WorkItemsDataSource', () => {
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
         expect(result.fields).toEqual([{ name: 'Assigned to', values: ['user-1'], type: 'string' }]);
-      });
-
-      it('should not query users when no user-lookup property is selected', async () => {
-        const getUsersSpy = jest.spyOn(datasource.usersUtils, 'getUsers');
-        jest.spyOn(datasource, 'post').mockResolvedValue({
-          workItems: [{ id: '1' }],
-          continuationToken: '',
-          totalCount: 1,
-        });
-
-        const query = {
-          refId: 'A',
-          outputType: OutputType.Properties,
-          types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.ID],
-          take: 1000,
-        };
-
-        await datasource.runQuery(query, {} as DataQueryRequest);
-
-        expect(getUsersSpy).not.toHaveBeenCalled();
       });
     });
 

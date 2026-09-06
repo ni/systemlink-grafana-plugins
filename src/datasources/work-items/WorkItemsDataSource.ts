@@ -54,13 +54,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   workspaceUtils: WorkspaceUtils;
   usersUtils: UsersUtils;
 
-  private static readonly USER_LOOKUP_PROPERTIES = [
-    WorkItemPropertiesOptions.ASSIGNED_TO,
-    WorkItemPropertiesOptions.REQUESTED_BY,
-    WorkItemPropertiesOptions.CREATED_BY,
-    WorkItemPropertiesOptions.UPDATED_BY,
-  ];
-
   private static readonly USER_PROPERTY_FIELDS: Partial<
     Record<WorkItemPropertiesOptions, keyof WorkItem>
   > = {
