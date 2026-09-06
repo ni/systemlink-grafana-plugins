@@ -118,19 +118,11 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   async processWorkItemsQuery(query: WorkItemsQuery, filter?: string): Promise<DataFrameDTO> {
-    const [workItems, workspaces, users] = await Promise.all([
-      this.queryWorkItemsData(filter, query.properties, query.orderBy, query.descending, query.take),
-      this.needsWorkspaceLookup(query.properties)
-        ? this.loadWorkspaces()
-        : Promise.resolve(new Map<string, Workspace>()),
-      this.needsUserLookup(query.properties)
-        ? this.loadUsers()
-        : Promise.resolve(new Map<string, User>()),
-    ]);
+    const workspaces = await this.loadWorkspaces();
+    const users = await this.loadUsers();
+    const workItems = await this.queryWorkItemsData(filter, query.properties, query.orderBy, query.descending, query.take);
 
-    const parentWorkItemNames = query.properties?.includes(
-      WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME
-    )
+    const parentWorkItemNames = this.isParentWorkItemNameSelected(query.properties)
       ? await this.loadParentWorkItemNames(workItems)
       : new Map<string, string>();
 
@@ -141,14 +133,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     };
   }
 
-  private needsWorkspaceLookup(properties?: WorkItemPropertiesOptions[]): boolean {
-    return !!properties?.includes(WorkItemPropertiesOptions.WORKSPACE);
-  }
-
-  private needsUserLookup(properties?: WorkItemPropertiesOptions[]): boolean {
-    return !!properties?.some(property =>
-      WorkItemsDataSource.USER_LOOKUP_PROPERTIES.includes(property)
-    );
+  private isParentWorkItemNameSelected(properties?: WorkItemPropertiesOptions[]): boolean {
+    return !!properties?.includes(WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME);
   }
 
   private async loadWorkspaces(): Promise<Map<string, Workspace>> {
@@ -178,7 +164,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     try {
       const response = await this.queryWorkItems({
         filter: parentIds.map(id => `id = "${id}"`).join(' || '),
-        projection: ['ID', 'NAME'],
+        projection: [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
         take: parentIds.length,
       });
 
