@@ -9,7 +9,10 @@ import {
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { queryInBatches } from 'core/utils';
-import { QueryResponse } from 'core/types';
+import { QueryResponse, Workspace } from 'core/types';
+import { WorkspaceUtils } from 'shared/workspace.utils';
+import { UsersUtils } from 'shared/users.utils';
+import { User } from 'shared/types/QueryUsers.types';
 import {
   OrderByOptions,
   OutputType,
@@ -42,10 +45,30 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
+    this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
+    this.usersUtils = new UsersUtils(this.instanceSettings, this.backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkitem/v1`;
   queryWorkItemsUrl = `${this.baseUrl}/query-workitems`;
+  workspaceUtils: WorkspaceUtils;
+  usersUtils: UsersUtils;
+
+  private static readonly USER_LOOKUP_PROPERTIES = [
+    WorkItemPropertiesOptions.ASSIGNED_TO,
+    WorkItemPropertiesOptions.REQUESTED_BY,
+    WorkItemPropertiesOptions.CREATED_BY,
+    WorkItemPropertiesOptions.UPDATED_BY,
+  ];
+
+  private static readonly USER_PROPERTY_FIELDS: Partial<
+    Record<WorkItemPropertiesOptions, keyof WorkItem>
+  > = {
+    [WorkItemPropertiesOptions.ASSIGNED_TO]: 'assignedTo',
+    [WorkItemPropertiesOptions.REQUESTED_BY]: 'requestedBy',
+    [WorkItemPropertiesOptions.CREATED_BY]: 'createdBy',
+    [WorkItemPropertiesOptions.UPDATED_BY]: 'updatedBy',
+  };
 
   defaultQuery = {
     outputType: OutputType.Properties,
@@ -95,25 +118,94 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   async processWorkItemsQuery(query: WorkItemsQuery, filter?: string): Promise<DataFrameDTO> {
-    const workItems = await this.queryWorkItemsData(
-      filter,
-      query.properties,
-      query.orderBy,
-      query.descending,
-      query.take
-    );
+    const [workItems, workspaces, users] = await Promise.all([
+      this.queryWorkItemsData(filter, query.properties, query.orderBy, query.descending, query.take),
+      this.needsWorkspaceLookup(query.properties)
+        ? this.loadWorkspaces()
+        : Promise.resolve(new Map<string, Workspace>()),
+      this.needsUserLookup(query.properties)
+        ? this.loadUsers()
+        : Promise.resolve(new Map<string, User>()),
+    ]);
+
+    const parentWorkItemNames = query.properties?.includes(
+      WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME
+    )
+      ? await this.loadParentWorkItemNames(workItems)
+      : new Map<string, string>();
 
     return {
       refId: query.refId,
       name: query.refId,
-      fields: this.buildFields(query.properties, workItems),
+      fields: this.buildFields(query.properties, workItems, workspaces, users, parentWorkItemNames),
     };
   }
 
-  private buildFields(properties: WorkItemPropertiesOptions[] | undefined, workItems: WorkItem[]) {
+  private needsWorkspaceLookup(properties?: WorkItemPropertiesOptions[]): boolean {
+    return !!properties?.includes(WorkItemPropertiesOptions.WORKSPACE);
+  }
+
+  private needsUserLookup(properties?: WorkItemPropertiesOptions[]): boolean {
+    return !!properties?.some(property =>
+      WorkItemsDataSource.USER_LOOKUP_PROPERTIES.includes(property)
+    );
+  }
+
+  private async loadWorkspaces(): Promise<Map<string, Workspace>> {
+    try {
+      return await this.workspaceUtils.getWorkspaces();
+    } catch {
+      return new Map<string, Workspace>();
+    }
+  }
+
+  private async loadUsers(): Promise<Map<string, User>> {
+    try {
+      return await this.usersUtils.getUsers();
+    } catch {
+      return new Map<string, User>();
+    }
+  }
+
+  private async loadParentWorkItemNames(workItems: WorkItem[]): Promise<Map<string, string>> {
+    const parentIds = [
+      ...new Set(workItems.map(workItem => workItem.parentId).filter((id): id is string => !!id)),
+    ];
+    if (parentIds.length === 0) {
+      return new Map<string, string>();
+    }
+
+    try {
+      const response = await this.queryWorkItems({
+        filter: parentIds.map(id => `id = "${id}"`).join(' || '),
+        projection: ['ID', 'NAME'],
+        take: parentIds.length,
+      });
+
+      const nameMap = new Map<string, string>();
+      (response.workItems ?? []).forEach(parentWorkItem => {
+        if (parentWorkItem.id) {
+          nameMap.set(parentWorkItem.id, parentWorkItem.name ?? '');
+        }
+      });
+      return nameMap;
+    } catch {
+      return new Map<string, string>();
+    }
+  }
+
+  private buildFields(
+    properties: WorkItemPropertiesOptions[] | undefined,
+    workItems: WorkItem[],
+    workspaces: Map<string, Workspace>,
+    users: Map<string, User>,
+    parentWorkItemNames: Map<string, string>
+  ) {
     return (
       properties?.map(property => {
-        const fieldValue = workItems.map(workItem => this.getPropertyValue(property, workItem));
+        const fieldValue = workItems.map(workItem =>
+          this.getPropertyValue(property, workItem, workspaces, users, parentWorkItemNames)
+        );
         const fieldType = this.getPropertyFieldType(property);
         return {
           name: WorkItemProperties[property].label,
@@ -127,7 +219,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   private getPropertyValue(
     property: WorkItemPropertiesOptions,
-    workItem: WorkItem
+    workItem: WorkItem,
+    workspaces: Map<string, Workspace>,
+    users: Map<string, User>,
+    parentWorkItemNames: Map<string, string>
   ): string | null {
     switch (property) {
       case WorkItemPropertiesOptions.ID:
@@ -146,6 +241,25 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         return workItem.testProgram ?? '';
       case WorkItemPropertiesOptions.PART_NUMBER:
         return workItem.partNumber ?? '';
+      case WorkItemPropertiesOptions.WORKSPACE: {
+        const workspace = workspaces.get(workItem.workspace ?? '');
+        return workspace ? workspace.name : workItem.workspace ?? '';
+      }
+      case WorkItemPropertiesOptions.ASSIGNED_TO:
+      case WorkItemPropertiesOptions.REQUESTED_BY:
+      case WorkItemPropertiesOptions.CREATED_BY:
+      case WorkItemPropertiesOptions.UPDATED_BY: {
+        const userField = WorkItemsDataSource.USER_PROPERTY_FIELDS[property]!;
+        const userId = workItem[userField] as string | undefined;
+        const user = users.get(userId ?? '');
+        return user ? UsersUtils.getUserFullName(user) : userId ?? '';
+      }
+      case WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME: {
+        if (!workItem.parentId) {
+          return '';
+        }
+        return parentWorkItemNames.get(workItem.parentId) ?? workItem.parentId;
+      }
       case WorkItemPropertiesOptions.PARENT_WORK_ITEM_ID:
         return workItem.parentId ?? '';
       case WorkItemPropertiesOptions.TEMPLATE_ID:
