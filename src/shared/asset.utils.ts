@@ -1,0 +1,57 @@
+import { DataSourceInstanceSettings } from '@grafana/data';
+import { BackendSrv } from '@grafana/runtime';
+import {
+  QUERY_ASSETS_BATCH_SIZE,
+  QUERY_ASSETS_REQUEST_PER_SECOND,
+} from './constants/QueryAssets.constants';
+import { Asset, QueryAssetNameResponse } from './types/QueryAssets.types';
+
+export { Asset } from './types/QueryAssets.types';
+
+export class AssetUtils {
+  private readonly queryAssetsUrl = `${this.instanceSettings.url}/niapm/v1/query-assets`;
+
+  constructor(
+    readonly instanceSettings: DataSourceInstanceSettings,
+    readonly backendSrv: BackendSrv
+  ) {}
+
+  async queryAssetsInBatches(ids: string[]): Promise<Asset[]> {
+    const uniqueIds = [...new Set(ids)];
+    const assets: Asset[] = [];
+    const remainingIds = [...uniqueIds];
+
+    while (remainingIds.length > 0) {
+      const startTime = Date.now();
+      const requests: Array<Promise<QueryAssetNameResponse>> = [];
+
+      for (
+        let request = 0;
+        request < QUERY_ASSETS_REQUEST_PER_SECOND && remainingIds.length > 0;
+        request++
+      ) {
+        const idsChunk = remainingIds.splice(0, QUERY_ASSETS_BATCH_SIZE);
+        requests.push(this.queryAssets(idsChunk));
+      }
+
+      const responses = await Promise.all(requests);
+      responses.forEach(response => assets.push(...response.assets));
+
+      const elapsedTime = Date.now() - startTime;
+      if (remainingIds.length > 0 && elapsedTime < 1000) {
+        await new Promise(resolve => setTimeout(resolve, 1000 - elapsedTime));
+      }
+    }
+
+    return assets;
+  }
+
+  private async queryAssets(ids: string[]): Promise<QueryAssetNameResponse> {
+    const filter = `new[]{${ids.map(id => `"${id}"`).join(', ')}}.Contains(AssetIdentifier)`;
+    return this.backendSrv.post<QueryAssetNameResponse>(
+      this.queryAssetsUrl,
+      { filter, take: ids.length, returnCount: true },
+      { showErrorAlert: false }
+    );
+  }
+}

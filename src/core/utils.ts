@@ -104,6 +104,26 @@ export function validateNumericInput(event: React.KeyboardEvent<HTMLInputElement
   }
 }
 
+export function transformDuration(totalSeconds: number): string {
+  const timeUnits = [
+    { label: 'day', secondsInUnit: 86400 },
+    { label: 'hr', secondsInUnit: 3600 },
+    { label: 'min', secondsInUnit: 60 },
+    { label: 'sec', secondsInUnit: 1 },
+  ];
+  const durationParts: string[] = [];
+
+  for (const { label, secondsInUnit } of timeUnits) {
+    const count = Math.floor(totalSeconds / secondsInUnit);
+    if (count > 0) {
+      durationParts.push(`${count} ${label}${count > 1 ? 's' : ''}`);
+      totalSeconds %= secondsInUnit;
+    }
+  }
+
+  return durationParts.length > 0 ? durationParts.join(', ') : '0 sec';
+}
+
 export async function queryInBatches<T>(
   queryRecord: (take: number, continuationToken?: string) => Promise<QueryResponse<T>>,
   queryConfig: BatchQueryConfig,
