@@ -2,11 +2,11 @@ import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, 
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTemplatesResponse, QueryTestPlansResponse, TemplateResponseProperties, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
-import { getWorkspaceName, queryInBatches, transformDuration } from 'core/utils';
+import { getWorkspaceName, queryInBatches } from 'core/utils';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { AssetUtils } from 'shared/asset.utils';
 import { Asset, AssetProjectionProperties } from 'shared/types/QueryAssets.types';
-import { isTimeField } from './utils';
+import { isTimeField, transformDuration } from './utils';
 import { QUERY_TEMPLATES_BATCH_SIZE, QUERY_TEMPLATES_REQUEST_PER_SECOND, QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { SystemUtils } from 'shared/system.utils';

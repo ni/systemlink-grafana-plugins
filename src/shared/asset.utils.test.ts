@@ -3,6 +3,11 @@ import { BackendSrv } from '@grafana/runtime';
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { AssetProjectionProperties, QueryAssetNameResponse } from './types/QueryAssets.types';
 
+jest.mock('./constants/QueryAssets.constants', () => ({
+    QUERY_ASSETS_BATCH_SIZE: 10,
+    QUERY_ASSETS_REQUEST_PER_SECOND: 2
+}));
+
 describe('AssetUtils', () => {
     let instanceSettings: DataSourceInstanceSettings;
     let backendSrv: BackendSrv;
@@ -37,36 +42,61 @@ describe('AssetUtils', () => {
             ]);
         });
 
-        it('should query assets in multiple requests when ids exceed the batch size', async () => {
+        it('should query assets in multiple requests when ids length is greater than QUERY_ASSETS_BATCH_SIZE', async () => {
             (backendSrv.post as jest.Mock)
                 .mockResolvedValueOnce({
                     assets: [],
-                    totalCount: 100
+                    totalCount: 10
                 })
                 .mockResolvedValueOnce({
                     assets: [],
-                    totalCount: 1
+                    totalCount: 10
                 });
 
-            const ids = Array.from({ length: 101 }, (_, i) => `${i + 1}`);
+            const ids = Array.from({ length: 20 }, (_, i) => `${i + 1}`);
             const idsCopy = [...ids]
             const result = await assetUtils.queryAssetsInBatches(ids);
 
             expect(backendSrv.post).toHaveBeenCalledTimes(2);
             const mockRequest1 = {
-                filter: `new[]{${idsCopy.slice(0, 100).map(id => `"${id}"`).join(', ')}}.Contains(AssetIdentifier)`,
-                take: 100,
+                filter: `new[]{${idsCopy.slice(0, 10).map(id => `"${id}"`).join(', ')}}.Contains(AssetIdentifier)`,
+                take: 10,
                 returnCount: true
             }
             const mockRequest2 = {
-                filter: `new[]{${idsCopy.slice(100).map(id => `"${id}"`).join(', ')}}.Contains(AssetIdentifier)`,
-                take: 1,
+                filter: `new[]{${idsCopy.slice(10).map(id => `"${id}"`).join(', ')}}.Contains(AssetIdentifier)`,
+                take: 10,
                 returnCount: true
             }
             expect(backendSrv.post).toHaveBeenNthCalledWith(1, `${instanceSettings.url}/niapm/v1/query-assets`, mockRequest1, { showErrorAlert: false });
             expect(backendSrv.post).toHaveBeenNthCalledWith(2, `${instanceSettings.url}/niapm/v1/query-assets`, mockRequest2, { showErrorAlert: false });
 
             expect(result).toEqual([]);
+        });
+
+        it('should delay between batches if requests exceed QUERY_ASSETS_REQUEST_PER_SECOND', async () => {
+            jest.useFakeTimers();
+            (backendSrv.post as jest.Mock)
+                .mockResolvedValueOnce({
+                    assets: [],
+                    totalCount: 10
+                })
+                .mockResolvedValueOnce({
+                    assets: [],
+                    totalCount: 10
+                })
+                .mockResolvedValueOnce({
+                    assets: [],
+                    totalCount: 10
+                });
+
+            const ids = Array.from({ length: 30 }, (_, i) => `${i + 1}`);
+            const result = assetUtils.queryAssetsInBatches(ids);
+            jest.advanceTimersByTime(1000);
+            await result;
+
+            expect(backendSrv.post).toHaveBeenCalledTimes(3);
+            jest.useRealTimers();
         });
 
         it('should build the projection from the provided properties', async () => {
@@ -89,7 +119,7 @@ describe('AssetUtils', () => {
             );
         });
 
-        it('should omit the projection from the request when no properties are provided', async () => {
+        it('should send undefined projection in the request when no properties are provided', async () => {
             (backendSrv.post as jest.Mock).mockResolvedValueOnce({ assets: [], totalCount: 0 });
 
             await assetUtils.queryAssetsInBatches(['1']);
@@ -99,11 +129,52 @@ describe('AssetUtils', () => {
                 {
                     filter: `new[]{"1"}.Contains(AssetIdentifier)`,
                     take: 1,
+                    projection: undefined,
                     returnCount: true
                 },
                 { showErrorAlert: false }
             );
         });
 
+        it('should escape quotes and backslashes in ids', async () => {
+            (backendSrv.post as jest.Mock).mockResolvedValueOnce({ assets: [], totalCount: 0 });
+
+            await assetUtils.queryAssetsInBatches(['asset"1', 'asset\\2']);
+
+            expect(backendSrv.post).toHaveBeenCalledWith(
+                `${instanceSettings.url}/niapm/v1/query-assets`,
+                {
+                    filter: 'new[]{"asset\\"1", "asset\\\\2"}.Contains(AssetIdentifier)',
+                    take: 2,
+                    returnCount: true
+                },
+                { showErrorAlert: false }
+            );
+        });
+
+        it('should return an empty array without calling backendSrv.post when ids is empty',
+            async () => {
+            const result = await assetUtils.queryAssetsInBatches([]);
+
+            expect(result).toEqual([]);
+            expect(backendSrv.post).not.toHaveBeenCalled();
+        });
+
+        it('should deduplicate ids before querying assets', async () => {
+            (backendSrv.post as jest.Mock).mockResolvedValueOnce({ assets: [], totalCount: 0 });
+
+            await assetUtils.queryAssetsInBatches(['1', '1', '2']);
+
+            expect(backendSrv.post).toHaveBeenCalledTimes(1);
+            expect(backendSrv.post).toHaveBeenCalledWith(
+                `${instanceSettings.url}/niapm/v1/query-assets`,
+                {
+                    filter: `new[]{"1", "2"}.Contains(AssetIdentifier)`,
+                    take: 2,
+                    returnCount: true
+                },
+                { showErrorAlert: false }
+            );
+        });
     });
 });

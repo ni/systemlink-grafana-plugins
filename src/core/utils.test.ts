@@ -1,5 +1,5 @@
 import { BackendSrv, TemplateSrv } from "@grafana/runtime";
-import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, get, post, addOptionsToLookup, get$, post$, transformDuration } from "./utils";
+import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, get, post, addOptionsToLookup, get$, post$ } from "./utils";
 import { BatchQueryConfig, QBField, QueryBuilderOption } from "./types";
 import { firstValueFrom, of, throwError } from 'rxjs';
 
@@ -183,16 +183,6 @@ describe('replaceVariables', () => {
     const result = replaceVariables(['$var1', '$var2', '$var3'], mockTemplateSrv);
 
     expect(result).toEqual(['value1', 'value2', 'value3']);
-  });
-});
-
-describe('transformDuration', () => {
-  it('formats seconds using the largest appropriate time units', () => {
-    expect(transformDuration(0)).toBe('0 sec');
-    expect(transformDuration(61)).toBe('1 min, 1 sec');
-    expect(transformDuration(3661)).toBe('1 hr, 1 min, 1 sec');
-    expect(transformDuration(90061)).toBe('1 day, 1 hr, 1 min, 1 sec');
-    expect(transformDuration(172800)).toBe('2 days');
   });
 });
 

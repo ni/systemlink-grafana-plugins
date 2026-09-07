@@ -6,8 +6,8 @@ export enum AssetProjectionProperties {
 
 export interface Asset {
   id: string;
-  name: string;
-  serialNumber: string;
+  name?: string;
+  serialNumber?: string;
 }
 
 export interface QueryAssetNameResponse {

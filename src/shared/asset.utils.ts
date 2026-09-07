@@ -55,12 +55,13 @@ export class AssetUtils {
   }
 
   private async queryAssets(ids: string[], projection?: string): Promise<QueryAssetNameResponse> {
-    const filter = `new[]{${ids.map(id => `"${id}"`).join(', ')}}.Contains(AssetIdentifier)`;
+    const serializedIds = ids.map(id => JSON.stringify(id)).join(', ');
+    const filter = `new[]{${serializedIds}}.Contains(AssetIdentifier)`;
     return this.backendSrv.post<QueryAssetNameResponse>(
       this.queryAssetsUrl,
       {
         filter,
-        ...(projection && { projection }),
+        projection,
         take: ids.length,
         returnCount: true,
       },
