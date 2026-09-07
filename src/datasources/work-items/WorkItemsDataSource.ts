@@ -47,6 +47,18 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     take: DEFAULT_TAKE,
   };
 
+  defaultVariableQuery: Omit<WorkItemsVariableQuery, 'refId'> = {
+    queryType: WorkItemsVariableQueryType.ListWorkItems,
+    types: Object.values(WorkItemTypeOptions),
+    orderBy: OrderByOptions.UPDATED_AT,
+    descending: true,
+    take: DEFAULT_TAKE,
+  };
+
+  prepareVariableQuery(query: WorkItemsVariableQuery): WorkItemsVariableQuery {
+    return { ...this.defaultVariableQuery, ...query };
+  }
+
   // TODO: AB#3923375 - Query work items and return the requested properties instead of an empty frame.
   async runQuery(query: WorkItemsQuery, _options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {
     return {
@@ -65,10 +77,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     query: WorkItemsVariableQuery,
     _options: LegacyMetricFindQueryOptions
   ): Promise<MetricFindValue[]> {
-    const variableQuery = this.prepareQuery(query);
-    const queryType = variableQuery.queryType ?? WorkItemsVariableQueryType.ListWorkItems;
+    const variableQuery = this.prepareVariableQuery(query);
 
-    if (queryType === WorkItemsVariableQueryType.ListWorkItemTypes) {
+    if (variableQuery.queryType === WorkItemsVariableQueryType.ListWorkItemTypes) {
       return WorkItemTypes.map(type => ({ text: type.label, value: type.value }));
     }
 

@@ -6,7 +6,6 @@ import { validateNumericInput } from 'core/utils';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
 import {
   OrderByOptions,
-  WorkItemsQuery,
   WorkItemsVariableQuery,
   WorkItemsVariableQueryType,
   WorkItemTypeOptions,
@@ -25,10 +24,10 @@ import {
 import { getTakeError, isTypesNonEmpty } from '../utils';
 import { WorkItemsQueryBuilder } from './query-builder/WorkItemsQueryBuilder';
 
-type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
+type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsVariableQuery>;
 
-export function WorkItemsVariableQueryEditor({ query: rawQuery, onChange, datasource }: Props) {
-  const query = datasource.prepareQuery(rawQuery) as WorkItemsVariableQuery;
+export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Props) {
+  query = datasource.prepareVariableQuery(query);
   const queryType = query.queryType ?? WorkItemsVariableQueryType.ListWorkItems;
 
   const isTypesValid = isTypesNonEmpty(query.types);
@@ -42,7 +41,7 @@ export function WorkItemsVariableQueryEditor({ query: rawQuery, onChange, dataso
 
   const handleQueryChange = useCallback(
     (query: WorkItemsVariableQuery): void => {
-      onChange(query as WorkItemsQuery);
+      onChange(query);
     },
     [onChange]
   );

@@ -5,18 +5,18 @@ import { setupDataSource } from 'test/fixtures';
 import { takeErrorMessages, typesErrorMessages } from '../constants/QueryEditor.constants';
 import { TAKE_LIMIT } from '../constants';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
-import { WorkItemsVariableQuery, WorkItemsVariableQueryType, WorkItemTypeOptions, WorkItemsQuery } from '../types';
+import { WorkItemsVariableQuery, WorkItemsVariableQueryType, WorkItemTypeOptions } from '../types';
 import { WorkItemsVariableQueryEditor } from './WorkItemsVariableQueryEditor';
 import { workItemsVariableQueryEditorPage as page } from './WorkItemsVariableQueryEditor.page';
 
 function renderEditor(initialQuery: Partial<WorkItemsVariableQuery> = {}) {
-  const onChange = jest.fn<void, [WorkItemsQuery]>();
+  const onChange = jest.fn<void, [WorkItemsVariableQuery]>();
   const [datasource] = setupDataSource(WorkItemsDataSource);
 
-  const createElement = (query: WorkItemsQuery) =>
+  const createElement = (query: WorkItemsVariableQuery) =>
     React.createElement(WorkItemsVariableQueryEditor, { datasource, query, onChange, onRunQuery: jest.fn() });
 
-  const { rerender } = render(createElement({ ...initialQuery, refId: 'A' } as WorkItemsQuery));
+  const { rerender } = render(createElement({ ...initialQuery, refId: 'A' } as WorkItemsVariableQuery));
 
   // Mimics Grafana's variable editor by rerendering when onChange is called.
   onChange.mockImplementation(newQuery => rerender(createElement(newQuery)));

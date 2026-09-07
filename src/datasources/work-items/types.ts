@@ -20,7 +20,13 @@ export enum OrderByOptions {
   UPDATED_AT = 'UPDATED_AT',
 }
 
+export enum WorkItemsVariableQueryType {
+  ListWorkItems = 'List work items',
+  ListWorkItemTypes = 'List work item types',
+}
+
 export interface WorkItemsQuery extends DataQuery {
+  queryType?: WorkItemsVariableQueryType;
   outputType?: OutputType;
   types?: WorkItemTypeOptions[];
   properties?: WorkItemPropertiesOptions[];
@@ -28,11 +34,6 @@ export interface WorkItemsQuery extends DataQuery {
   descending?: boolean;
   take?: number;
   filter?: string;
-}
-
-export enum WorkItemsVariableQueryType {
-  ListWorkItems = 'List work items',
-  ListWorkItemTypes = 'List work item types',
 }
 
 export interface WorkItemsVariableQuery extends DataQuery {
