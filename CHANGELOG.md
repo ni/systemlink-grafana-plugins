@@ -1,3 +1,9 @@
+## [5.3.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.2.0...v5.3.0) (2026-09-07)
+
+### Features
+
+* **work-items:** Implement runQuery for Total count output type ([#740](https://github.com/ni/systemlink-grafana-plugins/issues/740)) ([ed3f8fa](https://github.com/ni/systemlink-grafana-plugins/commit/ed3f8fa1a82b9254166a50b97cdd03a573815b3e))
+
 ## [5.2.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.1.0...v5.2.0) (2026-09-02)
 
 ### Features
