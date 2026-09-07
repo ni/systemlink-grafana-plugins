@@ -1,3 +1,4 @@
+import { TypedVariableModel } from '@grafana/data';
 import { WorkItemsDataSource } from './WorkItemsDataSource';
 import { setupDataSource } from 'test/fixtures';
 import { OrderByOptions, OutputType, WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
@@ -91,10 +92,30 @@ describe('WorkItemsDataSource', () => {
     await expect(datasource.testDatasource()).rejects.toThrow('Failed');
   });
 
-  it('should expose global variable options for the query builder', () => {
+  it('should expose dashboard variables as query builder options', () => {
     const [datasource] = setupDataSource(WorkItemsDataSource);
 
-    expect(Array.isArray(datasource.globalVariableOptions())).toBe(true);
+    expect(datasource.globalVariableOptions()).toEqual([{ label: '$test_var', value: '$test_var' }]);
+  });
+
+  it('should expose every dashboard variable as a query builder option', () => {
+    const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
+    templateSrv.getVariables.mockReturnValue([
+      { name: 'workspace_var' },
+      { name: 'product_var' },
+    ] as TypedVariableModel[]);
+
+    expect(datasource.globalVariableOptions()).toEqual([
+      { label: '$workspace_var', value: '$workspace_var' },
+      { label: '$product_var', value: '$product_var' },
+    ]);
+  });
+
+  it('should expose no query builder options when the dashboard has no variables', () => {
+    const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
+    templateSrv.getVariables.mockReturnValue([]);
+
+    expect(datasource.globalVariableOptions()).toEqual([]);
   });
 });
 
