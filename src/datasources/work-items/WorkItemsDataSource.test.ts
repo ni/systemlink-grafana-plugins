@@ -186,7 +186,32 @@ describe('loadSystemAliases', () => {
 });
 
 describe('query builder lookup error descriptions', () => {
-  it.each([
+  const productLookup = {
+    name: 'product',
+    fail: (datasource: WorkItemsDataSource, error: Error) =>
+      jest.spyOn(datasource.productUtils, 'getProductNamesAndPartNumbers').mockRejectedValue(error),
+    load: (datasource: WorkItemsDataSource) => datasource.loadProductNamesAndPartNumbers(),
+  };
+  const userLookup = {
+    name: 'user',
+    fail: (datasource: WorkItemsDataSource, error: Error) =>
+      jest.spyOn(datasource.usersUtils, 'getUsers').mockRejectedValue(error),
+    load: (datasource: WorkItemsDataSource) => datasource.loadUsers(),
+  };
+  const workspaceLookup = {
+    name: 'workspace',
+    fail: (datasource: WorkItemsDataSource, error: Error) =>
+      jest.spyOn(datasource.workspaceUtils, 'getWorkspaces').mockRejectedValue(error),
+    load: (datasource: WorkItemsDataSource) => datasource.loadWorkspaces(),
+  };
+  const systemAliasLookup = {
+    name: 'system alias',
+    fail: (datasource: WorkItemsDataSource, error: Error) =>
+      jest.spyOn(datasource.systemUtils, 'getSystemAliases').mockRejectedValue(error),
+    load: (datasource: WorkItemsDataSource) => datasource.loadSystemAliases(),
+  };
+
+  const failures = [
     {
       scenario: 'a not found response',
       error: 'Request failed with status code: 404',
@@ -215,25 +240,30 @@ describe('query builder lookup error descriptions', () => {
       error: 'Error',
       expected: 'Some values may not be available in the query builder lookups due to an unknown error.',
     },
-  ])('should describe $scenario', async ({ error, expected }) => {
-    const [datasource] = setupDataSource(WorkItemsDataSource);
-    jest.spyOn(datasource.productUtils, 'getProductNamesAndPartNumbers').mockRejectedValue(new Error(error));
+  ];
 
-    await datasource.loadProductNamesAndPartNumbers();
+  describe.each([productLookup, userLookup, workspaceLookup, systemAliasLookup])(
+    '$name lookup',
+    ({ fail, load }) => {
+      it.each(failures)('should describe $scenario', async ({ error, expected }) => {
+        const [datasource] = setupDataSource(WorkItemsDataSource);
+        fail(datasource, new Error(error));
 
-    expect(datasource.errorTitle).toBe('Warning during work items query');
-    expect(datasource.errorDescription).toBe(expected);
-  });
+        await load(datasource);
+
+        expect(datasource.errorTitle).toBe('Warning during work items query');
+        expect(datasource.errorDescription).toBe(expected);
+      });
+    }
+  );
 
   it('should keep the first error description when a later lookup also fails', async () => {
     const [datasource] = setupDataSource(WorkItemsDataSource);
-    jest
-      .spyOn(datasource.productUtils, 'getProductNamesAndPartNumbers')
-      .mockRejectedValue(new Error('Request failed with status code: 404'));
-    jest.spyOn(datasource.usersUtils, 'getUsers').mockRejectedValue(new Error('Request failed with status code: 429'));
+    productLookup.fail(datasource, new Error('Request failed with status code: 404'));
+    userLookup.fail(datasource, new Error('Request failed with status code: 429'));
 
-    await datasource.loadProductNamesAndPartNumbers();
-    await datasource.loadUsers();
+    await productLookup.load(datasource);
+    await userLookup.load(datasource);
 
     expect(datasource.errorDescription).toBe(
       'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.'
