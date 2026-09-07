@@ -5,7 +5,7 @@ import { OrderByOptions, OutputType, Projections, Properties, PropertiesProjecti
 import { getWorkspaceName, queryInBatches, transformDuration } from 'core/utils';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { AssetUtils } from 'shared/asset.utils';
-import { Asset } from 'shared/types/QueryAssets.types';
+import { Asset, AssetProjectionProperties } from 'shared/types/QueryAssets.types';
 import { isTimeField } from './utils';
 import { QUERY_TEMPLATES_BATCH_SIZE, QUERY_TEMPLATES_REQUEST_PER_SECOND, QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
 import { WorkspaceUtils } from 'shared/workspace.utils';
@@ -252,7 +252,10 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
         .map(data => data['fixtureIds'] as string[])
         .filter(data => data.length > 0)
         .flat();
-      return await this.assetUtils.queryAssetsInBatches(fixtureIds);
+      return await this.assetUtils.queryAssetsInBatches(
+        fixtureIds,
+        [AssetProjectionProperties.ID, AssetProjectionProperties.NAME, AssetProjectionProperties.SERIAL_NUMBER]
+      );
     }
     return [];
   }
@@ -265,7 +268,10 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       const dutIds = testPlans
         .map(data => data['dutId'] as string)
         .filter(data => data != null);
-      return await this.assetUtils.queryAssetsInBatches(dutIds);
+      return await this.assetUtils.queryAssetsInBatches(
+        dutIds,
+        [AssetProjectionProperties.ID, AssetProjectionProperties.NAME, AssetProjectionProperties.SERIAL_NUMBER]
+      );
     }
     return [];
   }

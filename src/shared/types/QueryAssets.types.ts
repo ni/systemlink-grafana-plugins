@@ -1,3 +1,9 @@
+export enum AssetProjectionProperties {
+  ID = 'id',
+  NAME = 'name',
+  SERIAL_NUMBER = 'serialNumber',
+}
+
 export interface Asset {
   id: string;
   name: string;

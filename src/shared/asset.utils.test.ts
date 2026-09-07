@@ -1,7 +1,7 @@
 import { AssetUtils } from './asset.utils';
 import { BackendSrv } from '@grafana/runtime';
 import { DataSourceInstanceSettings } from '@grafana/data';
-import { QueryAssetNameResponse } from './types/QueryAssets.types';
+import { AssetProjectionProperties, QueryAssetNameResponse } from './types/QueryAssets.types';
 
 describe('AssetUtils', () => {
     let instanceSettings: DataSourceInstanceSettings;
@@ -67,6 +67,42 @@ describe('AssetUtils', () => {
             expect(backendSrv.post).toHaveBeenNthCalledWith(2, `${instanceSettings.url}/niapm/v1/query-assets`, mockRequest2, { showErrorAlert: false });
 
             expect(result).toEqual([]);
+        });
+
+        it('should build the projection from the provided properties', async () => {
+            (backendSrv.post as jest.Mock).mockResolvedValueOnce({ assets: [], totalCount: 0 });
+
+            await assetUtils.queryAssetsInBatches(
+                ['1'],
+                [AssetProjectionProperties.ID, AssetProjectionProperties.NAME]
+            );
+
+            expect(backendSrv.post).toHaveBeenCalledWith(
+                `${instanceSettings.url}/niapm/v1/query-assets`,
+                {
+                    filter: `new[]{"1"}.Contains(AssetIdentifier)`,
+                    projection: 'new(id, name)',
+                    take: 1,
+                    returnCount: true
+                },
+                { showErrorAlert: false }
+            );
+        });
+
+        it('should omit the projection from the request when no properties are provided', async () => {
+            (backendSrv.post as jest.Mock).mockResolvedValueOnce({ assets: [], totalCount: 0 });
+
+            await assetUtils.queryAssetsInBatches(['1']);
+
+            expect(backendSrv.post).toHaveBeenCalledWith(
+                `${instanceSettings.url}/niapm/v1/query-assets`,
+                {
+                    filter: `new[]{"1"}.Contains(AssetIdentifier)`,
+                    take: 1,
+                    returnCount: true
+                },
+                { showErrorAlert: false }
+            );
         });
 
     });

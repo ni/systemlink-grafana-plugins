@@ -4,9 +4,9 @@ import {
   QUERY_ASSETS_BATCH_SIZE,
   QUERY_ASSETS_REQUEST_PER_SECOND,
 } from './constants/QueryAssets.constants';
-import { Asset, QueryAssetNameResponse } from './types/QueryAssets.types';
+import { Asset, AssetProjectionProperties, QueryAssetNameResponse } from './types/QueryAssets.types';
 
-export { Asset } from './types/QueryAssets.types';
+export { Asset, AssetProjectionProperties } from './types/QueryAssets.types';
 
 export class AssetUtils {
   private readonly queryAssetsUrl = `${this.instanceSettings.url}/niapm/v1/query-assets`;
@@ -16,7 +16,11 @@ export class AssetUtils {
     readonly backendSrv: BackendSrv
   ) {}
 
-  async queryAssetsInBatches(ids: string[]): Promise<Asset[]> {
+  async queryAssetsInBatches(
+    ids: string[],
+    properties?: AssetProjectionProperties[]
+  ): Promise<Asset[]> {
+    const projection = this.buildProjection(properties);
     const uniqueIds = [...new Set(ids)];
     const assets: Asset[] = [];
     const remainingIds = [...uniqueIds];
@@ -31,7 +35,7 @@ export class AssetUtils {
         request++
       ) {
         const idsChunk = remainingIds.splice(0, QUERY_ASSETS_BATCH_SIZE);
-        requests.push(this.queryAssets(idsChunk));
+        requests.push(this.queryAssets(idsChunk, projection));
       }
 
       const responses = await Promise.all(requests);
@@ -46,11 +50,20 @@ export class AssetUtils {
     return assets;
   }
 
-  private async queryAssets(ids: string[]): Promise<QueryAssetNameResponse> {
+  private buildProjection(properties?: AssetProjectionProperties[]): string | undefined {
+    return properties && properties.length > 0 ? `new(${properties.join(', ')})` : undefined;
+  }
+
+  private async queryAssets(ids: string[], projection?: string): Promise<QueryAssetNameResponse> {
     const filter = `new[]{${ids.map(id => `"${id}"`).join(', ')}}.Contains(AssetIdentifier)`;
     return this.backendSrv.post<QueryAssetNameResponse>(
       this.queryAssetsUrl,
-      { filter, take: ids.length, returnCount: true },
+      {
+        filter,
+        ...(projection && { projection }),
+        take: ids.length,
+        returnCount: true,
+      },
       { showErrorAlert: false }
     );
   }
