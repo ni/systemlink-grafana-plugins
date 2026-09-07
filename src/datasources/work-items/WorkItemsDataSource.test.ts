@@ -120,20 +120,6 @@ describe('loadProductNamesAndPartNumbers', () => {
       'Some values may not be available in the query builder lookups due to an unknown error.'
     );
   });
-
-  it('should set a not found error when the API call fails with a 404 status', async () => {
-    const [datasource] = setupDataSource(WorkItemsDataSource);
-    jest
-      .spyOn(datasource.productUtils, 'getProductNamesAndPartNumbers')
-      .mockRejectedValue(new Error('Request failed with status code: 404'));
-
-    await datasource.loadProductNamesAndPartNumbers();
-
-    expect(datasource.errorTitle).toBe('Warning during work items query');
-    expect(datasource.errorDescription).toContain(
-      'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.'
-    );
-  });
 });
 
 describe('loadUsers', () => {
@@ -196,5 +182,61 @@ describe('loadSystemAliases', () => {
 
     expect(result.size).toBe(0);
     expect(datasource.errorTitle).toBe('Warning during work items query');
+  });
+});
+
+describe('query builder lookup error descriptions', () => {
+  it.each([
+    {
+      scenario: 'a not found response',
+      error: 'Request failed with status code: 404',
+      expected:
+        'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.',
+    },
+    {
+      scenario: 'a too many requests response',
+      error: 'Request failed with status code: 429',
+      expected: 'The query builder lookups failed due to too many requests. Please try again later.',
+    },
+    {
+      scenario: 'a timeout response',
+      error: 'Request failed with status code: 504',
+      expected:
+        'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.',
+    },
+    {
+      scenario: 'an unhandled status code that reports a message',
+      error: 'Request failed with status code: 500. Error message: Internal Server Error',
+      expected:
+        'Some values may not be available in the query builder lookups due to the following error: Internal Server Error.',
+    },
+    {
+      scenario: 'an error without a status code or message',
+      error: 'Error',
+      expected: 'Some values may not be available in the query builder lookups due to an unknown error.',
+    },
+  ])('should describe $scenario', async ({ error, expected }) => {
+    const [datasource] = setupDataSource(WorkItemsDataSource);
+    jest.spyOn(datasource.productUtils, 'getProductNamesAndPartNumbers').mockRejectedValue(new Error(error));
+
+    await datasource.loadProductNamesAndPartNumbers();
+
+    expect(datasource.errorTitle).toBe('Warning during work items query');
+    expect(datasource.errorDescription).toBe(expected);
+  });
+
+  it('should keep the first error description when a later lookup also fails', async () => {
+    const [datasource] = setupDataSource(WorkItemsDataSource);
+    jest
+      .spyOn(datasource.productUtils, 'getProductNamesAndPartNumbers')
+      .mockRejectedValue(new Error('Request failed with status code: 404'));
+    jest.spyOn(datasource.usersUtils, 'getUsers').mockRejectedValue(new Error('Request failed with status code: 429'));
+
+    await datasource.loadProductNamesAndPartNumbers();
+    await datasource.loadUsers();
+
+    expect(datasource.errorDescription).toBe(
+      'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.'
+    );
   });
 });

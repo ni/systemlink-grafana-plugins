@@ -7,7 +7,7 @@ import {
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { QueryBuilderOption, Workspace } from 'core/types';
-import { extractErrorInfo } from 'core/errors';
+import { getQueryBuilderLookupsErrorDescription } from 'core/errors';
 import { ProductUtils } from 'shared/product.utils';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 import { SystemUtils } from 'shared/system.utils';
@@ -39,8 +39,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   baseUrl = `${this.instanceSettings.url}/niworkitem/v1`;
   queryWorkItemsUrl = `${this.baseUrl}/query-workitems`;
+
   errorTitle = '';
   errorDescription = '';
+
   productUtils: ProductUtils;
   usersUtils: UsersUtils;
   workspaceUtils: WorkspaceUtils;
@@ -126,23 +128,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private handleDependenciesError(error: unknown): void {
-    const errorDetails = extractErrorInfo((error as Error).message);
     this.errorTitle = 'Warning during work items query';
-    switch (errorDetails.statusCode) {
-      case '404':
-        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
-        break;
-      case '429':
-        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
-        break;
-      case '504':
-        this.errorDescription = 'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.';
-        break;
-      default:
-        this.errorDescription = errorDetails.message
-          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-          : 'Some values may not be available in the query builder lookups due to an unknown error.';
-        break;
-    }
+    this.errorDescription = getQueryBuilderLookupsErrorDescription(error);
   }
 }

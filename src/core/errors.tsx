@@ -71,3 +71,20 @@ export const extractErrorInfo = (errorMessage: string): { url: string; statusCod
     message,
   };
 };
+
+export const getQueryBuilderLookupsErrorDescription = (error: unknown): string => {
+  const errorDetails = extractErrorInfo((error as Error).message);
+
+  switch (errorDetails.statusCode) {
+    case '404':
+      return 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
+    case '429':
+      return 'The query builder lookups failed due to too many requests. Please try again later.';
+    case '504':
+      return 'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.';
+    default:
+      return errorDetails.message
+        ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+        : 'Some values may not be available in the query builder lookups due to an unknown error.';
+  }
+};

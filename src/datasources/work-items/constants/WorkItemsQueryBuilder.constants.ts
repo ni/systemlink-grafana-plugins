@@ -35,6 +35,12 @@ export enum WorkItemsQueryBuilderFieldNames {
   Properties = 'properties',
 }
 
+export const TIME_OPTIONS = [
+  { label: 'From', value: '${__from:date}' },
+  { label: 'To', value: '${__to:date}' },
+  { label: 'Now', value: '${__now:date}' },
+];
+
 export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
   // Work item details
   ID: {

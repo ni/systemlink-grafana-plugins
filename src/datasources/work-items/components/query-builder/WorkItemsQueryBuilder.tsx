@@ -3,7 +3,11 @@ import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder
 import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
 import { QBField, QueryBuilderOption, Workspace } from 'core/types';
 import { addOptionsToLookup, filterXSSField } from 'core/utils';
-import { WorkItemsQueryBuilderFields, WorkItemsQueryBuilderStaticFields } from 'datasources/work-items/constants/WorkItemsQueryBuilder.constants';
+import {
+  TIME_OPTIONS,
+  WorkItemsQueryBuilderFields,
+  WorkItemsQueryBuilderStaticFields,
+} from 'datasources/work-items/constants/WorkItemsQueryBuilder.constants';
 import React, { useState, useEffect, useMemo } from 'react';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
@@ -54,19 +58,13 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
   }, [products]);
 
   const timeFields = useMemo(() => {
-    const timeOptions = [
-      { label: 'From', value: '${__from:date}' },
-      { label: 'To', value: '${__to:date}' },
-      { label: 'Now', value: '${__now:date}' },
-    ];
-
     return [
-      addOptionsToLookup(WorkItemsQueryBuilderFields.EARLIEST_START_DATE, timeOptions),
-      addOptionsToLookup(WorkItemsQueryBuilderFields.DUE_DATE, timeOptions),
-      addOptionsToLookup(WorkItemsQueryBuilderFields.PLANNED_START_DATE, timeOptions),
-      addOptionsToLookup(WorkItemsQueryBuilderFields.PLANNED_END_DATE, timeOptions),
-      addOptionsToLookup(WorkItemsQueryBuilderFields.CREATED_AT, timeOptions),
-      addOptionsToLookup(WorkItemsQueryBuilderFields.UPDATED_AT, timeOptions),
+      addOptionsToLookup(WorkItemsQueryBuilderFields.EARLIEST_START_DATE, TIME_OPTIONS),
+      addOptionsToLookup(WorkItemsQueryBuilderFields.DUE_DATE, TIME_OPTIONS),
+      addOptionsToLookup(WorkItemsQueryBuilderFields.PLANNED_START_DATE, TIME_OPTIONS),
+      addOptionsToLookup(WorkItemsQueryBuilderFields.PLANNED_END_DATE, TIME_OPTIONS),
+      addOptionsToLookup(WorkItemsQueryBuilderFields.CREATED_AT, TIME_OPTIONS),
+      addOptionsToLookup(WorkItemsQueryBuilderFields.UPDATED_AT, TIME_OPTIONS),
     ];
   }, []);
 
@@ -74,7 +72,10 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
     if (!workspaces) {
       return null;
     }
-    const workspaceOptions = workspaces.map(({ id, name }) => ({ label: name, value: id }));
+    const workspaceOptions = workspaces.map(({ id, name }) => ({
+      label: name,
+      value: id,
+    }));
 
     return addOptionsToLookup(WorkItemsQueryBuilderFields.WORKSPACE, workspaceOptions);
   }, [workspaces]);
