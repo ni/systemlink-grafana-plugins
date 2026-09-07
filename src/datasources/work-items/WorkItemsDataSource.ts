@@ -21,7 +21,7 @@ import {
   WorkItemTypeOptions,
 } from './types';
 import {
-  DEFAULT_TAKE, WORK_ITEM_TYPE_FILTER_VALUES,
+  DEFAULT_TAKE,
   WORK_ITEM_PROPERTIES_PROJECTIONS,
   WORK_ITEM_TYPE_FILTER_VALUES,
   WORK_ITEM_TYPE_LABEL_MAP,
@@ -34,8 +34,6 @@ import {
 import { WorkItemProperties } from './constants/QueryEditor.constants';
 import { extractErrorInfo } from 'core/errors';
 import { isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty, transformDuration } from './utils';
-import { extractErrorInfo } from 'core/errors';
-import { isTypesNonEmpty } from './utils';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(

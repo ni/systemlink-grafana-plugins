@@ -116,38 +116,6 @@ describe('WorkItemsDataSource', () => {
       );
     });
 
-    describe('total count output type', () => {
-      it('should return the total count when outputType is TotalCount', async () => {
-        jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 42 });
-
-        const query = {
-          refId: 'A',
-          outputType: OutputType.TotalCount,
-          types: [WorkItemTypeOptions.WorkOrders],
-        };
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
-
-        expect(result).toEqual({
-          refId: 'A',
-          name: 'A',
-          fields: [{ name: 'A', values: [42] }],
-        });
-      });
-
-      it('should return 0 as total count when the API returns no totalCount', async () => {
-        jest.spyOn(datasource, 'post').mockResolvedValue({});
-        const query = {
-          refId: 'A',
-          outputType: OutputType.TotalCount,
-          types: [WorkItemTypeOptions.WorkOrders],
-        };
-
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
-
-        expect(result.fields).toEqual([{ name: 'A', values: [0] }]);
-      });
-    });
-
     describe('properties output type', () => {
       it('should return basic properties mapped directly from the response', async () => {
         jest.spyOn(datasource, 'post').mockResolvedValue({
@@ -496,6 +464,38 @@ describe('WorkItemsDataSource', () => {
           expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
         }
       );
+    });
+
+    describe('total count output type', () => {
+      it('should return the total count when outputType is TotalCount', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 42 });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: [WorkItemTypeOptions.WorkOrders],
+        };
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result).toEqual({
+          refId: 'A',
+          name: 'A',
+          fields: [{ name: 'A', values: [42] }],
+        });
+      });
+
+      it('should return 0 as total count when the API returns no totalCount', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({});
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: [WorkItemTypeOptions.WorkOrders],
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([{ name: 'A', values: [0] }]);
+      });
     });
 
     describe('error handling', () => {
