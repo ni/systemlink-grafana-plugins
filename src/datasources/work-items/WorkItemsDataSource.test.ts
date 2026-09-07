@@ -88,7 +88,11 @@ describe('WorkItemsDataSource', () => {
 
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
-        { filter: '(type = "workorder") && (state = "NEW")', take: 0, returnCount: true },
+        {
+          filter: '(type = "workorder") && (state = "NEW")',
+          take: 0,
+          returnCount: true,
+        },
         { showErrorAlert: false }
       );
     });
@@ -108,6 +112,15 @@ describe('WorkItemsDataSource', () => {
         { filter: undefined, take: 0, returnCount: true },
         { showErrorAlert: false }
       );
+    });
+
+    describe('properties output type', () => {
+      it('should return an empty fields array when outputType is Properties', async () => {
+        const query = { refId: 'A', outputType: OutputType.Properties };
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+        
+        expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
+      });
     });
 
     describe('total count output type', () => {
@@ -139,15 +152,6 @@ describe('WorkItemsDataSource', () => {
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
         expect(result.fields).toEqual([{ name: 'A', values: [0] }]);
-      });
-    });
-
-    describe('properties output type', () => {
-      it('should return an empty fields array when outputType is Properties', async () => {
-        const query = { refId: 'A', outputType: OutputType.Properties };
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
-        
-        expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
       });
     });
 

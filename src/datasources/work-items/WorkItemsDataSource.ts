@@ -59,6 +59,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       queryFilter ? `(${queryFilter})` : undefined
     );
 
+    if (query.outputType === OutputType.Properties) {
+      return this.getEmptyDataFrameDTO(query.refId);
+    }
+
     if (query.outputType === OutputType.TotalCount) {
       const totalCount = await this.queryWorkItemsCount(filter);
       return {
@@ -66,10 +70,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         name: query.refId,
         fields: [{ name: query.refId, values: [totalCount] }],
       };
-    }
-
-    if (query.outputType === OutputType.Properties) {
-      return this.getEmptyDataFrameDTO(query.refId);
     }
 
     return this.getEmptyDataFrameDTO(query.refId);
@@ -122,8 +122,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     }
   }
 
-  protected buildQueryFilter(filterA?: string, filterB?: string): string | undefined {
-    const filters = [filterA, filterB].filter(Boolean);
+  protected buildQueryFilter(typeFilter?: string, queryFilter?: string): string | undefined {
+    const filters = [typeFilter, queryFilter].filter(Boolean);
     return filters.length > 0 ? filters.join(' && ') : undefined;
   }
 
