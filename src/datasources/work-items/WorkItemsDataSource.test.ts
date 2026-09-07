@@ -517,6 +517,28 @@ describe('WorkItemsDataSource', () => {
         jest.spyOn(datasource.usersUtils, 'getUsers').mockResolvedValue(new Map([['user-1', mockUser]]));
       });
 
+      it('should not load lookup data when no lookup property is selected', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', name: 'Battery Cycle Test' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+        const getWorkspacesSpy = jest.spyOn(datasource.workspaceUtils, 'getWorkspaces');
+        const getUsersSpy = jest.spyOn(datasource.usersUtils, 'getUsers');
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.NAME],
+          take: 1000,
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(getWorkspacesSpy).not.toHaveBeenCalled();
+        expect(getUsersSpy).not.toHaveBeenCalled();
+      });
+
       it('should resolve the workspace name for the WORKSPACE property', async () => {
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [{ id: '1', workspace: 'ws-1' }],
@@ -557,7 +579,7 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([{ name: 'Workspace', values: ['unknown-ws'], type: 'string' }]);
       });
 
-      it('should return an empty workspace name when the workspace lookup fails', async () => {
+      it('should fall back to the raw workspace ID when the workspace lookup fails', async () => {
         jest.spyOn(datasource.workspaceUtils, 'getWorkspaces').mockRejectedValue(new Error('Failed'));
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [{ id: '1', workspace: 'ws-1' }],
@@ -623,7 +645,7 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([{ name: 'Assigned to', values: ['unknown-user'], type: 'string' }]);
       });
 
-      it('should return an empty user name when the users lookup fails', async () => {
+      it('should fall back to the raw user ID when the users lookup fails', async () => {
         jest.spyOn(datasource.usersUtils, 'getUsers').mockRejectedValue(new Error('Failed'));
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [{ id: '1', assignedTo: 'user-1' }],
@@ -672,6 +694,35 @@ describe('WorkItemsDataSource', () => {
           expect.objectContaining({ filter: 'id = "1000"', projection: ['ID', 'NAME'], take: 1 }),
           { showErrorAlert: false }
         );
+        expect(queryInBatches).toHaveBeenCalledWith(
+          expect.any(Function),
+          { maxTakePerRequest: 1000, requestsPerSecond: 5 },
+          1
+        );
+      });
+
+      it('should fall back to the parent ID when the parent work item lookup fails', async () => {
+        jest.spyOn(datasource, 'post').mockImplementation(async (_url, body: any) => {
+          if (body.filter === 'id = "1000"') {
+            throw new Error('Request failed');
+          }
+          return { workItems: [{ id: '1', parentId: '1000' }], continuationToken: '', totalCount: 1 };
+        });
+
+        const result = await datasource.runQuery(
+          {
+            refId: 'A',
+            outputType: OutputType.Properties,
+            types: [WorkItemTypeOptions.WorkOrders],
+            properties: [WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME],
+            take: 1000,
+          },
+          {} as DataQueryRequest
+        );
+
+        expect(result.fields).toEqual([
+          { name: 'Parent work item name', values: ['1000'], type: 'string' },
+        ]);
       });
 
       it('should deduplicate parent IDs before querying for their names', async () => {

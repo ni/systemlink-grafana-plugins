@@ -14,17 +14,6 @@ export const WORK_ITEM_TYPE_FILTER_VALUES: Record<WorkItemTypeOptions, string> =
   [WorkItemTypeOptions.TransportOrder]: 'transportorder',
 };
 
-// Maps each work item type option to the backend's `type` filter value.
-export const WORK_ITEM_TYPE_FILTER_VALUES: Record<WorkItemTypeOptions, string> = {
-  [WorkItemTypeOptions.WorkOrders]: 'workorder',
-  [WorkItemTypeOptions.TestPlans]: 'testplan',
-  [WorkItemTypeOptions.Job]: 'job',
-  [WorkItemTypeOptions.Maintenance]: 'maintenance',
-  [WorkItemTypeOptions.Calibration]: 'calibration',
-  [WorkItemTypeOptions.Reservation]: 'reservation',
-  [WorkItemTypeOptions.TransportOrder]: 'transportorder',
-};
-
 export const USER_PROPERTY_FIELDS: Partial<
   Record<WorkItemPropertiesOptions, keyof WorkItem>
 > = {

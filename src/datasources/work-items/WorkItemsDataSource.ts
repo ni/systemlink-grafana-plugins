@@ -103,8 +103,12 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   async processWorkItemsQuery(query: WorkItemsQuery, filter?: string): Promise<DataFrameDTO> {
-    const workspaces = await this.loadWorkspaces();
-    const users = await this.loadUsers();
+    const workspaces = this.isWorkspaceSelected(query.properties)
+      ? await this.loadWorkspaces()
+      : new Map<string, Workspace>();
+    const users = this.isUserLookupRequired(query.properties)
+      ? await this.loadUsers()
+      : new Map<string, User>();
     const workItems = await this.queryWorkItemsData(filter, query.properties, query.orderBy, query.descending, query.take);
 
     const parentWorkItemNames = this.isParentWorkItemNameSelected(query.properties)
@@ -120,6 +124,16 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   private isParentWorkItemNameSelected(properties?: WorkItemPropertiesOptions[]): boolean {
     return !!properties?.includes(WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME);
+  }
+
+  private isWorkspaceSelected(properties?: WorkItemPropertiesOptions[]): boolean {
+    return !!properties?.includes(WorkItemPropertiesOptions.WORKSPACE);
+  }
+
+  private isUserLookupRequired(properties?: WorkItemPropertiesOptions[]): boolean {
+    return !!properties?.some(property =>
+      Object.keys(USER_PROPERTY_FIELDS).includes(property)
+    );
   }
 
   private async loadWorkspaces(): Promise<Map<string, Workspace>> {
@@ -147,14 +161,17 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     }
 
     try {
-      const response = await this.queryWorkItems({
-        filter: parentIds.map(id => `id = "${id}"`).join(' || '),
-        projection: [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
-        take: parentIds.length,
-      });
+      const parentWorkItems = await this.queryWorkItemsData(
+        parentIds.map(id => `id = "${id}"`).join(' || '),
+        [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
+        undefined,
+        undefined,
+        parentIds.length,
+        true
+      );
 
       const nameMap = new Map<string, string>();
-      (response.workItems ?? []).forEach(parentWorkItem => {
+      parentWorkItems.forEach(parentWorkItem => {
         if (parentWorkItem.id) {
           nameMap.set(parentWorkItem.id, parentWorkItem.name ?? '');
         }
@@ -296,7 +313,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     properties?: WorkItemPropertiesOptions[],
     orderBy?: OrderByOptions,
     descending?: boolean,
-    take?: number
+    take?: number,
+    suppressErrorAlert = false
   ): Promise<WorkItem[]> {
     const projection = this.buildProjection(properties);
 
@@ -309,7 +327,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         take: currentTake,
         continuationToken,
       };
-      const response = await this.queryWorkItems(body);
+      const response = await this.queryWorkItems(body, suppressErrorAlert);
 
       return {
         data: response.workItems ?? [],
@@ -346,7 +364,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return response.totalCount ?? 0;
   }
 
-  async queryWorkItems(body: QueryWorkItemsRequestBody): Promise<WorkItemsResponse> {
+  async queryWorkItems(
+    body: QueryWorkItemsRequestBody,
+    suppressErrorAlert = false
+  ): Promise<WorkItemsResponse> {
     try {
       return await this.post<WorkItemsResponse>(
         this.queryWorkItemsUrl,
@@ -374,10 +395,12 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
           break;
       }
 
-      this.appEvents?.publish?.({
-        type: AppEvents.alertError.name,
-        payload: ['Error during work items query', errorMessage],
-      });
+      if (!suppressErrorAlert) {
+        this.appEvents?.publish?.({
+          type: AppEvents.alertError.name,
+          payload: ['Error during work items query', errorMessage],
+        });
+      }
 
       throw new Error(errorMessage);
     }
