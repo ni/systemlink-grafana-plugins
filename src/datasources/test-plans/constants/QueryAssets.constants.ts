@@ -1,2 +1,0 @@
-export const QUERY_ASSETS_REQUEST_PER_SECOND = 8;
-export const QUERY_ASSETS_BATCH_SIZE = 1000;

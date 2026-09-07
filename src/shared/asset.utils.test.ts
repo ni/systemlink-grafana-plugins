@@ -119,21 +119,18 @@ describe('AssetUtils', () => {
             );
         });
 
-        it('should send undefined projection in the request when no properties are provided', async () => {
+        it('should omit the projection field from the request when no properties are provided', async () => {
             (backendSrv.post as jest.Mock).mockResolvedValueOnce({ assets: [], totalCount: 0 });
 
             await assetUtils.queryAssetsInBatches(['1']);
 
-            expect(backendSrv.post).toHaveBeenCalledWith(
-                `${instanceSettings.url}/niapm/v1/query-assets`,
-                {
-                    filter: `new[]{"1"}.Contains(AssetIdentifier)`,
-                    take: 1,
-                    projection: undefined,
-                    returnCount: true
-                },
-                { showErrorAlert: false }
-            );
+            const requestBody = (backendSrv.post as jest.Mock).mock.calls[0][1];
+
+            expect(requestBody).toStrictEqual({
+                filter: `new[]{"1"}.Contains(AssetIdentifier)`,
+                take: 1,
+                returnCount: true
+            });
         });
 
         it('should escape quotes and backslashes in ids', async () => {
