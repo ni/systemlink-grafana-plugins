@@ -13,7 +13,10 @@ import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { User } from 'shared/types/QueryUsers.types';
 import { UsersUtils } from 'shared/users.utils';
-import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
+import {
+  QueryBuilderCustomOperation,
+  QueryBuilderProps,
+} from 'smart-webcomponents-react/querybuilder';
 
 type WorkItemsQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Element> & {
   filter?: string;
@@ -37,34 +40,43 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
 
   const productsField = useMemo(() => {
-    const productField = WorkItemsQueryBuilderFields.PART_NUMBER;
     if (!products) {
       return null;
     }
+    const productOptions = products.map(({ partNumber, name }) => ({
+      label: name ? `${name} (${partNumber})` : partNumber,
+      value: partNumber,
+    }));
 
-    return {
-      ...productField,
-      lookup: {
-        ...productField.lookup,
-        dataSource: [
-          ...(productField.lookup?.dataSource || []),
-          ...products.map(({ partNumber, name }) => ({
-            label: name ? `${name} (${partNumber})` : partNumber,
-            value: partNumber,
-          })),
-        ],
-      },
-    };
+    return addOptionsToLookup(WorkItemsQueryBuilderFields.PART_NUMBER, productOptions);
   }, [products]);
 
   const timeFields = useMemo(() => {
     return [
-      addOptionsToLookup(WorkItemsQueryBuilderFields.EARLIEST_START_DATE, TIME_OPTIONS),
-      addOptionsToLookup(WorkItemsQueryBuilderFields.DUE_DATE, TIME_OPTIONS),
-      addOptionsToLookup(WorkItemsQueryBuilderFields.PLANNED_START_DATE, TIME_OPTIONS),
-      addOptionsToLookup(WorkItemsQueryBuilderFields.PLANNED_END_DATE, TIME_OPTIONS),
-      addOptionsToLookup(WorkItemsQueryBuilderFields.CREATED_AT, TIME_OPTIONS),
-      addOptionsToLookup(WorkItemsQueryBuilderFields.UPDATED_AT, TIME_OPTIONS),
+      addOptionsToLookup(
+        WorkItemsQueryBuilderFields.EARLIEST_START_DATE, 
+        TIME_OPTIONS
+      ),
+      addOptionsToLookup(
+        WorkItemsQueryBuilderFields.DUE_DATE, 
+        TIME_OPTIONS
+      ),
+      addOptionsToLookup(
+        WorkItemsQueryBuilderFields.PLANNED_START_DATE, 
+        TIME_OPTIONS
+      ),
+      addOptionsToLookup(
+        WorkItemsQueryBuilderFields.PLANNED_END_DATE, 
+        TIME_OPTIONS
+      ),
+      addOptionsToLookup(
+        WorkItemsQueryBuilderFields.CREATED_AT, 
+        TIME_OPTIONS
+      ),
+      addOptionsToLookup(
+        WorkItemsQueryBuilderFields.UPDATED_AT, 
+        TIME_OPTIONS
+      ),
     ];
   }, []);
 
@@ -84,7 +96,10 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
     if (!systemAliases) {
       return null;
     }
-    const systemAliasOptions = systemAliases.map(({ id, alias }) => ({ label: alias, value: id }));
+    const systemAliasOptions = systemAliases.map(({ id, alias }) => ({
+      label: alias,
+      value: id,
+    }));
 
     return addOptionsToLookup(WorkItemsQueryBuilderFields.SYSTEM_ALIAS_NAME, systemAliasOptions);
   }, [systemAliases]);
@@ -93,7 +108,10 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
     if (!users) {
       return null;
     }
-    const usersMap = users.map(user => ({ label: UsersUtils.getUserNameAndEmail(user), value: user.id }));
+    const usersMap = users.map(user => ({
+      label: UsersUtils.getUserNameAndEmail(user),
+      value: user.id,
+    }));
 
     return [
       addOptionsToLookup(WorkItemsQueryBuilderFields.ASSIGNED_TO, usersMap),

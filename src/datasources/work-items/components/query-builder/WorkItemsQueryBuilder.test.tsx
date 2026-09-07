@@ -20,8 +20,12 @@ import { WorkItemsQueryBuilder } from './WorkItemsQueryBuilder';
 
 describe('WorkItemsQueryBuilder', () => {
   let reactNode: ReactNode;
-  const slQueryBuilderMock = SlQueryBuilder as unknown as jest.MockedFunction<typeof SlQueryBuilder>;
-  const actualSlQueryBuilder = jest.requireActual('core/components/SlQueryBuilder/SlQueryBuilder').SlQueryBuilder;
+  const slQueryBuilderMock = SlQueryBuilder as unknown as jest.MockedFunction<
+    typeof SlQueryBuilder
+  >;
+  const actualSlQueryBuilder = jest.requireActual(
+    'core/components/SlQueryBuilder/SlQueryBuilder'
+  ).SlQueryBuilder;
   const containerClass = 'smart-filter-group-condition-container';
   const workspace = { id: '1', name: 'Workspace Name' } as Workspace;
   const user: User = {
@@ -88,7 +92,9 @@ describe('WorkItemsQueryBuilder', () => {
   }
 
   function optionsFor(fields: QBField[], dataField: string) {
-    return fields.find(field => field.dataField === dataField)?.lookup?.dataSource as QueryBuilderOption[];
+    const field = fields.find(item => item.dataField === dataField);
+
+    return field?.lookup?.dataSource as QueryBuilderOption[];
   }
 
   it('should render empty query builder by default', async () => {
@@ -137,13 +143,19 @@ describe('WorkItemsQueryBuilder', () => {
   });
 
   describe('operators for each property', () => {
-    const equalityOperations = [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name];
+    const equalityOperations = [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+    ];
     const equalityWithBlankOperations = [
       ...equalityOperations,
       QueryBuilderOperations.IS_BLANK.name,
       QueryBuilderOperations.IS_NOT_BLANK.name,
     ];
-    const containsOperations = [QueryBuilderOperations.CONTAINS.name, QueryBuilderOperations.DOES_NOT_CONTAIN.name];
+    const containsOperations = [
+      QueryBuilderOperations.CONTAINS.name,
+      QueryBuilderOperations.DOES_NOT_CONTAIN.name,
+    ];
     const textOperations = [...equalityOperations, ...containsOperations];
     const numericOperations = [
       ...equalityOperations,
@@ -206,22 +218,25 @@ describe('WorkItemsQueryBuilder', () => {
       { dataField: 'properties', operations: keyValueOperations },
     ])('should offer the expected operators for $dataField', async ({ dataField, operations }) => {
       const fields = await renderAndGetFields();
+      const field = fields.find(item => item.dataField === dataField);
 
-      expect(fields.find(field => field.dataField === dataField)?.filterOperations).toEqual(operations);
+      expect(field?.filterOperations).toEqual(operations);
     });
   });
 
   describe('auto population of property options', () => {
     it('should load every work item type as an option for the type property', async () => {
       const fields = await renderAndGetFields();
+      const typeValues = optionsFor(fields, 'type').map(option => option.value);
 
-      expect(optionsFor(fields, 'type').map(option => option.value)).toEqual(Object.values(WorkItemTypeOptions));
+      expect(typeValues).toEqual(Object.values(WorkItemTypeOptions));
     });
 
     it('should load every work item state as an option for the state property', async () => {
       const fields = await renderAndGetFields();
+      const stateValues = optionsFor(fields, 'state').map(option => option.value);
 
-      expect(optionsFor(fields, 'state').map(option => option.value)).toEqual(Object.values(WorkItemState));
+      expect(stateValues).toEqual(Object.values(WorkItemState));
     });
 
     it('should load workspace options from the workspaces parameter', async () => {
@@ -233,13 +248,17 @@ describe('WorkItemsQueryBuilder', () => {
     it('should load user options from the users parameter', async () => {
       const fields = await renderAndGetFields([], [user]);
 
-      expect(optionsFor(fields, 'assignedTo')).toEqual([{ label: 'User 1 (user1@123.com)', value: '1' }]);
+      expect(optionsFor(fields, 'assignedTo')).toEqual([
+        { label: 'User 1 (user1@123.com)', value: '1' },
+      ]);
     });
 
     it('should load product options from the products parameter', async () => {
       const fields = await renderAndGetFields([], [], [], [product]);
 
-      expect(optionsFor(fields, 'partNumber')).toEqual([{ label: 'Product 1 (PN-1)', value: 'PN-1' }]);
+      expect(optionsFor(fields, 'partNumber')).toEqual([
+        { label: 'Product 1 (PN-1)', value: 'PN-1' },
+      ]);
     });
 
     it('should label a product with its part number when the product has no name', async () => {
@@ -256,7 +275,7 @@ describe('WorkItemsQueryBuilder', () => {
       expect(optionsFor(fields, 'systems')).toEqual([{ label: 'System Alias 1', value: '1' }]);
     });
 
-    it('should not build fields until every lookup parameter has loaded', async () => {
+    it('should return empty fields when no lookup is available', async () => {
       let fields: QBField[] = [];
       slQueryBuilderMock.mockImplementation((props: any) => {
         fields = props.fields ?? [];
@@ -293,8 +312,12 @@ describe('WorkItemsQueryBuilder', () => {
 
       await waitFor(() => expect(fields.length).toBeGreaterThan(0));
       expect(optionsFor(fields, 'workspace')).toEqual([{ label: 'Workspace Name', value: '1' }]);
-      expect(optionsFor(fields, 'assignedTo')).toEqual([{ label: 'User 1 (user1@123.com)', value: '1' }]);
-      expect(optionsFor(fields, 'partNumber')).toEqual([{ label: 'Product 1 (PN-1)', value: 'PN-1' }]);
+      expect(optionsFor(fields, 'assignedTo')).toEqual([
+        { label: 'User 1 (user1@123.com)', value: '1' },
+      ]);
+      expect(optionsFor(fields, 'partNumber')).toEqual([
+        { label: 'Product 1 (PN-1)', value: 'PN-1' },
+      ]);
       expect(optionsFor(fields, 'systems')).toEqual([{ label: 'System Alias 1', value: '1' }]);
     });
   });
@@ -303,11 +326,17 @@ describe('WorkItemsQueryBuilder', () => {
     it('should prepend global variable options to lookup properties', async () => {
       const fields = await renderAndGetFields([workspace], [], [globalVariable], [product]);
 
-      expect(optionsFor(fields, 'workspace')).toEqual([globalVariable, { label: 'Workspace Name', value: '1' }]);
-      expect(optionsFor(fields, 'partNumber')).toEqual([globalVariable, { label: 'Product 1 (PN-1)', value: 'PN-1' }]);
+      expect(optionsFor(fields, 'workspace')).toEqual([
+        globalVariable,
+        { label: 'Workspace Name', value: '1' },
+      ]);
+      expect(optionsFor(fields, 'partNumber')).toEqual([
+        globalVariable,
+        { label: 'Product 1 (PN-1)', value: 'PN-1' },
+      ]);
     });
 
-    it('should show the global variable when the filter selects one', () => {
+    it('should show the global variable as the property value when the user selects it', () => {
       const { conditionsContainer } = renderElement(
         'workspace = "$workItemVariable"',
         [workspace],
@@ -320,7 +349,7 @@ describe('WorkItemsQueryBuilder', () => {
     });
 
     it.each(TIME_OPTIONS)(
-      'should show user-friendly label "$label" when updated date filter uses the $label global variable',
+      'should show "$label" as the property value when the user selects the $label variable',
       ({ value, label }) => {
         const { conditionsContainer } = renderElement(`updatedAt > "${value}"`);
 
@@ -369,7 +398,14 @@ describe('WorkItemsQueryBuilder', () => {
     });
 
     it('should show the system alias name when filter checks systems contains a system ID', () => {
-      const { conditionsContainer } = renderElement('systems.Contains("1")', [], [], [], [], [systemAlias]);
+      const { conditionsContainer } = renderElement(
+        'systems.Contains("1")',
+        [],
+        [],
+        [],
+        [],
+        [systemAlias]
+      );
 
       expect(conditionsContainer?.length).toBe(1);
       expect(conditionsContainer.item(0)?.textContent).toContain(systemAlias.alias);

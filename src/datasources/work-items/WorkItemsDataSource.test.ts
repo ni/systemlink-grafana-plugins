@@ -91,14 +91,10 @@ describe('WorkItemsDataSource', () => {
 
     await expect(datasource.testDatasource()).rejects.toThrow('Failed');
   });
+});
 
-  it('should expose dashboard variables as query builder options', () => {
-    const [datasource] = setupDataSource(WorkItemsDataSource);
-
-    expect(datasource.globalVariableOptions()).toEqual([{ label: '$test_var', value: '$test_var' }]);
-  });
-
-  it('should expose every dashboard variable as a query builder option', () => {
+describe('globalVariableOptions', () => {
+  it('should offer every dashboard variable prefixed with a dollar sign in value of query by', () => {
     const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
     templateSrv.getVariables.mockReturnValue([
       { name: 'workspace_var' },
@@ -111,7 +107,7 @@ describe('WorkItemsDataSource', () => {
     ]);
   });
 
-  it('should expose no query builder options when the dashboard has no variables', () => {
+  it('should offer no options when the dashboard has no variables in value of query by', () => {
     const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
     templateSrv.getVariables.mockReturnValue([]);
 
@@ -129,17 +125,15 @@ describe('loadProductNamesAndPartNumbers', () => {
     expect(result.get('part-number-2')?.name).toBe('Product 2');
   });
 
-  it('should return an empty map and set a generic error when the API call fails with an unknown error', async () => {
+  it('should return an empty map when the lookup fails', async () => {
     const [datasource] = setupDataSource(WorkItemsDataSource);
-    jest.spyOn(datasource.productUtils, 'getProductNamesAndPartNumbers').mockRejectedValue(new Error('Error'));
+    jest
+      .spyOn(datasource.productUtils, 'getProductNamesAndPartNumbers')
+      .mockRejectedValue(new Error('Error'));
 
     const result = await datasource.loadProductNamesAndPartNumbers();
 
     expect(result.size).toBe(0);
-    expect(datasource.errorTitle).toBe('Warning during work items query');
-    expect(datasource.errorDescription).toContain(
-      'Some values may not be available in the query builder lookups due to an unknown error.'
-    );
   });
 });
 
@@ -153,14 +147,13 @@ describe('loadUsers', () => {
     expect(result.get('2')?.firstName).toBe('User');
   });
 
-  it('should return an empty map and set an error when the API call fails', async () => {
+  it('should return an empty map when the lookup fails', async () => {
     const [datasource] = setupDataSource(WorkItemsDataSource);
     jest.spyOn(datasource.usersUtils, 'getUsers').mockRejectedValue(new Error('Error'));
 
     const result = await datasource.loadUsers();
 
     expect(result.size).toBe(0);
-    expect(datasource.errorTitle).toBe('Warning during work items query');
   });
 });
 
@@ -174,14 +167,13 @@ describe('loadWorkspaces', () => {
     expect(result.get('2')?.name).toBe('AnotherWorkspaceName');
   });
 
-  it('should return an empty map and set an error when the API call fails', async () => {
+  it('should return an empty map when the lookup fails', async () => {
     const [datasource] = setupDataSource(WorkItemsDataSource);
     jest.spyOn(datasource.workspaceUtils, 'getWorkspaces').mockRejectedValue(new Error('Error'));
 
     const result = await datasource.loadWorkspaces();
 
     expect(result.size).toBe(0);
-    expect(datasource.errorTitle).toBe('Warning during work items query');
   });
 });
 
@@ -195,14 +187,13 @@ describe('loadSystemAliases', () => {
     expect(result.get('2')?.alias).toBe('System 2');
   });
 
-  it('should return an empty map and set an error when the API call fails', async () => {
+  it('should return an empty map when the lookup fails', async () => {
     const [datasource] = setupDataSource(WorkItemsDataSource);
     jest.spyOn(datasource.systemUtils, 'getSystemAliases').mockRejectedValue(new Error('Error'));
 
     const result = await datasource.loadSystemAliases();
 
     expect(result.size).toBe(0);
-    expect(datasource.errorTitle).toBe('Warning during work items query');
   });
 });
 
@@ -242,7 +233,8 @@ describe('query builder lookup error descriptions', () => {
     {
       scenario: 'a too many requests response',
       error: 'Request failed with status code: 429',
-      expected: 'The query builder lookups failed due to too many requests. Please try again later.',
+      expected:
+        'The query builder lookups failed due to too many requests. Please try again later.',
     },
     {
       scenario: 'a timeout response',
@@ -259,7 +251,8 @@ describe('query builder lookup error descriptions', () => {
     {
       scenario: 'an error without a status code or message',
       error: 'Error',
-      expected: 'Some values may not be available in the query builder lookups due to an unknown error.',
+      expected:
+        'Some values may not be available in the query builder lookups due to an unknown error.',
     },
   ];
 
@@ -278,7 +271,7 @@ describe('query builder lookup error descriptions', () => {
     }
   );
 
-  it('should keep the first error description when a later lookup also fails', async () => {
+  it('should show only the first failure when several lookups fail', async () => {
     const [datasource] = setupDataSource(WorkItemsDataSource);
     productLookup.fail(datasource, new Error('Request failed with status code: 404'));
     userLookup.fail(datasource, new Error('Request failed with status code: 429'));
