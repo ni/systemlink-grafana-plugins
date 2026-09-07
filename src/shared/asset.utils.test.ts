@@ -1,7 +1,7 @@
 import { AssetUtils } from './asset.utils';
 import { BackendSrv } from '@grafana/runtime';
 import { DataSourceInstanceSettings } from '@grafana/data';
-import { AssetProjectionProperties, QueryAssetNameResponse } from './types/QueryAssets.types';
+import { AssetProjectionProperties, QueryAssetsResponse } from './types/QueryAssets.types';
 
 jest.mock('./constants/QueryAssets.constants', () => ({
     QUERY_ASSETS_BATCH_SIZE: 10,
@@ -23,7 +23,7 @@ describe('AssetUtils', () => {
 
     describe('queryAssetsInBatches', () => {
         it('should query all assets in a single request when ids length is less than QUERY_ASSETS_BATCH_SIZE', async () => {
-            const mockResponse: QueryAssetNameResponse = {
+                        const mockResponse: QueryAssetsResponse = {
                 assets: [
                     { id: '1', name: 'Asset 1', serialNumber: 'SN1' },
                     { id: '2', name: 'Asset 2', serialNumber: 'SN2' }
@@ -172,6 +172,32 @@ describe('AssetUtils', () => {
                 },
                 { showErrorAlert: false }
             );
+        });
+
+        it('should return assets from other chunks when one chunk request fails', async () => {
+            jest.spyOn(console, 'error').mockImplementation(() => {});
+
+            (backendSrv.post as jest.Mock)
+                .mockResolvedValueOnce({
+                    assets: [{ id: '1', name: 'Asset 1', serialNumber: 'SN1' }],
+                    totalCount: 1
+                })
+                .mockRejectedValueOnce(new Error('network error'));
+
+            const ids = [
+                ...Array.from({ length: 10 }, (_, i) => `${i + 1}`),
+                ...Array.from({ length: 10 }, (_, i) => `${i + 11}`)
+            ];
+            const result = await assetUtils.queryAssetsInBatches(ids);
+
+            expect(backendSrv.post).toHaveBeenCalledTimes(2);
+            expect(result).toEqual([{ id: '1', name: 'Asset 1', serialNumber: 'SN1' }]);
+            expect(console.error).toHaveBeenCalledWith(
+                'Error fetching assets for chunk:',
+                expect.any(Error)
+            );
+
+            (console.error as jest.Mock).mockRestore();
         });
     });
 });

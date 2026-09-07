@@ -4,7 +4,7 @@ import {
   QUERY_ASSETS_BATCH_SIZE,
   QUERY_ASSETS_REQUEST_PER_SECOND,
 } from './constants/QueryAssets.constants';
-import { Asset, AssetProjectionProperties, QueryAssetNameResponse } from './types/QueryAssets.types';
+import { Asset, AssetProjectionProperties, QueryAssetsResponse } from './types/QueryAssets.types';
 
 export { Asset, AssetProjectionProperties } from './types/QueryAssets.types';
 
@@ -27,7 +27,7 @@ export class AssetUtils {
 
     while (remainingIds.length > 0) {
       const startTime = Date.now();
-      const requests: Array<Promise<QueryAssetNameResponse>> = [];
+      const requests: Array<Promise<QueryAssetsResponse>> = [];
 
       for (
         let request = 0;
@@ -35,7 +35,13 @@ export class AssetUtils {
         request++
       ) {
         const idsChunk = remainingIds.splice(0, QUERY_ASSETS_BATCH_SIZE);
-        requests.push(this.queryAssets(idsChunk, projection));
+        requests.push(
+          this.queryAssets(idsChunk, projection).catch(error => {
+            // Isolate chunk failures so other chunks still return their assets
+            console.error('Error fetching assets for chunk:', error);
+            return { assets: [], totalCount: 0 };
+          })
+        );
       }
 
       const responses = await Promise.all(requests);
@@ -54,7 +60,7 @@ export class AssetUtils {
     return properties && properties.length > 0 ? `new(${properties.join(', ')})` : undefined;
   }
 
-  private async queryAssets(ids: string[], projection?: string): Promise<QueryAssetNameResponse> {
+  private async queryAssets(ids: string[], projection?: string): Promise<QueryAssetsResponse> {
     const serializedIds = ids.map(id => JSON.stringify(id)).join(', ');
     const filter = `new[]{${serializedIds}}.Contains(AssetIdentifier)`;
     const body = {
@@ -64,7 +70,7 @@ export class AssetUtils {
       ...(projection && { projection }),
     };
 
-    return this.backendSrv.post<QueryAssetNameResponse>(
+    return this.backendSrv.post<QueryAssetsResponse>(
       this.queryAssetsUrl,
       body,
       { showErrorAlert: false }

@@ -10,7 +10,7 @@ export interface Asset {
   serialNumber?: string;
 }
 
-export interface QueryAssetNameResponse {
+export interface QueryAssetsResponse {
   assets: Asset[];
   totalCount: number;
 }
