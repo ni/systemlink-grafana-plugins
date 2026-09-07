@@ -13,7 +13,11 @@ import { QueryResponse, Workspace } from 'core/types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { UsersUtils } from 'shared/users.utils';
 import { User } from 'shared/types/QueryUsers.types';
+import { AssetUtils, AssetProjectionProperties } from 'shared/asset.utils';
+import { SystemUtils } from 'shared/system.utils';
+import { SystemAlias } from 'shared/types/QuerySystems.types';
 import {
+  FlattenedRow,
   OrderByOptions,
   OutputType,
   QueryWorkItemsRequestBody,
@@ -48,12 +52,16 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     super(instanceSettings, backendSrv, templateSrv);
     this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
     this.usersUtils = new UsersUtils(this.instanceSettings, this.backendSrv);
+    this.assetUtils = new AssetUtils(this.instanceSettings, this.backendSrv);
+    this.systemUtils = new SystemUtils(this.instanceSettings, this.backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkitem/v1`;
   queryWorkItemsUrl = `${this.baseUrl}/query-workitems`;
   workspaceUtils: WorkspaceUtils;
   usersUtils: UsersUtils;
+  assetUtils: AssetUtils;
+  systemUtils: SystemUtils;
 
   defaultQuery = {
     outputType: OutputType.Properties,
@@ -114,11 +122,27 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const parentWorkItemNames = this.isParentWorkItemNameSelected(query.properties)
       ? await this.loadParentWorkItemNames(workItems)
       : new Map<string, string>();
+    const assetNames = this.isResourceNameLookupRequired(query.properties)
+      ? await this.loadAssetNames(workItems, query.properties)
+      : new Map<string, string>();
+    const systemAliases = this.isSystemNameLookupRequired(query.properties)
+      ? await this.loadSystemAliases()
+      : new Map<string, SystemAlias>();
+
+    const flattenedRows = this.buildFlattenedRows(workItems);
 
     return {
       refId: query.refId,
       name: query.refId,
-      fields: this.buildFields(query.properties, workItems, workspaces, users, parentWorkItemNames),
+      fields: this.buildFields(
+        query.properties,
+        flattenedRows,
+        workspaces,
+        users,
+        parentWorkItemNames,
+        assetNames,
+        systemAliases
+      ),
     };
   }
 
@@ -134,6 +158,103 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return !!properties?.some(property =>
       Object.keys(USER_PROPERTY_FIELDS).includes(property)
     );
+  }
+
+  private isResourceNameLookupRequired(properties?: WorkItemPropertiesOptions[]): boolean {
+    return !!properties?.some(property =>
+      [
+        WorkItemPropertiesOptions.ASSET_NAME,
+        WorkItemPropertiesOptions.DUT_NAME,
+        WorkItemPropertiesOptions.FIXTURE_NAME,
+        WorkItemPropertiesOptions.TARGET_PARENT,
+      ].includes(property)
+    );
+  }
+
+  private isSystemNameLookupRequired(properties?: WorkItemPropertiesOptions[]): boolean {
+    return !!properties?.some(property =>
+      [WorkItemPropertiesOptions.SYSTEM_NAME, WorkItemPropertiesOptions.TARGET_LOCATION].includes(property)
+    );
+  }
+
+  private buildFlattenedRows(workItems: WorkItem[]): FlattenedRow[] {
+    const rows: FlattenedRow[] = [];
+    for (const workItem of workItems) {
+      const assets = workItem.resources?.assets?.selections ?? [];
+      const duts = workItem.resources?.duts?.selections ?? [];
+      const fixtures = workItem.resources?.fixtures?.selections ?? [];
+      const systems = workItem.resources?.systems?.selections ?? [];
+      const maxRows = Math.max(assets.length, duts.length, fixtures.length, systems.length, 1);
+
+      for (let i = 0; i < maxRows; i++) {
+        rows.push({
+          workItem,
+          assetSelection: assets[i],
+          dutSelection: duts[i],
+          fixtureSelection: fixtures[i],
+          systemSelection: systems[i],
+        });
+      }
+    }
+    return rows;
+  }
+
+  private async loadAssetNames(
+    workItems: WorkItem[],
+    properties?: WorkItemPropertiesOptions[]
+  ): Promise<Map<string, string>> {
+    const needsAssetName = properties?.includes(WorkItemPropertiesOptions.ASSET_NAME);
+    const needsDutName = properties?.includes(WorkItemPropertiesOptions.DUT_NAME);
+    const needsFixtureName = properties?.includes(WorkItemPropertiesOptions.FIXTURE_NAME);
+    const needsTargetParent = properties?.includes(WorkItemPropertiesOptions.TARGET_PARENT);
+
+    const ids: string[] = [];
+    workItems.forEach(workItem => {
+      if (needsAssetName) {
+        workItem.resources?.assets?.selections?.forEach(s => s.id && ids.push(s.id));
+      }
+      if (needsDutName) {
+        workItem.resources?.duts?.selections?.forEach(s => s.id && ids.push(s.id));
+      }
+      if (needsFixtureName) {
+        workItem.resources?.fixtures?.selections?.forEach(s => s.id && ids.push(s.id));
+      }
+      if (needsTargetParent) {
+        workItem.resources?.assets?.selections?.forEach(s => s.targetParentId && ids.push(s.targetParentId));
+        workItem.resources?.duts?.selections?.forEach(s => s.targetParentId && ids.push(s.targetParentId));
+        workItem.resources?.fixtures?.selections?.forEach(s => s.targetParentId && ids.push(s.targetParentId));
+      }
+    });
+
+    if (ids.length === 0) {
+      return new Map<string, string>();
+    }
+
+    try {
+      const assets = await this.assetUtils.queryAssetsInBatches(ids, [
+        AssetProjectionProperties.ID,
+        AssetProjectionProperties.NAME,
+      ]);
+      return new Map(assets.map(asset => [asset.id, asset.name ?? asset.id]));
+    } catch {
+      return new Map<string, string>();
+    }
+  }
+
+  private async loadSystemAliases(): Promise<Map<string, SystemAlias>> {
+    try {
+      return await this.systemUtils.getSystemAliases();
+    } catch {
+      return new Map<string, SystemAlias>();
+    }
+  }
+
+  private resolveAssetName(id: string | undefined, assetNames: Map<string, string>): string {
+    return id ? assetNames.get(id) ?? id : '';
+  }
+
+  private resolveSystemAlias(id: string | undefined, systemAliases: Map<string, SystemAlias>): string {
+    return id ? systemAliases.get(id)?.alias ?? id : '';
   }
 
   private async loadWorkspaces(): Promise<Map<string, Workspace>> {
@@ -184,34 +305,79 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   private buildFields(
     properties: WorkItemPropertiesOptions[] | undefined,
-    workItems: WorkItem[],
+    flattenedRows: FlattenedRow[],
     workspaces: Map<string, Workspace>,
     users: Map<string, User>,
-    parentWorkItemNames: Map<string, string>
+    parentWorkItemNames: Map<string, string>,
+    assetNames: Map<string, string>,
+    systemAliases: Map<string, SystemAlias>
   ) {
-    return (
-      properties?.map(property => {
-        const fieldValue = workItems.map(workItem =>
-          this.getPropertyValue(property, workItem, workspaces, users, parentWorkItemNames)
+    const fields: Array<{ name: string; values: Array<string | null>; type: FieldType; config?: { unit: string } }> = [];
+
+    (properties ?? []).forEach(property => {
+      if (property === WorkItemPropertiesOptions.TARGET_LOCATION) {
+        fields.push(
+          this.buildResourceField('Target Location (Asset)', flattenedRows, row =>
+            this.resolveSystemAlias(row.assetSelection?.targetSystemId, systemAliases)
+          ),
+          this.buildResourceField('Target Location (DUT)', flattenedRows, row =>
+            this.resolveSystemAlias(row.dutSelection?.targetSystemId, systemAliases)
+          ),
+          this.buildResourceField('Target Location (Fixture)', flattenedRows, row =>
+            this.resolveSystemAlias(row.fixtureSelection?.targetSystemId, systemAliases)
+          )
         );
-        const fieldType = this.getPropertyFieldType(property);
-        return {
-          name: WorkItemProperties[property].label,
-          values: fieldValue,
-          type: fieldType,
-          ...(fieldType === FieldType.time && { config: { unit: 'time:YYYY-MM-DD HH:mm:ss' } }),
-        };
-      }) ?? []
-    );
+        return;
+      }
+
+      if (property === WorkItemPropertiesOptions.TARGET_PARENT) {
+        fields.push(
+          this.buildResourceField('Target Parent (Asset)', flattenedRows, row =>
+            this.resolveAssetName(row.assetSelection?.targetParentId, assetNames)
+          ),
+          this.buildResourceField('Target Parent (DUT)', flattenedRows, row =>
+            this.resolveAssetName(row.dutSelection?.targetParentId, assetNames)
+          ),
+          this.buildResourceField('Target Parent (Fixture)', flattenedRows, row =>
+            this.resolveAssetName(row.fixtureSelection?.targetParentId, assetNames)
+          )
+        );
+        return;
+      }
+
+      const fieldValue = flattenedRows.map(row =>
+        this.getPropertyValue(property, row, workspaces, users, parentWorkItemNames, assetNames, systemAliases)
+      );
+      const fieldType = this.getPropertyFieldType(property);
+      fields.push({
+        name: WorkItemProperties[property].label,
+        values: fieldValue,
+        type: fieldType,
+        ...(fieldType === FieldType.time && { config: { unit: 'time:YYYY-MM-DD HH:mm:ss' } }),
+      });
+    });
+
+    return fields;
+  }
+
+  private buildResourceField(
+    name: string,
+    flattenedRows: FlattenedRow[],
+    resolver: (row: FlattenedRow) => string
+  ): { name: string; values: string[]; type: FieldType } {
+    return { name, values: flattenedRows.map(resolver), type: FieldType.string };
   }
 
   private getPropertyValue(
     property: WorkItemPropertiesOptions,
-    workItem: WorkItem,
+    row: FlattenedRow,
     workspaces: Map<string, Workspace>,
     users: Map<string, User>,
-    parentWorkItemNames: Map<string, string>
+    parentWorkItemNames: Map<string, string>,
+    assetNames: Map<string, string>,
+    systemAliases: Map<string, SystemAlias>
   ): string | null {
+    const workItem = row.workItem;
     switch (property) {
       case WorkItemPropertiesOptions.ID:
         return workItem.id ?? '';
@@ -272,6 +438,22 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         const seconds = workItem.schedule?.plannedDurationInSeconds;
         return seconds != null ? transformDuration(seconds) : '';
       }
+      case WorkItemPropertiesOptions.ASSET_ID:
+        return row.assetSelection?.id ?? '';
+      case WorkItemPropertiesOptions.ASSET_NAME:
+        return this.resolveAssetName(row.assetSelection?.id, assetNames);
+      case WorkItemPropertiesOptions.DUT_ID:
+        return row.dutSelection?.id ?? '';
+      case WorkItemPropertiesOptions.DUT_NAME:
+        return this.resolveAssetName(row.dutSelection?.id, assetNames);
+      case WorkItemPropertiesOptions.FIXTURE_ID:
+        return row.fixtureSelection?.id ?? '';
+      case WorkItemPropertiesOptions.FIXTURE_NAME:
+        return this.resolveAssetName(row.fixtureSelection?.id, assetNames);
+      case WorkItemPropertiesOptions.SYSTEM_ID:
+        return row.systemSelection?.id ?? '';
+      case WorkItemPropertiesOptions.SYSTEM_NAME:
+        return this.resolveSystemAlias(row.systemSelection?.id, systemAliases);
       default:
         return '';
     }

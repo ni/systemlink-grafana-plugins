@@ -154,3 +154,12 @@ export interface QueryWorkItemsRequestBody {
   returnCount?: boolean;
   continuationToken?: string;
 }
+
+// Flattened row pairing a work item with one reserved resource selection of each kind.
+export interface FlattenedRow {
+  workItem: WorkItem;
+  assetSelection?: ResourceSelection;
+  dutSelection?: ResourceSelection;
+  fixtureSelection?: ResourceSelection;
+  systemSelection?: SystemResourceSelection;
+}
