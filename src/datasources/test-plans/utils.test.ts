@@ -1,5 +1,5 @@
 import { TestPlansQueryBuilderFieldNames } from "./constants/TestPlansQueryBuilder.constants";
-import { isTimeField, transformDuration } from "./utils";
+import { transformDuration, isTimeField } from "./utils";
 
 test('isTimeField', () => {
     expect(isTimeField(TestPlansQueryBuilderFieldNames.CreatedAt)).toBeTruthy();
