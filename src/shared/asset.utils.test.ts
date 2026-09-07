@@ -23,7 +23,7 @@ describe('AssetUtils', () => {
 
     describe('queryAssetsInBatches', () => {
         it('should query all assets in a single request when ids length is less than QUERY_ASSETS_BATCH_SIZE', async () => {
-                        const mockResponse: QueryAssetsResponse = {
+            const mockResponse: QueryAssetsResponse = {
                 assets: [
                     { id: '1', name: 'Asset 1', serialNumber: 'SN1' },
                     { id: '2', name: 'Asset 2', serialNumber: 'SN2' }
@@ -174,7 +174,7 @@ describe('AssetUtils', () => {
             );
         });
 
-        it('should return assets from other chunks when one chunk request fails', async () => {
+        it('should return assets from other batches when one batch request fails', async () => {
             jest.spyOn(console, 'error').mockImplementation(() => {});
             (backendSrv.post as jest.Mock)
                 .mockResolvedValueOnce({
