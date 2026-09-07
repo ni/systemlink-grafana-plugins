@@ -176,27 +176,27 @@ describe('AssetUtils', () => {
 
         it('should return assets from other chunks when one chunk request fails', async () => {
             jest.spyOn(console, 'error').mockImplementation(() => {});
-
             (backendSrv.post as jest.Mock)
                 .mockResolvedValueOnce({
                     assets: [{ id: '1', name: 'Asset 1', serialNumber: 'SN1' }],
                     totalCount: 1
                 })
                 .mockRejectedValueOnce(new Error('network error'));
-
             const ids = [
                 ...Array.from({ length: 10 }, (_, i) => `${i + 1}`),
                 ...Array.from({ length: 10 }, (_, i) => `${i + 11}`)
             ];
+
             const result = await assetUtils.queryAssetsInBatches(ids);
 
             expect(backendSrv.post).toHaveBeenCalledTimes(2);
             expect(result).toEqual([{ id: '1', name: 'Asset 1', serialNumber: 'SN1' }]);
             expect(console.error).toHaveBeenCalledWith(
                 'Error fetching assets for chunk:',
-                expect.any(Error)
+                expect.objectContaining({
+                    message: 'An error occurred while querying assets: Error: network error'
+                })
             );
-
             (console.error as jest.Mock).mockRestore();
         });
     });

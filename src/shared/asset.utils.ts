@@ -27,25 +27,24 @@ export class AssetUtils {
 
     while (remainingIds.length > 0) {
       const startTime = Date.now();
-      const requests: Array<Promise<QueryAssetsResponse>> = [];
+      const requests: Array<Promise<void>> = [];
 
       for (
         let request = 0;
         request < QUERY_ASSETS_REQUEST_PER_SECOND && remainingIds.length > 0;
         request++
       ) {
-        const idsChunk = remainingIds.splice(0, QUERY_ASSETS_BATCH_SIZE);
+        const idsToQuery = remainingIds.splice(0, QUERY_ASSETS_BATCH_SIZE);
         requests.push(
-          this.queryAssets(idsChunk, projection).catch(error => {
-            // Isolate chunk failures so other chunks still return their assets
-            console.error('Error fetching assets for chunk:', error);
-            return { assets: [], totalCount: 0 };
-          })
+          this.queryAssets(idsToQuery, projection)
+            .then(response => {
+              assets.push(...response.assets);
+            })
+            .catch(error => console.error('Error fetching assets for chunk:', error))
         );
       }
 
-      const responses = await Promise.all(requests);
-      responses.forEach(response => assets.push(...response.assets));
+      await Promise.all(requests);
 
       const elapsedTime = Date.now() - startTime;
       if (remainingIds.length > 0 && elapsedTime < 1000) {
@@ -70,10 +69,14 @@ export class AssetUtils {
       ...(projection && { projection }),
     };
 
-    return this.backendSrv.post<QueryAssetsResponse>(
-      this.queryAssetsUrl,
-      body,
-      { showErrorAlert: false }
-    );
+    try {
+      return await this.backendSrv.post<QueryAssetsResponse>(
+        this.queryAssetsUrl,
+        body,
+        { showErrorAlert: false }
+      );
+    } catch (error) {
+      throw new Error(`An error occurred while querying assets: ${error}`);
+    }
   }
 }
