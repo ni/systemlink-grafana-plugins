@@ -230,15 +230,11 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return new Map<string, string>();
     }
 
-    try {
-      const assets = await this.assetUtils.queryAssetsInBatches(ids, [
-        AssetProjectionProperties.ID,
-        AssetProjectionProperties.NAME,
-      ]);
-      return new Map(assets.map(asset => [asset.id, asset.name ?? asset.id]));
-    } catch {
-      return new Map<string, string>();
-    }
+    const assets = await this.assetUtils.queryAssetsInBatches(ids, [
+      AssetProjectionProperties.ID,
+      AssetProjectionProperties.NAME,
+    ]);
+    return new Map(assets.map(asset => [asset.id, asset.name ?? asset.id]));
   }
 
   private async loadSystemAliases(): Promise<Map<string, SystemAlias>> {

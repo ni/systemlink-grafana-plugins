@@ -929,47 +929,33 @@ describe('WorkItemsDataSource', () => {
         ]);
       });
 
-      it('should fall back to the raw ID when an asset name cannot be resolved', async () => {
-        jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([]);
-        jest.spyOn(datasource, 'post').mockResolvedValue({
-          workItems: [{ id: '1', resources: { assets: { selections: [{ id: 'a1' }] } } }],
-          continuationToken: '',
-          totalCount: 1,
-        });
+      it.each([
+        [WorkItemPropertiesOptions.ASSET_NAME, 'assets', 'a1', 'Asset name'],
+        [WorkItemPropertiesOptions.DUT_NAME, 'duts', 'd1', 'DUT name'],
+        [WorkItemPropertiesOptions.FIXTURE_NAME, 'fixtures', 'f1', 'Fixture name'],
+      ])(
+        'should fall back to the resource ID when %s cannot be resolved',
+        async (property, resourceType, id, label) => {
+          jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([]);
+          jest.spyOn(datasource, 'post').mockResolvedValue({
+            workItems: [{ id: '1', resources: { [resourceType]: { selections: [{ id }] } } }],
+            continuationToken: '',
+            totalCount: 1,
+          });
 
-        const query = {
-          refId: 'A',
-          outputType: OutputType.Properties,
-          types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.ASSET_NAME],
-          take: 1000,
-        };
+          const query = {
+            refId: 'A',
+            outputType: OutputType.Properties,
+            types: [WorkItemTypeOptions.WorkOrders],
+            properties: [property],
+            take: 1000,
+          };
 
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+          const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields).toEqual([{ name: 'Asset name', values: ['a1'], type: 'string' }]);
-      });
-
-      it('should fall back to empty asset names when the asset lookup fails', async () => {
-        jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockRejectedValue(new Error('Failed'));
-        jest.spyOn(datasource, 'post').mockResolvedValue({
-          workItems: [{ id: '1', resources: { assets: { selections: [{ id: 'a1' }] } } }],
-          continuationToken: '',
-          totalCount: 1,
-        });
-
-        const query = {
-          refId: 'A',
-          outputType: OutputType.Properties,
-          types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.ASSET_NAME],
-          take: 1000,
-        };
-
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
-
-        expect(result.fields).toEqual([{ name: 'Asset name', values: ['a1'], type: 'string' }]);
-      });
+          expect(result.fields).toEqual([{ name: label, values: [id], type: 'string' }]);
+        }
+      );
 
       it('should not call AssetUtils when no resource name or target parent property is selected', async () => {
         const queryAssetsSpy = jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches');
@@ -1015,7 +1001,7 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([{ name: 'System name', values: ['System Alias 1'], type: 'string' }]);
       });
 
-      it('should fall back to empty system aliases when the system lookup fails', async () => {
+      it('should fall back to the system ID when the system lookup fails', async () => {
         jest.spyOn(datasource.systemUtils, 'getSystemAliases').mockRejectedValue(new Error('Failed'));
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [{ id: '1', resources: { systems: { selections: [{ id: 's1' }] } } }],
