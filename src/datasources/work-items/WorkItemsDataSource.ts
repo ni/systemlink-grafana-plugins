@@ -42,7 +42,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   errorTitle = '';
   errorDescription = '';
-
   productUtils: ProductUtils;
   usersUtils: UsersUtils;
   workspaceUtils: WorkspaceUtils;
