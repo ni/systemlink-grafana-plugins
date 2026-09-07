@@ -675,7 +675,6 @@ describe('WorkItemsDataSource', () => {
           }
           return { workItems: [{ id: '1', parentId: '1000' }], continuationToken: '', totalCount: 1 };
         });
-
         const query = {
           refId: 'A',
           outputType: OutputType.Properties,
@@ -739,7 +738,6 @@ describe('WorkItemsDataSource', () => {
             totalCount: 2,
           };
         });
-
         const query = {
           refId: 'A',
           outputType: OutputType.Properties,
@@ -764,7 +762,6 @@ describe('WorkItemsDataSource', () => {
           }
           return { workItems: [{ id: '1', parentId: '1000' }], continuationToken: '', totalCount: 1 };
         });
-
         const query = {
           refId: 'A',
           outputType: OutputType.Properties,
@@ -778,25 +775,28 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([{ name: 'Parent work item name', values: ['1000'], type: 'string' }]);
       });
 
-      it('should fall back to the raw parent ID when the lookup query fails', async () => {
+      it('should fall back to the parent ID when the parent work item has no name', async () => {
         jest.spyOn(datasource, 'post').mockImplementation(async (_url, body: any) => {
           if (body.filter === 'id = "1000"') {
-            throw new Error('Request failed');
+            return { workItems: [{ id: '1000' }], continuationToken: '', totalCount: 1 };
           }
           return { workItems: [{ id: '1', parentId: '1000' }], continuationToken: '', totalCount: 1 };
         });
 
-        const query = {
-          refId: 'A',
-          outputType: OutputType.Properties,
-          types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME],
-          take: 1000,
-        };
+        const result = await datasource.runQuery(
+          {
+            refId: 'A',
+            outputType: OutputType.Properties,
+            types: [WorkItemTypeOptions.WorkOrders],
+            properties: [WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME],
+            take: 1000,
+          },
+          {} as DataQueryRequest
+        );
 
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
-
-        expect(result.fields).toEqual([{ name: 'Parent work item name', values: ['1000'], type: 'string' }]);
+        expect(result.fields).toEqual([
+          { name: 'Parent work item name', values: ['1000'], type: 'string' },
+        ]);
       });
 
       it('should return an empty value and skip the lookup when the work item has no parent', async () => {
@@ -805,7 +805,6 @@ describe('WorkItemsDataSource', () => {
           continuationToken: '',
           totalCount: 1,
         });
-
         const query = {
           refId: 'A',
           outputType: OutputType.Properties,

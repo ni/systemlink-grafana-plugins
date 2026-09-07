@@ -246,7 +246,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         if (!workItem.parentId) {
           return '';
         }
-        return parentWorkItemNames.get(workItem.parentId) ?? workItem.parentId;
+        return parentWorkItemNames.get(workItem.parentId) || workItem.parentId;
       }
       case WorkItemPropertiesOptions.PARENT_WORK_ITEM_ID:
         return workItem.parentId ?? '';
