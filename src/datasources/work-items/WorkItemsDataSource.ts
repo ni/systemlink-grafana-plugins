@@ -298,8 +298,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     }
   }
 
-  protected buildQueryFilter(filterA?: string, filterB?: string): string | undefined {
-    const filters = [filterA, filterB].filter(Boolean);
+  protected buildQueryFilter(typeFilter?: string, queryFilter?: string): string | undefined {
+    const filters = [typeFilter, queryFilter].filter(Boolean);
     return filters.length > 0 ? filters.join(' && ') : undefined;
   }
 
