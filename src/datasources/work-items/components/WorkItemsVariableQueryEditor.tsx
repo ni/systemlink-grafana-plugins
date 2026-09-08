@@ -55,6 +55,10 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
   const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
 
   useEffect(() => {
+    if (queryType !== WorkItemsVariableQueryType.ListWorkItems) {
+      return;
+    }
+
     const loadWorkspaces = async () => {
       const workspaces = await datasource.loadWorkspaces();
       setWorkspaces(Array.from(workspaces.values()));
@@ -79,7 +83,7 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
     loadUsers();
     loadProducts();
     loadSystemAliases();
-  }, [datasource]);
+  }, [datasource, queryType]);
 
   const globalVariableOptions = useMemo(
     () => datasource.globalVariableOptions(),
@@ -118,8 +122,9 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
   };
 
   const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
-    const value = parseInt((event.target as HTMLInputElement).value, 10);
-    handleQueryChange({ ...query, take: value });
+    const rawValue = (event.target as HTMLInputElement).value;
+    const take = rawValue === '' ? undefined : parseInt(rawValue, 10);
+    handleQueryChange({ ...query, take });
   };
 
   return (

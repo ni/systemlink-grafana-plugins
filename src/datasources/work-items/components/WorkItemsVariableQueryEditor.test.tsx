@@ -166,5 +166,14 @@ describe('WorkItemsVariableQueryEditor', () => {
 
       expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
     });
+
+    it('should treat a cleared take input as unset without a validation error', () => {
+      const { onChange } = renderEditor({ take: 500 });
+
+      page.setTakeLimit('');
+
+      expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ take: undefined }));
+      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeNull();
+    });
   });
 });
