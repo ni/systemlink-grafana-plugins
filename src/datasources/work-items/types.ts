@@ -5,6 +5,17 @@ export enum OutputType {
   TotalCount = 'Total Count',
 }
 
+export enum WorkItemState {
+  New = 'NEW',
+  Defined = 'DEFINED',
+  Reviewed = 'REVIEWED',
+  Scheduled = 'SCHEDULED',
+  InProgress = 'IN_PROGRESS',
+  PendingApproval = 'PENDING_APPROVAL',
+  Closed = 'CLOSED',
+  Canceled = 'CANCELED',
+}
+
 export enum WorkItemTypeOptions {
   WorkOrders = 'WORK_ORDERS',
   TestPlans = 'TEST_PLANS',
@@ -26,7 +37,6 @@ export enum WorkItemsVariableQueryType {
 }
 
 export interface WorkItemsQuery extends DataQuery {
-  queryType?: WorkItemsVariableQueryType;
   outputType?: OutputType;
   types?: WorkItemTypeOptions[];
   properties?: WorkItemPropertiesOptions[];
@@ -88,4 +98,19 @@ export enum WorkItemPropertiesGroup {
   TIMELINE = 'Timeline',
   RESOURCES = 'Resources',
   CUSTOM_PROPERTIES = 'Custom properties',
+}
+
+export interface WorkItemsResponse {
+  continuationToken?: string;
+  totalCount?: number;
+}
+
+export interface QueryWorkItemsRequestBody {
+  filter?: string;
+  projection?: string[];
+  orderBy?: string;
+  descending?: boolean;
+  take?: number;
+  returnCount?: boolean;
+  continuationToken?: string;
 }
