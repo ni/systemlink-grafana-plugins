@@ -25,15 +25,16 @@ function renderEditor(initialQuery: Partial<WorkItemsVariableQuery> = {}) {
 }
 
 describe('WorkItemsVariableQueryEditor', () => {
-  it('should default to the list work items query type and show its controls', () => {
+  it('should default to the list work items query type and show its controls with default values', () => {
     renderEditor();
 
     expect(page.queryTypeRadioButton(WorkItemsVariableQueryType.ListWorkItems)).toBeChecked();
     expect(page.queryTypeRadioButton(WorkItemsVariableQueryType.ListWorkItemTypes)).not.toBeChecked();
     expect(page.typesMultiCombobox()).toBeVisible();
     expect(page.orderByCombobox()).toBeVisible();
-    expect(page.descendingSwitch()).toBeInTheDocument();
+    expect(page.descendingSwitch()).toBeChecked();
     expect(page.optionalTakeLimitInput()).toBeVisible();
+    expect(page.takeLimitInput()).toHaveValue(1000);
   });
 
   it('should hide the list work items controls when list work item types is selected', async () => {
@@ -44,17 +45,10 @@ describe('WorkItemsVariableQueryEditor', () => {
     expect(onChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ queryType: WorkItemsVariableQueryType.ListWorkItemTypes })
     );
-    expect(page.typesMultiCombobox()).toBeNull();
-    expect(page.orderByCombobox()).toBeNull();
-    expect(page.descendingSwitch()).toBeNull();
-    expect(page.optionalTakeLimitInput()).toBeNull();
-  });
-
-  it('should apply the datasource default values for the list work items controls', () => {
-    renderEditor();
-
-    expect(page.descendingSwitch()).toBeChecked();
-    expect(page.takeLimitInput()).toHaveValue(1000);
+    expect(page.typesMultiCombobox()).not.toBeInTheDocument();
+    expect(page.orderByCombobox()).not.toBeInTheDocument();
+    expect(page.descendingSwitch()).not.toBeInTheDocument();
+    expect(page.optionalTakeLimitInput()).not.toBeInTheDocument();
   });
 
   it('should update descending when the toggle is switched', () => {

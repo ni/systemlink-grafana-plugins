@@ -43,10 +43,11 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
   const takeInvalidMessage = getTakeError(query.take);
   const isTakeValid = takeInvalidMessage === '';
 
-  const queryTypeOptions = Object.values(WorkItemsVariableQueryType).map(value => ({
-    label: value,
-    value,
-  }));
+  const queryTypeOptions = Object.values(WorkItemsVariableQueryType)
+    .map(value => ({
+      label: value,
+      value
+    }));
 
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [users, setUsers] = useState<User[] | null>(null);
@@ -80,7 +81,10 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
     loadSystemAliases();
   }, [datasource]);
 
-  const globalVariableOptions = useMemo(() => datasource.globalVariableOptions(), [datasource]);
+  const globalVariableOptions = useMemo(
+    () => datasource.globalVariableOptions(),
+    [datasource]
+  );
 
   const handleQueryChange = useCallback(
     (query: WorkItemsVariableQuery): void => {
@@ -94,7 +98,8 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
   };
 
   const onTypesChange = (items: Array<ComboboxOption<WorkItemTypeOptions>>) => {
-    const types = items.map(item => item.value).filter(Boolean) as WorkItemTypeOptions[];
+    const types = items.map(item => item.value)
+      .filter(Boolean) as WorkItemTypeOptions[];
     handleQueryChange({ ...query, types });
   };
 
@@ -120,8 +125,16 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
   return (
     <>
       <Stack direction="column">
-        <InlineField label={labels.queryType} labelWidth={LABEL_WIDTH} tooltip={tooltips.queryType}>
-          <RadioButtonGroup options={queryTypeOptions} value={queryType} onChange={onQueryTypeChange} />
+        <InlineField 
+          label={labels.queryType}
+          labelWidth={LABEL_WIDTH}
+          tooltip={tooltips.queryType}
+        >
+          <RadioButtonGroup 
+            options={queryTypeOptions}
+            value={queryType}
+            onChange={onQueryTypeChange}
+          />
         </InlineField>
         {queryType === WorkItemsVariableQueryType.ListWorkItems && (
           <>
@@ -143,7 +156,11 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
                 maxWidth={CONTROL_WIDTH}
               />
             </InlineField>
-            <InlineField label={labels.queryBy} labelWidth={LABEL_WIDTH} tooltip={tooltips.filter}>
+            <InlineField 
+              label={labels.queryBy}
+              labelWidth={LABEL_WIDTH}
+              tooltip={tooltips.filter}
+            >
               <WorkItemsQueryBuilder
                 filter={query.filter}
                 workspaces={workspaces}
@@ -154,7 +171,11 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
                 onChange={onFilterChange}
               />
             </InlineField>
-            <InlineField label={labels.orderBy} labelWidth={LABEL_WIDTH} tooltip={tooltips.orderBy}>
+            <InlineField
+              label={labels.orderBy}
+              labelWidth={LABEL_WIDTH}
+              tooltip={tooltips.orderBy}
+            >
               <Combobox
                 options={OrderBy}
                 placeholder={placeholders.orderBy}
@@ -163,7 +184,11 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
                 width={COMBOBOX_WIDTH}
               />
             </InlineField>
-            <InlineField label={labels.descending} labelWidth={LABEL_WIDTH} tooltip={tooltips.descending}>
+            <InlineField
+              label={labels.descending}
+              labelWidth={LABEL_WIDTH}
+              tooltip={tooltips.descending}
+            >
               <InlineSwitch
                 onChange={event => onDescendingChange(event.currentTarget.checked)}
                 value={query.descending}
@@ -191,7 +216,11 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
           </>
         )}
       </Stack>
-      <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
+      <FloatingError 
+        message={datasource.errorTitle}
+        innerMessage={datasource.errorDescription}
+        severity="warning"
+      />
     </>
   );
 }

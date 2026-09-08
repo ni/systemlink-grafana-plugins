@@ -72,8 +72,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     take: DEFAULT_TAKE,
   };
 
-  readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
-
   defaultVariableQuery: Omit<WorkItemsVariableQuery, 'refId'> = {
     queryType: WorkItemsVariableQueryType.ListWorkItems,
     types: Object.values(WorkItemTypeOptions),
@@ -82,10 +80,15 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     take: DEFAULT_TAKE,
   };
 
-  prepareVariableQuery(query: WorkItemsVariableQuery): WorkItemsVariableQuery {
-    return { ...this.defaultVariableQuery, ...query };
-  }
+  readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
+
+  prepareVariableQuery(query: WorkItemsVariableQuery): WorkItemsVariableQuery {
+    return {
+      ...this.defaultVariableQuery,
+      ...query
+    };
+  }
   async runQuery(query: WorkItemsQuery, options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {
     if (!isTypesNonEmpty(query.types)) {
       return this.getEmptyDataFrameDTO(query.refId);

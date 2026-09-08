@@ -2,10 +2,6 @@ import { fireEvent, screen } from '@testing-library/react';
 import { WorkItemsVariableQueryType } from '../types';
 import { labels } from '../constants/QueryEditor.constants';
 
-/**
- * Page object collecting the DOM selectors used by WorkItemsVariableQueryEditor.test.tsx,
- * so the test file only reads intent, not query-library boilerplate.
- */
 export const workItemsVariableQueryEditorPage = {
   queryTypeRadioButton: (value: WorkItemsVariableQueryType) => screen.getByRole('radio', { name: value }),
 
