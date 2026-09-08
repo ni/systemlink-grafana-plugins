@@ -1,3 +1,9 @@
+## [5.4.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.3.0...v5.4.0) (2026-09-08)
+
+### Features
+
+* **work-items:** add query builder to filter work items in query editor ([#737](https://github.com/ni/systemlink-grafana-plugins/issues/737)) ([882667f](https://github.com/ni/systemlink-grafana-plugins/commit/882667f1fd1c49b1eb96dd48ec85b3bc48f8accc))
+
 ## [5.3.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.2.0...v5.3.0) (2026-09-07)
 
 ### Features
