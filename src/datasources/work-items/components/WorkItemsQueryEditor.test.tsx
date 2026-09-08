@@ -9,6 +9,14 @@ import { WorkItemsQueryEditor } from './WorkItemsQueryEditor';
 import { workItemsQueryEditorPage as page } from './WorkItemsQueryEditor.page';
 
 describe('WorkItemsQueryEditor', () => {
+  it('should run the query on mount to clear stale data from a previously selected datasource', () => {
+    const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+
+    const [, onRunQuery] = render({});
+
+    expect(onRunQuery).toHaveBeenCalledTimes(1);
+  });
+
   it('should show all controls when the editor renders', () => {
     const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 

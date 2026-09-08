@@ -106,6 +106,13 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     [onChange, onRunQuery]
   );
 
+  useEffect(() => {
+    if (!query.outputType) {
+      handleQueryChange({ ...query, outputType: OutputType.Properties });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const onOutputTypeChange = (value: OutputType) => {
     handleQueryChange({ ...query, outputType: value });
   };
