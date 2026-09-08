@@ -10,19 +10,19 @@
 /acceptance-tests/tests/datasources/tag @CiprianAnton @kkerezsi @saradei-ni
 /acceptance-tests/tests/datasources/asset @CiprianAnton @kkerezsi @saradei-ni @BlankaOnodi
 
-/src/datasources/products @richie-ni @hemkumarrao-ni @kartheeswaran-ni
-/src/datasources/results @richie-ni @hemkumarrao-ni @kartheeswaran-ni
-/src/datasources/work-orders @richie-ni @priya-ni @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni
-/src/datasources/test-plans @richie-ni @priya-ni @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni
-/src/datasources/alarms @richie-ni @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni
-/acceptance-tests/tests/datasources/products @richie-ni @hemkumarrao-ni @kartheeswaran-ni
-/acceptance-tests/tests/datasources/results @richie-ni @hemkumarrao-ni @kartheeswaran-ni
-/acceptance-tests/tests/datasources/work-orders @richie-ni @priya-ni @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni
-/acceptance-tests/tests/datasources/test-plans @richie-ni @priya-ni @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni
-/acceptance-tests/tests/datasources/alarms @richie-ni @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni
+/src/datasources/products @richie-ni @kartheeswaran-ni
+/src/datasources/results @richie-ni @kartheeswaran-ni
+/src/datasources/work-orders @richie-ni @kartheeswaran-ni @ushakanagaraj-ni
+/src/datasources/test-plans @richie-ni @kartheeswaran-ni @ushakanagaraj-ni
+/src/datasources/alarms @richie-ni @kartheeswaran-ni @ushakanagaraj-ni
+/acceptance-tests/tests/datasources/products @richie-ni @kartheeswaran-ni
+/acceptance-tests/tests/datasources/results @richie-ni @kartheeswaran-ni
+/acceptance-tests/tests/datasources/work-orders @richie-ni @kartheeswaran-ni @ushakanagaraj-ni
+/acceptance-tests/tests/datasources/test-plans @richie-ni @kartheeswaran-ni @ushakanagaraj-ni
+/acceptance-tests/tests/datasources/alarms @richie-ni @kartheeswaran-ni @ushakanagaraj-ni
 
-/src/datasources/data-frame @richie-ni @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni @cameronwaterman
-/acceptance-tests/tests/datasources/data-frame @richie-ni @hemkumarrao-ni @kartheeswaran-ni @ushakanagaraj-ni @cameronwaterman
+/src/datasources/data-frame @richie-ni @kartheeswaran-ni @ushakanagaraj-ni @cameronwaterman
+/acceptance-tests/tests/datasources/data-frame @richie-ni @kartheeswaran-ni @ushakanagaraj-ni @cameronwaterman
 
 /src/datasources/system @chotea @stefanc18
 /acceptance-tests/tests/datasources/system @chotea @stefanc18
