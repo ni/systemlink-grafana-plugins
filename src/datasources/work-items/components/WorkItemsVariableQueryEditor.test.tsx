@@ -1,11 +1,11 @@
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { setupDataSource } from 'test/fixtures';
 import { takeErrorMessages, typesErrorMessages } from '../constants/QueryEditor.constants';
 import { TAKE_LIMIT } from '../constants';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
-import { WorkItemsVariableQuery, WorkItemsVariableQueryType, WorkItemTypeOptions } from '../types';
+import { OrderByOptions, WorkItemsVariableQuery, WorkItemsVariableQueryType, WorkItemTypeOptions } from '../types';
 import { WorkItemsVariableQueryEditor } from './WorkItemsVariableQueryEditor';
 import { workItemsVariableQueryEditorPage as page } from './WorkItemsVariableQueryEditor.page';
 
@@ -57,6 +57,47 @@ describe('WorkItemsVariableQueryEditor', () => {
     fireEvent.click(page.descendingSwitch()!);
 
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ descending: false }));
+  });
+
+  it('should update types when a type is removed', async () => {
+    const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+
+    try {
+      const { onChange } = renderEditor({
+        types: [WorkItemTypeOptions.WorkOrders, WorkItemTypeOptions.TestPlans],
+      });
+
+      await userEvent.click(page.removeOptionButton('Work orders'));
+
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ types: [WorkItemTypeOptions.TestPlans] })
+      );
+    } finally {
+      offsetHeightSpy.mockRestore();
+    }
+  });
+
+  it('should update orderBy when a different option is selected', async () => {
+    const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+
+    try {
+      const { onChange } = renderEditor();
+
+      await userEvent.click(page.orderByCombobox()!);
+      await userEvent.click(await screen.findByRole('option', { name: /ID/ }));
+
+      expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ orderBy: OrderByOptions.ID }));
+    } finally {
+      offsetHeightSpy.mockRestore();
+    }
+  });
+
+  it('should update take when a valid value is entered', () => {
+    const { onChange } = renderEditor();
+
+    page.setTakeLimit('500');
+
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ take: 500 }));
   });
 
   describe('type validation', () => {
