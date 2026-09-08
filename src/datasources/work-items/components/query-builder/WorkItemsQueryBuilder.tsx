@@ -89,7 +89,10 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
       value: id,
     }));
 
-    return addOptionsToLookup(WorkItemsQueryBuilderFields.WORKSPACE, workspaceOptions);
+    return addOptionsToLookup(
+      WorkItemsQueryBuilderFields.WORKSPACE, 
+      workspaceOptions
+    );
   }, [workspaces]);
 
   const systemAliasField = useMemo(() => {
@@ -101,7 +104,10 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
       value: id,
     }));
 
-    return addOptionsToLookup(WorkItemsQueryBuilderFields.SYSTEM_ALIAS_NAME, systemAliasOptions);
+    return addOptionsToLookup(
+      WorkItemsQueryBuilderFields.SYSTEM_ALIAS_NAME, 
+      systemAliasOptions
+    );
   }, [systemAliases]);
 
   const usersFields = useMemo(() => {
@@ -114,10 +120,18 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
     }));
 
     return [
-      addOptionsToLookup(WorkItemsQueryBuilderFields.ASSIGNED_TO, usersMap),
-      addOptionsToLookup(WorkItemsQueryBuilderFields.REQUESTED_BY, usersMap),
-      addOptionsToLookup(WorkItemsQueryBuilderFields.CREATED_BY, usersMap),
-      addOptionsToLookup(WorkItemsQueryBuilderFields.UPDATED_BY, usersMap),
+      addOptionsToLookup(
+        WorkItemsQueryBuilderFields.ASSIGNED_TO, usersMap
+      ),
+      addOptionsToLookup(
+        WorkItemsQueryBuilderFields.REQUESTED_BY, usersMap
+      ),
+      addOptionsToLookup(
+        WorkItemsQueryBuilderFields.CREATED_BY, usersMap
+      ),
+      addOptionsToLookup(
+        WorkItemsQueryBuilderFields.UPDATED_BY, usersMap
+      ),
     ];
   }, [users]);
 
