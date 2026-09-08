@@ -122,9 +122,8 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
   };
 
   const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
-    const rawValue = (event.target as HTMLInputElement).value;
-    const take = rawValue === '' ? undefined : parseInt(rawValue, 10);
-    handleQueryChange({ ...query, take });
+    const value = parseInt((event.target as HTMLInputElement).value, 10);
+    handleQueryChange({ ...query, take: value });
   };
 
   return (
