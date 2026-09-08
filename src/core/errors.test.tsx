@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { FetchError } from '@grafana/runtime';
 import { act } from 'react-dom/test-utils';
-import { extractErrorInfo, FloatingError, parseErrorMessage } from './errors';
+import { extractErrorInfo, FloatingError, getQueryBuilderLookupsErrorDescription, getQueryErrorMessage, parseErrorMessage } from './errors';
 import { SystemLinkError } from "./types";
 import React from 'react';
 import { errorCodes } from "../datasources/data-frame/constants";
@@ -155,4 +155,87 @@ describe('extractErrorInfo', () => {
     expect(result.statusCode).toBe('');
     expect(result.message).toBe('');
   });
+});
+
+describe('getQueryBuilderLookupsErrorDescription', () => {
+  test.each([
+    {
+      scenario: 'a not found response',
+      error: 'Request failed with status code: 404',
+      expected:
+        'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.',
+    },
+    {
+      scenario: 'a too many requests response',
+      error: 'Request failed with status code: 429',
+      expected: 'The query builder lookups failed due to too many requests. Please try again later.',
+    },
+    {
+      scenario: 'a timeout response',
+      error: 'Request failed with status code: 504',
+      expected:
+        'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.',
+    },
+    {
+      scenario: 'an unhandled status code that reports a message',
+      error: 'Request failed with status code: 500. Error message: Internal Server Error',
+      expected:
+        'Some values may not be available in the query builder lookups due to the following error: Internal Server Error.',
+    },
+    {
+      scenario: 'an error without a status code or message',
+      error: 'Error',
+      expected: 'Some values may not be available in the query builder lookups due to an unknown error.',
+    },
+  ])('should describe $scenario', ({ error, expected }) => {
+    const result = getQueryBuilderLookupsErrorDescription(new Error(error));
+
+    expect(result).toBe(expected);
+  });
+});
+
+describe('getQueryErrorMessage', () => {
+  test.each([
+    {
+      scenario: 'no status code is present',
+      error: 'Error',
+      expected: 'The query failed due to an unknown error.',
+    },
+    {
+      scenario: 'a not found response',
+      error: 'Request failed with status code: 404',
+      expected:
+        'The query to fetch work items failed because the requested resource was not found. Please check the query parameters and try again.',
+    },
+    {
+      scenario: 'a too many requests response',
+      error: 'Request failed with status code: 429',
+      expected: 'The query to fetch work items failed due to too many requests. Please try again later.',
+    },
+    {
+      scenario: 'a timeout response',
+      error: 'Request failed with status code: 504',
+      expected: 'The query to fetch work items experienced a timeout error. Narrow your query with a more specific filter and try again.',
+    },
+    {
+      scenario: 'an unhandled status code that reports a message',
+      error: 'Request failed with status code: 500. Error message: Internal error',
+      expected: 'The query failed due to the following error: (status 500) Internal error.',
+    },
+  ])('should describe $scenario for the given context', ({ error, expected }) => {
+    const result = getQueryErrorMessage(new Error(error), 'work items');
+
+    expect(result).toBe(expected);
+  });
+
+  test.each(['work items', 'workorders', 'testplans', 'results', 'steps', 'data tables'])(
+    'should interpolate the %s context into the not found message',
+    (context) => {
+      const result = getQueryErrorMessage(new Error('Request failed with status code: 404'), context);
+
+      expect(result).toBe(
+        `The query to fetch ${context} failed because the requested resource was not found. Please check the query parameters and try again.`
+      );
+    }
+  );
 });

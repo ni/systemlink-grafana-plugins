@@ -98,6 +98,31 @@ export function filterXSSLINQExpression(value: string | null | undefined): strin
     .replace(/ &lt;&gt; /g, " <> ");
 }
 
+/**
+ * Converts a duration in seconds into a comma-separated string of days, hours, minutes, and seconds.
+ * Units with a zero count are omitted, e.g. 172800 -> '2 days'.
+ */
+export const transformDuration = (totalSeconds: number): string => {
+  const timeUnits = [
+    { label: 'day', secondsInUnit: 86400 },
+    { label: 'hr', secondsInUnit: 3600 },
+    { label: 'min', secondsInUnit: 60, noPlural: true },
+    { label: 'sec', secondsInUnit: 1, noPlural: true },
+  ];
+
+  const parts: string[] = [];
+
+  for (const { label, secondsInUnit, noPlural } of timeUnits) {
+    const count = Math.floor(totalSeconds / secondsInUnit);
+    if (count > 0) {
+      parts.push(`${count} ${label}${count > 1 && !noPlural ? 's' : ''}`);
+      totalSeconds %= secondsInUnit;
+    }
+  }
+
+  return parts.length > 0 ? parts.join(', ') : '0 sec';
+};
+
 export function validateNumericInput(event: React.KeyboardEvent<HTMLInputElement>) {
   if (isNaN(Number(event.key)) && !['Backspace', 'Tab', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
     event.preventDefault();
