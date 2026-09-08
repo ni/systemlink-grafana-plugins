@@ -85,3 +85,18 @@ export enum WorkItemPropertiesGroup {
   RESOURCES = 'Resources',
   CUSTOM_PROPERTIES = 'Custom properties',
 }
+
+export interface WorkItemsResponse {
+  continuationToken?: string;
+  totalCount?: number;
+}
+
+export interface QueryWorkItemsRequestBody {
+  filter?: string;
+  projection?: string[];
+  orderBy?: string;
+  descending?: boolean;
+  take?: number;
+  returnCount?: boolean;
+  continuationToken?: string;
+}
