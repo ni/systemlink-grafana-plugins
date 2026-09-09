@@ -1,7 +1,17 @@
 import { DataQueryRequest, TypedVariableModel } from '@grafana/data';
 import { WorkItemsDataSource } from './WorkItemsDataSource';
 import { setupDataSource } from 'test/fixtures';
-import { OrderByOptions, OutputType, WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
+import { OrderByOptions, 
+  OutputType, 
+  WorkItemPropertiesGroup, 
+  WorkItemPropertiesOptions, 
+  WorkItemTypeOptions 
+} from './types';
+import { 
+  CUSTOM_PROPERTY_OPTIONS_LIMIT, 
+  CUSTOM_PROPERTY_SUFFIX, 
+  DEFAULT_TAKE 
+} from './constants';
 
 jest.mock('shared/product.utils', () => {
   return {
@@ -488,6 +498,114 @@ describe('query builder lookup error descriptions', () => {
 
     expect(datasource.errorDescription).toBe(
       'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.'
+    );
+  });
+});
+
+describe('getCustomPropertyOptions', () => {
+  let datasource: WorkItemsDataSource;
+  let postSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    [datasource] = setupDataSource(WorkItemsDataSource);
+    postSpy = jest.spyOn(datasource, 'post');
+  });
+
+  it('should query work items with the PROPERTIES projection and the given take', async () => {
+    postSpy.mockResolvedValue({ workItems: [] });
+
+    await datasource.getCustomPropertyOptions(undefined, DEFAULT_TAKE);
+
+    expect(postSpy).toHaveBeenCalledWith(
+      '/niworkitem/v1/query-workitems',
+      { filter: undefined, projection: ['PROPERTIES'], take: DEFAULT_TAKE },
+      { showErrorAlert: false }
+    );
+  });
+
+  it('should pass the given filter and take to the query', async () => {
+    postSpy.mockResolvedValue({ workItems: [] });
+
+    await datasource.getCustomPropertyOptions('type = "workorder"', 500);
+
+    expect(postSpy).toHaveBeenCalledWith(
+      '/niworkitem/v1/query-workitems',
+      { filter: 'type = "workorder"', projection: ['PROPERTIES'], take: 500 },
+      { showErrorAlert: false }
+    );
+  });
+
+  it.each([
+    ['the response has an empty workItems list', { workItems: [] }],
+    ['the response has no workItems', {}],
+    ['no work item has custom properties', { workItems: [{ id: '1' }, { id: '2', properties: {} }] }],
+  ])('should return an empty list when %s', async (_description, response) => {
+    postSpy.mockResolvedValue(response);
+
+    expect(await datasource.getCustomPropertyOptions(undefined, DEFAULT_TAKE)).toEqual([]);
+  });
+
+  it('should return one option per custom property key grouped under custom properties', async () => {
+    postSpy.mockResolvedValue({
+      workItems: [{ properties: { propA: 'valueA', propB: 'valueB' } }],
+    });
+
+    expect(await datasource.getCustomPropertyOptions(undefined, DEFAULT_TAKE)).toEqual([
+      { label: 'propA', value: `propA${CUSTOM_PROPERTY_SUFFIX}`, group: WorkItemPropertiesGroup.CUSTOM_PROPERTIES },
+      { label: 'propB', value: `propB${CUSTOM_PROPERTY_SUFFIX}`, group: WorkItemPropertiesGroup.CUSTOM_PROPERTIES },
+    ]);
+  });
+
+  it('should return one option when the same key is present on multiple work items', async () => {
+    postSpy.mockResolvedValue({
+      workItems: [
+        { properties: { propA: 'valueA', propB: 'valueB' } },
+        { properties: { propB: 'valueB2', propC: 'valueC' } },
+      ],
+    });
+
+    const options = await datasource.getCustomPropertyOptions(undefined, DEFAULT_TAKE);
+
+    expect(options.map(option => option.label)).toEqual(['propA', 'propB', 'propC']);
+  });
+
+  it('should return custom properties sorted alphabetically', async () => {
+    postSpy.mockResolvedValue({
+      workItems: [{ properties: { zprop: 'v1', aprop: 'v2', bprop: 'v3' } }],
+    });
+
+    const options = await datasource.getCustomPropertyOptions(undefined, DEFAULT_TAKE);
+
+    expect(options.map(option => option.label)).toEqual(['aprop', 'bprop', 'zprop']);
+  });
+
+  it('should skip work items without custom properties while collecting keys', async () => {
+    postSpy.mockResolvedValue({
+      workItems: [{ id: '1' }, { properties: { propA: 'valueA' } }, { id: '3' }],
+    });
+
+    const options = await datasource.getCustomPropertyOptions(undefined, DEFAULT_TAKE);
+
+    expect(options.map(option => option.label)).toEqual(['propA']);
+  });
+
+  it('should not return more options than the custom property options limit', async () => {
+    const properties: Record<string, string> = {};
+    for (let index = 0; index < CUSTOM_PROPERTY_OPTIONS_LIMIT + 10; index++) {
+      properties[`prop${index}`] = `value${index}`;
+    }
+    postSpy.mockResolvedValue({ workItems: [{ properties }] });
+
+    const options = await datasource.getCustomPropertyOptions(undefined, DEFAULT_TAKE);
+
+    expect(options).toHaveLength(CUSTOM_PROPERTY_OPTIONS_LIMIT);
+  });
+
+  it('should propagate the query error when the request fails', async () => {
+    postSpy.mockRejectedValue(new Error('Request failed with status code: 404'));
+
+    await expect(datasource.getCustomPropertyOptions(undefined, DEFAULT_TAKE)).rejects.toThrow(
+      'The query to fetch work items failed because the requested resource was not found. Please check the query parameters and try again.'
     );
   });
 });

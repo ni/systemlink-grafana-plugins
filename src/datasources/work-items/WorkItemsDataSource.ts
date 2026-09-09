@@ -6,6 +6,7 @@ import {
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { ComboboxOption } from '@grafana/ui';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { QueryBuilderOption, Workspace } from 'core/types';
 import { extractErrorInfo } from 'core/errors';
@@ -20,12 +21,19 @@ import {
   OrderByOptions,
   OutputType,
   QueryWorkItemsRequestBody,
+  WorkItemPropertiesGroup,
   WorkItemPropertiesOptions,
   WorkItemsQuery,
   WorkItemsResponse,
   WorkItemTypeOptions,
 } from './types';
-import { DEFAULT_TAKE, WORK_ITEM_TYPE_FILTER_VALUES } from './constants';
+import {
+  CUSTOM_PROPERTY_OPTIONS_LIMIT,
+  CUSTOM_PROPERTY_SUFFIX,
+  DEFAULT_TAKE,
+  WORK_ITEM_PROPERTIES_PROJECTION,
+  WORK_ITEM_TYPE_FILTER_VALUES,
+} from './constants';
 import { isTypesNonEmpty } from './utils';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
@@ -213,6 +221,49 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       }
       return new Map<string, SystemAlias>();
     }
+  }
+
+  /**
+   * Discovers the distinct custom property keys present on the queried work items so the
+   * query editor can offer each key as its own selectable property.
+   */
+  public async getCustomPropertyOptions(
+    filter: string | undefined, 
+    take: number
+  ): Promise<Array<ComboboxOption<string>>> {
+    const response = await this.queryWorkItems({
+      filter,
+      projection: [WORK_ITEM_PROPERTIES_PROJECTION],
+      take,
+    });
+
+    const customPropertyKeys = new Set<string>();
+    for (const workItem of response.workItems ?? []) {
+      if (!workItem.properties) {
+        continue;
+      }
+
+      for (const key of Object.keys(workItem.properties)) {
+        customPropertyKeys.add(key);
+        if (customPropertyKeys.size >= CUSTOM_PROPERTY_OPTIONS_LIMIT) {
+          return this.buildCustomPropertyOptions(customPropertyKeys);
+        }
+      }
+    }
+
+    return this.buildCustomPropertyOptions(customPropertyKeys);
+  }
+
+  private buildCustomPropertyOptions(
+    customPropertyKeys: Set<string>
+  ): Array<ComboboxOption<string>> {
+    return Array.from(customPropertyKeys)
+      .sort((key, otherKey) => key.localeCompare(otherKey))
+      .map(key => ({
+        label: key,
+        value: `${key}${CUSTOM_PROPERTY_SUFFIX}`,
+        group: WorkItemPropertiesGroup.CUSTOM_PROPERTIES,
+      }));
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

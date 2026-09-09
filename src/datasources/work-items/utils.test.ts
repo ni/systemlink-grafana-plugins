@@ -1,7 +1,7 @@
-import { TAKE_LIMIT } from './constants';
+import { CUSTOM_PROPERTY_SUFFIX, TAKE_LIMIT } from './constants';
 import { takeErrorMessages } from './constants/QueryEditor.constants';
 import { WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
-import { getTakeError, isPropertiesNonEmpty, isTypesNonEmpty } from './utils';
+import { getTakeError, isPropertiesNonEmpty, isTypesNonEmpty, stripCustomPropertySuffix } from './utils';
 
 describe('getTakeError', () => {
   it('should return no error for a value within the valid range', () => {
@@ -44,5 +44,25 @@ describe('isPropertiesNonEmpty', () => {
   it('should return false for an empty or undefined list', () => {
     expect(isPropertiesNonEmpty([])).toBe(false);
     expect(isPropertiesNonEmpty(undefined)).toBe(false);
+  });
+
+  it('should return true when only custom properties are selected', () => {
+    expect(isPropertiesNonEmpty([], ['customProperty1'])).toBe(true);
+    expect(isPropertiesNonEmpty(undefined, ['customProperty1'])).toBe(true);
+  });
+
+  it('should return false when both standard and custom properties are empty', () => {
+    expect(isPropertiesNonEmpty([], [])).toBe(false);
+    expect(isPropertiesNonEmpty(undefined, undefined)).toBe(false);
+  });
+});
+
+describe('stripCustomPropertySuffix', () => {
+  it('should remove the custom property suffix from a suffixed value', () => {
+    expect(stripCustomPropertySuffix(`customProperty1${CUSTOM_PROPERTY_SUFFIX}`)).toBe('customProperty1');
+  });
+
+  it('should return the value unchanged when it has no custom property suffix', () => {
+    expect(stripCustomPropertySuffix(WorkItemPropertiesOptions.NAME)).toBe(WorkItemPropertiesOptions.NAME);
   });
 });

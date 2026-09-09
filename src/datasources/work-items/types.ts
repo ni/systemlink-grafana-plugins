@@ -35,6 +35,7 @@ export interface WorkItemsQuery extends DataQuery {
   outputType?: OutputType;
   types?: WorkItemTypeOptions[];
   properties?: WorkItemPropertiesOptions[];
+  customProperties?: string[];
   orderBy?: OrderByOptions;
   descending?: boolean;
   take?: number;
@@ -86,7 +87,14 @@ export enum WorkItemPropertiesGroup {
   CUSTOM_PROPERTIES = 'Custom properties',
 }
 
+export interface WorkItem {
+  id?: string;
+  name?: string;
+  properties?: Record<string, string>;
+}
+
 export interface WorkItemsResponse {
+  workItems?: WorkItem[];
   continuationToken?: string;
   totalCount?: number;
 }
