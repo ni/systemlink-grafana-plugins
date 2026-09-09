@@ -1,3 +1,9 @@
+## [5.5.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.4.0...v5.5.0) (2026-09-09)
+
+### Features
+
+* **work-items:** add documentation for SystemLink Workitem Datasource ([5d84170](https://github.com/ni/systemlink-grafana-plugins/commit/5d84170b01399a6a5a65659b3b8ca78832d25159))
+
 ## [5.4.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.3.0...v5.4.0) (2026-09-08)
 
 ### Features
