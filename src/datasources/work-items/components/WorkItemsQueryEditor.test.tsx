@@ -85,6 +85,7 @@ describe('WorkItemsQueryEditor', () => {
       try {
         const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
         const [onChange, onRunQuery] = render({ types: [WorkItemTypeOptions.WorkOrders] });
+        onRunQuery.mockClear();
 
         await userEvent.click(page.removeOptionButton('Work orders'));
 
@@ -112,6 +113,7 @@ describe('WorkItemsQueryEditor', () => {
       try {
         const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
         const [onChange, onRunQuery] = render({ properties: [WorkItemPropertiesOptions.ID] });
+        onRunQuery.mockClear();
 
         await userEvent.click(page.removeOptionButton('Work item ID'));
 
@@ -137,6 +139,7 @@ describe('WorkItemsQueryEditor', () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
       const [onChange, onRunQuery] = render({});
+      onRunQuery.mockClear();
 
       page.setTakeLimit('-5');
 
@@ -149,6 +152,7 @@ describe('WorkItemsQueryEditor', () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
       const [onChange, onRunQuery] = render({});
+      onRunQuery.mockClear();
 
       page.setTakeLimit(`${TAKE_LIMIT + 1}`);
 
