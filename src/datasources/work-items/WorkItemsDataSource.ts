@@ -3,6 +3,8 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
+  LegacyMetricFindQueryOptions,
+  MetricFindValue,
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
@@ -23,9 +25,12 @@ import {
   WorkItemPropertiesOptions,
   WorkItemsQuery,
   WorkItemsResponse,
+  WorkItemsVariableQuery,
+  WorkItemsVariableQueryType,
   WorkItemTypeOptions,
 } from './types';
 import { DEFAULT_TAKE, WORK_ITEM_TYPE_FILTER_VALUES } from './constants';
+import { WorkItemTypes } from './constants/QueryEditor.constants';
 import { isTypesNonEmpty } from './utils';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
@@ -67,8 +72,23 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     take: DEFAULT_TAKE,
   };
 
+  defaultVariableQuery: Omit<WorkItemsVariableQuery, 'refId'> = {
+    queryType: WorkItemsVariableQueryType.ListWorkItems,
+    types: Object.values(WorkItemTypeOptions),
+    orderBy: OrderByOptions.UPDATED_AT,
+    descending: true,
+    take: DEFAULT_TAKE,
+  };
+
   readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
+
+  prepareVariableQuery(query: WorkItemsVariableQuery): WorkItemsVariableQuery {
+    return {
+      ...this.defaultVariableQuery,
+      ...query
+    };
+  }
   async runQuery(query: WorkItemsQuery, options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {
     if (!isTypesNonEmpty(query.types)) {
       return this.getEmptyDataFrameDTO(query.refId);
@@ -169,6 +189,20 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   shouldRunQuery(query: WorkItemsQuery): boolean {
     return !query.hide;
+  }
+
+  // TODO: AB#3923375 - Query work items and return the matching values instead of an empty list.
+  async metricFindQuery(
+    query: WorkItemsVariableQuery,
+    _options: LegacyMetricFindQueryOptions
+  ): Promise<MetricFindValue[]> {
+    const variableQuery = this.prepareVariableQuery(query);
+
+    if (variableQuery.queryType === WorkItemsVariableQueryType.ListWorkItemTypes) {
+      return WorkItemTypes.map(type => ({ text: type.label, value: type.value }));
+    }
+
+    return [];
   }
 
   public async loadProductNamesAndPartNumbers(): Promise<Map<string, ProductPartNumberAndName>> {

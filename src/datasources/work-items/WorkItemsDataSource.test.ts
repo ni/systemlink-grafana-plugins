@@ -1,7 +1,7 @@
 import { DataQueryRequest, TypedVariableModel } from '@grafana/data';
 import { WorkItemsDataSource } from './WorkItemsDataSource';
 import { setupDataSource } from 'test/fixtures';
-import { OrderByOptions, OutputType, WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
+import { OrderByOptions, OutputType, WorkItemPropertiesOptions, WorkItemsVariableQueryType, WorkItemTypeOptions } from './types';
 
 jest.mock('shared/product.utils', () => {
   return {
@@ -77,6 +77,27 @@ describe('WorkItemsDataSource', () => {
     expect(query.orderBy).toBe(OrderByOptions.UPDATED_AT);
     expect(query.descending).toBe(true);
     expect(query.take).toBe(1000);
+  });
+
+  it('should apply expected default variable query values', () => {
+    const variableQuery = datasource.prepareVariableQuery({ refId: 'A' });
+
+    expect(variableQuery.queryType).toBe(WorkItemsVariableQueryType.ListWorkItems);
+    expect(variableQuery.types).toEqual(Object.values(WorkItemTypeOptions));
+    expect(variableQuery.orderBy).toBe(OrderByOptions.UPDATED_AT);
+    expect(variableQuery.descending).toBe(true);
+    expect(variableQuery.take).toBe(1000);
+  });
+
+  it('should preserve provided values over defaults in the variable query', () => {
+    const variableQuery = datasource.prepareVariableQuery({
+      refId: 'A',
+      queryType: WorkItemsVariableQueryType.ListWorkItemTypes,
+      take: 25,
+    });
+
+    expect(variableQuery.queryType).toBe(WorkItemsVariableQueryType.ListWorkItemTypes);
+    expect(variableQuery.take).toBe(25);
   });
 
   it('should test datasource connection against the work-items service endpoint', async () => {
@@ -277,6 +298,35 @@ describe('WorkItemsDataSource', () => {
           ],
         });
       });
+    });
+  });
+
+  describe('metricFindQuery', () => {
+    // TODO: AB#3923375 - Update once work items querying is implemented.
+    it('should return an empty list for the list work items query type', async () => {
+      const result = await datasource.metricFindQuery(
+        { refId: 'A', queryType: WorkItemsVariableQueryType.ListWorkItems },
+        {} as any
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return the list of work item types when the query type is list work item types', async () => {
+      const result = await datasource.metricFindQuery(
+        { refId: 'A', queryType: WorkItemsVariableQueryType.ListWorkItemTypes },
+        {} as any
+      );
+
+      expect(result).toEqual([
+        { text: 'Work orders', value: WorkItemTypeOptions.WorkOrders },
+        { text: 'Test plans', value: WorkItemTypeOptions.TestPlans },
+        { text: 'Job', value: WorkItemTypeOptions.Job },
+        { text: 'Maintenance', value: WorkItemTypeOptions.Maintenance },
+        { text: 'Calibration', value: WorkItemTypeOptions.Calibration },
+        { text: 'Reservation', value: WorkItemTypeOptions.Reservation },
+        { text: 'Transport Order', value: WorkItemTypeOptions.TransportOrder },
+      ]);
     });
   });
 
