@@ -124,7 +124,9 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   const globalVariableOptions = useMemo(() => datasource.globalVariableOptions(), [datasource]);
 
   const isPropertiesOutput = query.outputType === OutputType.Properties;
-  const queryFilter = query.filter;
+  // The query builder emits '' for an empty filter while the saved query stores undefined;
+  // normalizing keeps the effect dependency stable so it does not refetch on every emit.
+  const queryFilter = query.filter || undefined;
   const queryTake = query.take ?? DEFAULT_TAKE;
 
   useEffect(() => {
@@ -237,8 +239,9 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   };
 
   const onFilterChange = (event: any) => {
-    if (query.filter !== event.detail.linq) {
-      handleQueryChange({ ...query, filter: event.detail.linq });
+    const filter = event.detail.linq || undefined;
+    if (queryFilter !== filter) {
+      handleQueryChange({ ...query, filter });
     }
   };
 
