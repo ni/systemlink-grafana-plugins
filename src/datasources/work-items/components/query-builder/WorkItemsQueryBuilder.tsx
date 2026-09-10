@@ -6,7 +6,7 @@ import { addOptionsToLookup, filterXSSField } from 'core/utils';
 import {
   TIME_OPTIONS,
   WorkItemsQueryBuilderFields,
-  WorkItemsQueryBuilderOperations,
+  WorkItemsResourceQueryBuilderOperations ,
   WorkItemsQueryBuilderStaticFields,
 } from 'datasources/work-items/constants/WorkItemsQueryBuilder.constants';
 import React, { useState, useEffect, useMemo } from 'react';
@@ -188,10 +188,8 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
       QueryBuilderOperations.IS_NOT_BLANK,
       QueryBuilderOperations.DATE_TIME_IS_AFTER,
       QueryBuilderOperations.DATE_TIME_IS_BEFORE,
-      QueryBuilderOperations.LIST_EQUALS,
-      QueryBuilderOperations.LIST_DOES_NOT_EQUAL,
-      WorkItemsQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID,
-      WorkItemsQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID,
+      WorkItemsResourceQueryBuilderOperations .LIST_OF_OBJECTS_CONTAINS_ID,
+      WorkItemsResourceQueryBuilderOperations .LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID,
       QueryBuilderOperations.LIST_IS_EMPTY,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY,
     ].map(operation => {

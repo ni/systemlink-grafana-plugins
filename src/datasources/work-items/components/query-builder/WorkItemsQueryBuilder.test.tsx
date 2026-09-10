@@ -5,7 +5,7 @@ import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import {
   TIME_OPTIONS,
-  WorkItemsQueryBuilderOperations,
+  WorkItemsResourceQueryBuilderOperations ,
 } from 'datasources/work-items/constants/WorkItemsQueryBuilder.constants';
 import { WorkItemState, WorkItemTypeOptions } from 'datasources/work-items/types';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
@@ -177,8 +177,8 @@ describe('WorkItemsQueryBuilder', () => {
       QueryBuilderOperations.DATE_TIME_IS_NOT_BLANK.name,
     ];
     const listOperations = [
-      WorkItemsQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
-      WorkItemsQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
       QueryBuilderOperations.LIST_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ];
@@ -389,7 +389,7 @@ describe('WorkItemsQueryBuilder', () => {
       { filter: 'plannedDurationInHours < "4"', expected: ['Planned duration (hours)', 'less than', '4'] },
       { filter: 'resources.assets.selections.Count == 0', expected: ['Asset identifier', 'is empty'] },
       { filter: 'resources.duts.selections.Count == 0', expected: ['Dut identifier', 'is empty'] },
-      { filter: 'resources.fixtures.selections.Count == 0', expected: ['Fixture identifier', 'is empty'] },
+      { filter: 'resources.fixtures.selections.Count > 0', expected: ['Fixture identifier', 'is not empty'] },
       { filter: 'resources.systems.selections.Count == 0', expected: ['System alias name', 'is empty'] },
     ])('should show $expected when filter is $filter', ({ filter, expected }) => {
       const { conditionsContainer } = renderElement(filter);
