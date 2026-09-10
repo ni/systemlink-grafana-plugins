@@ -73,6 +73,12 @@ export const extractErrorInfo = (errorMessage: string): { url: string; statusCod
 };
 
 /**
+ * Builds the `errorTitle` shown alongside `getQueryBuilderLookupsErrorDescription`.
+ * @param context Noun describing what was being queried, e.g. 'work items', 'testplans'.
+ */
+export const getQueryBuilderLookupsErrorTitle = (context: string): string => `Warning during ${context} query`;
+
+/**
  * Builds the user-facing description shown when query builder lookups (dropdown options) fail.
  * Used by datasources to populate `errorDescription` alongside an `errorTitle`.
  */
@@ -112,3 +118,16 @@ export const getQueryErrorMessage = (error: unknown, context: string): string =>
       return `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
   }
 };
+
+/**
+ * Builds the `errorTitle`/`errorDescription` pair for a failed query builder lookup in one call.
+ * @param error The caught error.
+ * @param context Noun describing what was being queried, e.g. 'work items', 'testplans'.
+ */
+export const getQueryBuilderLookupsError = (
+  error: unknown,
+  context: string
+): { title: string; description: string } => ({
+  title: getQueryBuilderLookupsErrorTitle(context),
+  description: getQueryBuilderLookupsErrorDescription(error),
+});

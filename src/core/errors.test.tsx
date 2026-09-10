@@ -1,7 +1,14 @@
 import { render, screen } from '@testing-library/react'
 import { FetchError } from '@grafana/runtime';
 import { act } from 'react-dom/test-utils';
-import { extractErrorInfo, FloatingError, getQueryBuilderLookupsErrorDescription, getQueryErrorMessage, parseErrorMessage } from './errors';
+import { extractErrorInfo,
+   FloatingError, 
+   getQueryBuilderLookupsError,
+   getQueryBuilderLookupsErrorDescription, 
+   getQueryBuilderLookupsErrorTitle,
+   getQueryErrorMessage, 
+   parseErrorMessage 
+  } from './errors';
 import { SystemLinkError } from "./types";
 import React from 'react';
 import { errorCodes } from "../datasources/data-frame/constants";
@@ -157,6 +164,17 @@ describe('extractErrorInfo', () => {
   });
 });
 
+describe('getQueryBuilderLookupsErrorTitle', () => {
+  test.each(['work items', 'workorders', 'testplans', 'alarms', 'dataframe', 'product value'])(
+    'should build the warning title for %s',
+    (context) => {
+      const result = getQueryBuilderLookupsErrorTitle(context);
+
+      expect(result).toBe(`Warning during ${context} query`);
+    }
+  );
+});
+
 describe('getQueryBuilderLookupsErrorDescription', () => {
   test.each([
     {
@@ -194,7 +212,26 @@ describe('getQueryBuilderLookupsErrorDescription', () => {
   });
 });
 
+describe('getQueryBuilderLookupsError', () => {
+  // The title and description branches are each exhaustively tested above;
+  // this only needs to prove the two are composed together correctly.
+  it('should combine the title and description for the given context and error', () => {
+    const result = getQueryBuilderLookupsError(
+      new Error('Request failed with status code: 404'),
+      'work items'
+    );
+
+    expect(result).toEqual({
+      title: 'Warning during work items query',
+      description:
+        'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.',
+    });
+  });
+});
+
 describe('getQueryErrorMessage', () => {
+  // Uses a generic placeholder context here since this table exercises the status-code branches,
+  // not context interpolation - that is covered separately below across real datasource nouns.
   test.each([
     {
       scenario: 'no status code is present',
@@ -205,25 +242,25 @@ describe('getQueryErrorMessage', () => {
       scenario: 'a not found response',
       error: 'Request failed with status code: 404',
       expected:
-        'The query to fetch work items failed because the requested resource was not found. Please check the query parameters and try again.',
+        'The query to fetch items failed because the requested resource was not found. Please check the query parameters and try again.',
     },
     {
       scenario: 'a too many requests response',
       error: 'Request failed with status code: 429',
-      expected: 'The query to fetch work items failed due to too many requests. Please try again later.',
+      expected: 'The query to fetch items failed due to too many requests. Please try again later.',
     },
     {
       scenario: 'a timeout response',
       error: 'Request failed with status code: 504',
-      expected: 'The query to fetch work items experienced a timeout error. Narrow your query with a more specific filter and try again.',
+      expected: 'The query to fetch items experienced a timeout error. Narrow your query with a more specific filter and try again.',
     },
     {
       scenario: 'an unhandled status code that reports a message',
       error: 'Request failed with status code: 500. Error message: Internal error',
       expected: 'The query failed due to the following error: (status 500) Internal error.',
     },
-  ])('should describe $scenario for the given context', ({ error, expected }) => {
-    const result = getQueryErrorMessage(new Error(error), 'work items');
+  ])('should describe $scenario', ({ error, expected }) => {
+    const result = getQueryErrorMessage(new Error(error), 'items');
 
     expect(result).toBe(expected);
   });
