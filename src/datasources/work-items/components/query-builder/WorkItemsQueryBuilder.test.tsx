@@ -207,14 +207,12 @@ describe('WorkItemsQueryBuilder', () => {
       { dataField: 'timeline.dueDateTime', operations: dateWithBlankOperations },
       { dataField: 'schedule.plannedStartDateTime', operations: dateWithBlankOperations },
       { dataField: 'schedule.plannedEndDateTime', operations: dateWithBlankOperations },
-      { dataField: 'estimatedDurationInDays', operations: numericOperations },
-      { dataField: 'estimatedDurationInHours', operations: numericOperations },
-      { dataField: 'plannedDurationInDays', operations: numericOperations },
-      { dataField: 'plannedDurationInHours', operations: numericOperations },
-      { dataField: 'assets', operations: listOperations },
-      { dataField: 'duts', operations: listOperations },
-      { dataField: 'fixtures', operations: listOperations },
-      { dataField: 'systems', operations: listOperations },
+      { dataField: 'timeline.estimatedDurationInSeconds', operations: numericOperations },
+      { dataField: 'schedule.plannedDurationInSeconds', operations: numericOperations },
+      { dataField: 'resources.assets.selections', operations: listOperations },
+      { dataField: 'resources.duts.selections', operations: listOperations },
+      { dataField: 'resources.fixtures.selections', operations: listOperations },
+      { dataField: 'resources.systems.selections', operations: listOperations },
       { dataField: 'properties', operations: keyValueOperations },
     ])('should offer the expected operators for $dataField', async ({ dataField, operations }) => {
       const fields = await renderAndGetFields();
@@ -272,7 +270,9 @@ describe('WorkItemsQueryBuilder', () => {
     it('should load system alias options from the systemAliases parameter', async () => {
       const fields = await renderAndGetFields([], [], [], [], [systemAlias]);
 
-      expect(optionsFor(fields, 'systems')).toEqual([{ label: 'System Alias 1', value: '1' }]);
+      expect(optionsFor(fields, 'resources.systems.selections')).toEqual([
+        { label: 'System Alias 1', value: '1' },
+      ]);
     });
 
     it('should return empty fields when no lookup is available', async () => {
@@ -318,7 +318,9 @@ describe('WorkItemsQueryBuilder', () => {
       expect(optionsFor(fields, 'partNumber')).toEqual([
         { label: 'Product 1 (PN-1)', value: 'PN-1' },
       ]);
-      expect(optionsFor(fields, 'systems')).toEqual([{ label: 'System Alias 1', value: '1' }]);
+      expect(optionsFor(fields, 'resources.systems.selections')).toEqual([
+        { label: 'System Alias 1', value: '1' },
+      ]);
     });
   });
 
@@ -376,11 +378,19 @@ describe('WorkItemsQueryBuilder', () => {
         filter: 'timeline.earliestStartDateTime != null && timeline.earliestStartDateTime != ""',
         expected: ['Earliest start date', 'is not blank'],
       },
-      { filter: 'estimatedDurationInDays > "1"', expected: ['Estimated duration (days)', 'greater than', '1'] },
-      { filter: 'estimatedDurationInHours > "2"', expected: ['Estimated duration (hours)', 'greater than', '2'] },
-      { filter: 'plannedDurationInDays < "3"', expected: ['Planned duration (days)', 'less than', '3'] },
-      { filter: 'plannedDurationInHours < "4"', expected: ['Planned duration (hours)', 'less than', '4'] },
-      { filter: 'systems.Count == 0', expected: ['System alias name', 'is empty'] },
+      // The days and hours variants share a single backend data field, so only the shared label prefix is asserted.
+      {
+        filter: 'timeline.estimatedDurationInSeconds > "1"',
+        expected: ['Estimated duration', 'greater than', '1'],
+      },
+      {
+        filter: 'schedule.plannedDurationInSeconds < "3"',
+        expected: ['Planned duration', 'less than', '3'],
+      },
+      { filter: 'resources.assets.selections.Count == 0', expected: ['Asset identifier', 'is empty'] },
+      { filter: 'resources.duts.selections.Count == 0', expected: ['Dut identifier', 'is empty'] },
+      { filter: 'resources.fixtures.selections.Count == 0', expected: ['Fixture identifier', 'is empty'] },
+      { filter: 'resources.systems.selections.Count == 0', expected: ['System alias name', 'is empty'] },
     ])('should show $expected when filter is $filter', ({ filter, expected }) => {
       const { conditionsContainer } = renderElement(filter);
 
@@ -399,7 +409,7 @@ describe('WorkItemsQueryBuilder', () => {
 
     it('should show the system alias name when filter checks systems contains a system ID', () => {
       const { conditionsContainer } = renderElement(
-        'systems.Contains("1")',
+        'resources.systems.selections.Contains("1")',
         [],
         [],
         [],
