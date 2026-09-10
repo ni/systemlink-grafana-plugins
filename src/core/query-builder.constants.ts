@@ -92,6 +92,8 @@ export enum QueryOperationEnum {
   LIST_DOES_NOT_CONTAIN = 'LIST_DOES_NOT_CONTAIN',
   LIST_IS_EMPTY = 'LIST_IS_EMPTY',
   LIST_IS_NOT_EMPTY = 'LIST_IS_NOT_EMPTY',
+  LIST_OF_OBJECTS_CONTAINS_ID = 'LIST_OF_OBJECTS_CONTAINS_ID',
+  LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID = 'LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID',
   PROPERTY_EQUALS = 'PROPERTY_EQUALS',
   PROPERTY_DOES_NOT_EQUAL = 'PROPERTY_DOES_NOT_EQUAL',
   PROPERTY_STARTS_WITH = 'PROPERTY_STARTS_WITH',
@@ -211,6 +213,16 @@ export const QueryBuilderOperations: Record<QueryOperationEnum, QueryOperation> 
     name: 'listisnotempty',
     expressionTemplate: '{0}.Count > 0',
     hideValue: true,
+  },
+  LIST_OF_OBJECTS_CONTAINS_ID: {
+    label: 'equals',
+    name: 'resourceequals',
+    expressionTemplate: '{0}.Any(s => s.id == "{1}")',
+  },
+  LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID: {
+    label: 'does not equal',
+    name: 'resourcenotequals',
+    expressionTemplate: '!({0}.Any(s => s.id == "{1}"))',
   },
   // Properties expressions
   PROPERTY_EQUALS: {

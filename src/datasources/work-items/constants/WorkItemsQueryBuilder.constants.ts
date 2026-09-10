@@ -283,8 +283,8 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     label: 'Asset identifier',
     dataField: WorkItemsQueryBuilderFieldNames.AssetId,
     filterOperations: [
-      QueryBuilderOperations.LIST_EQUALS.name,
-      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
+      QueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
       QueryBuilderOperations.LIST_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ],
@@ -293,8 +293,8 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     label: 'Dut identifier',
     dataField: WorkItemsQueryBuilderFieldNames.DutId,
     filterOperations: [
-      QueryBuilderOperations.LIST_EQUALS.name,
-      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
+      QueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
       QueryBuilderOperations.LIST_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ],
@@ -303,8 +303,8 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     label: 'Fixture identifier',
     dataField: WorkItemsQueryBuilderFieldNames.FixtureId,
     filterOperations: [
-      QueryBuilderOperations.LIST_EQUALS.name,
-      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
+      QueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
       QueryBuilderOperations.LIST_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ],
@@ -313,8 +313,8 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     label: 'System alias name',
     dataField: WorkItemsQueryBuilderFieldNames.SystemAliasName,
     filterOperations: [
-      QueryBuilderOperations.LIST_EQUALS.name,
-      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
+      QueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
       QueryBuilderOperations.LIST_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ],
