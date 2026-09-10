@@ -28,10 +28,10 @@ export enum WorkItemsQueryBuilderFieldNames {
   PlannedEndDate = 'schedule.plannedEndDateTime',
   PlannedDurationInDays = 'plannedDurationInDays',
   PlannedDurationInHours = 'plannedDurationInHours',
-  AssetId = 'assets',
-  DutId = 'duts',
-  FixtureId = 'fixtures',
-  SystemAliasName = 'systems',
+  AssetId = 'resources.assets.selections',
+  DutId = 'resources.duts.selections',
+  FixtureId = 'resources.fixtures.selections',
+  SystemAliasName = 'resources.systems.selections',
   Properties = 'properties',
 }
 
