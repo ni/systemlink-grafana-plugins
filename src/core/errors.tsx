@@ -73,63 +73,70 @@ export const extractErrorInfo = (errorMessage: string): { url: string; statusCod
 };
 
 /**
- * Builds the `errorTitle` shown alongside `getQueryBuilderLookupsErrorDescription`.
- * @param context Noun describing what was being queried, e.g. 'work items', 'testplans'.
- */
-export const getQueryBuilderLookupsErrorTitle = (context: string): string => `Warning during ${context} query`;
-
-/**
- * Builds the user-facing description shown when query builder lookups (dropdown options) fail.
- * Used by datasources to populate `errorDescription` alongside an `errorTitle`.
- */
-export const getQueryBuilderLookupsErrorDescription = (error: unknown): string => {
-  const errorDetails = extractErrorInfo((error as Error).message);
-
-  switch (errorDetails.statusCode) {
-    case '404':
-      return 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
-    case '429':
-      return 'The query builder lookups failed due to too many requests. Please try again later.';
-    case '504':
-      return 'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.';
-    default:
-      return errorDetails.message
-        ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-        : 'Some values may not be available in the query builder lookups due to an unknown error.';
-  }
-};
-
-/*
- * Builds the message thrown when a data query itself fails.
- */
-export const getQueryErrorMessage = (error: unknown, context: string): string => {
-  const errorDetails = extractErrorInfo((error as Error).message);
-
-  switch (errorDetails.statusCode) {
-    case '':
-      return 'The query failed due to an unknown error.';
-    case '401':
-      return `The query to fetch ${context} failed due to unauthorized access. Please verify your credentials and try again.`;
-    case '404':
-      return `The query to fetch ${context} failed because the requested resource was not found. Please check the query parameters and try again.`;
-    case '429':
-      return `The query to fetch ${context} failed due to too many requests. Please try again later.`;
-    case '504':
-      return `The query to fetch ${context} experienced a timeout error. Narrow your query with a more specific filter and try again.`;
-    default:
-      return `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
-  }
-};
-
-/**
- * Builds the `errorTitle`/`errorDescription` pair for a failed query builder lookup in one call.
+ * Builds the `title`/`description` pair shown when a query builder lookup (dropdown options) fails.
  * @param error The caught error.
  * @param context Noun describing what was being queried, e.g. 'work items', 'testplans'.
  */
-export const getQueryBuilderLookupsError = (
-  error: unknown,
-  context: string
-): { title: string; description: string } => ({
-  title: getQueryBuilderLookupsErrorTitle(context),
-  description: getQueryBuilderLookupsErrorDescription(error),
-});
+export const getQueryBuilderLookupsError = (error: unknown, context: string): { title: string; description: string } => {
+  const errorDetails = extractErrorInfo((error as Error).message);
+  const title = `Warning during ${context} query`;
+
+  switch (errorDetails.statusCode) {
+    case '404':
+      return {
+        title,
+        description: 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.',
+      };
+    case '429':
+      return { title, description: 'The query builder lookups failed due to too many requests. Please try again later.' };
+    case '504':
+      return {
+        title,
+        description: 'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.',
+      };
+    default:
+      return {
+        title,
+        description: errorDetails.message
+          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+          : 'Some values may not be available in the query builder lookups due to an unknown error.',
+      };
+  }
+};
+
+/**
+ * Builds the `title`/`message` pair shown when a data query itself fails.
+ * @param error The caught error.
+ * @param context Noun describing what was being queried, e.g. 'work items', 'testplans'.
+ */
+export const getQueryError = (error: unknown, context: string): { title: string; message: string } => {
+  const errorDetails = extractErrorInfo((error as Error).message);
+  const title = `Error during ${context} query`;
+
+  switch (errorDetails.statusCode) {
+    case '':
+      return { title, message: 'The query failed due to an unknown error.' };
+    case '401':
+      return {
+        title,
+        message: `The query to fetch ${context} failed due to unauthorized access. Please verify your credentials and try again.`,
+      };
+    case '404':
+      return {
+        title,
+        message: `The query to fetch ${context} failed because the requested resource was not found. Please check the query parameters and try again.`,
+      };
+    case '429':
+      return { title, message: `The query to fetch ${context} failed due to too many requests. Please try again later.` };
+    case '504':
+      return {
+        title,
+        message: `The query to fetch ${context} experienced a timeout error. Narrow your query with a more specific filter and try again.`,
+      };
+    default:
+      return {
+        title,
+        message: `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`,
+      };
+  }
+};
