@@ -3,7 +3,10 @@ import React, { ReactNode } from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
-import { TIME_OPTIONS } from 'datasources/work-items/constants/WorkItemsQueryBuilder.constants';
+import {
+  TIME_OPTIONS,
+  WorkItemsQueryBuilderOperations,
+} from 'datasources/work-items/constants/WorkItemsQueryBuilder.constants';
 import { WorkItemState, WorkItemTypeOptions } from 'datasources/work-items/types';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
@@ -174,8 +177,8 @@ describe('WorkItemsQueryBuilder', () => {
       QueryBuilderOperations.DATE_TIME_IS_NOT_BLANK.name,
     ];
     const listOperations = [
-      QueryBuilderOperations.LIST_EQUALS.name,
-      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
+      WorkItemsQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
+      WorkItemsQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
       QueryBuilderOperations.LIST_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ];
@@ -207,8 +210,10 @@ describe('WorkItemsQueryBuilder', () => {
       { dataField: 'timeline.dueDateTime', operations: dateWithBlankOperations },
       { dataField: 'schedule.plannedStartDateTime', operations: dateWithBlankOperations },
       { dataField: 'schedule.plannedEndDateTime', operations: dateWithBlankOperations },
-      { dataField: 'timeline.estimatedDurationInSeconds', operations: numericOperations },
-      { dataField: 'schedule.plannedDurationInSeconds', operations: numericOperations },
+      { dataField: 'estimatedDurationInDays', operations: numericOperations },
+      { dataField: 'estimatedDurationInHours', operations: numericOperations },
+      { dataField: 'plannedDurationInDays', operations: numericOperations },
+      { dataField: 'plannedDurationInHours', operations: numericOperations },
       { dataField: 'resources.assets.selections', operations: listOperations },
       { dataField: 'resources.duts.selections', operations: listOperations },
       { dataField: 'resources.fixtures.selections', operations: listOperations },
@@ -378,15 +383,10 @@ describe('WorkItemsQueryBuilder', () => {
         filter: 'timeline.earliestStartDateTime != null && timeline.earliestStartDateTime != ""',
         expected: ['Earliest start date', 'is not blank'],
       },
-      // The days and hours variants share a single backend data field, so only the shared label prefix is asserted.
-      {
-        filter: 'timeline.estimatedDurationInSeconds > "1"',
-        expected: ['Estimated duration', 'greater than', '1'],
-      },
-      {
-        filter: 'schedule.plannedDurationInSeconds < "3"',
-        expected: ['Planned duration', 'less than', '3'],
-      },
+      { filter: 'estimatedDurationInDays > "1"', expected: ['Estimated duration (days)', 'greater than', '1'] },
+      { filter: 'estimatedDurationInHours > "2"', expected: ['Estimated duration (hours)', 'greater than', '2'] },
+      { filter: 'plannedDurationInDays < "3"', expected: ['Planned duration (days)', 'less than', '3'] },
+      { filter: 'plannedDurationInHours < "4"', expected: ['Planned duration (hours)', 'less than', '4'] },
       { filter: 'resources.assets.selections.Count == 0', expected: ['Asset identifier', 'is empty'] },
       { filter: 'resources.duts.selections.Count == 0', expected: ['Dut identifier', 'is empty'] },
       { filter: 'resources.fixtures.selections.Count == 0', expected: ['Fixture identifier', 'is empty'] },
@@ -409,7 +409,7 @@ describe('WorkItemsQueryBuilder', () => {
 
     it('should show the system alias name when filter checks systems contains a system ID', () => {
       const { conditionsContainer } = renderElement(
-        'resources.systems.selections.Contains("1")',
+        'resources.systems.selections.Any(s => s.id == "1")',
         [],
         [],
         [],
