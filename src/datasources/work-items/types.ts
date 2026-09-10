@@ -120,6 +120,7 @@ export interface SystemResourceSelection {
   id?: string;
   targetLocationId?: string;
 }
+
 export interface SystemResourceGroup {
   selections?: SystemResourceSelection[];
   filter?: string;

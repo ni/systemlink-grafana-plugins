@@ -145,7 +145,11 @@ describe('WorkItemsDataSource', () => {
 
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
-        { filter: '(type = "workorder") && (state = "NEW")', take: 0, returnCount: true },
+        {
+          filter: '(type = "workorder") && (state = "NEW")',
+          take: 0,
+          returnCount: true
+        },
         { showErrorAlert: false }
       );
     });
@@ -162,7 +166,11 @@ describe('WorkItemsDataSource', () => {
 
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
-        { filter: undefined, take: 0, returnCount: true },
+        {
+          filter: undefined,
+          take: 0,
+          returnCount: true
+        },
         { showErrorAlert: false }
       );
     });
