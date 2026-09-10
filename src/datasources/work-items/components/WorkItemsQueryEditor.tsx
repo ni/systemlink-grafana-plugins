@@ -121,8 +121,9 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   };
 
   const onFilterChange = (event: any) => {
-    if (query.filter !== event.detail.linq) {
-      handleQueryChange({ ...query, filter: event.detail.linq });
+    const filter = event.detail.linq || undefined;
+    if (query.filter !== filter) {
+      handleQueryChange({ ...query, filter });
     }
   };
 
