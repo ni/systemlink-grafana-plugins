@@ -35,20 +35,6 @@ export enum WorkItemsQueryBuilderFieldNames {
   Properties = 'properties',
 }
 
-/** The work item API exposes resources as selection objects, so they need their own expressions. */
-export const WorkItemsQueryBuilderOperations = {
-  RESOURCE_EQUALS: {
-    label: 'equals',
-    name: 'resourceequals',
-    expressionTemplate: '{0}.Any(s => s.id == "{1}")',
-  },
-  RESOURCE_DOES_NOT_EQUAL: {
-    label: 'does not equal',
-    name: 'resourcenotequals',
-    expressionTemplate: '!({0}.Any(s => s.id == "{1}"))',
-  },
-};
-
 export const TIME_OPTIONS = [
   { label: 'From', value: '${__from:date}' },
   { label: 'To', value: '${__to:date}' },
@@ -297,8 +283,8 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     label: 'Asset identifier',
     dataField: WorkItemsQueryBuilderFieldNames.AssetId,
     filterOperations: [
-      WorkItemsQueryBuilderOperations.RESOURCE_EQUALS.name,
-      WorkItemsQueryBuilderOperations.RESOURCE_DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.LIST_EQUALS.name,
+      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
       QueryBuilderOperations.LIST_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ],
@@ -307,8 +293,8 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     label: 'Dut identifier',
     dataField: WorkItemsQueryBuilderFieldNames.DutId,
     filterOperations: [
-      WorkItemsQueryBuilderOperations.RESOURCE_EQUALS.name,
-      WorkItemsQueryBuilderOperations.RESOURCE_DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.LIST_EQUALS.name,
+      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
       QueryBuilderOperations.LIST_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ],
@@ -317,8 +303,8 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     label: 'Fixture identifier',
     dataField: WorkItemsQueryBuilderFieldNames.FixtureId,
     filterOperations: [
-      WorkItemsQueryBuilderOperations.RESOURCE_EQUALS.name,
-      WorkItemsQueryBuilderOperations.RESOURCE_DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.LIST_EQUALS.name,
+      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
       QueryBuilderOperations.LIST_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ],
@@ -327,8 +313,8 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     label: 'System alias name',
     dataField: WorkItemsQueryBuilderFieldNames.SystemAliasName,
     filterOperations: [
-      WorkItemsQueryBuilderOperations.RESOURCE_EQUALS.name,
-      WorkItemsQueryBuilderOperations.RESOURCE_DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.LIST_EQUALS.name,
+      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
       QueryBuilderOperations.LIST_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ],
