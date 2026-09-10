@@ -1,3 +1,15 @@
+## [5.7.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.6.1...v5.7.0) (2026-09-10)
+
+### Features
+
+* **work-items:** Implement runQuery for basic properties ([#742](https://github.com/ni/systemlink-grafana-plugins/issues/742)) ([ec2cfe0](https://github.com/ni/systemlink-grafana-plugins/commit/ec2cfe0c68247c819a47013df52a3d7758e08d86))
+
+## [5.6.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.6.0...v5.6.1) (2026-09-10)
+
+### Bug Fixes
+
+* **work-items:** set default query in WorkItemsQueryEditor ([#748](https://github.com/ni/systemlink-grafana-plugins/issues/748)) ([057e676](https://github.com/ni/systemlink-grafana-plugins/commit/057e676572b67f4cd6252e9f0b244f46f629ea72))
+
 ## [5.6.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.5.0...v5.6.0) (2026-09-10)
 
 ### Features
