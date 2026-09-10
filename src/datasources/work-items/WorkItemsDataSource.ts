@@ -8,7 +8,7 @@ import {
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { QueryBuilderOption, Workspace } from 'core/types';
+import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { extractErrorInfo } from 'core/errors';
 import { ProductUtils } from 'shared/product.utils';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
@@ -18,7 +18,6 @@ import { UsersUtils } from 'shared/users.utils';
 import { User } from 'shared/types/QueryUsers.types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { queryInBatches } from 'core/utils';
-import { QueryResponse } from 'core/types';
 import {
   OrderByOptions,
   OutputType,
