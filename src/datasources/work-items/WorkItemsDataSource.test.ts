@@ -65,7 +65,6 @@ describe('WorkItemsDataSource', () => {
   it('should apply expected default query values', () => {
     const query = datasource.prepareQuery({ refId: 'A' });
 
-    expect(query.outputType).toBe(OutputType.Properties);
     expect(query.types).toEqual(Object.values(WorkItemTypeOptions));
     expect(query.properties).toEqual([
       WorkItemPropertiesOptions.NAME,

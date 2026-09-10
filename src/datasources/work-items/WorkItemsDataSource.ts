@@ -53,7 +53,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   systemUtils: SystemUtils;
 
   defaultQuery = {
-    outputType: OutputType.Properties,
     types: Object.values(WorkItemTypeOptions),
     properties: [
       WorkItemPropertiesOptions.NAME,
