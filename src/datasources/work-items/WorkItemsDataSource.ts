@@ -8,7 +8,10 @@ import {
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { QueryBuilderOption, Workspace } from 'core/types';
-import { extractErrorInfo } from 'core/errors';
+import { 
+  getQueryBuilderLookupsError,
+  getQueryErrorMessage
+} from 'core/errors';
 import { ProductUtils } from 'shared/product.utils';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 import { SystemUtils } from 'shared/system.utils';
@@ -46,7 +49,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   errorTitle = '';
   errorDescription = '';
-  
   productUtils: ProductUtils;
   usersUtils: UsersUtils;
   workspaceUtils: WorkspaceUtils;
@@ -115,25 +117,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         { showErrorAlert: false } // suppress default error alert since we handle errors manually
       );
     } catch (error) {
-      const errorDetails = extractErrorInfo((error as Error).message);
-      let errorMessage: string;
-      switch (errorDetails.statusCode) {
-        case '':
-          errorMessage = 'The query failed due to an unknown error.';
-          break;
-        case '404':
-          errorMessage = 'The query to fetch work items failed because the requested resource was not found. Please check the query parameters and try again.';
-          break;
-        case '429':
-          errorMessage = 'The query to fetch work items failed due to too many requests. Please try again later.';
-          break;
-        case '504':
-          errorMessage = 'The query to fetch work items experienced a timeout error. Narrow your query with a more specific filter and try again.';
-          break;
-        default:
-          errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
-          break;
-      }
+      const errorMessage = getQueryErrorMessage(error, 'work items');
 
       this.appEvents?.publish?.({
         type: AppEvents.alertError.name,
@@ -221,23 +205,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private handleDependenciesError(error: unknown): void {
-    const errorDetails = extractErrorInfo((error as Error).message);
-    this.errorTitle = 'Warning during work items query';
-    switch (errorDetails.statusCode) {
-      case '404':
-        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
-        break;
-      case '429':
-        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
-        break;
-      case '504':
-        this.errorDescription = 'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.';
-        break;
-      default:
-        this.errorDescription = errorDetails.message
-          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-          : 'Some values may not be available in the query builder lookups due to an unknown error.';
-        break;
-    }
+    const { title, description } = getQueryBuilderLookupsError(error, 'work items');
+    this.errorTitle = title;
+    this.errorDescription = description;
   }
 }

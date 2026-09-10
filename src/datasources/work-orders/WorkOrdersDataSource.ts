@@ -8,7 +8,10 @@ import { queryInBatches } from 'core/utils';
 import { QUERY_WORK_ORDERS_MAX_TAKE, QUERY_WORK_ORDERS_REQUEST_PER_SECOND } from './constants/QueryWorkOrders.constants';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { UsersUtils } from 'shared/users.utils';
-import { extractErrorInfo } from 'core/errors';
+import { 
+  getQueryBuilderLookupsError, 
+  getQueryErrorMessage 
+} from 'core/errors';
 import { User } from 'shared/types/QueryUsers.types';
 import { TAKE_LIMIT } from './constants/QueryEditor.constants';
 
@@ -234,25 +237,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       );
       return response;
     } catch (error) {
-      const errorDetails = extractErrorInfo((error as Error).message);
-      let errorMessage: string;
-      switch (errorDetails.statusCode) {
-        case '':
-          errorMessage = 'The query failed due to an unknown error.';
-          break;
-        case '404':
-          errorMessage = 'The query to fetch workorders failed because the requested resource was not found. Please check the query parameters and try again.';
-          break;
-        case '429':
-          errorMessage = 'The query to fetch workorders failed due to too many requests. Please try again later.';
-          break;
-        case '504':
-          errorMessage = 'The query to fetch workorders experienced a timeout error. Narrow your query with a more specific filter and try again.';
-          break;
-        default:
-          errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
-          break;
-      }
+      const errorMessage = getQueryErrorMessage(error, 'workorders');
 
       this.appEvents?.publish?.({
         type: AppEvents.alertError.name,
@@ -293,24 +278,9 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   }
 
   private handleDependenciesError(error: unknown): void {
-    const errorDetails = extractErrorInfo((error as Error).message);
-    this.errorTitle = 'Warning during workorders query';
-    switch (errorDetails.statusCode) {
-      case '404':
-        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
-        break;
-      case '429':
-        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
-        break;
-      case '504':
-        this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
-        break;
-      default:
-        this.errorDescription = errorDetails.message
-          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-          : 'Some values may not be available in the query builder lookups due to an unknown error.';
-        break;
-    }
+    const { title, description } = getQueryBuilderLookupsError(error, 'workorders');
+    this.errorTitle = title;
+    this.errorDescription = description;
   }
 
   private isTakeValid(query: WorkOrdersQuery): boolean {

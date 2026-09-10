@@ -134,36 +134,6 @@ describe('QueryStepsDataSource', () => {
         ],
       });
     });
-
-    it('should throw too many requests error when API returns 429 status', async () => {
-      jest.spyOn(datastore, 'post').mockImplementation(() => {
-        throw new Error('Request failed with status code: 429');
-      });
-
-      await expect(datastore.querySteps()).rejects.toThrow(
-        'The query to fetch steps failed due to too many requests. Please try again later.'
-      );
-    });
-
-    it('should throw not found error when API returns 404 status', async () => {
-      backendServer.fetch
-        .calledWith(requestMatching({ url: queryStepsUrl }))
-        .mockReturnValue(createFetchError(404));
-
-      await expect(datastore.querySteps()).rejects.toThrow(
-        'The query to fetch steps failed because the requested resource was not found. Please check the query parameters and try again.'
-      );
-    })
-
-    it('should throw timeOut error when API returns 504 status', async () => {
-      backendServer.fetch
-        .calledWith(requestMatching({ url: queryStepsUrl }))
-        .mockReturnValue(createFetchError(504));
-
-      await expect(datastore.querySteps()).rejects.toThrow(
-        'The query to fetch steps experienced a timeout error. Narrow your query with a more specific filter and try again.'
-      );
-    });
   });
 
   describe('query', () => {

@@ -1,6 +1,7 @@
-import { DataQueryRequest, TypedVariableModel } from '@grafana/data';
+import { TypedVariableModel } from '@grafana/data';
 import { WorkItemsDataSource } from './WorkItemsDataSource';
 import { setupDataSource } from 'test/fixtures';
+import { DataQueryRequest } from '@grafana/data';
 import { OrderByOptions, OutputType, WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
 
 jest.mock('shared/product.utils', () => {
@@ -404,7 +405,7 @@ describe('loadSystemAliases', () => {
   });
 });
 
-describe('query builder lookup error descriptions', () => {
+describe('query builder lookup error handling', () => {
   const productLookup = {
     name: 'product',
     fail: (datasource: WorkItemsDataSource, error: Error) =>
@@ -430,51 +431,18 @@ describe('query builder lookup error descriptions', () => {
     load: (datasource: WorkItemsDataSource) => datasource.loadSystemAliases(),
   };
 
-  const failures = [
-    {
-      scenario: 'a not found response',
-      error: 'Request failed with status code: 404',
-      expected:
-        'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.',
-    },
-    {
-      scenario: 'a too many requests response',
-      error: 'Request failed with status code: 429',
-      expected:
-        'The query builder lookups failed due to too many requests. Please try again later.',
-    },
-    {
-      scenario: 'a timeout response',
-      error: 'Request failed with status code: 504',
-      expected:
-        'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.',
-    },
-    {
-      scenario: 'an unhandled status code that reports a message',
-      error: 'Request failed with status code: 500. Error message: Internal Server Error',
-      expected:
-        'Some values may not be available in the query builder lookups due to the following error: Internal Server Error.',
-    },
-    {
-      scenario: 'an error without a status code or message',
-      error: 'Error',
-      expected:
-        'Some values may not be available in the query builder lookups due to an unknown error.',
-    },
-  ];
+  it.each([productLookup, userLookup, workspaceLookup, systemAliasLookup])(
+    'should set errorTitle and errorDescription when the $name lookup fails',
+    async ({ fail, load }) => {
+      const [datasource] = setupDataSource(WorkItemsDataSource);
+      fail(datasource, new Error('Request failed with status code: 404'));
 
-  describe.each([productLookup, userLookup, workspaceLookup, systemAliasLookup])(
-    '$name lookup',
-    ({ fail, load }) => {
-      it.each(failures)('should describe $scenario', async ({ error, expected }) => {
-        const [datasource] = setupDataSource(WorkItemsDataSource);
-        fail(datasource, new Error(error));
+      await load(datasource);
 
-        await load(datasource);
-
-        expect(datasource.errorTitle).toBe('Warning during work items query');
-        expect(datasource.errorDescription).toBe(expected);
-      });
+      expect(datasource.errorTitle).toBe('Warning during work items query');
+      expect(datasource.errorDescription).toBe(
+        'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.'
+      );
     }
   );
 

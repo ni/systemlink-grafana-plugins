@@ -5,7 +5,7 @@ import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFra
 import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, CUSTOM_PROPERTY_SUFFIX, propertiesCacheTTL, DATA_TABLES_IDS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
-import { extractErrorInfo } from "core/errors";
+import { getQueryErrorMessage } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
 import { catchError, combineLatestWith, concatMap, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap, takeUntil, Subject, tap } from "rxjs";
@@ -1031,20 +1031,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
     }
 
     private getErrorMessage(error: Error, context: string): string {
-        const errorDetails = extractErrorInfo(error.message);
-
-        switch (errorDetails.statusCode) {
-            case '':
-                return 'The query failed due to an unknown error.';
-            case '404':
-                return `The query to fetch ${context} failed because the requested resource was not found. Please check the query parameters and try again.`;
-            case '429':
-                return `The query to fetch ${context} failed due to too many requests. Please try again later.`;
-            case '504':
-                return `The query to fetch ${context} experienced a timeout error. Narrow your query with a more specific filter and try again.`;
-            default:
-                return `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
-        }
+        return getQueryErrorMessage(error, context);
     }
 
     private transformColumnDataType(dataType: string): string {
