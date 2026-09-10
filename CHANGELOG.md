@@ -1,3 +1,9 @@
+## [5.6.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.5.0...v5.6.0) (2026-09-10)
+
+### Features
+
+* **shared:** Move asset utils to the shared folder ([#744](https://github.com/ni/systemlink-grafana-plugins/issues/744)) ([5c9d630](https://github.com/ni/systemlink-grafana-plugins/commit/5c9d6300285ad02c48009ead4fe3a4697aab2573))
+
 ## [5.5.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.4.0...v5.5.0) (2026-09-09)
 
 ### Features
