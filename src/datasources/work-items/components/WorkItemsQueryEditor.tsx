@@ -124,7 +124,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const globalVariableOptions = useMemo(() => datasource.globalVariableOptions(), [datasource]);
 
-  const isPropertiesOutput = query.outputType === OutputType.Properties;
+  const isPropertiesOutput = outputType === OutputType.Properties;
   // The query builder emits '' for an empty filter while the saved query stores undefined;
   // normalizing keeps the effect dependency stable so it does not refetch on every emit.
   const queryFilter = query.filter || undefined;
