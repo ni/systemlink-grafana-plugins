@@ -1,3 +1,4 @@
+import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { setupRenderer } from 'test/fixtures';
@@ -7,6 +8,17 @@ import { WorkItemsDataSource } from '../WorkItemsDataSource';
 import { OutputType, WorkItemPropertiesGroup, WorkItemPropertiesOptions, WorkItemTypeOptions } from '../types';
 import { WorkItemsQueryEditor } from './WorkItemsQueryEditor';
 import { workItemsQueryEditorPage as page } from './WorkItemsQueryEditor.page';
+
+// The smart-webcomponents query builder is prohibitively slow to mount in jsdom,
+// which pushes every asynchronous assertion in this file past the Jest timeout.
+jest.mock('./query-builder/WorkItemsQueryBuilder', () => ({
+  WorkItemsQueryBuilder: jest.fn(
+    () => React.createElement(
+      'div', 
+      { 'data-testid': 'mock-work-items-query-builder' }
+    )
+    ),
+}));
 
 describe('WorkItemsQueryEditor', () => {
   let getCustomPropertyOptionsSpy: jest.SpyInstance;
@@ -274,8 +286,10 @@ describe('WorkItemsQueryEditor', () => {
         await waitFor(() => expect(getCustomPropertyOptionsSpy).toHaveBeenCalled());
 
         const propertiesCombobox = page.propertiesMultiCombobox()!;
-        await userEvent.click(propertiesCombobox);
-        await userEvent.click(await page.propertySelectOption('customProperty1'));
+        fireEvent.click(propertiesCombobox);
+        // The dropdown is virtualized, so the custom property has to be filtered into view before it can be clicked.
+        fireEvent.change(propertiesCombobox, { target: { value: 'customProperty1' } });
+        fireEvent.click(await page.propertySelectOption('customProperty1'));
 
         expect(onChange).toHaveBeenLastCalledWith(
           expect.objectContaining({
