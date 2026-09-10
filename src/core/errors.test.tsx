@@ -230,8 +230,6 @@ describe('getQueryBuilderLookupsError', () => {
 });
 
 describe('getQueryErrorMessage', () => {
-  // Uses a generic placeholder context here since this table exercises the status-code branches,
-  // not context interpolation - that is covered separately below across real datasource nouns.
   test.each([
     {
       scenario: 'no status code is present',
@@ -243,6 +241,11 @@ describe('getQueryErrorMessage', () => {
       error: 'Request failed with status code: 404',
       expected:
         'The query to fetch items failed because the requested resource was not found. Please check the query parameters and try again.',
+    },
+    {
+      scenario: 'an unauthorized response',
+      error: 'Request failed with status code: 401',
+      expected: 'The query to fetch items failed due to unauthorized access. Please verify your credentials and try again.',
     },
     {
       scenario: 'a too many requests response',

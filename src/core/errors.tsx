@@ -108,6 +108,8 @@ export const getQueryErrorMessage = (error: unknown, context: string): string =>
   switch (errorDetails.statusCode) {
     case '':
       return 'The query failed due to an unknown error.';
+    case '401':
+      return `The query to fetch ${context} failed due to unauthorized access. Please verify your credentials and try again.`;
     case '404':
       return `The query to fetch ${context} failed because the requested resource was not found. Please check the query parameters and try again.`;
     case '429':
