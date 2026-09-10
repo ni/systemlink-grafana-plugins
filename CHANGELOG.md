@@ -1,3 +1,9 @@
+## [5.6.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.6.0...v5.6.1) (2026-09-10)
+
+### Bug Fixes
+
+* **work-items:** set default query in WorkItemsQueryEditor ([#748](https://github.com/ni/systemlink-grafana-plugins/issues/748)) ([057e676](https://github.com/ni/systemlink-grafana-plugins/commit/057e676572b67f4cd6252e9f0b244f46f629ea72))
+
 ## [5.6.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.5.0...v5.6.0) (2026-09-10)
 
 ### Features
