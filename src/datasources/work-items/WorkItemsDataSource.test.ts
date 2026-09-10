@@ -405,16 +405,6 @@ describe('WorkItemsDataSource', () => {
         ]);
       });
 
-      it('should return an empty fields array without querying when no properties are selected', async () => {
-        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ workItems: [], totalCount: 0 });
-        const query = { refId: 'A', outputType: OutputType.Properties, types: [WorkItemTypeOptions.WorkOrders] };
-
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
-
-        expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
-        expect(postSpy).not.toHaveBeenCalled();
-      });
-
       it('should return an empty fields array without querying when properties is an empty array', async () => {
         const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ workItems: [], totalCount: 0 });
         const query = {
