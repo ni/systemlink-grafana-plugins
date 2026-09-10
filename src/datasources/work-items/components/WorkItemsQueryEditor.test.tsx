@@ -9,7 +9,7 @@ import { WorkItemsQueryEditor } from './WorkItemsQueryEditor';
 import { workItemsQueryEditorPage as page } from './WorkItemsQueryEditor.page';
 
 describe('WorkItemsQueryEditor', () => {
-  it('should run the query on mount to clear stale data from a previously selected datasource', () => {
+  it('should call onRunQuery on init', () => {
     const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
     const [, onRunQuery] = render({});
