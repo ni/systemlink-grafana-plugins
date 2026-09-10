@@ -1,3 +1,27 @@
+## [5.7.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.6.1...v5.7.0) (2026-09-10)
+
+### Features
+
+* **work-items:** Implement runQuery for basic properties ([#742](https://github.com/ni/systemlink-grafana-plugins/issues/742)) ([ec2cfe0](https://github.com/ni/systemlink-grafana-plugins/commit/ec2cfe0c68247c819a47013df52a3d7758e08d86))
+
+## [5.6.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.6.0...v5.6.1) (2026-09-10)
+
+### Bug Fixes
+
+* **work-items:** set default query in WorkItemsQueryEditor ([#748](https://github.com/ni/systemlink-grafana-plugins/issues/748)) ([057e676](https://github.com/ni/systemlink-grafana-plugins/commit/057e676572b67f4cd6252e9f0b244f46f629ea72))
+
+## [5.6.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.5.0...v5.6.0) (2026-09-10)
+
+### Features
+
+* **shared:** Move asset utils to the shared folder ([#744](https://github.com/ni/systemlink-grafana-plugins/issues/744)) ([5c9d630](https://github.com/ni/systemlink-grafana-plugins/commit/5c9d6300285ad02c48009ead4fe3a4697aab2573))
+
+## [5.5.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.4.0...v5.5.0) (2026-09-09)
+
+### Features
+
+* **work-items:** add documentation for SystemLink Workitem Datasource ([5d84170](https://github.com/ni/systemlink-grafana-plugins/commit/5d84170b01399a6a5a65659b3b8ca78832d25159))
+
 ## [5.4.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.3.0...v5.4.0) (2026-09-08)
 
 ### Features
