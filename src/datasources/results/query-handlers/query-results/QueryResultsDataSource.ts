@@ -5,7 +5,7 @@ import { OutputType } from "datasources/results/types/types";
 import { defaultResultsQuery } from "datasources/results/defaultQueries";
 import { transformComputedFieldsQuery } from "core/query-builder.utils";
 import { TAKE_LIMIT } from "datasources/results/constants/QuerySteps.constants";
-import { getQueryErrorMessage } from "core/errors";
+import { getQueryError } from "core/errors";
 import { getWorkspaceName } from "core/utils";
 import { Workspace } from "core/types";
 import { BackendSrv, getBackendSrv, getTemplateSrv, TemplateSrv } from "@grafana/runtime";
@@ -48,14 +48,14 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
         { showErrorAlert: false },// suppress default error alert since we handle errors manually
       );
     } catch (error) {
-      const errorMessage = getQueryErrorMessage(error, 'results');
+      const { title, message } = getQueryError(error, 'results');
 
       this.appEvents?.publish?.({
         type: AppEvents.alertError.name,
-        payload: ['Error during result query', errorMessage],
+        payload: [title, message],
       });
 
-      throw new Error(errorMessage);
+      throw new Error(message);
     }
   }
 

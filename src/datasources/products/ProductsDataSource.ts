@@ -3,7 +3,7 @@ import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana
 import { DataSourceBase } from 'core/DataSourceBase';
 import { ProductQuery, ProductResponseProperties, productsProjectionLabelLookup, ProductVariableQuery, Properties, PropertiesOptions, QueryProductResponse } from './types';
 import { QueryBuilderOption, Workspace } from 'core/types';
-import { extractErrorInfo, getQueryBuilderLookupsErrorTitle, getQueryErrorMessage } from 'core/errors';
+import { getQueryBuilderLookupsError, getQueryError } from 'core/errors';
 import { ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { ProductsQueryBuilderFieldNames } from './constants/ProductsQueryBuilder.constants';
 import { getWorkspaceName } from 'core/utils';
@@ -76,14 +76,14 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       { showErrorAlert: false },// suppress default error alert since we handle errors manually
     ).pipe(
       catchError((error) => {
-        const errorMessage = getQueryErrorMessage(error, 'products');
-  
+        const { title, message } = getQueryError(error, 'products');
+
         this.appEvents?.publish?.({
           type: AppEvents.alertError.name,
-          payload: ['Error during product query', errorMessage],
+          payload: [title, message],
         });
-  
-        throw new Error(errorMessage);
+
+        throw new Error(message);
       })
     );
   }
@@ -259,14 +259,8 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   }
 
   private handleQueryProductValuesError(error: unknown): void {
-    const errorDetails = extractErrorInfo((error as Error).message);
-    this.errorTitle = getQueryBuilderLookupsErrorTitle('product value');
-    if (errorDetails.statusCode === '504') {
-      this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
-    } else {
-      this.errorDescription = errorDetails.message
-        ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-        : 'Some values may not be available in the query builder lookups due to an unknown error.';
-    }
+        const { title, description } = getQueryBuilderLookupsError(error, 'dataframe');
+        this.errorTitle = title;
+        this.errorDescription = description;
   }
 }

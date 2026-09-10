@@ -35,7 +35,7 @@ import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types
 import { QueryResponse, Workspace } from 'core/types';
 import { getWorkspaceName, queryInBatches } from 'core/utils';
 import { MAX_PATH_TAKE_PER_REQUEST } from 'datasources/results/constants/QueryStepPath.constants';
-import { getQueryErrorMessage } from 'core/errors';
+import { getQueryError } from 'core/errors';
 import {
   DUPLICATE_INPUT_SUFFIX,
   DUPLICATE_OUTPUT_SUFFIX,
@@ -94,14 +94,14 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       );
       return response;
     } catch (error) {
-      const errorMessage = getQueryErrorMessage(error, 'steps');
+      const { title, message } = getQueryError(error, 'steps');
 
       this.appEvents?.publish?.({
         type: AppEvents.alertError.name,
-        payload: ['Error during step query', errorMessage],
+        payload: [title, message],
       });
 
-      throw new Error(errorMessage);
+      throw new Error(message);
     }
   }
 

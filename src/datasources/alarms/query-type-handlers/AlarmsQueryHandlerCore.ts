@@ -1,7 +1,7 @@
 import { DataSourceBase } from 'core/DataSourceBase';
 import { DataQueryRequest, DataFrameDTO, TestDataSourceResponse, AppEvents, ScopedVars, DataSourceInstanceSettings } from '@grafana/data';
 import { Alarm, AlarmsQuery, AlarmTransitionSeverityLevel, QueryAlarmsRequest, QueryAlarmsResponse } from '../types/types';
-import { getQueryBuilderLookupsError, getQueryErrorMessage } from 'core/errors';
+import { getQueryBuilderLookupsError, getQueryError } from 'core/errors';
 import { QUERY_ALARMS_MAXIMUM_TAKE, QUERY_ALARMS_RELATIVE_PATH, QUERY_ALARMS_REQUEST_PER_SECOND } from '../constants/QueryAlarms.constants';
 import { ExpressionTransformFunction, getConcatOperatorForMultiExpression, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { AlarmsQueryBuilderFields } from '../constants/AlarmsQueryBuilder.constants';
@@ -40,14 +40,14 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
         { showErrorAlert: false }
       );
     } catch (error) {
-      const errorMessage = getQueryErrorMessage(error, 'alarms');
+      const { title, message } = getQueryError(error, 'alarms');
 
       this.appEvents.publish?.({
         type: AppEvents.alertError.name,
-        payload: ['Error during alarms query', errorMessage],
+        payload: [title, message],
       });
 
-      throw new Error(errorMessage);
+      throw new Error(message);
     }
   }
 

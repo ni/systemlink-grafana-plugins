@@ -92,7 +92,7 @@ describe('QueryResultsDataSource', () => {
     
         expect(publishMock).toHaveBeenCalledWith({
           type: 'alert-error',
-          payload: ['Error during result query', expect.stringContaining('The query failed due to the following error: (status 400) "Error".')],
+          payload: ['Error during results query', expect.stringContaining('The query failed due to the following error: (status 400) "Error".')],
         });
       });
 

@@ -5,7 +5,7 @@ import { Column, Option, DataFrameDataQuery, DataFrameDataSourceOptions, DataFra
 import { COLUMN_OPTIONS_LIMIT, COLUMN_SELECTION_LIMIT, COLUMNS_GROUP, CUSTOM_PROPERTY_COLUMNS_LIMIT, DELAY_BETWEEN_REQUESTS_MS, FLOAT32_MAX, FLOAT32_MIN, FLOAT64_MAX, FLOAT64_MIN, INT32_MAX, INT32_MIN, INT64_MAX, INT64_MIN, X_COLUMN_RANGE_DECIMAL_PRECISION, INTEGER_DATA_TYPES, NUMERIC_DATA_TYPES, POSSIBLE_UNIT_CUSTOM_PROPERTY_KEYS, REQUESTS_PER_SECOND, RESULT_IDS_LIMIT, TAKE_LIMIT, MAXIMUM_DATA_POINTS, UNDECIMATED_RECORDS_LIMIT, CUSTOM_COLUMN_PROPERTIES_GROUP, CUSTOM_DATA_TABLE_PROPERTIES_GROUP, CUSTOM_PROPERTY_SUFFIX, propertiesCacheTTL, DATA_TABLES_IDS_LIMIT } from "datasources/data-frame/constants";
 import { ExpressionTransformFunction, listFieldsQuery, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from "core/query-builder.utils";
 import { LEGACY_METADATA_TYPE, Workspace } from "core/types";
-import { getQueryErrorMessage } from "core/errors";
+import { getQueryError } from "core/errors";
 import { DataTableQueryBuilderFieldNames } from "datasources/data-frame/components/v2/constants/DataTableQueryBuilder.constants";
 import _ from "lodash";
 import { catchError, combineLatestWith, concatMap, from, isObservable, lastValueFrom, map, mergeMap, Observable, of, reduce, timer, switchMap, takeUntil, Subject, tap } from "rxjs";
@@ -268,12 +268,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return response.pipe(
             map(res => res.tables),
             catchError(error => {
-                const errorMessage = this.getErrorMessage(error, 'data tables');
+                const { title, message } = getQueryError(error, 'data tables');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
-                    payload: ['Error during data tables query', errorMessage],
+                    payload: [title, message],
                 });
-                throw new Error(errorMessage);
+                throw new Error(message);
             })
         );
     }
@@ -761,7 +761,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
             { useApiIngress: true, showErrorAlert: false }
         ).pipe(
             catchError(error => {
-                const errorMessage = this.getErrorMessage(error, 'decimated table data');
+                const { message: errorMessage } = getQueryError(error, 'decimated table data');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
                     payload: ['Error fetching decimated table data', errorMessage],
@@ -790,7 +790,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         ).pipe(
             map(csvData => this.parseCsvToTableDataRows(csvData)),
             catchError(error => {
-                const errorMessage = this.getErrorMessage(error, 'undecimated table data');
+                const { message: errorMessage } = getQueryError(error, 'undecimated table data');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
                     payload: ['Error While Fetching Undecimated Table Data', errorMessage],
@@ -916,7 +916,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return this.getTable(transformedTableId).pipe(
             map(table => this.migrateColumnsFromV1ToV2(currentColumns, table)),
             catchError(error => {
-                const errorMessage = this.getErrorMessage(error, 'data table columns');
+                const { message: errorMessage } = getQueryError(error, 'data table columns');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
                     payload: ['Error fetching columns for migration', errorMessage],
@@ -1028,10 +1028,6 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
 
     private areAllEntriesString(array: any[]): array is string[] {
         return _.every(array, entry => typeof entry === 'string');
-    }
-
-    private getErrorMessage(error: Error, context: string): string {
-        return getQueryErrorMessage(error, context);
     }
 
     private transformColumnDataType(dataType: string): string {
@@ -2260,7 +2256,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 return response.results;
             }),
             catchError(error => {
-                const errorMessage = this.getErrorMessage(error, 'results');
+                const { message: errorMessage } = getQueryError(error, 'results');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
                     payload: ['Error querying test results', errorMessage],

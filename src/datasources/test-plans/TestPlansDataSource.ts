@@ -12,7 +12,10 @@ import { SystemUtils } from 'shared/system.utils';
 import { computedFieldsupportedOperations, ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { UsersUtils } from 'shared/users.utils';
 import { ProductUtils } from 'shared/product.utils';
-import { getQueryBuilderLookupsError, getQueryErrorMessage } from 'core/errors';
+import { 
+  getQueryBuilderLookupsError, 
+  getQueryError 
+} from 'core/errors';
 import { User } from 'shared/types/QueryUsers.types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
@@ -396,11 +399,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       );
       return response;
     } catch (error) {
-      const errorMessage = getQueryErrorMessage(error, 'testplans');
+      const { title: errorTitle, message: errorMessage } = getQueryError(error, 'testplans');
 
       this.appEvents?.publish?.({
         type: AppEvents.alertError.name,
-        payload: ['Error during testplans query', errorMessage],
+        payload: [errorTitle, errorMessage],
       });
 
       throw new Error(errorMessage);

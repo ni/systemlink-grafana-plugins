@@ -8,10 +8,7 @@ import {
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { QueryBuilderOption, Workspace } from 'core/types';
-import { 
-  getQueryBuilderLookupsError,
-  getQueryErrorMessage
-} from 'core/errors';
+import { getQueryError, getQueryBuilderLookupsError } from 'core/errors';
 import { ProductUtils } from 'shared/product.utils';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 import { SystemUtils } from 'shared/system.utils';
@@ -117,14 +114,14 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         { showErrorAlert: false } // suppress default error alert since we handle errors manually
       );
     } catch (error) {
-      const errorMessage = getQueryErrorMessage(error, 'work items');
+      const { title, message } = getQueryError(error, 'work items');
 
       this.appEvents?.publish?.({
         type: AppEvents.alertError.name,
-        payload: ['Error during work items query', errorMessage],
+        payload: [title, message],
       });
 
-      throw new Error(errorMessage);
+      throw new Error(message);
     }
   }
 

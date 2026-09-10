@@ -10,7 +10,7 @@ import { WorkspaceUtils } from 'shared/workspace.utils';
 import { UsersUtils } from 'shared/users.utils';
 import { 
   getQueryBuilderLookupsError, 
-  getQueryErrorMessage 
+  getQueryError
 } from 'core/errors';
 import { User } from 'shared/types/QueryUsers.types';
 import { TAKE_LIMIT } from './constants/QueryEditor.constants';
@@ -237,11 +237,11 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       );
       return response;
     } catch (error) {
-      const errorMessage = getQueryErrorMessage(error, 'workorders');
+      const { title: errorTitle, message: errorMessage } = getQueryError(error, 'workorders');
 
       this.appEvents?.publish?.({
         type: AppEvents.alertError.name,
-        payload: ['Error during workorders query', errorMessage],
+        payload: [errorTitle, errorMessage],
       });
 
       throw new Error(errorMessage);
