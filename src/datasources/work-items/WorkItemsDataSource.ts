@@ -8,11 +8,16 @@ import {
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { queryInBatches } from 'core/utils';
-import { QueryResponse, Workspace } from 'core/types';
-import { WorkspaceUtils } from 'shared/workspace.utils';
+import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
+import { extractErrorInfo } from 'core/errors';
+import { ProductUtils } from 'shared/product.utils';
+import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
+import { SystemUtils } from 'shared/system.utils';
+import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { UsersUtils } from 'shared/users.utils';
 import { User } from 'shared/types/QueryUsers.types';
+import { WorkspaceUtils } from 'shared/workspace.utils';
+import { queryInBatches } from 'core/utils';
 import {
   OrderByOptions,
   OutputType,
@@ -25,7 +30,6 @@ import {
 } from './types';
 import {
   DEFAULT_TAKE,
-  USER_PROPERTY_FIELDS,
   WORK_ITEM_PROPERTIES_PROJECTIONS,
   WORK_ITEM_TYPE_FILTER_VALUES,
   WORK_ITEM_TYPE_LABEL_MAP,
@@ -36,7 +40,6 @@ import {
   QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
 } from './constants/QueryWorkItems.constants';
 import { WorkItemProperties } from './constants/QueryEditor.constants';
-import { extractErrorInfo } from 'core/errors';
 import { isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty, transformDuration } from './utils';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
@@ -46,17 +49,24 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     readonly templateSrv: TemplateSrv = getTemplateSrv()
   ) {
     super(instanceSettings, backendSrv, templateSrv);
-    this.workspaceUtils = new WorkspaceUtils(this.instanceSettings, this.backendSrv);
-    this.usersUtils = new UsersUtils(this.instanceSettings, this.backendSrv);
+    this.productUtils = new ProductUtils(instanceSettings, backendSrv);
+    this.usersUtils = new UsersUtils(instanceSettings, backendSrv);
+    this.workspaceUtils = new WorkspaceUtils(instanceSettings, backendSrv);
+    this.systemUtils = new SystemUtils(instanceSettings, backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkitem/v1`;
   queryWorkItemsUrl = `${this.baseUrl}/query-workitems`;
-  workspaceUtils: WorkspaceUtils;
+
+  errorTitle = '';
+  errorDescription = '';
+  
+  productUtils: ProductUtils;
   usersUtils: UsersUtils;
+  workspaceUtils: WorkspaceUtils;
+  systemUtils: SystemUtils;
 
   defaultQuery = {
-    outputType: OutputType.Properties,
     types: Object.values(WorkItemTypeOptions),
     properties: [
       WorkItemPropertiesOptions.NAME,
@@ -69,6 +79,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     descending: true,
     take: DEFAULT_TAKE,
   };
+
+  readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   async runQuery(query: WorkItemsQuery, options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {
     if (!isTypesNonEmpty(query.types)) {
@@ -433,8 +445,73 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return !query.hide;
   }
 
+  public async loadProductNamesAndPartNumbers(): Promise<Map<string, ProductPartNumberAndName>> {
+    try {
+      return await this.productUtils.getProductNamesAndPartNumbers();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, ProductPartNumberAndName>();
+    }
+  }
+
+  public async loadUsers(): Promise<Map<string, User>> {
+    try {
+      return await this.usersUtils.getUsers();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, User>();
+    }
+  }
+
+  public async loadWorkspaces(): Promise<Map<string, Workspace>> {
+    try {
+      return await this.workspaceUtils.getWorkspaces();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, Workspace>();
+    }
+  }
+
+  public async loadSystemAliases(): Promise<Map<string, SystemAlias>> {
+    try {
+      return await this.systemUtils.getSystemAliases();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, SystemAlias>();
+    }
+  }
+
   async testDatasource(): Promise<TestDataSourceResponse> {
     await this.post(this.queryWorkItemsUrl, { take: 1 }, { showErrorAlert: false });
     return { status: 'success', message: 'Data source connected and authentication successful!' };
+  }
+
+  private handleDependenciesError(error: unknown): void {
+    const errorDetails = extractErrorInfo((error as Error).message);
+    this.errorTitle = 'Warning during work items query';
+    switch (errorDetails.statusCode) {
+      case '404':
+        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
+        break;
+      case '429':
+        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
+        break;
+      case '504':
+        this.errorDescription = 'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.';
+        break;
+      default:
+        this.errorDescription = errorDetails.message
+          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+          : 'Some values may not be available in the query builder lookups due to an unknown error.';
+        break;
+    }
   }
 }

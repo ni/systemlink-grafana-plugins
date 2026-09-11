@@ -47,7 +47,7 @@ jest.mock('shared/workspace.utils', () => {
   };
 });
 
-jest.mock('./asset.utils', () => {
+jest.mock('shared/asset.utils', () => {
   return {
     AssetUtils: jest.fn().mockImplementation(() => ({
       queryAssetsInBatches: jest.fn().mockResolvedValue(

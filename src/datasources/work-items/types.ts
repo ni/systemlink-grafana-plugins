@@ -5,6 +5,17 @@ export enum OutputType {
   TotalCount = 'Total Count',
 }
 
+export enum WorkItemState {
+  New = 'NEW',
+  Defined = 'DEFINED',
+  Reviewed = 'REVIEWED',
+  Scheduled = 'SCHEDULED',
+  InProgress = 'IN_PROGRESS',
+  PendingApproval = 'PENDING_APPROVAL',
+  Closed = 'CLOSED',
+  Canceled = 'CANCELED',
+}
+
 export enum WorkItemTypeOptions {
   WorkOrders = 'WORK_ORDERS',
   TestPlans = 'TEST_PLANS',
@@ -109,6 +120,7 @@ export interface SystemResourceSelection {
   id?: string;
   targetLocationId?: string;
 }
+
 export interface SystemResourceGroup {
   selections?: SystemResourceSelection[];
   filter?: string;

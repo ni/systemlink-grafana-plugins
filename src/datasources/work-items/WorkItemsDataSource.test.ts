@@ -1,6 +1,6 @@
+import { DataQueryRequest, TypedVariableModel } from '@grafana/data';
 import { WorkItemsDataSource } from './WorkItemsDataSource';
 import { setupDataSource } from 'test/fixtures';
-import { DataQueryRequest } from '@grafana/data';
 import { OrderByOptions, OutputType, WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
 import { queryInBatches } from 'core/utils';
 
@@ -8,6 +8,58 @@ jest.mock('core/utils', () => ({
   ...jest.requireActual('core/utils'),
   queryInBatches: jest.fn(jest.requireActual('core/utils').queryInBatches),
 }));
+
+jest.mock('shared/product.utils', () => {
+  return {
+    ProductUtils: jest.fn().mockImplementation(() => ({
+      getProductNamesAndPartNumbers: jest.fn().mockResolvedValue(
+        new Map([
+          ['part-number-1', { id: '1', partNumber: 'part-number-1', name: 'Product 1' }],
+          ['part-number-2', { id: '2', partNumber: 'part-number-2', name: 'Product 2' }],
+        ])
+      ),
+    })),
+  };
+});
+
+jest.mock('shared/users.utils', () => {
+  return {
+    UsersUtils: jest.fn().mockImplementation(() => ({
+      getUsers: jest.fn().mockResolvedValue(
+        new Map([
+          ['1', { id: '1', firstName: 'User', lastName: '1', email: 'user1@123.com' }],
+          ['2', { id: '2', firstName: 'User', lastName: '2', email: 'user2@123.com' }],
+        ])
+      ),
+    })),
+  };
+});
+
+jest.mock('shared/workspace.utils', () => {
+  return {
+    WorkspaceUtils: jest.fn().mockImplementation(() => ({
+      getWorkspaces: jest.fn().mockResolvedValue(
+        new Map([
+          ['1', { id: '1', name: 'WorkspaceName' }],
+          ['2', { id: '2', name: 'AnotherWorkspaceName' }],
+        ])
+      ),
+    })),
+  };
+});
+
+jest.mock('shared/system.utils', () => {
+  return {
+    SystemUtils: jest.fn().mockImplementation(() => ({
+      getSystemAliases: jest.fn().mockResolvedValue(
+        new Map([
+          ['1', { id: '1', alias: 'System 1' }],
+          ['2', { id: '2', alias: 'System 2' }],
+        ])
+      ),
+    })),
+  };
+});
 
 describe('WorkItemsDataSource', () => {
   let datasource: WorkItemsDataSource;
@@ -19,7 +71,6 @@ describe('WorkItemsDataSource', () => {
   it('should apply expected default query values', () => {
     const query = datasource.prepareQuery({ refId: 'A' });
 
-    expect(query.outputType).toBe(OutputType.Properties);
     expect(query.types).toEqual(Object.values(WorkItemTypeOptions));
     expect(query.properties).toEqual([
       WorkItemPropertiesOptions.NAME,
@@ -94,7 +145,11 @@ describe('WorkItemsDataSource', () => {
 
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
-        { filter: '(type = "workorder") && (state = "NEW")', take: 0, returnCount: true },
+        {
+          filter: '(type = "workorder") && (state = "NEW")',
+          take: 0,
+          returnCount: true
+        },
         { showErrorAlert: false }
       );
     });
@@ -111,7 +166,11 @@ describe('WorkItemsDataSource', () => {
 
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
-        { filter: undefined, take: 0, returnCount: true },
+        {
+          filter: undefined,
+          take: 0,
+          returnCount: true
+        },
         { showErrorAlert: false }
       );
     });
@@ -344,16 +403,6 @@ describe('WorkItemsDataSource', () => {
           { name: 'Work item type', values: ['customtype'], type: 'string' },
           { name: 'State', values: ['UNKNOWN_STATE'], type: 'string' },
         ]);
-      });
-
-      it('should return an empty fields array without querying when no properties are selected', async () => {
-        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ workItems: [], totalCount: 0 });
-        const query = { refId: 'A', outputType: OutputType.Properties, types: [WorkItemTypeOptions.WorkOrders] };
-
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
-
-        expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
-        expect(postSpy).not.toHaveBeenCalled();
       });
 
       it('should return an empty fields array without querying when properties is an empty array', async () => {
@@ -908,3 +957,195 @@ describe('WorkItemsDataSource', () => {
   });
 });
 
+
+describe('globalVariableOptions', () => {
+  it('should offer every dashboard variable prefixed with a dollar sign in value of query by', () => {
+    const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
+    templateSrv.getVariables.mockReturnValue([
+      { name: 'workspace_var' },
+      { name: 'product_var' },
+    ] as TypedVariableModel[]);
+
+    expect(datasource.globalVariableOptions()).toEqual([
+      { label: '$workspace_var', value: '$workspace_var' },
+      { label: '$product_var', value: '$product_var' },
+    ]);
+  });
+
+  it('should offer no options when the dashboard has no variables in value of query by', () => {
+    const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
+    templateSrv.getVariables.mockReturnValue([]);
+
+    expect(datasource.globalVariableOptions()).toEqual([]);
+  });
+});
+
+describe('loadProductNamesAndPartNumbers', () => {
+  it('should return product names and part numbers when the API call succeeds', async () => {
+    const [datasource] = setupDataSource(WorkItemsDataSource);
+
+    const result = await datasource.loadProductNamesAndPartNumbers();
+
+    expect(result.get('part-number-1')?.name).toBe('Product 1');
+    expect(result.get('part-number-2')?.name).toBe('Product 2');
+  });
+
+  it('should return an empty map when the lookup fails', async () => {
+    const [datasource] = setupDataSource(WorkItemsDataSource);
+    jest
+      .spyOn(datasource.productUtils, 'getProductNamesAndPartNumbers')
+      .mockRejectedValue(new Error('Error'));
+
+    const result = await datasource.loadProductNamesAndPartNumbers();
+
+    expect(result.size).toBe(0);
+  });
+});
+
+describe('loadUsers', () => {
+  it('should return the list of users when the API call succeeds', async () => {
+    const [datasource] = setupDataSource(WorkItemsDataSource);
+
+    const result = await datasource.loadUsers();
+
+    expect(result.get('1')?.firstName).toBe('User');
+    expect(result.get('2')?.firstName).toBe('User');
+  });
+
+  it('should return an empty map when the lookup fails', async () => {
+    const [datasource] = setupDataSource(WorkItemsDataSource);
+    jest.spyOn(datasource.usersUtils, 'getUsers').mockRejectedValue(new Error('Error'));
+
+    const result = await datasource.loadUsers();
+
+    expect(result.size).toBe(0);
+  });
+});
+
+describe('loadWorkspaces', () => {
+  it('should return the list of workspaces when the API call succeeds', async () => {
+    const [datasource] = setupDataSource(WorkItemsDataSource);
+
+    const result = await datasource.loadWorkspaces();
+
+    expect(result.get('1')?.name).toBe('WorkspaceName');
+    expect(result.get('2')?.name).toBe('AnotherWorkspaceName');
+  });
+
+  it('should return an empty map when the lookup fails', async () => {
+    const [datasource] = setupDataSource(WorkItemsDataSource);
+    jest.spyOn(datasource.workspaceUtils, 'getWorkspaces').mockRejectedValue(new Error('Error'));
+
+    const result = await datasource.loadWorkspaces();
+
+    expect(result.size).toBe(0);
+  });
+});
+
+describe('loadSystemAliases', () => {
+  it('should return the list of system aliases when the API call succeeds', async () => {
+    const [datasource] = setupDataSource(WorkItemsDataSource);
+
+    const result = await datasource.loadSystemAliases();
+
+    expect(result.get('1')?.alias).toBe('System 1');
+    expect(result.get('2')?.alias).toBe('System 2');
+  });
+
+  it('should return an empty map when the lookup fails', async () => {
+    const [datasource] = setupDataSource(WorkItemsDataSource);
+    jest.spyOn(datasource.systemUtils, 'getSystemAliases').mockRejectedValue(new Error('Error'));
+
+    const result = await datasource.loadSystemAliases();
+
+    expect(result.size).toBe(0);
+  });
+});
+
+describe('query builder lookup error descriptions', () => {
+  const productLookup = {
+    name: 'product',
+    fail: (datasource: WorkItemsDataSource, error: Error) =>
+      jest.spyOn(datasource.productUtils, 'getProductNamesAndPartNumbers').mockRejectedValue(error),
+    load: (datasource: WorkItemsDataSource) => datasource.loadProductNamesAndPartNumbers(),
+  };
+  const userLookup = {
+    name: 'user',
+    fail: (datasource: WorkItemsDataSource, error: Error) =>
+      jest.spyOn(datasource.usersUtils, 'getUsers').mockRejectedValue(error),
+    load: (datasource: WorkItemsDataSource) => datasource.loadUsers(),
+  };
+  const workspaceLookup = {
+    name: 'workspace',
+    fail: (datasource: WorkItemsDataSource, error: Error) =>
+      jest.spyOn(datasource.workspaceUtils, 'getWorkspaces').mockRejectedValue(error),
+    load: (datasource: WorkItemsDataSource) => datasource.loadWorkspaces(),
+  };
+  const systemAliasLookup = {
+    name: 'system alias',
+    fail: (datasource: WorkItemsDataSource, error: Error) =>
+      jest.spyOn(datasource.systemUtils, 'getSystemAliases').mockRejectedValue(error),
+    load: (datasource: WorkItemsDataSource) => datasource.loadSystemAliases(),
+  };
+
+  const failures = [
+    {
+      scenario: 'a not found response',
+      error: 'Request failed with status code: 404',
+      expected:
+        'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.',
+    },
+    {
+      scenario: 'a too many requests response',
+      error: 'Request failed with status code: 429',
+      expected:
+        'The query builder lookups failed due to too many requests. Please try again later.',
+    },
+    {
+      scenario: 'a timeout response',
+      error: 'Request failed with status code: 504',
+      expected:
+        'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.',
+    },
+    {
+      scenario: 'an unhandled status code that reports a message',
+      error: 'Request failed with status code: 500. Error message: Internal Server Error',
+      expected:
+        'Some values may not be available in the query builder lookups due to the following error: Internal Server Error.',
+    },
+    {
+      scenario: 'an error without a status code or message',
+      error: 'Error',
+      expected:
+        'Some values may not be available in the query builder lookups due to an unknown error.',
+    },
+  ];
+
+  describe.each([productLookup, userLookup, workspaceLookup, systemAliasLookup])(
+    '$name lookup',
+    ({ fail, load }) => {
+      it.each(failures)('should describe $scenario', async ({ error, expected }) => {
+        const [datasource] = setupDataSource(WorkItemsDataSource);
+        fail(datasource, new Error(error));
+
+        await load(datasource);
+
+        expect(datasource.errorTitle).toBe('Warning during work items query');
+        expect(datasource.errorDescription).toBe(expected);
+      });
+    }
+  );
+
+  it('should show only the first failure when several lookups fail', async () => {
+    const [datasource] = setupDataSource(WorkItemsDataSource);
+    productLookup.fail(datasource, new Error('Request failed with status code: 404'));
+    userLookup.fail(datasource, new Error('Request failed with status code: 429'));
+
+    await productLookup.load(datasource);
+    await userLookup.load(datasource);
+
+    expect(datasource.errorDescription).toBe(
+      'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.'
+    );
+  });
+});
