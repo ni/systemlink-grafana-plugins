@@ -5,6 +5,14 @@ import { BatchQueryConfig, QBField, QueryBuilderOption, QueryResponse, SystemLin
 import { BackendSrv, BackendSrvRequest, FetchError, isFetchError, TemplateSrv } from '@grafana/runtime';
 import { catchError, lastValueFrom, map, Observable, switchMap, throwError, timer } from 'rxjs';
 
+const TIME_UNITS = [
+  { unitLabel: 'year', secondsPerUnit: 31536000, showPlural: true },
+  { unitLabel: 'day', secondsPerUnit: 86400, showPlural: true },
+  { unitLabel: 'hr', secondsPerUnit: 3600 },
+  { unitLabel: 'min', secondsPerUnit: 60 },
+  { unitLabel: 'sec', secondsPerUnit: 1 },
+];
+
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
   const RESULT = [];
 
@@ -99,29 +107,28 @@ export function filterXSSLINQExpression(value: string | null | undefined): strin
 }
 
 /**
- * Converts a duration in seconds into a comma-separated string of days, hours, minutes, and seconds.
+ * Converts a duration in seconds into a comma-separated string of years, days, hours, minutes, and seconds.
  *
- * @param seconds - The duration in seconds to convert.
+ * @param totalSeconds - The duration in seconds to convert.
  */
 export const transformDuration = (totalSeconds: number): string => {
-  const timeUnits = [
-    { label: 'day', secondsInUnit: 86400 },
-    { label: 'hr', secondsInUnit: 3600, noPlural: true },
-    { label: 'min', secondsInUnit: 60, noPlural: true },
-    { label: 'sec', secondsInUnit: 1, noPlural: true },
-  ];
+  if (totalSeconds <= 0) {
+    return '0 sec';
+  }
 
-  const parts: string[] = [];
+  let remainingSeconds = totalSeconds;
+  const formattedParts: string[] = [];
 
-  for (const { label, secondsInUnit, noPlural } of timeUnits) {
-    const count = Math.floor(totalSeconds / secondsInUnit);
+  for (const { unitLabel, secondsPerUnit, showPlural } of TIME_UNITS) {
+    const count = Math.floor(remainingSeconds / secondsPerUnit);
     if (count > 0) {
-      parts.push(`${count} ${label}${count > 1 && !noPlural ? 's' : ''}`);
-      totalSeconds %= secondsInUnit;
+      const label = `${unitLabel}${count > 1 && showPlural ? 's' : ''}`;
+      formattedParts.push(`${count} ${label}`);
+      remainingSeconds %= secondsPerUnit;
     }
   }
 
-  return parts.length > 0 ? parts.join(', ') : '0 sec';
+  return formattedParts.length > 0 ? formattedParts.join(', ') : '0 sec';
 };
 
 export function validateNumericInput(event: React.KeyboardEvent<HTMLInputElement>) {

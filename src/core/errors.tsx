@@ -79,7 +79,7 @@ export const extractErrorInfo = (errorMessage: string): { url: string; statusCod
 
 /**
  * Builds the `title`/`description` pair shown when a query builder lookup (dropdown options) fails.
- * @param error The caught error.
+ * @param error The error thrown.
  * @param context The entity being queried, e.g. 'work items', 'testplans'.
  */
 export const getQueryBuilderLookupsError = (error: unknown, context: string): QueryErrorInfo => {
@@ -111,7 +111,7 @@ export const getQueryBuilderLookupsError = (error: unknown, context: string): Qu
 
 /**
  * Builds the `title`/`message` pair shown when a data query itself fails.
- * @param error The caught error.
+ * @param error The error thrown.
  * @param context The entity being queried, e.g. 'work items', 'testplans'.
  */
 export const getQueryError = (error: unknown, context: string): QueryErrorInfo => {
