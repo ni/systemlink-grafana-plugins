@@ -129,6 +129,13 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   // normalizing keeps the effect dependency stable so it does not refetch on every emit.
   const queryFilter = query.filter || undefined;
   const queryTake = query.take ?? DEFAULT_TAKE;
+  // Discovery must use the same filter as the data query, otherwise the offered keys
+  // can come from work items that are not part of the result.
+  const customPropertiesFilter = useMemo(
+    () => datasource.buildFilterFromQuery({ ...query, filter: queryFilter }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [datasource, queryFilter, query.types]
+  );
 
   useEffect(() => {
     if (!isPropertiesOutput) {
@@ -138,7 +145,12 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     let isStale = false;
     const loadCustomProperties = async () => {
       try {
-        const options = await datasource.getCustomPropertyOptions(queryFilter, queryTake);
+        const options = await datasource.getCustomPropertyOptions(
+          customPropertiesFilter,
+          queryTake,
+          query.orderBy,
+          query.descending
+        );
         if (!isStale) {
           setCustomPropertyOptions(options.slice(0, CUSTOM_PROPERTY_OPTIONS_LIMIT));
         }
@@ -158,7 +170,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     return () => {
       isStale = true;
     };
-  }, [datasource, isPropertiesOutput, queryFilter, queryTake]);
+  }, [datasource, isPropertiesOutput, customPropertiesFilter, queryTake, query.orderBy, query.descending]);
 
   const selectedPropertyOptions = useMemo(() => {
     const optionsByValue = new Map(

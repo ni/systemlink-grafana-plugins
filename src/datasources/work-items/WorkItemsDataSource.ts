@@ -92,16 +92,11 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
-    const typeFilter = this.buildTypeFilter(query.types!);
-    const queryFilter = query.filter?.trim();
-    const filter = this.buildQueryFilter(
-      typeFilter ? `(${typeFilter})` : undefined,
-      queryFilter ? `(${queryFilter})` : undefined
-    );
+    const filter = this.buildFilterFromQuery(query);
 
     if (
       query.outputType === OutputType.Properties &&
-      isPropertiesNonEmpty(query.properties) &&
+      isPropertiesNonEmpty(query.properties, query.customProperties) &&
       isTakeValid(query.take)
     ) {
       return this.processWorkItemsQuery(query, filter);
@@ -125,18 +120,23 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       query.properties,
       query.orderBy,
       query.descending,
-      query.take
+      query.take,
+      query.customProperties
     );
 
     return {
       refId: query.refId,
       name: query.refId,
-      fields: this.buildFields(query.properties, workItems),
+      fields: this.buildFields(query.properties, workItems, query.customProperties),
     };
   }
 
-  private buildFields(properties: WorkItemPropertiesOptions[] | undefined, workItems: WorkItem[]) {
-    return (
+  private buildFields(
+    properties: WorkItemPropertiesOptions[] | undefined,
+    workItems: WorkItem[],
+    customProperties?: string[]
+  ) {
+    const standardFields =
       properties?.map(property => {
         const fieldValue = workItems.map(workItem => this.getPropertyValue(property, workItem));
         const fieldType = this.getPropertyFieldType(property);
@@ -146,8 +146,16 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
           type: fieldType,
           ...(fieldType === FieldType.time && { config: { unit: 'time:YYYY-MM-DD HH:mm:ss' } }),
         };
-      }) ?? []
-    );
+      }) ?? [];
+
+    const customFields =
+      customProperties?.map(customProperty => ({
+        name: customProperty,
+        values: workItems.map(workItem => workItem.properties?.[customProperty] ?? ''),
+        type: FieldType.string,
+      })) ?? [];
+
+    return [...standardFields, ...customFields];
   }
 
   private getPropertyValue(
@@ -236,9 +244,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     properties?: WorkItemPropertiesOptions[],
     orderBy?: OrderByOptions,
     descending?: boolean,
-    take?: number
+    take?: number,
+    customProperties?: string[]
   ): Promise<WorkItem[]> {
-    const projection = this.buildProjection(properties);
+    const projection = this.buildProjection(properties, customProperties);
 
     const queryRecord = async (currentTake: number, continuationToken?: string): Promise<QueryResponse<WorkItem>> => {
       const body: QueryWorkItemsRequestBody = {
@@ -267,11 +276,18 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return response.data;
   }
 
-  private buildProjection(properties?: WorkItemPropertiesOptions[]): string[] | undefined {
+  private buildProjection(
+    properties?: WorkItemPropertiesOptions[],
+    customProperties?: string[]
+  ): string[] | undefined {
     const projection = new Set<string>();
     (properties ?? []).forEach(property => {
       WORK_ITEM_PROPERTIES_PROJECTIONS[property]?.forEach(value => projection.add(value));
     });
+
+    if (customProperties && customProperties.length > 0) {
+      projection.add(WORK_ITEM_PROPERTIES_PROJECTION);
+    }
 
     return projection.size > 0 ? [...projection] : undefined;
   }
@@ -326,6 +342,17 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   protected buildQueryFilter(typeFilter?: string, queryFilter?: string): string | undefined {
     const filters = [typeFilter, queryFilter].filter(Boolean);
     return filters.length > 0 ? filters.join(' && ') : undefined;
+  }
+
+  /** Builds the same filter for the data query and the custom property discovery query. */
+  public buildFilterFromQuery(query: WorkItemsQuery): string | undefined {
+    const typeFilter = isTypesNonEmpty(query.types) ? this.buildTypeFilter(query.types!) : undefined;
+    const queryFilter = query.filter?.trim();
+
+    return this.buildQueryFilter(
+      typeFilter ? `(${typeFilter})` : undefined,
+      queryFilter ? `(${queryFilter})` : undefined
+    );
   }
 
   private getEmptyDataFrameDTO(refId: string): DataFrameDTO {
@@ -400,16 +427,38 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
    */
   public async getCustomPropertyOptions(
     filter: string | undefined, 
-    take: number
+    take: number,
+    orderBy?: OrderByOptions,
+    descending?: boolean
   ): Promise<Array<ComboboxOption<string>>> {
-    const response = await this.queryWorkItems({
-      filter,
-      projection: [WORK_ITEM_PROPERTIES_PROJECTION],
-      take,
-    });
+    const queryRecord = async (currentTake: number, continuationToken?: string): Promise<QueryResponse<WorkItem>> => {
+      const response = await this.queryWorkItems({
+        filter,
+        projection: [WORK_ITEM_PROPERTIES_PROJECTION],
+        orderBy,
+        descending,
+        take: currentTake,
+        continuationToken,
+      });
+
+      return {
+        data: response.workItems ?? [],
+        continuationToken: response.continuationToken,
+        totalCount: response.totalCount,
+      };
+    };
+
+    const response = await queryInBatches(
+      queryRecord,
+      {
+        maxTakePerRequest: QUERY_WORK_ITEMS_MAX_TAKE,
+        requestsPerSecond: QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
+      },
+      take
+    );
 
     const customPropertyKeys = new Set<string>();
-    for (const workItem of response.workItems ?? []) {
+    for (const workItem of response.data) {
       if (!workItem.properties) {
         continue;
       }
