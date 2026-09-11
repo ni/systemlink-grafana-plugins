@@ -186,9 +186,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
       const parentWorkItemNameMap = new Map<string, string>();
       parentWorkItems.forEach(parentWorkItem => {
-        if (parentWorkItem.id) {
-          parentWorkItemNameMap.set(parentWorkItem.id, parentWorkItem.name ?? '');
-        }
+        parentWorkItemNameMap.set(parentWorkItem.id, parentWorkItem.name);
       });
       return parentWorkItemNameMap;
     } catch {
@@ -260,7 +258,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         if (!workItem.parentId) {
           return '';
         }
-        return parentWorkItemNames.get(workItem.parentId) || workItem.parentId;
+        return parentWorkItemNames.get(workItem.parentId) ?? '';
       }
       case WorkItemPropertiesOptions.PARENT_WORK_ITEM_ID:
         return workItem.parentId ?? '';
