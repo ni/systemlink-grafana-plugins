@@ -34,6 +34,7 @@ import {
   WORK_ITEM_TYPE_FILTER_VALUES,
   WORK_ITEM_TYPE_LABEL_MAP,
   WORK_ITEM_STATE_LABEL_MAP,
+  USER_PROPERTY_FIELDS,
 } from './constants';
 import {
   QUERY_WORK_ITEMS_MAX_TAKE,
@@ -146,22 +147,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return !!properties?.some(property =>
       Object.keys(USER_PROPERTY_FIELDS).includes(property)
     );
-  }
-
-  private async loadWorkspaces(): Promise<Map<string, Workspace>> {
-    try {
-      return await this.workspaceUtils.getWorkspaces();
-    } catch {
-      return new Map<string, Workspace>();
-    }
-  }
-
-  private async loadUsers(): Promise<Map<string, User>> {
-    try {
-      return await this.usersUtils.getUsers();
-    } catch {
-      return new Map<string, User>();
-    }
   }
 
   private async loadParentWorkItemNames(workItems: WorkItem[]): Promise<Map<string, string>> {
