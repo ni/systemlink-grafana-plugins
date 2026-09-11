@@ -17,8 +17,6 @@ import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { UsersUtils } from 'shared/users.utils';
 import { User } from 'shared/types/QueryUsers.types';
 import { AssetUtils, AssetProjectionProperties } from 'shared/asset.utils';
-import { SystemUtils } from 'shared/system.utils';
-import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { queryInBatches } from 'core/utils';
 import {
@@ -73,7 +71,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   workspaceUtils: WorkspaceUtils;
   systemUtils: SystemUtils;
   assetUtils: AssetUtils;
-  systemUtils: SystemUtils;
 
   defaultQuery = {
     types: Object.values(WorkItemTypeOptions),
@@ -131,6 +128,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const usersLookup = this.isUserLookupRequired(query.properties)
       ? await this.loadUsers()
       : new Map<string, User>();
+    const systemAliases = this.isSystemNameLookupRequired(query.properties)
+      ? await this.loadSystemAliases()
+      : new Map<string, SystemAlias>();
 
     const workItemsResponse = await this.queryWorkItemsData(
       filter,
@@ -139,6 +139,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       query.descending,
       query.take
     );
+    const flattenedRows = this.buildFlattenedRows(workItemsResponse);
 
     const isParentWorkItemNameSelected = this.isPropertySelected(
       WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME,
@@ -148,13 +149,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       ? await this.loadParentWorkItemNames(workItemsResponse)
       : new Map<string, string>();
     const assetNames = this.isResourceNameLookupRequired(query.properties)
-      ? await this.loadAssetNames(workItems, query.properties)
+      ? await this.loadAssetNames(workItemsResponse, query.properties)
       : new Map<string, string>();
-    const systemAliases = this.isSystemNameLookupRequired(query.properties)
-      ? await this.loadSystemAliases()
-      : new Map<string, SystemAlias>();
-
-    const flattenedRows = this.buildFlattenedRows(workItems);
 
     return {
       refId: query.refId,
@@ -162,9 +158,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       fields: this.buildFields(
         query.properties,
         flattenedRows,
-        workspaces,
-        users,
-        parentWorkItemNames,
+        workspacesLookup,
+        usersLookup,
+        parentWorkItemNamesLookup,
         assetNames,
         systemAliases
       ),
@@ -261,36 +257,12 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return new Map(assets.map(asset => [asset.id, asset.name ?? asset.id]));
   }
 
-  private async loadSystemAliases(): Promise<Map<string, SystemAlias>> {
-    try {
-      return await this.systemUtils.getSystemAliases();
-    } catch {
-      return new Map<string, SystemAlias>();
-    }
-  }
-
   private resolveAssetName(id: string | undefined, assetNames: Map<string, string>): string {
     return id ? assetNames.get(id) ?? id : '';
   }
 
   private resolveSystemAlias(id: string | undefined, systemAliases: Map<string, SystemAlias>): string {
     return id ? systemAliases.get(id)?.alias ?? id : '';
-  }
-
-  private async loadWorkspaces(): Promise<Map<string, Workspace>> {
-    try {
-      return await this.workspaceUtils.getWorkspaces();
-    } catch {
-      return new Map<string, Workspace>();
-    }
-  }
-
-  private async loadUsers(): Promise<Map<string, User>> {
-    try {
-      return await this.usersUtils.getUsers();
-    } catch {
-      return new Map<string, User>();
-    }
   }
 
   private async loadParentWorkItemNames(workItems: WorkItem[]): Promise<Map<string, string>> {
