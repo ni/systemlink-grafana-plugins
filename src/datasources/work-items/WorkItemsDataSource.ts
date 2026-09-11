@@ -3,6 +3,7 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
+  FieldDTO,
   FieldType,
   TestDataSourceResponse,
 } from '@grafana/data';
@@ -206,13 +207,13 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       const systems = workItem.resources?.systems?.selections ?? [];
       const maxRows = Math.max(assets.length, duts.length, fixtures.length, systems.length, 1);
 
-      for (let i = 0; i < maxRows; i++) {
+      for (let rowIndex = 0; rowIndex < maxRows; rowIndex++) {
         rows.push({
           workItem,
-          assetSelection: assets[i],
-          dutSelection: duts[i],
-          fixtureSelection: fixtures[i],
-          systemSelection: systems[i],
+          assetSelection: assets[rowIndex],
+          dutSelection: duts[rowIndex],
+          fixtureSelection: fixtures[rowIndex],
+          systemSelection: systems[rowIndex],
         });
       }
     }
@@ -223,23 +224,23 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     workItems: WorkItem[],
     properties?: WorkItemPropertiesOptions[]
   ): Promise<Map<string, string>> {
-    const needsAssetName = properties?.includes(WorkItemPropertiesOptions.ASSET_NAME);
-    const needsDutName = properties?.includes(WorkItemPropertiesOptions.DUT_NAME);
-    const needsFixtureName = properties?.includes(WorkItemPropertiesOptions.FIXTURE_NAME);
-    const needsTargetParent = properties?.includes(WorkItemPropertiesOptions.TARGET_PARENT);
+    const isAssetNameSelected = this.isPropertySelected(WorkItemPropertiesOptions.ASSET_NAME, properties);
+    const isDutNameSelected = this.isPropertySelected(WorkItemPropertiesOptions.DUT_NAME, properties);
+    const isFixtureNameSelected = this.isPropertySelected(WorkItemPropertiesOptions.FIXTURE_NAME, properties);
+    const isTargetParentSelected = this.isPropertySelected(WorkItemPropertiesOptions.TARGET_PARENT, properties);
 
     const ids: string[] = [];
     workItems.forEach(workItem => {
-      if (needsAssetName) {
+      if (isAssetNameSelected) {
         workItem.resources?.assets?.selections?.forEach(s => s.id && ids.push(s.id));
       }
-      if (needsDutName) {
+      if (isDutNameSelected) {
         workItem.resources?.duts?.selections?.forEach(s => s.id && ids.push(s.id));
       }
-      if (needsFixtureName) {
+      if (isFixtureNameSelected) {
         workItem.resources?.fixtures?.selections?.forEach(s => s.id && ids.push(s.id));
       }
-      if (needsTargetParent) {
+      if (isTargetParentSelected) {
         workItem.resources?.assets?.selections?.forEach(s => s.targetParentId && ids.push(s.targetParentId));
         workItem.resources?.duts?.selections?.forEach(s => s.targetParentId && ids.push(s.targetParentId));
         workItem.resources?.fixtures?.selections?.forEach(s => s.targetParentId && ids.push(s.targetParentId));
@@ -302,36 +303,16 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     assetNames: Map<string, string>,
     systemAliases: Map<string, SystemAlias>
   ) {
-    const fields: Array<{ name: string; values: Array<string | null>; type: FieldType; config?: { unit: string } }> = [];
+    const fields: FieldDTO[] = [];
 
     (properties ?? []).forEach(property => {
       if (property === WorkItemPropertiesOptions.TARGET_LOCATION) {
-        fields.push(
-          this.buildResourceField('Target Location (Asset)', flattenedRows, row =>
-            this.resolveSystemAlias(row.assetSelection?.targetSystemId, systemAliases)
-          ),
-          this.buildResourceField('Target Location (DUT)', flattenedRows, row =>
-            this.resolveSystemAlias(row.dutSelection?.targetSystemId, systemAliases)
-          ),
-          this.buildResourceField('Target Location (Fixture)', flattenedRows, row =>
-            this.resolveSystemAlias(row.fixtureSelection?.targetSystemId, systemAliases)
-          )
-        );
+        fields.push(...this.buildTargetLocationFields(flattenedRows, systemAliases));
         return;
       }
 
       if (property === WorkItemPropertiesOptions.TARGET_PARENT) {
-        fields.push(
-          this.buildResourceField('Target Parent (Asset)', flattenedRows, row =>
-            this.resolveAssetName(row.assetSelection?.targetParentId, assetNames)
-          ),
-          this.buildResourceField('Target Parent (DUT)', flattenedRows, row =>
-            this.resolveAssetName(row.dutSelection?.targetParentId, assetNames)
-          ),
-          this.buildResourceField('Target Parent (Fixture)', flattenedRows, row =>
-            this.resolveAssetName(row.fixtureSelection?.targetParentId, assetNames)
-          )
-        );
+        fields.push(...this.buildTargetParentFields(flattenedRows, assetNames));
         return;
       }
 
@@ -350,11 +331,42 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return fields;
   }
 
+  private buildTargetLocationFields(
+    flattenedRows: FlattenedRow[],
+    systemAliases: Map<string, SystemAlias>
+  ): FieldDTO[] {
+    return [
+      this.buildResourceField('Target Location (Asset)', flattenedRows, row =>
+        this.resolveSystemAlias(row.assetSelection?.targetSystemId, systemAliases)
+      ),
+      this.buildResourceField('Target Location (DUT)', flattenedRows, row =>
+        this.resolveSystemAlias(row.dutSelection?.targetSystemId, systemAliases)
+      ),
+      this.buildResourceField('Target Location (Fixture)', flattenedRows, row =>
+        this.resolveSystemAlias(row.fixtureSelection?.targetSystemId, systemAliases)
+      ),
+    ];
+  }
+
+  private buildTargetParentFields(flattenedRows: FlattenedRow[], assetNames: Map<string, string>): FieldDTO[] {
+    return [
+      this.buildResourceField('Target Parent (Asset)', flattenedRows, row =>
+        this.resolveAssetName(row.assetSelection?.targetParentId, assetNames)
+      ),
+      this.buildResourceField('Target Parent (DUT)', flattenedRows, row =>
+        this.resolveAssetName(row.dutSelection?.targetParentId, assetNames)
+      ),
+      this.buildResourceField('Target Parent (Fixture)', flattenedRows, row =>
+        this.resolveAssetName(row.fixtureSelection?.targetParentId, assetNames)
+      ),
+    ];
+  }
+
   private buildResourceField(
     name: string,
     flattenedRows: FlattenedRow[],
     resolver: (row: FlattenedRow) => string
-  ): { name: string; values: string[]; type: FieldType } {
+  ): FieldDTO {
     return { name, values: flattenedRows.map(resolver), type: FieldType.string };
   }
 
