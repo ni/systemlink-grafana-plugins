@@ -566,7 +566,7 @@ describe('WorkItemsDataSource', () => {
         jest.spyOn(datasource.usersUtils, 'getUsers').mockResolvedValue(new Map([['user-1', mockUser]]));
       });
 
-      it('should not load lookup data when no lookup property is selected', async () => {
+      it('should not load workspace or user lookup data when no workspace or user lookup property is selected', async () => {
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [{ id: '1', name: 'Battery Cycle Test' }],
           continuationToken: '',
@@ -588,7 +588,7 @@ describe('WorkItemsDataSource', () => {
         expect(getUsersSpy).not.toHaveBeenCalled();
       });
 
-      it('should resolve the workspace name for the WORKSPACE property', async () => {
+      it('should resolve the workspace name for the workspaceId filtered WORKSPACE property', async () => {
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [{ id: '1', workspace: 'ws-1' }],
           continuationToken: '',

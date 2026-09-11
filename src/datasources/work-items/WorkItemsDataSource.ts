@@ -116,64 +116,81 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   async processWorkItemsQuery(query: WorkItemsQuery, filter?: string): Promise<DataFrameDTO> {
-    const workspaces = this.isWorkspaceSelected(query.properties)
+    const isWorkspaceSelected = this.isPropertySelected(WorkItemPropertiesOptions.WORKSPACE, query.properties);
+    const workspacesLookup = isWorkspaceSelected
       ? await this.loadWorkspaces()
       : new Map<string, Workspace>();
-    const users = this.isUserLookupRequired(query.properties)
+    const usersLookup = this.isUserLookupRequired(query.properties)
       ? await this.loadUsers()
       : new Map<string, User>();
-    const workItems = await this.queryWorkItemsData(filter, query.properties, query.orderBy, query.descending, query.take);
 
-    const parentWorkItemNames = this.isParentWorkItemNameSelected(query.properties)
-      ? await this.loadParentWorkItemNames(workItems)
+    const workItemsResponse = await this.queryWorkItemsData(
+      filter,
+      query.properties,
+      query.orderBy,
+      query.descending,
+      query.take
+    );
+
+    const isParentWorkItemNameSelected = this.isPropertySelected(
+      WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME,
+      query.properties
+    );
+    const parentWorkItemNamesLookup = isParentWorkItemNameSelected
+      ? await this.loadParentWorkItemNames(workItemsResponse)
       : new Map<string, string>();
 
     return {
       refId: query.refId,
       name: query.refId,
-      fields: this.buildFields(query.properties, workItems, workspaces, users, parentWorkItemNames),
+      fields: this.buildFields(
+        query.properties,
+        workItemsResponse,
+        workspacesLookup,
+        usersLookup,
+        parentWorkItemNamesLookup
+      ),
     };
   }
 
-  private isParentWorkItemNameSelected(properties?: WorkItemPropertiesOptions[]): boolean {
-    return !!properties?.includes(WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME);
+  private isPropertySelected(
+    selectedProperty: WorkItemPropertiesOptions,
+    properties?: WorkItemPropertiesOptions[]
+  ): boolean {
+    return !!properties?.includes(selectedProperty);
   }
 
-  private isWorkspaceSelected(properties?: WorkItemPropertiesOptions[]): boolean {
-    return !!properties?.includes(WorkItemPropertiesOptions.WORKSPACE);
-  }
-
-  private isUserLookupRequired(properties?: WorkItemPropertiesOptions[]): boolean {
-    return !!properties?.some(property =>
-      Object.keys(USER_PROPERTY_FIELDS).includes(property)
+  private isUserLookupRequired(selectedProperties?: WorkItemPropertiesOptions[]): boolean {
+    return !!selectedProperties?.some(selectedProperty =>
+      Object.keys(USER_PROPERTY_FIELDS).includes(selectedProperty)
     );
   }
 
   private async loadParentWorkItemNames(workItems: WorkItem[]): Promise<Map<string, string>> {
-    const parentIds = [
+    const parentWorkitemIds = [
       ...new Set(workItems.map(workItem => workItem.parentId).filter((id): id is string => !!id)),
     ];
-    if (parentIds.length === 0) {
+    if (parentWorkitemIds.length === 0) {
       return new Map<string, string>();
     }
 
     try {
       const parentWorkItems = await this.queryWorkItemsData(
-        parentIds.map(id => `id = "${id}"`).join(' || '),
+        parentWorkitemIds.map(id => `id = "${id}"`).join(' || '),
         [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
         undefined,
         undefined,
-        parentIds.length,
+        parentWorkitemIds.length,
         true
       );
 
-      const nameMap = new Map<string, string>();
+      const parentWorkItemNameMap = new Map<string, string>();
       parentWorkItems.forEach(parentWorkItem => {
         if (parentWorkItem.id) {
-          nameMap.set(parentWorkItem.id, parentWorkItem.name ?? '');
+          parentWorkItemNameMap.set(parentWorkItem.id, parentWorkItem.name ?? '');
         }
       });
-      return nameMap;
+      return parentWorkItemNameMap;
     } catch {
       return new Map<string, string>();
     }
