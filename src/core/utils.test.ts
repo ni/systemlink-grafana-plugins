@@ -1,5 +1,5 @@
 import { BackendSrv, TemplateSrv } from "@grafana/runtime";
-import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, get, post, addOptionsToLookup, get$, post$ } from "./utils";
+import { validateNumericInput, enumToOptions, filterXSSField, filterXSSLINQExpression, replaceVariables, queryInBatches, queryUsingSkip, queryUntilComplete, get, post, addOptionsToLookup, get$, post$, transformDuration } from "./utils";
 import { BatchQueryConfig, QBField, QueryBuilderOption } from "./types";
 import { firstValueFrom, of, throwError } from 'rxjs';
 
@@ -81,6 +81,32 @@ describe("filterXSSField", () => {
     const result = filterXSSField({ value: 'test<script>alert("XSS value")</script>', label: 'test<script>alert("XSS label")</script>' });
 
     expect(result).toEqual({ value: 'test', label: 'test' });
+  });
+});
+
+describe('transformDuration', () => {
+  it.each([
+    { totalSeconds: -1, expected: '0 sec' },
+    { totalSeconds: -86400, expected: '0 sec' },
+    { totalSeconds: 0, expected: '0 sec' },
+    { totalSeconds: 1, expected: '1 sec' },
+    { totalSeconds: 59, expected: '59 sec' },
+    { totalSeconds: 60, expected: '1 min' },
+    { totalSeconds: 61, expected: '1 min, 1 sec' },
+    { totalSeconds: 120, expected: '2 min' },
+    { totalSeconds: 3600, expected: '1 hr' },
+    { totalSeconds: 3661, expected: '1 hr, 1 min, 1 sec' },
+    { totalSeconds: 7322, expected: '2 hr, 2 min, 2 sec' },
+    { totalSeconds: 86400, expected: '1 day' },
+    { totalSeconds: 90061, expected: '1 day, 1 hr, 1 min, 1 sec' },
+    { totalSeconds: 172800, expected: '2 days' },
+    { totalSeconds: 259261, expected: '3 days, 1 min, 1 sec' },
+    { totalSeconds: 31536000, expected: '1 year' },
+    { totalSeconds: 63072000, expected: '2 years' },
+    { totalSeconds: 31626061, expected: '1 year, 1 day, 1 hr, 1 min, 1 sec' },
+    { totalSeconds: 63252122, expected: '2 years, 2 days, 2 hr, 2 min, 2 sec' },
+  ])('should format $totalSeconds seconds as "$expected"', ({ totalSeconds, expected }) => {
+    expect(transformDuration(totalSeconds)).toBe(expected);
   });
 });
 

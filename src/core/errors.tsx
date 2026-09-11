@@ -11,6 +11,11 @@ type FloatingErrorProps = {
   severity?: AlertVariant;
 };
 
+type QueryErrorInfo = {
+  title: string;
+  message: string;
+};
+
 export const FloatingError = ({ message = '', innerMessage = '', severity = 'error' }: FloatingErrorProps) => {
   const [hide, setHide] = useState(false);
   const reset = useTimeoutFn(() => setHide(true), 5000)[2];
@@ -70,4 +75,73 @@ export const extractErrorInfo = (errorMessage: string): { url: string; statusCod
     statusCode,
     message,
   };
+};
+
+/**
+ * Builds the `title`/`message` pair shown when a query builder lookup (dropdown options) fails.
+ * @param error The error thrown.
+ * @param context The entity being queried, e.g. 'work items', 'testplans'.
+ */
+export const getQueryBuilderLookupsError = (error: unknown, context: string): QueryErrorInfo => {
+  const errorDetails = extractErrorInfo((error as Error).message);
+  const title = `Warning during ${context} query`;
+
+  switch (errorDetails.statusCode) {
+    case '404':
+      return {
+        title,
+        message: 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.',
+      };
+    case '429':
+      return { title, message: 'The query builder lookups failed due to too many requests. Please try again later.' };
+    case '504':
+      return {
+        title,
+        message: 'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.',
+      };
+    default:
+      return {
+        title,
+        message: errorDetails.message
+          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
+          : 'Some values may not be available in the query builder lookups due to an unknown error.',
+      };
+  }
+};
+
+/**
+ * Builds the `title`/`message` pair shown when a data query itself fails.
+ * @param error The error thrown.
+ * @param context The entity being queried, e.g. 'work items', 'testplans'.
+ */
+export const getQueryError = (error: unknown, context: string): QueryErrorInfo => {
+  const errorDetails = extractErrorInfo((error as Error).message);
+  const title = `Error during ${context} query`;
+
+  switch (errorDetails.statusCode) {
+    case '':
+      return { title, message: 'The query failed due to an unknown error.' };
+    case '401':
+      return {
+        title,
+        message: `The query to fetch ${context} failed due to unauthorized access. Please verify your credentials and try again.`,
+      };
+    case '404':
+      return {
+        title,
+        message: `The query to fetch ${context} failed because the requested resource was not found. Please check the query parameters and try again.`,
+      };
+    case '429':
+      return { title, message: `The query to fetch ${context} failed due to too many requests. Please try again later.` };
+    case '504':
+      return {
+        title,
+        message: `The query to fetch ${context} experienced a timeout error. Narrow your query with a more specific filter and try again.`,
+      };
+    default:
+      return {
+        title,
+        message: `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`,
+      };
+  }
 };
