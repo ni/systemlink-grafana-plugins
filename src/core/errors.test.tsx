@@ -167,35 +167,35 @@ describe('getQueryBuilderLookupsError', () => {
     {
       scenario: 'a not found response',
       error: 'Request failed with status code: 404',
-      expectedDescription:
+      expectedMessage:
         'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.',
     },
     {
       scenario: 'a too many requests response',
       error: 'Request failed with status code: 429',
-      expectedDescription: 'The query builder lookups failed due to too many requests. Please try again later.',
+      expectedMessage: 'The query builder lookups failed due to too many requests. Please try again later.',
     },
     {
       scenario: 'a timeout response',
       error: 'Request failed with status code: 504',
-      expectedDescription:
+      expectedMessage:
         'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.',
     },
     {
       scenario: 'an unhandled status code that reports a message',
       error: 'Request failed with status code: 500. Error message: Internal Server Error',
-      expectedDescription:
+      expectedMessage:
         'Some values may not be available in the query builder lookups due to the following error: Internal Server Error.',
     },
     {
       scenario: 'an error without a status code or message',
       error: 'Error',
-      expectedDescription: 'Some values may not be available in the query builder lookups due to an unknown error.',
+      expectedMessage: 'Some values may not be available in the query builder lookups due to an unknown error.',
     },
-  ])('should build the title and description when $scenario', ({ error, expectedDescription }) => {
+  ])('should build the title and message when $scenario', ({ error, expectedMessage }) => {
     const result = getQueryBuilderLookupsError(new Error(error), 'work items');
 
-    expect(result).toEqual({ title: 'Warning during work items query', description: expectedDescription });
+    expect(result).toEqual({ title: 'Warning during work items query', message: expectedMessage });
   });
 
   test.each(['work items', 'workorders', 'testplans', 'alarms', 'dataframe', 'product value'])(

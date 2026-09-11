@@ -100,12 +100,13 @@ export function filterXSSLINQExpression(value: string | null | undefined): strin
 
 /**
  * Converts a duration in seconds into a comma-separated string of days, hours, minutes, and seconds.
- * Units with a zero count are omitted, e.g. 172800 -> '2 days'.
+ *
+ * @param seconds - The duration in seconds to convert.
  */
 export const transformDuration = (totalSeconds: number): string => {
   const timeUnits = [
     { label: 'day', secondsInUnit: 86400 },
-    { label: 'hr', secondsInUnit: 3600 },
+    { label: 'hr', secondsInUnit: 3600, noPlural: true },
     { label: 'min', secondsInUnit: 60, noPlural: true },
     { label: 'sec', secondsInUnit: 1, noPlural: true },
   ];
