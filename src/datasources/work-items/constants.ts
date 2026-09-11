@@ -14,6 +14,15 @@ export const WORK_ITEM_TYPE_FILTER_VALUES: Record<WorkItemTypeOptions, string> =
   [WorkItemTypeOptions.TransportOrder]: 'transportorder',
 };
 
+export const USER_PROPERTY_FIELDS: Partial<
+  Record<WorkItemPropertiesOptions, keyof WorkItem>
+> = {
+  [WorkItemPropertiesOptions.ASSIGNED_TO]: 'assignedTo',
+  [WorkItemPropertiesOptions.REQUESTED_BY]: 'requestedBy',
+  [WorkItemPropertiesOptions.CREATED_BY]: 'createdBy',
+  [WorkItemPropertiesOptions.UPDATED_BY]: 'updatedBy',
+};
+
 // Maps every work item property to its backend `projection` enum value(s).
 export const WORK_ITEM_PROPERTIES_PROJECTIONS: Record<WorkItemPropertiesOptions, string[]> = {
   [WorkItemPropertiesOptions.ID]: ['ID'],
@@ -82,13 +91,4 @@ export const WORK_ITEM_STATE_LABEL_MAP: Record<string, string> = {
   PENDING_APPROVAL: 'Pending approval',
   CLOSED: 'Closed',
   CANCELED: 'Canceled',
-};
-
-export const USER_PROPERTY_FIELDS: Partial<
-  Record<WorkItemPropertiesOptions, keyof WorkItem>
-> = {
-  [WorkItemPropertiesOptions.ASSIGNED_TO]: 'assignedTo',
-  [WorkItemPropertiesOptions.REQUESTED_BY]: 'requestedBy',
-  [WorkItemPropertiesOptions.CREATED_BY]: 'createdBy',
-  [WorkItemPropertiesOptions.UPDATED_BY]: 'updatedBy',
 };
