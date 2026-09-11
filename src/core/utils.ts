@@ -101,7 +101,7 @@ export function filterXSSLINQExpression(value: string | null | undefined): strin
 /**
  * Converts a duration in seconds into a comma-separated string of days, hours, minutes, and seconds.
  *
- * @param seconds - The duration in seconds to convert.
+ * @param totalSeconds - The duration in seconds to convert.
  */
 export const transformDuration = (totalSeconds: number): string => {
   const timeUnits = [
