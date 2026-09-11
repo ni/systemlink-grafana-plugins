@@ -588,7 +588,7 @@ describe('WorkItemsDataSource', () => {
         expect(getUsersSpy).not.toHaveBeenCalled();
       });
 
-      it('should resolve the workspace name for the workspaceId filtered WORKSPACE property', async () => {
+      it('should resolve the workspace name for the workspaceId filtered', async () => {
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [{ id: '1', workspace: 'ws-1' }],
           continuationToken: '',
