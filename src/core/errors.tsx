@@ -78,7 +78,7 @@ export const extractErrorInfo = (errorMessage: string): { url: string; statusCod
 };
 
 /**
- * Builds the `title`/`description` pair shown when a query builder lookup (dropdown options) fails.
+ * Builds the `title`/`message` pair shown when a query builder lookup (dropdown options) fails.
  * @param error The error thrown.
  * @param context The entity being queried, e.g. 'work items', 'testplans'.
  */
