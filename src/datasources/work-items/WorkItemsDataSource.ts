@@ -129,7 +129,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const usersLookup = this.isUserLookupRequired(query.properties)
       ? await this.loadUsers()
       : new Map<string, User>();
-    const systemAliases = this.isSystemNameLookupRequired(query.properties)
+    const systemAliasesLookup = this.isSystemNameLookupRequired(query.properties)
       ? await this.loadSystemAliases()
       : new Map<string, SystemAlias>();
 
@@ -149,7 +149,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const parentWorkItemNamesLookup = isParentWorkItemNameSelected
       ? await this.loadParentWorkItemNames(workItemsResponse)
       : new Map<string, string>();
-    const assetNames = this.isResourceNameLookupRequired(query.properties)
+    const assetNamesLookup = this.isResourceNameLookupRequired(query.properties)
       ? await this.loadAssetNames(workItemsResponse, query.properties)
       : new Map<string, string>();
 
@@ -162,8 +162,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         workspacesLookup,
         usersLookup,
         parentWorkItemNamesLookup,
-        assetNames,
-        systemAliases
+        assetNamesLookup,
+        systemAliasesLookup
       ),
     };
   }
@@ -297,27 +297,35 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   private buildFields(
     properties: WorkItemPropertiesOptions[] | undefined,
     flattenedRows: FlattenedRow[],
-    workspaces: Map<string, Workspace>,
-    users: Map<string, User>,
-    parentWorkItemNames: Map<string, string>,
-    assetNames: Map<string, string>,
-    systemAliases: Map<string, SystemAlias>
+    workspacesLookup: Map<string, Workspace>,
+    usersLookup: Map<string, User>,
+    parentWorkItemNamesLookup: Map<string, string>,
+    assetNamesLookup: Map<string, string>,
+    systemAliasesLookup: Map<string, SystemAlias>
   ) {
     const fields: FieldDTO[] = [];
 
     (properties ?? []).forEach(property => {
       if (property === WorkItemPropertiesOptions.TARGET_LOCATION) {
-        fields.push(...this.buildTargetLocationFields(flattenedRows, systemAliases));
+        fields.push(...this.buildTargetLocationFields(flattenedRows, systemAliasesLookup));
         return;
       }
 
       if (property === WorkItemPropertiesOptions.TARGET_PARENT) {
-        fields.push(...this.buildTargetParentFields(flattenedRows, assetNames));
+        fields.push(...this.buildTargetParentFields(flattenedRows, assetNamesLookup));
         return;
       }
 
       const fieldValue = flattenedRows.map(row =>
-        this.getPropertyValue(property, row, workspaces, users, parentWorkItemNames, assetNames, systemAliases)
+        this.getPropertyValue(
+          property,
+          row,
+          workspacesLookup,
+          usersLookup,
+          parentWorkItemNamesLookup,
+          assetNamesLookup,
+          systemAliasesLookup
+        )
       );
       const fieldType = this.getPropertyFieldType(property);
       fields.push({
@@ -333,31 +341,31 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   private buildTargetLocationFields(
     flattenedRows: FlattenedRow[],
-    systemAliases: Map<string, SystemAlias>
+    systemAliasesLookup: Map<string, SystemAlias>
   ): FieldDTO[] {
     return [
       this.buildResourceField('Target Location (Asset)', flattenedRows, row =>
-        this.resolveSystemAlias(row.assetSelection?.targetSystemId, systemAliases)
+        this.resolveSystemAlias(row.assetSelection?.targetSystemId, systemAliasesLookup)
       ),
       this.buildResourceField('Target Location (DUT)', flattenedRows, row =>
-        this.resolveSystemAlias(row.dutSelection?.targetSystemId, systemAliases)
+        this.resolveSystemAlias(row.dutSelection?.targetSystemId, systemAliasesLookup)
       ),
       this.buildResourceField('Target Location (Fixture)', flattenedRows, row =>
-        this.resolveSystemAlias(row.fixtureSelection?.targetSystemId, systemAliases)
+        this.resolveSystemAlias(row.fixtureSelection?.targetSystemId, systemAliasesLookup)
       ),
     ];
   }
 
-  private buildTargetParentFields(flattenedRows: FlattenedRow[], assetNames: Map<string, string>): FieldDTO[] {
+  private buildTargetParentFields(flattenedRows: FlattenedRow[], assetNamesLookup: Map<string, string>): FieldDTO[] {
     return [
       this.buildResourceField('Target Parent (Asset)', flattenedRows, row =>
-        this.resolveAssetName(row.assetSelection?.targetParentId, assetNames)
+        this.resolveAssetName(row.assetSelection?.targetParentId, assetNamesLookup)
       ),
       this.buildResourceField('Target Parent (DUT)', flattenedRows, row =>
-        this.resolveAssetName(row.dutSelection?.targetParentId, assetNames)
+        this.resolveAssetName(row.dutSelection?.targetParentId, assetNamesLookup)
       ),
       this.buildResourceField('Target Parent (Fixture)', flattenedRows, row =>
-        this.resolveAssetName(row.fixtureSelection?.targetParentId, assetNames)
+        this.resolveAssetName(row.fixtureSelection?.targetParentId, assetNamesLookup)
       ),
     ];
   }
@@ -373,9 +381,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   private getPropertyValue(
     property: WorkItemPropertiesOptions,
     row: FlattenedRow,
-    workspaces: Map<string, Workspace>,
-    users: Map<string, User>,
-    parentWorkItemNames: Map<string, string>,
+    workspacesLookup: Map<string, Workspace>,
+    usersLookup: Map<string, User>,
+    parentWorkItemNamesLookup: Map<string, string>,
     assetNames: Map<string, string>,
     systemAliases: Map<string, SystemAlias>
   ): string | null {
@@ -398,7 +406,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       case WorkItemPropertiesOptions.PART_NUMBER:
         return workItem.partNumber ?? '';
       case WorkItemPropertiesOptions.WORKSPACE: {
-        const workspace = workspaces.get(workItem.workspace ?? '');
+        const workspace = workspacesLookup.get(workItem.workspace ?? '');
         return workspace ? workspace.name : workItem.workspace ?? '';
       }
       case WorkItemPropertiesOptions.ASSIGNED_TO:
@@ -407,14 +415,14 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       case WorkItemPropertiesOptions.UPDATED_BY: {
         const userField = USER_PROPERTY_FIELDS[property]!;
         const userId = workItem[userField] as string | undefined;
-        const user = users.get(userId ?? '');
+        const user = usersLookup.get(userId ?? '');
         return user ? UsersUtils.getUserFullName(user) : userId ?? '';
       }
       case WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME: {
         if (!workItem.parentId) {
           return '';
         }
-        return parentWorkItemNames.get(workItem.parentId) ?? '';
+        return parentWorkItemNamesLookup.get(workItem.parentId) ?? '';
       }
       case WorkItemPropertiesOptions.PARENT_WORK_ITEM_ID:
         return workItem.parentId ?? '';
