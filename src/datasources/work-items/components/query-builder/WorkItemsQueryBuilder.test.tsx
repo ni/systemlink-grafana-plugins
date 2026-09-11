@@ -387,10 +387,55 @@ describe('WorkItemsQueryBuilder', () => {
       { filter: 'estimatedDurationInHours > "2"', expected: ['Estimated duration (hours)', 'greater than', '2'] },
       { filter: 'plannedDurationInDays < "3"', expected: ['Planned duration (days)', 'less than', '3'] },
       { filter: 'plannedDurationInHours < "4"', expected: ['Planned duration (hours)', 'less than', '4'] },
-      { filter: 'resources.assets.selections.Count == 0', expected: ['Asset identifier', 'is empty'] },
-      { filter: 'resources.duts.selections.Count == 0', expected: ['Dut identifier', 'is empty'] },
-      { filter: 'resources.fixtures.selections.Count > 0', expected: ['Fixture identifier', 'is not empty'] },
-      { filter: 'resources.systems.selections.Count == 0', expected: ['System alias name', 'is empty'] },
+      {
+        filter: 'resources.assets.selections.Any(s => s.id == "1")',
+        expected: ['Asset identifier', 'equals', '1'],
+      },
+      {
+        filter: 'resources.assets.selections.Any(s => s.id == "1") == false',
+        expected: ['Asset identifier', 'does not equal', '1'],
+      },
+      { filter: 'resources.assets.selections.Count == 0', 
+        expected: ['Asset identifier', 'is empty'] 
+      },
+      { 
+        filter: 'resources.assets.selections.Count > 0', 
+        expected: ['Asset identifier', 'is not empty'] 
+      },
+      {
+        filter: 'resources.duts.selections.Any(s => s.id == "2")',
+        expected: ['Dut identifier', 'equals', '2'],
+      },
+      {
+        filter: 'resources.duts.selections.Any(s => s.id == "2") == false',
+        expected: ['Dut identifier', 'does not equal', '2'],
+      },
+      { filter: 'resources.duts.selections.Count == 0', 
+        expected: ['Dut identifier', 'is empty'] 
+      },
+      { filter: 'resources.duts.selections.Count > 0', 
+        expected: ['Dut identifier', 'is not empty'] 
+      },
+      {
+        filter: 'resources.fixtures.selections.Any(s => s.id == "3")',
+        expected: ['Fixture identifier', 'equals', '3'],
+      },
+      {
+        filter: 'resources.fixtures.selections.Any(s => s.id == "3") == false',
+        expected: ['Fixture identifier', 'does not equal', '3'],
+      },
+      { filter: 'resources.fixtures.selections.Count == 0', 
+        expected: ['Fixture identifier', 'is empty'] 
+      },
+      { filter: 'resources.fixtures.selections.Count > 0', 
+        expected: ['Fixture identifier', 'is not empty'] 
+      },
+      { filter: 'resources.systems.selections.Count == 0', 
+        expected: ['System alias name', 'is empty'] 
+      },
+      { filter: 'resources.systems.selections.Count > 0', 
+        expected: ['System alias name', 'is not empty'] 
+      },
     ])('should show $expected when filter is $filter', ({ filter, expected }) => {
       const { conditionsContainer } = renderElement(filter);
 
@@ -407,17 +452,20 @@ describe('WorkItemsQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name);
     });
 
-    it('should show the system alias name when filter checks systems contains a system ID', () => {
-      const { conditionsContainer } = renderElement(
-        'resources.systems.selections.Any(s => s.id == "1")',
-        [],
-        [],
-        [],
-        [],
-        [systemAlias]
-      );
+    it.each([
+      { 
+        filter: 'resources.systems.selections.Any(s => s.id == "1")', 
+        operation: 'equals' 
+      },
+      {
+        filter: 'resources.systems.selections.Any(s => s.id == "1") == false',
+        operation: 'does not equal',
+      },
+    ])('should show the system alias name when filter is $filter', ({ filter, operation }) => {
+      const { conditionsContainer } = renderElement(filter, [], [], [], [], [systemAlias]);
 
       expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain(operation);
       expect(conditionsContainer.item(0)?.textContent).toContain(systemAlias.alias);
     });
 

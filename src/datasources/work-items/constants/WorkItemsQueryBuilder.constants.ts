@@ -42,7 +42,7 @@ export const TIME_OPTIONS = [
 ];
 
 // The work item API exposes resources as selection objects, so they need work item specific expressions.
-export const WorkItemsResourceQueryBuilderOperations  = {
+export const WorkItemsResourceQueryBuilderOperations = {
   LIST_OF_OBJECTS_CONTAINS_ID: {
     label: 'equals',
     name: 'listofobjectscontainsid',
@@ -51,7 +51,7 @@ export const WorkItemsResourceQueryBuilderOperations  = {
   LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID: {
     label: 'does not equal',
     name: 'listofobjectsdoesnotcontainid',
-    expressionTemplate: '!({0}.Any(s => s.id == "{1}"))',
+    expressionTemplate: '{0}.Any(s => s.id == "{1}") == false',
   },
 };
 
@@ -297,8 +297,8 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     label: 'Asset identifier',
     dataField: WorkItemsQueryBuilderFieldNames.AssetId,
     filterOperations: [
-      WorkItemsResourceQueryBuilderOperations .LIST_OF_OBJECTS_CONTAINS_ID.name,
-      WorkItemsResourceQueryBuilderOperations .LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
       QueryBuilderOperations.LIST_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ],
@@ -307,8 +307,8 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     label: 'Dut identifier',
     dataField: WorkItemsQueryBuilderFieldNames.DutId,
     filterOperations: [
-      WorkItemsResourceQueryBuilderOperations .LIST_OF_OBJECTS_CONTAINS_ID.name,
-      WorkItemsResourceQueryBuilderOperations .LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
       QueryBuilderOperations.LIST_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ],
@@ -317,8 +317,8 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     label: 'Fixture identifier',
     dataField: WorkItemsQueryBuilderFieldNames.FixtureId,
     filterOperations: [
-      WorkItemsResourceQueryBuilderOperations .LIST_OF_OBJECTS_CONTAINS_ID.name,
-      WorkItemsResourceQueryBuilderOperations .LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
       QueryBuilderOperations.LIST_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ],
@@ -327,8 +327,8 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     label: 'System alias name',
     dataField: WorkItemsQueryBuilderFieldNames.SystemAliasName,
     filterOperations: [
-      WorkItemsResourceQueryBuilderOperations .LIST_OF_OBJECTS_CONTAINS_ID.name,
-      WorkItemsResourceQueryBuilderOperations .LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
       QueryBuilderOperations.LIST_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ],
