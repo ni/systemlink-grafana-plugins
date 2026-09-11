@@ -1,4 +1,4 @@
-import { TAKE_LIMIT } from './constants';
+import { CUSTOM_PROPERTY_SUFFIX, TAKE_LIMIT } from './constants';
 import { takeErrorMessages } from './constants/QueryEditor.constants';
 import { WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
 
@@ -24,9 +24,18 @@ export const isTypesNonEmpty = (
     Boolean(types && types.length > 0);
 
 export const isPropertiesNonEmpty = (
-    properties?: WorkItemPropertiesOptions[]
+    properties?: WorkItemPropertiesOptions[],
+    customProperties?: string[]
 ): boolean =>
-  Boolean(properties && properties.length > 0);
+  Boolean(
+    (properties && properties.length > 0) || 
+    (customProperties && customProperties.length > 0)
+  );
+
+export const stripCustomPropertySuffix = (value: string): string =>
+  value.endsWith(
+    CUSTOM_PROPERTY_SUFFIX
+  ) ? value.slice(0, -CUSTOM_PROPERTY_SUFFIX.length) : value;
 
 export const isTakeValid = (take?: number): boolean => {
   if (

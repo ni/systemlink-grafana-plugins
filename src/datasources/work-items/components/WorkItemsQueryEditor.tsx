@@ -28,6 +28,10 @@ import {
   tooltips,
   typesErrorMessages,
 } from '../constants/QueryEditor.constants';
+import { 
+  CUSTOM_PROPERTY_OPTIONS_LIMIT, 
+  CUSTOM_PROPERTY_SUFFIX, DEFAULT_TAKE 
+} from '../constants';
 import {
   OrderByOptions,
   OutputType,
@@ -35,7 +39,7 @@ import {
   WorkItemsQuery,
   WorkItemTypeOptions,
 } from '../types';
-import { getTakeError, isPropertiesNonEmpty, isTypesNonEmpty } from '../utils';
+import { getTakeError, isPropertiesNonEmpty, isTypesNonEmpty, stripCustomPropertySuffix } from '../utils';
 import { WorkItemsQueryBuilder } from './query-builder/WorkItemsQueryBuilder';
 import { User } from 'shared/types/QueryUsers.types';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
@@ -46,17 +50,40 @@ type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
 export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
 
-  const isPropertiesValid = isPropertiesNonEmpty(query.properties);
+  const selectedProperties = useMemo(
+    () => query.properties ?? [], [query.properties]
+  );
+  const selectedCustomProperties = useMemo(
+    () => query.customProperties ?? [], [query.customProperties]
+  );
+
+  const isPropertiesValid = isPropertiesNonEmpty(selectedProperties, selectedCustomProperties);
   const isTypesValid = isTypesNonEmpty(query.types);
   const takeInvalidMessage = getTakeError(query.take);
   const isTakeValid = takeInvalidMessage === '';
   const outputType = query.outputType ?? OutputType.Properties;
 
-  const propertiesOptions = Object.values(WorkItemProperties).map(property => ({
-    label: property.label,
-    value: property.value,
-    group: property.group,
-  }));
+  const [customPropertyOptions, setCustomPropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
+  const [isCustomPropertiesInitialized, setIsCustomPropertiesInitialized] = useState(false);
+
+  // The custom properties bag is expanded into one option per key, so the single
+  // catch-all `PROPERTIES` option is not offered in the dropdown.
+  const standardPropertiesOptions = useMemo(
+    () =>
+      Object.values(WorkItemProperties)
+        .filter(property => property.value !== WorkItemPropertiesOptions.PROPERTIES)
+        .map(property => ({
+          label: property.label,
+          value: property.value as string,
+          group: property.group as string,
+        })),
+    []
+  );
+
+  const propertiesOptions = useMemo(
+    () => [...standardPropertiesOptions, ...customPropertyOptions],
+    [standardPropertiesOptions, customPropertyOptions]
+  );
 
   const outputTypeOptions = Object.values(OutputType).map(value => ({
     label: value,
@@ -97,6 +124,99 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const globalVariableOptions = useMemo(() => datasource.globalVariableOptions(), [datasource]);
 
+  const isPropertiesOutput = outputType === OutputType.Properties;
+  // The query builder emits '' for an empty filter while the saved query stores undefined;
+  // normalizing keeps the effect dependency stable so it does not refetch on every emit.
+  const queryFilter = query.filter || undefined;
+  const queryTake = query.take ?? DEFAULT_TAKE;
+  // Discovery must use the same filter as the data query, otherwise the offered keys
+  // can come from work items that are not part of the result.
+  const customPropertiesFilter = useMemo(
+    () => datasource.buildFilterFromQuery({ ...query, filter: queryFilter }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [datasource, queryFilter, query.types]
+  );
+
+  useEffect(() => {
+    if (!isPropertiesOutput) {
+      return;
+    }
+
+    let isStale = false;
+    const loadCustomProperties = async () => {
+      try {
+        const options = await datasource.getCustomPropertyOptions(
+          customPropertiesFilter,
+          queryTake,
+          query.orderBy,
+          query.descending
+        );
+        if (!isStale) {
+          setCustomPropertyOptions(options.slice(0, CUSTOM_PROPERTY_OPTIONS_LIMIT));
+        }
+      } catch {
+        if (!isStale) {
+          setCustomPropertyOptions([]);
+        }
+      } finally {
+        if (!isStale) {
+          setIsCustomPropertiesInitialized(true);
+        }
+      }
+    };
+
+    loadCustomProperties();
+
+    return () => {
+      isStale = true;
+    };
+  }, [datasource, isPropertiesOutput, customPropertiesFilter, queryTake, query.orderBy, query.descending]);
+
+  const selectedPropertyOptions = useMemo(() => {
+    const optionsByValue = new Map(
+      propertiesOptions.map(option => [option.value, option])
+    );
+    const selectedValues = [
+      ...selectedProperties,
+      ...selectedCustomProperties.map(
+        customProperty => `${customProperty}${CUSTOM_PROPERTY_SUFFIX}`
+      ),
+    ];
+
+    return selectedValues.map(
+      value => optionsByValue.get(value) ?? { 
+        label: stripCustomPropertySuffix(value), value 
+      }
+    );
+  }, [propertiesOptions, 
+    selectedProperties, 
+    selectedCustomProperties
+  ]);
+
+  const invalidCustomPropertiesMessage = useMemo(() => {
+    if (!isCustomPropertiesInitialized) {
+      return '';
+    }
+
+    const availableCustomProperties = new Set(
+      customPropertyOptions.map(
+        option => stripCustomPropertySuffix(option.value)
+      )
+    );
+    const invalidCustomProperties = selectedCustomProperties.filter(
+      customProperty => !availableCustomProperties.has(customProperty)
+    );
+
+    if (invalidCustomProperties.length === 0) {
+      return '';
+    }
+
+    const formattedInvalidCustomProperties = invalidCustomProperties.join(', ');
+    return invalidCustomProperties.length === 1
+      ? `The following selected custom property is not valid: '${formattedInvalidCustomProperties}'`
+      : `The following selected custom properties are not valid: '${formattedInvalidCustomProperties}'`;
+  }, [isCustomPropertiesInitialized, customPropertyOptions, selectedCustomProperties]);
+
   const handleQueryChange = useCallback(
     (query: WorkItemsQuery, runQuery = true): void => {
       onChange(query);
@@ -123,14 +243,25 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     handleQueryChange({ ...query, types }, isTypesNonEmpty(types));
   };
 
-  const onPropertiesChange = (items: Array<ComboboxOption<WorkItemPropertiesOptions>>) => {
-    const properties = items.map(item => item.value).filter(Boolean) as WorkItemPropertiesOptions[];
-    handleQueryChange({ ...query, properties }, isPropertiesNonEmpty(properties));
+  const onPropertiesChange = (items: Array<ComboboxOption<string>>) => {
+    const selectedValues = items.map(item => item.value).filter(Boolean);
+    const properties = selectedValues.filter(
+      value => !value.endsWith(CUSTOM_PROPERTY_SUFFIX)
+    ) as WorkItemPropertiesOptions[];
+    const customProperties = selectedValues
+      .filter(value => value.endsWith(CUSTOM_PROPERTY_SUFFIX))
+      .map(stripCustomPropertySuffix);
+
+    handleQueryChange(
+      { ...query, properties, customProperties },
+      isPropertiesNonEmpty(properties, customProperties)
+    );
   };
 
   const onFilterChange = (event: any) => {
-    if (query.filter !== event.detail.linq) {
-      handleQueryChange({ ...query, filter: event.detail.linq });
+    const filter = event.detail.linq || undefined;
+    if (queryFilter !== filter) {
+      handleQueryChange({ ...query, filter });
     }
   };
 
@@ -185,13 +316,15 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
             label={labels.properties}
             labelWidth={LABEL_WIDTH}
             tooltip={tooltips.properties}
-            invalid={!isPropertiesValid}
-            error={propertiesErrorMessages.atLeastOneRequired}
+            invalid={!isPropertiesValid || !!invalidCustomPropertiesMessage}
+            error={
+              isPropertiesValid ? invalidCustomPropertiesMessage : propertiesErrorMessages.atLeastOneRequired
+            }
           >
             <MultiCombobox
               placeholder={placeholders.properties}
               options={propertiesOptions}
-              value={query.properties}
+              value={selectedPropertyOptions}
               onChange={onPropertiesChange}
               width="auto"
               minWidth={CONTROL_WIDTH}
