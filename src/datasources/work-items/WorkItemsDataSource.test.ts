@@ -23,16 +23,16 @@ jest.mock('shared/product.utils', () => {
 });
 
 jest.mock('shared/users.utils', () => {
-  return {
-    UsersUtils: jest.fn().mockImplementation(() => ({
-      getUsers: jest.fn().mockResolvedValue(
-        new Map([
-          ['1', { id: '1', firstName: 'User', lastName: '1', email: 'user1@123.com' }],
-          ['2', { id: '2', firstName: 'User', lastName: '2', email: 'user2@123.com' }],
-        ])
-      ),
-    })),
-  };
+  const UsersUtils: any = jest.fn().mockImplementation(() => ({
+    getUsers: jest.fn().mockResolvedValue(
+      new Map([
+        ['1', { id: '1', firstName: 'User', lastName: '1', email: 'user1@123.com' }],
+        ['2', { id: '2', firstName: 'User', lastName: '2', email: 'user2@123.com' }],
+      ])
+    ),
+  }));
+  UsersUtils.getUserFullName = jest.fn(user => `${user.firstName} ${user.lastName}`);
+  return { UsersUtils };
 });
 
 jest.mock('shared/workspace.utils', () => {
