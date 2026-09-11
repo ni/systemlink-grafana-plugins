@@ -1,12 +1,13 @@
 import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, FieldType, LegacyMetricFindQueryOptions, MetricFindValue, TestDataSourceResponse } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
-import { Asset, OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTemplatesResponse, QueryTestPlansResponse, TemplateResponseProperties, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
+import { OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTemplatesResponse, QueryTestPlansResponse, TemplateResponseProperties, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
 import { getWorkspaceName, queryInBatches } from 'core/utils';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
+import { AssetUtils } from 'shared/asset.utils';
+import { Asset, AssetProjectionProperties } from 'shared/types/QueryAssets.types';
 import { isTimeField, transformDuration } from './utils';
 import { QUERY_TEMPLATES_BATCH_SIZE, QUERY_TEMPLATES_REQUEST_PER_SECOND, QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
-import { AssetUtils } from './asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { SystemUtils } from 'shared/system.utils';
 import { computedFieldsupportedOperations, ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
@@ -251,7 +252,10 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
         .map(data => data['fixtureIds'] as string[])
         .filter(data => data.length > 0)
         .flat();
-      return await this.assetUtils.queryAssetsInBatches(fixtureIds);
+      return await this.assetUtils.queryAssetsInBatches(
+        fixtureIds,
+        [AssetProjectionProperties.ID, AssetProjectionProperties.NAME, AssetProjectionProperties.SERIAL_NUMBER]
+      );
     }
     return [];
   }
@@ -264,7 +268,10 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       const dutIds = testPlans
         .map(data => data['dutId'] as string)
         .filter(data => data != null);
-      return await this.assetUtils.queryAssetsInBatches(dutIds);
+      return await this.assetUtils.queryAssetsInBatches(
+        dutIds,
+        [AssetProjectionProperties.ID, AssetProjectionProperties.NAME, AssetProjectionProperties.SERIAL_NUMBER]
+      );
     }
     return [];
   }

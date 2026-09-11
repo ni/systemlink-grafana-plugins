@@ -41,6 +41,11 @@ export const isTakeValid = (take?: number): boolean => {
   return true;
 };
 
+/**
+ * Converts a duration in seconds into a comma-separated string of days, hours, minutes, and seconds.
+ * @param totalSeconds The total duration in seconds.
+ * @returns A string representing the duration in days, hours, minutes, and seconds.
+ */
 export const transformDuration = (totalSeconds: number): string => {
     const timeUnits = [
         { label: 'day', secondsInUnit: 86400 },
