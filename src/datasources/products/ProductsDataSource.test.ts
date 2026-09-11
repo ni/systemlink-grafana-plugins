@@ -125,7 +125,7 @@ describe('queryProducts$', () => {
 
     expect(publishMock).toHaveBeenCalledWith({
       type: 'alert-error',
-      payload: ['Error during product query', expect.stringContaining('The query failed due to the following error: (status 400) "Error".')],
+      payload: ['Error during products query', expect.stringContaining('The query failed due to the following error: (status 400) "Error".')],
     });
   });
 });

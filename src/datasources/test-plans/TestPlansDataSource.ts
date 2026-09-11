@@ -2,9 +2,9 @@ import { AppEvents, DataFrameDTO, DataQueryRequest, DataSourceInstanceSettings, 
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { Asset, OrderByOptions, OutputType, Projections, Properties, PropertiesProjectionMap, QueryTemplatesResponse, QueryTestPlansResponse, TemplateResponseProperties, TestPlanResponseProperties, TestPlansQuery, TestPlansVariableQuery } from './types';
-import { getWorkspaceName, queryInBatches } from 'core/utils';
+import { getWorkspaceName, queryInBatches, transformDuration } from 'core/utils';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
-import { isTimeField, transformDuration } from './utils';
+import { isTimeField } from './utils';
 import { QUERY_TEMPLATES_BATCH_SIZE, QUERY_TEMPLATES_REQUEST_PER_SECOND, QUERY_TEST_PLANS_MAX_TAKE, QUERY_TEST_PLANS_REQUEST_PER_SECOND } from './constants/QueryTestPlans.constants';
 import { AssetUtils } from './asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
@@ -12,7 +12,10 @@ import { SystemUtils } from 'shared/system.utils';
 import { computedFieldsupportedOperations, ExpressionTransformFunction, multipleValuesQuery, timeFieldsQuery, transformComputedFieldsQuery } from 'core/query-builder.utils';
 import { UsersUtils } from 'shared/users.utils';
 import { ProductUtils } from 'shared/product.utils';
-import { extractErrorInfo } from 'core/errors';
+import { 
+  getQueryBuilderLookupsError, 
+  getQueryError 
+} from 'core/errors';
 import { User } from 'shared/types/QueryUsers.types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
@@ -396,29 +399,11 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       );
       return response;
     } catch (error) {
-      const errorDetails = extractErrorInfo((error as Error).message);
-      let errorMessage: string;
-      switch (errorDetails.statusCode) {
-        case '':
-          errorMessage = 'The query failed due to an unknown error.';
-          break;
-        case '404':
-          errorMessage = 'The query to fetch testplans failed because the requested resource was not found. Please check the query parameters and try again.';
-          break;
-        case '429':
-          errorMessage = 'The query to fetch testplans failed due to too many requests. Please try again later.';
-          break;
-        case '504':
-          errorMessage = 'The query to fetch testplans experienced a timeout error. Narrow your query with a more specific filter and try again.';
-          break;
-        default:
-          errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
-          break;
-      }
+      const { title: errorTitle, message: errorMessage } = getQueryError(error, 'testplans');
 
       this.appEvents?.publish?.({
         type: AppEvents.alertError.name,
-        payload: ['Error during testplans query', errorMessage],
+        payload: [errorTitle, errorMessage],
       });
 
       throw new Error(errorMessage);
@@ -472,24 +457,9 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   private handleDependenciesError(error: unknown): void {
-    const errorDetails = extractErrorInfo((error as Error).message);
-    this.errorTitle = 'Warning during testplans query';
-    switch (errorDetails.statusCode) {
-      case '404':
-        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
-        break;
-      case '429':
-        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
-        break;
-      case '504':
-        this.errorDescription = `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`;
-        break;
-      default:
-        this.errorDescription = errorDetails.message
-          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-          : 'Some values may not be available in the query builder lookups due to an unknown error.';
-        break;
-    }
+    const { title, message } = getQueryBuilderLookupsError(error, 'testplans');
+    this.errorTitle = title;
+    this.errorDescription = message;
   }
 
   private isRecordCountValid(query: TestPlansQuery): boolean {

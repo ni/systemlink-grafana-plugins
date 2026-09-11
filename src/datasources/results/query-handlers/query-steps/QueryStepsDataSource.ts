@@ -35,7 +35,7 @@ import { StepsVariableQuery } from 'datasources/results/types/QueryResults.types
 import { QueryResponse, Workspace } from 'core/types';
 import { getWorkspaceName, queryInBatches } from 'core/utils';
 import { MAX_PATH_TAKE_PER_REQUEST } from 'datasources/results/constants/QueryStepPath.constants';
-import { extractErrorInfo } from 'core/errors';
+import { getQueryError } from 'core/errors';
 import {
   DUPLICATE_INPUT_SUFFIX,
   DUPLICATE_OUTPUT_SUFFIX,
@@ -94,33 +94,14 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       );
       return response;
     } catch (error) {
-      const errorDetails = extractErrorInfo((error as Error).message);
-
-      let errorMessage: string;
-      switch (errorDetails.statusCode) {
-        case '':
-          errorMessage = 'The query failed due to an unknown error.';
-          break;
-        case '404':
-          errorMessage = 'The query to fetch steps failed because the requested resource was not found. Please check the query parameters and try again.';
-          break;
-        case '429':
-          errorMessage = 'The query to fetch steps failed due to too many requests. Please try again later.';
-          break;
-        case '504':
-          errorMessage = 'The query to fetch steps experienced a timeout error. Narrow your query with a more specific filter and try again.';
-          break;
-        default:
-          errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
-          break;
-      }
+      const { title, message } = getQueryError(error, 'steps');
 
       this.appEvents?.publish?.({
         type: AppEvents.alertError.name,
-        payload: ['Error during step query', errorMessage],
+        payload: [title, message],
       });
 
-      throw new Error(errorMessage);
+      throw new Error(message);
     }
   }
 

@@ -643,63 +643,7 @@ describe('WorkOrdersDataSource', () => {
       expect(result.get('Workspace2')?.name).toBe('Another Workspace Name');
     });
 
-    it('should handle errors and set error and innerError fields', async () => {
-      jest.spyOn(datastore.workspaceUtils, 'getWorkspaces').mockRejectedValue(new Error('Error'));
-
-      await datastore.loadWorkspaces();
-
-      expect(datastore.errorTitle).toBe('Warning during workorders query');
-      expect(datastore.errorDescription).toContain(
-        'Some values may not be available in the query builder lookups due to an unknown error.'
-      );
-    });
-
-    it('should handle errors and set innerError fields with error message detail', async () => {
-      datastore.errorTitle = '';
-      jest
-        .spyOn(datastore.workspaceUtils, 'getWorkspaces')
-        .mockRejectedValue(
-          new Error('Request failed with status code: 500, Error message: {"message": "Internal Server Error"}')
-        );
-
-      await datastore.loadWorkspaces();
-
-      expect(datastore.errorTitle).toBe('Warning during workorders query');
-      expect(datastore.errorDescription).toContain(
-        'Some values may not be available in the query builder lookups due to the following error: Internal Server Error.'
-      );
-    });
-
-    test('should throw timeOut error when API returns 504 status', async () => {
-      datastore.errorTitle = '';
-      jest
-        .spyOn(datastore.workspaceUtils, 'getWorkspaces')
-        .mockRejectedValue(new Error('Request failed with status code: 504'));
-
-      await datastore.loadWorkspaces();
-
-      expect(datastore.errorTitle).toBe('Warning during workorders query');
-      expect(datastore.errorDescription).toContain(
-        `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
-      );
-    });
-
-    it('should throw too many requests error when API returns 429 status', async () => {
-      datastore.errorTitle = '';
-      jest
-        .spyOn(datastore.workspaceUtils, 'getWorkspaces')
-        .mockRejectedValue(new Error('Request failed with status code: 429'));
-
-      await datastore.loadWorkspaces();
-
-      expect(datastore.errorTitle).toBe('Warning during workorders query');
-      expect(datastore.errorDescription).toContain(
-        `The query builder lookups failed due to too many requests. Please try again later.`
-      );
-    });
-
-    it('should throw not found error when API returns 404 status', async () => {
-      datastore.errorTitle = '';
+    it('should set errorTitle and errorDescription when the lookup fails', async () => {
       jest
         .spyOn(datastore.workspaceUtils, 'getWorkspaces')
         .mockRejectedValue(new Error('Request failed with status code: 404'));
@@ -707,8 +651,8 @@ describe('WorkOrdersDataSource', () => {
       await datastore.loadWorkspaces();
 
       expect(datastore.errorTitle).toBe('Warning during workorders query');
-      expect(datastore.errorDescription).toContain(
-        `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
+      expect(datastore.errorDescription).toBe(
+        'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.'
       );
     });
   });
@@ -721,63 +665,7 @@ describe('WorkOrdersDataSource', () => {
       expect(result.get('2')?.lastName).toBe('2');
     });
 
-    it('should handle errors and set error and innerError fields', async () => {
-      jest.spyOn(datastore.usersUtils, 'getUsers').mockRejectedValue(new Error('Error'));
-
-      await datastore.loadUsers();
-
-      expect(datastore.errorTitle).toBe('Warning during workorders query');
-      expect(datastore.errorDescription).toContain(
-        'Some values may not be available in the query builder lookups due to an unknown error.'
-      );
-    });
-
-    it('should handle errors and set innerError fields with error message detail', async () => {
-      datastore.errorTitle = '';
-      jest
-        .spyOn(datastore.usersUtils, 'getUsers')
-        .mockRejectedValue(
-          new Error('Request failed with status code: 500, Error message: {"message": "Internal Server Error"}')
-        );
-
-      await datastore.loadUsers();
-
-      expect(datastore.errorTitle).toBe('Warning during workorders query');
-      expect(datastore.errorDescription).toContain(
-        'Some values may not be available in the query builder lookups due to the following error: Internal Server Error.'
-      );
-    });
-
-    test('should throw timeOut error when API returns 504 status', async () => {
-      datastore.errorTitle = '';
-      jest
-        .spyOn(datastore.usersUtils, 'getUsers')
-        .mockRejectedValue(new Error('Request failed with status code: 504'));
-
-      await datastore.loadUsers();
-
-      expect(datastore.errorTitle).toBe('Warning during workorders query');
-      expect(datastore.errorDescription).toContain(
-        `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
-      );
-    });
-
-    it('should throw too many requests error when API returns 429 status', async () => {
-      datastore.errorTitle = '';
-      jest
-        .spyOn(datastore.usersUtils, 'getUsers')
-        .mockRejectedValue(new Error('Request failed with status code: 429'));
-
-      await datastore.loadUsers();
-
-      expect(datastore.errorTitle).toBe('Warning during workorders query');
-      expect(datastore.errorDescription).toContain(
-        `The query builder lookups failed due to too many requests. Please try again later.`
-      );
-    });
-
-    it('should throw not found error when API returns 404 status', async () => {
-      datastore.errorTitle = '';
+    it('should set errorTitle and errorDescription when the lookup fails', async () => {
       jest
         .spyOn(datastore.usersUtils, 'getUsers')
         .mockRejectedValue(new Error('Request failed with status code: 404'));
@@ -785,8 +673,8 @@ describe('WorkOrdersDataSource', () => {
       await datastore.loadUsers();
 
       expect(datastore.errorTitle).toBe('Warning during workorders query');
-      expect(datastore.errorDescription).toContain(
-        `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
+      expect(datastore.errorDescription).toBe(
+        'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.'
       );
     });
   });
@@ -852,27 +740,7 @@ describe('WorkOrdersDataSource', () => {
       );
     });
 
-    it('should throw timeOut error when API returns 504 status', async () => {
-      backendServer.fetch
-        .calledWith(requestMatching({ url: '/niworkorder/v1/query-workorders' }))
-        .mockReturnValue(createFetchError(504));
-
-      await expect(datastore.queryWorkOrders({})).rejects.toThrow(
-        'The query to fetch workorders experienced a timeout error. Narrow your query with a more specific filter and try again.'
-      );
-    });
-
-    it('should throw too many requests error when API returns 429 status', async () => {
-      jest.spyOn(datastore, 'post').mockImplementation(() => {
-        throw new Error('Request failed with status code: 429');
-      });
-
-      await expect(datastore.queryWorkOrders({})).rejects.toThrow(
-        'The query to fetch workorders failed due to too many requests. Please try again later.'
-      );
-    });
-
-    it('should throw not found error when API returns 404 status', async () => {
+    it('should throw the query error message when the request fails', async () => {
       backendServer.fetch
         .calledWith(requestMatching({ url: '/niworkorder/v1/query-workorders' }))
         .mockReturnValue(createFetchError(404));
@@ -880,16 +748,6 @@ describe('WorkOrdersDataSource', () => {
       await expect(datastore.queryWorkOrders({})).rejects.toThrow(
         'The query to fetch workorders failed because the requested resource was not found. Please check the query parameters and try again.'
       );
-    })
-
-    it('should throw error with unknown error when API returns error without status', async () => {
-      backendServer.fetch
-        .calledWith(requestMatching({ url: '/niworkorder/v1/query-workorders' }))
-        .mockImplementation(() => {
-          throw new Error('Error');
-        });
-
-      await expect(datastore.queryWorkOrders({})).rejects.toThrow('The query failed due to an unknown error.');
     });
 
     it('should publish alertError event when error occurs', async () => {
