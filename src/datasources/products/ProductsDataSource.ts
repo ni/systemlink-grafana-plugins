@@ -259,8 +259,8 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   }
 
   private handleQueryProductValuesError(error: unknown): void {
-        const { title, description } = getQueryBuilderLookupsError(error, 'dataframe');
+      const { title, message } = getQueryBuilderLookupsError(error, 'product value');
         this.errorTitle = title;
-        this.errorDescription = description;
+      this.errorDescription = message;
   }
 }

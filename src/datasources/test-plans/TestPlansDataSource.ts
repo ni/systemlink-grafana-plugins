@@ -457,9 +457,9 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
   }
 
   private handleDependenciesError(error: unknown): void {
-    const { title, description } = getQueryBuilderLookupsError(error, 'testplans');
+    const { title, message } = getQueryBuilderLookupsError(error, 'testplans');
     this.errorTitle = title;
-    this.errorDescription = description;
+    this.errorDescription = message;
   }
 
   private isRecordCountValid(query: TestPlansQuery): boolean {

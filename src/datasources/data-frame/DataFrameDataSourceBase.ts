@@ -172,8 +172,8 @@ export abstract class DataFrameDataSourceBase<
     }
 
     private handleDependenciesError(error: unknown): void {
-        const { title, description } = getQueryBuilderLookupsError(error, 'dataframe');
+        const { title, message } = getQueryBuilderLookupsError(error, 'dataframe');
         this.errorTitle = title;
-        this.errorDescription = description;
+        this.errorDescription = message;
     }
 }

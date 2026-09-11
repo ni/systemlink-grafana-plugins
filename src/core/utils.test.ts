@@ -93,7 +93,7 @@ describe('transformDuration', () => {
     { totalSeconds: 61, expected: '1 min, 1 sec' },
     { totalSeconds: 3600, expected: '1 hr' },
     { totalSeconds: 3661, expected: '1 hr, 1 min, 1 sec' },
-    { totalSeconds: 7322, expected: '2 hrs, 2 min, 2 sec' },
+    { totalSeconds: 7322, expected: '2 hr, 2 min, 2 sec' },
     { totalSeconds: 86400, expected: '1 day' },
     { totalSeconds: 90061, expected: '1 day, 1 hr, 1 min, 1 sec' },
     { totalSeconds: 172800, expected: '2 days' },

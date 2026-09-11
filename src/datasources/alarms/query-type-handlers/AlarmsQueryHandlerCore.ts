@@ -63,9 +63,9 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
   }
 
   protected handleDependenciesError(error: unknown): void {
-    const { title, description } = getQueryBuilderLookupsError(error, 'alarms');
+    const { title, message } = getQueryBuilderLookupsError(error, 'alarms');
     this.errorTitle = title;
-    this.errorDescription = description;
+    this.errorDescription = message;
   }
 
   protected async queryAlarmsInBatches(alarmsRequestBody: QueryAlarmsRequest): Promise<Alarm[]> {

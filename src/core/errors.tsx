@@ -11,6 +11,11 @@ type FloatingErrorProps = {
   severity?: AlertVariant;
 };
 
+type QueryErrorInfo = {
+  title: string;
+  message: string;
+};
+
 export const FloatingError = ({ message = '', innerMessage = '', severity = 'error' }: FloatingErrorProps) => {
   const [hide, setHide] = useState(false);
   const reset = useTimeoutFn(() => setHide(true), 5000)[2];
@@ -73,11 +78,11 @@ export const extractErrorInfo = (errorMessage: string): { url: string; statusCod
 };
 
 /**
- * Builds the `title`/`description` pair shown when a query builder lookup (dropdown options) fails.
+ * Builds the `title`/`message` pair shown when a query builder lookup (dropdown options) fails.
  * @param error The caught error.
- * @param context Noun describing what was being queried, e.g. 'work items', 'testplans'.
+ * @param context The entity being queried, e.g. 'work items', 'testplans'.
  */
-export const getQueryBuilderLookupsError = (error: unknown, context: string): { title: string; description: string } => {
+export const getQueryBuilderLookupsError = (error: unknown, context: string): QueryErrorInfo => {
   const errorDetails = extractErrorInfo((error as Error).message);
   const title = `Warning during ${context} query`;
 
@@ -85,19 +90,19 @@ export const getQueryBuilderLookupsError = (error: unknown, context: string): { 
     case '404':
       return {
         title,
-        description: 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.',
+        message: 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.',
       };
     case '429':
-      return { title, description: 'The query builder lookups failed due to too many requests. Please try again later.' };
+      return { title, message: 'The query builder lookups failed due to too many requests. Please try again later.' };
     case '504':
       return {
         title,
-        description: 'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.',
+        message: 'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.',
       };
     default:
       return {
         title,
-        description: errorDetails.message
+        message: errorDetails.message
           ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
           : 'Some values may not be available in the query builder lookups due to an unknown error.',
       };
@@ -107,9 +112,9 @@ export const getQueryBuilderLookupsError = (error: unknown, context: string): { 
 /**
  * Builds the `title`/`message` pair shown when a data query itself fails.
  * @param error The caught error.
- * @param context Noun describing what was being queried, e.g. 'work items', 'testplans'.
+ * @param context The entity being queried, e.g. 'work items', 'testplans'.
  */
-export const getQueryError = (error: unknown, context: string): { title: string; message: string } => {
+export const getQueryError = (error: unknown, context: string): QueryErrorInfo => {
   const errorDetails = extractErrorInfo((error as Error).message);
   const title = `Error during ${context} query`;
 

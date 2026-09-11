@@ -278,9 +278,9 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
   }
 
   private handleDependenciesError(error: unknown): void {
-    const { title, description } = getQueryBuilderLookupsError(error, 'workorders');
+    const { title, message } = getQueryBuilderLookupsError(error, 'workorders');
     this.errorTitle = title;
-    this.errorDescription = description;
+    this.errorDescription = message;
   }
 
   private isTakeValid(query: WorkOrdersQuery): boolean {

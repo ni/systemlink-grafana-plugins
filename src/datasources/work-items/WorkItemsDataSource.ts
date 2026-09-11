@@ -202,8 +202,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private handleDependenciesError(error: unknown): void {
-    const { title, description } = getQueryBuilderLookupsError(error, 'work items');
+    const { title, message } = getQueryBuilderLookupsError(error, 'work items');
     this.errorTitle = title;
-    this.errorDescription = description;
+    this.errorDescription = message;
   }
 }
