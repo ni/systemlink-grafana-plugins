@@ -804,7 +804,7 @@ describe('WorkItemsDataSource', () => {
         );
       });
 
-      it('should fall back to an empty value when the parent work item is not found (deleted)', async () => {
+      it('should fall back to an empty value when the parent work item is not found', async () => {
         jest.spyOn(datasource, 'post').mockImplementation(async (_url, body: any) => {
           if (body.filter === 'id = "1000"') {
             return { workItems: [], continuationToken: '', totalCount: 0 };
@@ -842,6 +842,30 @@ describe('WorkItemsDataSource', () => {
 
         expect(result.fields).toEqual([{ name: 'Parent work item name', values: [''], type: 'string' }]);
         expect(postSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('should not publish an alertError event when the parent work item lookup fails', async () => {
+        const publishMock = jest.fn();
+        (datasource as any).appEvents = { publish: publishMock };
+        jest.spyOn(datasource, 'post').mockImplementation(async (_url, body: any) => {
+          if (body.filter === 'id = "1000"') {
+            throw new Error('Request failed');
+          }
+          return { workItems: [{ id: '1', parentId: '1000' }], continuationToken: '', totalCount: 1 };
+        });
+
+        await datasource.runQuery(
+          {
+            refId: 'A',
+            outputType: OutputType.Properties,
+            types: [WorkItemTypeOptions.WorkOrders],
+            properties: [WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME],
+            take: 1000,
+          },
+          {} as DataQueryRequest
+        );
+
+        expect(publishMock).not.toHaveBeenCalled();
       });
     });
 
