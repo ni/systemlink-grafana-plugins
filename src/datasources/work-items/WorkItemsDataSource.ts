@@ -17,7 +17,7 @@ import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { UsersUtils } from 'shared/users.utils';
 import { User } from 'shared/types/QueryUsers.types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
-import { queryInBatches } from 'core/utils';
+import { queryInBatches, transformDuration } from 'core/utils';
 import {
   OrderByOptions,
   OutputType,
@@ -40,7 +40,7 @@ import {
   QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
 } from './constants/QueryWorkItems.constants';
 import { WorkItemProperties } from './constants/QueryEditor.constants';
-import { isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty, transformDuration } from './utils';
+import { isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty } from './utils';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
