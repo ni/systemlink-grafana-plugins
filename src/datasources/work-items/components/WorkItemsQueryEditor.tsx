@@ -50,6 +50,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   const isTypesValid = isTypesNonEmpty(query.types);
   const takeInvalidMessage = getTakeError(query.take);
   const isTakeValid = takeInvalidMessage === '';
+  const outputType = query.outputType ?? OutputType.Properties;
 
   const propertiesOptions = Object.values(WorkItemProperties).map(property => ({
     label: property.label,
@@ -106,6 +107,13 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     [onChange, onRunQuery]
   );
 
+  useEffect(() => {
+    if (!query.outputType) {
+      handleQueryChange({ ...query, outputType: OutputType.Properties });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const onOutputTypeChange = (value: OutputType) => {
     handleQueryChange({ ...query, outputType: value });
   };
@@ -150,7 +158,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
         <RadioButtonGroup
           options={outputTypeOptions}
           onChange={onOutputTypeChange}
-          value={query.outputType}
+          value={outputType}
         />
       </InlineField>
       <InlineField
@@ -171,7 +179,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
           maxWidth={CONTROL_WIDTH}
         />
       </InlineField>
-      {query.outputType === OutputType.Properties && (
+      {outputType === OutputType.Properties && (
         <>
           <InlineField
             label={labels.properties}
@@ -208,7 +216,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
             onChange={onFilterChange}
           />
         </InlineField>
-        {query.outputType === OutputType.Properties && (
+        {outputType === OutputType.Properties && (
            <Stack direction="column" gap={0}>
               <InlineField
                 label={labels.orderBy}
