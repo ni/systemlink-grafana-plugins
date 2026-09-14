@@ -1,7 +1,6 @@
-import { TypedVariableModel } from '@grafana/data';
+import { TypedVariableModel, DataQueryRequest } from '@grafana/data';
 import { WorkItemsDataSource } from './WorkItemsDataSource';
 import { setupDataSource } from 'test/fixtures';
-import { DataQueryRequest } from '@grafana/data';
 import { OrderByOptions, OutputType, WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
 import { queryInBatches } from 'core/utils';
 
