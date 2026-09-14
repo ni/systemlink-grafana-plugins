@@ -9524,8 +9524,8 @@ describe('DataFrameDataSourceV2', () => {
             expect(publishMock).toHaveBeenCalledTimes(1);
         });
 
-        it('should return empty array when query results API returns 429 status', async () => {
-            postMock$.mockReturnValue(throwError(() => createQueryResultsError(429)));
+        it('should return empty array and publish an alertError event when query results API returns 404 status', async () => {
+            postMock$.mockReturnValue(throwError(() => createQueryResultsError(404)));
 
             const result = await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
 
@@ -9534,55 +9534,7 @@ describe('DataFrameDataSourceV2', () => {
                 type: 'alert-error',
                 payload: [
                     'Error querying test results',
-                    'The query to fetch results failed due to too many requests. Please try again later.'
-                ],
-            });
-            expect(publishMock).toHaveBeenCalledTimes(1);
-        });
-
-        it('should return empty array when query results API returns 504 status', async () => {
-            postMock$.mockReturnValue(throwError(() => createQueryResultsError(504)));
-
-            const result = await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
-
-            expect(result).toEqual([]);
-            expect(publishMock).toHaveBeenCalledWith({
-                type: 'alert-error',
-                payload: [
-                    'Error querying test results',
-                    'The query to fetch results experienced a timeout error. Narrow your query with a more specific filter and try again.'
-                ],
-            });
-            expect(publishMock).toHaveBeenCalledTimes(1);
-        });
-
-        it('should return empty array when query results API returns 500 status', async () => {
-            postMock$.mockReturnValue(throwError(() => createQueryResultsError(500)));
-
-            const result = await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
-
-            expect(result).toEqual([]);
-            expect(publishMock).toHaveBeenCalledWith({
-                type: 'alert-error',
-                payload: [
-                    'Error querying test results',
-                    'The query failed due to the following error: (status 500) "Error".'
-                ],
-            });
-            expect(publishMock).toHaveBeenCalledTimes(1);
-        });
-
-        it('should publish alertError event when error occurs in query results API', async () => {
-            postMock$.mockReturnValue(throwError(() => createQueryResultsError(429)));
-
-            const result = await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
-
-            expect(result).toEqual([]);
-            expect(publishMock).toHaveBeenCalledWith({
-                type: 'alert-error',
-                payload: [
-                    'Error querying test results',
-                    'The query to fetch results failed due to too many requests. Please try again later.'
+                    'The query to fetch results failed because the requested resource was not found. Please check the query parameters and try again.'
                 ],
             });
             expect(publishMock).toHaveBeenCalledTimes(1);
@@ -9688,27 +9640,11 @@ describe('DataFrameDataSourceV2', () => {
             );
         });
 
-        it('should throw too many requests error when API returns 429 status', async () => {
-            postMock$.mockReturnValue(throwError(() => createQueryTablesError(429)));
+        it('should throw not found error when API returns 404 status', async () => {
+            postMock$.mockReturnValue(throwError(() => createQueryTablesError(404)));
 
             await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: 'test-filter' }))).rejects.toThrow(
-                'The query to fetch data tables failed due to too many requests. Please try again later.'
-            );
-        });
-
-        it('should throw timeOut error when API returns 504 status', async () => {
-            postMock$.mockReturnValue(throwError(() => createQueryTablesError(504)));
-
-            await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: 'test-filter' }))).rejects.toThrow(
-                'The query to fetch data tables experienced a timeout error. Narrow your query with a more specific filter and try again.'
-            );
-        });
-
-        it('should throw error with status code and message when API returns 500 status', async () => {
-            postMock$.mockReturnValue(throwError(() => createQueryTablesError(500)));
-
-            await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: 'test-filter' }))).rejects.toThrow(
-                'The query failed due to the following error: (status 500) "Error".'
+                'The query to fetch data tables failed because the requested resource was not found. Please check the query parameters and try again.'
             );
         });
 

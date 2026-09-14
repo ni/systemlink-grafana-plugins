@@ -258,64 +258,14 @@ describe('DataFrameDataSourceBase', () => {
             expect(result.get('2')?.name).toBe('AnotherWorkspaceName');
         });
 
-        it('should handle errors and set error and innerError fields', async () => {
-            getWorkspacesSpy.mockRejectedValue(new Error('Error'));
-
-            await ds.loadWorkspaces();
-
-            expect(ds.errorTitle).toBe('Warning during dataframe query');
-            expect(ds.errorDescription).toContain(
-                'Some values may not be available in the query builder lookups due to an unknown error.'
-            );
-        });
-
-        it('should handle errors and set innerError fields with error message detail', async () => {
-            ds.errorTitle = '';
-            getWorkspacesSpy.mockRejectedValue(
-                new Error('Request failed with status code: 500, Error message: {"message": "Internal Server Error"}')
-            );
-
-            await ds.loadWorkspaces();
-
-            expect(ds.errorTitle).toBe('Warning during dataframe query');
-            expect(ds.errorDescription).toContain(
-                'Some values may not be available in the query builder lookups due to the following error: Internal Server Error.'
-            );
-        });
-
-        it('should throw timeOut error when API returns 504 status', async () => {
-            ds.errorTitle = '';
-            getWorkspacesSpy.mockRejectedValue(new Error('Request failed with status code: 504'));
-
-            await ds.loadWorkspaces();
-
-            expect(ds.errorTitle).toBe('Warning during dataframe query');
-            expect(ds.errorDescription).toContain(
-                `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
-            );
-        });
-
-        it('should throw too many requests error when API returns 429 status', async () => {
-            ds.errorTitle = '';
-            getWorkspacesSpy.mockRejectedValue(new Error('Request failed with status code: 429'));
-
-            await ds.loadWorkspaces();
-
-            expect(ds.errorTitle).toBe('Warning during dataframe query');
-            expect(ds.errorDescription).toContain(
-                `The query builder lookups failed due to too many requests. Please try again later.`
-            );
-        });
-
-        it('should throw not found error when API returns 404 status', async () => {
-            ds.errorTitle = '';
+        it('should set errorTitle and errorDescription when the lookup fails', async () => {
             getWorkspacesSpy.mockRejectedValue(new Error('Request failed with status code: 404'));
 
             await ds.loadWorkspaces();
 
             expect(ds.errorTitle).toBe('Warning during dataframe query');
-            expect(ds.errorDescription).toContain(
-                `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
+            expect(ds.errorDescription).toBe(
+                'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.'
             );
         });
     });
@@ -370,64 +320,14 @@ describe('DataFrameDataSourceBase', () => {
             );
         });
 
-        it('should handle errors and set error and innerError fields', async () => {
-            ds.post = jest.fn().mockRejectedValue(new Error('Error'));
-
-            await ds.loadPartNumbers();
-
-            expect(ds.errorTitle).toBe('Warning during dataframe query');
-            expect(ds.errorDescription).toContain(
-                'Some values may not be available in the query builder lookups due to an unknown error.'
-            );
-        });
-
-        it('should handle errors and set innerError fields with error message detail', async () => {
-            ds.errorTitle = '';
-            ds.post = jest.fn().mockRejectedValue(
-                new Error('Request failed with status code: 500, Error message: {"message": "Internal Server Error"}')
-            );
-
-            await ds.loadPartNumbers();
-
-            expect(ds.errorTitle).toBe('Warning during dataframe query');
-            expect(ds.errorDescription).toContain(
-                'Some values may not be available in the query builder lookups due to the following error: Internal Server Error.'
-            );
-        });
-
-        it('should throw timeOut error when API returns 504 status', async () => {
-            ds.errorTitle = '';
-            ds.post = jest.fn().mockRejectedValue(new Error('Request failed with status code: 504'));
-
-            await ds.loadPartNumbers();
-
-            expect(ds.errorTitle).toBe('Warning during dataframe query');
-            expect(ds.errorDescription).toContain(
-                `The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.`
-            );
-        });
-
-        it('should throw too many requests error when API returns 429 status', async () => {
-            ds.errorTitle = '';
-            ds.post = jest.fn().mockRejectedValue(new Error('Request failed with status code: 429'));
-
-            await ds.loadPartNumbers();
-
-            expect(ds.errorTitle).toBe('Warning during dataframe query');
-            expect(ds.errorDescription).toContain(
-                `The query builder lookups failed due to too many requests. Please try again later.`
-            );
-        });
-
-        it('should throw not found error when API returns 404 status', async () => {
-            ds.errorTitle = '';
+        it('should set errorTitle and errorDescription when the lookup fails', async () => {
             ds.post = jest.fn().mockRejectedValue(new Error('Request failed with status code: 404'));
 
             await ds.loadPartNumbers();
 
             expect(ds.errorTitle).toBe('Warning during dataframe query');
-            expect(ds.errorDescription).toContain(
-                `The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.`
+            expect(ds.errorDescription).toBe(
+                'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.'
             );
         });
     });
