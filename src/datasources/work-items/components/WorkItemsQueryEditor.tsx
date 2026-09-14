@@ -39,7 +39,12 @@ import {
   WorkItemsQuery,
   WorkItemTypeOptions,
 } from '../types';
-import { getTakeError, isPropertiesNonEmpty, isTypesNonEmpty, stripCustomPropertySuffix } from '../utils';
+import { 
+  getTakeError, 
+  isPropertiesNonEmpty, 
+  isTypesNonEmpty, 
+  stripCustomPropertySuffix 
+} from '../utils';
 import { WorkItemsQueryBuilder } from './query-builder/WorkItemsQueryBuilder';
 import { User } from 'shared/types/QueryUsers.types';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
@@ -125,17 +130,11 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   const globalVariableOptions = useMemo(() => datasource.globalVariableOptions(), [datasource]);
 
   const isPropertiesOutput = outputType === OutputType.Properties;
-  // The query builder emits '' for an empty filter while the saved query stores undefined;
-  // normalizing keeps the effect dependency stable so it does not refetch on every emit.
   const queryFilter = query.filter || undefined;
   const queryTake = query.take ?? DEFAULT_TAKE;
   // Discovery must use the same filter as the data query, otherwise the offered keys
   // can come from work items that are not part of the result.
-  const customPropertiesFilter = useMemo(
-    () => datasource.buildFilterFromQuery({ ...query, filter: queryFilter }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [datasource, queryFilter, query.types]
-  );
+  const customPropertiesFilter = datasource.buildFilterFromQuery({ ...query, filter: queryFilter });
 
   useEffect(() => {
     if (!isPropertiesOutput) {
@@ -215,7 +214,11 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     return invalidCustomProperties.length === 1
       ? `The following selected custom property is not valid: '${formattedInvalidCustomProperties}'`
       : `The following selected custom properties are not valid: '${formattedInvalidCustomProperties}'`;
-  }, [isCustomPropertiesInitialized, customPropertyOptions, selectedCustomProperties]);
+  }, [
+    isCustomPropertiesInitialized, 
+    customPropertyOptions, 
+    selectedCustomProperties
+  ]);
 
   const handleQueryChange = useCallback(
     (query: WorkItemsQuery, runQuery = true): void => {
@@ -259,9 +262,8 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   };
 
   const onFilterChange = (event: any) => {
-    const filter = event.detail.linq || undefined;
-    if (queryFilter !== filter) {
-      handleQueryChange({ ...query, filter });
+    if (query.filter !== event.detail.linq) {
+      handleQueryChange({ ...query, filter: event.detail.linq });
     }
   };
 
