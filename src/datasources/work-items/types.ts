@@ -35,6 +35,7 @@ export interface WorkItemsQuery extends DataQuery {
   outputType?: OutputType;
   types?: WorkItemTypeOptions[];
   properties?: WorkItemPropertiesOptions[];
+  customProperties?: string[];
   orderBy?: OrderByOptions;
   descending?: boolean;
   take?: number;
