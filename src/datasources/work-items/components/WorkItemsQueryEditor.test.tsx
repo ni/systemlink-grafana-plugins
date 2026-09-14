@@ -5,7 +5,13 @@ import { setupRenderer } from 'test/fixtures';
 import { propertiesErrorMessages, takeErrorMessages, typesErrorMessages } from '../constants/QueryEditor.constants';
 import { CUSTOM_PROPERTY_SUFFIX, TAKE_LIMIT } from '../constants';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
-import { OutputType, WorkItemPropertiesGroup, WorkItemPropertiesOptions, WorkItemTypeOptions } from '../types';
+import { 
+  OrderByOptions, 
+  OutputType, 
+  WorkItemPropertiesGroup, 
+  WorkItemPropertiesOptions, 
+  WorkItemTypeOptions 
+} from '../types';
 import { WorkItemsQueryEditor } from './WorkItemsQueryEditor';
 import { workItemsQueryEditorPage as page } from './WorkItemsQueryEditor.page';
 
@@ -229,7 +235,14 @@ describe('WorkItemsQueryEditor', () => {
 
       render({ outputType: OutputType.Properties, filter: 'type = "workorder"', take: 500 });
 
-      await waitFor(() => expect(getCustomPropertyOptionsSpy).toHaveBeenCalledWith('type = "workorder"', 500));
+      await waitFor(() =>
+        expect(getCustomPropertyOptionsSpy).toHaveBeenCalledWith(
+          '(type = "workorder")',
+          500,
+          OrderByOptions.UPDATED_AT,
+          true
+        )
+      );
     });
 
     it('should not load the custom property options when the output type is total count', async () => {
