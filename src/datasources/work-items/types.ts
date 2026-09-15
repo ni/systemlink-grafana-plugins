@@ -134,10 +134,10 @@ export interface WorkItemResources {
 }
 
 export interface WorkItem {
-  id?: string;
-  name?: string;
-  type?: string;
-  state?: string;
+  id: string;
+  name: string;
+  type: string;
+  state: string;
   substate?: string;
   description?: string;
   parentId?: string;
