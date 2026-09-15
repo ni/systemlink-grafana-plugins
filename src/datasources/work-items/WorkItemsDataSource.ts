@@ -58,7 +58,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     this.workspaceUtils = new WorkspaceUtils(instanceSettings, backendSrv);
     this.systemUtils = new SystemUtils(instanceSettings, backendSrv);
     this.assetUtils = new AssetUtils(this.instanceSettings, this.backendSrv);
-    this.systemUtils = new SystemUtils(this.instanceSettings, this.backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkitem/v1`;
@@ -157,7 +156,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       refId: query.refId,
       name: query.refId,
       fields: this.buildFields(
-        query.properties,
+        query.properties!,
         flattenedRows,
         workspacesLookup,
         usersLookup,
@@ -172,29 +171,42 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     selectedProperty: WorkItemPropertiesOptions,
     properties?: WorkItemPropertiesOptions[]
   ): boolean {
-    return !!properties?.includes(selectedProperty);
+    return this.isAnyPropertySelected([selectedProperty], properties);
+  }
+
+  private isAnyPropertySelected(
+    expectedProperties: WorkItemPropertiesOptions[],
+    properties?: WorkItemPropertiesOptions[]
+  ): boolean {
+    return !!properties?.some(property => expectedProperties.includes(property));
   }
 
   private isUserLookupRequired(properties?: WorkItemPropertiesOptions[]): boolean {
-    return !!properties?.some(property =>
-      Object.keys(USER_PROPERTY_FIELDS).includes(property)
+    return this.isAnyPropertySelected(
+      Object.keys(USER_PROPERTY_FIELDS) as WorkItemPropertiesOptions[],
+      properties
     );
   }
 
   private isResourceNameLookupRequired(properties?: WorkItemPropertiesOptions[]): boolean {
-    return !!properties?.some(property =>
+    return this.isAnyPropertySelected(
       [
         WorkItemPropertiesOptions.ASSET_NAME,
         WorkItemPropertiesOptions.DUT_NAME,
         WorkItemPropertiesOptions.FIXTURE_NAME,
         WorkItemPropertiesOptions.TARGET_PARENT,
-      ].includes(property)
+      ],
+      properties
     );
   }
 
   private isSystemNameLookupRequired(properties?: WorkItemPropertiesOptions[]): boolean {
-    return !!properties?.some(property =>
-      [WorkItemPropertiesOptions.SYSTEM_NAME, WorkItemPropertiesOptions.TARGET_LOCATION].includes(property)
+    return this.isAnyPropertySelected(
+      [
+        WorkItemPropertiesOptions.SYSTEM_NAME,
+        WorkItemPropertiesOptions.TARGET_LOCATION
+      ],
+      properties
     );
   }
 
@@ -232,18 +244,30 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const ids: string[] = [];
     workItems.forEach(workItem => {
       if (isAssetNameSelected) {
-        workItem.resources?.assets?.selections?.forEach(s => s.id && ids.push(s.id));
+        workItem.resources?.assets?.selections?.forEach(
+          selection => selection.id && ids.push(selection.id)
+        );
       }
       if (isDutNameSelected) {
-        workItem.resources?.duts?.selections?.forEach(s => s.id && ids.push(s.id));
+        workItem.resources?.duts?.selections?.forEach(
+          selection => selection.id && ids.push(selection.id)
+        );
       }
       if (isFixtureNameSelected) {
-        workItem.resources?.fixtures?.selections?.forEach(s => s.id && ids.push(s.id));
+        workItem.resources?.fixtures?.selections?.forEach(
+          selection => selection.id && ids.push(selection.id)
+        );
       }
       if (isTargetParentSelected) {
-        workItem.resources?.assets?.selections?.forEach(s => s.targetParentId && ids.push(s.targetParentId));
-        workItem.resources?.duts?.selections?.forEach(s => s.targetParentId && ids.push(s.targetParentId));
-        workItem.resources?.fixtures?.selections?.forEach(s => s.targetParentId && ids.push(s.targetParentId));
+        workItem.resources?.assets?.selections?.forEach(
+          selection => selection.targetParentId && ids.push(selection.targetParentId)
+        );
+        workItem.resources?.duts?.selections?.forEach(
+          selection => selection.targetParentId && ids.push(selection.targetParentId)
+        );
+        workItem.resources?.fixtures?.selections?.forEach(
+          selection => selection.targetParentId && ids.push(selection.targetParentId)
+        );
       }
     });
 
@@ -295,7 +319,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private buildFields(
-    properties: WorkItemPropertiesOptions[] | undefined,
+    properties: WorkItemPropertiesOptions[],
     flattenedRows: FlattenedRow[],
     workspacesLookup: Map<string, Workspace>,
     usersLookup: Map<string, User>,
@@ -305,7 +329,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   ) {
     const fields: FieldDTO[] = [];
 
-    (properties ?? []).forEach(property => {
+    properties.forEach(property => {
       if (property === WorkItemPropertiesOptions.TARGET_LOCATION) {
         fields.push(...this.buildTargetLocationFields(flattenedRows, systemAliasesLookup));
         return;
