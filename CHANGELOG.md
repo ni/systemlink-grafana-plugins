@@ -1,3 +1,9 @@
+## [5.9.3](https://github.com/ni/systemlink-grafana-plugins/compare/v5.9.2...v5.9.3) (2026-09-15)
+
+### Bug Fixes
+
+* **work-items:** transform duration filters from days/hours to seconds ([#752](https://github.com/ni/systemlink-grafana-plugins/issues/752)) ([039ff0a](https://github.com/ni/systemlink-grafana-plugins/commit/039ff0aa58f6db587787aae25c410531541b917a))
+
 ## [5.9.2](https://github.com/ni/systemlink-grafana-plugins/compare/v5.9.1...v5.9.2) (2026-09-15)
 
 ### Bug Fixes
