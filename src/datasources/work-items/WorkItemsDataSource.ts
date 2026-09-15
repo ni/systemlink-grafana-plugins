@@ -65,6 +65,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   errorTitle = '';
   errorDescription = '';
+
+  durationNumberPattern = '-?\\d+(?:\\.\\d+)?';
+  durationOperationsPattern = computedFieldsupportedOperations.join('|');
   
   productUtils: ProductUtils;
   usersUtils: UsersUtils;
@@ -84,6 +87,32 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     descending: true,
     take: DEFAULT_TAKE,
   };
+
+  durationFilterConversions = [
+    {
+      fieldName: WorkItemsQueryBuilderFieldNames.EstimatedDurationInDays,
+      target: 'timeline.estimatedDurationInSeconds',
+      factor: SECONDS_IN_DAY,
+    },
+    {
+      fieldName: WorkItemsQueryBuilderFieldNames.EstimatedDurationInHours,
+      target: 'timeline.estimatedDurationInSeconds',
+      factor: SECONDS_IN_HOUR,
+    },
+    {
+      fieldName: WorkItemsQueryBuilderFieldNames.PlannedDurationInDays,
+      target: 'schedule.plannedDurationInSeconds',
+      factor: SECONDS_IN_DAY,
+    },
+    {
+      fieldName: WorkItemsQueryBuilderFieldNames.PlannedDurationInHours,
+      target: 'schedule.plannedDurationInSeconds',
+      factor: SECONDS_IN_HOUR,
+    },
+  ].map(({ fieldName, target, factor }) => {
+    const pattern = `${fieldName}\\s*(${this.durationOperationsPattern})\\s*"(${this.durationNumberPattern})"`;
+    return { target, factor, regex: new RegExp(pattern, 'g') };
+  });
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
@@ -431,47 +460,14 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   // The backend API only supports duration in seconds, so the days/hours fields exposed by the
   // query builder are converted to their seconds-based equivalents before the filter is sent.
   private transformDurationFilters(filter: string): string {
-    const operations = computedFieldsupportedOperations.join('|');
-    // Duration fields allow decimal input (e.g. "1.5"); the API only accepts integer seconds.
-    const numberPattern = '-?\\d+(?:\\.\\d+)?';
-    const estimatedDaysRegex = new RegExp(
-      `${WorkItemsQueryBuilderFieldNames.EstimatedDurationInDays}\\s*(${operations})\\s*"(${numberPattern})"`,
-      'g'
+    return this.durationFilterConversions.reduce(
+      (transformedFilter, { regex, target, factor }) =>
+        transformedFilter.replace(
+          regex,
+          (_, operator, value) => `${target} ${operator} "${Math.round(parseFloat(value) * factor)}"`
+        ),
+      filter
     );
-    const estimatedHoursRegex = new RegExp(
-      `${WorkItemsQueryBuilderFieldNames.EstimatedDurationInHours}\\s*(${operations})\\s*"(${numberPattern})"`,
-      'g'
-    );
-    const plannedDaysRegex = new RegExp(
-      `${WorkItemsQueryBuilderFieldNames.PlannedDurationInDays}\\s*(${operations})\\s*"(${numberPattern})"`,
-      'g'
-    );
-    const plannedHoursRegex = new RegExp(
-      `${WorkItemsQueryBuilderFieldNames.PlannedDurationInHours}\\s*(${operations})\\s*"(${numberPattern})"`,
-      'g'
-    );
-
-    return filter
-      .replace(
-        estimatedDaysRegex,
-        (_, operator, value) =>
-          `timeline.estimatedDurationInSeconds ${operator} "${Math.round(parseFloat(value) * SECONDS_IN_DAY)}"`
-      )
-      .replace(
-        estimatedHoursRegex,
-        (_, operator, value) =>
-          `timeline.estimatedDurationInSeconds ${operator} "${Math.round(parseFloat(value) * SECONDS_IN_HOUR)}"`
-      )
-      .replace(
-        plannedDaysRegex,
-        (_, operator, value) =>
-          `schedule.plannedDurationInSeconds ${operator} "${Math.round(parseFloat(value) * SECONDS_IN_DAY)}"`
-      )
-      .replace(
-        plannedHoursRegex,
-        (_, operator, value) =>
-          `schedule.plannedDurationInSeconds ${operator} "${Math.round(parseFloat(value) * SECONDS_IN_HOUR)}"`
-      );
   }
 
   private getEmptyDataFrameDTO(refId: string): DataFrameDTO {
