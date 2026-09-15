@@ -34,6 +34,7 @@ import {
   WORK_ITEM_TYPE_FILTER_VALUES,
   WORK_ITEM_TYPE_LABEL_MAP,
   WORK_ITEM_STATE_LABEL_MAP,
+  USER_PROPERTY_FIELDS,
 } from './constants';
 import {
   QUERY_WORK_ITEMS_MAX_TAKE,
@@ -115,7 +116,15 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   async processWorkItemsQuery(query: WorkItemsQuery, filter?: string): Promise<DataFrameDTO> {
-    const workItems = await this.queryWorkItemsData(
+    const isWorkspaceSelected = this.isPropertySelected(WorkItemPropertiesOptions.WORKSPACE, query.properties);
+    const workspacesLookup = isWorkspaceSelected
+      ? await this.loadWorkspaces()
+      : new Map<string, Workspace>();
+    const usersLookup = this.isUserLookupRequired(query.properties)
+      ? await this.loadUsers()
+      : new Map<string, User>();
+
+    const workItemsResponse = await this.queryWorkItemsData(
       filter,
       query.properties,
       query.orderBy,
@@ -123,17 +132,80 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       query.take
     );
 
+    const isParentWorkItemNameSelected = this.isPropertySelected(
+      WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME,
+      query.properties
+    );
+    const parentWorkItemNamesLookup = isParentWorkItemNameSelected
+      ? await this.loadParentWorkItemNames(workItemsResponse)
+      : new Map<string, string>();
+
     return {
       refId: query.refId,
       name: query.refId,
-      fields: this.buildFields(query.properties, workItems),
+      fields: this.buildFields(
+        query.properties,
+        workItemsResponse,
+        workspacesLookup,
+        usersLookup,
+        parentWorkItemNamesLookup
+      ),
     };
   }
 
-  private buildFields(properties: WorkItemPropertiesOptions[] | undefined, workItems: WorkItem[]) {
+  private isPropertySelected(
+    selectedProperty: WorkItemPropertiesOptions,
+    properties?: WorkItemPropertiesOptions[]
+  ): boolean {
+    return !!properties?.includes(selectedProperty);
+  }
+
+  private isUserLookupRequired(selectedProperties?: WorkItemPropertiesOptions[]): boolean {
+    return !!selectedProperties?.some(selectedProperty =>
+      Object.keys(USER_PROPERTY_FIELDS).includes(selectedProperty)
+    );
+  }
+
+  private async loadParentWorkItemNames(workItems: WorkItem[]): Promise<Map<string, string>> {
+    const parentWorkitemIds = [
+      ...new Set(workItems.map(workItem => workItem.parentId).filter((id): id is string => !!id)),
+    ];
+    if (parentWorkitemIds.length === 0) {
+      return new Map<string, string>();
+    }
+
+    try {
+      const parentWorkItems = await this.queryWorkItemsData(
+        parentWorkitemIds.map(id => `id = "${id}"`).join(' || '),
+        [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
+        undefined,
+        undefined,
+        parentWorkitemIds.length,
+        true
+      );
+
+      const parentWorkItemNameMap = new Map<string, string>();
+      parentWorkItems.forEach(parentWorkItem => {
+        parentWorkItemNameMap.set(parentWorkItem.id, parentWorkItem.name);
+      });
+      return parentWorkItemNameMap;
+    } catch {
+      return new Map<string, string>();
+    }
+  }
+
+  private buildFields(
+    properties: WorkItemPropertiesOptions[] | undefined,
+    workItems: WorkItem[],
+    workspaces: Map<string, Workspace>,
+    users: Map<string, User>,
+    parentWorkItemNames: Map<string, string>
+  ) {
     return (
       properties?.map(property => {
-        const fieldValue = workItems.map(workItem => this.getPropertyValue(property, workItem));
+        const fieldValue = workItems.map(workItem =>
+          this.getPropertyValue(property, workItem, workspaces, users, parentWorkItemNames)
+        );
         const fieldType = this.getPropertyFieldType(property);
         return {
           name: WorkItemProperties[property].label,
@@ -147,7 +219,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   private getPropertyValue(
     property: WorkItemPropertiesOptions,
-    workItem: WorkItem
+    workItem: WorkItem,
+    workspaces: Map<string, Workspace>,
+    users: Map<string, User>,
+    parentWorkItemNames: Map<string, string>
   ): string | null {
     switch (property) {
       case WorkItemPropertiesOptions.ID:
@@ -166,6 +241,25 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         return workItem.testProgram ?? '';
       case WorkItemPropertiesOptions.PART_NUMBER:
         return workItem.partNumber ?? '';
+      case WorkItemPropertiesOptions.WORKSPACE: {
+        const workspace = workspaces.get(workItem.workspace ?? '');
+        return workspace ? workspace.name : workItem.workspace ?? '';
+      }
+      case WorkItemPropertiesOptions.ASSIGNED_TO:
+      case WorkItemPropertiesOptions.REQUESTED_BY:
+      case WorkItemPropertiesOptions.CREATED_BY:
+      case WorkItemPropertiesOptions.UPDATED_BY: {
+        const userField = USER_PROPERTY_FIELDS[property]!;
+        const userId = workItem[userField] as string | undefined;
+        const user = users.get(userId ?? '');
+        return user ? UsersUtils.getUserFullName(user) : userId ?? '';
+      }
+      case WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME: {
+        if (!workItem.parentId) {
+          return '';
+        }
+        return parentWorkItemNames.get(workItem.parentId) ?? '';
+      }
       case WorkItemPropertiesOptions.PARENT_WORK_ITEM_ID:
         return workItem.parentId ?? '';
       case WorkItemPropertiesOptions.TEMPLATE_ID:
@@ -231,7 +325,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     properties?: WorkItemPropertiesOptions[],
     orderBy?: OrderByOptions,
     descending?: boolean,
-    take?: number
+    take?: number,
+    suppressErrorAlert = false
   ): Promise<WorkItem[]> {
     const projection = this.buildProjection(properties);
 
@@ -244,7 +339,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         take: currentTake,
         continuationToken,
       };
-      const response = await this.queryWorkItems(body);
+      const response = await this.queryWorkItems(body, suppressErrorAlert);
 
       return {
         data: response.workItems ?? [],
@@ -281,7 +376,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return response.totalCount ?? 0;
   }
 
-  async queryWorkItems(body: QueryWorkItemsRequestBody): Promise<WorkItemsResponse> {
+  async queryWorkItems(
+    body: QueryWorkItemsRequestBody,
+    suppressErrorAlert = false
+  ): Promise<WorkItemsResponse> {
     try {
       return await this.post<WorkItemsResponse>(
         this.queryWorkItemsUrl,
@@ -309,10 +407,12 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
           break;
       }
 
-      this.appEvents?.publish?.({
-        type: AppEvents.alertError.name,
-        payload: ['Error during work items query', errorMessage],
-      });
+      if (!suppressErrorAlert) {
+        this.appEvents?.publish?.({
+          type: AppEvents.alertError.name,
+          payload: ['Error during work items query', errorMessage],
+        });
+      }
 
       throw new Error(errorMessage);
     }

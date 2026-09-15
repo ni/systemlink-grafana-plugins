@@ -1,3 +1,21 @@
+## [5.9.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.9.0...v5.9.1) (2026-09-15)
+
+### Bug Fixes
+
+* **constants:** update COMBOBOX_WIDTH to improve layout ([#753](https://github.com/ni/systemlink-grafana-plugins/issues/753)) ([f182c6e](https://github.com/ni/systemlink-grafana-plugins/commit/f182c6efc8d1d84b95f5a2480821a9b4b57af3e1))
+
+## [5.9.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.8.0...v5.9.0) (2026-09-15)
+
+### Features
+
+* **work-items:** Support properties output with lookup-resolved fields  ([#743](https://github.com/ni/systemlink-grafana-plugins/issues/743)) ([265eb13](https://github.com/ni/systemlink-grafana-plugins/commit/265eb132b488d3ff4c05824b3e0f38b19eb1000d))
+
+## [5.8.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.7.0...v5.8.0) (2026-09-11)
+
+### Features
+
+* **core:** centralize query error handling and duration formatting ([#747](https://github.com/ni/systemlink-grafana-plugins/issues/747)) ([f1da583](https://github.com/ni/systemlink-grafana-plugins/commit/f1da583f45c536b48b6e00f5910eabdcaf1477e6))
+
 ## [5.7.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.6.1...v5.7.0) (2026-09-10)
 
 ### Features
