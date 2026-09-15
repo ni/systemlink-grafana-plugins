@@ -1,4 +1,4 @@
-import { WorkItem, WorkItemTypeOptions, WorkItemPropertiesOptions } from './types';
+import { WorkItem, WorkItemTypeOptions, WorkItemPropertiesOptions, WorkItemState } from './types';
 
 export const TAKE_LIMIT = 10000;
 export const DEFAULT_TAKE = 1000;
@@ -12,6 +12,18 @@ export const WORK_ITEM_TYPE_FILTER_VALUES: Record<WorkItemTypeOptions, string> =
   [WorkItemTypeOptions.Calibration]: 'calibration',
   [WorkItemTypeOptions.Reservation]: 'reservation',
   [WorkItemTypeOptions.TransportOrder]: 'transportorder',
+};
+
+// Maps each work item state option to the backend's `state` filter value.
+export const WORK_ITEM_STATE_FILTER_VALUES: Record<WorkItemState, string> = {
+  [WorkItemState.New]: 'New',
+  [WorkItemState.Defined]: 'Defined',
+  [WorkItemState.Reviewed]: 'Reviewed',
+  [WorkItemState.Scheduled]: 'Scheduled',
+  [WorkItemState.InProgress]: 'InProgress',
+  [WorkItemState.PendingApproval]: 'PendingApproval',
+  [WorkItemState.Closed]: 'Closed',
+  [WorkItemState.Canceled]: 'Canceled',
 };
 
 export const USER_PROPERTY_FIELDS: Partial<
