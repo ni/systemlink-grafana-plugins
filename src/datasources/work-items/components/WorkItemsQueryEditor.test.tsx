@@ -91,6 +91,20 @@ describe('WorkItemsQueryEditor', () => {
       expect(onChange).not.toHaveBeenCalled();
       expect(onRunQuery).not.toHaveBeenCalled();
     });
+
+    it('should call onChange and onRunQuery only once when the query builder fires duplicate change events for the same new value', () => {
+      const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+      const [onChange, onRunQuery] = render({});
+      onRunQuery.mockClear();
+      onChange.mockClear();
+
+      const dialog = page.queryBuilderDialog();
+      dialog.dispatchEvent(new CustomEvent('change', { detail: { linq: 'name = "test"' } }));
+      dialog.dispatchEvent(new CustomEvent('change', { detail: { linq: 'name = "test"' } }));
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onRunQuery).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('validation error', () => {
