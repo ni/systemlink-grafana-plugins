@@ -1,3 +1,9 @@
+## [5.8.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.7.0...v5.8.0) (2026-09-11)
+
+### Features
+
+* **core:** centralize query error handling and duration formatting ([#747](https://github.com/ni/systemlink-grafana-plugins/issues/747)) ([f1da583](https://github.com/ni/systemlink-grafana-plugins/commit/f1da583f45c536b48b6e00f5910eabdcaf1477e6))
+
 ## [5.7.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.6.1...v5.7.0) (2026-09-10)
 
 ### Features

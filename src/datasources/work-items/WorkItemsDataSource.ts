@@ -38,6 +38,7 @@ import {
   WORK_ITEM_TYPE_LABEL_MAP,
   WORK_ITEM_STATE_LABEL_MAP,
   USER_PROPERTY_FIELDS,
+  USER_PROPERTY_FIELDS,
 } from './constants';
 import {
   QUERY_WORK_ITEMS_MAX_TAKE,
@@ -531,6 +532,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     descending?: boolean,
     take?: number,
     suppressErrorAlert = false
+    take?: number,
+    suppressErrorAlert = false
   ): Promise<WorkItem[]> {
     const projection = this.buildProjection(properties);
 
@@ -543,6 +546,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         take: currentTake,
         continuationToken,
       };
+      const response = await this.queryWorkItems(body, suppressErrorAlert);
       const response = await this.queryWorkItems(body, suppressErrorAlert);
 
       return {
@@ -584,6 +588,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     body: QueryWorkItemsRequestBody,
     suppressErrorAlert = false
   ): Promise<WorkItemsResponse> {
+  async queryWorkItems(
+    body: QueryWorkItemsRequestBody,
+    suppressErrorAlert = false
+  ): Promise<WorkItemsResponse> {
     try {
       return await this.post<WorkItemsResponse>(
         this.queryWorkItemsUrl,
@@ -611,6 +619,12 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
           break;
       }
 
+      if (!suppressErrorAlert) {
+        this.appEvents?.publish?.({
+          type: AppEvents.alertError.name,
+          payload: ['Error during work items query', errorMessage],
+        });
+      }
       if (!suppressErrorAlert) {
         this.appEvents?.publish?.({
           type: AppEvents.alertError.name,
