@@ -5,7 +5,7 @@ import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { TIME_OPTIONS } from 'datasources/work-items/constants/WorkItemsQueryBuilder.constants';
 import { WorkItemState, WorkItemTypeOptions } from 'datasources/work-items/types';
-import { WORK_ITEM_STATE_FILTER_VALUES, WORK_ITEM_TYPE_FILTER_VALUES } from 'datasources/work-items/constants';
+import { WORK_ITEM_STATE_OPTIONS, WORK_ITEM_TYPE_FILTER_VALUES } from 'datasources/work-items/constants';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { User } from 'shared/types/QueryUsers.types';
@@ -138,6 +138,7 @@ describe('WorkItemsQueryBuilder', () => {
         'Updated',
         'Updated by',
         'Work order ID',
+        'Workflow ID',
         'Workspace',
       ]);
     });
@@ -202,6 +203,7 @@ describe('WorkItemsQueryBuilder', () => {
       { dataField: 'updatedBy', operations: equalityOperations },
       { dataField: 'parentId', operations: equalityWithBlankOperations },
       { dataField: 'templateId', operations: equalityWithBlankOperations },
+      { dataField: 'workflowId', operations: equalityWithBlankOperations },
       { dataField: 'createdAt', operations: dateOperations },
       { dataField: 'updatedAt', operations: dateOperations },
       { dataField: 'timeline.earliestStartDateTime', operations: dateWithBlankOperations },
@@ -240,7 +242,7 @@ describe('WorkItemsQueryBuilder', () => {
       const stateValues = optionsFor(fields, 'state').map(option => option.value);
 
       expect(stateValues).toEqual(
-        Object.values(WorkItemState).map(state => WORK_ITEM_STATE_FILTER_VALUES[state])
+        Object.values(WorkItemState).map(state => WORK_ITEM_STATE_OPTIONS[state].value)
       );
     });
 

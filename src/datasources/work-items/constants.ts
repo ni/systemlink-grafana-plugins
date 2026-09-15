@@ -14,16 +14,16 @@ export const WORK_ITEM_TYPE_FILTER_VALUES: Record<WorkItemTypeOptions, string> =
   [WorkItemTypeOptions.TransportOrder]: 'transportorder',
 };
 
-// Maps each work item state option to the backend's `state` filter value.
-export const WORK_ITEM_STATE_FILTER_VALUES: Record<WorkItemState, string> = {
-  [WorkItemState.New]: 'New',
-  [WorkItemState.Defined]: 'Defined',
-  [WorkItemState.Reviewed]: 'Reviewed',
-  [WorkItemState.Scheduled]: 'Scheduled',
-  [WorkItemState.InProgress]: 'InProgress',
-  [WorkItemState.PendingApproval]: 'PendingApproval',
-  [WorkItemState.Closed]: 'Closed',
-  [WorkItemState.Canceled]: 'Canceled',
+// Maps each work item state to its human-readable label and the backend's `state` filter value.
+export const WORK_ITEM_STATE_OPTIONS: Record<WorkItemState, { label: string; value: string }> = {
+  [WorkItemState.New]: { label: 'New', value: 'New' },
+  [WorkItemState.Defined]: { label: 'Defined', value: 'Defined' },
+  [WorkItemState.Reviewed]: { label: 'Reviewed', value: 'Reviewed' },
+  [WorkItemState.Scheduled]: { label: 'Scheduled', value: 'Scheduled' },
+  [WorkItemState.InProgress]: { label: 'In progress', value: 'InProgress' },
+  [WorkItemState.PendingApproval]: { label: 'Pending approval', value: 'PendingApproval' },
+  [WorkItemState.Closed]: { label: 'Closed', value: 'Closed' },
+  [WorkItemState.Canceled]: { label: 'Canceled', value: 'Canceled' },
 };
 
 export const USER_PROPERTY_FIELDS: Partial<
@@ -91,16 +91,4 @@ export const WORK_ITEM_TYPE_LABEL_MAP: Record<string, string> = {
   calibration: 'Calibration',
   reservation: 'Reservation',
   transportorder: 'Transport order',
-};
-
-// Maps work item state values to human-readable labels.
-export const WORK_ITEM_STATE_LABEL_MAP: Record<string, string> = {
-  NEW: 'New',
-  DEFINED: 'Defined',
-  REVIEWED: 'Reviewed',
-  SCHEDULED: 'Scheduled',
-  IN_PROGRESS: 'In progress',
-  PENDING_APPROVAL: 'Pending approval',
-  CLOSED: 'Closed',
-  CANCELED: 'Canceled',
 };

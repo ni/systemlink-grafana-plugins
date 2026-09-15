@@ -26,6 +26,7 @@ import {
   WorkItemPropertiesOptions,
   WorkItemsQuery,
   WorkItemsResponse,
+  WorkItemState,
   WorkItemTypeOptions,
 } from './types';
 import {
@@ -33,7 +34,7 @@ import {
   WORK_ITEM_PROPERTIES_PROJECTIONS,
   WORK_ITEM_TYPE_FILTER_VALUES,
   WORK_ITEM_TYPE_LABEL_MAP,
-  WORK_ITEM_STATE_LABEL_MAP,
+  WORK_ITEM_STATE_OPTIONS,
   USER_PROPERTY_FIELDS,
 } from './constants';
 import {
@@ -317,7 +318,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return '';
     }
 
-    return WORK_ITEM_STATE_LABEL_MAP[state] ?? state;
+    return WORK_ITEM_STATE_OPTIONS[state as WorkItemState]?.label ?? state;
   }
 
   async queryWorkItemsData(

@@ -1,7 +1,7 @@
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { QBField } from 'core/types';
 import { WorkItemTypes } from '../constants/QueryEditor.constants';
-import { WORK_ITEM_STATE_FILTER_VALUES, WORK_ITEM_STATE_LABEL_MAP, WORK_ITEM_TYPE_FILTER_VALUES } from '../constants';
+import { WORK_ITEM_STATE_OPTIONS, WORK_ITEM_TYPE_FILTER_VALUES } from '../constants';
 
 export enum WorkItemsQueryBuilderFieldNames {
   Id = 'id',
@@ -20,6 +20,7 @@ export enum WorkItemsQueryBuilderFieldNames {
   UpdatedAt = 'updatedAt',
   ParentWorkItemId = 'parentId',
   TemplateId = 'templateId',
+  WorkflowId = 'workflowId',
   EarliestStartDate = 'timeline.earliestStartDateTime',
   DueDate = 'timeline.dueDateTime',
   EstimatedDurationInDays = 'estimatedDurationInDays',
@@ -73,10 +74,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     dataField: WorkItemsQueryBuilderFieldNames.State,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
     lookup: {
-      dataSource: Object.entries(WORK_ITEM_STATE_LABEL_MAP).map(([state, label]) => ({
-        label,
-        value: WORK_ITEM_STATE_FILTER_VALUES[state as keyof typeof WORK_ITEM_STATE_FILTER_VALUES],
-      })),
+      dataSource: Object.values(WORK_ITEM_STATE_OPTIONS),
     },
   },
   DESCRIPTION: {
@@ -174,6 +172,16 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
   TEMPLATE_ID: {
     label: 'Template ID',
     dataField: WorkItemsQueryBuilderFieldNames.TemplateId,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.IS_BLANK.name,
+      QueryBuilderOperations.IS_NOT_BLANK.name,
+    ],
+  },
+  WORKFLOW_ID: {
+    label: 'Workflow ID',
+    dataField: WorkItemsQueryBuilderFieldNames.WorkflowId,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -360,6 +368,7 @@ export const WorkItemsQueryBuilderStaticFields = [
   WorkItemsQueryBuilderFields.UPDATED_BY,
   WorkItemsQueryBuilderFields.PROPERTIES,
   WorkItemsQueryBuilderFields.TEMPLATE_ID,
+  WorkItemsQueryBuilderFields.WORKFLOW_ID,
   WorkItemsQueryBuilderFields.PARENT_WORK_ITEM_ID,
   WorkItemsQueryBuilderFields.WORKSPACE,
 ];
