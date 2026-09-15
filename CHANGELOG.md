@@ -1,3 +1,9 @@
+## [5.9.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.8.0...v5.9.0) (2026-09-15)
+
+### Features
+
+* **work-items:** Support properties output with lookup-resolved fields  ([#743](https://github.com/ni/systemlink-grafana-plugins/issues/743)) ([265eb13](https://github.com/ni/systemlink-grafana-plugins/commit/265eb132b488d3ff4c05824b3e0f38b19eb1000d))
+
 ## [5.8.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.7.0...v5.8.0) (2026-09-11)
 
 ### Features
