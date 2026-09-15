@@ -287,6 +287,50 @@ describe('WorkItemsDataSource', () => {
           { showErrorAlert: false }
         );
       });
+
+      it('should convert decimal estimatedDurationInDays to rounded whole seconds', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'estimatedDurationInDays > "1.5"',
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          {
+            filter: '(timeline.estimatedDurationInSeconds > "129600")',
+            take: 0,
+            returnCount: true,
+          },
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should convert decimal plannedDurationInHours to rounded whole seconds', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'plannedDurationInHours <= "-2.25"',
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          {
+            filter: '(schedule.plannedDurationInSeconds <= "-8100")',
+            take: 0,
+            returnCount: true,
+          },
+          { showErrorAlert: false }
+        );
+      });
     });
 
     describe('properties output type', () => {

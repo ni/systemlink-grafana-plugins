@@ -432,20 +432,22 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   // query builder are converted to their seconds-based equivalents before the filter is sent.
   private transformDurationFilters(filter: string): string {
     const operations = computedFieldsupportedOperations.join('|');
+    // Duration fields allow decimal input (e.g. "1.5"); the API only accepts integer seconds.
+    const numberPattern = '-?\\d+(?:\\.\\d+)?';
     const estimatedDaysRegex = new RegExp(
-      `${WorkItemsQueryBuilderFieldNames.EstimatedDurationInDays}\\s*(${operations})\\s*"(-?\\d+)"`,
+      `${WorkItemsQueryBuilderFieldNames.EstimatedDurationInDays}\\s*(${operations})\\s*"(${numberPattern})"`,
       'g'
     );
     const estimatedHoursRegex = new RegExp(
-      `${WorkItemsQueryBuilderFieldNames.EstimatedDurationInHours}\\s*(${operations})\\s*"(-?\\d+)"`,
+      `${WorkItemsQueryBuilderFieldNames.EstimatedDurationInHours}\\s*(${operations})\\s*"(${numberPattern})"`,
       'g'
     );
     const plannedDaysRegex = new RegExp(
-      `${WorkItemsQueryBuilderFieldNames.PlannedDurationInDays}\\s*(${operations})\\s*"(-?\\d+)"`,
+      `${WorkItemsQueryBuilderFieldNames.PlannedDurationInDays}\\s*(${operations})\\s*"(${numberPattern})"`,
       'g'
     );
     const plannedHoursRegex = new RegExp(
-      `${WorkItemsQueryBuilderFieldNames.PlannedDurationInHours}\\s*(${operations})\\s*"(-?\\d+)"`,
+      `${WorkItemsQueryBuilderFieldNames.PlannedDurationInHours}\\s*(${operations})\\s*"(${numberPattern})"`,
       'g'
     );
 
@@ -453,22 +455,22 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       .replace(
         estimatedDaysRegex,
         (_, operator, value) =>
-          `timeline.estimatedDurationInSeconds ${operator} "${parseInt(value, 10) * SECONDS_IN_DAY}"`
+          `timeline.estimatedDurationInSeconds ${operator} "${Math.round(parseFloat(value) * SECONDS_IN_DAY)}"`
       )
       .replace(
         estimatedHoursRegex,
         (_, operator, value) =>
-          `timeline.estimatedDurationInSeconds ${operator} "${parseInt(value, 10) * SECONDS_IN_HOUR}"`
+          `timeline.estimatedDurationInSeconds ${operator} "${Math.round(parseFloat(value) * SECONDS_IN_HOUR)}"`
       )
       .replace(
         plannedDaysRegex,
         (_, operator, value) =>
-          `schedule.plannedDurationInSeconds ${operator} "${parseInt(value, 10) * SECONDS_IN_DAY}"`
+          `schedule.plannedDurationInSeconds ${operator} "${Math.round(parseFloat(value) * SECONDS_IN_DAY)}"`
       )
       .replace(
         plannedHoursRegex,
         (_, operator, value) =>
-          `schedule.plannedDurationInSeconds ${operator} "${parseInt(value, 10) * SECONDS_IN_HOUR}"`
+          `schedule.plannedDurationInSeconds ${operator} "${Math.round(parseFloat(value) * SECONDS_IN_HOUR)}"`
       );
   }
 
