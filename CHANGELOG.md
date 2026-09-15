@@ -1,3 +1,9 @@
+## [5.9.2](https://github.com/ni/systemlink-grafana-plugins/compare/v5.9.1...v5.9.2) (2026-09-15)
+
+### Bug Fixes
+
+* **work-items:** align query builder fields with API structure ([#750](https://github.com/ni/systemlink-grafana-plugins/issues/750)) ([3e42154](https://github.com/ni/systemlink-grafana-plugins/commit/3e42154212d167ebbfaf36fd86095113bddd3721))
+
 ## [5.9.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.9.0...v5.9.1) (2026-09-15)
 
 ### Bug Fixes
