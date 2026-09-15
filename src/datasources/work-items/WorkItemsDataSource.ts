@@ -148,7 +148,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const parentWorkItemNamesLookup = isParentWorkItemNameSelected
       ? await this.loadParentWorkItemNames(workItemsResponse)
       : new Map<string, string>();
-    const assetNamesLookup = this.isResourceNameLookupRequired(query.properties)
+    const assetNamesLookup = this.isAssetNameLookupRequired(query.properties)
       ? await this.loadAssetNames(workItemsResponse, query.properties)
       : new Map<string, string>();
 
@@ -188,7 +188,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     );
   }
 
-  private isResourceNameLookupRequired(properties?: WorkItemPropertiesOptions[]): boolean {
+  private isAssetNameLookupRequired(properties?: WorkItemPropertiesOptions[]): boolean {
     return this.isAnyPropertySelected(
       [
         WorkItemPropertiesOptions.ASSET_NAME,
@@ -204,7 +204,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return this.isAnyPropertySelected(
       [
         WorkItemPropertiesOptions.SYSTEM_NAME,
-        WorkItemPropertiesOptions.TARGET_LOCATION
+        WorkItemPropertiesOptions.TARGET_LOCATION,
       ],
       properties
     );
@@ -408,8 +408,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     workspacesLookup: Map<string, Workspace>,
     usersLookup: Map<string, User>,
     parentWorkItemNamesLookup: Map<string, string>,
-    assetNames: Map<string, string>,
-    systemAliases: Map<string, SystemAlias>
+    assetNamesLookup: Map<string, string>,
+    systemAliasesLookup: Map<string, SystemAlias>
   ): string | null {
     const workItem = row.workItem;
     switch (property) {
@@ -475,19 +475,19 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       case WorkItemPropertiesOptions.ASSET_ID:
         return row.assetSelection?.id ?? '';
       case WorkItemPropertiesOptions.ASSET_NAME:
-        return this.resolveAssetName(row.assetSelection?.id, assetNames);
+        return this.resolveAssetName(row.assetSelection?.id, assetNamesLookup);
       case WorkItemPropertiesOptions.DUT_ID:
         return row.dutSelection?.id ?? '';
       case WorkItemPropertiesOptions.DUT_NAME:
-        return this.resolveAssetName(row.dutSelection?.id, assetNames);
+        return this.resolveAssetName(row.dutSelection?.id, assetNamesLookup);
       case WorkItemPropertiesOptions.FIXTURE_ID:
         return row.fixtureSelection?.id ?? '';
       case WorkItemPropertiesOptions.FIXTURE_NAME:
-        return this.resolveAssetName(row.fixtureSelection?.id, assetNames);
+        return this.resolveAssetName(row.fixtureSelection?.id, assetNamesLookup);
       case WorkItemPropertiesOptions.SYSTEM_ID:
         return row.systemSelection?.id ?? '';
       case WorkItemPropertiesOptions.SYSTEM_NAME:
-        return this.resolveSystemAlias(row.systemSelection?.id, systemAliases);
+        return this.resolveSystemAlias(row.systemSelection?.id, systemAliasesLookup);
       default:
         return '';
     }
