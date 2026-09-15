@@ -3,6 +3,9 @@ import { WorkItemTypeOptions, WorkItemPropertiesOptions } from './types';
 export const TAKE_LIMIT = 10000;
 export const DEFAULT_TAKE = 1000;
 
+export const SECONDS_IN_DAY = 86400;
+export const SECONDS_IN_HOUR = 3600;
+
 // Maps each work item type option to the backend's `type` filter value.
 export const WORK_ITEM_TYPE_FILTER_VALUES: Record<WorkItemTypeOptions, string> = {
   [WorkItemTypeOptions.WorkOrders]: 'workorder',

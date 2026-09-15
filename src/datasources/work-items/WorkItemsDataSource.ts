@@ -18,6 +18,7 @@ import { UsersUtils } from 'shared/users.utils';
 import { User } from 'shared/types/QueryUsers.types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { queryInBatches } from 'core/utils';
+import { computedFieldsupportedOperations } from 'core/query-builder.utils';
 import {
   OrderByOptions,
   OutputType,
@@ -30,11 +31,14 @@ import {
 } from './types';
 import {
   DEFAULT_TAKE,
+  SECONDS_IN_DAY,
+  SECONDS_IN_HOUR,
   WORK_ITEM_PROPERTIES_PROJECTIONS,
   WORK_ITEM_TYPE_FILTER_VALUES,
   WORK_ITEM_TYPE_LABEL_MAP,
   WORK_ITEM_STATE_LABEL_MAP,
 } from './constants';
+import { WorkItemsQueryBuilderFieldNames } from './constants/WorkItemsQueryBuilder.constants';
 import {
   QUERY_WORK_ITEMS_MAX_TAKE,
   QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
@@ -89,9 +93,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
     const typeFilter = this.buildTypeFilter(query.types!);
     const queryFilter = query.filter?.trim();
+    const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
     const filter = this.buildQueryFilter(
       typeFilter ? `(${typeFilter})` : undefined,
-      queryFilter ? `(${queryFilter})` : undefined
+      transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
     );
 
     if (
@@ -321,6 +326,50 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   protected buildQueryFilter(typeFilter?: string, queryFilter?: string): string | undefined {
     const filters = [typeFilter, queryFilter].filter(Boolean);
     return filters.length > 0 ? filters.join(' && ') : undefined;
+  }
+
+  // The backend API only supports duration in seconds, so the days/hours fields exposed by the
+  // query builder are converted to their seconds-based equivalents before the filter is sent.
+  private transformDurationFilters(filter: string): string {
+    const operations = computedFieldsupportedOperations.join('|');
+    const estimatedDaysRegex = new RegExp(
+      `${WorkItemsQueryBuilderFieldNames.EstimatedDurationInDays}\\s*(${operations})\\s*"(-?\\d+)"`,
+      'g'
+    );
+    const estimatedHoursRegex = new RegExp(
+      `${WorkItemsQueryBuilderFieldNames.EstimatedDurationInHours}\\s*(${operations})\\s*"(-?\\d+)"`,
+      'g'
+    );
+    const plannedDaysRegex = new RegExp(
+      `${WorkItemsQueryBuilderFieldNames.PlannedDurationInDays}\\s*(${operations})\\s*"(-?\\d+)"`,
+      'g'
+    );
+    const plannedHoursRegex = new RegExp(
+      `${WorkItemsQueryBuilderFieldNames.PlannedDurationInHours}\\s*(${operations})\\s*"(-?\\d+)"`,
+      'g'
+    );
+
+    return filter
+      .replace(
+        estimatedDaysRegex,
+        (_, operator, value) =>
+          `timeline.estimatedDurationInSeconds ${operator} "${parseInt(value, 10) * SECONDS_IN_DAY}"`
+      )
+      .replace(
+        estimatedHoursRegex,
+        (_, operator, value) =>
+          `timeline.estimatedDurationInSeconds ${operator} "${parseInt(value, 10) * SECONDS_IN_HOUR}"`
+      )
+      .replace(
+        plannedDaysRegex,
+        (_, operator, value) =>
+          `schedule.plannedDurationInSeconds ${operator} "${parseInt(value, 10) * SECONDS_IN_DAY}"`
+      )
+      .replace(
+        plannedHoursRegex,
+        (_, operator, value) =>
+          `schedule.plannedDurationInSeconds ${operator} "${parseInt(value, 10) * SECONDS_IN_HOUR}"`
+      );
   }
 
   private getEmptyDataFrameDTO(refId: string): DataFrameDTO {
