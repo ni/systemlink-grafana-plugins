@@ -18,6 +18,7 @@ import { UsersUtils } from 'shared/users.utils';
 import { User } from 'shared/types/QueryUsers.types';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { queryInBatches } from 'core/utils';
+import { computedFieldsupportedOperations } from 'core/query-builder.utils';
 import {
   OrderByOptions,
   OutputType,
@@ -30,12 +31,15 @@ import {
 } from './types';
 import {
   DEFAULT_TAKE,
+  SECONDS_IN_DAY,
+  SECONDS_IN_HOUR,
   WORK_ITEM_PROPERTIES_PROJECTIONS,
   WORK_ITEM_TYPE_FILTER_VALUES,
   WORK_ITEM_TYPE_LABEL_MAP,
   WORK_ITEM_STATE_LABEL_MAP,
   USER_PROPERTY_FIELDS,
 } from './constants';
+import { WorkItemsQueryBuilderFieldNames } from './constants/WorkItemsQueryBuilder.constants';
 import {
   QUERY_WORK_ITEMS_MAX_TAKE,
   QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
@@ -61,6 +65,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   errorTitle = '';
   errorDescription = '';
+
+  durationNumberPattern = '-?\\d+(?:\\.\\d+)?';
+  durationOperationsPattern = computedFieldsupportedOperations.join('|');
   
   productUtils: ProductUtils;
   usersUtils: UsersUtils;
@@ -81,6 +88,32 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     take: DEFAULT_TAKE,
   };
 
+  durationFilterConversions = [
+    {
+      fieldName: WorkItemsQueryBuilderFieldNames.EstimatedDurationInDays,
+      target: 'timeline.estimatedDurationInSeconds',
+      factor: SECONDS_IN_DAY,
+    },
+    {
+      fieldName: WorkItemsQueryBuilderFieldNames.EstimatedDurationInHours,
+      target: 'timeline.estimatedDurationInSeconds',
+      factor: SECONDS_IN_HOUR,
+    },
+    {
+      fieldName: WorkItemsQueryBuilderFieldNames.PlannedDurationInDays,
+      target: 'schedule.plannedDurationInSeconds',
+      factor: SECONDS_IN_DAY,
+    },
+    {
+      fieldName: WorkItemsQueryBuilderFieldNames.PlannedDurationInHours,
+      target: 'schedule.plannedDurationInSeconds',
+      factor: SECONDS_IN_HOUR,
+    },
+  ].map(({ fieldName, target, factor }) => {
+    const pattern = `${fieldName}\\s*(${this.durationOperationsPattern})\\s*"(${this.durationNumberPattern})"`;
+    return { target, factor, regex: new RegExp(pattern, 'g') };
+  });
+
   readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
   async runQuery(query: WorkItemsQuery, options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {
@@ -90,9 +123,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
     const typeFilter = this.buildTypeFilter(query.types!);
     const queryFilter = query.filter?.trim();
+    const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
     const filter = this.buildQueryFilter(
       typeFilter ? `(${typeFilter})` : undefined,
-      queryFilter ? `(${queryFilter})` : undefined
+      transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
     );
 
     if (
@@ -421,6 +455,19 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   protected buildQueryFilter(typeFilter?: string, queryFilter?: string): string | undefined {
     const filters = [typeFilter, queryFilter].filter(Boolean);
     return filters.length > 0 ? filters.join(' && ') : undefined;
+  }
+
+  // The backend API only supports duration in seconds, so the days/hours fields exposed by the
+  // query builder are converted to their seconds-based equivalents before the filter is sent.
+  private transformDurationFilters(filter: string): string {
+    return this.durationFilterConversions.reduce(
+      (transformedFilter, { regex, target, factor }) =>
+        transformedFilter.replace(
+          regex,
+          (_, operator, value) => `${target} ${operator} "${Math.round(parseFloat(value) * factor)}"`
+        ),
+      filter
+    );
   }
 
   private getEmptyDataFrameDTO(refId: string): DataFrameDTO {

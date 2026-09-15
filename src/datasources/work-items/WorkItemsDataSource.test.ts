@@ -175,6 +175,164 @@ describe('WorkItemsDataSource', () => {
       );
     });
 
+    describe('duration filter transformation', () => {
+      it('should convert estimatedDurationInDays to timeline.estimatedDurationInSeconds', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'estimatedDurationInDays > "2"',
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          {
+            filter: '(timeline.estimatedDurationInSeconds > "172800")',
+            take: 0,
+            returnCount: true,
+          },
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should convert estimatedDurationInHours to timeline.estimatedDurationInSeconds', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'estimatedDurationInHours <= "3"',
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          {
+            filter: '(timeline.estimatedDurationInSeconds <= "10800")',
+            take: 0,
+            returnCount: true,
+          },
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should convert plannedDurationInDays to schedule.plannedDurationInSeconds', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'plannedDurationInDays != "-1"',
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          {
+            filter: '(schedule.plannedDurationInSeconds != "-86400")',
+            take: 0,
+            returnCount: true,
+          },
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should convert plannedDurationInHours to schedule.plannedDurationInSeconds', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'plannedDurationInHours >= "5"',
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          {
+            filter: '(schedule.plannedDurationInSeconds >= "18000")',
+            take: 0,
+            returnCount: true,
+          },
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should convert multiple duration filters combined with the type filter', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: [WorkItemTypeOptions.WorkOrders],
+          filter: 'estimatedDurationInDays > "1" && plannedDurationInHours < "4"',
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          {
+            filter:
+              '(type = "workorder") && (timeline.estimatedDurationInSeconds > "86400" && ' +
+              'schedule.plannedDurationInSeconds < "14400")',
+            take: 0,
+            returnCount: true,
+          },
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should convert decimal estimatedDurationInDays to rounded whole seconds', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'estimatedDurationInDays > "1.5"',
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          {
+            filter: '(timeline.estimatedDurationInSeconds > "129600")',
+            take: 0,
+            returnCount: true,
+          },
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should convert decimal plannedDurationInHours to rounded whole seconds', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'plannedDurationInHours <= "-2.25"',
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          {
+            filter: '(schedule.plannedDurationInSeconds <= "-8100")',
+            take: 0,
+            returnCount: true,
+          },
+          { showErrorAlert: false }
+        );
+      });
+    });
+
     describe('properties output type', () => {
       it('should return basic properties mapped directly from the response', async () => {
         jest.spyOn(datasource, 'post').mockResolvedValue({
