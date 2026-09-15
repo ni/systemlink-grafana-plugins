@@ -1,3 +1,9 @@
+## [5.9.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.9.0...v5.9.1) (2026-09-15)
+
+### Bug Fixes
+
+* **constants:** update COMBOBOX_WIDTH to improve layout ([#753](https://github.com/ni/systemlink-grafana-plugins/issues/753)) ([f182c6e](https://github.com/ni/systemlink-grafana-plugins/commit/f182c6efc8d1d84b95f5a2480821a9b4b57af3e1))
+
 ## [5.9.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.8.0...v5.9.0) (2026-09-15)
 
 ### Features
