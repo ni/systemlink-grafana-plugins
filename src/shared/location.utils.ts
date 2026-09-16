@@ -34,7 +34,7 @@ export class LocationUtils {
             const response = await get<GetLocationsResponse>(
                 this.backendSrv,
                 this.queryLocationsUrl,
-                { showErrorAlert: false } // suppress default error alert since we handle errors manually
+                { showErrorAlert: false }
             );
             return response.locations;
         } catch (error) {

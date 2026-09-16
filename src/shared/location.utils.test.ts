@@ -53,6 +53,15 @@ describe('LocationUtils', () => {
         expect(result.get('2')).toEqual(mockLocations[1]);
     });
 
+    it('should return an empty map when no locations are returned', async () => {
+        (LocationUtils as any)._locationsCache = undefined;
+        (get as jest.Mock).mockResolvedValueOnce({ locations: undefined });
+
+        const result = await locationUtils.getLocations();
+
+        expect(result.size).toBe(0);
+    });
+
     it('should propagate error when loading locations fails', async () => {
         (LocationUtils as any)._locationsCache = undefined;
         const error = new Error('Failed to fetch locations');
