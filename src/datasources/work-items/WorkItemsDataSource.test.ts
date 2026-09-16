@@ -1414,14 +1414,111 @@ describe('WorkItemsDataSource', () => {
   });
 
   describe('metricFindQuery', () => {
-    // TODO: AB#3923375 - Update once work items querying is implemented.
-    it('should return an empty list for the list work items query type', async () => {
+    it('should return work items formatted as "name <id>" for the list work items query type', async () => {
+      jest.spyOn(datasource, 'post').mockResolvedValue({
+        workItems: [
+          { id: '1', name: 'Battery Cycle Test' },
+          { id: '2', name: 'Thermal Test' },
+        ],
+        continuationToken: '',
+        totalCount: 2,
+      });
+
       const result = await datasource.metricFindQuery(
         { refId: 'A', queryType: WorkItemsVariableQueryType.ListWorkItems },
         {} as any
       );
 
+      expect(result).toEqual([
+        { text: 'Battery Cycle Test <1>', value: '1' },
+        { text: 'Thermal Test <2>', value: '2' },
+      ]);
+    });
+
+    it('should request only the id and name properties with the configured ordering and take', async () => {
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({
+        workItems: [],
+        continuationToken: '',
+        totalCount: 0,
+      });
+
+      await datasource.metricFindQuery(
+        {
+          refId: 'A',
+          queryType: WorkItemsVariableQueryType.ListWorkItems,
+          types: [WorkItemTypeOptions.WorkOrders],
+          filter: 'state = "NEW"',
+          orderBy: OrderByOptions.ID,
+          descending: false,
+          take: 50,
+        },
+        { scopedVars: {} } as any
+      );
+
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        {
+          filter: '(type = "workorder") && (state = "NEW")',
+          projection: ['ID', 'NAME'],
+          orderBy: OrderByOptions.ID,
+          descending: false,
+          take: 50,
+          continuationToken: undefined,
+        },
+        { showErrorAlert: false }
+      );
+    });
+
+    it('should apply template variable replacement to the filter', async () => {
+      const replaceSpy = jest
+        .spyOn(datasource.templateSrv, 'replace')
+        .mockReturnValue('state = "NEW"');
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({
+        workItems: [],
+        continuationToken: '',
+        totalCount: 0,
+      });
+
+      await datasource.metricFindQuery(
+        {
+          refId: 'A',
+          queryType: WorkItemsVariableQueryType.ListWorkItems,
+          types: [WorkItemTypeOptions.WorkOrders],
+          filter: 'state = "$state"',
+        },
+        { scopedVars: {} } as any
+      );
+
+      expect(replaceSpy).toHaveBeenCalledWith('state = "$state"', {});
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        expect.objectContaining({ filter: '(type = "workorder") && (state = "NEW")' }),
+        { showErrorAlert: false }
+      );
+    });
+
+    it('should return an empty list when no types are selected', async () => {
+      const postSpy = jest.spyOn(datasource, 'post');
+
+      const result = await datasource.metricFindQuery(
+        { refId: 'A', queryType: WorkItemsVariableQueryType.ListWorkItems, types: [] },
+        {} as any
+      );
+
       expect(result).toEqual([]);
+      expect(postSpy).not.toHaveBeenCalled();
+    });
+
+    it('should return an empty list when the take is invalid', async () => {
+      const postSpy = jest.spyOn(datasource, 'post');
+
+      const result = await datasource.metricFindQuery(
+        { refId: 'A', queryType: WorkItemsVariableQueryType.ListWorkItems, take: 0 },
+        {} as any
+      );
+
+      expect(result).toEqual([]);
+      expect(postSpy).not.toHaveBeenCalled();
     });
 
     it('should return the list of work item types when the query type is list work item types', async () => {
