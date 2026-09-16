@@ -346,12 +346,12 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
     if (targetSystemId) {
       const system = systems.get(targetSystemId);
-      return system ? system.alias ?? '' : targetSystemId;
+      return system?.alias || targetSystemId;
     }
 
     if (targetLocationId) {
       const location = locations.get(targetLocationId);
-      return location ? `${location.name}: ${location.pathWithNames}` : targetLocationId;
+      return location?.name ? `${location.name}: ${location.pathWithNames}` : targetLocationId;
     }
 
     return '';

@@ -1253,6 +1253,27 @@ describe('WorkItemsDataSource', () => {
         expect(getSystemAliasesSpy).not.toHaveBeenCalled();
       });
 
+      it('should not call LocationUtils when the target location property is not selected', async () => {
+        const getLocationsSpy = jest.spyOn(datasource.locationUtils, 'getLocations');
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', resources: { assets: { selections: [{ id: 'a1', targetLocationId: 'loc1' }] } } }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.ASSET_ID],
+          take: 1000,
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(getLocationsSpy).not.toHaveBeenCalled();
+      });
+
       it('should split TARGET_LOCATION into asset, DUT and fixture columns resolved via system aliases', async () => {
         jest
           .spyOn(datasource.systemUtils, 'getSystemAliases')
@@ -1389,10 +1410,14 @@ describe('WorkItemsDataSource', () => {
         });
       });
 
-      it('should not call LocationUtils when the target location property is not selected', async () => {
-        const getLocationsSpy = jest.spyOn(datasource.locationUtils, 'getLocations');
+      it('should fall back to the system ID when the target system has no alias', async () => {
+        jest
+          .spyOn(datasource.systemUtils, 'getSystemAliases')
+          .mockResolvedValue(new Map([['sys1', { id: 'sys1' }]]));
         jest.spyOn(datasource, 'post').mockResolvedValue({
-          workItems: [{ id: '1', resources: { assets: { selections: [{ id: 'a1', targetLocationId: 'loc1' }] } } }],
+          workItems: [
+            { id: '1', resources: { assets: { selections: [{ id: 'a1', targetSystemId: 'sys1' }] } } },
+          ],
           continuationToken: '',
           totalCount: 1,
         });
@@ -1401,13 +1426,46 @@ describe('WorkItemsDataSource', () => {
           refId: 'A',
           outputType: OutputType.Properties,
           types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.ASSET_ID],
+          properties: [WorkItemPropertiesOptions.TARGET_LOCATION],
           take: 1000,
         };
 
-        await datasource.runQuery(query, {} as DataQueryRequest);
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(getLocationsSpy).not.toHaveBeenCalled();
+        expect(result.fields[0]).toEqual({
+          name: 'Target Location (Asset)',
+          values: ['sys1'],
+          type: 'string',
+        });
+      });
+
+      it('should fall back to the location ID when the target location has no name', async () => {
+        jest
+          .spyOn(datasource.locationUtils, 'getLocations')
+          .mockResolvedValue(new Map([['loc1', { id: 'loc1', name: '', pathWithNames: 'Site > Building 1' }]]));
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [
+            { id: '1', resources: { assets: { selections: [{ id: 'a1', targetLocationId: 'loc1' }] } } },
+          ],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.TARGET_LOCATION],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields[0]).toEqual({
+          name: 'Target Location (Asset)',
+          values: ['loc1'],
+          type: 'string',
+        });
       });
 
       it('should split TARGET_PARENT into asset, DUT and fixture columns resolved via asset names', async () => {
