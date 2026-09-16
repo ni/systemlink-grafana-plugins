@@ -1,3 +1,9 @@
+## [5.10.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.10.0...v5.10.1) (2026-09-16)
+
+### Bug Fixes
+
+* **Work-Item:** Resolve WorkItemsQueryBuilder filter persistence issue and standardize filter value mappings ([#754](https://github.com/ni/systemlink-grafana-plugins/issues/754)) ([a876d5e](https://github.com/ni/systemlink-grafana-plugins/commit/a876d5efd4ce00abb6a0ed41635fb885f6586acc))
+
 ## [5.10.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.9.3...v5.10.0) (2026-09-16)
 
 ### Features
