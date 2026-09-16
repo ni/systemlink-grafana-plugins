@@ -1413,7 +1413,7 @@ describe('WorkItemsDataSource', () => {
       it('should fall back to the system ID when the target system has no alias', async () => {
         jest
           .spyOn(datasource.systemUtils, 'getSystemAliases')
-          .mockResolvedValue(new Map([['sys1', { id: 'sys1' }]]));
+          .mockResolvedValue(new Map([['sys1', { id: 'sys1', alias: '' }]]));
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [
             { id: '1', resources: { assets: { selections: [{ id: 'a1', targetSystemId: 'sys1' }] } } },
