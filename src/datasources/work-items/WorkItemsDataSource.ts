@@ -411,13 +411,22 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   ): FieldDTO[] {
     return [
       this.buildResourceField('Target Location (Asset)', flattenedRows, row =>
-        this.resolveSystemAliasForTargetLocation(row.assetSelection?.targetSystemId, systemAliasesLookup)
+        this.resolveSystemAliasForTargetLocation(
+          row.assetSelection?.targetSystemId,
+          systemAliasesLookup
+        )
       ),
       this.buildResourceField('Target Location (DUT)', flattenedRows, row =>
-        this.resolveSystemAliasForTargetLocation(row.dutSelection?.targetSystemId, systemAliasesLookup)
+        this.resolveSystemAliasForTargetLocation(
+          row.dutSelection?.targetSystemId,
+          systemAliasesLookup
+        )
       ),
       this.buildResourceField('Target Location (Fixture)', flattenedRows, row =>
-        this.resolveSystemAliasForTargetLocation(row.fixtureSelection?.targetSystemId, systemAliasesLookup)
+        this.resolveSystemAliasForTargetLocation(
+          row.fixtureSelection?.targetSystemId,
+          systemAliasesLookup
+        )
       ),
     ];
   }
