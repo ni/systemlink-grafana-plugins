@@ -3,7 +3,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { setupRenderer } from 'test/fixtures';
 import { propertiesErrorMessages, takeErrorMessages, typesErrorMessages } from '../constants/QueryEditor.constants';
-import { CUSTOM_PROPERTY_SUFFIX, TAKE_LIMIT } from '../constants';
+import { CUSTOM_PROPERTY_SUFFIX, DEFAULT_TAKE, TAKE_LIMIT } from '../constants';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
 import { 
   OrderByOptions, 
@@ -297,6 +297,25 @@ describe('WorkItemsQueryEditor', () => {
       );
     });
 
+    it('should reload the custom property options when orderBy or descending changes', async () => {
+      const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+      render({ outputType: OutputType.Properties, orderBy: OrderByOptions.UPDATED_AT, descending: true });
+
+      await waitFor(() => expect(getCustomPropertyOptionsSpy).toHaveBeenCalledTimes(1));
+      getCustomPropertyOptionsSpy.mockClear();
+
+      await userEvent.click(page.descendingSwitch()!);
+
+      await waitFor(() =>
+        expect(getCustomPropertyOptionsSpy).toHaveBeenLastCalledWith(
+          undefined,
+          DEFAULT_TAKE,
+          OrderByOptions.UPDATED_AT,
+          false
+        )
+      );
+    });
+
     it('should not load the custom property options when the output type is total count', async () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
@@ -372,14 +391,16 @@ describe('WorkItemsQueryEditor', () => {
 
         const propertiesCombobox = page.propertiesMultiCombobox()!;
         fireEvent.click(propertiesCombobox);
-        fireEvent.change(propertiesCombobox, { target: { value: 'customProperty1' } });
+        fireEvent.change(propertiesCombobox, { target: { value: 'customProperty' } });
 
         expect(await page.propertySelectOption('customProperty1')).toBeInTheDocument();
+        expect(await page.propertySelectOption('customProperty2')).toBeInTheDocument();
       } finally {
         offsetHeightSpy.mockRestore();
       }
     });
 
+    // The old catch-all option for the entire custom properties bag should not be shown.
     it('should not offer the lump custom properties option in the properties dropdown', async () => {
       const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
 
@@ -441,6 +462,38 @@ describe('WorkItemsQueryEditor', () => {
       } finally {
         offsetHeightSpy.mockRestore();
       }
+    });
+
+    it('should check the matching dropdown option for a saved custom property using its suffixed value', async () => {
+      const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+      getCustomPropertyOptionsSpy.mockResolvedValue([customPropertyOption('customProperty1')]);
+
+      try {
+        const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+        render({ properties: [], customProperties: ['customProperty1'] });
+
+        await waitFor(() => expect(getCustomPropertyOptionsSpy).toHaveBeenCalled());
+
+        const propertiesCombobox = page.propertiesMultiCombobox()!;
+        fireEvent.click(propertiesCombobox);
+        fireEvent.change(propertiesCombobox, { target: { value: 'customProperty1' } });
+
+        // Only checked if the saved value (with the suffix appended) matches the discovered option's value.
+        expect(page.propertyOptionCheckbox('customProperty1')).toBeChecked();
+      } finally {
+        offsetHeightSpy.mockRestore();
+      }
+    });
+
+    it('should show the saved custom property label without the suffix before discovery finishes loading', () => {
+      getCustomPropertyOptionsSpy.mockReturnValue(new Promise(() => {}));
+      const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+
+      render({ properties: [], customProperties: ['customProperty1'] });
+
+      // Falls back to a plain option before the discovered (suffixed) options are available;
+      // the suffix must be stripped so the chip label reads 'customProperty1', not the raw suffixed value.
+      expect(page.removeOptionButton('customProperty1')).toBeInTheDocument();
     });
 
     it('should not show the at-least-one-property error when only a custom property is selected', async () => {

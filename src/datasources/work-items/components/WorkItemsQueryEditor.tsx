@@ -55,6 +55,14 @@ type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
 export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
 
+  const [customPropertyOptions, setCustomPropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
+  const [isCustomPropertiesInitialized, setIsCustomPropertiesInitialized] = useState(false);
+  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
+  const [users, setUsers] = useState<User[] | null>(null);
+  const [products, setProducts] = useState<ProductPartNumberAndName[] | null>(null);
+  const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
+  const lastUsedFilter = useRef(query.filter);
+
   const selectedProperties = useMemo(
     () => query.properties ?? [], [query.properties]
   );
@@ -67,20 +75,23 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   const takeInvalidMessage = getTakeError(query.take);
   const isTakeValid = takeInvalidMessage === '';
   const outputType = query.outputType ?? OutputType.Properties;
+  const outputTypeOptions = Object.values(OutputType).map(value => ({
+    label: value,
+    value,
+  }));
+  const isPropertiesOutput = outputType === OutputType.Properties;
+  const queryFilter = query.filter || undefined;
+  const queryTake = query.take ?? DEFAULT_TAKE;
+  const isQueryValid = isPropertiesOutput && isTypesValid && isTakeValid;
 
-  const [customPropertyOptions, setCustomPropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
-  const [isCustomPropertiesInitialized, setIsCustomPropertiesInitialized] = useState(false);
-
-  // The custom properties bag is expanded into one option per key, so the single
-  // catch-all `PROPERTIES` option is not offered in the dropdown.
   const standardPropertiesOptions = useMemo(
     () =>
       Object.values(WorkItemProperties)
         .filter(property => property.value !== WorkItemPropertiesOptions.PROPERTIES)
         .map(property => ({
           label: property.label,
-          value: property.value as string,
-          group: property.group as string,
+          value: property.value,
+          group: property.group,
         })),
     []
   );
@@ -90,88 +101,11 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     [standardPropertiesOptions, customPropertyOptions]
   );
 
-  const outputTypeOptions = Object.values(OutputType).map(value => ({
-    label: value,
-    value,
-  }));
-
-  const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
-  const [users, setUsers] = useState<User[] | null>(null);
-  const [products, setProducts] = useState<ProductPartNumberAndName[] | null>(null);
-  const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
-  const lastUsedFilter = useRef(query.filter);
-
-  useEffect(() => {
-    const loadWorkspaces = async () => {
-      const workspaces = await datasource.loadWorkspaces();
-      setWorkspaces(Array.from(workspaces.values()));
-    };
-
-    const loadUsers = async () => {
-      const users = await datasource.loadUsers();
-      setUsers(Array.from(users.values()));
-    };
-
-    const loadProducts = async () => {
-      const products = await datasource.loadProductNamesAndPartNumbers();
-      setProducts(Array.from(products.values()));
-    };
-
-    const loadSystemAliases = async () => {
-      const systemAliases = await datasource.loadSystemAliases();
-      setSystemAliases(Array.from(systemAliases.values()));
-    };
-
-    loadWorkspaces();
-    loadUsers();
-    loadProducts();
-    loadSystemAliases();
-  }, [datasource]);
-
   const globalVariableOptions = useMemo(() => datasource.globalVariableOptions(), [datasource]);
 
-  const isPropertiesOutput = outputType === OutputType.Properties;
-  const queryFilter = query.filter || undefined;
-  const queryTake = query.take ?? DEFAULT_TAKE;
+  // Discovery must use the same filter as the data query, otherwise the offered keys
+  // can come from work items that are not part of the result.
   const customPropertiesFilter = datasource.buildFilterFromQuery({ ...query, filter: queryFilter });
-  const isDiscoveryEligible = isPropertiesOutput && isTypesValid && isTakeValid;
-
-  useEffect(() => {
-    if (!isDiscoveryEligible) {
-      setCustomPropertyOptions([]);
-      setIsCustomPropertiesInitialized(false);
-      return;
-    }
-
-    let isStale = false;
-    const loadCustomProperties = async () => {
-      try {
-        const options = await datasource.getCustomPropertyOptions(
-          customPropertiesFilter,
-          queryTake,
-          query.orderBy,
-          query.descending
-        );
-        if (!isStale) {
-          setCustomPropertyOptions(options.slice(0, CUSTOM_PROPERTY_OPTIONS_LIMIT));
-        }
-      } catch {
-        if (!isStale) {
-          setCustomPropertyOptions([]);
-        }
-      } finally {
-        if (!isStale) {
-          setIsCustomPropertiesInitialized(true);
-        }
-      }
-    };
-
-    loadCustomProperties();
-
-    return () => {
-      isStale = true;
-    };
-  }, [datasource, isDiscoveryEligible, customPropertiesFilter, queryTake, query.orderBy, query.descending]);
 
   const selectedPropertyOptions = useMemo(() => {
     const optionsByValue = new Map(
@@ -222,15 +156,70 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     selectedCustomProperties
   ]);
 
-  const handleQueryChange = useCallback(
-    (query: WorkItemsQuery, runQuery = true): void => {
-      onChange(query);
-      if (runQuery) {
-        onRunQuery();
+
+  useEffect(() => {
+    const loadWorkspaces = async () => {
+      const workspaces = await datasource.loadWorkspaces();
+      setWorkspaces(Array.from(workspaces.values()));
+    };
+
+    const loadUsers = async () => {
+      const users = await datasource.loadUsers();
+      setUsers(Array.from(users.values()));
+    };
+
+    const loadProducts = async () => {
+      const products = await datasource.loadProductNamesAndPartNumbers();
+      setProducts(Array.from(products.values()));
+    };
+
+    const loadSystemAliases = async () => {
+      const systemAliases = await datasource.loadSystemAliases();
+      setSystemAliases(Array.from(systemAliases.values()));
+    };
+
+    loadWorkspaces();
+    loadUsers();
+    loadProducts();
+    loadSystemAliases();
+  }, [datasource]);
+
+  useEffect(() => {
+    if (!isQueryValid) {
+      setCustomPropertyOptions([]);
+      setIsCustomPropertiesInitialized(false);
+      return;
+    }
+
+    let isStale = false;
+    const loadCustomProperties = async () => {
+      try {
+        const options = await datasource.getCustomPropertyOptions(
+          customPropertiesFilter,
+          queryTake,
+          query.orderBy,
+          query.descending
+        );
+        if (!isStale) {
+          setCustomPropertyOptions(options.slice(0, CUSTOM_PROPERTY_OPTIONS_LIMIT));
+        }
+      } catch {
+        if (!isStale) {
+          setCustomPropertyOptions([]);
+        }
+      } finally {
+        if (!isStale) {
+          setIsCustomPropertiesInitialized(true);
+        }
       }
-    },
-    [onChange, onRunQuery]
-  );
+    };
+
+    loadCustomProperties();
+
+    return () => {
+      isStale = true;
+    };
+  }, [datasource, isQueryValid, customPropertiesFilter, queryTake, query.orderBy, query.descending]);
 
   useEffect(() => {
     if (!query.outputType) {
@@ -239,6 +228,16 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleQueryChange = useCallback(
+    (query: WorkItemsQuery, runQuery = true): void => {
+      onChange(query);
+      if (runQuery) {
+        onRunQuery();
+      }
+    },
+    [onChange, onRunQuery]
+  );  
+  
   const onOutputTypeChange = (value: OutputType) => {
     handleQueryChange({ ...query, outputType: value });
   };
