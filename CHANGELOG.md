@@ -1,3 +1,9 @@
+## [5.11.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.11.0...v5.11.1) (2026-09-16)
+
+### Bug Fixes
+
+* **work-items:** Update fallback logics for resource names ([#757](https://github.com/ni/systemlink-grafana-plugins/issues/757)) ([37664d9](https://github.com/ni/systemlink-grafana-plugins/commit/37664d9881718aff5e552cb7c5a4b37b7bf7e913))
+
 ## [5.11.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.10.1...v5.11.0) (2026-09-16)
 
 ### Features
