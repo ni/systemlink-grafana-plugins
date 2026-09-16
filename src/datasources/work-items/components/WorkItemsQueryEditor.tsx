@@ -133,12 +133,13 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   const isPropertiesOutput = outputType === OutputType.Properties;
   const queryFilter = query.filter || undefined;
   const queryTake = query.take ?? DEFAULT_TAKE;
-  // Discovery must use the same filter as the data query, otherwise the offered keys
-  // can come from work items that are not part of the result.
   const customPropertiesFilter = datasource.buildFilterFromQuery({ ...query, filter: queryFilter });
+  const isDiscoveryEligible = isPropertiesOutput && isTypesValid && isTakeValid;
 
   useEffect(() => {
-    if (!isPropertiesOutput) {
+    if (!isDiscoveryEligible) {
+      setCustomPropertyOptions([]);
+      setIsCustomPropertiesInitialized(false);
       return;
     }
 
@@ -170,7 +171,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     return () => {
       isStale = true;
     };
-  }, [datasource, isPropertiesOutput, customPropertiesFilter, queryTake, query.orderBy, query.descending]);
+  }, [datasource, isDiscoveryEligible, customPropertiesFilter, queryTake, query.orderBy, query.descending]);
 
   const selectedPropertyOptions = useMemo(() => {
     const optionsByValue = new Map(

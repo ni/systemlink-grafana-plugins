@@ -306,6 +306,53 @@ describe('WorkItemsQueryEditor', () => {
       expect(getCustomPropertyOptionsSpy).not.toHaveBeenCalled();
     });
 
+    it('should not load the custom property options when no types are selected', async () => {
+      const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+
+      render({ types: [] });
+
+      await waitFor(
+        () => expect(page.getErrorByMessage(
+        typesErrorMessages.atLeastOneRequired
+      )).toBeVisible()
+    );
+      expect(getCustomPropertyOptionsSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not load the custom property options when take is invalid', async () => {
+      const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+
+      render({ take: -5 });
+
+      await waitFor(() => expect(page.getErrorByMessage(
+          takeErrorMessages.greaterOrEqualToZero
+        )).toBeVisible());
+      expect(getCustomPropertyOptionsSpy).not.toHaveBeenCalled();
+    });
+
+    it('should clear discovered custom property options when types are removed after a successful discovery', async () => {
+      const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+      getCustomPropertyOptionsSpy.mockResolvedValue([customPropertyOption('customProperty1')]);
+
+      try {
+        const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+        render({ types: [WorkItemTypeOptions.WorkOrders] });
+
+        await waitFor(() => expect(getCustomPropertyOptionsSpy).toHaveBeenCalled());
+        getCustomPropertyOptionsSpy.mockClear();
+
+        await userEvent.click(page.removeOptionButton('Work orders'));
+
+        await waitFor(() => expect(
+          page.getErrorByMessage(
+            typesErrorMessages.atLeastOneRequired
+          )).toBeVisible());
+        expect(getCustomPropertyOptionsSpy).not.toHaveBeenCalled();
+      } finally {
+        offsetHeightSpy.mockRestore();
+      }
+    });
+
     it('should list each custom property as its own option in the properties dropdown', async () => {
       const offsetHeightSpy = jest.spyOn(
         HTMLElement.prototype, 
