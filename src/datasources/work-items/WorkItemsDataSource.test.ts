@@ -33,16 +33,16 @@ jest.mock('shared/product.utils', () => {
 });
 
 jest.mock('shared/users.utils', () => {
-  return {
-    UsersUtils: jest.fn().mockImplementation(() => ({
-      getUsers: jest.fn().mockResolvedValue(
-        new Map([
-          ['1', { id: '1', firstName: 'User', lastName: '1', email: 'user1@123.com' }],
-          ['2', { id: '2', firstName: 'User', lastName: '2', email: 'user2@123.com' }],
-        ])
-      ),
-    })),
-  };
+  const UsersUtils: any = jest.fn().mockImplementation(() => ({
+    getUsers: jest.fn().mockResolvedValue(
+      new Map([
+        ['1', { id: '1', firstName: 'User', lastName: '1', email: 'user1@123.com' }],
+        ['2', { id: '2', firstName: 'User', lastName: '2', email: 'user2@123.com' }],
+      ])
+    ),
+  }));
+  UsersUtils.getUserFullName = jest.fn(user => `${user.firstName} ${user.lastName}`);
+  return { UsersUtils };
 });
 
 jest.mock('shared/workspace.utils', () => {
@@ -183,6 +183,164 @@ describe('WorkItemsDataSource', () => {
         },
         { showErrorAlert: false }
       );
+    });
+
+    describe('duration filter transformation', () => {
+      it('should convert estimatedDurationInDays to timeline.estimatedDurationInSeconds', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'estimatedDurationInDays > "2"',
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          {
+            filter: '(timeline.estimatedDurationInSeconds > "172800")',
+            take: 0,
+            returnCount: true,
+          },
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should convert estimatedDurationInHours to timeline.estimatedDurationInSeconds', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'estimatedDurationInHours <= "3"',
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          {
+            filter: '(timeline.estimatedDurationInSeconds <= "10800")',
+            take: 0,
+            returnCount: true,
+          },
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should convert plannedDurationInDays to schedule.plannedDurationInSeconds', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'plannedDurationInDays != "-1"',
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          {
+            filter: '(schedule.plannedDurationInSeconds != "-86400")',
+            take: 0,
+            returnCount: true,
+          },
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should convert plannedDurationInHours to schedule.plannedDurationInSeconds', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'plannedDurationInHours >= "5"',
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          {
+            filter: '(schedule.plannedDurationInSeconds >= "18000")',
+            take: 0,
+            returnCount: true,
+          },
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should convert multiple duration filters combined with the type filter', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: [WorkItemTypeOptions.WorkOrders],
+          filter: 'estimatedDurationInDays > "1" && plannedDurationInHours < "4"',
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          {
+            filter:
+              '(type = "workorder") && (timeline.estimatedDurationInSeconds > "86400" && ' +
+              'schedule.plannedDurationInSeconds < "14400")',
+            take: 0,
+            returnCount: true,
+          },
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should convert decimal estimatedDurationInDays to rounded whole seconds', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'estimatedDurationInDays > "1.5"',
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          {
+            filter: '(timeline.estimatedDurationInSeconds > "129600")',
+            take: 0,
+            returnCount: true,
+          },
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should convert decimal plannedDurationInHours to rounded whole seconds', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'plannedDurationInHours <= "-2.25"',
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          {
+            filter: '(schedule.plannedDurationInSeconds <= "-8100")',
+            take: 0,
+            returnCount: true,
+          },
+          { showErrorAlert: false }
+        );
+      });
     });
 
     describe('properties output type', () => {
@@ -554,6 +712,624 @@ describe('WorkItemsDataSource', () => {
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
         expect(result.fields).toEqual([{ name: 'A', values: [0] }]);
+      });
+    });
+
+    describe('workspace and user lookup properties', () => {
+      const mockWorkspace = { id: 'ws-1', name: 'Production', default: false, enabled: true };
+      const mockUser = {
+        id: 'user-1',
+        firstName: 'Jane',
+        lastName: 'Doe',
+        email: 'jane@example.com',
+        properties: {},
+        keywords: [],
+        created: '',
+        updated: '',
+        orgId: '',
+      };
+
+      beforeEach(() => {
+        jest.spyOn(datasource.workspaceUtils, 'getWorkspaces').mockResolvedValue(new Map([['ws-1', mockWorkspace]]));
+        jest.spyOn(datasource.usersUtils, 'getUsers').mockResolvedValue(new Map([['user-1', mockUser]]));
+      });
+
+      it('should not load workspace or user lookup data when no workspace or user lookup property is selected', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', name: 'Battery Cycle Test' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+        const getWorkspacesSpy = jest.spyOn(datasource.workspaceUtils, 'getWorkspaces');
+        const getUsersSpy = jest.spyOn(datasource.usersUtils, 'getUsers');
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.NAME],
+          take: 1000,
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(getWorkspacesSpy).not.toHaveBeenCalled();
+        expect(getUsersSpy).not.toHaveBeenCalled();
+      });
+
+      it('should resolve the workspace name for the workspaceId filtered', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', workspace: 'ws-1' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.WORKSPACE],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([{ name: 'Workspace', values: ['Production'], type: 'string' }]);
+      });
+
+      it('should fall back to the raw workspace ID when the workspace is not found', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', workspace: 'unknown-ws' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.WORKSPACE],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([{ name: 'Workspace', values: ['unknown-ws'], type: 'string' }]);
+      });
+
+      it('should fall back to the raw workspace ID when the workspace lookup fails', async () => {
+        jest.spyOn(datasource.workspaceUtils, 'getWorkspaces').mockRejectedValue(new Error('Failed'));
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', workspace: 'ws-1' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.WORKSPACE],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([{ name: 'Workspace', values: ['ws-1'], type: 'string' }]);
+      });
+
+      it.each([
+        [WorkItemPropertiesOptions.ASSIGNED_TO, 'assignedTo', 'Assigned to'],
+        [WorkItemPropertiesOptions.REQUESTED_BY, 'requestedBy', 'Requested by'],
+        [WorkItemPropertiesOptions.CREATED_BY, 'createdBy', 'Created by'],
+        [WorkItemPropertiesOptions.UPDATED_BY, 'updatedBy', 'Updated by'],
+      ])('should resolve the user full name for the %s property', async (property, field, label) => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', [field]: 'user-1' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [property],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([{ name: label, values: ['Jane Doe'], type: 'string' }]);
+      });
+
+      it('should fall back to the raw user ID when the user is not found', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', assignedTo: 'unknown-user' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.ASSIGNED_TO],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([{ name: 'Assigned to', values: ['unknown-user'], type: 'string' }]);
+      });
+
+      it('should fall back to the raw user ID when the users lookup fails', async () => {
+        jest.spyOn(datasource.usersUtils, 'getUsers').mockRejectedValue(new Error('Failed'));
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', assignedTo: 'user-1' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.ASSIGNED_TO],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([{ name: 'Assigned to', values: ['user-1'], type: 'string' }]);
+      });
+    });
+
+    describe('parent work item name property', () => {
+      it('should resolve the parent work item name via a lookup query', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockImplementation(async (_url, body: any) => {
+          if (body.filter === 'id = "1000"') {
+            return { workItems: [{ id: '1000', name: 'Parent Work Item' }], continuationToken: '', totalCount: 1 };
+          }
+          return { workItems: [{ id: '1', parentId: '1000' }], continuationToken: '', totalCount: 1 };
+        });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([
+          { name: 'Parent work item name', values: ['Parent Work Item'], type: 'string' },
+        ]);
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          expect.objectContaining({ filter: 'id = "1000"', projection: ['ID', 'NAME'], take: 1 }),
+          { showErrorAlert: false }
+        );
+        expect(queryInBatches).toHaveBeenCalledWith(
+          expect.any(Function),
+          { maxTakePerRequest: 1000, requestsPerSecond: 5 },
+          1
+        );
+      });
+
+      it('should fall back to an empty value when the parent work item lookup fails', async () => {
+        jest.spyOn(datasource, 'post').mockImplementation(async (_url, body: any) => {
+          if (body.filter === 'id = "1000"') {
+            throw new Error('Request failed');
+          }
+          return { workItems: [{ id: '1', parentId: '1000' }], continuationToken: '', totalCount: 1 };
+        });
+
+        const result = await datasource.runQuery(
+          {
+            refId: 'A',
+            outputType: OutputType.Properties,
+            types: [WorkItemTypeOptions.WorkOrders],
+            properties: [WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME],
+            take: 1000,
+          },
+          {} as DataQueryRequest
+        );
+
+        expect(result.fields).toEqual([
+          { name: 'Parent work item name', values: [''], type: 'string' },
+        ]);
+      });
+
+      it('should deduplicate parent IDs before querying for their names', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockImplementation(async (_url, body: any) => {
+          if (body.filter?.startsWith('id = ')) {
+            return { workItems: [{ id: '1000', name: 'Parent Work Item' }], continuationToken: '', totalCount: 1 };
+          }
+          return {
+            workItems: [
+              { id: '1', parentId: '1000' },
+              { id: '2', parentId: '1000' },
+            ],
+            continuationToken: '',
+            totalCount: 2,
+          };
+        });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME],
+          take: 1000,
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          expect.objectContaining({ filter: 'id = "1000"', take: 1 }),
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should fall back to an empty value when the parent work item is not found', async () => {
+        jest.spyOn(datasource, 'post').mockImplementation(async (_url, body: any) => {
+          if (body.filter === 'id = "1000"') {
+            return { workItems: [], continuationToken: '', totalCount: 0 };
+          }
+          return { workItems: [{ id: '1', parentId: '1000' }], continuationToken: '', totalCount: 1 };
+        });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([{ name: 'Parent work item name', values: [''], type: 'string' }]);
+      });
+
+      it('should return an empty value and skip the lookup when the work item has no parent', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([{ name: 'Parent work item name', values: [''], type: 'string' }]);
+        expect(postSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('should not publish an alertError event when the parent work item lookup fails', async () => {
+        const publishMock = jest.fn();
+        (datasource as any).appEvents = { publish: publishMock };
+        jest.spyOn(datasource, 'post').mockImplementation(async (_url, body: any) => {
+          if (body.filter === 'id = "1000"') {
+            throw new Error('Request failed');
+          }
+          return { workItems: [{ id: '1', parentId: '1000' }], continuationToken: '', totalCount: 1 };
+        });
+
+        await datasource.runQuery(
+          {
+            refId: 'A',
+            outputType: OutputType.Properties,
+            types: [WorkItemTypeOptions.WorkOrders],
+            properties: [WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME],
+            take: 1000,
+          },
+          {} as DataQueryRequest
+        );
+
+        expect(publishMock).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('resources row flattening and lookup properties', () => {
+      it('should duplicate work item details for each row and flatten resource selections by index', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [
+            {
+              id: '1',
+              name: 'Test Requirement',
+              resources: {
+                assets: { selections: [{ id: 'a1' }] },
+                duts: { selections: [{ id: 'd1' }, { id: 'd2' }] },
+                fixtures: { selections: [{ id: 'f1' }, { id: 'f2' }, { id: 'f3' }] },
+                systems: { selections: [{ id: 's1' }] },
+              },
+            },
+          ],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [
+            WorkItemPropertiesOptions.NAME,
+            WorkItemPropertiesOptions.ASSET_ID,
+            WorkItemPropertiesOptions.DUT_ID,
+            WorkItemPropertiesOptions.FIXTURE_ID,
+            WorkItemPropertiesOptions.SYSTEM_ID,
+          ],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([
+          { name: 'Work item name', values: ['Test Requirement', 'Test Requirement', 'Test Requirement'], type: 'string' },
+          { name: 'Asset ID', values: ['a1', '', ''], type: 'string' },
+          { name: 'DUT ID', values: ['d1', 'd2', ''], type: 'string' },
+          { name: 'Fixture ID', values: ['f1', 'f2', 'f3'], type: 'string' },
+          { name: 'System ID', values: ['s1', '', ''], type: 'string' },
+        ]);
+      });
+
+      it('should not duplicate rows when a work item has no reserved resources', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', name: 'No Resources' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.NAME],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([{ name: 'Work item name', values: ['No Resources'], type: 'string' }]);
+      });
+
+      it('should resolve asset, DUT and fixture names via AssetUtils', async () => {
+        const queryAssetsSpy = jest
+          .spyOn(datasource.assetUtils, 'queryAssetsInBatches')
+          .mockResolvedValue([
+            { id: 'a1', name: 'Asset 1' },
+            { id: 'd1', name: 'DUT 1' },
+            { id: 'f1', name: 'Fixture 1' },
+          ]);
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [
+            {
+              id: '1',
+              resources: {
+                assets: { selections: [{ id: 'a1' }] },
+                duts: { selections: [{ id: 'd1' }] },
+                fixtures: { selections: [{ id: 'f1' }] },
+              },
+            },
+          ],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [
+            WorkItemPropertiesOptions.ASSET_NAME,
+            WorkItemPropertiesOptions.DUT_NAME,
+            WorkItemPropertiesOptions.FIXTURE_NAME,
+          ],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(queryAssetsSpy).toHaveBeenCalledWith(['a1', 'd1', 'f1'], expect.any(Array));
+        expect(result.fields).toEqual([
+          { name: 'Asset name', values: ['Asset 1'], type: 'string' },
+          { name: 'DUT name', values: ['DUT 1'], type: 'string' },
+          { name: 'Fixture name', values: ['Fixture 1'], type: 'string' },
+        ]);
+      });
+
+      it.each([
+        [WorkItemPropertiesOptions.ASSET_NAME, 'assets', 'a1', 'Asset name'],
+        [WorkItemPropertiesOptions.DUT_NAME, 'duts', 'd1', 'DUT name'],
+        [WorkItemPropertiesOptions.FIXTURE_NAME, 'fixtures', 'f1', 'Fixture name'],
+      ])(
+        'should fall back to the resource ID when %s cannot be resolved',
+        async (property, resourceType, id, label) => {
+          jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([]);
+          jest.spyOn(datasource, 'post').mockResolvedValue({
+            workItems: [{ id: '1', resources: { [resourceType]: { selections: [{ id }] } } }],
+            continuationToken: '',
+            totalCount: 1,
+          });
+
+          const query = {
+            refId: 'A',
+            outputType: OutputType.Properties,
+            types: [WorkItemTypeOptions.WorkOrders],
+            properties: [property],
+            take: 1000,
+          };
+
+          const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+          expect(result.fields).toEqual([{ name: label, values: [id], type: 'string' }]);
+        }
+      );
+
+      it('should not call AssetUtils when no resource name or target parent property is selected', async () => {
+        const queryAssetsSpy = jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches');
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', resources: { assets: { selections: [{ id: 'a1' }] } } }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.ASSET_ID],
+          take: 1000,
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(queryAssetsSpy).not.toHaveBeenCalled();
+      });
+
+      it('should resolve the system alias via SystemUtils for the SYSTEM_NAME property', async () => {
+        jest
+          .spyOn(datasource.systemUtils, 'getSystemAliases')
+          .mockResolvedValue(new Map([['s1', { id: 's1', alias: 'System Alias 1' }]]));
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', resources: { systems: { selections: [{ id: 's1' }] } } }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.SYSTEM_NAME],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([{ name: 'System name', values: ['System Alias 1'], type: 'string' }]);
+      });
+
+      it('should fall back to the system ID when the system lookup fails', async () => {
+        jest.spyOn(datasource.systemUtils, 'getSystemAliases').mockRejectedValue(new Error('Failed'));
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', resources: { systems: { selections: [{ id: 's1' }] } } }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.SYSTEM_NAME],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([{ name: 'System name', values: ['s1'], type: 'string' }]);
+      });
+
+      it('should not call SystemUtils when no system name or target location property is selected', async () => {
+        const getSystemAliasesSpy = jest.spyOn(datasource.systemUtils, 'getSystemAliases');
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', resources: { systems: { selections: [{ id: 's1' }] } } }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.SYSTEM_ID],
+          take: 1000,
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(getSystemAliasesSpy).not.toHaveBeenCalled();
+      });
+
+      it('should split TARGET_LOCATION into asset, DUT and fixture columns resolved via system aliases', async () => {
+        jest
+          .spyOn(datasource.systemUtils, 'getSystemAliases')
+          .mockResolvedValue(new Map([['sys1', { id: 'sys1', alias: 'System Alias 1' }]]));
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [
+            {
+              id: '1',
+              resources: {
+                assets: { selections: [{ id: 'a1', targetSystemId: 'sys1' }] },
+                duts: { selections: [{ id: 'd1', targetSystemId: 'sys2' }] },
+                fixtures: { selections: [{ id: 'f1' }] },
+              },
+            },
+          ],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.TARGET_LOCATION],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([
+          { name: 'Target Location (Asset)', values: ['System Alias 1'], type: 'string' },
+          { name: 'Target Location (DUT)', values: ['sys2'], type: 'string' },
+          { name: 'Target Location (Fixture)', values: [''], type: 'string' },
+        ]);
+      });
+
+      it('should split TARGET_PARENT into asset, DUT and fixture columns resolved via asset names', async () => {
+        jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([
+          { id: 'p1', name: 'Parent Asset 1' },
+        ]);
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [
+            {
+              id: '1',
+              resources: {
+                assets: { selections: [{ id: 'a1', targetParentId: 'p1' }] },
+                duts: { selections: [{ id: 'd1', targetParentId: 'p2' }] },
+                fixtures: { selections: [{ id: 'f1' }] },
+              },
+            },
+          ],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.TARGET_PARENT],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([
+          { name: 'Target Parent (Asset)', values: ['Parent Asset 1'], type: 'string' },
+          { name: 'Target Parent (DUT)', values: ['p2'], type: 'string' },
+          { name: 'Target Parent (Fixture)', values: [''], type: 'string' },
+        ]);
       });
     });
 

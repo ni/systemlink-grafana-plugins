@@ -135,10 +135,10 @@ export interface WorkItemResources {
 }
 
 export interface WorkItem {
-  id?: string;
-  name?: string;
-  type?: string;
-  state?: string;
+  id: string;
+  name: string;
+  type: string;
+  state: string;
   substate?: string;
   description?: string;
   parentId?: string;
@@ -166,4 +166,13 @@ export interface QueryWorkItemsRequestBody {
   take?: number;
   returnCount?: boolean;
   continuationToken?: string;
+}
+
+// Flattened row pairing a work item with one reserved resource selection of each kind.
+export interface FlattenedRow {
+  workItem: WorkItem;
+  assetSelection?: ResourceSelection;
+  dutSelection?: ResourceSelection;
+  fixtureSelection?: ResourceSelection;
+  systemSelection?: SystemResourceSelection;
 }

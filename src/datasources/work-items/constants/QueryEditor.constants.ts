@@ -3,7 +3,7 @@ import { TAKE_LIMIT } from '../constants';
 
 export const LABEL_WIDTH = 25;
 export const CONTROL_WIDTH = 65;
-export const COMBOBOX_WIDTH = 26;
+export const COMBOBOX_WIDTH = 29;
 export const QUERY_BUILDER_PLACEHOLDER_WIDTH = 520;
 
 export const takeErrorMessages = {

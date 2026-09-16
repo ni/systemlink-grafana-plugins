@@ -28,5 +28,7 @@ export const workItemsQueryEditorPage = {
   propertySelectOption: (name: string) => screen.findByRole('option', { name }),
   propertyOptionCheckbox: (name: string) => screen.getByRole('checkbox', { name }),
 
+  queryBuilderDialog: () => screen.getByRole('dialog'),
+
   getErrorByMessage: (message: string) => screen.queryByText(message),
 };
