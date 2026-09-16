@@ -5,6 +5,14 @@ import { BatchQueryConfig, QBField, QueryBuilderOption, QueryResponse, SystemLin
 import { BackendSrv, BackendSrvRequest, FetchError, isFetchError, TemplateSrv } from '@grafana/runtime';
 import { catchError, lastValueFrom, map, Observable, switchMap, throwError, timer } from 'rxjs';
 
+const TIME_UNITS = [
+  { unitLabel: 'year', secondsPerUnit: 31536000, showPlural: true },
+  { unitLabel: 'day', secondsPerUnit: 86400, showPlural: true },
+  { unitLabel: 'hr', secondsPerUnit: 3600 },
+  { unitLabel: 'min', secondsPerUnit: 60 },
+  { unitLabel: 'sec', secondsPerUnit: 1 },
+];
+
 export function enumToOptions<T>(stringEnum: { [name: string]: T }): Array<SelectableValue<T>> {
   const RESULT = [];
 
@@ -97,6 +105,31 @@ export function filterXSSLINQExpression(value: string | null | undefined): strin
     .replace(/ &amp;&amp; /g, " && ")
     .replace(/ &lt;&gt; /g, " <> ");
 }
+
+/**
+ * Converts a duration in seconds into a comma-separated string of years, days, hours, minutes, and seconds.
+ *
+ * @param totalSeconds - The duration in seconds to convert.
+ */
+export const transformDuration = (totalSeconds: number): string => {
+  if (totalSeconds <= 0) {
+    return '0 sec';
+  }
+
+  let remainingSeconds = totalSeconds;
+  const formattedParts: string[] = [];
+
+  for (const { unitLabel, secondsPerUnit, showPlural } of TIME_UNITS) {
+    const count = Math.floor(remainingSeconds / secondsPerUnit);
+    if (count > 0) {
+      const label = `${unitLabel}${count > 1 && showPlural ? 's' : ''}`;
+      formattedParts.push(`${count} ${label}`);
+      remainingSeconds %= secondsPerUnit;
+    }
+  }
+
+  return formattedParts.length > 0 ? formattedParts.join(', ') : '0 sec';
+};
 
 export function validateNumericInput(event: React.KeyboardEvent<HTMLInputElement>) {
   if (isNaN(Number(event.key)) && !['Backspace', 'Tab', 'Delete', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {

@@ -9,6 +9,14 @@ import { WorkItemsQueryEditor } from './WorkItemsQueryEditor';
 import { workItemsQueryEditorPage as page } from './WorkItemsQueryEditor.page';
 
 describe('WorkItemsQueryEditor', () => {
+  it('should call onRunQuery on init', () => {
+    const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+
+    const [, onRunQuery] = render({});
+
+    expect(onRunQuery).toHaveBeenCalledTimes(1);
+  });
+
   it('should show all controls when the editor renders', () => {
     const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
@@ -77,6 +85,7 @@ describe('WorkItemsQueryEditor', () => {
       try {
         const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
         const [onChange, onRunQuery] = render({ types: [WorkItemTypeOptions.WorkOrders] });
+        onRunQuery.mockClear();
 
         await userEvent.click(page.removeOptionButton('Work orders'));
 
@@ -104,6 +113,7 @@ describe('WorkItemsQueryEditor', () => {
       try {
         const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
         const [onChange, onRunQuery] = render({ properties: [WorkItemPropertiesOptions.ID] });
+        onRunQuery.mockClear();
 
         await userEvent.click(page.removeOptionButton('Work item ID'));
 
@@ -129,6 +139,7 @@ describe('WorkItemsQueryEditor', () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
       const [onChange, onRunQuery] = render({});
+      onRunQuery.mockClear();
 
       page.setTakeLimit('-5');
 
@@ -141,6 +152,7 @@ describe('WorkItemsQueryEditor', () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
       const [onChange, onRunQuery] = render({});
+      onRunQuery.mockClear();
 
       page.setTakeLimit(`${TAKE_LIMIT + 1}`);
 

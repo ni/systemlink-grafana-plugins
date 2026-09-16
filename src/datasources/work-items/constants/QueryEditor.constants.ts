@@ -4,7 +4,7 @@ import { TAKE_LIMIT } from '../constants';
 
 export const LABEL_WIDTH = 25;
 export const CONTROL_WIDTH = 65;
-export const COMBOBOX_WIDTH = 26;
+export const COMBOBOX_WIDTH = 29;
 export const QUERY_BUILDER_PLACEHOLDER_WIDTH = 520;
 
 export const takeErrorMessages = {
@@ -189,7 +189,7 @@ export const WorkItemProperties: Record<
   [WorkItemPropertiesOptions.PARENT_WORK_ITEM_ID]: {
     label: 'Parent work item ID',
     value: WorkItemPropertiesOptions.PARENT_WORK_ITEM_ID,
-    field: 'parentWorkItemId',
+    field: 'parentId',
     group: WorkItemPropertiesGroup.WORK_ITEM_DETAILS,
   },
   [WorkItemPropertiesOptions.TEMPLATE_ID]: {

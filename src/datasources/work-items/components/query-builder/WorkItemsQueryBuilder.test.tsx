@@ -3,7 +3,10 @@ import React, { ReactNode } from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
-import { TIME_OPTIONS } from 'datasources/work-items/constants/WorkItemsQueryBuilder.constants';
+import {
+  TIME_OPTIONS,
+  WorkItemsResourceQueryBuilderOperations ,
+} from 'datasources/work-items/constants/WorkItemsQueryBuilder.constants';
 import { WorkItemState, WorkItemTypeOptions } from 'datasources/work-items/types';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
@@ -174,8 +177,8 @@ describe('WorkItemsQueryBuilder', () => {
       QueryBuilderOperations.DATE_TIME_IS_NOT_BLANK.name,
     ];
     const listOperations = [
-      QueryBuilderOperations.LIST_EQUALS.name,
-      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
       QueryBuilderOperations.LIST_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ];
@@ -211,10 +214,10 @@ describe('WorkItemsQueryBuilder', () => {
       { dataField: 'estimatedDurationInHours', operations: numericOperations },
       { dataField: 'plannedDurationInDays', operations: numericOperations },
       { dataField: 'plannedDurationInHours', operations: numericOperations },
-      { dataField: 'assets', operations: listOperations },
-      { dataField: 'duts', operations: listOperations },
-      { dataField: 'fixtures', operations: listOperations },
-      { dataField: 'systems', operations: listOperations },
+      { dataField: 'resources.assets.selections', operations: listOperations },
+      { dataField: 'resources.duts.selections', operations: listOperations },
+      { dataField: 'resources.fixtures.selections', operations: listOperations },
+      { dataField: 'resources.systems.selections', operations: listOperations },
       { dataField: 'properties', operations: keyValueOperations },
     ])('should offer the expected operators for $dataField', async ({ dataField, operations }) => {
       const fields = await renderAndGetFields();
@@ -272,7 +275,9 @@ describe('WorkItemsQueryBuilder', () => {
     it('should load system alias options from the systemAliases parameter', async () => {
       const fields = await renderAndGetFields([], [], [], [], [systemAlias]);
 
-      expect(optionsFor(fields, 'systems')).toEqual([{ label: 'System Alias 1', value: '1' }]);
+      expect(optionsFor(fields, 'resources.systems.selections')).toEqual([
+        { label: 'System Alias 1', value: '1' },
+      ]);
     });
 
     it('should return empty fields when no lookup is available', async () => {
@@ -318,7 +323,9 @@ describe('WorkItemsQueryBuilder', () => {
       expect(optionsFor(fields, 'partNumber')).toEqual([
         { label: 'Product 1 (PN-1)', value: 'PN-1' },
       ]);
-      expect(optionsFor(fields, 'systems')).toEqual([{ label: 'System Alias 1', value: '1' }]);
+      expect(optionsFor(fields, 'resources.systems.selections')).toEqual([
+        { label: 'System Alias 1', value: '1' },
+      ]);
     });
   });
 
@@ -380,7 +387,55 @@ describe('WorkItemsQueryBuilder', () => {
       { filter: 'estimatedDurationInHours > "2"', expected: ['Estimated duration (hours)', 'greater than', '2'] },
       { filter: 'plannedDurationInDays < "3"', expected: ['Planned duration (days)', 'less than', '3'] },
       { filter: 'plannedDurationInHours < "4"', expected: ['Planned duration (hours)', 'less than', '4'] },
-      { filter: 'systems.Count == 0', expected: ['System alias name', 'is empty'] },
+      {
+        filter: 'resources.assets.selections.Any(s => s.id == "1")',
+        expected: ['Asset identifier', 'equals', '1'],
+      },
+      {
+        filter: 'resources.assets.selections.Any(s => s.id == "1") == false',
+        expected: ['Asset identifier', 'does not equal', '1'],
+      },
+      { filter: 'resources.assets.selections.Count == 0', 
+        expected: ['Asset identifier', 'is empty'] 
+      },
+      { 
+        filter: 'resources.assets.selections.Count > 0', 
+        expected: ['Asset identifier', 'is not empty'] 
+      },
+      {
+        filter: 'resources.duts.selections.Any(s => s.id == "2")',
+        expected: ['Dut identifier', 'equals', '2'],
+      },
+      {
+        filter: 'resources.duts.selections.Any(s => s.id == "2") == false',
+        expected: ['Dut identifier', 'does not equal', '2'],
+      },
+      { filter: 'resources.duts.selections.Count == 0', 
+        expected: ['Dut identifier', 'is empty'] 
+      },
+      { filter: 'resources.duts.selections.Count > 0', 
+        expected: ['Dut identifier', 'is not empty'] 
+      },
+      {
+        filter: 'resources.fixtures.selections.Any(s => s.id == "3")',
+        expected: ['Fixture identifier', 'equals', '3'],
+      },
+      {
+        filter: 'resources.fixtures.selections.Any(s => s.id == "3") == false',
+        expected: ['Fixture identifier', 'does not equal', '3'],
+      },
+      { filter: 'resources.fixtures.selections.Count == 0', 
+        expected: ['Fixture identifier', 'is empty'] 
+      },
+      { filter: 'resources.fixtures.selections.Count > 0', 
+        expected: ['Fixture identifier', 'is not empty'] 
+      },
+      { filter: 'resources.systems.selections.Count == 0', 
+        expected: ['System alias name', 'is empty'] 
+      },
+      { filter: 'resources.systems.selections.Count > 0', 
+        expected: ['System alias name', 'is not empty'] 
+      },
     ])('should show $expected when filter is $filter', ({ filter, expected }) => {
       const { conditionsContainer } = renderElement(filter);
 
@@ -397,17 +452,20 @@ describe('WorkItemsQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name);
     });
 
-    it('should show the system alias name when filter checks systems contains a system ID', () => {
-      const { conditionsContainer } = renderElement(
-        'systems.Contains("1")',
-        [],
-        [],
-        [],
-        [],
-        [systemAlias]
-      );
+    it.each([
+      { 
+        filter: 'resources.systems.selections.Any(s => s.id == "1")', 
+        operation: 'equals' 
+      },
+      {
+        filter: 'resources.systems.selections.Any(s => s.id == "1") == false',
+        operation: 'does not equal',
+      },
+    ])('should show the system alias name when filter is $filter', ({ filter, operation }) => {
+      const { conditionsContainer } = renderElement(filter, [], [], [], [], [systemAlias]);
 
       expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain(operation);
       expect(conditionsContainer.item(0)?.textContent).toContain(systemAlias.alias);
     });
 

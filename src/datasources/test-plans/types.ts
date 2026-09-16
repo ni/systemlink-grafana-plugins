@@ -291,17 +291,6 @@ export interface TestPlanResponseProperties {
     workOrderName?: string;
 }
 
-export interface QueryAssetNameResponse {
-    assets: Asset[],
-    totalCount: number
-}
-
-export interface Asset {
-    id: string;
-    name: string;
-    serialNumber: string;
-}
-
 export interface QueryTemplatesResponse {
     testPlanTemplates: TemplateResponseProperties[],
     continuationToken: string,
