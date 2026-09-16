@@ -3,6 +3,7 @@ import {
   DataFrameDTO,
   DataQueryRequest,
   DataSourceInstanceSettings,
+  FieldDTO,
   FieldType,
   TestDataSourceResponse,
 } from '@grafana/data';
@@ -17,9 +18,12 @@ import { SystemUtils } from 'shared/system.utils';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { UsersUtils } from 'shared/users.utils';
 import { User } from 'shared/types/QueryUsers.types';
+import { AssetUtils, AssetProjectionProperties } from 'shared/asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { queryInBatches } from 'core/utils';
+import { computedFieldsupportedOperations } from 'core/query-builder.utils';
 import {
+  FlattenedRow,
   OrderByOptions,
   OutputType,
   QueryWorkItemsRequestBody,
@@ -28,18 +32,23 @@ import {
   WorkItemPropertiesOptions,
   WorkItemsQuery,
   WorkItemsResponse,
+  WorkItemState,
   WorkItemTypeOptions,
 } from './types';
 import {
   DEFAULT_TAKE,
+  SECONDS_IN_DAY,
+  SECONDS_IN_HOUR,
   WORK_ITEM_PROPERTIES_PROJECTION,
   WORK_ITEM_PROPERTIES_PROJECTIONS,
   WORK_ITEM_TYPE_FILTER_VALUES,
   WORK_ITEM_TYPE_LABEL_MAP,
-  WORK_ITEM_STATE_LABEL_MAP,
+  WORK_ITEM_STATE_OPTIONS,
+  USER_PROPERTY_FIELDS,
   CUSTOM_PROPERTY_OPTIONS_LIMIT,
-  CUSTOM_PROPERTY_SUFFIX
+  CUSTOM_PROPERTY_SUFFIX,
 } from './constants';
+import { WorkItemsQueryBuilderFieldNames } from './constants/WorkItemsQueryBuilder.constants';
 import {
   QUERY_WORK_ITEMS_MAX_TAKE,
   QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
@@ -58,6 +67,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     this.usersUtils = new UsersUtils(instanceSettings, backendSrv);
     this.workspaceUtils = new WorkspaceUtils(instanceSettings, backendSrv);
     this.systemUtils = new SystemUtils(instanceSettings, backendSrv);
+    this.assetUtils = new AssetUtils(this.instanceSettings, this.backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkitem/v1`;
@@ -65,11 +75,15 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   errorTitle = '';
   errorDescription = '';
+
+  durationNumberPattern = '-?\\d+(?:\\.\\d+)?';
+  durationOperationsPattern = computedFieldsupportedOperations.join('|');
   
   productUtils: ProductUtils;
   usersUtils: UsersUtils;
   workspaceUtils: WorkspaceUtils;
   systemUtils: SystemUtils;
+  assetUtils: AssetUtils;
 
   defaultQuery = {
     types: Object.values(WorkItemTypeOptions),
@@ -84,6 +98,32 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     descending: true,
     take: DEFAULT_TAKE,
   };
+
+  durationFilterConversions = [
+    {
+      fieldName: WorkItemsQueryBuilderFieldNames.EstimatedDurationInDays,
+      target: 'timeline.estimatedDurationInSeconds',
+      factor: SECONDS_IN_DAY,
+    },
+    {
+      fieldName: WorkItemsQueryBuilderFieldNames.EstimatedDurationInHours,
+      target: 'timeline.estimatedDurationInSeconds',
+      factor: SECONDS_IN_HOUR,
+    },
+    {
+      fieldName: WorkItemsQueryBuilderFieldNames.PlannedDurationInDays,
+      target: 'schedule.plannedDurationInSeconds',
+      factor: SECONDS_IN_DAY,
+    },
+    {
+      fieldName: WorkItemsQueryBuilderFieldNames.PlannedDurationInHours,
+      target: 'schedule.plannedDurationInSeconds',
+      factor: SECONDS_IN_HOUR,
+    },
+  ].map(({ fieldName, target, factor }) => {
+    const pattern = `${fieldName}\\s*(${this.durationOperationsPattern})\\s*"(${this.durationNumberPattern})"`;
+    return { target, factor, regex: new RegExp(pattern, 'g') };
+  });
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
@@ -115,7 +155,18 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   async processWorkItemsQuery(query: WorkItemsQuery, filter?: string): Promise<DataFrameDTO> {
-    const workItems = await this.queryWorkItemsData(
+    const isWorkspaceSelected = this.isPropertySelected(WorkItemPropertiesOptions.WORKSPACE, query.properties);
+    const workspacesLookup = isWorkspaceSelected
+      ? await this.loadWorkspaces()
+      : new Map<string, Workspace>();
+    const usersLookup = this.isUserLookupRequired(query.properties)
+      ? await this.loadUsers()
+      : new Map<string, User>();
+    const systemAliasesLookup = this.isSystemNameLookupRequired(query.properties)
+      ? await this.loadSystemAliases()
+      : new Map<string, SystemAlias>();
+
+    const workItemsResponse = await this.queryWorkItemsData(
       filter,
       query.properties,
       query.orderBy,
@@ -123,45 +174,290 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       query.take,
       query.customProperties
     );
+    const flattenedRows = this.buildFlattenedRows(workItemsResponse);
+
+    const isParentWorkItemNameSelected = this.isPropertySelected(
+      WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME,
+      query.properties
+    );
+    const parentWorkItemNamesLookup = isParentWorkItemNameSelected
+      ? await this.loadParentWorkItemNames(workItemsResponse)
+      : new Map<string, string>();
+    const assetNamesLookup = this.isAssetNameLookupRequired(query.properties)
+      ? await this.loadAssetNames(workItemsResponse, query.properties)
+      : new Map<string, string>();
 
     return {
       refId: query.refId,
       name: query.refId,
-      fields: this.buildFields(query.properties, workItems, query.customProperties),
+      fields: this.buildFields(
+        query.properties!,
+        flattenedRows,
+        workspacesLookup,
+        usersLookup,
+        parentWorkItemNamesLookup,
+        assetNamesLookup,
+        systemAliasesLookup,
+        query.customProperties
+      ),
     };
   }
 
-  private buildFields(
-    properties: WorkItemPropertiesOptions[] | undefined,
+  private isPropertySelected(
+    selectedProperty: WorkItemPropertiesOptions,
+    properties?: WorkItemPropertiesOptions[]
+  ): boolean {
+    return this.isAnyPropertySelected([selectedProperty], properties);
+  }
+
+  private isAnyPropertySelected(
+    expectedProperties: WorkItemPropertiesOptions[],
+    properties?: WorkItemPropertiesOptions[]
+  ): boolean {
+    return !!properties?.some(property => expectedProperties.includes(property));
+  }
+
+  private isUserLookupRequired(properties?: WorkItemPropertiesOptions[]): boolean {
+    return this.isAnyPropertySelected(
+      Object.keys(USER_PROPERTY_FIELDS) as WorkItemPropertiesOptions[],
+      properties
+    );
+  }
+
+  private isAssetNameLookupRequired(properties?: WorkItemPropertiesOptions[]): boolean {
+    return this.isAnyPropertySelected(
+      [
+        WorkItemPropertiesOptions.ASSET_NAME,
+        WorkItemPropertiesOptions.DUT_NAME,
+        WorkItemPropertiesOptions.FIXTURE_NAME,
+        WorkItemPropertiesOptions.TARGET_PARENT,
+      ],
+      properties
+    );
+  }
+
+  private isSystemNameLookupRequired(properties?: WorkItemPropertiesOptions[]): boolean {
+    return this.isAnyPropertySelected(
+      [
+        WorkItemPropertiesOptions.SYSTEM_NAME,
+        WorkItemPropertiesOptions.TARGET_LOCATION,
+      ],
+      properties
+    );
+  }
+
+  private buildFlattenedRows(workItems: WorkItem[]): FlattenedRow[] {
+    const rows: FlattenedRow[] = [];
+    for (const workItem of workItems) {
+      const assets = workItem.resources?.assets?.selections ?? [];
+      const duts = workItem.resources?.duts?.selections ?? [];
+      const fixtures = workItem.resources?.fixtures?.selections ?? [];
+      const systems = workItem.resources?.systems?.selections ?? [];
+      const maxRows = Math.max(assets.length, duts.length, fixtures.length, systems.length, 1);
+
+      for (let rowIndex = 0; rowIndex < maxRows; rowIndex++) {
+        rows.push({
+          workItem,
+          assetSelection: assets[rowIndex],
+          dutSelection: duts[rowIndex],
+          fixtureSelection: fixtures[rowIndex],
+          systemSelection: systems[rowIndex],
+        });
+      }
+    }
+    return rows;
+  }
+
+  private async loadAssetNames(
     workItems: WorkItem[],
+    properties?: WorkItemPropertiesOptions[]
+  ): Promise<Map<string, string>> {
+    const isAssetNameSelected = this.isPropertySelected(WorkItemPropertiesOptions.ASSET_NAME, properties);
+    const isDutNameSelected = this.isPropertySelected(WorkItemPropertiesOptions.DUT_NAME, properties);
+    const isFixtureNameSelected = this.isPropertySelected(WorkItemPropertiesOptions.FIXTURE_NAME, properties);
+    const isTargetParentSelected = this.isPropertySelected(WorkItemPropertiesOptions.TARGET_PARENT, properties);
+
+    const ids: string[] = [];
+    workItems.forEach(workItem => {
+      if (isAssetNameSelected) {
+        workItem.resources?.assets?.selections?.forEach(
+          selection => selection.id && ids.push(selection.id)
+        );
+      }
+      if (isDutNameSelected) {
+        workItem.resources?.duts?.selections?.forEach(
+          selection => selection.id && ids.push(selection.id)
+        );
+      }
+      if (isFixtureNameSelected) {
+        workItem.resources?.fixtures?.selections?.forEach(
+          selection => selection.id && ids.push(selection.id)
+        );
+      }
+      if (isTargetParentSelected) {
+        workItem.resources?.assets?.selections?.forEach(
+          selection => selection.targetParentId && ids.push(selection.targetParentId)
+        );
+        workItem.resources?.duts?.selections?.forEach(
+          selection => selection.targetParentId && ids.push(selection.targetParentId)
+        );
+        workItem.resources?.fixtures?.selections?.forEach(
+          selection => selection.targetParentId && ids.push(selection.targetParentId)
+        );
+      }
+    });
+
+    if (ids.length === 0) {
+      return new Map<string, string>();
+    }
+
+    const assets = await this.assetUtils.queryAssetsInBatches(ids, [
+      AssetProjectionProperties.ID,
+      AssetProjectionProperties.NAME,
+    ]);
+    return new Map(assets.map(asset => [asset.id, asset.name ?? asset.id]));
+  }
+
+  private resolveAssetName(id: string | undefined, assetNames: Map<string, string>): string {
+    return id ? assetNames.get(id) ?? id : '';
+  }
+
+  private resolveSystemAlias(id: string | undefined, systemAliases: Map<string, SystemAlias>): string {
+    return id ? systemAliases.get(id)?.alias ?? id : '';
+  }
+
+  private async loadParentWorkItemNames(workItems: WorkItem[]): Promise<Map<string, string>> {
+    const parentWorkitemIds = [
+      ...new Set(workItems.map(workItem => workItem.parentId).filter((id): id is string => !!id)),
+    ];
+    if (parentWorkitemIds.length === 0) {
+      return new Map<string, string>();
+    }
+
+    try {
+      const parentWorkItems = await this.queryWorkItemsData(
+        parentWorkitemIds.map(id => `id = "${id}"`).join(' || '),
+        [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
+        undefined,
+        undefined,
+        parentWorkitemIds.length,
+        undefined,
+        true
+      );
+
+      const parentWorkItemNameMap = new Map<string, string>();
+      parentWorkItems.forEach(parentWorkItem => {
+        parentWorkItemNameMap.set(parentWorkItem.id, parentWorkItem.name);
+      });
+      return parentWorkItemNameMap;
+    } catch {
+      return new Map<string, string>();
+    }
+  }
+
+  private buildFields(
+    properties: WorkItemPropertiesOptions[],
+    flattenedRows: FlattenedRow[],
+    workspacesLookup: Map<string, Workspace>,
+    usersLookup: Map<string, User>,
+    parentWorkItemNamesLookup: Map<string, string>,
+    assetNamesLookup: Map<string, string>,
+    systemAliasesLookup: Map<string, SystemAlias>,
     customProperties?: string[]
   ) {
-    const standardFields =
-      properties?.map(property => {
-        const fieldValue = workItems.map(workItem => this.getPropertyValue(property, workItem));
-        const fieldType = this.getPropertyFieldType(property);
-        return {
-          name: WorkItemProperties[property].label,
-          values: fieldValue,
-          type: fieldType,
-          ...(fieldType === FieldType.time && { config: { unit: 'time:YYYY-MM-DD HH:mm:ss' } }),
-        };
-      }) ?? [];
+    const fields: FieldDTO[] = [];
 
-    const customFields =
-      customProperties?.map(customProperty => ({
+    properties.forEach(property => {
+      if (property === WorkItemPropertiesOptions.TARGET_LOCATION) {
+        fields.push(...this.buildTargetLocationFields(flattenedRows, systemAliasesLookup));
+        return;
+      }
+
+      if (property === WorkItemPropertiesOptions.TARGET_PARENT) {
+        fields.push(...this.buildTargetParentFields(flattenedRows, assetNamesLookup));
+        return;
+      }
+
+      const fieldValue = flattenedRows.map(row =>
+        this.getPropertyValue(
+          property,
+          row,
+          workspacesLookup,
+          usersLookup,
+          parentWorkItemNamesLookup,
+          assetNamesLookup,
+          systemAliasesLookup
+        )
+      );
+      const fieldType = this.getPropertyFieldType(property);
+      fields.push({
+        name: WorkItemProperties[property].label,
+        values: fieldValue,
+        type: fieldType,
+        ...(fieldType === FieldType.time && { config: { unit: 'time:YYYY-MM-DD HH:mm:ss' } }),
+      });
+    });
+
+    customProperties?.forEach(customProperty => {
+      fields.push({
         name: customProperty,
-        values: workItems.map(workItem => workItem.properties?.[customProperty] ?? ''),
+        values: flattenedRows.map(row => row.workItem.properties?.[customProperty] ?? ''),
         type: FieldType.string,
-      })) ?? [];
+      });
+    });
 
-    return [...standardFields, ...customFields];
+    return fields;
+  }
+
+  private buildTargetLocationFields(
+    flattenedRows: FlattenedRow[],
+    systemAliasesLookup: Map<string, SystemAlias>
+  ): FieldDTO[] {
+    return [
+      this.buildResourceField('Target Location (Asset)', flattenedRows, row =>
+        this.resolveSystemAlias(row.assetSelection?.targetSystemId, systemAliasesLookup)
+      ),
+      this.buildResourceField('Target Location (DUT)', flattenedRows, row =>
+        this.resolveSystemAlias(row.dutSelection?.targetSystemId, systemAliasesLookup)
+      ),
+      this.buildResourceField('Target Location (Fixture)', flattenedRows, row =>
+        this.resolveSystemAlias(row.fixtureSelection?.targetSystemId, systemAliasesLookup)
+      ),
+    ];
+  }
+
+  private buildTargetParentFields(flattenedRows: FlattenedRow[], assetNamesLookup: Map<string, string>): FieldDTO[] {
+    return [
+      this.buildResourceField('Target Parent (Asset)', flattenedRows, row =>
+        this.resolveAssetName(row.assetSelection?.targetParentId, assetNamesLookup)
+      ),
+      this.buildResourceField('Target Parent (DUT)', flattenedRows, row =>
+        this.resolveAssetName(row.dutSelection?.targetParentId, assetNamesLookup)
+      ),
+      this.buildResourceField('Target Parent (Fixture)', flattenedRows, row =>
+        this.resolveAssetName(row.fixtureSelection?.targetParentId, assetNamesLookup)
+      ),
+    ];
+  }
+
+  private buildResourceField(
+    name: string,
+    flattenedRows: FlattenedRow[],
+    resolver: (row: FlattenedRow) => string
+  ): FieldDTO {
+    return { name, values: flattenedRows.map(resolver), type: FieldType.string };
   }
 
   private getPropertyValue(
     property: WorkItemPropertiesOptions,
-    workItem: WorkItem
+    row: FlattenedRow,
+    workspacesLookup: Map<string, Workspace>,
+    usersLookup: Map<string, User>,
+    parentWorkItemNamesLookup: Map<string, string>,
+    assetNamesLookup: Map<string, string>,
+    systemAliasesLookup: Map<string, SystemAlias>
   ): string | null {
+    const workItem = row.workItem;
     switch (property) {
       case WorkItemPropertiesOptions.ID:
         return workItem.id ?? '';
@@ -179,6 +475,25 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         return workItem.testProgram ?? '';
       case WorkItemPropertiesOptions.PART_NUMBER:
         return workItem.partNumber ?? '';
+      case WorkItemPropertiesOptions.WORKSPACE: {
+        const workspace = workspacesLookup.get(workItem.workspace ?? '');
+        return workspace ? workspace.name : workItem.workspace ?? '';
+      }
+      case WorkItemPropertiesOptions.ASSIGNED_TO:
+      case WorkItemPropertiesOptions.REQUESTED_BY:
+      case WorkItemPropertiesOptions.CREATED_BY:
+      case WorkItemPropertiesOptions.UPDATED_BY: {
+        const userField = USER_PROPERTY_FIELDS[property]!;
+        const userId = workItem[userField] as string | undefined;
+        const user = usersLookup.get(userId ?? '');
+        return user ? UsersUtils.getUserFullName(user) : userId ?? '';
+      }
+      case WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME: {
+        if (!workItem.parentId) {
+          return '';
+        }
+        return parentWorkItemNamesLookup.get(workItem.parentId) ?? '';
+      }
       case WorkItemPropertiesOptions.PARENT_WORK_ITEM_ID:
         return workItem.parentId ?? '';
       case WorkItemPropertiesOptions.TEMPLATE_ID:
@@ -203,6 +518,22 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         const seconds = workItem.schedule?.plannedDurationInSeconds;
         return seconds != null ? transformDuration(seconds) : '';
       }
+      case WorkItemPropertiesOptions.ASSET_ID:
+        return row.assetSelection?.id ?? '';
+      case WorkItemPropertiesOptions.ASSET_NAME:
+        return this.resolveAssetName(row.assetSelection?.id, assetNamesLookup);
+      case WorkItemPropertiesOptions.DUT_ID:
+        return row.dutSelection?.id ?? '';
+      case WorkItemPropertiesOptions.DUT_NAME:
+        return this.resolveAssetName(row.dutSelection?.id, assetNamesLookup);
+      case WorkItemPropertiesOptions.FIXTURE_ID:
+        return row.fixtureSelection?.id ?? '';
+      case WorkItemPropertiesOptions.FIXTURE_NAME:
+        return this.resolveAssetName(row.fixtureSelection?.id, assetNamesLookup);
+      case WorkItemPropertiesOptions.SYSTEM_ID:
+        return row.systemSelection?.id ?? '';
+      case WorkItemPropertiesOptions.SYSTEM_NAME:
+        return this.resolveSystemAlias(row.systemSelection?.id, systemAliasesLookup);
       default:
         return '';
     }
@@ -236,7 +567,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return '';
     }
 
-    return WORK_ITEM_STATE_LABEL_MAP[state] ?? state;
+    return WORK_ITEM_STATE_OPTIONS[state as WorkItemState]?.label ?? state;
   }
 
   async queryWorkItemsData(
@@ -245,7 +576,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     orderBy?: OrderByOptions,
     descending?: boolean,
     take?: number,
-    customProperties?: string[]
+    customProperties?: string[],
+    suppressErrorAlert = false
   ): Promise<WorkItem[]> {
     const projection = this.buildProjection(properties, customProperties);
 
@@ -258,7 +590,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         take: currentTake,
         continuationToken,
       };
-      const response = await this.queryWorkItems(body);
+      const response = await this.queryWorkItems(body, suppressErrorAlert);
 
       return {
         data: response.workItems ?? [],
@@ -302,7 +634,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return response.totalCount ?? 0;
   }
 
-  async queryWorkItems(body: QueryWorkItemsRequestBody): Promise<WorkItemsResponse> {
+  async queryWorkItems(
+    body: QueryWorkItemsRequestBody,
+    suppressErrorAlert = false
+  ): Promise<WorkItemsResponse> {
     try {
       return await this.post<WorkItemsResponse>(
         this.queryWorkItemsUrl,
@@ -330,10 +665,12 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
           break;
       }
 
-      this.appEvents?.publish?.({
-        type: AppEvents.alertError.name,
-        payload: ['Error during work items query', errorMessage],
-      });
+      if (!suppressErrorAlert) {
+        this.appEvents?.publish?.({
+          type: AppEvents.alertError.name,
+          payload: ['Error during work items query', errorMessage],
+        });
+      }
 
       throw new Error(errorMessage);
     }
@@ -348,10 +685,24 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   public buildFilterFromQuery(query: WorkItemsQuery): string | undefined {
     const typeFilter = isTypesNonEmpty(query.types) ? this.buildTypeFilter(query.types!) : undefined;
     const queryFilter = query.filter?.trim();
+    const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
 
     return this.buildQueryFilter(
       typeFilter ? `(${typeFilter})` : undefined,
-      queryFilter ? `(${queryFilter})` : undefined
+      transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
+    );
+  }
+
+  // The backend API only supports duration in seconds, so the days/hours fields exposed by the
+  // query builder are converted to their seconds-based equivalents before the filter is sent.
+  private transformDurationFilters(filter: string): string {
+    return this.durationFilterConversions.reduce(
+      (transformedFilter, { regex, target, factor }) =>
+        transformedFilter.replace(
+          regex,
+          (_, operator, value) => `${target} ${operator} "${Math.round(parseFloat(value) * factor)}"`
+        ),
+      filter
     );
   }
 
