@@ -1,3 +1,9 @@
+## [5.11.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.10.1...v5.11.0) (2026-09-16)
+
+### Features
+
+* **work-items:** add variable query editor for Work Items data source ([#739](https://github.com/ni/systemlink-grafana-plugins/issues/739)) ([58ffe13](https://github.com/ni/systemlink-grafana-plugins/commit/58ffe138491613738a6d0fee5a63edee547d1981))
+
 ## [5.10.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.10.0...v5.10.1) (2026-09-16)
 
 ### Bug Fixes
