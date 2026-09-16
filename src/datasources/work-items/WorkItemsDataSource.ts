@@ -313,7 +313,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       AssetProjectionProperties.ID,
       AssetProjectionProperties.NAME,
     ]);
-    return new Map(assets.map(asset => [asset.id, asset.name ?? asset.id]));
+    return new Map(assets.map(asset => [asset.id, asset.name ?? '']));
   }
 
   private resolveAssetName(id: string | undefined, assetNames: Map<string, string>): string {
@@ -321,7 +321,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private resolveAssetNameForTargetParent(id: string | undefined, assetNames: Map<string, string>): string {
-    return id ? assetNames.get(id) ?? id : '';
+    return id ? assetNames.get(id) || id : '';
   }
 
   private resolveSystemAlias(id: string | undefined, systemAliases: Map<string, SystemAlias>): string {

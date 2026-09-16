@@ -1164,6 +1164,34 @@ describe('WorkItemsDataSource', () => {
         }
       );
 
+      it.each([
+        [WorkItemPropertiesOptions.ASSET_NAME, 'assets', 'a1', 'Asset name'],
+        [WorkItemPropertiesOptions.DUT_NAME, 'duts', 'd1', 'DUT name'],
+        [WorkItemPropertiesOptions.FIXTURE_NAME, 'fixtures', 'f1', 'Fixture name'],
+      ])(
+        'should fall back to empty when %s is found but unnamed',
+        async (property, resourceType, id, label) => {
+          jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([{ id }]);
+          jest.spyOn(datasource, 'post').mockResolvedValue({
+            workItems: [{ id: '1', resources: { [resourceType]: { selections: [{ id }] } } }],
+            continuationToken: '',
+            totalCount: 1,
+          });
+
+          const query = {
+            refId: 'A',
+            outputType: OutputType.Properties,
+            types: [WorkItemTypeOptions.WorkOrders],
+            properties: [property],
+            take: 1000,
+          };
+
+          const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+          expect(result.fields).toEqual([{ name: label, values: [''], type: 'string' }]);
+        }
+      );
+
       it('should not call AssetUtils when no resource name or target parent property is selected', async () => {
         const queryAssetsSpy = jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches');
         jest.spyOn(datasource, 'post').mockResolvedValue({
@@ -1318,6 +1346,38 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([
           { name: 'Target Parent (Asset)', values: ['Parent Asset 1'], type: 'string' },
           { name: 'Target Parent (DUT)', values: ['p2'], type: 'string' },
+          { name: 'Target Parent (Fixture)', values: [''], type: 'string' },
+        ]);
+      });
+
+      it('should fall back to the ID for TARGET_PARENT when the parent asset is found but unnamed', async () => {
+        jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([{ id: 'p1' }]);
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [
+            {
+              id: '1',
+              resources: {
+                assets: { selections: [{ id: 'a1', targetParentId: 'p1' }] },
+              },
+            },
+          ],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.TARGET_PARENT],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([
+          { name: 'Target Parent (Asset)', values: ['p1'], type: 'string' },
+          { name: 'Target Parent (DUT)', values: [''], type: 'string' },
           { name: 'Target Parent (Fixture)', values: [''], type: 'string' },
         ]);
       });
