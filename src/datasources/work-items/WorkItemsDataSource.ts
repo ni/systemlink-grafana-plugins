@@ -19,6 +19,8 @@ import { UsersUtils } from 'shared/users.utils';
 import { User } from 'shared/types/QueryUsers.types';
 import { AssetUtils, AssetProjectionProperties } from 'shared/asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
+import { LocationUtils } from 'shared/location.utils';
+import { Location } from 'shared/types/QueryLocations.types';
 import { queryInBatches } from 'core/utils';
 import { computedFieldsupportedOperations } from 'core/query-builder.utils';
 import {
@@ -26,6 +28,7 @@ import {
   OrderByOptions,
   OutputType,
   QueryWorkItemsRequestBody,
+  ResourceSelection,
   WorkItem,
   WorkItemPropertiesOptions,
   WorkItemsQuery,
@@ -61,6 +64,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     this.usersUtils = new UsersUtils(instanceSettings, backendSrv);
     this.workspaceUtils = new WorkspaceUtils(instanceSettings, backendSrv);
     this.systemUtils = new SystemUtils(instanceSettings, backendSrv);
+    this.locationUtils = new LocationUtils(instanceSettings, backendSrv);
     this.assetUtils = new AssetUtils(this.instanceSettings, this.backendSrv);
   }
 
@@ -77,6 +81,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   usersUtils: UsersUtils;
   workspaceUtils: WorkspaceUtils;
   systemUtils: SystemUtils;
+  locationUtils: LocationUtils;
   assetUtils: AssetUtils;
 
   defaultQuery = {
@@ -165,6 +170,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const systemAliasesLookup = this.isSystemNameLookupRequired(query.properties)
       ? await this.loadSystemAliases()
       : new Map<string, SystemAlias>();
+    const locationsLookup = this.isPropertySelected(WorkItemPropertiesOptions.TARGET_LOCATION, query.properties)
+      ? await this.loadLocations()
+      : new Map<string, Location>();
 
     const workItemsResponse = await this.queryWorkItemsData(
       filter,
@@ -196,7 +204,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         usersLookup,
         parentWorkItemNamesLookup,
         assetNamesLookup,
-        systemAliasesLookup
+        systemAliasesLookup,
+        locationsLookup
       ),
     };
   }
@@ -324,6 +333,30 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return id ? systemAliases.get(id)?.alias ?? id : '';
   }
 
+  private resolveTargetLocation(
+    selection: Pick<ResourceSelection, 'targetSystemId' | 'targetLocationId'> | undefined,
+    locations: Map<string, Location>,
+    systems: Map<string, SystemAlias>
+  ): string {
+    if (!selection) {
+      return '';
+    }
+
+    const { targetSystemId, targetLocationId } = selection;
+
+    if (targetSystemId) {
+      const system = systems.get(targetSystemId);
+      return system ? system.alias ?? '' : targetSystemId;
+    }
+
+    if (targetLocationId) {
+      const location = locations.get(targetLocationId);
+      return location ? `${location.name}: ${location.pathWithNames}` : targetLocationId;
+    }
+
+    return '';
+  }
+
   private async loadParentWorkItemNames(workItems: WorkItem[]): Promise<Map<string, string>> {
     const parentWorkitemIds = [
       ...new Set(workItems.map(workItem => workItem.parentId).filter((id): id is string => !!id)),
@@ -359,13 +392,14 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     usersLookup: Map<string, User>,
     parentWorkItemNamesLookup: Map<string, string>,
     assetNamesLookup: Map<string, string>,
-    systemAliasesLookup: Map<string, SystemAlias>
+    systemAliasesLookup: Map<string, SystemAlias>,
+    locationsLookup: Map<string, Location>
   ) {
     const fields: FieldDTO[] = [];
 
     properties.forEach(property => {
       if (property === WorkItemPropertiesOptions.TARGET_LOCATION) {
-        fields.push(...this.buildTargetLocationFields(flattenedRows, systemAliasesLookup));
+        fields.push(...this.buildTargetLocationFields(flattenedRows, locationsLookup, systemAliasesLookup));
         return;
       }
 
@@ -399,17 +433,18 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   private buildTargetLocationFields(
     flattenedRows: FlattenedRow[],
+    locationsLookup: Map<string, Location>,
     systemAliasesLookup: Map<string, SystemAlias>
   ): FieldDTO[] {
     return [
       this.buildResourceField('Target Location (Asset)', flattenedRows, row =>
-        this.resolveSystemAlias(row.assetSelection?.targetSystemId, systemAliasesLookup)
+        this.resolveTargetLocation(row.assetSelection, locationsLookup, systemAliasesLookup)
       ),
       this.buildResourceField('Target Location (DUT)', flattenedRows, row =>
-        this.resolveSystemAlias(row.dutSelection?.targetSystemId, systemAliasesLookup)
+        this.resolveTargetLocation(row.dutSelection, locationsLookup, systemAliasesLookup)
       ),
       this.buildResourceField('Target Location (Fixture)', flattenedRows, row =>
-        this.resolveSystemAlias(row.fixtureSelection?.targetSystemId, systemAliasesLookup)
+        this.resolveTargetLocation(row.fixtureSelection, locationsLookup, systemAliasesLookup)
       ),
     ];
   }
@@ -737,6 +772,17 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         this.handleDependenciesError(error);
       }
       return new Map<string, SystemAlias>();
+    }
+  }
+
+  public async loadLocations(): Promise<Map<string, Location>> {
+    try {
+      return await this.locationUtils.getLocations();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, Location>();
     }
   }
 

@@ -621,8 +621,11 @@ describe('WorkItemsDataSource', () => {
               'RESOURCES_DUTS_SELECTIONS_ID',
               'RESOURCES_FIXTURES_SELECTIONS_ID',
               'RESOURCES_ASSETS_SELECTIONS_TARGET_SYSTEM_ID',
+              'RESOURCES_ASSETS_SELECTIONS_TARGET_LOCATION_ID',
               'RESOURCES_DUTS_SELECTIONS_TARGET_SYSTEM_ID',
+              'RESOURCES_DUTS_SELECTIONS_TARGET_LOCATION_ID',
               'RESOURCES_FIXTURES_SELECTIONS_TARGET_SYSTEM_ID',
+              'RESOURCES_FIXTURES_SELECTIONS_TARGET_LOCATION_ID',
               'RESOURCES_ASSETS_SELECTIONS_TARGET_PARENT_ID',
               'RESOURCES_DUTS_SELECTIONS_TARGET_PARENT_ID',
               'RESOURCES_FIXTURES_SELECTIONS_TARGET_PARENT_ID',
@@ -1286,6 +1289,127 @@ describe('WorkItemsDataSource', () => {
         ]);
       });
 
+      it('should resolve TARGET_LOCATION via location lookup when only a target location ID is present', async () => {
+        jest
+          .spyOn(datasource.locationUtils, 'getLocations')
+          .mockResolvedValue(new Map([['loc1', { id: 'loc1', name: 'Building 1', pathWithNames: 'Site > Building 1' }]]));
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [
+            {
+              id: '1',
+              resources: {
+                assets: { selections: [{ id: 'a1', targetLocationId: 'loc1' }] },
+                duts: { selections: [{ id: 'd1', targetLocationId: 'loc2' }] },
+                fixtures: { selections: [{ id: 'f1' }] },
+              },
+            },
+          ],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.TARGET_LOCATION],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([
+          { name: 'Target Location (Asset)', values: ['Building 1: Site > Building 1'], type: 'string' },
+          { name: 'Target Location (DUT)', values: ['loc2'], type: 'string' },
+          { name: 'Target Location (Fixture)', values: [''], type: 'string' },
+        ]);
+      });
+
+      it('should prefer the target system over the target location when both are present', async () => {
+        jest
+          .spyOn(datasource.systemUtils, 'getSystemAliases')
+          .mockResolvedValue(new Map([['sys1', { id: 'sys1', alias: 'System Alias 1' }]]));
+        jest
+          .spyOn(datasource.locationUtils, 'getLocations')
+          .mockResolvedValue(new Map([['loc1', { id: 'loc1', name: 'Building 1', pathWithNames: 'Site > Building 1' }]]));
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [
+            {
+              id: '1',
+              resources: {
+                assets: { selections: [{ id: 'a1', targetSystemId: 'sys1', targetLocationId: 'loc1' }] },
+              },
+            },
+          ],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.TARGET_LOCATION],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields[0]).toEqual({
+          name: 'Target Location (Asset)',
+          values: ['System Alias 1'],
+          type: 'string',
+        });
+      });
+
+      it('should fall back to the raw location ID when the location lookup fails', async () => {
+        jest.spyOn(datasource.locationUtils, 'getLocations').mockRejectedValue(new Error('Failed'));
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [
+            { id: '1', resources: { assets: { selections: [{ id: 'a1', targetLocationId: 'loc1' }] } } },
+          ],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.TARGET_LOCATION],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields[0]).toEqual({
+          name: 'Target Location (Asset)',
+          values: ['loc1'],
+          type: 'string',
+        });
+      });
+
+      it('should not call LocationUtils when the target location property is not selected', async () => {
+        const getLocationsSpy = jest.spyOn(datasource.locationUtils, 'getLocations');
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', resources: { assets: { selections: [{ id: 'a1', targetLocationId: 'loc1' }] } } }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.ASSET_ID],
+          take: 1000,
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(getLocationsSpy).not.toHaveBeenCalled();
+      });
+
       it('should split TARGET_PARENT into asset, DUT and fixture columns resolved via asset names', async () => {
         jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([
           { id: 'p1', name: 'Parent Asset 1' },
@@ -1516,6 +1640,28 @@ describe('loadSystemAliases', () => {
   });
 });
 
+describe('loadLocations', () => {
+  it('should return the list of locations when the API call succeeds', async () => {
+    const [datasource] = setupDataSource(WorkItemsDataSource);
+    jest.spyOn(datasource.locationUtils, 'getLocations').mockResolvedValue(
+      new Map([['1', { id: '1', name: 'Building 1', pathWithNames: 'Site > Building 1' }]])
+    );
+
+    const result = await datasource.loadLocations();
+
+    expect(result.get('1')?.name).toBe('Building 1');
+  });
+
+  it('should return an empty map when the lookup fails', async () => {
+    const [datasource] = setupDataSource(WorkItemsDataSource);
+    jest.spyOn(datasource.locationUtils, 'getLocations').mockRejectedValue(new Error('Error'));
+
+    const result = await datasource.loadLocations();
+
+    expect(result.size).toBe(0);
+  });
+});
+
 describe('query builder lookup error descriptions', () => {
   const productLookup = {
     name: 'product',
@@ -1540,6 +1686,12 @@ describe('query builder lookup error descriptions', () => {
     fail: (datasource: WorkItemsDataSource, error: Error) =>
       jest.spyOn(datasource.systemUtils, 'getSystemAliases').mockRejectedValue(error),
     load: (datasource: WorkItemsDataSource) => datasource.loadSystemAliases(),
+  };
+  const locationLookup = {
+    name: 'location',
+    fail: (datasource: WorkItemsDataSource, error: Error) =>
+      jest.spyOn(datasource.locationUtils, 'getLocations').mockRejectedValue(error),
+    load: (datasource: WorkItemsDataSource) => datasource.loadLocations(),
   };
 
   const failures = [
@@ -1575,7 +1727,7 @@ describe('query builder lookup error descriptions', () => {
     },
   ];
 
-  describe.each([productLookup, userLookup, workspaceLookup, systemAliasLookup])(
+  describe.each([productLookup, userLookup, workspaceLookup, systemAliasLookup, locationLookup])(
     '$name lookup',
     ({ fail, load }) => {
       it.each(failures)('should describe $scenario', async ({ error, expected }) => {
