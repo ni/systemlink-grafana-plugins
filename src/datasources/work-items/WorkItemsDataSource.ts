@@ -191,7 +191,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       refId: query.refId,
       name: query.refId,
       fields: this.buildFields(
-        query.properties!,
+        // Custom-properties-only selections are valid, so `properties` can be empty here.
+        query.properties ?? [],
         flattenedRows,
         workspacesLookup,
         usersLookup,
