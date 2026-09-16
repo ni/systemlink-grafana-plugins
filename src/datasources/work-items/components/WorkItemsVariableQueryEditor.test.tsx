@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { setupDataSource } from 'test/fixtures';
@@ -9,24 +9,63 @@ import { OrderByOptions, WorkItemsVariableQuery, WorkItemsVariableQueryType, Wor
 import { WorkItemsVariableQueryEditor } from './WorkItemsVariableQueryEditor';
 import { workItemsVariableQueryEditorPage as page } from './WorkItemsVariableQueryEditor.page';
 
-function renderEditor(initialQuery: Partial<WorkItemsVariableQuery> = {}) {
+jest.mock('shared/product.utils', () => ({
+  ProductUtils: jest.fn().mockImplementation(() => ({
+    getProductNamesAndPartNumbers: jest.fn().mockResolvedValue(
+      new Map([['part-number-1', { id: '1', partNumber: 'part-number-1', name: 'Product 1' }]])
+    ),
+  })),
+}));
+
+jest.mock('shared/users.utils', () => {
+  const actual = jest.requireActual('shared/users.utils');
+  const MockUsersUtils: any = jest.fn().mockImplementation(() => ({
+    getUsers: jest.fn().mockResolvedValue(
+      new Map([['1', { id: '1', firstName: 'User', lastName: '1', email: 'user1@123.com' }]])
+    ),
+  }));
+  // Preserve the static helper the query builder relies on.
+  MockUsersUtils.getUserNameAndEmail = actual.UsersUtils.getUserNameAndEmail;
+  return { ...actual, UsersUtils: MockUsersUtils };
+});
+
+jest.mock('shared/workspace.utils', () => ({
+  WorkspaceUtils: jest.fn().mockImplementation(() => ({
+    getWorkspaces: jest.fn().mockResolvedValue(new Map([['1', { id: '1', name: 'WorkspaceName' }]])),
+  })),
+}));
+
+jest.mock('shared/system.utils', () => ({
+  SystemUtils: jest.fn().mockImplementation(() => ({
+    getSystemAliases: jest.fn().mockResolvedValue(new Map([['1', { id: '1', alias: 'System 1' }]])),
+  })),
+}));
+
+async function renderEditor(
+  initialQuery: Partial<WorkItemsVariableQuery> = {},
+  setupDatasource?: (datasource: WorkItemsDataSource) => void
+) {
   const onChange = jest.fn<void, [WorkItemsVariableQuery]>();
   const [datasource] = setupDataSource(WorkItemsDataSource);
+  setupDatasource?.(datasource);
 
   const createElement = (query: WorkItemsVariableQuery) =>
     React.createElement(WorkItemsVariableQueryEditor, { datasource, query, onChange, onRunQuery: jest.fn() });
 
-  const { rerender } = render(createElement({ ...initialQuery, refId: 'A' } as WorkItemsVariableQuery));
+  let rerender!: ReturnType<typeof render>['rerender'];
+  await act(async () => {
+    ({ rerender } = render(createElement({ ...initialQuery, refId: 'A' } as WorkItemsVariableQuery)));
+  });
 
   // Mimics Grafana's variable editor by rerendering when onChange is called.
   onChange.mockImplementation(newQuery => rerender(createElement(newQuery)));
 
-  return { onChange, datasource };
+  return { onChange };
 }
 
 describe('WorkItemsVariableQueryEditor', () => {
-  it('should default to the list work items query type and show its controls with default values', () => {
-    renderEditor();
+  it('should default to the list work items query type and show its controls with default values', async () => {
+    await renderEditor();
 
     expect(page.queryTypeRadioButton(WorkItemsVariableQueryType.ListWorkItems)).toBeChecked();
     expect(page.queryTypeRadioButton(WorkItemsVariableQueryType.ListWorkItemTypes)).not.toBeChecked();
@@ -37,8 +76,23 @@ describe('WorkItemsVariableQueryEditor', () => {
     expect(page.takeLimitInput()).toHaveValue(1000);
   });
 
+  it('should display the default values in the list work items controls', async () => {
+    const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+
+    try {
+      await renderEditor();
+
+      expect(screen.queryByRole('button', { name: 'Remove Work orders' })).not.toBeNull();
+      expect((page.orderByCombobox() as HTMLInputElement).value).toBe('Updated At');
+      expect(page.descendingSwitch()).toBeChecked();
+      expect(page.takeLimitInput()).toHaveValue(1000);
+    } finally {
+      offsetHeightSpy.mockRestore();
+    }
+  });
+
   it('should hide the list work items controls when list work item types is selected', async () => {
-    const { onChange } = renderEditor();
+    const { onChange } = await renderEditor();
 
     await userEvent.click(page.queryTypeRadioButton(WorkItemsVariableQueryType.ListWorkItemTypes));
 
@@ -51,8 +105,22 @@ describe('WorkItemsVariableQueryEditor', () => {
     expect(page.optionalTakeLimitInput()).not.toBeInTheDocument();
   });
 
-  it('should update descending when the toggle is switched', () => {
-    const { onChange } = renderEditor();
+  it('should restore the list work items controls when switching back from list work item types', async () => {
+    await renderEditor();
+
+    await userEvent.click(page.queryTypeRadioButton(WorkItemsVariableQueryType.ListWorkItemTypes));
+    expect(page.orderByCombobox()).not.toBeInTheDocument();
+
+    await userEvent.click(page.queryTypeRadioButton(WorkItemsVariableQueryType.ListWorkItems));
+
+    expect(page.typesMultiCombobox()).toBeVisible();
+    expect(page.orderByCombobox()).toHaveDisplayValue('Updated At');
+    expect(page.descendingSwitch()).toBeChecked();
+    expect(page.takeLimitInput()).toHaveValue(1000);
+  });
+
+  it('should update descending when the toggle is switched', async () => {
+    const { onChange } = await renderEditor();
 
     fireEvent.click(page.descendingSwitch()!);
 
@@ -63,7 +131,7 @@ describe('WorkItemsVariableQueryEditor', () => {
     const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
 
     try {
-      const { onChange } = renderEditor({
+      const { onChange } = await renderEditor({
         types: [WorkItemTypeOptions.WorkOrders, WorkItemTypeOptions.TestPlans],
       });
 
@@ -81,7 +149,7 @@ describe('WorkItemsVariableQueryEditor', () => {
     const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
 
     try {
-      const { onChange } = renderEditor();
+      const { onChange } = await renderEditor();
 
       await userEvent.click(page.orderByCombobox()!);
       await userEvent.click(await screen.findByRole('option', { name: /ID/ }));
@@ -92,17 +160,39 @@ describe('WorkItemsVariableQueryEditor', () => {
     }
   });
 
-  it('should update take when a valid value is entered', () => {
-    const { onChange } = renderEditor();
+  it('should update take when a valid value is entered', async () => {
+    const { onChange } = await renderEditor();
 
     page.setTakeLimit('500');
 
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ take: 500 }));
   });
 
+  it('should update the filter when the query builder changes', async () => {
+    const { onChange } = await renderEditor();
+
+    await act(async () => {
+      page.queryBuilder().dispatchEvent(new CustomEvent('change', { detail: { linq: 'new-query' } }));
+    });
+
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ filter: 'new-query' }));
+  });
+
+  it('should surface the datasource dependency lookup error', async () => {
+    await renderEditor({}, datasource => {
+      datasource.errorTitle = 'Warning during work items query';
+      datasource.errorDescription = 'Some values may not be available in the query builder lookups.';
+    });
+
+    expect(page.getErrorByMessage('Warning during work items query')).toBeVisible();
+    expect(
+      page.getErrorByMessage('Some values may not be available in the query builder lookups.')
+    ).toBeVisible();
+  });
+
   describe('type validation', () => {
-    it('should not show a type validation error when the editor renders with default types', () => {
-      renderEditor();
+    it('should not show a type validation error when the editor renders with default types', async () => {
+      await renderEditor();
 
       expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeNull();
     });
@@ -111,7 +201,7 @@ describe('WorkItemsVariableQueryEditor', () => {
       const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
 
       try {
-        const { onChange } = renderEditor({ types: [WorkItemTypeOptions.WorkOrders] });
+        const { onChange } = await renderEditor({ types: [WorkItemTypeOptions.WorkOrders] });
 
         await userEvent.click(page.removeOptionButton('Work orders'));
 
@@ -124,15 +214,15 @@ describe('WorkItemsVariableQueryEditor', () => {
   });
 
   describe('take validation', () => {
-    it('should not show a take validation error when the editor renders', () => {
-      renderEditor();
+    it('should not show a take validation error when the editor renders', async () => {
+      await renderEditor();
 
       expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeNull();
       expect(page.getErrorByMessage(takeErrorMessages.lessOrEqualToTenThousand)).toBeNull();
     });
 
-    it('should show a take validation error when the take input is not positive', () => {
-      const { onChange } = renderEditor();
+    it('should show a take validation error when the take input is not positive', async () => {
+      const { onChange } = await renderEditor();
 
       page.setTakeLimit('-5');
 
@@ -140,8 +230,8 @@ describe('WorkItemsVariableQueryEditor', () => {
       expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ take: -5 }));
     });
 
-    it('should show a take validation error when the take input exceeds the maximum limit', () => {
-      const { onChange } = renderEditor();
+    it('should show a take validation error when the take input exceeds the maximum limit', async () => {
+      const { onChange } = await renderEditor();
 
       page.setTakeLimit(`${TAKE_LIMIT + 1}`);
 
@@ -149,8 +239,8 @@ describe('WorkItemsVariableQueryEditor', () => {
       expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ take: TAKE_LIMIT + 1 }));
     });
 
-    it('should clear the take validation error when a valid take value is entered', () => {
-      renderEditor();
+    it('should clear the take validation error when a valid take value is entered', async () => {
+      await renderEditor();
 
       page.setTakeLimit('-5');
       expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
@@ -161,14 +251,14 @@ describe('WorkItemsVariableQueryEditor', () => {
       expect(page.takeLimitInput()).toHaveValue(500);
     });
 
-    it('should show the take validation error on render when the saved query take is invalid', () => {
-      renderEditor({ take: -5 });
+    it('should show the take validation error on render when the saved query take is invalid', async () => {
+      await renderEditor({ take: -5 });
 
       expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
     });
 
-    it('should show a take validation error when the take input is cleared', () => {
-      renderEditor({ take: 500 });
+    it('should show a take validation error when the take input is cleared', async () => {
+      await renderEditor({ take: 500 });
 
       page.setTakeLimit('');
 

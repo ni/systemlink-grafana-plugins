@@ -1,3 +1,4 @@
+import { MetricFindValue } from '@grafana/data';
 import { OrderByOptions, WorkItemPropertiesGroup, WorkItemPropertiesOptions, WorkItemTypeOptions } from '../types';
 import { TAKE_LIMIT } from '../constants';
 
@@ -57,6 +58,15 @@ export const WorkItemTypes = [
   { label: 'Reservation', value: WorkItemTypeOptions.Reservation },
   { label: 'Transport Order', value: WorkItemTypeOptions.TransportOrder },
 ];
+
+export const WorkItemTypeMetricFindValues: MetricFindValue[] = WorkItemTypes.map(
+  type => (
+    {
+      text: type.label,
+      value: type.value,
+    }
+  )
+);
 
 export const OrderBy = [
   {

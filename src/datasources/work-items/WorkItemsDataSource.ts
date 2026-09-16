@@ -30,7 +30,7 @@ import {
   WorkItemTypeOptions,
 } from './types';
 import { DEFAULT_TAKE, WORK_ITEM_TYPE_FILTER_VALUES } from './constants';
-import { WorkItemTypes } from './constants/QueryEditor.constants';
+import { WorkItemTypeMetricFindValues } from './constants/QueryEditor.constants';
 import { isTypesNonEmpty } from './utils';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
@@ -199,7 +199,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const variableQuery = this.prepareVariableQuery(query);
 
     if (variableQuery.queryType === WorkItemsVariableQueryType.ListWorkItemTypes) {
-      return WorkItemTypes.map(type => ({ text: type.label, value: type.value }));
+      return WorkItemTypeMetricFindValues;
     }
 
     return [];

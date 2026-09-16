@@ -37,7 +37,6 @@ type Props = Omit<QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>, 'query'
 
 export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Props) {
   query = datasource.prepareVariableQuery(query);
-  const queryType = query.queryType ?? WorkItemsVariableQueryType.ListWorkItems;
 
   const isTypesValid = isTypesNonEmpty(query.types);
   const takeInvalidMessage = getTakeError(query.take);
@@ -55,10 +54,6 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
   const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
 
   useEffect(() => {
-    if (queryType !== WorkItemsVariableQueryType.ListWorkItems) {
-      return;
-    }
-
     const loadWorkspaces = async () => {
       const workspaces = await datasource.loadWorkspaces();
       setWorkspaces(Array.from(workspaces.values()));
@@ -83,7 +78,7 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
     loadUsers();
     loadProducts();
     loadSystemAliases();
-  }, [datasource, queryType]);
+  }, [datasource]);
 
   const globalVariableOptions = useMemo(
     () => datasource.globalVariableOptions(),
@@ -114,7 +109,7 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
   };
 
   const onOrderByChange = (item: SelectableValue<OrderByOptions>) => {
-    handleQueryChange({ ...query, orderBy: item.value as OrderByOptions });
+    handleQueryChange({ ...query, orderBy: item.value });
   };
 
   const onDescendingChange = (isDescendingChecked: boolean) => {
@@ -136,11 +131,11 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
         >
           <RadioButtonGroup 
             options={queryTypeOptions}
-            value={queryType}
+            value={query.queryType}
             onChange={onQueryTypeChange}
           />
         </InlineField>
-        {queryType === WorkItemsVariableQueryType.ListWorkItems && (
+        {query.queryType === WorkItemsVariableQueryType.ListWorkItems && (
           <>
             <InlineField
               label={labels.types}
