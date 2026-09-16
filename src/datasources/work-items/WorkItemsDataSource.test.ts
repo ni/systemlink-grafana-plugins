@@ -1289,7 +1289,7 @@ describe('WorkItemsDataSource', () => {
         ]);
       });
 
-      it('should resolve TARGET_LOCATION via location lookup when only a target system ID is not present', async () => {
+      it('should resolve TARGET_LOCATION via location lookup when target system ID is not present', async () => {
         jest
           .spyOn(datasource.locationUtils, 'getLocations')
           .mockResolvedValue(new Map([['loc1', { id: 'loc1', name: 'Building 1', pathWithNames: 'Site > Building 1' }]]));
