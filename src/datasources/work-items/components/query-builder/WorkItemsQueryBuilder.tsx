@@ -45,7 +45,7 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
       return null;
     }
     const productOptions = products.map(({ partNumber, name }) => ({
-      label: name ? `${name} (${partNumber})` : partNumber,
+      label: name ? `${name} (${partNumber})` : `(${partNumber})`,
       value: partNumber,
     }));
 

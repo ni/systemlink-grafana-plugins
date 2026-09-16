@@ -8,6 +8,7 @@ import {
   WorkItemsResourceQueryBuilderOperations ,
 } from 'datasources/work-items/constants/WorkItemsQueryBuilder.constants';
 import { WorkItemState, WorkItemTypeOptions } from 'datasources/work-items/types';
+import { WORK_ITEM_STATE_OPTIONS, WORK_ITEM_TYPE_FILTER_VALUES } from 'datasources/work-items/constants';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { User } from 'shared/types/QueryUsers.types';
@@ -140,6 +141,7 @@ describe('WorkItemsQueryBuilder', () => {
         'Updated',
         'Updated by',
         'Work order ID',
+        'Workflow ID',
         'Workspace',
       ]);
     });
@@ -195,15 +197,16 @@ describe('WorkItemsQueryBuilder', () => {
       { dataField: 'type', operations: equalityOperations },
       { dataField: 'state', operations: equalityOperations },
       { dataField: 'description', operations: containsOperations },
-      { dataField: 'testProgram', operations: textOperations },
+      { dataField: 'testProgram', operations: [...textOperations, QueryBuilderOperations.IS_BLANK.name, QueryBuilderOperations.IS_NOT_BLANK.name] },
       { dataField: 'partNumber', operations: equalityOperations },
       { dataField: 'workspace', operations: equalityOperations },
       { dataField: 'assignedTo', operations: equalityWithBlankOperations },
       { dataField: 'requestedBy', operations: equalityWithBlankOperations },
-      { dataField: 'createdBy', operations: equalityWithBlankOperations },
+      { dataField: 'createdBy', operations: equalityOperations },
       { dataField: 'updatedBy', operations: equalityOperations },
       { dataField: 'parentId', operations: equalityWithBlankOperations },
       { dataField: 'templateId', operations: equalityWithBlankOperations },
+      { dataField: 'workflowId', operations: equalityWithBlankOperations },
       { dataField: 'createdAt', operations: dateOperations },
       { dataField: 'updatedAt', operations: dateOperations },
       { dataField: 'timeline.earliestStartDateTime', operations: dateWithBlankOperations },
@@ -232,14 +235,18 @@ describe('WorkItemsQueryBuilder', () => {
       const fields = await renderAndGetFields();
       const typeValues = optionsFor(fields, 'type').map(option => option.value);
 
-      expect(typeValues).toEqual(Object.values(WorkItemTypeOptions));
+      expect(typeValues).toEqual(
+        Object.values(WorkItemTypeOptions).map(type => WORK_ITEM_TYPE_FILTER_VALUES[type])
+      );
     });
 
     it('should load every work item state as an option for the state property', async () => {
       const fields = await renderAndGetFields();
       const stateValues = optionsFor(fields, 'state').map(option => option.value);
 
-      expect(stateValues).toEqual(Object.values(WorkItemState));
+      expect(stateValues).toEqual(
+        Object.values(WorkItemState).map(state => WORK_ITEM_STATE_OPTIONS[state].value)
+      );
     });
 
     it('should load workspace options from the workspaces parameter', async () => {
@@ -269,7 +276,7 @@ describe('WorkItemsQueryBuilder', () => {
 
       const fields = await renderAndGetFields([], [], [], [unnamedProduct]);
 
-      expect(optionsFor(fields, 'partNumber')).toEqual([{ label: 'PN-2', value: 'PN-2' }]);
+      expect(optionsFor(fields, 'partNumber')).toEqual([{ label: '(PN-2)', value: 'PN-2' }]);
     });
 
     it('should load system alias options from the systemAliases parameter', async () => {
@@ -370,8 +377,8 @@ describe('WorkItemsQueryBuilder', () => {
     it.each([
       { filter: 'id = "1"', expected: ['ID', 'equals', '1'] },
       { filter: 'name.Contains("test")', expected: ['Name', 'contains', 'test'] },
-      { filter: 'type = "WORK_ORDERS"', expected: ['Type', 'equals', 'Work orders'] },
-      { filter: 'state = "PENDING_APPROVAL"', expected: ['State', 'equals', 'Pending approval'] },
+      { filter: 'type = "workorder"', expected: ['Type', 'equals', 'Work orders'] },
+      { filter: 'state = "PendingApproval"', expected: ['State', 'equals', 'Pending approval'] },
       { filter: 'properties["key"] = "value"', expected: ['Properties', 'matches', 'key', 'value'] },
       { filter: 'testProgram = "Program 1"', expected: ['Test program', 'equals', 'Program 1'] },
       { filter: 'partNumber = "PN-1"', expected: ['Product name (Part number)', 'equals', 'PN-1'] },
