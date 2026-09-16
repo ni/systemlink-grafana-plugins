@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import {
   AutoSizeInput,
@@ -67,6 +67,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   const [users, setUsers] = useState<User[] | null>(null);
   const [products, setProducts] = useState<ProductPartNumberAndName[] | null>(null);
   const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
+  const lastUsedFilter = useRef(query.filter);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -129,8 +130,10 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   };
 
   const onFilterChange = (event: any) => {
-    if (query.filter !== event.detail.linq) {
-      handleQueryChange({ ...query, filter: event.detail.linq });
+    const value = event.detail.linq;
+    if (query.filter !== value && lastUsedFilter.current !== value) {
+      lastUsedFilter.current = value;
+      handleQueryChange({ ...query, filter: value });
     }
   };
 
