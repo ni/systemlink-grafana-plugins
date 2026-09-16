@@ -1,3 +1,9 @@
+## [5.10.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.9.3...v5.10.0) (2026-09-16)
+
+### Features
+
+* **work-items:** Add support for resource row flattening and lookup ([#745](https://github.com/ni/systemlink-grafana-plugins/issues/745)) ([ef84c32](https://github.com/ni/systemlink-grafana-plugins/commit/ef84c3297bd62eb5cf4e3a8e411d4c786a5f3ba4))
+
 ## [5.9.3](https://github.com/ni/systemlink-grafana-plugins/compare/v5.9.2...v5.9.3) (2026-09-15)
 
 ### Bug Fixes
