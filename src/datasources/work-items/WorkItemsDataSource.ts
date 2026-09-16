@@ -169,10 +169,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const workItemsResponse = await this.queryWorkItemsData(
       filter,
       query.properties,
+      query.customProperties,
       query.orderBy,
       query.descending,
-      query.take,
-      query.customProperties
+      query.take
     );
     const flattenedRows = this.buildFlattenedRows(workItemsResponse);
 
@@ -192,15 +192,80 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       name: query.refId,
       fields: this.buildFields(
         query.properties ?? [],
+        query.customProperties,
         flattenedRows,
         workspacesLookup,
         usersLookup,
         parentWorkItemNamesLookup,
         assetNamesLookup,
-        systemAliasesLookup,
-        query.customProperties
+        systemAliasesLookup
       ),
     };
+  }
+
+  /** Builds the same filter for the data query and the custom property discovery query. */
+  public buildFilterFromQuery(query: WorkItemsQuery): string | undefined {
+    const typeFilter = isTypesNonEmpty(query.types) ? this.buildTypeFilter(query.types!) : undefined;
+    const queryFilter = query.filter?.trim();
+    const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
+
+    return this.buildQueryFilter(
+      typeFilter ? `(${typeFilter})` : undefined,
+      transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
+    );
+  }
+
+  /**
+   * Discovers the distinct custom property keys present on the queried work items so the
+   * query editor can offer each key as its own selectable property.
+   */
+  public async getCustomPropertyOptions(
+    filter: string | undefined, 
+    take: number,
+    orderBy?: OrderByOptions,
+    descending?: boolean
+  ): Promise<Array<ComboboxOption<string>>> {
+    const queryRecord = async (currentTake: number, continuationToken?: string): Promise<QueryResponse<WorkItem>> => {
+      const response = await this.queryWorkItems({
+        filter,
+        projection: [WORK_ITEM_PROPERTIES_PROJECTION],
+        orderBy,
+        descending,
+        take: currentTake,
+        continuationToken,
+      });
+
+      return {
+        data: response.workItems ?? [],
+        continuationToken: response.continuationToken,
+        totalCount: response.totalCount,
+      };
+    };
+
+    const response = await queryInBatches(
+      queryRecord,
+      {
+        maxTakePerRequest: QUERY_WORK_ITEMS_MAX_TAKE,
+        requestsPerSecond: QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
+      },
+      take
+    );
+
+    const customPropertyKeys = new Set<string>();
+    for (const workItem of response.data) {
+      if (!workItem.properties) {
+        continue;
+      }
+
+      for (const key of Object.keys(workItem.properties)) {
+        customPropertyKeys.add(key);
+        if (customPropertyKeys.size >= CUSTOM_PROPERTY_OPTIONS_LIMIT) {
+          return this.buildCustomPropertyOptions(customPropertyKeys);
+        }
+      }
+    }
+
+    return this.buildCustomPropertyOptions(customPropertyKeys);
   }
 
   private isPropertySelected(
@@ -340,8 +405,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
         undefined,
         undefined,
-        parentWorkitemIds.length,
         undefined,
+        parentWorkitemIds.length,
         true
       );
 
@@ -357,13 +422,13 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   private buildFields(
     properties: WorkItemPropertiesOptions[],
+    customProperties: string[] | undefined,
     flattenedRows: FlattenedRow[],
     workspacesLookup: Map<string, Workspace>,
     usersLookup: Map<string, User>,
     parentWorkItemNamesLookup: Map<string, string>,
     assetNamesLookup: Map<string, string>,
-    systemAliasesLookup: Map<string, SystemAlias>,
-    customProperties?: string[]
+    systemAliasesLookup: Map<string, SystemAlias>
   ) {
     const fields: FieldDTO[] = [];
 
@@ -573,13 +638,13 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   async queryWorkItemsData(
     filter?: string,
     properties?: WorkItemPropertiesOptions[],
+    customProperties?: string[],
     orderBy?: OrderByOptions,
     descending?: boolean,
     take?: number,
-    customProperties?: string[],
     suppressErrorAlert = false
   ): Promise<WorkItem[]> {
-    const projection = this.buildProjection(properties, customProperties);
+    const projection = this.buildProjectionFromProperties(properties, customProperties);
 
     const queryRecord = async (currentTake: number, continuationToken?: string): Promise<QueryResponse<WorkItem>> => {
       const body: QueryWorkItemsRequestBody = {
@@ -608,7 +673,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return response.data;
   }
 
-  private buildProjection(
+  private buildProjectionFromProperties(
     properties?: WorkItemPropertiesOptions[],
     customProperties?: string[]
   ): string[] | undefined {
@@ -679,18 +744,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   protected buildQueryFilter(typeFilter?: string, queryFilter?: string): string | undefined {
     const filters = [typeFilter, queryFilter].filter(Boolean);
     return filters.length > 0 ? filters.join(' && ') : undefined;
-  }
-
-  /** Builds the same filter for the data query and the custom property discovery query. */
-  public buildFilterFromQuery(query: WorkItemsQuery): string | undefined {
-    const typeFilter = isTypesNonEmpty(query.types) ? this.buildTypeFilter(query.types!) : undefined;
-    const queryFilter = query.filter?.trim();
-    const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
-
-    return this.buildQueryFilter(
-      typeFilter ? `(${typeFilter})` : undefined,
-      transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
-    );
   }
 
   // The backend API only supports duration in seconds, so the days/hours fields exposed by the
@@ -770,59 +823,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       }
       return new Map<string, SystemAlias>();
     }
-  }
-
-  /**
-   * Discovers the distinct custom property keys present on the queried work items so the
-   * query editor can offer each key as its own selectable property.
-   */
-  public async getCustomPropertyOptions(
-    filter: string | undefined, 
-    take: number,
-    orderBy?: OrderByOptions,
-    descending?: boolean
-  ): Promise<Array<ComboboxOption<string>>> {
-    const queryRecord = async (currentTake: number, continuationToken?: string): Promise<QueryResponse<WorkItem>> => {
-      const response = await this.queryWorkItems({
-        filter,
-        projection: [WORK_ITEM_PROPERTIES_PROJECTION],
-        orderBy,
-        descending,
-        take: currentTake,
-        continuationToken,
-      });
-
-      return {
-        data: response.workItems ?? [],
-        continuationToken: response.continuationToken,
-        totalCount: response.totalCount,
-      };
-    };
-
-    const response = await queryInBatches(
-      queryRecord,
-      {
-        maxTakePerRequest: QUERY_WORK_ITEMS_MAX_TAKE,
-        requestsPerSecond: QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
-      },
-      take
-    );
-
-    const customPropertyKeys = new Set<string>();
-    for (const workItem of response.data) {
-      if (!workItem.properties) {
-        continue;
-      }
-
-      for (const key of Object.keys(workItem.properties)) {
-        customPropertyKeys.add(key);
-        if (customPropertyKeys.size >= CUSTOM_PROPERTY_OPTIONS_LIMIT) {
-          return this.buildCustomPropertyOptions(customPropertyKeys);
-        }
-      }
-    }
-
-    return this.buildCustomPropertyOptions(customPropertyKeys);
   }
 
   private buildCustomPropertyOptions(
