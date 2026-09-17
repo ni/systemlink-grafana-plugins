@@ -22,7 +22,7 @@ import { UsersUtils } from 'shared/users.utils';
 import { User } from 'shared/types/QueryUsers.types';
 import { AssetUtils, AssetProjectionProperties } from 'shared/asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
-import { queryInBatches } from 'core/utils';
+import { queryInBatches, replaceVariables } from 'core/utils';
 import {
   computedFieldsupportedOperations,
   ExpressionTransformFunction,
@@ -195,7 +195,18 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
-    const filter = this.buildWorkItemsFilter(query.types!, query.filter, options.scopedVars);
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
+      query.types!,
+      query.filter,
+      options.scopedVars
+    );
+
+    // A selection that resolves only to empty or unrecognized values (e.g. a template variable
+    // that expands to nothing) yields no type filter. Returning early avoids dropping the type
+    // constraint entirely, which would otherwise match every work item instead of none.
+    if (!hasRecognizedTypes) {
+      return this.getEmptyDataFrameDTO(query.refId);
+    }
 
     if (
       query.outputType === OutputType.Properties &&
@@ -766,16 +777,22 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     types: WorkItemTypeOptions[],
     filter?: string,
     scopedVars?: ScopedVars
-  ): string | undefined {
-    const typeFilter = this.buildTypeFilter(types);
+  ): { filter: string | undefined; hasRecognizedTypes: boolean } {
+    const { allTypesSelected, filter: typeFilter } = this.buildTypeFilter(types, scopedVars);
+
+    if (!allTypesSelected && typeFilter === '') {
+      return { filter: undefined, hasRecognizedTypes: false };
+    }
+
     const queryFilter = filter?.trim();
     const transformedQueryFilter = queryFilter
       ? this.transformQueryBuilderFilter(queryFilter, scopedVars)
       : queryFilter;
-    return this.buildQueryFilter(
-      typeFilter ? `(${typeFilter})` : undefined,
+    const combinedFilter = this.buildQueryFilter(
+      allTypesSelected ? undefined : `(${typeFilter})`,
       transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
     );
+    return { filter: combinedFilter, hasRecognizedTypes: true };
   }
 
   private transformQueryBuilderFilter(filter: string, scopedVars?: ScopedVars): string {
@@ -786,14 +803,20 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return this.transformDurationFilters(replacedFilter);
   }
 
-  private buildTypeFilter(types: WorkItemTypeOptions[]): string | undefined {
-    const allTypesAreSelected = Object.values(WorkItemTypeOptions).every(type => types.includes(type));
-    if (allTypesAreSelected) {
-      return undefined;
-    }
+  private buildTypeFilter(
+    types: WorkItemTypeOptions[],
+    scopedVars?: ScopedVars
+  ): { allTypesSelected: boolean; filter: string } {
+    const resolvedTypes = replaceVariables(types, this.templateSrv, scopedVars) as WorkItemTypeOptions[];
+    const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
 
-    const typeValues = types.map(type => WORK_ITEM_TYPE_FILTER_VALUES[type]);
-    return typeValues.map(value => `type = "${value}"`).join(' || ');
+    const typeValues = resolvedTypes
+      .map(type => WORK_ITEM_TYPE_FILTER_VALUES[type])
+      .filter(Boolean);
+    return {
+      allTypesSelected,
+      filter: typeValues.map(value => `type = "${value}"`).join(' || '),
+    };
   }
 
   shouldRunQuery(query: WorkItemsQuery): boolean {
@@ -814,11 +837,15 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return [];
     }
 
-    const filter = this.buildWorkItemsFilter(
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
       variableQuery.types!,
       variableQuery.filter,
       options?.scopedVars
     );
+
+    if (!hasRecognizedTypes) {
+      return [];
+    }
 
     const workItems = await this.queryWorkItemsData(
       filter,
