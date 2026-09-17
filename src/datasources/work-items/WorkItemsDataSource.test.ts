@@ -1456,6 +1456,32 @@ describe('WorkItemsDataSource', () => {
       ]);
     });
 
+    it('should build the filter by combining the selected types and the query filter', async () => {
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({
+        workItems: [],
+        continuationToken: '',
+        totalCount: 0,
+      });
+
+      await datasource.metricFindQuery(
+        {
+          refId: 'A',
+          queryType: WorkItemsVariableQueryType.ListWorkItems,
+          types: [WorkItemTypeOptions.WorkOrders, WorkItemTypeOptions.TestPlans],
+          filter: 'state = "NEW"',
+        },
+        { scopedVars: {} } as any
+      );
+
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        expect.objectContaining({
+          filter: '(type = "workorder" || type = "testplan") && (state = "NEW")',
+        }),
+        { showErrorAlert: false }
+      );
+    });
+
     it('should request only the id and name properties with the configured ordering and take', async () => {
       const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({
         workItems: [],
