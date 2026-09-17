@@ -190,7 +190,7 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
       QueryBuilderOperations.DATE_TIME_IS_BEFORE,
       WorkItemsResourceQueryBuilderOperations .LIST_OF_OBJECTS_CONTAINS_ID,
       WorkItemsResourceQueryBuilderOperations .LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID,
-      QueryBuilderOperations.LIST_IS_EMPTY,
+      WorkItemsResourceQueryBuilderOperations .LIST_OF_OBJECTS_IS_EMPTY,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY,
     ].map(operation => {
       return {

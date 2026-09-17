@@ -54,6 +54,12 @@ export const WorkItemsResourceQueryBuilderOperations = {
     name: 'listofobjectsdoesnotcontainid',
     expressionTemplate: '{0}.Any(s => s.id == "{1}") == false',
   },
+  LIST_OF_OBJECTS_IS_EMPTY: {
+    label: 'is empty',
+    name: 'listofobjectsisempty',
+    expressionTemplate: '{0}.Any() == false',
+    hideValue: true,
+  },
 };
 
 export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
@@ -303,7 +309,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     filterOperations: [
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
-      QueryBuilderOperations.LIST_IS_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ],
   },
@@ -313,7 +319,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     filterOperations: [
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
-      QueryBuilderOperations.LIST_IS_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ],
   },
@@ -323,7 +329,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     filterOperations: [
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
-      QueryBuilderOperations.LIST_IS_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ],
   },
@@ -333,7 +339,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     filterOperations: [
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
-      QueryBuilderOperations.LIST_IS_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ],
     lookup: {

@@ -181,7 +181,7 @@ describe('WorkItemsQueryBuilder', () => {
     const listOperations = [
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
-      QueryBuilderOperations.LIST_IS_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_EMPTY.name,
       QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
     ];
     const keyValueOperations = [
@@ -402,8 +402,8 @@ describe('WorkItemsQueryBuilder', () => {
         filter: 'resources.assets.selections.Any(s => s.id == "1") == false',
         expected: ['Asset identifier', 'does not equal', '1'],
       },
-      { filter: 'resources.assets.selections.Count == 0', 
-        expected: ['Asset identifier', 'is empty'] 
+      { filter: 'resources.assets.selections.Any() == false',
+        expected: ['Asset identifier', 'is empty']
       },
       { 
         filter: 'resources.assets.selections.Count > 0', 
@@ -417,8 +417,8 @@ describe('WorkItemsQueryBuilder', () => {
         filter: 'resources.duts.selections.Any(s => s.id == "2") == false',
         expected: ['Dut identifier', 'does not equal', '2'],
       },
-      { filter: 'resources.duts.selections.Count == 0', 
-        expected: ['Dut identifier', 'is empty'] 
+      { filter: 'resources.duts.selections.Any() == false',
+        expected: ['Dut identifier', 'is empty']
       },
       { filter: 'resources.duts.selections.Count > 0', 
         expected: ['Dut identifier', 'is not empty'] 
@@ -431,14 +431,14 @@ describe('WorkItemsQueryBuilder', () => {
         filter: 'resources.fixtures.selections.Any(s => s.id == "3") == false',
         expected: ['Fixture identifier', 'does not equal', '3'],
       },
-      { filter: 'resources.fixtures.selections.Count == 0', 
-        expected: ['Fixture identifier', 'is empty'] 
+      { filter: 'resources.fixtures.selections.Any() == false',
+        expected: ['Fixture identifier', 'is empty']
       },
       { filter: 'resources.fixtures.selections.Count > 0', 
         expected: ['Fixture identifier', 'is not empty'] 
       },
-      { filter: 'resources.systems.selections.Count == 0', 
-        expected: ['System alias name', 'is empty'] 
+      { filter: 'resources.systems.selections.Any() == false',
+        expected: ['System alias name', 'is empty']
       },
       { filter: 'resources.systems.selections.Count > 0', 
         expected: ['System alias name', 'is not empty'] 
