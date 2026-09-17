@@ -172,8 +172,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     WorkItemsQueryBuilderFieldNames.PlannedDurationInHours,
   ];
 
-  // Computed field transformations applied to the query builder filter so template variables
-  // (including multi-value variables and time macros) are expanded into valid query expressions.
   readonly workItemsComputedDataFields = new Map<string, ExpressionTransformFunction>([
     ...this.timeFilterFields.map(
       field => [field, timeFieldsQuery(field)] as [string, ExpressionTransformFunction]
@@ -763,8 +761,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     );
   }
 
-  // Replaces template variables in the query builder filter and expands computed fields
-  // (multi-value variables, time macros) before converting duration fields to seconds.
   private transformQueryBuilderFilter(filter: string, scopedVars?: ScopedVars): string {
     const replacedFilter = transformComputedFieldsQuery(
       this.templateSrv.replace(filter, scopedVars),
