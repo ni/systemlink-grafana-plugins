@@ -21,7 +21,7 @@ import { UsersUtils } from 'shared/users.utils';
 import { User } from 'shared/types/QueryUsers.types';
 import { AssetUtils, AssetProjectionProperties } from 'shared/asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
-import { queryInBatches } from 'core/utils';
+import { queryInBatches, replaceVariables } from 'core/utils';
 import { computedFieldsupportedOperations } from 'core/query-builder.utils';
 import {
   FlattenedRow,
@@ -146,7 +146,14 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
-    const filter = this.buildWorkItemsFilter(query.types!, query.filter);
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(query.types!, query.filter);
+
+    // A selection that resolves only to empty or unrecognized values (e.g. a template variable
+    // that expands to nothing) yields no type filter. Returning early avoids dropping the type
+    // constraint entirely, which would otherwise match every work item instead of none.
+    if (!hasRecognizedTypes) {
+      return this.getEmptyDataFrameDTO(query.refId);
+    }
 
     if (
       query.outputType === OutputType.Properties &&
@@ -713,24 +720,38 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     };
   }
 
-  private buildWorkItemsFilter(types: WorkItemTypeOptions[], filter?: string): string | undefined {
-    const typeFilter = this.buildTypeFilter(types);
-    const queryFilter = filter?.trim();
-    const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
-    return this.buildQueryFilter(
-      typeFilter ? `(${typeFilter})` : undefined,
-      transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
-    );
-  }
+  private buildWorkItemsFilter(
+    types: WorkItemTypeOptions[],
+    filter?: string
+  ): { filter: string | undefined; hasRecognizedTypes: boolean } {
+    const { allTypesSelected, filter: typeFilter } = this.buildTypeFilter(types);
 
-  private buildTypeFilter(types: WorkItemTypeOptions[]): string | undefined {
-    const allTypesAreSelected = Object.values(WorkItemTypeOptions).every(type => types.includes(type));
-    if (allTypesAreSelected) {
-      return undefined;
+    if (!allTypesSelected && typeFilter === '') {
+      return { filter: undefined, hasRecognizedTypes: false };
     }
 
-    const typeValues = types.map(type => WORK_ITEM_TYPE_FILTER_VALUES[type]);
-    return typeValues.map(value => `type = "${value}"`).join(' || ');
+    const queryFilter = filter?.trim();
+    const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
+    const combinedFilter = this.buildQueryFilter(
+      allTypesSelected ? undefined : `(${typeFilter})`,
+      transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
+    );
+    return { filter: combinedFilter, hasRecognizedTypes: true };
+  }
+
+  private buildTypeFilter(
+    types: WorkItemTypeOptions[]
+  ): { allTypesSelected: boolean; filter: string } {
+    const resolvedTypes = replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[];
+    const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
+
+    const typeValues = resolvedTypes
+      .map(type => WORK_ITEM_TYPE_FILTER_VALUES[type])
+      .filter(Boolean);
+    return {
+      allTypesSelected,
+      filter: typeValues.map(value => `type = "${value}"`).join(' || '),
+    };
   }
 
   shouldRunQuery(query: WorkItemsQuery): boolean {
@@ -754,7 +775,11 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const replacedFilter = variableQuery.filter
       ? this.templateSrv.replace(variableQuery.filter, options?.scopedVars)
       : variableQuery.filter;
-    const filter = this.buildWorkItemsFilter(variableQuery.types!, replacedFilter);
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(variableQuery.types!, replacedFilter);
+
+    if (!hasRecognizedTypes) {
+      return [];
+    }
 
     const workItems = await this.queryWorkItemsData(
       filter,

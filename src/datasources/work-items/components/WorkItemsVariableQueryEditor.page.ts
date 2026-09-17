@@ -19,6 +19,7 @@ export const workItemsVariableQueryEditorPage = {
   },
 
   removeOptionButton: (name: string) => screen.getByRole('button', { name: `Remove ${name}` }),
+  typeSelectOption: (name: string) => screen.findByRole('option', { name }),
 
   queryBuilder: () => screen.getByRole('dialog'),
 
