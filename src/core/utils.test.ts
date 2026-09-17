@@ -210,7 +210,6 @@ describe('replaceVariables', () => {
 
     expect(result).toEqual(['value1', 'value2', 'value3']);
   });
-
 });
 
 describe('queryInBatches', () => {
