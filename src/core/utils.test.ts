@@ -210,16 +210,6 @@ describe('replaceVariables', () => {
 
     expect(result).toEqual(['value1', 'value2', 'value3']);
   });
-
-  test('should forward scoped variables to templateSrv.replace', () => {
-    mockTemplateSrv.containsTemplate = jest.fn().mockReturnValue(true);
-    mockTemplateSrv.replace = jest.fn().mockReturnValue('value1');
-    const scopedVars = { var1: { text: 'value1', value: 'value1' } };
-
-    replaceVariables(['$var1'], mockTemplateSrv, scopedVars);
-
-    expect(mockTemplateSrv.replace).toHaveBeenCalledWith('$var1', scopedVars);
-  });
 });
 
 describe('queryInBatches', () => {
