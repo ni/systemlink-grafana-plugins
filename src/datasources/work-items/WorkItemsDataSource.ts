@@ -22,7 +22,7 @@ import { UsersUtils } from 'shared/users.utils';
 import { User } from 'shared/types/QueryUsers.types';
 import { AssetUtils, AssetProjectionProperties } from 'shared/asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
-import { queryInBatches } from 'core/utils';
+import { queryInBatches, replaceVariables } from 'core/utils';
 import { computedFieldsupportedOperations } from 'core/query-builder.utils';
 import {
   FlattenedRow,
@@ -151,7 +151,18 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
+<<<<<<< HEAD
     const filter = this.buildFilterFromQuery(query);
+=======
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(query.types!, query.filter);
+
+    // A selection that resolves only to empty or unrecognized values (e.g. a template variable
+    // that expands to nothing) yields no type filter. Returning early avoids dropping the type
+    // constraint entirely, which would otherwise match every work item instead of none.
+    if (!hasRecognizedTypes) {
+      return this.getEmptyDataFrameDTO(query.refId);
+    }
+>>>>>>> 2deeba3a8247fbf188adb15ed6b3f793167d7c22
 
     if (
       query.outputType === OutputType.Properties &&
@@ -803,24 +814,47 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     };
   }
 
-  private buildTypeFilter(types: WorkItemTypeOptions[]): string | undefined {
-    const allTypesAreSelected = Object.values(WorkItemTypeOptions).every(type => types.includes(type));
-    if (allTypesAreSelected) {
-      return undefined;
+  private buildWorkItemsFilter(
+    types: WorkItemTypeOptions[],
+    filter?: string
+  ): { filter: string | undefined; hasRecognizedTypes: boolean } {
+    const { allTypesSelected, filter: typeFilter } = this.buildTypeFilter(types);
+
+    if (!allTypesSelected && typeFilter === '') {
+      return { filter: undefined, hasRecognizedTypes: false };
     }
 
-    const typeValues = types.map(type => WORK_ITEM_TYPE_FILTER_VALUES[type]);
-    return typeValues.map(value => `type = "${value}"`).join(' || ');
+    const queryFilter = filter?.trim();
+    const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
+    const combinedFilter = this.buildQueryFilter(
+      allTypesSelected ? undefined : `(${typeFilter})`,
+      transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
+    );
+    return { filter: combinedFilter, hasRecognizedTypes: true };
+  }
+
+  private buildTypeFilter(
+    types: WorkItemTypeOptions[]
+  ): { allTypesSelected: boolean; filter: string } {
+    const resolvedTypes = replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[];
+    const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
+
+    const typeValues = resolvedTypes
+      .map(type => WORK_ITEM_TYPE_FILTER_VALUES[type])
+      .filter(Boolean);
+    return {
+      allTypesSelected,
+      filter: typeValues.map(value => `type = "${value}"`).join(' || '),
+    };
   }
 
   shouldRunQuery(query: WorkItemsQuery): boolean {
     return !query.hide;
   }
 
-  // TODO: AB#3923375 - Query work items and return the matching values instead of an empty list.
   async metricFindQuery(
     query: WorkItemsVariableQuery,
-    _options: LegacyMetricFindQueryOptions
+    options?: LegacyMetricFindQueryOptions
   ): Promise<MetricFindValue[]> {
     const variableQuery = this.prepareVariableQuery(query);
 
@@ -828,7 +862,31 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return WorkItemTypeMetricFindValues;
     }
 
-    return [];
+    if (!isTypesNonEmpty(variableQuery.types) || !isTakeValid(variableQuery.take)) {
+      return [];
+    }
+
+    const replacedFilter = variableQuery.filter
+      ? this.templateSrv.replace(variableQuery.filter, options?.scopedVars)
+      : variableQuery.filter;
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(variableQuery.types!, replacedFilter);
+
+    if (!hasRecognizedTypes) {
+      return [];
+    }
+
+    const workItems = await this.queryWorkItemsData(
+      filter,
+      [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
+      variableQuery.orderBy,
+      variableQuery.descending,
+      variableQuery.take
+    );
+
+    return workItems.map(workItem => ({
+      text: workItem.name ? `${workItem.name} (${workItem.id})` : `(${workItem.id})`,
+      value: workItem.id,
+    }));
   }
 
   public async loadProductNamesAndPartNumbers(): Promise<Map<string, ProductPartNumberAndName>> {

@@ -1,3 +1,15 @@
+## [5.13.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.12.0...v5.13.0) (2026-09-17)
+
+### Features
+
+* **work-items:** support variable options in the Type control ([#761](https://github.com/ni/systemlink-grafana-plugins/issues/761)) ([5c180e2](https://github.com/ni/systemlink-grafana-plugins/commit/5c180e2cce55e919276834a2388aa33cce38e993))
+
+## [5.12.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.11.1...v5.12.0) (2026-09-17)
+
+### Features
+
+* **work-items:** fetch work items for List work items variable query ([#758](https://github.com/ni/systemlink-grafana-plugins/issues/758)) ([e14a377](https://github.com/ni/systemlink-grafana-plugins/commit/e14a37760013c86981faac3dbbd573d4a06d83df))
+
 ## [5.11.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.11.0...v5.11.1) (2026-09-16)
 
 ### Bug Fixes

@@ -98,6 +98,11 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const globalVariableOptions = useMemo(() => datasource.globalVariableOptions(), [datasource]);
 
+  const typeOptions = useMemo(
+    () => [...globalVariableOptions, ...WorkItemTypes] as Array<ComboboxOption<WorkItemTypeOptions>>,
+    [globalVariableOptions]
+  );
+
   const handleQueryChange = useCallback(
     (query: WorkItemsQuery, runQuery = true): void => {
       onChange(query);
@@ -173,7 +178,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
       >
         <MultiCombobox
           placeholder={placeholders.types}
-          options={WorkItemTypes}
+          options={typeOptions}
           value={query.types}
           onChange={onTypesChange}
           enableAllOption
