@@ -146,13 +146,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
-    const typeFilter = this.buildTypeFilter(query.types!);
-    const queryFilter = query.filter?.trim();
-    const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
-    const filter = this.buildQueryFilter(
-      typeFilter ? `(${typeFilter})` : undefined,
-      transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
-    );
+    const filter = this.buildWorkItemsFilter(query.types!, query.filter);
 
     if (
       query.outputType === OutputType.Properties &&
@@ -719,6 +713,16 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     };
   }
 
+  private buildWorkItemsFilter(types: WorkItemTypeOptions[], filter?: string): string | undefined {
+    const typeFilter = this.buildTypeFilter(types);
+    const queryFilter = filter?.trim();
+    const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
+    return this.buildQueryFilter(
+      typeFilter ? `(${typeFilter})` : undefined,
+      transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
+    );
+  }
+
   private buildTypeFilter(types: WorkItemTypeOptions[]): string | undefined {
     const allTypesAreSelected = Object.values(WorkItemTypeOptions).every(type => types.includes(type));
     if (allTypesAreSelected) {
@@ -733,10 +737,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return !query.hide;
   }
 
-  // TODO: AB#3923375 - Query work items and return the matching values instead of an empty list.
   async metricFindQuery(
     query: WorkItemsVariableQuery,
-    _options: LegacyMetricFindQueryOptions
+    options?: LegacyMetricFindQueryOptions
   ): Promise<MetricFindValue[]> {
     const variableQuery = this.prepareVariableQuery(query);
 
@@ -744,7 +747,27 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return WorkItemTypeMetricFindValues;
     }
 
-    return [];
+    if (!isTypesNonEmpty(variableQuery.types) || !isTakeValid(variableQuery.take)) {
+      return [];
+    }
+
+    const replacedFilter = variableQuery.filter
+      ? this.templateSrv.replace(variableQuery.filter, options?.scopedVars)
+      : variableQuery.filter;
+    const filter = this.buildWorkItemsFilter(variableQuery.types!, replacedFilter);
+
+    const workItems = await this.queryWorkItemsData(
+      filter,
+      [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
+      variableQuery.orderBy,
+      variableQuery.descending,
+      variableQuery.take
+    );
+
+    return workItems.map(workItem => ({
+      text: workItem.name ? `${workItem.name} (${workItem.id})` : `(${workItem.id})`,
+      value: workItem.id,
+    }));
   }
 
   public async loadProductNamesAndPartNumbers(): Promise<Map<string, ProductPartNumberAndName>> {
