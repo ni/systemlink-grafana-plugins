@@ -1,10 +1,12 @@
 import { DataQueryRequest, TypedVariableModel } from '@grafana/data';
 import { WorkItemsDataSource } from './WorkItemsDataSource';
 import { setupDataSource } from 'test/fixtures';
-import { OrderByOptions, 
+import { 
+  OrderByOptions, 
   OutputType, 
   WorkItemPropertiesGroup, 
   WorkItemPropertiesOptions, 
+  WorkItemsVariableQueryType, 
   WorkItemTypeOptions 
 } from './types';
 import { queryInBatches } from 'core/utils';
@@ -92,6 +94,27 @@ describe('WorkItemsDataSource', () => {
     expect(query.orderBy).toBe(OrderByOptions.UPDATED_AT);
     expect(query.descending).toBe(true);
     expect(query.take).toBe(1000);
+  });
+
+  it('should apply expected default variable query values', () => {
+    const variableQuery = datasource.prepareVariableQuery({ refId: 'A' });
+
+    expect(variableQuery.queryType).toBe(WorkItemsVariableQueryType.ListWorkItems);
+    expect(variableQuery.types).toEqual(Object.values(WorkItemTypeOptions));
+    expect(variableQuery.orderBy).toBe(OrderByOptions.UPDATED_AT);
+    expect(variableQuery.descending).toBe(true);
+    expect(variableQuery.take).toBe(1000);
+  });
+
+  it('should preserve provided values over defaults in the variable query', () => {
+    const variableQuery = datasource.prepareVariableQuery({
+      refId: 'A',
+      queryType: WorkItemsVariableQueryType.ListWorkItemTypes,
+      take: 25,
+    });
+
+    expect(variableQuery.queryType).toBe(WorkItemsVariableQueryType.ListWorkItemTypes);
+    expect(variableQuery.take).toBe(25);
   });
 
   it('should test datasource connection against the work-items service endpoint', async () => {
@@ -1256,7 +1279,7 @@ describe('WorkItemsDataSource', () => {
         [WorkItemPropertiesOptions.DUT_NAME, 'duts', 'd1', 'DUT name'],
         [WorkItemPropertiesOptions.FIXTURE_NAME, 'fixtures', 'f1', 'Fixture name'],
       ])(
-        'should fall back to the resource ID when %s cannot be resolved',
+        'should fall back to empty when %s cannot be resolved',
         async (property, resourceType, id, label) => {
           jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([]);
           jest.spyOn(datasource, 'post').mockResolvedValue({
@@ -1275,7 +1298,35 @@ describe('WorkItemsDataSource', () => {
 
           const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-          expect(result.fields).toEqual([{ name: label, values: [id], type: 'string' }]);
+          expect(result.fields).toEqual([{ name: label, values: [''], type: 'string' }]);
+        }
+      );
+
+      it.each([
+        [WorkItemPropertiesOptions.ASSET_NAME, 'assets', 'a1', 'Asset name'],
+        [WorkItemPropertiesOptions.DUT_NAME, 'duts', 'd1', 'DUT name'],
+        [WorkItemPropertiesOptions.FIXTURE_NAME, 'fixtures', 'f1', 'Fixture name'],
+      ])(
+        'should fall back to empty when %s is found but unnamed',
+        async (property, resourceType, id, label) => {
+          jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([{ id }]);
+          jest.spyOn(datasource, 'post').mockResolvedValue({
+            workItems: [{ id: '1', resources: { [resourceType]: { selections: [{ id }] } } }],
+            continuationToken: '',
+            totalCount: 1,
+          });
+
+          const query = {
+            refId: 'A',
+            outputType: OutputType.Properties,
+            types: [WorkItemTypeOptions.WorkOrders],
+            properties: [property],
+            take: 1000,
+          };
+
+          const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+          expect(result.fields).toEqual([{ name: label, values: [''], type: 'string' }]);
         }
       );
 
@@ -1323,7 +1374,7 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([{ name: 'System name', values: ['System Alias 1'], type: 'string' }]);
       });
 
-      it('should fall back to the system ID when the system lookup fails', async () => {
+      it('should fall back to empty when the system lookup fails', async () => {
         jest.spyOn(datasource.systemUtils, 'getSystemAliases').mockRejectedValue(new Error('Failed'));
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [{ id: '1', resources: { systems: { selections: [{ id: 's1' }] } } }],
@@ -1341,7 +1392,7 @@ describe('WorkItemsDataSource', () => {
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields).toEqual([{ name: 'System name', values: ['s1'], type: 'string' }]);
+        expect(result.fields).toEqual([{ name: 'System name', values: [''], type: 'string' }]);
       });
 
       it('should not call SystemUtils when no system name or target location property is selected', async () => {
@@ -1436,6 +1487,38 @@ describe('WorkItemsDataSource', () => {
           { name: 'Target Parent (Fixture)', values: [''], type: 'string' },
         ]);
       });
+
+      it('should fall back to the ID for TARGET_PARENT when the parent asset is found but unnamed', async () => {
+        jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([{ id: 'p1' }]);
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [
+            {
+              id: '1',
+              resources: {
+                assets: { selections: [{ id: 'a1', targetParentId: 'p1' }] },
+              },
+            },
+          ],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.TARGET_PARENT],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([
+          { name: 'Target Parent (Asset)', values: ['p1'], type: 'string' },
+          { name: 'Target Parent (DUT)', values: [''], type: 'string' },
+          { name: 'Target Parent (Fixture)', values: [''], type: 'string' },
+        ]);
+      });
     });
 
     describe('error handling', () => {
@@ -1504,6 +1587,35 @@ describe('WorkItemsDataSource', () => {
           ],
         });
       });
+    });
+  });
+
+  describe('metricFindQuery', () => {
+    // TODO: AB#3923375 - Update once work items querying is implemented.
+    it('should return an empty list for the list work items query type', async () => {
+      const result = await datasource.metricFindQuery(
+        { refId: 'A', queryType: WorkItemsVariableQueryType.ListWorkItems },
+        {} as any
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('should return the list of work item types when the query type is list work item types', async () => {
+      const result = await datasource.metricFindQuery(
+        { refId: 'A', queryType: WorkItemsVariableQueryType.ListWorkItemTypes },
+        {} as any
+      );
+
+      expect(result).toEqual([
+        { text: 'Work orders', value: WorkItemTypeOptions.WorkOrders },
+        { text: 'Test plans', value: WorkItemTypeOptions.TestPlans },
+        { text: 'Job', value: WorkItemTypeOptions.Job },
+        { text: 'Maintenance', value: WorkItemTypeOptions.Maintenance },
+        { text: 'Calibration', value: WorkItemTypeOptions.Calibration },
+        { text: 'Reservation', value: WorkItemTypeOptions.Reservation },
+        { text: 'Transport Order', value: WorkItemTypeOptions.TransportOrder },
+      ]);
     });
   });
 

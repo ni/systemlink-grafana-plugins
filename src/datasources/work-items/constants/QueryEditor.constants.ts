@@ -1,3 +1,4 @@
+import { MetricFindValue } from '@grafana/data';
 import { OrderByOptions, WorkItemPropertiesGroup, WorkItemPropertiesOptions, WorkItemTypeOptions } from '../types';
 import { TAKE_LIMIT } from '../constants';
 
@@ -21,6 +22,7 @@ export const typesErrorMessages = {
 
 export const labels = {
   outputType: 'Output',
+  queryType: 'Query type',
   types: 'Type',
   properties: 'Properties',
   queryBy: 'Query By',
@@ -38,6 +40,7 @@ export const placeholders = {
 
 export const tooltips = {
   outputType: 'Select whether to return work item properties or only total count.',
+  queryType: 'Select whether to return work items or list of work item types.',
   types: 'Choose one or more work item types to query.',
   properties: 'Select the work item properties to include in the result.',
   filter: 'Filter work items by matching one or more properties.',
@@ -55,6 +58,15 @@ export const WorkItemTypes = [
   { label: 'Reservation', value: WorkItemTypeOptions.Reservation },
   { label: 'Transport Order', value: WorkItemTypeOptions.TransportOrder },
 ];
+
+export const WorkItemTypeMetricFindValues: MetricFindValue[] = WorkItemTypes.map(
+  type => (
+    {
+      text: type.label,
+      value: type.value,
+    }
+  )
+);
 
 export const OrderBy = [
   {
