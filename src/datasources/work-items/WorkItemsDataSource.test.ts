@@ -1435,6 +1435,27 @@ describe('WorkItemsDataSource', () => {
       ]);
     });
 
+    it('should fall back to just the id when the work item name is missing', async () => {
+      jest.spyOn(datasource, 'post').mockResolvedValue({
+        workItems: [
+          { id: '1', name: '' },
+          { id: '2' },
+        ],
+        continuationToken: '',
+        totalCount: 2,
+      });
+
+      const result = await datasource.metricFindQuery(
+        { refId: 'A', queryType: WorkItemsVariableQueryType.ListWorkItems },
+        {} as any
+      );
+
+      expect(result).toEqual([
+        { text: '<1>', value: '1' },
+        { text: '<2>', value: '2' },
+      ]);
+    });
+
     it('should request only the id and name properties with the configured ordering and take', async () => {
       const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({
         workItems: [],

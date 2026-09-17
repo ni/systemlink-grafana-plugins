@@ -748,7 +748,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     );
 
     return workItems.map(workItem => ({
-      text: `${workItem.name} <${workItem.id}>`,
+      text: workItem.name ? `${workItem.name} <${workItem.id}>` : `<${workItem.id}>`,
       value: workItem.id,
     }));
   }
