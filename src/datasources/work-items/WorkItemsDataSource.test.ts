@@ -1414,9 +1414,9 @@ describe('WorkItemsDataSource', () => {
   });
 
   describe('metricFindQuery', () => {
-    it('should return work items formatted as "name <id>" for the list work items query type', async () => {
+    it('should return work items formatted as "name (id)" for the list work items query type', async () => {
       jest.spyOn(datasource, 'post').mockResolvedValue({
-        workItems: [
+        workItems: [ 
           { id: '1', name: 'Battery Cycle Test' },
           { id: '2', name: 'Thermal Test' },
         ],
@@ -1430,8 +1430,8 @@ describe('WorkItemsDataSource', () => {
       );
 
       expect(result).toEqual([
-        { text: 'Battery Cycle Test <1>', value: '1' },
-        { text: 'Thermal Test <2>', value: '2' },
+        { text: 'Battery Cycle Test (1)', value: '1' },
+        { text: 'Thermal Test (2)', value: '2' },
       ]);
     });
 
@@ -1451,8 +1451,8 @@ describe('WorkItemsDataSource', () => {
       );
 
       expect(result).toEqual([
-        { text: '<1>', value: '1' },
-        { text: '<2>', value: '2' },
+        { text: '(1)', value: '1' },
+        { text: '(2)', value: '2' },
       ]);
     });
 
