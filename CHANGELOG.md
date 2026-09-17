@@ -1,3 +1,21 @@
+## [5.12.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.11.1...v5.12.0) (2026-09-17)
+
+### Features
+
+* **work-items:** fetch work items for List work items variable query ([#758](https://github.com/ni/systemlink-grafana-plugins/issues/758)) ([e14a377](https://github.com/ni/systemlink-grafana-plugins/commit/e14a37760013c86981faac3dbbd573d4a06d83df))
+
+## [5.11.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.11.0...v5.11.1) (2026-09-16)
+
+### Bug Fixes
+
+* **work-items:** Update fallback logics for resource names ([#757](https://github.com/ni/systemlink-grafana-plugins/issues/757)) ([37664d9](https://github.com/ni/systemlink-grafana-plugins/commit/37664d9881718aff5e552cb7c5a4b37b7bf7e913))
+
+## [5.11.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.10.1...v5.11.0) (2026-09-16)
+
+### Features
+
+* **work-items:** add variable query editor for Work Items data source ([#739](https://github.com/ni/systemlink-grafana-plugins/issues/739)) ([58ffe13](https://github.com/ni/systemlink-grafana-plugins/commit/58ffe138491613738a6d0fee5a63edee547d1981))
+
 ## [5.10.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.10.0...v5.10.1) (2026-09-16)
 
 ### Bug Fixes

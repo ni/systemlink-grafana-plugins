@@ -376,14 +376,22 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       AssetProjectionProperties.ID,
       AssetProjectionProperties.NAME,
     ]);
-    return new Map(assets.map(asset => [asset.id, asset.name ?? asset.id]));
+    return new Map(assets.map(asset => [asset.id, asset.name ?? '']));
   }
 
   private resolveAssetName(id: string | undefined, assetNames: Map<string, string>): string {
-    return id ? assetNames.get(id) ?? id : '';
+    return id ? assetNames.get(id) ?? '' : '';
+  }
+
+  private resolveAssetNameForTargetParent(id: string | undefined, assetNames: Map<string, string>): string {
+    return id ? assetNames.get(id) || id : '';
   }
 
   private resolveSystemAlias(id: string | undefined, systemAliases: Map<string, SystemAlias>): string {
+    return id ? systemAliases.get(id)?.alias ?? '' : '';
+  }
+
+  private resolveSystemAliasForTargetLocation(id: string | undefined, systemAliases: Map<string, SystemAlias>): string {
     return id ? systemAliases.get(id)?.alias ?? id : '';
   }
 
@@ -466,13 +474,22 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   ): FieldDTO[] {
     return [
       this.buildResourceField('Target Location (Asset)', flattenedRows, row =>
-        this.resolveSystemAlias(row.assetSelection?.targetSystemId, systemAliasesLookup)
+        this.resolveSystemAliasForTargetLocation(
+          row.assetSelection?.targetSystemId,
+          systemAliasesLookup
+        )
       ),
       this.buildResourceField('Target Location (DUT)', flattenedRows, row =>
-        this.resolveSystemAlias(row.dutSelection?.targetSystemId, systemAliasesLookup)
+        this.resolveSystemAliasForTargetLocation(
+          row.dutSelection?.targetSystemId,
+          systemAliasesLookup
+        )
       ),
       this.buildResourceField('Target Location (Fixture)', flattenedRows, row =>
-        this.resolveSystemAlias(row.fixtureSelection?.targetSystemId, systemAliasesLookup)
+        this.resolveSystemAliasForTargetLocation(
+          row.fixtureSelection?.targetSystemId,
+          systemAliasesLookup
+        )
       ),
     ];
   }
@@ -480,13 +497,13 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   private buildTargetParentFields(flattenedRows: FlattenedRow[], assetNamesLookup: Map<string, string>): FieldDTO[] {
     return [
       this.buildResourceField('Target Parent (Asset)', flattenedRows, row =>
-        this.resolveAssetName(row.assetSelection?.targetParentId, assetNamesLookup)
+        this.resolveAssetNameForTargetParent(row.assetSelection?.targetParentId, assetNamesLookup)
       ),
       this.buildResourceField('Target Parent (DUT)', flattenedRows, row =>
-        this.resolveAssetName(row.dutSelection?.targetParentId, assetNamesLookup)
+        this.resolveAssetNameForTargetParent(row.dutSelection?.targetParentId, assetNamesLookup)
       ),
       this.buildResourceField('Target Parent (Fixture)', flattenedRows, row =>
-        this.resolveAssetName(row.fixtureSelection?.targetParentId, assetNamesLookup)
+        this.resolveAssetNameForTargetParent(row.fixtureSelection?.targetParentId, assetNamesLookup)
       ),
     ];
   }
@@ -812,7 +829,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     );
 
     return workItems.map(workItem => ({
-      text: workItem.name ? `${workItem.name} <${workItem.id}>` : `<${workItem.id}>`,
+      text: workItem.name ? `${workItem.name} (${workItem.id})` : `(${workItem.id})`,
       value: workItem.id,
     }));
   }
