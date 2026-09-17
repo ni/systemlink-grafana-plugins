@@ -1,3 +1,9 @@
+## [5.14.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.13.0...v5.14.0) (2026-09-17)
+
+### Features
+
+* **work-items:** add custom property discovery backend ([#759](https://github.com/ni/systemlink-grafana-plugins/issues/759)) ([9322d24](https://github.com/ni/systemlink-grafana-plugins/commit/9322d24e4f10a97b1ab4b004a406a341e7a82f09))
+
 ## [5.13.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.12.0...v5.13.0) (2026-09-17)
 
 ### Features
