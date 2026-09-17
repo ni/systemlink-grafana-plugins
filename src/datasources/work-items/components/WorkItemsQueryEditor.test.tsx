@@ -67,6 +67,32 @@ describe('WorkItemsQueryEditor', () => {
     }
   });
 
+  describe('type control', () => {
+    it('should offer dashboard variables as options in the type control', async () => {
+      const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+
+      try {
+        const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+        const [onChange, onRunQuery] = render({ types: [WorkItemTypeOptions.WorkOrders] });
+        onChange.mockClear();
+        onRunQuery.mockClear();
+
+        const typesCombobox = page.typesMultiCombobox()!;
+        await userEvent.click(typesCombobox);
+        expect(await page.typeSelectOption('$test_var')).toBeInTheDocument();
+
+        await userEvent.click(await page.typeSelectOption('$test_var'));
+
+        expect(onChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ types: [WorkItemTypeOptions.WorkOrders, '$test_var'] })
+        );
+        expect(onRunQuery).toHaveBeenCalled();
+      } finally {
+        offsetHeightSpy.mockRestore();
+      }
+    });
+  });
+
   describe('query by filter change', () => {
     it('should call onChange and onRunQuery when the filter value changes', () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
@@ -142,27 +168,6 @@ describe('WorkItemsQueryEditor', () => {
           expect.objectContaining({ types: [WorkItemTypeOptions.WorkOrders] })
         );
         expect(onRunQuery).toHaveBeenCalled();
-      } finally {
-        offsetHeightSpy.mockRestore();
-      }
-    });
-
-    it('should offer dashboard variables as options in the type control', async () => {
-      const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
-
-      try {
-        const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
-        const [onChange, onRunQuery] = render({ types: [WorkItemTypeOptions.WorkOrders] });
-        onChange.mockClear();
-        onRunQuery.mockClear();
-
-        const typesCombobox = page.typesMultiCombobox()!;
-        await userEvent.click(typesCombobox);
-        await userEvent.click(await page.typeSelectOption('$test_var'));
-
-        expect(onChange).toHaveBeenLastCalledWith(
-          expect.objectContaining({ types: [WorkItemTypeOptions.WorkOrders, '$test_var'] })
-        );
       } finally {
         offsetHeightSpy.mockRestore();
       }

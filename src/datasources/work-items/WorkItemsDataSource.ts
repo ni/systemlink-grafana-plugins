@@ -7,6 +7,7 @@ import {
   FieldType,
   LegacyMetricFindQueryOptions,
   MetricFindValue,
+  ScopedVars,
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
@@ -146,7 +147,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
-    const { allTypesSelected, filter: typeFilter } = this.buildTypeFilter(query.types!);
+    const { allTypesSelected, filter: typeFilter } = this.buildTypeFilter(query.types!, options.scopedVars);
 
     // A selection that resolves only to empty or unrecognized values (e.g. a template variable
     // that expands to nothing) yields no type filter. Returning early avoids dropping the type
@@ -727,8 +728,11 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     };
   }
 
-  private buildTypeFilter(types: WorkItemTypeOptions[]): { allTypesSelected: boolean; filter: string } {
-    const resolvedTypes = replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[];
+  private buildTypeFilter(
+    types: WorkItemTypeOptions[],
+    scopedVars?: ScopedVars
+  ): { allTypesSelected: boolean; filter: string } {
+    const resolvedTypes = replaceVariables(types, this.templateSrv, scopedVars) as WorkItemTypeOptions[];
     const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
 
     const typeValues = resolvedTypes

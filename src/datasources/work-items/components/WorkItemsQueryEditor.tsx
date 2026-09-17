@@ -99,8 +99,8 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   const globalVariableOptions = useMemo(() => datasource.globalVariableOptions(), [datasource]);
 
   const typeOptions = useMemo(
-    () => [...datasource.getVariableOptions(), ...WorkItemTypes] as Array<ComboboxOption<WorkItemTypeOptions>>,
-    [datasource]
+    () => [...globalVariableOptions, ...WorkItemTypes] as Array<ComboboxOption<WorkItemTypeOptions>>,
+    [globalVariableOptions]
   );
 
   const handleQueryChange = useCallback(
