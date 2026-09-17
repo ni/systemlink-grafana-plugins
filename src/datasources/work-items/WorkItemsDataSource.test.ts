@@ -1544,6 +1544,32 @@ describe('WorkItemsDataSource', () => {
       );
     });
 
+    it('should not throw when invoked without options and a filter is set', async () => {
+      const replaceSpy = jest
+        .spyOn(datasource.templateSrv, 'replace')
+        .mockReturnValue('state = "NEW"');
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({
+        workItems: [],
+        continuationToken: '',
+        totalCount: 0,
+      });
+
+      const result = await datasource.metricFindQuery({
+        refId: 'A',
+        queryType: WorkItemsVariableQueryType.ListWorkItems,
+        types: [WorkItemTypeOptions.WorkOrders],
+        filter: 'state = "$state"',
+      });
+
+      expect(result).toEqual([]);
+      expect(replaceSpy).toHaveBeenCalledWith('state = "$state"', undefined);
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        expect.objectContaining({ filter: '(type = "workorder") && (state = "NEW")' }),
+        { showErrorAlert: false }
+      );
+    });
+
     it('should return an empty list when no types are selected', async () => {
       const postSpy = jest.spyOn(datasource, 'post');
 

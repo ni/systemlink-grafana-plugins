@@ -722,7 +722,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   async metricFindQuery(
     query: WorkItemsVariableQuery,
-    options: LegacyMetricFindQueryOptions
+    options?: LegacyMetricFindQueryOptions
   ): Promise<MetricFindValue[]> {
     const variableQuery = this.prepareVariableQuery(query);
 
@@ -735,7 +735,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     }
 
     const replacedFilter = variableQuery.filter
-      ? this.templateSrv.replace(variableQuery.filter, options.scopedVars)
+      ? this.templateSrv.replace(variableQuery.filter, options?.scopedVars)
       : variableQuery.filter;
     const filter = this.buildWorkItemsFilter(variableQuery.types!, replacedFilter);
 
