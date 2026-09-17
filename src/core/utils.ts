@@ -1,4 +1,4 @@
-import { ScopedVars, SelectableValue, textUtil } from '@grafana/data';
+import { SelectableValue, textUtil } from '@grafana/data';
 import { useAsync } from 'react-use';
 import { DataSourceBase } from './DataSourceBase';
 import { BatchQueryConfig, QBField, QueryBuilderOption, QueryResponse, SystemLinkError, Workspace } from './types';
@@ -62,11 +62,11 @@ export function getWorkspaceName(workspaces: Workspace[], id: string) {
  * Replace variables in an array of values.
  * Useful for multi-value variables.
  */
-export function replaceVariables(values: string[], templateSrv: TemplateSrv, scopedVars?: ScopedVars) {
+export function replaceVariables(values: string[], templateSrv: TemplateSrv) {
   const replaced: string[] = [];
   values.forEach(value => {
     if (templateSrv.containsTemplate(value)) {
-      const variableReplacedValues = templateSrv.replace(value, scopedVars) // Replace variable with their values
+      const variableReplacedValues = templateSrv.replace(value) // Replace variable with their values
         .replace(/[{}]/g, '') // return values without curly braces for multi-value variables which are returned as {value1,value2}
         .split(',');
       replaced.push(...variableReplacedValues.filter(v => v.trim() !== ''));

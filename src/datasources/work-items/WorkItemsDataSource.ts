@@ -7,7 +7,6 @@ import {
   FieldType,
   LegacyMetricFindQueryOptions,
   MetricFindValue,
-  ScopedVars,
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
@@ -147,11 +146,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
-    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
-      query.types!,
-      query.filter,
-      options.scopedVars
-    );
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(query.types!, query.filter);
 
     // A selection that resolves only to empty or unrecognized values (e.g. a template variable
     // that expands to nothing) yields no type filter. Returning early avoids dropping the type
@@ -727,10 +722,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   private buildWorkItemsFilter(
     types: WorkItemTypeOptions[],
-    filter?: string,
-    scopedVars?: ScopedVars
+    filter?: string
   ): { filter: string | undefined; hasRecognizedTypes: boolean } {
-    const { allTypesSelected, filter: typeFilter } = this.buildTypeFilter(types, scopedVars);
+    const { allTypesSelected, filter: typeFilter } = this.buildTypeFilter(types);
 
     if (!allTypesSelected && typeFilter === '') {
       return { filter: undefined, hasRecognizedTypes: false };
@@ -746,10 +740,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private buildTypeFilter(
-    types: WorkItemTypeOptions[],
-    scopedVars?: ScopedVars
+    types: WorkItemTypeOptions[]
   ): { allTypesSelected: boolean; filter: string } {
-    const resolvedTypes = replaceVariables(types, this.templateSrv, scopedVars) as WorkItemTypeOptions[];
+    const resolvedTypes = replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[];
     const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
 
     const typeValues = resolvedTypes
@@ -782,11 +775,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const replacedFilter = variableQuery.filter
       ? this.templateSrv.replace(variableQuery.filter, options?.scopedVars)
       : variableQuery.filter;
-    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
-      variableQuery.types!,
-      replacedFilter,
-      options?.scopedVars
-    );
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(variableQuery.types!, replacedFilter);
 
     if (!hasRecognizedTypes) {
       return [];
