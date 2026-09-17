@@ -151,8 +151,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
-    const resolvedFilter = query.filter ? this.templateSrv.replace(query.filter, options?.scopedVars) : undefined;
-    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(query.types!, resolvedFilter);
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(query.types!, query.filter);
 
     // A selection that resolves only to empty or unrecognized values (e.g. a template variable
     // that expands to nothing) yields no type filter. Returning early avoids dropping the type
@@ -232,8 +231,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   /** Builds the same filter for the data query and the custom property discovery query. */
   public buildFilterFromQuery(query: WorkItemsQuery): string | undefined {
-    const resolvedFilter = query.filter ? this.templateSrv.replace(query.filter) : undefined;
-    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(query.types ?? [], resolvedFilter);
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(query.types ?? [], query.filter);
 
     return hasRecognizedTypes ? filter : undefined;
   }
