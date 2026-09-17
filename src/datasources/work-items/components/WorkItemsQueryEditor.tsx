@@ -203,27 +203,20 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
       filter: string | undefined,
       take: number,
       orderBy: OrderByOptions | undefined,
-      descending: boolean | undefined,
-      isCancelled: () => boolean
+      descending: boolean | undefined
     ) => {
       try {
         const options = await datasource.getCustomPropertyOptions(
-          filter, 
-          take, 
-          orderBy, 
+          filter,
+          take,
+          orderBy,
           descending
         );
-        if (!isCancelled()) {
-          setCustomPropertyOptions(options.slice(0, CUSTOM_PROPERTY_OPTIONS_LIMIT));
-        }
+        setCustomPropertyOptions(options.slice(0, CUSTOM_PROPERTY_OPTIONS_LIMIT));
+        setIsCustomPropertiesInitialized(true);
       } catch {
-        if (!isCancelled()) {
-          setCustomPropertyOptions([]);
-        }
-      } finally {
-        if (!isCancelled()) {
-          setIsCustomPropertiesInitialized(true);
-        }
+        setCustomPropertyOptions([]);
+        setIsCustomPropertiesInitialized(false);
       }
     },
     [datasource]
@@ -245,6 +238,11 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   useEffect(() => {
     if (!isQueryValid) {
+      if (isPropertiesOutput && (!isTypesValid || !isTakeValid)) {
+        lastCustomPropertiesParamsRef.current = null;
+        setCustomPropertyOptions([]);
+        setIsCustomPropertiesInitialized(false);
+      }
       return;
     }
 
@@ -267,19 +265,23 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
       descending: query.descending,
     };
 
-    let isStale = false;
     fetchAndSetCustomPropertyOptions(
       customPropertiesFilter,
       queryTake,
       query.orderBy,
-      query.descending,
-      () => isStale
+      query.descending
     );
-
-    return () => {
-      isStale = true;
-    };
-  }, [fetchAndSetCustomPropertyOptions, isQueryValid, customPropertiesFilter, queryTake, query.orderBy, query.descending]);
+  }, [
+    fetchAndSetCustomPropertyOptions,
+    isQueryValid,
+    isPropertiesOutput,
+    isTypesValid,
+    isTakeValid,
+    customPropertiesFilter,
+    queryTake,
+    query.orderBy,
+    query.descending
+  ]);
 
   useEffect(() => {
     if (!query.outputType) {

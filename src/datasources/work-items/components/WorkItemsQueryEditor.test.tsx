@@ -349,6 +349,27 @@ describe('WorkItemsQueryEditor', () => {
       expect(getCustomPropertyOptionsSpy).not.toHaveBeenCalled();
     });
 
+    it('should clear the discovered custom property options when the query becomes invalid', async () => {
+      const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+      getCustomPropertyOptionsSpy.mockResolvedValue([customPropertyOption('customProperty1')]);
+
+      try {
+        const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+        render({ outputType: OutputType.Properties, types: [WorkItemTypeOptions.WorkOrders] });
+
+        await waitFor(() => expect(getCustomPropertyOptionsSpy).toHaveBeenCalledTimes(1));
+
+        const [onChange] = render({ outputType: OutputType.Properties, types: [] });
+        await waitFor(() => expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeVisible());
+
+        expect(screen.queryByRole('option', { name: 'customProperty1' })).toBeNull();
+        expect(onChange).not.toHaveBeenCalled();
+        expect(getCustomPropertyOptionsSpy).toHaveBeenCalledTimes(1);
+      } finally {
+        offsetHeightSpy.mockRestore();
+      }
+    });
+
     it('should not load the custom property options when take is invalid', async () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
@@ -377,6 +398,8 @@ describe('WorkItemsQueryEditor', () => {
           page.getErrorByMessage(
             typesErrorMessages.atLeastOneRequired
           )).toBeVisible());
+          
+        expect(screen.queryByRole('option', { name: 'customProperty1' })).toBeNull();
         expect(getCustomPropertyOptionsSpy).not.toHaveBeenCalled();
       } finally {
         offsetHeightSpy.mockRestore();
