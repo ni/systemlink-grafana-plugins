@@ -10,6 +10,7 @@ import {
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { ComboboxOption } from '@grafana/ui';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { extractErrorInfo } from 'core/errors';
@@ -29,6 +30,7 @@ import {
   OutputType,
   QueryWorkItemsRequestBody,
   WorkItem,
+  WorkItemPropertiesGroup,
   WorkItemPropertiesOptions,
   WorkItemsQuery,
   WorkItemsResponse,
@@ -41,11 +43,14 @@ import {
   DEFAULT_TAKE,
   SECONDS_IN_DAY,
   SECONDS_IN_HOUR,
+  WORK_ITEM_PROPERTIES_PROJECTION,
   WORK_ITEM_PROPERTIES_PROJECTIONS,
   WORK_ITEM_TYPE_FILTER_VALUES,
   WORK_ITEM_TYPE_LABEL_MAP,
   WORK_ITEM_STATE_OPTIONS,
   USER_PROPERTY_FIELDS,
+  CUSTOM_PROPERTY_OPTIONS_LIMIT,
+  CUSTOM_PROPERTY_SUFFIX,
 } from './constants';
 import { WorkItemsQueryBuilderFieldNames } from './constants/WorkItemsQueryBuilder.constants';
 import {
@@ -157,7 +162,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
     if (
       query.outputType === OutputType.Properties &&
-      isPropertiesNonEmpty(query.properties) &&
+      isPropertiesNonEmpty(query.properties, query.customProperties) &&
       isTakeValid(query.take)
     ) {
       return this.processWorkItemsQuery(query, filter);
@@ -190,6 +195,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const workItemsResponse = await this.queryWorkItemsData(
       filter,
       query.properties,
+      query.customProperties,
       query.orderBy,
       query.descending,
       query.take
@@ -211,7 +217,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       refId: query.refId,
       name: query.refId,
       fields: this.buildFields(
-        query.properties!,
+        query.properties ?? [],
+        query.customProperties,
         flattenedRows,
         workspacesLookup,
         usersLookup,
@@ -220,6 +227,66 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         systemAliasesLookup
       ),
     };
+  }
+
+  /** Builds the same filter for the data query and the custom property discovery query. */
+  public buildFilterFromQuery(query: WorkItemsQuery): string | undefined {
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(query.types ?? [], query.filter);
+
+    return hasRecognizedTypes ? filter : undefined;
+  }
+
+  /**
+   * Discovers the distinct custom property keys present on the queried work items so the
+   * query editor can offer each key as its own selectable property.
+   */
+  public async getCustomPropertyOptions(
+    filter: string | undefined, 
+    take: number,
+    orderBy?: OrderByOptions,
+    descending?: boolean
+  ): Promise<Array<ComboboxOption<string>>> {
+    const queryRecord = async (currentTake: number, continuationToken?: string): Promise<QueryResponse<WorkItem>> => {
+      const response = await this.queryWorkItems({
+        filter,
+        projection: [WORK_ITEM_PROPERTIES_PROJECTION],
+        orderBy,
+        descending,
+        take: currentTake,
+        continuationToken,
+      });
+
+      return {
+        data: response.workItems ?? [],
+        continuationToken: response.continuationToken,
+        totalCount: response.totalCount,
+      };
+    };
+
+    const response = await queryInBatches(
+      queryRecord,
+      {
+        maxTakePerRequest: QUERY_WORK_ITEMS_MAX_TAKE,
+        requestsPerSecond: QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
+      },
+      take
+    );
+
+    const customPropertyKeys = new Set<string>();
+    for (const workItem of response.data) {
+      if (!workItem.properties) {
+        continue;
+      }
+
+      for (const key of Object.keys(workItem.properties)) {
+        customPropertyKeys.add(key);
+        if (customPropertyKeys.size >= CUSTOM_PROPERTY_OPTIONS_LIMIT) {
+          return this.buildCustomPropertyOptions(customPropertyKeys);
+        }
+      }
+    }
+
+    return this.buildCustomPropertyOptions(customPropertyKeys);
   }
 
   private isPropertySelected(
@@ -367,6 +434,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
         undefined,
         undefined,
+        undefined,
         parentWorkitemIds.length,
         true
       );
@@ -383,6 +451,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   private buildFields(
     properties: WorkItemPropertiesOptions[],
+    customProperties: string[] | undefined,
     flattenedRows: FlattenedRow[],
     workspacesLookup: Map<string, Workspace>,
     usersLookup: Map<string, User>,
@@ -420,6 +489,14 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         values: fieldValue,
         type: fieldType,
         ...(fieldType === FieldType.time && { config: { unit: 'time:YYYY-MM-DD HH:mm:ss' } }),
+      });
+    });
+
+    customProperties?.forEach(customProperty => {
+      fields.push({
+        name: customProperty,
+        values: flattenedRows.map(row => row.workItem.properties?.[customProperty] ?? ''),
+        type: FieldType.string,
       });
     });
 
@@ -599,12 +676,13 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   async queryWorkItemsData(
     filter?: string,
     properties?: WorkItemPropertiesOptions[],
+    customProperties?: string[],
     orderBy?: OrderByOptions,
     descending?: boolean,
     take?: number,
     suppressErrorAlert = false
   ): Promise<WorkItem[]> {
-    const projection = this.buildProjection(properties);
+    const projection = this.buildProjectionFromProperties(properties, customProperties);
 
     const queryRecord = async (currentTake: number, continuationToken?: string): Promise<QueryResponse<WorkItem>> => {
       const body: QueryWorkItemsRequestBody = {
@@ -633,11 +711,18 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return response.data;
   }
 
-  private buildProjection(properties?: WorkItemPropertiesOptions[]): string[] | undefined {
+  private buildProjectionFromProperties(
+    properties?: WorkItemPropertiesOptions[],
+    customProperties?: string[]
+  ): string[] | undefined {
     const projection = new Set<string>();
     (properties ?? []).forEach(property => {
       WORK_ITEM_PROPERTIES_PROJECTIONS[property]?.forEach(value => projection.add(value));
     });
+
+    if (customProperties && customProperties.length > 0) {
+      projection.add(WORK_ITEM_PROPERTIES_PROJECTION);
+    }
 
     return projection.size > 0 ? [...projection] : undefined;
   }
@@ -784,6 +869,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const workItems = await this.queryWorkItemsData(
       filter,
       [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
+      undefined,
       variableQuery.orderBy,
       variableQuery.descending,
       variableQuery.take
@@ -837,6 +923,18 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       }
       return new Map<string, SystemAlias>();
     }
+  }
+
+  private buildCustomPropertyOptions(
+    customPropertyKeys: Set<string>
+  ): Array<ComboboxOption<string>> {
+    return Array.from(customPropertyKeys)
+      .sort((key, otherKey) => key.localeCompare(otherKey))
+      .map(key => ({
+        label: key,
+        value: `${key}${CUSTOM_PROPERTY_SUFFIX}`,
+        group: WorkItemPropertiesGroup.CUSTOM_PROPERTIES,
+      }));
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

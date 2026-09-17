@@ -6,6 +6,10 @@ export const DEFAULT_TAKE = 1000;
 export const SECONDS_IN_DAY = 86400;
 export const SECONDS_IN_HOUR = 3600;
 
+export const CUSTOM_PROPERTY_OPTIONS_LIMIT = 10_000;
+
+export const CUSTOM_PROPERTY_SUFFIX = '-(custom-properties)';
+
 // Maps each work item type option to the backend's `type` filter value.
 export const WORK_ITEM_TYPE_FILTER_VALUES: Record<WorkItemTypeOptions, string> = {
   [WorkItemTypeOptions.WorkOrders]: 'workorder',
@@ -84,6 +88,8 @@ export const WORK_ITEM_PROPERTIES_PROJECTIONS: Record<WorkItemPropertiesOptions,
   [WorkItemPropertiesOptions.SYSTEM_ID]: ['RESOURCES_SYSTEMS_SELECTIONS_ID'],
   [WorkItemPropertiesOptions.PROPERTIES]: ['PROPERTIES'],
 };
+
+export const WORK_ITEM_PROPERTIES_PROJECTION = WORK_ITEM_PROPERTIES_PROJECTIONS[WorkItemPropertiesOptions.PROPERTIES][0];
 
 // Maps normalized work item type values to human-readable labels.
 export const WORK_ITEM_TYPE_LABEL_MAP: Record<string, string> = {

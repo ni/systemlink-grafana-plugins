@@ -1,8 +1,20 @@
 import { DataQueryRequest, TypedVariableModel } from '@grafana/data';
 import { WorkItemsDataSource } from './WorkItemsDataSource';
 import { setupDataSource } from 'test/fixtures';
-import { OrderByOptions, OutputType, WorkItemPropertiesOptions, WorkItemsVariableQueryType, WorkItemTypeOptions } from './types';
+import { 
+  OrderByOptions, 
+  OutputType, 
+  WorkItemPropertiesGroup, 
+  WorkItemPropertiesOptions, 
+  WorkItemsVariableQueryType, 
+  WorkItemTypeOptions 
+} from './types';
 import { queryInBatches } from 'core/utils';
+import { 
+  CUSTOM_PROPERTY_OPTIONS_LIMIT, 
+  CUSTOM_PROPERTY_SUFFIX, 
+  DEFAULT_TAKE 
+} from './constants';
 
 jest.mock('core/utils', () => ({
   ...jest.requireActual('core/utils'),
@@ -860,6 +872,111 @@ describe('WorkItemsDataSource', () => {
           expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
         }
       );
+    });
+
+    describe('custom properties', () => {
+      it('should not include the PROPERTIES projection when customProperties is empty or undefined', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ workItems: [], totalCount: 0 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.ID],
+          take: 1000,
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          expect.objectContaining({ projection: ['ID'] }),
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should include the PROPERTIES projection when customProperties is non-empty', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ workItems: [], totalCount: 0 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.ID],
+          customProperties: ['workflow'],
+          take: 1000,
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          expect.objectContaining({ projection: ['ID', 'PROPERTIES'] }),
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should build only custom property fields when no standard properties are selected', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', properties: { workflow: 'Approved' } }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [],
+          customProperties: ['workflow'],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([{ name: 'workflow', values: ['Approved'], type: 'string' }]);
+      });
+
+      it('should include both standard and custom property fields together', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', name: 'Battery Cycle Test', properties: { workflow: 'Approved' } }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
+          customProperties: ['workflow'],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([
+          { name: 'Work item ID', values: ['1'], type: 'string' },
+          { name: 'Work item name', values: ['Battery Cycle Test'], type: 'string' },
+          { name: 'workflow', values: ['Approved'], type: 'string' },
+        ]);
+      });
+
+      it('should show an empty value when a work item is missing the selected custom property', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', properties: {} }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [],
+          customProperties: ['workflow'],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([{ name: 'workflow', values: [''], type: 'string' }]);
+      });
     });
 
     describe('total count output type', () => {
@@ -1904,6 +2021,52 @@ describe('WorkItemsDataSource', () => {
       expect(shouldRunQueryResult).toBe(false);
     });
   });
+
+  describe('buildFilterFromQuery', () => {
+    it('should return undefined when all types are selected and there is no filter', () => {
+      const query = { refId: 'A', types: Object.values(WorkItemTypeOptions) };
+
+      expect(datasource.buildFilterFromQuery(query)).toBeUndefined();
+    });
+
+    it('should build only the type filter when a subset of types is selected', () => {
+      const query = { refId: 'A', types: [WorkItemTypeOptions.WorkOrders] };
+
+      expect(datasource.buildFilterFromQuery(query)).toBe('(type = "workorder")');
+    });
+
+    it('should build only the trimmed query filter when all types are selected', () => {
+      const query = { refId: 'A', types: Object.values(WorkItemTypeOptions), filter: '  name = "test"  ' };
+
+      expect(datasource.buildFilterFromQuery(query)).toBe('(name = "test")');
+    });
+
+    it('should combine the type filter and the query filter', () => {
+      const query = {
+        refId: 'A',
+        types: [WorkItemTypeOptions.WorkOrders],
+        filter: 'name = "test"',
+      };
+
+      expect(datasource.buildFilterFromQuery(query)).toBe('(type = "workorder") && (name = "test")');
+    });
+
+    it('should transform duration filters within the query filter', () => {
+      const query = {
+        refId: 'A',
+        types: Object.values(WorkItemTypeOptions),
+        filter: 'estimatedDurationInDays > "2"',
+      };
+
+      expect(datasource.buildFilterFromQuery(query)).toBe('(timeline.estimatedDurationInSeconds > "172800")');
+    });
+
+    it('should return undefined when there are no types and no filter', () => {
+      const query = { refId: 'A', types: [] };
+
+      expect(datasource.buildFilterFromQuery(query)).toBeUndefined();
+    });
+  });
 });
 
 
@@ -2095,6 +2258,114 @@ describe('query builder lookup error descriptions', () => {
 
     expect(datasource.errorDescription).toBe(
       'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.'
+    );
+  });
+});
+
+describe('getCustomPropertyOptions', () => {
+  let datasource: WorkItemsDataSource;
+  let postSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    [datasource] = setupDataSource(WorkItemsDataSource);
+    postSpy = jest.spyOn(datasource, 'post');
+  });
+
+  it('should query work items with the PROPERTIES projection and the given take', async () => {
+    postSpy.mockResolvedValue({ workItems: [] });
+
+    await datasource.getCustomPropertyOptions(undefined, DEFAULT_TAKE);
+
+    expect(postSpy).toHaveBeenCalledWith(
+      '/niworkitem/v1/query-workitems',
+      { filter: undefined, projection: ['PROPERTIES'], take: DEFAULT_TAKE },
+      { showErrorAlert: false }
+    );
+  });
+
+  it('should pass the given filter and take to the query', async () => {
+    postSpy.mockResolvedValue({ workItems: [] });
+
+    await datasource.getCustomPropertyOptions('type = "workorder"', 500);
+
+    expect(postSpy).toHaveBeenCalledWith(
+      '/niworkitem/v1/query-workitems',
+      { filter: 'type = "workorder"', projection: ['PROPERTIES'], take: 500 },
+      { showErrorAlert: false }
+    );
+  });
+
+  it.each([
+    ['the response has an empty workItems list', { workItems: [] }],
+    ['the response has no workItems', {}],
+    ['no work item has custom properties', { workItems: [{ id: '1' }, { id: '2', properties: {} }] }],
+  ])('should return an empty list when %s', async (_description, response) => {
+    postSpy.mockResolvedValue(response);
+
+    expect(await datasource.getCustomPropertyOptions(undefined, DEFAULT_TAKE)).toEqual([]);
+  });
+
+  it('should return one option per custom property key grouped under custom properties', async () => {
+    postSpy.mockResolvedValue({
+      workItems: [{ properties: { propA: 'valueA', propB: 'valueB' } }],
+    });
+
+    expect(await datasource.getCustomPropertyOptions(undefined, DEFAULT_TAKE)).toEqual([
+      { label: 'propA', value: `propA${CUSTOM_PROPERTY_SUFFIX}`, group: WorkItemPropertiesGroup.CUSTOM_PROPERTIES },
+      { label: 'propB', value: `propB${CUSTOM_PROPERTY_SUFFIX}`, group: WorkItemPropertiesGroup.CUSTOM_PROPERTIES },
+    ]);
+  });
+
+  it('should return one option when the same key is present on multiple work items', async () => {
+    postSpy.mockResolvedValue({
+      workItems: [
+        { properties: { propA: 'valueA', propB: 'valueB' } },
+        { properties: { propB: 'valueB2', propC: 'valueC' } },
+      ],
+    });
+
+    const options = await datasource.getCustomPropertyOptions(undefined, DEFAULT_TAKE);
+
+    expect(options.map(option => option.label)).toEqual(['propA', 'propB', 'propC']);
+  });
+
+  it('should return custom properties sorted alphabetically', async () => {
+    postSpy.mockResolvedValue({
+      workItems: [{ properties: { zprop: 'v1', aprop: 'v2', bprop: 'v3' } }],
+    });
+
+    const options = await datasource.getCustomPropertyOptions(undefined, DEFAULT_TAKE);
+
+    expect(options.map(option => option.label)).toEqual(['aprop', 'bprop', 'zprop']);
+  });
+
+  it('should skip work items without custom properties while collecting keys', async () => {
+    postSpy.mockResolvedValue({
+      workItems: [{ id: '1' }, { properties: { propA: 'valueA' } }, { id: '3' }],
+    });
+
+    const options = await datasource.getCustomPropertyOptions(undefined, DEFAULT_TAKE);
+
+    expect(options.map(option => option.label)).toEqual(['propA']);
+  });
+
+  it('should not return more options than the custom property options limit', async () => {
+    const properties: Record<string, string> = {};
+    for (let index = 0; index < CUSTOM_PROPERTY_OPTIONS_LIMIT + 10; index++) {
+      properties[`prop${index}`] = `value${index}`;
+    }
+    postSpy.mockResolvedValue({ workItems: [{ properties }] });
+
+    const options = await datasource.getCustomPropertyOptions(undefined, DEFAULT_TAKE);
+
+    expect(options).toHaveLength(CUSTOM_PROPERTY_OPTIONS_LIMIT);
+  });
+
+  it('should propagate the query error when the request fails', async () => {
+    postSpy.mockRejectedValue(new Error('Request failed with status code: 404'));
+
+    await expect(datasource.getCustomPropertyOptions(undefined, DEFAULT_TAKE)).rejects.toThrow(
+      'The query to fetch work items failed because the requested resource was not found. Please check the query parameters and try again.'
     );
   });
 });
