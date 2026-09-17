@@ -1497,6 +1497,32 @@ describe('WorkItemsDataSource', () => {
       );
     });
 
+    it('should query without a filter and skip template replacement when no filter is set', async () => {
+      const replaceSpy = jest.spyOn(datasource.templateSrv, 'replace');
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({
+        workItems: [],
+        continuationToken: '',
+        totalCount: 0,
+      });
+
+      const result = await datasource.metricFindQuery(
+        {
+          refId: 'A',
+          queryType: WorkItemsVariableQueryType.ListWorkItems,
+          types: Object.values(WorkItemTypeOptions),
+        },
+        { scopedVars: {} } as any
+      );
+
+      expect(result).toEqual([]);
+      expect(replaceSpy).not.toHaveBeenCalled();
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        expect.objectContaining({ filter: undefined, projection: ['ID', 'NAME'] }),
+        { showErrorAlert: false }
+      );
+    });
+
     it('should return an empty list when no types are selected', async () => {
       const postSpy = jest.spyOn(datasource, 'post');
 
