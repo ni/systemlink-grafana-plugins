@@ -44,6 +44,7 @@ import {
   WORK_ITEM_PROPERTIES_PROJECTIONS,
   WORK_ITEM_TYPE_FILTER_VALUES,
   WORK_ITEM_TYPE_LABEL_MAP,
+  WORK_ITEM_TYPE_LABELS,
   WORK_ITEM_STATE_OPTIONS,
   USER_PROPERTY_FIELDS,
 } from './constants';
@@ -157,12 +158,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     }
 
     if (query.outputType === OutputType.TotalCount) {
-      const totalCount = await this.queryWorkItemsCount(filter);
-      return {
-        refId: query.refId,
-        name: query.refId,
-        fields: [{ name: query.refId, values: [totalCount] }],
-      };
+      return this.processTotalCountQuery(query);
     }
 
     return this.getEmptyDataFrameDTO(query.refId);
@@ -633,6 +629,32 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     });
 
     return projection.size > 0 ? [...projection] : undefined;
+  }
+
+  private async processTotalCountQuery(query: WorkItemsQuery): Promise<DataFrameDTO> {
+    const types = query.types!;
+    const queryFilter = query.filter?.trim();
+    const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
+
+    const counts = await Promise.all(
+      types.map(async type => {
+        const typeFilter = `type = "${WORK_ITEM_TYPE_FILTER_VALUES[type]}"`;
+        const filter = this.buildQueryFilter(
+          `(${typeFilter})`,
+          transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
+        );
+        return this.queryWorkItemsCount(filter);
+      })
+    );
+
+    return {
+      refId: query.refId,
+      name: query.refId,
+      fields: types.map((type, index) => ({
+        name: WORK_ITEM_TYPE_LABELS[type],
+        values: [counts[index]],
+      })),
+    };
   }
 
   async queryWorkItemsCount(filter?: string): Promise<number> {

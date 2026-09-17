@@ -131,8 +131,11 @@ describe('WorkItemsDataSource', () => {
       expect(postSpy).not.toHaveBeenCalled();
     });
 
-    it('should combine the type filter and the queryBy filter', async () => {
-      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+    it('should send a separate count query per selected type and combine them into columns', async () => {
+      const postSpy = jest
+        .spyOn(datasource, 'post')
+        .mockResolvedValueOnce({ totalCount: 3 })
+        .mockResolvedValueOnce({ totalCount: 5 });
       const query = {
         refId: 'A',
         outputType: OutputType.TotalCount,
@@ -140,21 +143,34 @@ describe('WorkItemsDataSource', () => {
         filter: 'state = "NEW"',
       };
 
-      await datasource.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+      const result = await datasource.runQuery(query, { scopedVars: {} } as DataQueryRequest);
 
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
         {
-          filter: '(type = "workorder" || type = "testplan") && (state = "NEW")',
+          filter: '(type = "workorder") && (state = "NEW")',
           take: 0,
           returnCount: true,
         },
         { showErrorAlert: false }
       );
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        {
+          filter: '(type = "testplan") && (state = "NEW")',
+          take: 0,
+          returnCount: true,
+        },
+        { showErrorAlert: false }
+      );
+      expect(result.fields).toEqual([
+        { name: 'Work orders', values: [3] },
+        { name: 'Test plans', values: [5] },
+      ]);
     });
 
-    it('should group each filter when one type is selected', async () => {
-      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+    it('should return a single column when one type is selected', async () => {
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 7 });
       const query = {
         refId: 'A',
         outputType: OutputType.TotalCount,
@@ -162,8 +178,9 @@ describe('WorkItemsDataSource', () => {
         filter: 'state = "NEW"',
       };
 
-      await datasource.runQuery(query, {} as DataQueryRequest);
+      const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
+      expect(postSpy).toHaveBeenCalledTimes(1);
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
         {
@@ -173,14 +190,55 @@ describe('WorkItemsDataSource', () => {
         },
         { showErrorAlert: false }
       );
+      expect(result.fields).toEqual([{ name: 'Work orders', values: [7] }]);
     });
 
-    it('should omit the type filter when all types are selected', async () => {
+    it('should map each type response to its own column in the selected order', async () => {
+      jest
+        .spyOn(datasource, 'post')
+        .mockResolvedValueOnce({ totalCount: 11 })
+        .mockResolvedValueOnce({ totalCount: 22 })
+        .mockResolvedValueOnce({ totalCount: 33 });
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+        types: [WorkItemTypeOptions.Job, WorkItemTypeOptions.Calibration, WorkItemTypeOptions.Reservation],
+      };
+
+      const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+      expect(result.fields).toEqual([
+        { name: 'Job', values: [11] },
+        { name: 'Calibration', values: [22] },
+        { name: 'Reservation', values: [33] },
+      ]);
+    });
+
+    it('should default a column to 0 when the API returns no totalCount for that type', async () => {
+      jest
+        .spyOn(datasource, 'post')
+        .mockResolvedValueOnce({ totalCount: 4 })
+        .mockResolvedValueOnce({});
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+        types: [WorkItemTypeOptions.WorkOrders, WorkItemTypeOptions.TestPlans],
+      };
+
+      const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+      expect(result.fields).toEqual([
+        { name: 'Work orders', values: [4] },
+        { name: 'Test plans', values: [0] },
+      ]);
+    });
+
+    it('should send only the type filter when no query filter is provided', async () => {
       const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
       const query = {
         refId: 'A',
         outputType: OutputType.TotalCount,
-        types: Object.values(WorkItemTypeOptions),
+        types: [WorkItemTypeOptions.WorkOrders],
       };
 
       await datasource.runQuery(query, {} as DataQueryRequest);
@@ -188,12 +246,43 @@ describe('WorkItemsDataSource', () => {
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
         {
-          filter: undefined,
+          filter: '(type = "workorder")',
+          take: 0,
+          returnCount: true,
+        },
+        { showErrorAlert: false }
+      );
+    });
+
+    it('should still apply a per-type filter for every type when all types are selected', async () => {
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+        types: Object.values(WorkItemTypeOptions),
+      };
+
+      const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+      expect(postSpy).toHaveBeenCalledTimes(Object.values(WorkItemTypeOptions).length);
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        {
+          filter: '(type = "workorder")',
           take: 0,
           returnCount: true
         },
         { showErrorAlert: false }
       );
+      expect(result.fields).toEqual([
+        { name: 'Work orders', values: [1] },
+        { name: 'Test plans', values: [1] },
+        { name: 'Job', values: [1] },
+        { name: 'Maintenance', values: [1] },
+        { name: 'Calibration', values: [1] },
+        { name: 'Reservation', values: [1] },
+        { name: 'Transport Order', values: [1] },
+      ]);
     });
 
     describe('duration filter transformation', () => {
@@ -202,7 +291,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: [WorkItemTypeOptions.WorkOrders],
           filter: 'estimatedDurationInDays > "2"',
         };
 
@@ -211,7 +300,7 @@ describe('WorkItemsDataSource', () => {
         expect(postSpy).toHaveBeenCalledWith(
           '/niworkitem/v1/query-workitems',
           {
-            filter: '(timeline.estimatedDurationInSeconds > "172800")',
+            filter: '(type = "workorder") && (timeline.estimatedDurationInSeconds > "172800")',
             take: 0,
             returnCount: true,
           },
@@ -224,7 +313,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: [WorkItemTypeOptions.WorkOrders],
           filter: 'estimatedDurationInHours <= "3"',
         };
 
@@ -233,7 +322,7 @@ describe('WorkItemsDataSource', () => {
         expect(postSpy).toHaveBeenCalledWith(
           '/niworkitem/v1/query-workitems',
           {
-            filter: '(timeline.estimatedDurationInSeconds <= "10800")',
+            filter: '(type = "workorder") && (timeline.estimatedDurationInSeconds <= "10800")',
             take: 0,
             returnCount: true,
           },
@@ -246,7 +335,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: [WorkItemTypeOptions.WorkOrders],
           filter: 'plannedDurationInDays != "-1"',
         };
 
@@ -255,7 +344,7 @@ describe('WorkItemsDataSource', () => {
         expect(postSpy).toHaveBeenCalledWith(
           '/niworkitem/v1/query-workitems',
           {
-            filter: '(schedule.plannedDurationInSeconds != "-86400")',
+            filter: '(type = "workorder") && (schedule.plannedDurationInSeconds != "-86400")',
             take: 0,
             returnCount: true,
           },
@@ -268,7 +357,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: [WorkItemTypeOptions.WorkOrders],
           filter: 'plannedDurationInHours >= "5"',
         };
 
@@ -277,7 +366,7 @@ describe('WorkItemsDataSource', () => {
         expect(postSpy).toHaveBeenCalledWith(
           '/niworkitem/v1/query-workitems',
           {
-            filter: '(schedule.plannedDurationInSeconds >= "18000")',
+            filter: '(type = "workorder") && (schedule.plannedDurationInSeconds >= "18000")',
             take: 0,
             returnCount: true,
           },
@@ -314,7 +403,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: [WorkItemTypeOptions.WorkOrders],
           filter: 'estimatedDurationInDays > "1.5"',
         };
 
@@ -323,7 +412,7 @@ describe('WorkItemsDataSource', () => {
         expect(postSpy).toHaveBeenCalledWith(
           '/niworkitem/v1/query-workitems',
           {
-            filter: '(timeline.estimatedDurationInSeconds > "129600")',
+            filter: '(type = "workorder") && (timeline.estimatedDurationInSeconds > "129600")',
             take: 0,
             returnCount: true,
           },
@@ -336,7 +425,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: [WorkItemTypeOptions.WorkOrders],
           filter: 'plannedDurationInHours <= "-2.25"',
         };
 
@@ -345,7 +434,7 @@ describe('WorkItemsDataSource', () => {
         expect(postSpy).toHaveBeenCalledWith(
           '/niworkitem/v1/query-workitems',
           {
-            filter: '(schedule.plannedDurationInSeconds <= "-8100")',
+            filter: '(type = "workorder") && (schedule.plannedDurationInSeconds <= "-8100")',
             take: 0,
             returnCount: true,
           },
@@ -708,7 +797,7 @@ describe('WorkItemsDataSource', () => {
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
-          fields: [{ name: 'A', values: [42] }],
+          fields: [{ name: 'Work orders', values: [42] }],
         });
       });
 
@@ -722,7 +811,7 @@ describe('WorkItemsDataSource', () => {
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields).toEqual([{ name: 'A', values: [0] }]);
+        expect(result.fields).toEqual([{ name: 'Work orders', values: [0] }]);
       });
     });
 

@@ -85,6 +85,17 @@ export const WORK_ITEM_PROPERTIES_PROJECTIONS: Record<WorkItemPropertiesOptions,
   [WorkItemPropertiesOptions.PROPERTIES]: ['PROPERTIES'],
 };
 
+// Maps each work item type option to its human-readable label used as a column header.
+export const WORK_ITEM_TYPE_LABELS: Record<WorkItemTypeOptions, string> = {
+  [WorkItemTypeOptions.WorkOrders]: 'Work orders',
+  [WorkItemTypeOptions.TestPlans]: 'Test plans',
+  [WorkItemTypeOptions.Job]: 'Job',
+  [WorkItemTypeOptions.Maintenance]: 'Maintenance',
+  [WorkItemTypeOptions.Calibration]: 'Calibration',
+  [WorkItemTypeOptions.Reservation]: 'Reservation',
+  [WorkItemTypeOptions.TransportOrder]: 'Transport Order',
+};
+
 // Maps normalized work item type values to human-readable labels.
 export const WORK_ITEM_TYPE_LABEL_MAP: Record<string, string> = {
   testplan: 'Test plan',
