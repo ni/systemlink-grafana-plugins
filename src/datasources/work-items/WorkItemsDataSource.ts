@@ -864,7 +864,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     filter?: string,
     scopedVars?: ScopedVars
   ): { filter: string | undefined; hasRecognizedTypes: boolean } {
-    const { allTypesSelected, filter: typeFilter } = this.buildTypeFilter(types);
+    const { allTypesSelected, filter: typeFilter } = this.buildTypeFilter(types, scopedVars);
 
     if (!allTypesSelected && typeFilter === '') {
       return { filter: undefined, hasRecognizedTypes: false };
@@ -890,9 +890,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private buildTypeFilter(
-    types: WorkItemTypeOptions[]
+    types: WorkItemTypeOptions[],
+    scopedVars?: ScopedVars
   ): { allTypesSelected: boolean; filter: string } {
-    const resolvedTypes = replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[];
+    const resolvedTypes = replaceVariables(types, this.templateSrv, scopedVars) as WorkItemTypeOptions[];
     const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
 
     const typeValues = resolvedTypes
