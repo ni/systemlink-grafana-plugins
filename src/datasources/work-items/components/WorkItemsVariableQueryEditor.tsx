@@ -133,7 +133,6 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
             options={queryTypeOptions}
             value={query.queryType}
             onChange={onQueryTypeChange}
-            placeholder={placeholders.queryType}
             width={COMBOBOX_WIDTH}
           />
         </InlineField>
