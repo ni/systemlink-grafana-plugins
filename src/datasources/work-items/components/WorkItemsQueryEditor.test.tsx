@@ -147,6 +147,27 @@ describe('WorkItemsQueryEditor', () => {
       }
     });
 
+    it('should offer dashboard variables as options in the type control', async () => {
+      const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+
+      try {
+        const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+        const [onChange, onRunQuery] = render({ types: [WorkItemTypeOptions.WorkOrders] });
+        onChange.mockClear();
+        onRunQuery.mockClear();
+
+        const typesCombobox = page.typesMultiCombobox()!;
+        await userEvent.click(typesCombobox);
+        await userEvent.click(await page.typeSelectOption('$test_var'));
+
+        expect(onChange).toHaveBeenLastCalledWith(
+          expect.objectContaining({ types: [WorkItemTypeOptions.WorkOrders, '$test_var'] })
+        );
+      } finally {
+        offsetHeightSpy.mockRestore();
+      }
+    });
+
     it('should clear the properties validation error when a property is re-added after all properties are removed', async () => {
       const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
 

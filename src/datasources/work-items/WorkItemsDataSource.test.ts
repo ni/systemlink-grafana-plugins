@@ -196,6 +196,60 @@ describe('WorkItemsDataSource', () => {
       );
     });
 
+    it('should replace a template variable in the selected types before building the type filter', async () => {
+      const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+      templateSrv.containsTemplate.mockImplementation((value?: string) => value === '$type_var');
+      templateSrv.replace.mockImplementation((value?: string) =>
+        value === '$type_var' ? WorkItemTypeOptions.WorkOrders : value ?? ''
+      );
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+        types: ['$type_var'] as unknown as WorkItemTypeOptions[],
+      };
+
+      await datasource.runQuery(query, {} as DataQueryRequest);
+
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        {
+          filter: '(type = "workorder")',
+          take: 0,
+          returnCount: true,
+        },
+        { showErrorAlert: false }
+      );
+    });
+
+    it('should expand a multi-value template variable in the selected types before building the type filter', async () => {
+      const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+      templateSrv.containsTemplate.mockImplementation((value?: string) => value === '$type_var');
+      templateSrv.replace.mockImplementation((value?: string) =>
+        value === '$type_var'
+          ? `{${WorkItemTypeOptions.WorkOrders},${WorkItemTypeOptions.TestPlans}}`
+          : value ?? ''
+      );
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+        types: ['$type_var'] as unknown as WorkItemTypeOptions[],
+      };
+
+      await datasource.runQuery(query, {} as DataQueryRequest);
+
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        {
+          filter: '(type = "workorder" || type = "testplan")',
+          take: 0,
+          returnCount: true,
+        },
+        { showErrorAlert: false }
+      );
+    });
+
     describe('duration filter transformation', () => {
       it('should convert estimatedDurationInDays to timeline.estimatedDurationInSeconds', async () => {
         const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });

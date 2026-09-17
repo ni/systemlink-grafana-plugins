@@ -145,6 +145,24 @@ describe('WorkItemsVariableQueryEditor', () => {
     }
   });
 
+  it('should offer dashboard variables as options in the type control', async () => {
+    const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+
+    try {
+      const { onChange } = await renderEditor({ types: [WorkItemTypeOptions.WorkOrders] });
+
+      const typesCombobox = page.typesMultiCombobox()!;
+      await userEvent.click(typesCombobox);
+      await userEvent.click(await page.typeSelectOption('$test_var'));
+
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ types: [WorkItemTypeOptions.WorkOrders, '$test_var'] })
+      );
+    } finally {
+      offsetHeightSpy.mockRestore();
+    }
+  });
+
   it('should update orderBy when a different option is selected', async () => {
     const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
 

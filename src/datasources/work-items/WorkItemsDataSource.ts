@@ -21,7 +21,7 @@ import { UsersUtils } from 'shared/users.utils';
 import { User } from 'shared/types/QueryUsers.types';
 import { AssetUtils, AssetProjectionProperties } from 'shared/asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
-import { queryInBatches } from 'core/utils';
+import { queryInBatches, replaceVariables } from 'core/utils';
 import { computedFieldsupportedOperations } from 'core/query-builder.utils';
 import {
   FlattenedRow,
@@ -720,12 +720,15 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private buildTypeFilter(types: WorkItemTypeOptions[]): string | undefined {
-    const allTypesAreSelected = Object.values(WorkItemTypeOptions).every(type => types.includes(type));
+    const resolvedTypes = replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[];
+    const allTypesAreSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
     if (allTypesAreSelected) {
       return undefined;
     }
 
-    const typeValues = types.map(type => WORK_ITEM_TYPE_FILTER_VALUES[type]);
+    const typeValues = resolvedTypes
+      .map(type => WORK_ITEM_TYPE_FILTER_VALUES[type])
+      .filter(Boolean);
     return typeValues.map(value => `type = "${value}"`).join(' || ');
   }
 
