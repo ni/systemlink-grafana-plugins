@@ -250,6 +250,42 @@ describe('WorkItemsDataSource', () => {
       );
     });
 
+    it('should return an empty data frame without querying when a template variable resolves to no values', async () => {
+      const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+      templateSrv.containsTemplate.mockImplementation((value?: string) => value === '$type_var');
+      templateSrv.replace.mockImplementation((value?: string) => (value === '$type_var' ? '' : value ?? ''));
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+        types: ['$type_var'] as unknown as WorkItemTypeOptions[],
+      };
+
+      const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+      expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
+      expect(postSpy).not.toHaveBeenCalled();
+    });
+
+    it('should return an empty data frame without querying when a template variable resolves only to unrecognized types', async () => {
+      const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+      templateSrv.containsTemplate.mockImplementation((value?: string) => value === '$type_var');
+      templateSrv.replace.mockImplementation((value?: string) =>
+        value === '$type_var' ? 'UNKNOWN_TYPE' : value ?? ''
+      );
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+        types: ['$type_var'] as unknown as WorkItemTypeOptions[],
+      };
+
+      const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+      expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
+      expect(postSpy).not.toHaveBeenCalled();
+    });
+
     describe('duration filter transformation', () => {
       it('should convert estimatedDurationInDays to timeline.estimatedDurationInSeconds', async () => {
         const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });

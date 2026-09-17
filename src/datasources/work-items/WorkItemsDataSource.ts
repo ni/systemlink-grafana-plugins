@@ -146,11 +146,19 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
-    const typeFilter = this.buildTypeFilter(query.types!);
+    const { allTypesSelected, filter: typeFilter } = this.buildTypeFilter(query.types!);
+
+    // A selection that resolves only to empty or unrecognized values (e.g. a template variable
+    // that expands to nothing) yields no type filter. Returning early avoids dropping the type
+    // constraint entirely, which would otherwise match every work item instead of none.
+    if (!allTypesSelected && typeFilter === '') {
+      return this.getEmptyDataFrameDTO(query.refId);
+    }
+
     const queryFilter = query.filter?.trim();
     const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
     const filter = this.buildQueryFilter(
-      typeFilter ? `(${typeFilter})` : undefined,
+      allTypesSelected ? undefined : `(${typeFilter})`,
       transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
     );
 
@@ -719,17 +727,17 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     };
   }
 
-  private buildTypeFilter(types: WorkItemTypeOptions[]): string | undefined {
+  private buildTypeFilter(types: WorkItemTypeOptions[]): { allTypesSelected: boolean; filter: string } {
     const resolvedTypes = replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[];
-    const allTypesAreSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
-    if (allTypesAreSelected) {
-      return undefined;
-    }
+    const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
 
     const typeValues = resolvedTypes
       .map(type => WORK_ITEM_TYPE_FILTER_VALUES[type])
       .filter(Boolean);
-    return typeValues.map(value => `type = "${value}"`).join(' || ');
+    return {
+      allTypesSelected,
+      filter: typeValues.map(value => `type = "${value}"`).join(' || '),
+    };
   }
 
   shouldRunQuery(query: WorkItemsQuery): boolean {
