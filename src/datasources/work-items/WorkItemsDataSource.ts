@@ -151,10 +151,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
-<<<<<<< HEAD
-    const filter = this.buildFilterFromQuery(query);
-=======
-    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(query.types!, query.filter);
+    const resolvedFilter = query.filter ? this.templateSrv.replace(query.filter, options?.scopedVars) : undefined;
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(query.types!, resolvedFilter);
 
     // A selection that resolves only to empty or unrecognized values (e.g. a template variable
     // that expands to nothing) yields no type filter. Returning early avoids dropping the type
@@ -162,7 +160,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     if (!hasRecognizedTypes) {
       return this.getEmptyDataFrameDTO(query.refId);
     }
->>>>>>> 2deeba3a8247fbf188adb15ed6b3f793167d7c22
 
     if (
       query.outputType === OutputType.Properties &&
@@ -235,14 +232,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   /** Builds the same filter for the data query and the custom property discovery query. */
   public buildFilterFromQuery(query: WorkItemsQuery): string | undefined {
-    const typeFilter = isTypesNonEmpty(query.types) ? this.buildTypeFilter(query.types!) : undefined;
-    const queryFilter = query.filter?.trim();
-    const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
+    const resolvedFilter = query.filter ? this.templateSrv.replace(query.filter) : undefined;
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(query.types ?? [], resolvedFilter);
 
-    return this.buildQueryFilter(
-      typeFilter ? `(${typeFilter})` : undefined,
-      transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
-    );
+    return hasRecognizedTypes ? filter : undefined;
   }
 
   /**
@@ -878,6 +871,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const workItems = await this.queryWorkItemsData(
       filter,
       [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
+      undefined,
       variableQuery.orderBy,
       variableQuery.descending,
       variableQuery.take
