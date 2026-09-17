@@ -32,6 +32,7 @@ export const labels = {
 };
 
 export const placeholders = {
+  queryType: 'Select query type',
   types: 'Select work item types',
   properties: 'Select the properties to query',
   orderBy: 'Select a field to set query order',
