@@ -314,6 +314,19 @@ describe('WorkItemsQueryEditor', () => {
       );
     });
 
+    it('should not reload the custom property options when switching output type back to properties without other changes', async () => {
+      const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+      render({ outputType: OutputType.Properties });
+
+      await waitFor(() => expect(getCustomPropertyOptionsSpy).toHaveBeenCalledTimes(1));
+      getCustomPropertyOptionsSpy.mockClear();
+
+      await userEvent.click(page.outputTypeRadioButton(OutputType.TotalCount));
+      await userEvent.click(page.outputTypeRadioButton(OutputType.Properties));
+
+      expect(getCustomPropertyOptionsSpy).not.toHaveBeenCalled();
+    });
+
     it('should not load the custom property options when the output type is total count', async () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 

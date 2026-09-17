@@ -63,6 +63,12 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   const [isCustomPropertiesInitialized, setIsCustomPropertiesInitialized] = useState(false);
 
   const lastUsedFilter = useRef(query.filter);
+  const lastCustomPropertiesParamsRef = useRef<{
+    filter: string | undefined;
+    take: number;
+    orderBy: OrderByOptions | undefined;
+    descending: boolean | undefined;
+  } | null>(null);
 
   const selectedProperties = useMemo(
     () => query.properties ?? [], [query.properties]
@@ -239,10 +245,27 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   useEffect(() => {
     if (!isQueryValid) {
-      setCustomPropertyOptions([]);
-      setIsCustomPropertiesInitialized(false);
       return;
     }
+
+    const lastParams = lastCustomPropertiesParamsRef.current;
+    const paramsUnchanged =
+      lastParams !== null &&
+      lastParams.filter === customPropertiesFilter &&
+      lastParams.take === queryTake &&
+      lastParams.orderBy === query.orderBy &&
+      lastParams.descending === query.descending;
+
+    if (paramsUnchanged) {
+      return;
+    }
+
+    lastCustomPropertiesParamsRef.current = {
+      filter: customPropertiesFilter,
+      take: queryTake,
+      orderBy: query.orderBy,
+      descending: query.descending,
+    };
 
     let isStale = false;
     fetchAndSetCustomPropertyOptions(
