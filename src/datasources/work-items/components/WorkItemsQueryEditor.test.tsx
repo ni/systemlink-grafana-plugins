@@ -15,8 +15,6 @@ import {
 import { WorkItemsQueryEditor } from './WorkItemsQueryEditor';
 import { workItemsQueryEditorPage as page } from './WorkItemsQueryEditor.page';
 
-// The smart-webcomponents query builder is prohibitively slow to mount in jsdom,
-// which pushes every asynchronous assertion in this file past the Jest timeout.
 jest.mock('./query-builder/WorkItemsQueryBuilder', () => ({
   WorkItemsQueryBuilder: jest.fn(({ onChange }: { onChange?: (event: Event) => void }) => {
     const ref = React.useRef<HTMLDivElement>(null);

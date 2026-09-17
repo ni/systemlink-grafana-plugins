@@ -55,12 +55,13 @@ type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
 export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
 
-  const [customPropertyOptions, setCustomPropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
-  const [isCustomPropertiesInitialized, setIsCustomPropertiesInitialized] = useState(false);
   const [workspaces, setWorkspaces] = useState<Workspace[] | null>(null);
   const [users, setUsers] = useState<User[] | null>(null);
   const [products, setProducts] = useState<ProductPartNumberAndName[] | null>(null);
   const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
+  const [customPropertyOptions, setCustomPropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
+  const [isCustomPropertiesInitialized, setIsCustomPropertiesInitialized] = useState(false);
+
   const lastUsedFilter = useRef(query.filter);
 
   const selectedProperties = useMemo(
@@ -70,19 +71,12 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     () => query.customProperties ?? [], [query.customProperties]
   );
 
-  const isPropertiesValid = isPropertiesNonEmpty(selectedProperties, selectedCustomProperties);
-  const isTypesValid = isTypesNonEmpty(query.types);
-  const takeInvalidMessage = getTakeError(query.take);
-  const isTakeValid = takeInvalidMessage === '';
   const outputType = query.outputType ?? OutputType.Properties;
+  const isPropertiesOutput = outputType === OutputType.Properties;
   const outputTypeOptions = Object.values(OutputType).map(value => ({
     label: value,
     value,
   }));
-  const isPropertiesOutput = outputType === OutputType.Properties;
-  const queryFilter = query.filter || undefined;
-  const queryTake = query.take ?? DEFAULT_TAKE;
-  const isQueryValid = isPropertiesOutput && isTypesValid && isTakeValid;
 
   const standardPropertiesOptions = useMemo(
     () =>
@@ -101,11 +95,20 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     [standardPropertiesOptions, customPropertyOptions]
   );
 
+  const isPropertiesValid = isPropertiesNonEmpty(selectedProperties, selectedCustomProperties);
+  const isTypesValid = isTypesNonEmpty(query.types);
+  const takeInvalidMessage = getTakeError(query.take);
+  const isTakeValid = takeInvalidMessage === '';
+  const isQueryValid = isPropertiesOutput && isTypesValid && isTakeValid;
+
+  const queryFilter = query.filter || undefined;
+  const queryTake = query.take ?? DEFAULT_TAKE;
+
   const globalVariableOptions = useMemo(() => datasource.globalVariableOptions(), [datasource]);
 
-  // Discovery must use the same filter as the data query, otherwise the offered keys
-  // can come from work items that are not part of the result.
-  const customPropertiesFilter = datasource.buildFilterFromQuery({ ...query, filter: queryFilter });
+  const customPropertiesFilter = datasource.buildFilterFromQuery(
+    { ...query, filter: queryFilter }
+  );
 
   const selectedPropertyOptions = useMemo(() => {
     const optionsByValue = new Map(
@@ -156,8 +159,13 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     selectedCustomProperties
   ]);
 
+  const isPropertiesFieldInvalid = !isPropertiesValid || !!invalidCustomPropertiesMessage;
+  const getPropertiesFieldError = useCallback(
+    () => (isPropertiesValid ? invalidCustomPropertiesMessage : propertiesErrorMessages.atLeastOneRequired),
+    [isPropertiesValid, invalidCustomPropertiesMessage]
+  );
 
-  useEffect(() => {
+  const fetchAndSetLookupData = useCallback(async () => {
     const loadWorkspaces = async () => {
       const workspaces = await datasource.loadWorkspaces();
       setWorkspaces(Array.from(workspaces.values()));
@@ -184,49 +192,36 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     loadSystemAliases();
   }, [datasource]);
 
-  useEffect(() => {
-    if (!isQueryValid) {
-      setCustomPropertyOptions([]);
-      setIsCustomPropertiesInitialized(false);
-      return;
-    }
-
-    let isStale = false;
-    const loadCustomProperties = async () => {
+  const fetchAndSetCustomPropertyOptions = useCallback(
+    async (
+      filter: string | undefined,
+      take: number,
+      orderBy: OrderByOptions | undefined,
+      descending: boolean | undefined,
+      isCancelled: () => boolean
+    ) => {
       try {
         const options = await datasource.getCustomPropertyOptions(
-          customPropertiesFilter,
-          queryTake,
-          query.orderBy,
-          query.descending
+          filter, 
+          take, 
+          orderBy, 
+          descending
         );
-        if (!isStale) {
+        if (!isCancelled()) {
           setCustomPropertyOptions(options.slice(0, CUSTOM_PROPERTY_OPTIONS_LIMIT));
         }
       } catch {
-        if (!isStale) {
+        if (!isCancelled()) {
           setCustomPropertyOptions([]);
         }
       } finally {
-        if (!isStale) {
+        if (!isCancelled()) {
           setIsCustomPropertiesInitialized(true);
         }
       }
-    };
-
-    loadCustomProperties();
-
-    return () => {
-      isStale = true;
-    };
-  }, [datasource, isQueryValid, customPropertiesFilter, queryTake, query.orderBy, query.descending]);
-
-  useEffect(() => {
-    if (!query.outputType) {
-      handleQueryChange({ ...query, outputType: OutputType.Properties });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    },
+    [datasource]
+  );
 
   const handleQueryChange = useCallback(
     (query: WorkItemsQuery, runQuery = true): void => {
@@ -236,8 +231,40 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
       }
     },
     [onChange, onRunQuery]
-  );  
-  
+  );
+
+  useEffect(() => {
+    fetchAndSetLookupData();
+  }, [fetchAndSetLookupData]);
+
+  useEffect(() => {
+    if (!isQueryValid) {
+      setCustomPropertyOptions([]);
+      setIsCustomPropertiesInitialized(false);
+      return;
+    }
+
+    let isStale = false;
+    fetchAndSetCustomPropertyOptions(
+      customPropertiesFilter,
+      queryTake,
+      query.orderBy,
+      query.descending,
+      () => isStale
+    );
+
+    return () => {
+      isStale = true;
+    };
+  }, [fetchAndSetCustomPropertyOptions, isQueryValid, customPropertiesFilter, queryTake, query.orderBy, query.descending]);
+
+  useEffect(() => {
+    if (!query.outputType) {
+      handleQueryChange({ ...query, outputType: OutputType.Properties });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const onOutputTypeChange = (value: OutputType) => {
     handleQueryChange({ ...query, outputType: value });
   };
@@ -321,10 +348,8 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
             label={labels.properties}
             labelWidth={LABEL_WIDTH}
             tooltip={tooltips.properties}
-            invalid={!isPropertiesValid || !!invalidCustomPropertiesMessage}
-            error={
-              isPropertiesValid ? invalidCustomPropertiesMessage : propertiesErrorMessages.atLeastOneRequired
-            }
+            invalid={isPropertiesFieldInvalid}
+            error={getPropertiesFieldError()}
           >
             <MultiCombobox
               placeholder={placeholders.properties}
