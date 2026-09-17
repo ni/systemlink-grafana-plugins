@@ -354,6 +354,77 @@ describe('WorkItemsDataSource', () => {
       });
     });
 
+    describe('template variable replacement', () => {
+      it('should replace a single-value template variable in the query builder filter', async () => {
+        const replaceSpy = jest
+          .spyOn(datasource.templateSrv, 'replace')
+          .mockReturnValue('state = "NEW"');
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const scopedVars = { state: { text: 'NEW', value: 'NEW' } };
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'state = "$state"',
+        };
+
+        await datasource.runQuery(query, { scopedVars } as any);
+
+        expect(replaceSpy).toHaveBeenCalledWith('state = "$state"', scopedVars);
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          expect.objectContaining({ filter: '(state = "NEW")' }),
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should expand a multi-value template variable into multiple expressions', async () => {
+        jest
+          .spyOn(datasource.templateSrv, 'replace')
+          .mockReturnValue('state = "{NEW,DEFINED}"');
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'state = "$state"',
+        };
+
+        await datasource.runQuery(query, { scopedVars: {} } as any);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          expect.objectContaining({ filter: '((state = "NEW" || state = "DEFINED"))' }),
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should expand a multi-value duration variable before converting to seconds', async () => {
+        jest
+          .spyOn(datasource.templateSrv, 'replace')
+          .mockReturnValue('estimatedDurationInDays = "{1,2}"');
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'estimatedDurationInDays = "$dur"',
+        };
+
+        await datasource.runQuery(query, { scopedVars: {} } as any);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          expect.objectContaining({
+            filter:
+              '((timeline.estimatedDurationInSeconds = "86400" || ' +
+              'timeline.estimatedDurationInSeconds = "172800"))',
+          }),
+          { showErrorAlert: false }
+        );
+      });
+    });
+
     describe('properties output type', () => {
       it('should return basic properties mapped directly from the response', async () => {
         jest.spyOn(datasource, 'post').mockResolvedValue({
@@ -1566,6 +1637,36 @@ describe('WorkItemsDataSource', () => {
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
         expect.objectContaining({ filter: '(type = "workorder") && (state = "NEW")' }),
+        { showErrorAlert: false }
+      );
+    });
+
+    it('should replace and expand a multi-value template variable in the filter', async () => {
+      const replaceSpy = jest
+        .spyOn(datasource.templateSrv, 'replace')
+        .mockReturnValue('state = "{NEW,DEFINED}"');
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({
+        workItems: [],
+        continuationToken: '',
+        totalCount: 0,
+      });
+      const scopedVars = { state: { text: 'NEW', value: 'NEW' } };
+
+      const result = await datasource.metricFindQuery(
+        {
+          refId: 'A',
+          queryType: WorkItemsVariableQueryType.ListWorkItems,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'state = "$state"',
+        },
+        { scopedVars } as any
+      );
+
+      expect(result).toEqual([]);
+      expect(replaceSpy).toHaveBeenCalledWith('state = "$state"', scopedVars);
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        expect.objectContaining({ filter: '((state = "NEW" || state = "DEFINED"))' }),
         { showErrorAlert: false }
       );
     });

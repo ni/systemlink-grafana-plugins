@@ -7,6 +7,7 @@ import {
   FieldType,
   LegacyMetricFindQueryOptions,
   MetricFindValue,
+  ScopedVars,
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
@@ -22,7 +23,13 @@ import { User } from 'shared/types/QueryUsers.types';
 import { AssetUtils, AssetProjectionProperties } from 'shared/asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { queryInBatches } from 'core/utils';
-import { computedFieldsupportedOperations } from 'core/query-builder.utils';
+import {
+  computedFieldsupportedOperations,
+  ExpressionTransformFunction,
+  multipleValuesQuery,
+  timeFieldsQuery,
+  transformComputedFieldsQuery,
+} from 'core/query-builder.utils';
 import {
   FlattenedRow,
   OrderByOptions,
@@ -132,6 +139,50 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return { target, factor, regex: new RegExp(pattern, 'g') };
   });
 
+  // Date/time filter fields whose values may contain time macros (e.g. ${__now:date}).
+  private readonly timeFilterFields: string[] = [
+    WorkItemsQueryBuilderFieldNames.CreatedAt,
+    WorkItemsQueryBuilderFieldNames.UpdatedAt,
+    WorkItemsQueryBuilderFieldNames.EarliestStartDate,
+    WorkItemsQueryBuilderFieldNames.DueDate,
+    WorkItemsQueryBuilderFieldNames.PlannedStartDate,
+    WorkItemsQueryBuilderFieldNames.PlannedEndDate,
+  ];
+
+  // Value filter fields that support single and multi-value template variables.
+  private readonly multiValueFilterFields: string[] = [
+    WorkItemsQueryBuilderFieldNames.Id,
+    WorkItemsQueryBuilderFieldNames.Name,
+    WorkItemsQueryBuilderFieldNames.Type,
+    WorkItemsQueryBuilderFieldNames.State,
+    WorkItemsQueryBuilderFieldNames.Description,
+    WorkItemsQueryBuilderFieldNames.TestProgram,
+    WorkItemsQueryBuilderFieldNames.PartNumber,
+    WorkItemsQueryBuilderFieldNames.Workspace,
+    WorkItemsQueryBuilderFieldNames.AssignedTo,
+    WorkItemsQueryBuilderFieldNames.RequestedBy,
+    WorkItemsQueryBuilderFieldNames.CreatedBy,
+    WorkItemsQueryBuilderFieldNames.UpdatedBy,
+    WorkItemsQueryBuilderFieldNames.ParentWorkItemId,
+    WorkItemsQueryBuilderFieldNames.TemplateId,
+    WorkItemsQueryBuilderFieldNames.WorkflowId,
+    WorkItemsQueryBuilderFieldNames.EstimatedDurationInDays,
+    WorkItemsQueryBuilderFieldNames.EstimatedDurationInHours,
+    WorkItemsQueryBuilderFieldNames.PlannedDurationInDays,
+    WorkItemsQueryBuilderFieldNames.PlannedDurationInHours,
+  ];
+
+  // Computed field transformations applied to the query builder filter so template variables
+  // (including multi-value variables and time macros) are expanded into valid query expressions.
+  readonly workItemsComputedDataFields = new Map<string, ExpressionTransformFunction>([
+    ...this.timeFilterFields.map(
+      field => [field, timeFieldsQuery(field)] as [string, ExpressionTransformFunction]
+    ),
+    ...this.multiValueFilterFields.map(
+      field => [field, multipleValuesQuery(field)] as [string, ExpressionTransformFunction]
+    ),
+  ]);
+
   readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
 
@@ -146,7 +197,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
-    const filter = this.buildWorkItemsFilter(query.types!, query.filter);
+    const filter = this.buildWorkItemsFilter(query.types!, query.filter, options.scopedVars);
 
     if (
       query.outputType === OutputType.Properties &&
@@ -696,14 +747,30 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     };
   }
 
-  private buildWorkItemsFilter(types: WorkItemTypeOptions[], filter?: string): string | undefined {
+  private buildWorkItemsFilter(
+    types: WorkItemTypeOptions[],
+    filter?: string,
+    scopedVars?: ScopedVars
+  ): string | undefined {
     const typeFilter = this.buildTypeFilter(types);
     const queryFilter = filter?.trim();
-    const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
+    const transformedQueryFilter = queryFilter
+      ? this.transformQueryBuilderFilter(queryFilter, scopedVars)
+      : queryFilter;
     return this.buildQueryFilter(
       typeFilter ? `(${typeFilter})` : undefined,
       transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
     );
+  }
+
+  // Replaces template variables in the query builder filter and expands computed fields
+  // (multi-value variables, time macros) before converting duration fields to seconds.
+  private transformQueryBuilderFilter(filter: string, scopedVars?: ScopedVars): string {
+    const replacedFilter = transformComputedFieldsQuery(
+      this.templateSrv.replace(filter, scopedVars),
+      this.workItemsComputedDataFields
+    );
+    return this.transformDurationFilters(replacedFilter);
   }
 
   private buildTypeFilter(types: WorkItemTypeOptions[]): string | undefined {
@@ -734,10 +801,11 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return [];
     }
 
-    const replacedFilter = variableQuery.filter
-      ? this.templateSrv.replace(variableQuery.filter, options?.scopedVars)
-      : variableQuery.filter;
-    const filter = this.buildWorkItemsFilter(variableQuery.types!, replacedFilter);
+    const filter = this.buildWorkItemsFilter(
+      variableQuery.types!,
+      variableQuery.filter,
+      options?.scopedVars
+    );
 
     const workItems = await this.queryWorkItemsData(
       filter,
