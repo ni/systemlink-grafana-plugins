@@ -285,6 +285,79 @@ describe('WorkItemsDataSource', () => {
       ]);
     });
 
+    describe('request batching', () => {
+      it('should send at most five count queries per second', async () => {
+        jest.useFakeTimers();
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+        };
+
+        const promise = datasource.runQuery(query, {} as DataQueryRequest);
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(postSpy).toHaveBeenCalledTimes(5);
+
+        await jest.advanceTimersByTimeAsync(1000);
+        await promise;
+
+        expect(postSpy).toHaveBeenCalledTimes(Object.values(WorkItemTypeOptions).length);
+        jest.useRealTimers();
+      });
+
+      it('should not delay when the number of types fits within a single batch', async () => {
+        jest.useFakeTimers();
+        const delaySpy = jest.spyOn(global, 'setTimeout');
+        jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: [WorkItemTypeOptions.WorkOrders, WorkItemTypeOptions.TestPlans],
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(delaySpy).not.toHaveBeenCalled();
+        jest.useRealTimers();
+      });
+
+      it('should preserve the type-to-column order across batches', async () => {
+        jest.useFakeTimers();
+        jest
+          .spyOn(datasource, 'post')
+          .mockResolvedValueOnce({ totalCount: 1 })
+          .mockResolvedValueOnce({ totalCount: 2 })
+          .mockResolvedValueOnce({ totalCount: 3 })
+          .mockResolvedValueOnce({ totalCount: 4 })
+          .mockResolvedValueOnce({ totalCount: 5 })
+          .mockResolvedValueOnce({ totalCount: 6 })
+          .mockResolvedValueOnce({ totalCount: 7 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+        };
+
+        const promise = datasource.runQuery(query, {} as DataQueryRequest);
+        await jest.advanceTimersByTimeAsync(1000);
+        const result = await promise;
+
+        expect(result.fields).toEqual([
+          { name: 'Work orders', values: [1] },
+          { name: 'Test plans', values: [2] },
+          { name: 'Job', values: [3] },
+          { name: 'Maintenance', values: [4] },
+          { name: 'Calibration', values: [5] },
+          { name: 'Reservation', values: [6] },
+          { name: 'Transport Order', values: [7] },
+        ]);
+        jest.useRealTimers();
+      });
+    });
+
     describe('duration filter transformation', () => {
       it('should convert estimatedDurationInDays to timeline.estimatedDurationInSeconds', async () => {
         const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });

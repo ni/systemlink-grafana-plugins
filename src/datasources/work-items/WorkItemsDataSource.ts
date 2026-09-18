@@ -636,16 +636,15 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const queryFilter = query.filter?.trim();
     const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
 
-    const counts = await Promise.all(
-      types.map(async type => {
-        const typeFilter = `type = "${WORK_ITEM_TYPE_FILTER_VALUES[type]}"`;
-        const filter = this.buildQueryFilter(
-          `(${typeFilter})`,
-          transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
-        );
-        return this.queryWorkItemsCount(filter);
-      })
-    );
+    const filters = types.map(type => {
+      const typeFilter = `type = "${WORK_ITEM_TYPE_FILTER_VALUES[type]}"`;
+      return this.buildQueryFilter(
+        `(${typeFilter})`,
+        transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
+      );
+    });
+
+    const counts = await this.queryWorkItemsCountsInBatches(filters);
 
     return {
       refId: query.refId,
@@ -655,6 +654,28 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         values: [counts[index]],
       })),
     };
+  }
+
+  // Sends the per-type count queries in batches, limiting the number of requests made per second
+  // to avoid overloading the server. Counts are returned in the same order as the provided filters.
+  private async queryWorkItemsCountsInBatches(filters: Array<string | undefined>): Promise<number[]> {
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    const counts: number[] = [];
+
+    for (let index = 0; index < filters.length; index += QUERY_WORK_ITEMS_REQUEST_PER_SECOND) {
+      const start = Date.now();
+      const batch = filters.slice(index, index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND);
+      const batchCounts = await Promise.all(batch.map(filter => this.queryWorkItemsCount(filter)));
+      counts.push(...batchCounts);
+
+      const hasMoreRequests = index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND < filters.length;
+      const elapsed = Date.now() - start;
+      if (hasMoreRequests && elapsed < 1000) {
+        await delay(1000 - elapsed);
+      }
+    }
+
+    return counts;
   }
 
   async queryWorkItemsCount(filter?: string): Promise<number> {
