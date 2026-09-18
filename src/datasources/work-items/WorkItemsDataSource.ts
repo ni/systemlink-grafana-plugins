@@ -7,9 +7,11 @@ import {
   FieldType,
   LegacyMetricFindQueryOptions,
   MetricFindValue,
+  ScopedVars,
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { ComboboxOption } from '@grafana/ui';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
 import { extractErrorInfo } from 'core/errors';
@@ -21,14 +23,24 @@ import { UsersUtils } from 'shared/users.utils';
 import { User } from 'shared/types/QueryUsers.types';
 import { AssetUtils, AssetProjectionProperties } from 'shared/asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
-import { queryInBatches } from 'core/utils';
-import { computedFieldsupportedOperations } from 'core/query-builder.utils';
+import { LocationUtils } from 'shared/location.utils';
+import { Location } from 'shared/types/QueryLocations.types';
+import { queryInBatches, replaceVariables } from 'core/utils';
+import {
+  computedFieldsupportedOperations,
+  ExpressionTransformFunction,
+  multipleValuesQuery,
+  timeFieldsQuery,
+  transformComputedFieldsQuery,
+} from 'core/query-builder.utils';
 import {
   FlattenedRow,
   OrderByOptions,
   OutputType,
   QueryWorkItemsRequestBody,
+  ResourceSelection,
   WorkItem,
+  WorkItemPropertiesGroup,
   WorkItemPropertiesOptions,
   WorkItemsQuery,
   WorkItemsResponse,
@@ -41,12 +53,15 @@ import {
   DEFAULT_TAKE,
   SECONDS_IN_DAY,
   SECONDS_IN_HOUR,
+  WORK_ITEM_PROPERTIES_PROJECTION,
   WORK_ITEM_PROPERTIES_PROJECTIONS,
   WORK_ITEM_TYPE_FILTER_VALUES,
   WORK_ITEM_TYPE_LABEL_MAP,
   WORK_ITEM_TYPE_LABELS,
   WORK_ITEM_STATE_OPTIONS,
   USER_PROPERTY_FIELDS,
+  CUSTOM_PROPERTY_OPTIONS_LIMIT,
+  CUSTOM_PROPERTY_SUFFIX,
 } from './constants';
 import { WorkItemsQueryBuilderFieldNames } from './constants/WorkItemsQueryBuilder.constants';
 import {
@@ -67,6 +82,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     this.usersUtils = new UsersUtils(instanceSettings, backendSrv);
     this.workspaceUtils = new WorkspaceUtils(instanceSettings, backendSrv);
     this.systemUtils = new SystemUtils(instanceSettings, backendSrv);
+    this.locationUtils = new LocationUtils(instanceSettings, backendSrv);
     this.assetUtils = new AssetUtils(this.instanceSettings, this.backendSrv);
   }
 
@@ -83,6 +99,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   usersUtils: UsersUtils;
   workspaceUtils: WorkspaceUtils;
   systemUtils: SystemUtils;
+  locationUtils: LocationUtils;
   assetUtils: AssetUtils;
 
   defaultQuery = {
@@ -133,6 +150,27 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return { target, factor, regex: new RegExp(pattern, 'g') };
   });
 
+  // Date/time filter fields whose values may contain time macros (e.g. ${__now:date}).
+  private readonly timeFilterFields: string[] = [
+    WorkItemsQueryBuilderFieldNames.CreatedAt,
+    WorkItemsQueryBuilderFieldNames.UpdatedAt,
+    WorkItemsQueryBuilderFieldNames.EarliestStartDate,
+    WorkItemsQueryBuilderFieldNames.DueDate,
+    WorkItemsQueryBuilderFieldNames.PlannedStartDate,
+    WorkItemsQueryBuilderFieldNames.PlannedEndDate,
+  ];
+
+  // Computed field transformations applied to the query builder filter so template variables
+  // (including multi-value variables and time macros) are expanded into valid query expressions.
+  // Every field is mapped; property and resource fields are harmless to include because their
+  // expressions never match the operation patterns in transformComputedFieldsQuery.
+  readonly workItemsComputedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(WorkItemsQueryBuilderFieldNames).map(field => [
+      field,
+      this.timeFilterFields.includes(field) ? timeFieldsQuery(field) : multipleValuesQuery(field),
+    ])
+  );
+
   readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
 
@@ -147,18 +185,29 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
-    const filter = this.buildWorkItemsFilter(query.types!, query.filter);
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
+      query.types!,
+      query.filter,
+      options.scopedVars
+    );
+
+    // A selection that resolves only to empty or unrecognized values (e.g. a template variable
+    // that expands to nothing) yields no type filter. Returning early avoids dropping the type
+    // constraint entirely, which would otherwise match every work item instead of none.
+    if (!hasRecognizedTypes) {
+      return this.getEmptyDataFrameDTO(query.refId);
+    }
 
     if (
       query.outputType === OutputType.Properties &&
-      isPropertiesNonEmpty(query.properties) &&
+      isPropertiesNonEmpty(query.properties, query.customProperties) &&
       isTakeValid(query.take)
     ) {
       return this.processWorkItemsQuery(query, filter);
     }
 
     if (query.outputType === OutputType.TotalCount) {
-      return this.processTotalCountQuery(query);
+      return this.processTotalCountQuery(query, options.scopedVars);
     }
 
     return this.getEmptyDataFrameDTO(query.refId);
@@ -175,10 +224,14 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const systemAliasesLookup = this.isSystemNameLookupRequired(query.properties)
       ? await this.loadSystemAliases()
       : new Map<string, SystemAlias>();
+    const locationsLookup = this.isPropertySelected(WorkItemPropertiesOptions.TARGET_LOCATION, query.properties)
+      ? await this.loadLocations()
+      : new Map<string, Location>();
 
     const workItemsResponse = await this.queryWorkItemsData(
       filter,
       query.properties,
+      query.customProperties,
       query.orderBy,
       query.descending,
       query.take
@@ -200,15 +253,77 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       refId: query.refId,
       name: query.refId,
       fields: this.buildFields(
-        query.properties!,
+        query.properties ?? [],
+        query.customProperties,
         flattenedRows,
         workspacesLookup,
         usersLookup,
         parentWorkItemNamesLookup,
         assetNamesLookup,
-        systemAliasesLookup
+        systemAliasesLookup,
+        locationsLookup
       ),
     };
+  }
+
+  /** Builds the same filter for the data query and the custom property discovery query. */
+  public buildFilterFromQuery(query: WorkItemsQuery): string | undefined {
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(query.types ?? [], query.filter);
+
+    return hasRecognizedTypes ? filter : undefined;
+  }
+
+  /**
+   * Discovers the distinct custom property keys present on the queried work items so the
+   * query editor can offer each key as its own selectable property.
+   */
+  public async getCustomPropertyOptions(
+    filter: string | undefined, 
+    take: number,
+    orderBy?: OrderByOptions,
+    descending?: boolean
+  ): Promise<Array<ComboboxOption<string>>> {
+    const queryRecord = async (currentTake: number, continuationToken?: string): Promise<QueryResponse<WorkItem>> => {
+      const response = await this.queryWorkItems({
+        filter,
+        projection: [WORK_ITEM_PROPERTIES_PROJECTION],
+        orderBy,
+        descending,
+        take: currentTake,
+        continuationToken,
+      });
+
+      return {
+        data: response.workItems ?? [],
+        continuationToken: response.continuationToken,
+        totalCount: response.totalCount,
+      };
+    };
+
+    const response = await queryInBatches(
+      queryRecord,
+      {
+        maxTakePerRequest: QUERY_WORK_ITEMS_MAX_TAKE,
+        requestsPerSecond: QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
+      },
+      take
+    );
+
+    const customPropertyKeys = new Set<string>();
+    for (const workItem of response.data) {
+      if (!workItem.properties) {
+        continue;
+      }
+
+      for (const key of Object.keys(workItem.properties)) {
+        customPropertyKeys.add(key);
+        if (customPropertyKeys.size >= CUSTOM_PROPERTY_OPTIONS_LIMIT) {
+          return this.buildCustomPropertyOptions(customPropertyKeys);
+        }
+      }
+    }
+
+    return this.buildCustomPropertyOptions(customPropertyKeys);
   }
 
   private isPropertySelected(
@@ -338,8 +453,28 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return id ? systemAliases.get(id)?.alias ?? '' : '';
   }
 
-  private resolveSystemAliasForTargetLocation(id: string | undefined, systemAliases: Map<string, SystemAlias>): string {
-    return id ? systemAliases.get(id)?.alias ?? id : '';
+  private resolveTargetLocation(
+    selection: Pick<ResourceSelection, 'targetSystemId' | 'targetLocationId'> | undefined,
+    locations: Map<string, Location>,
+    systems: Map<string, SystemAlias>
+  ): string {
+    if (!selection) {
+      return '';
+    }
+
+    const { targetSystemId, targetLocationId } = selection;
+
+    if (targetSystemId) {
+      const system = systems.get(targetSystemId);
+      return system?.alias || targetSystemId;
+    }
+
+    if (targetLocationId) {
+      const location = locations.get(targetLocationId);
+      return location?.name ? `${location.name}: ${location.pathWithNames}` : targetLocationId;
+    }
+
+    return '';
   }
 
   private async loadParentWorkItemNames(workItems: WorkItem[]): Promise<Map<string, string>> {
@@ -354,6 +489,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       const parentWorkItems = await this.queryWorkItemsData(
         parentWorkitemIds.map(id => `id = "${id}"`).join(' || '),
         [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
+        undefined,
         undefined,
         undefined,
         parentWorkitemIds.length,
@@ -372,18 +508,20 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   private buildFields(
     properties: WorkItemPropertiesOptions[],
+    customProperties: string[] | undefined,
     flattenedRows: FlattenedRow[],
     workspacesLookup: Map<string, Workspace>,
     usersLookup: Map<string, User>,
     parentWorkItemNamesLookup: Map<string, string>,
     assetNamesLookup: Map<string, string>,
-    systemAliasesLookup: Map<string, SystemAlias>
+    systemAliasesLookup: Map<string, SystemAlias>,
+    locationsLookup: Map<string, Location>
   ) {
     const fields: FieldDTO[] = [];
 
     properties.forEach(property => {
       if (property === WorkItemPropertiesOptions.TARGET_LOCATION) {
-        fields.push(...this.buildTargetLocationFields(flattenedRows, systemAliasesLookup));
+        fields.push(...this.buildTargetLocationFields(flattenedRows, locationsLookup, systemAliasesLookup));
         return;
       }
 
@@ -412,31 +550,31 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       });
     });
 
+    customProperties?.forEach(customProperty => {
+      fields.push({
+        name: customProperty,
+        values: flattenedRows.map(row => row.workItem.properties?.[customProperty] ?? ''),
+        type: FieldType.string,
+      });
+    });
+
     return fields;
   }
 
   private buildTargetLocationFields(
     flattenedRows: FlattenedRow[],
+    locationsLookup: Map<string, Location>,
     systemAliasesLookup: Map<string, SystemAlias>
   ): FieldDTO[] {
     return [
       this.buildResourceField('Target Location (Asset)', flattenedRows, row =>
-        this.resolveSystemAliasForTargetLocation(
-          row.assetSelection?.targetSystemId,
-          systemAliasesLookup
-        )
+        this.resolveTargetLocation(row.assetSelection, locationsLookup, systemAliasesLookup)
       ),
       this.buildResourceField('Target Location (DUT)', flattenedRows, row =>
-        this.resolveSystemAliasForTargetLocation(
-          row.dutSelection?.targetSystemId,
-          systemAliasesLookup
-        )
+        this.resolveTargetLocation(row.dutSelection, locationsLookup, systemAliasesLookup)
       ),
       this.buildResourceField('Target Location (Fixture)', flattenedRows, row =>
-        this.resolveSystemAliasForTargetLocation(
-          row.fixtureSelection?.targetSystemId,
-          systemAliasesLookup
-        )
+        this.resolveTargetLocation(row.fixtureSelection, locationsLookup, systemAliasesLookup)
       ),
     ];
   }
@@ -588,12 +726,13 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   async queryWorkItemsData(
     filter?: string,
     properties?: WorkItemPropertiesOptions[],
+    customProperties?: string[],
     orderBy?: OrderByOptions,
     descending?: boolean,
     take?: number,
     suppressErrorAlert = false
   ): Promise<WorkItem[]> {
-    const projection = this.buildProjection(properties);
+    const projection = this.buildProjectionFromProperties(properties, customProperties);
 
     const queryRecord = async (currentTake: number, continuationToken?: string): Promise<QueryResponse<WorkItem>> => {
       const body: QueryWorkItemsRequestBody = {
@@ -622,23 +761,30 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return response.data;
   }
 
-  private buildProjection(properties?: WorkItemPropertiesOptions[]): string[] | undefined {
+  private buildProjectionFromProperties(
+    properties?: WorkItemPropertiesOptions[],
+    customProperties?: string[]
+  ): string[] | undefined {
     const projection = new Set<string>();
     (properties ?? []).forEach(property => {
       WORK_ITEM_PROPERTIES_PROJECTIONS[property]?.forEach(value => projection.add(value));
     });
 
+    if (customProperties && customProperties.length > 0) {
+      projection.add(WORK_ITEM_PROPERTIES_PROJECTION);
+    }
+
     return projection.size > 0 ? [...projection] : undefined;
   }
 
-  private async processTotalCountQuery(query: WorkItemsQuery): Promise<DataFrameDTO> {
-    const types = query.types!;
+  private async processTotalCountQuery(query: WorkItemsQuery, scopedVars?: ScopedVars): Promise<DataFrameDTO> {
+    const resolvedTypes = this.resolveRecognizedTypes(query.types!);
     const queryFilter = query.filter?.trim();
     const transformedQueryFilter = queryFilter
-      ? this.transformDurationFilters(queryFilter)
+      ? this.transformQueryBuilderFilter(queryFilter, scopedVars)
       : queryFilter;
 
-    const filters = types.map(type => {
+    const filters = resolvedTypes.map(type => {
       const typeFilter = `type = "${WORK_ITEM_TYPE_FILTER_VALUES[type]}"`;
       return this.buildQueryFilter(
         `(${typeFilter})`,
@@ -651,17 +797,23 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return {
       refId: query.refId,
       name: query.refId,
-      fields: types.map((type, index) => ({
+      fields: resolvedTypes.map((type, index) => ({
         name: WORK_ITEM_TYPE_LABELS[type],
         values: [workItemCounts[index]],
       })),
     };
   }
 
+  // Resolves any template variables in the selected types, dropping values that are not recognized
+  // work item types so each remaining type yields a separate count query and column.
+  private resolveRecognizedTypes(types: WorkItemTypeOptions[]): WorkItemTypeOptions[] {
+    const resolvedTypes = replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[];
+    return resolvedTypes.filter(type => WORK_ITEM_TYPE_FILTER_VALUES[type] !== undefined);
+  }
+
   private async queryWorkItemsCountsInBatches(
     filters: Array<string | undefined>
   ): Promise<number[]> {
-    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     const workItemCounts: number[] = [];
 
     for (
@@ -679,11 +831,15 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       const hasMoreRequests = index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND < filters.length;
       const elapsed = Date.now() - start;
       if (hasMoreRequests && elapsed < 1000) {
-        await delay(1000 - elapsed);
+        await this.delay(1000 - elapsed);
       }
     }
 
     return workItemCounts;
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   async queryWorkItemsCount(filter?: string): Promise<number> {
@@ -764,24 +920,49 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     };
   }
 
-  private buildWorkItemsFilter(types: WorkItemTypeOptions[], filter?: string): string | undefined {
-    const typeFilter = this.buildTypeFilter(types);
-    const queryFilter = filter?.trim();
-    const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
-    return this.buildQueryFilter(
-      typeFilter ? `(${typeFilter})` : undefined,
-      transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
-    );
-  }
+  private buildWorkItemsFilter(
+    types: WorkItemTypeOptions[],
+    filter?: string,
+    scopedVars?: ScopedVars
+  ): { filter: string | undefined; hasRecognizedTypes: boolean } {
+    const { allTypesSelected, filter: typeFilter } = this.buildTypeFilter(types);
 
-  private buildTypeFilter(types: WorkItemTypeOptions[]): string | undefined {
-    const allTypesAreSelected = Object.values(WorkItemTypeOptions).every(type => types.includes(type));
-    if (allTypesAreSelected) {
-      return undefined;
+    if (!allTypesSelected && typeFilter === '') {
+      return { filter: undefined, hasRecognizedTypes: false };
     }
 
-    const typeValues = types.map(type => WORK_ITEM_TYPE_FILTER_VALUES[type]);
-    return typeValues.map(value => `type = "${value}"`).join(' || ');
+    const queryFilter = filter?.trim();
+    const transformedQueryFilter = queryFilter
+      ? this.transformQueryBuilderFilter(queryFilter, scopedVars)
+      : queryFilter;
+    const combinedFilter = this.buildQueryFilter(
+      allTypesSelected ? undefined : `(${typeFilter})`,
+      transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
+    );
+    return { filter: combinedFilter, hasRecognizedTypes: true };
+  }
+
+  private transformQueryBuilderFilter(filter: string, scopedVars?: ScopedVars): string {
+    const replacedFilter = transformComputedFieldsQuery(
+      this.templateSrv.replace(filter, scopedVars),
+      this.workItemsComputedDataFields
+    );
+    return this.transformDurationFilters(replacedFilter);
+  }
+
+  private buildTypeFilter(
+    types: WorkItemTypeOptions[]
+  ): { allTypesSelected: boolean; filter: string } {
+    const resolvedTypes = replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[];
+    const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
+
+    const typeValues = resolvedTypes
+      .map(type => WORK_ITEM_TYPE_FILTER_VALUES[type])
+      .filter(Boolean);
+    return {
+      allTypesSelected,
+      filter: typeValues.map(value => `type = "${value}"`).join(' || '),
+    };
   }
 
   shouldRunQuery(query: WorkItemsQuery): boolean {
@@ -802,14 +983,20 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return [];
     }
 
-    const replacedFilter = variableQuery.filter
-      ? this.templateSrv.replace(variableQuery.filter, options?.scopedVars)
-      : variableQuery.filter;
-    const filter = this.buildWorkItemsFilter(variableQuery.types!, replacedFilter);
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
+      variableQuery.types!,
+      variableQuery.filter,
+      options?.scopedVars
+    );
+
+    if (!hasRecognizedTypes) {
+      return [];
+    }
 
     const workItems = await this.queryWorkItemsData(
       filter,
       [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
+      undefined,
       variableQuery.orderBy,
       variableQuery.descending,
       variableQuery.take
@@ -863,6 +1050,29 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       }
       return new Map<string, SystemAlias>();
     }
+  }
+
+  public async loadLocations(): Promise<Map<string, Location>> {
+    try {
+      return await this.locationUtils.getLocations();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, Location>();
+    }
+  }
+
+  private buildCustomPropertyOptions(
+    customPropertyKeys: Set<string>
+  ): Array<ComboboxOption<string>> {
+    return Array.from(customPropertyKeys)
+      .sort((key, otherKey) => key.localeCompare(otherKey))
+      .map(key => ({
+        label: key,
+        value: `${key}${CUSTOM_PROPERTY_SUFFIX}`,
+        group: WorkItemPropertiesGroup.CUSTOM_PROPERTIES,
+      }));
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {

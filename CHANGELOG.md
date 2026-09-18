@@ -1,3 +1,33 @@
+## [5.17.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.16.0...v5.17.0) (2026-09-18)
+
+### Features
+
+* **work-items:** use combobox for variable query type control ([#764](https://github.com/ni/systemlink-grafana-plugins/issues/764)) ([c9044f7](https://github.com/ni/systemlink-grafana-plugins/commit/c9044f791c4644ba11dead6c1c6e5cf3b9815804))
+
+## [5.16.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.15.0...v5.16.0) (2026-09-18)
+
+### Features
+
+* **work-items:** Update target location fallback to lookup targetLocationId if targetSystemId is null ([#756](https://github.com/ni/systemlink-grafana-plugins/issues/756)) ([e181fc9](https://github.com/ni/systemlink-grafana-plugins/commit/e181fc9223ea1454fdc606179795fa5d35ef6e2e))
+
+## [5.15.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.14.0...v5.15.0) (2026-09-18)
+
+### Features
+
+* **shared:** Add location utils ([#755](https://github.com/ni/systemlink-grafana-plugins/issues/755)) ([18a81ea](https://github.com/ni/systemlink-grafana-plugins/commit/18a81ea1a275f4f06c45feb30e33f2da31cdd447))
+
+## [5.14.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.13.0...v5.14.0) (2026-09-17)
+
+### Features
+
+* **work-items:** add custom property discovery backend ([#759](https://github.com/ni/systemlink-grafana-plugins/issues/759)) ([9322d24](https://github.com/ni/systemlink-grafana-plugins/commit/9322d24e4f10a97b1ab4b004a406a341e7a82f09))
+
+## [5.13.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.12.0...v5.13.0) (2026-09-17)
+
+### Features
+
+* **work-items:** support variable options in the Type control ([#761](https://github.com/ni/systemlink-grafana-plugins/issues/761)) ([5c180e2](https://github.com/ni/systemlink-grafana-plugins/commit/5c180e2cce55e919276834a2388aa33cce38e993))
+
 ## [5.12.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.11.1...v5.12.0) (2026-09-17)
 
 ### Features

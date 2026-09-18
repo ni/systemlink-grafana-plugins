@@ -67,8 +67,7 @@ describe('WorkItemsVariableQueryEditor', () => {
   it('should default to the list work items query type and show its controls with default values', async () => {
     await renderEditor();
 
-    expect(page.queryTypeRadioButton(WorkItemsVariableQueryType.ListWorkItems)).toBeChecked();
-    expect(page.queryTypeRadioButton(WorkItemsVariableQueryType.ListWorkItemTypes)).not.toBeChecked();
+    expect(page.queryTypeCombobox()).toHaveDisplayValue(WorkItemsVariableQueryType.ListWorkItems);
     expect(page.typesMultiCombobox()).toBeVisible();
     expect(page.orderByCombobox()).toBeVisible();
     expect(page.descendingSwitch()).toBeChecked();
@@ -94,7 +93,7 @@ describe('WorkItemsVariableQueryEditor', () => {
   it('should hide the list work items controls when list work item types is selected', async () => {
     const { onChange } = await renderEditor();
 
-    await userEvent.click(page.queryTypeRadioButton(WorkItemsVariableQueryType.ListWorkItemTypes));
+    await page.selectQueryType(WorkItemsVariableQueryType.ListWorkItemTypes);
 
     expect(onChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ queryType: WorkItemsVariableQueryType.ListWorkItemTypes })
@@ -108,10 +107,10 @@ describe('WorkItemsVariableQueryEditor', () => {
   it('should restore the list work items controls when switching back from list work item types', async () => {
     await renderEditor();
 
-    await userEvent.click(page.queryTypeRadioButton(WorkItemsVariableQueryType.ListWorkItemTypes));
+    await page.selectQueryType(WorkItemsVariableQueryType.ListWorkItemTypes);
     expect(page.orderByCombobox()).not.toBeInTheDocument();
 
-    await userEvent.click(page.queryTypeRadioButton(WorkItemsVariableQueryType.ListWorkItems));
+    await page.selectQueryType(WorkItemsVariableQueryType.ListWorkItems);
 
     expect(page.typesMultiCombobox()).toBeVisible();
     expect(page.orderByCombobox()).toHaveDisplayValue('Updated At');
@@ -139,6 +138,24 @@ describe('WorkItemsVariableQueryEditor', () => {
 
       expect(onChange).toHaveBeenLastCalledWith(
         expect.objectContaining({ types: [WorkItemTypeOptions.TestPlans] })
+      );
+    } finally {
+      offsetHeightSpy.mockRestore();
+    }
+  });
+
+  it('should offer dashboard variables as options in the type control', async () => {
+    const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+
+    try {
+      const { onChange } = await renderEditor({ types: [WorkItemTypeOptions.WorkOrders] });
+
+      const typesCombobox = page.typesMultiCombobox()!;
+      await userEvent.click(typesCombobox);
+      await userEvent.click(await page.typeSelectOption('$test_var'));
+
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ types: [WorkItemTypeOptions.WorkOrders, '$test_var'] })
       );
     } finally {
       offsetHeightSpy.mockRestore();
