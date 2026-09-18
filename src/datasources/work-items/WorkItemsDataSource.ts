@@ -7,6 +7,7 @@ import {
   FieldType,
   LegacyMetricFindQueryOptions,
   MetricFindValue,
+  ScopedVars,
   TestDataSourceResponse,
 } from '@grafana/data';
 import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
@@ -25,7 +26,13 @@ import { WorkspaceUtils } from 'shared/workspace.utils';
 import { LocationUtils } from 'shared/location.utils';
 import { Location } from 'shared/types/QueryLocations.types';
 import { queryInBatches, replaceVariables } from 'core/utils';
-import { computedFieldsupportedOperations } from 'core/query-builder.utils';
+import {
+  computedFieldsupportedOperations,
+  ExpressionTransformFunction,
+  multipleValuesQuery,
+  timeFieldsQuery,
+  transformComputedFieldsQuery,
+} from 'core/query-builder.utils';
 import {
   FlattenedRow,
   OrderByOptions,
@@ -142,6 +149,27 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return { target, factor, regex: new RegExp(pattern, 'g') };
   });
 
+  // Date/time filter fields whose values may contain time macros (e.g. ${__now:date}).
+  private readonly timeFilterFields: string[] = [
+    WorkItemsQueryBuilderFieldNames.CreatedAt,
+    WorkItemsQueryBuilderFieldNames.UpdatedAt,
+    WorkItemsQueryBuilderFieldNames.EarliestStartDate,
+    WorkItemsQueryBuilderFieldNames.DueDate,
+    WorkItemsQueryBuilderFieldNames.PlannedStartDate,
+    WorkItemsQueryBuilderFieldNames.PlannedEndDate,
+  ];
+
+  // Computed field transformations applied to the query builder filter so template variables
+  // (including multi-value variables and time macros) are expanded into valid query expressions.
+  // Every field is mapped; property and resource fields are harmless to include because their
+  // expressions never match the operation patterns in transformComputedFieldsQuery.
+  readonly workItemsComputedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(WorkItemsQueryBuilderFieldNames).map(field => [
+      field,
+      this.timeFilterFields.includes(field) ? timeFieldsQuery(field) : multipleValuesQuery(field),
+    ])
+  );
+
   readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
 
@@ -156,7 +184,11 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
-    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(query.types!, query.filter);
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
+      query.types!,
+      query.filter,
+      options.scopedVars
+    );
 
     // A selection that resolves only to empty or unrecognized values (e.g. a template variable
     // that expands to nothing) yields no type filter. Returning early avoids dropping the type
@@ -829,7 +861,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   private buildWorkItemsFilter(
     types: WorkItemTypeOptions[],
-    filter?: string
+    filter?: string,
+    scopedVars?: ScopedVars
   ): { filter: string | undefined; hasRecognizedTypes: boolean } {
     const { allTypesSelected, filter: typeFilter } = this.buildTypeFilter(types);
 
@@ -838,12 +871,22 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     }
 
     const queryFilter = filter?.trim();
-    const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
+    const transformedQueryFilter = queryFilter
+      ? this.transformQueryBuilderFilter(queryFilter, scopedVars)
+      : queryFilter;
     const combinedFilter = this.buildQueryFilter(
       allTypesSelected ? undefined : `(${typeFilter})`,
       transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
     );
     return { filter: combinedFilter, hasRecognizedTypes: true };
+  }
+
+  private transformQueryBuilderFilter(filter: string, scopedVars?: ScopedVars): string {
+    const replacedFilter = transformComputedFieldsQuery(
+      this.templateSrv.replace(filter, scopedVars),
+      this.workItemsComputedDataFields
+    );
+    return this.transformDurationFilters(replacedFilter);
   }
 
   private buildTypeFilter(
@@ -879,10 +922,11 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return [];
     }
 
-    const replacedFilter = variableQuery.filter
-      ? this.templateSrv.replace(variableQuery.filter, options?.scopedVars)
-      : variableQuery.filter;
-    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(variableQuery.types!, replacedFilter);
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
+      variableQuery.types!,
+      variableQuery.filter,
+      options?.scopedVars
+    );
 
     if (!hasRecognizedTypes) {
       return [];
