@@ -1,3 +1,9 @@
+## [5.15.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.14.0...v5.15.0) (2026-09-18)
+
+### Features
+
+* **shared:** Add location utils ([#755](https://github.com/ni/systemlink-grafana-plugins/issues/755)) ([18a81ea](https://github.com/ni/systemlink-grafana-plugins/commit/18a81ea1a275f4f06c45feb30e33f2da31cdd447))
+
 ## [5.14.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.13.0...v5.14.0) (2026-09-17)
 
 ### Features
