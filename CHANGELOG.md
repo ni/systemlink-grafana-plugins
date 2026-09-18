@@ -1,3 +1,9 @@
+## [5.17.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.16.0...v5.17.0) (2026-09-18)
+
+### Features
+
+* **work-items:** use combobox for variable query type control ([#764](https://github.com/ni/systemlink-grafana-plugins/issues/764)) ([c9044f7](https://github.com/ni/systemlink-grafana-plugins/commit/c9044f791c4644ba11dead6c1c6e5cf3b9815804))
+
 ## [5.16.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.15.0...v5.16.0) (2026-09-18)
 
 ### Features
