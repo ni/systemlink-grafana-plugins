@@ -181,8 +181,8 @@ describe('WorkItemsQueryBuilder', () => {
     const listOperations = [
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
-      QueryBuilderOperations.LIST_IS_EMPTY.name,
-      QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_NOT_EMPTY.name,
     ];
     const keyValueOperations = [
       QueryBuilderOperations.KEY_VALUE_MATCH.name,
@@ -217,10 +217,10 @@ describe('WorkItemsQueryBuilder', () => {
       { dataField: 'estimatedDurationInHours', operations: numericOperations },
       { dataField: 'plannedDurationInDays', operations: numericOperations },
       { dataField: 'plannedDurationInHours', operations: numericOperations },
-      { dataField: 'resources.assets.selections', operations: listOperations },
-      { dataField: 'resources.duts.selections', operations: listOperations },
-      { dataField: 'resources.fixtures.selections', operations: listOperations },
-      { dataField: 'resources.systems.selections', operations: listOperations },
+      { dataField: 'assets', operations: listOperations },
+      { dataField: 'duts', operations: listOperations },
+      { dataField: 'fixtures', operations: listOperations },
+      { dataField: 'systems', operations: listOperations },
       { dataField: 'properties', operations: keyValueOperations },
     ])('should offer the expected operators for $dataField', async ({ dataField, operations }) => {
       const fields = await renderAndGetFields();
@@ -282,7 +282,7 @@ describe('WorkItemsQueryBuilder', () => {
     it('should load system alias options from the systemAliases parameter', async () => {
       const fields = await renderAndGetFields([], [], [], [], [systemAlias]);
 
-      expect(optionsFor(fields, 'resources.systems.selections')).toEqual([
+      expect(optionsFor(fields, 'systems')).toEqual([
         { label: 'System Alias 1', value: '1' },
       ]);
     });
@@ -330,7 +330,7 @@ describe('WorkItemsQueryBuilder', () => {
       expect(optionsFor(fields, 'partNumber')).toEqual([
         { label: 'Product 1 (PN-1)', value: 'PN-1' },
       ]);
-      expect(optionsFor(fields, 'resources.systems.selections')).toEqual([
+      expect(optionsFor(fields, 'systems')).toEqual([
         { label: 'System Alias 1', value: '1' },
       ]);
     });
@@ -399,14 +399,14 @@ describe('WorkItemsQueryBuilder', () => {
         expected: ['Asset identifier', 'equals', '1'],
       },
       {
-        filter: 'resources.assets.selections.Any(s => s.id == "1") == false',
+        filter: '!resources.assets.selections.Any(s => s.id == "1")',
         expected: ['Asset identifier', 'does not equal', '1'],
       },
-      { filter: 'resources.assets.selections.Count == 0', 
-        expected: ['Asset identifier', 'is empty'] 
+      { filter: '!resources.assets.selections.Any()',
+        expected: ['Asset identifier', 'is empty']
       },
       { 
-        filter: 'resources.assets.selections.Count > 0', 
+        filter: 'resources.assets.selections.Any()', 
         expected: ['Asset identifier', 'is not empty'] 
       },
       {
@@ -414,13 +414,13 @@ describe('WorkItemsQueryBuilder', () => {
         expected: ['Dut identifier', 'equals', '2'],
       },
       {
-        filter: 'resources.duts.selections.Any(s => s.id == "2") == false',
+        filter: '!resources.duts.selections.Any(s => s.id == "2")',
         expected: ['Dut identifier', 'does not equal', '2'],
       },
-      { filter: 'resources.duts.selections.Count == 0', 
-        expected: ['Dut identifier', 'is empty'] 
+      { filter: '!resources.duts.selections.Any()',
+        expected: ['Dut identifier', 'is empty']
       },
-      { filter: 'resources.duts.selections.Count > 0', 
+      { filter: 'resources.duts.selections.Any()', 
         expected: ['Dut identifier', 'is not empty'] 
       },
       {
@@ -428,19 +428,19 @@ describe('WorkItemsQueryBuilder', () => {
         expected: ['Fixture identifier', 'equals', '3'],
       },
       {
-        filter: 'resources.fixtures.selections.Any(s => s.id == "3") == false',
+        filter: '!resources.fixtures.selections.Any(s => s.id == "3")',
         expected: ['Fixture identifier', 'does not equal', '3'],
       },
-      { filter: 'resources.fixtures.selections.Count == 0', 
-        expected: ['Fixture identifier', 'is empty'] 
+      { filter: '!resources.fixtures.selections.Any()',
+        expected: ['Fixture identifier', 'is empty']
       },
-      { filter: 'resources.fixtures.selections.Count > 0', 
+      { filter: 'resources.fixtures.selections.Any()', 
         expected: ['Fixture identifier', 'is not empty'] 
       },
-      { filter: 'resources.systems.selections.Count == 0', 
-        expected: ['System alias name', 'is empty'] 
+      { filter: '!resources.systems.selections.Any()',
+        expected: ['System alias name', 'is empty']
       },
-      { filter: 'resources.systems.selections.Count > 0', 
+      { filter: 'resources.systems.selections.Any()', 
         expected: ['System alias name', 'is not empty'] 
       },
     ])('should show $expected when filter is $filter', ({ filter, expected }) => {
@@ -465,7 +465,7 @@ describe('WorkItemsQueryBuilder', () => {
         operation: 'equals' 
       },
       {
-        filter: 'resources.systems.selections.Any(s => s.id == "1") == false',
+        filter: '!resources.systems.selections.Any(s => s.id == "1")',
         operation: 'does not equal',
       },
     ])('should show the system alias name when filter is $filter', ({ filter, operation }) => {
