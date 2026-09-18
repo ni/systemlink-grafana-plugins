@@ -1,7 +1,7 @@
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { QBField } from 'core/types';
 import { WorkItemTypes } from '../constants/QueryEditor.constants';
-import { WorkItemState } from '../types';
+import { WORK_ITEM_STATE_OPTIONS, WORK_ITEM_TYPE_FILTER_VALUES } from '../constants';
 
 export enum WorkItemsQueryBuilderFieldNames {
   Id = 'id',
@@ -20,6 +20,7 @@ export enum WorkItemsQueryBuilderFieldNames {
   UpdatedAt = 'updatedAt',
   ParentWorkItemId = 'parentId',
   TemplateId = 'templateId',
+  WorkflowId = 'workflowId',
   EarliestStartDate = 'timeline.earliestStartDateTime',
   DueDate = 'timeline.dueDateTime',
   EstimatedDurationInDays = 'estimatedDurationInDays',
@@ -77,7 +78,9 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     dataField: WorkItemsQueryBuilderFieldNames.Type,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
     lookup: {
-      dataSource: WorkItemTypes.map(({ label, value }) => ({ label, value })),
+      dataSource: WorkItemTypes.map(({ label, value }) => ({ 
+        label, value: WORK_ITEM_TYPE_FILTER_VALUES[value] 
+      })),
     },
   },
   STATE: {
@@ -85,16 +88,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     dataField: WorkItemsQueryBuilderFieldNames.State,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
     lookup: {
-      dataSource: [
-        { label: 'New', value: WorkItemState.New },
-        { label: 'Defined', value: WorkItemState.Defined },
-        { label: 'Reviewed', value: WorkItemState.Reviewed },
-        { label: 'Scheduled', value: WorkItemState.Scheduled },
-        { label: 'In progress', value: WorkItemState.InProgress },
-        { label: 'Pending approval', value: WorkItemState.PendingApproval },
-        { label: 'Closed', value: WorkItemState.Closed },
-        { label: 'Canceled', value: WorkItemState.Canceled },
-      ],
+      dataSource: Object.values(WORK_ITEM_STATE_OPTIONS),
     },
   },
   DESCRIPTION: {
@@ -110,6 +104,8 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
       QueryBuilderOperations.CONTAINS.name,
       QueryBuilderOperations.DOES_NOT_CONTAIN.name,
+      QueryBuilderOperations.IS_BLANK.name,
+      QueryBuilderOperations.IS_NOT_BLANK.name,
     ],
   },
   PART_NUMBER: {
@@ -154,8 +150,6 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.IS_BLANK.name,
-      QueryBuilderOperations.IS_NOT_BLANK.name,
     ],
   },
   UPDATED_BY: {
@@ -192,6 +186,16 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
   TEMPLATE_ID: {
     label: 'Template ID',
     dataField: WorkItemsQueryBuilderFieldNames.TemplateId,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.IS_BLANK.name,
+      QueryBuilderOperations.IS_NOT_BLANK.name,
+    ],
+  },
+  WORKFLOW_ID: {
+    label: 'Workflow ID',
+    dataField: WorkItemsQueryBuilderFieldNames.WorkflowId,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -378,6 +382,7 @@ export const WorkItemsQueryBuilderStaticFields = [
   WorkItemsQueryBuilderFields.UPDATED_BY,
   WorkItemsQueryBuilderFields.PROPERTIES,
   WorkItemsQueryBuilderFields.TEMPLATE_ID,
+  WorkItemsQueryBuilderFields.WORKFLOW_ID,
   WorkItemsQueryBuilderFields.PARENT_WORK_ITEM_ID,
   WorkItemsQueryBuilderFields.WORKSPACE,
 ];

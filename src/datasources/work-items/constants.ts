@@ -1,10 +1,14 @@
-import { WorkItem, WorkItemTypeOptions, WorkItemPropertiesOptions } from './types';
+import { WorkItem, WorkItemTypeOptions, WorkItemPropertiesOptions, WorkItemState } from './types';
 
 export const TAKE_LIMIT = 10000;
 export const DEFAULT_TAKE = 1000;
 
 export const SECONDS_IN_DAY = 86400;
 export const SECONDS_IN_HOUR = 3600;
+
+export const CUSTOM_PROPERTY_OPTIONS_LIMIT = 10_000;
+
+export const CUSTOM_PROPERTY_SUFFIX = '-(custom-properties)';
 
 // Maps each work item type option to the backend's `type` filter value.
 export const WORK_ITEM_TYPE_FILTER_VALUES: Record<WorkItemTypeOptions, string> = {
@@ -15,6 +19,18 @@ export const WORK_ITEM_TYPE_FILTER_VALUES: Record<WorkItemTypeOptions, string> =
   [WorkItemTypeOptions.Calibration]: 'calibration',
   [WorkItemTypeOptions.Reservation]: 'reservation',
   [WorkItemTypeOptions.TransportOrder]: 'transportorder',
+};
+
+// Maps each work item state to its human-readable label and the backend's `state` filter value.
+export const WORK_ITEM_STATE_OPTIONS: Record<WorkItemState, { label: string; value: string }> = {
+  [WorkItemState.New]: { label: 'New', value: 'New' },
+  [WorkItemState.Defined]: { label: 'Defined', value: 'Defined' },
+  [WorkItemState.Reviewed]: { label: 'Reviewed', value: 'Reviewed' },
+  [WorkItemState.Scheduled]: { label: 'Scheduled', value: 'Scheduled' },
+  [WorkItemState.InProgress]: { label: 'In progress', value: 'InProgress' },
+  [WorkItemState.PendingApproval]: { label: 'Pending approval', value: 'PendingApproval' },
+  [WorkItemState.Closed]: { label: 'Closed', value: 'Closed' },
+  [WorkItemState.Canceled]: { label: 'Canceled', value: 'Canceled' },
 };
 
 export const USER_PROPERTY_FIELDS: Partial<
@@ -76,6 +92,8 @@ export const WORK_ITEM_PROPERTIES_PROJECTIONS: Record<WorkItemPropertiesOptions,
   [WorkItemPropertiesOptions.PROPERTIES]: ['PROPERTIES'],
 };
 
+export const WORK_ITEM_PROPERTIES_PROJECTION = WORK_ITEM_PROPERTIES_PROJECTIONS[WorkItemPropertiesOptions.PROPERTIES][0];
+
 // Maps normalized work item type values to human-readable labels.
 export const WORK_ITEM_TYPE_LABEL_MAP: Record<string, string> = {
   testplan: 'Test plan',
@@ -85,16 +103,4 @@ export const WORK_ITEM_TYPE_LABEL_MAP: Record<string, string> = {
   calibration: 'Calibration',
   reservation: 'Reservation',
   transportorder: 'Transport order',
-};
-
-// Maps work item state values to human-readable labels.
-export const WORK_ITEM_STATE_LABEL_MAP: Record<string, string> = {
-  NEW: 'New',
-  DEFINED: 'Defined',
-  REVIEWED: 'Reviewed',
-  SCHEDULED: 'Scheduled',
-  IN_PROGRESS: 'In progress',
-  PENDING_APPROVAL: 'Pending approval',
-  CLOSED: 'Closed',
-  CANCELED: 'Canceled',
 };

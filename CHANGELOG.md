@@ -1,3 +1,45 @@
+## [5.14.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.13.0...v5.14.0) (2026-09-17)
+
+### Features
+
+* **work-items:** add custom property discovery backend ([#759](https://github.com/ni/systemlink-grafana-plugins/issues/759)) ([9322d24](https://github.com/ni/systemlink-grafana-plugins/commit/9322d24e4f10a97b1ab4b004a406a341e7a82f09))
+
+## [5.13.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.12.0...v5.13.0) (2026-09-17)
+
+### Features
+
+* **work-items:** support variable options in the Type control ([#761](https://github.com/ni/systemlink-grafana-plugins/issues/761)) ([5c180e2](https://github.com/ni/systemlink-grafana-plugins/commit/5c180e2cce55e919276834a2388aa33cce38e993))
+
+## [5.12.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.11.1...v5.12.0) (2026-09-17)
+
+### Features
+
+* **work-items:** fetch work items for List work items variable query ([#758](https://github.com/ni/systemlink-grafana-plugins/issues/758)) ([e14a377](https://github.com/ni/systemlink-grafana-plugins/commit/e14a37760013c86981faac3dbbd573d4a06d83df))
+
+## [5.11.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.11.0...v5.11.1) (2026-09-16)
+
+### Bug Fixes
+
+* **work-items:** Update fallback logics for resource names ([#757](https://github.com/ni/systemlink-grafana-plugins/issues/757)) ([37664d9](https://github.com/ni/systemlink-grafana-plugins/commit/37664d9881718aff5e552cb7c5a4b37b7bf7e913))
+
+## [5.11.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.10.1...v5.11.0) (2026-09-16)
+
+### Features
+
+* **work-items:** add variable query editor for Work Items data source ([#739](https://github.com/ni/systemlink-grafana-plugins/issues/739)) ([58ffe13](https://github.com/ni/systemlink-grafana-plugins/commit/58ffe138491613738a6d0fee5a63edee547d1981))
+
+## [5.10.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.10.0...v5.10.1) (2026-09-16)
+
+### Bug Fixes
+
+* **Work-Item:** Resolve WorkItemsQueryBuilder filter persistence issue and standardize filter value mappings ([#754](https://github.com/ni/systemlink-grafana-plugins/issues/754)) ([a876d5e](https://github.com/ni/systemlink-grafana-plugins/commit/a876d5efd4ce00abb6a0ed41635fb885f6586acc))
+
+## [5.10.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.9.3...v5.10.0) (2026-09-16)
+
+### Features
+
+* **work-items:** Add support for resource row flattening and lookup ([#745](https://github.com/ni/systemlink-grafana-plugins/issues/745)) ([ef84c32](https://github.com/ni/systemlink-grafana-plugins/commit/ef84c3297bd62eb5cf4e3a8e411d4c786a5f3ba4))
+
 ## [5.9.3](https://github.com/ni/systemlink-grafana-plugins/compare/v5.9.2...v5.9.3) (2026-09-15)
 
 ### Bug Fixes
