@@ -1,3 +1,39 @@
+## [5.16.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.15.0...v5.16.0) (2026-09-18)
+
+### Features
+
+* **work-items:** Update target location fallback to lookup targetLocationId if targetSystemId is null ([#756](https://github.com/ni/systemlink-grafana-plugins/issues/756)) ([e181fc9](https://github.com/ni/systemlink-grafana-plugins/commit/e181fc9223ea1454fdc606179795fa5d35ef6e2e))
+
+## [5.15.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.14.0...v5.15.0) (2026-09-18)
+
+### Features
+
+* **shared:** Add location utils ([#755](https://github.com/ni/systemlink-grafana-plugins/issues/755)) ([18a81ea](https://github.com/ni/systemlink-grafana-plugins/commit/18a81ea1a275f4f06c45feb30e33f2da31cdd447))
+
+## [5.14.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.13.0...v5.14.0) (2026-09-17)
+
+### Features
+
+* **work-items:** add custom property discovery backend ([#759](https://github.com/ni/systemlink-grafana-plugins/issues/759)) ([9322d24](https://github.com/ni/systemlink-grafana-plugins/commit/9322d24e4f10a97b1ab4b004a406a341e7a82f09))
+
+## [5.13.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.12.0...v5.13.0) (2026-09-17)
+
+### Features
+
+* **work-items:** support variable options in the Type control ([#761](https://github.com/ni/systemlink-grafana-plugins/issues/761)) ([5c180e2](https://github.com/ni/systemlink-grafana-plugins/commit/5c180e2cce55e919276834a2388aa33cce38e993))
+
+## [5.12.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.11.1...v5.12.0) (2026-09-17)
+
+### Features
+
+* **work-items:** fetch work items for List work items variable query ([#758](https://github.com/ni/systemlink-grafana-plugins/issues/758)) ([e14a377](https://github.com/ni/systemlink-grafana-plugins/commit/e14a37760013c86981faac3dbbd573d4a06d83df))
+
+## [5.11.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.11.0...v5.11.1) (2026-09-16)
+
+### Bug Fixes
+
+* **work-items:** Update fallback logics for resource names ([#757](https://github.com/ni/systemlink-grafana-plugins/issues/757)) ([37664d9](https://github.com/ni/systemlink-grafana-plugins/commit/37664d9881718aff5e552cb7c5a4b37b7bf7e913))
+
 ## [5.11.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.10.1...v5.11.0) (2026-09-16)
 
 ### Features
