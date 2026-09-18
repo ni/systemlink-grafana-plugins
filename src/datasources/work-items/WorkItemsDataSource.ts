@@ -57,6 +57,7 @@ import {
   WORK_ITEM_PROPERTIES_PROJECTIONS,
   WORK_ITEM_TYPE_FILTER_VALUES,
   WORK_ITEM_TYPE_LABEL_MAP,
+  WORK_ITEM_TYPE_LABELS,
   WORK_ITEM_STATE_OPTIONS,
   USER_PROPERTY_FIELDS,
   CUSTOM_PROPERTY_OPTIONS_LIMIT,
@@ -206,12 +207,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     }
 
     if (query.outputType === OutputType.TotalCount) {
-      const totalCount = await this.queryWorkItemsCount(filter);
-      return {
-        refId: query.refId,
-        name: query.refId,
-        fields: [{ name: query.refId, values: [totalCount] }],
-      };
+      return this.processTotalCountQuery(query, options.scopedVars);
     }
 
     return this.getEmptyDataFrameDTO(query.refId);
@@ -779,6 +775,71 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     }
 
     return projection.size > 0 ? [...projection] : undefined;
+  }
+
+  private async processTotalCountQuery(query: WorkItemsQuery, scopedVars?: ScopedVars): Promise<DataFrameDTO> {
+    const resolvedTypes = this.resolveRecognizedTypes(query.types!);
+    const queryFilter = query.filter?.trim();
+    const transformedQueryFilter = queryFilter
+      ? this.transformQueryBuilderFilter(queryFilter, scopedVars)
+      : queryFilter;
+
+    const filters = resolvedTypes.map(type => {
+      const typeFilter = `type = "${WORK_ITEM_TYPE_FILTER_VALUES[type]}"`;
+      return this.buildQueryFilter(
+        `(${typeFilter})`,
+        transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
+      );
+    });
+
+    const workItemCounts = await this.queryWorkItemsCountsInBatches(filters);
+
+    return {
+      refId: query.refId,
+      name: query.refId,
+      fields: resolvedTypes.map((type, index) => ({
+        name: WORK_ITEM_TYPE_LABELS[type],
+        values: [workItemCounts[index]],
+      })),
+    };
+  }
+
+  // Resolves any template variables in the selected types, dropping values that are not recognized
+  // work item types so each remaining type yields a separate count query and column.
+  private resolveRecognizedTypes(types: WorkItemTypeOptions[]): WorkItemTypeOptions[] {
+    const resolvedTypes = replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[];
+    return resolvedTypes.filter(type => WORK_ITEM_TYPE_FILTER_VALUES[type] !== undefined);
+  }
+
+  private async queryWorkItemsCountsInBatches(
+    filters: Array<string | undefined>
+  ): Promise<number[]> {
+    const workItemCounts: number[] = [];
+
+    for (
+      let index = 0;
+      index < filters.length;
+      index += QUERY_WORK_ITEMS_REQUEST_PER_SECOND
+    ) {
+      const start = Date.now();
+      const batch = filters.slice(index, index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND);
+      const batchWorkItemCounts = await Promise.all(
+        batch.map(filter => this.queryWorkItemsCount(filter))
+      );
+      workItemCounts.push(...batchWorkItemCounts);
+
+      const hasMoreRequests = index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND < filters.length;
+      const elapsed = Date.now() - start;
+      if (hasMoreRequests && elapsed < 1000) {
+        await this.delay(1000 - elapsed);
+      }
+    }
+
+    return workItemCounts;
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   async queryWorkItemsCount(filter?: string): Promise<number> {
