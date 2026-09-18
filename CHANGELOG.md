@@ -1,3 +1,9 @@
+## [5.16.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.15.0...v5.16.0) (2026-09-18)
+
+### Features
+
+* **work-items:** Update target location fallback to lookup targetLocationId if targetSystemId is null ([#756](https://github.com/ni/systemlink-grafana-plugins/issues/756)) ([e181fc9](https://github.com/ni/systemlink-grafana-plugins/commit/e181fc9223ea1454fdc606179795fa5d35ef6e2e))
+
 ## [5.15.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.14.0...v5.15.0) (2026-09-18)
 
 ### Features
