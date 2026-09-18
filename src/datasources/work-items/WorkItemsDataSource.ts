@@ -149,37 +149,16 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     WorkItemsQueryBuilderFieldNames.PlannedEndDate,
   ];
 
-  // Value filter fields that support single and multi-value template variables.
-  private readonly multiValueFilterFields: string[] = [
-    WorkItemsQueryBuilderFieldNames.Id,
-    WorkItemsQueryBuilderFieldNames.Name,
-    WorkItemsQueryBuilderFieldNames.Type,
-    WorkItemsQueryBuilderFieldNames.State,
-    WorkItemsQueryBuilderFieldNames.Description,
-    WorkItemsQueryBuilderFieldNames.TestProgram,
-    WorkItemsQueryBuilderFieldNames.PartNumber,
-    WorkItemsQueryBuilderFieldNames.Workspace,
-    WorkItemsQueryBuilderFieldNames.AssignedTo,
-    WorkItemsQueryBuilderFieldNames.RequestedBy,
-    WorkItemsQueryBuilderFieldNames.CreatedBy,
-    WorkItemsQueryBuilderFieldNames.UpdatedBy,
-    WorkItemsQueryBuilderFieldNames.ParentWorkItemId,
-    WorkItemsQueryBuilderFieldNames.TemplateId,
-    WorkItemsQueryBuilderFieldNames.WorkflowId,
-    WorkItemsQueryBuilderFieldNames.EstimatedDurationInDays,
-    WorkItemsQueryBuilderFieldNames.EstimatedDurationInHours,
-    WorkItemsQueryBuilderFieldNames.PlannedDurationInDays,
-    WorkItemsQueryBuilderFieldNames.PlannedDurationInHours,
-  ];
-
-  readonly workItemsComputedDataFields = new Map<string, ExpressionTransformFunction>([
-    ...this.timeFilterFields.map(
-      field => [field, timeFieldsQuery(field)] as [string, ExpressionTransformFunction]
-    ),
-    ...this.multiValueFilterFields.map(
-      field => [field, multipleValuesQuery(field)] as [string, ExpressionTransformFunction]
-    ),
-  ]);
+  // Computed field transformations applied to the query builder filter so template variables
+  // (including multi-value variables and time macros) are expanded into valid query expressions.
+  // Every field is mapped; property and resource fields are harmless to include because their
+  // expressions never match the operation patterns in transformComputedFieldsQuery.
+  readonly workItemsComputedDataFields = new Map<string, ExpressionTransformFunction>(
+    Object.values(WorkItemsQueryBuilderFieldNames).map(field => [
+      field,
+      this.timeFilterFields.includes(field) ? timeFieldsQuery(field) : multipleValuesQuery(field),
+    ])
+  );
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
@@ -195,7 +174,11 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
-    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(query.types!, query.filter, options.scopedVars);
+    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
+      query.types!,
+      query.filter,
+      options.scopedVars
+    );
 
     // A selection that resolves only to empty or unrecognized values (e.g. a template variable
     // that expands to nothing) yields no type filter. Returning early avoids dropping the type

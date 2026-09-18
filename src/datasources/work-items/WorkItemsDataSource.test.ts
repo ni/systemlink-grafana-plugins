@@ -591,6 +591,26 @@ describe('WorkItemsDataSource', () => {
           { showErrorAlert: false }
         );
       });
+
+      it('should resolve a template variable to the now macro in a time field', async () => {
+        jest
+          .spyOn(datasource.templateSrv, 'replace')
+          .mockReturnValue('createdAt > "${__now:date}"');
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+          filter: 'createdAt > "$time"',
+        };
+
+        await datasource.runQuery(query, { scopedVars: {} } as any);
+
+        const requestBody = postSpy.mock.calls[0][1] as { filter: string };
+        expect(requestBody.filter).toMatch(
+          /^\(createdAt > "\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z"\)$/
+        );
+      });
     });
 
     describe('properties output type', () => {
@@ -1715,7 +1735,7 @@ describe('WorkItemsDataSource', () => {
   describe('metricFindQuery', () => {
     it('should return work items formatted as "name (id)" for the list work items query type', async () => {
       jest.spyOn(datasource, 'post').mockResolvedValue({
-        workItems: [
+        workItems: [ 
           { id: '1', name: 'Battery Cycle Test' },
           { id: '2', name: 'Thermal Test' },
         ],
@@ -1779,6 +1799,195 @@ describe('WorkItemsDataSource', () => {
         }),
         { showErrorAlert: false }
       );
+    });
+
+    it('should resolve a template variable to the now macro in a time field', async () => {
+      jest
+        .spyOn(datasource.templateSrv, 'replace')
+        .mockReturnValue('createdAt > "${__now:date}"');
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({
+        workItems: [],
+        continuationToken: '',
+        totalCount: 0,
+      });
+
+      await datasource.metricFindQuery(
+        {
+          refId: 'A',
+          queryType: WorkItemsVariableQueryType.ListWorkItems,
+          types: [WorkItemTypeOptions.WorkOrders],
+          filter: 'createdAt > "$time"',
+        },
+        { scopedVars: {} } as any
+      );
+
+      const requestBody = postSpy.mock.calls[0][1] as { filter: string };
+      expect(requestBody.filter).toMatch(
+        /^\(type = "workorder"\) && \(createdAt > "\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z"\)$/
+      );
+    });
+
+    describe('type control variable replacement', () => {
+      it('should replace a single-value template variable in the selected types', async () => {
+        const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [],
+          continuationToken: '',
+          totalCount: 0,
+        });
+        templateSrv.containsTemplate.mockImplementation((value?: string) => value === '$type_var');
+        templateSrv.replace.mockImplementation((value?: string) =>
+          value === '$type_var' ? WorkItemTypeOptions.WorkOrders : value ?? ''
+        );
+
+        await datasource.metricFindQuery(
+          {
+            refId: 'A',
+            queryType: WorkItemsVariableQueryType.ListWorkItems,
+            types: ['$type_var'] as unknown as WorkItemTypeOptions[],
+          },
+          { scopedVars: {} } as any
+        );
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          expect.objectContaining({ filter: '(type = "workorder")' }),
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should expand a multi-value template variable in the selected types', async () => {
+        const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [],
+          continuationToken: '',
+          totalCount: 0,
+        });
+        templateSrv.containsTemplate.mockImplementation((value?: string) => value === '$type_var');
+        templateSrv.replace.mockImplementation((value?: string) =>
+          value === '$type_var'
+            ? `{${WorkItemTypeOptions.WorkOrders},${WorkItemTypeOptions.TestPlans}}`
+            : value ?? ''
+        );
+
+        await datasource.metricFindQuery(
+          {
+            refId: 'A',
+            queryType: WorkItemsVariableQueryType.ListWorkItems,
+            types: ['$type_var'] as unknown as WorkItemTypeOptions[],
+          },
+          { scopedVars: {} } as any
+        );
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          expect.objectContaining({ filter: '(type = "workorder" || type = "testplan")' }),
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should return an empty list without querying when a type variable resolves to no values', async () => {
+        const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
+        const postSpy = jest.spyOn(datasource, 'post');
+        templateSrv.containsTemplate.mockImplementation((value?: string) => value === '$type_var');
+        templateSrv.replace.mockImplementation((value?: string) => (value === '$type_var' ? '' : value ?? ''));
+
+        const result = await datasource.metricFindQuery(
+          {
+            refId: 'A',
+            queryType: WorkItemsVariableQueryType.ListWorkItems,
+            types: ['$type_var'] as unknown as WorkItemTypeOptions[],
+          },
+          { scopedVars: {} } as any
+        );
+
+        expect(result).toEqual([]);
+        expect(postSpy).not.toHaveBeenCalled();
+      });
+
+      it('should drop unrecognized values when a multi-value type variable resolves to a mix of valid and invalid types', async () => {
+        const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [],
+          continuationToken: '',
+          totalCount: 0,
+        });
+        templateSrv.containsTemplate.mockImplementation((value?: string) => value === '$type_var');
+        templateSrv.replace.mockImplementation((value?: string) =>
+          value === '$type_var' ? `{${WorkItemTypeOptions.WorkOrders},UNKNOWN_TYPE}` : value ?? ''
+        );
+
+        await datasource.metricFindQuery(
+          {
+            refId: 'A',
+            queryType: WorkItemsVariableQueryType.ListWorkItems,
+            types: ['$type_var'] as unknown as WorkItemTypeOptions[],
+          },
+          { scopedVars: {} } as any
+        );
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          expect.objectContaining({ filter: '(type = "workorder")' }),
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should deduplicate a type that is selected both statically and through a variable', async () => {
+        const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [],
+          continuationToken: '',
+          totalCount: 0,
+        });
+        templateSrv.containsTemplate.mockImplementation((value?: string) => value === '$type_var');
+        templateSrv.replace.mockImplementation((value?: string) =>
+          value === '$type_var' ? WorkItemTypeOptions.WorkOrders : value ?? ''
+        );
+
+        await datasource.metricFindQuery(
+          {
+            refId: 'A',
+            queryType: WorkItemsVariableQueryType.ListWorkItems,
+            types: [WorkItemTypeOptions.WorkOrders, '$type_var'] as unknown as WorkItemTypeOptions[],
+          },
+          { scopedVars: {} } as any
+        );
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          expect.objectContaining({ filter: '(type = "workorder")' }),
+          { showErrorAlert: false }
+        );
+      });
+
+      it('should omit the type filter when a type variable expands to cover all work item types', async () => {
+        const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [],
+          continuationToken: '',
+          totalCount: 0,
+        });
+        templateSrv.containsTemplate.mockImplementation((value?: string) => value === '$type_var');
+        templateSrv.replace.mockImplementation((value?: string) =>
+          value === '$type_var' ? `{${Object.values(WorkItemTypeOptions).join(',')}}` : value ?? ''
+        );
+
+        await datasource.metricFindQuery(
+          {
+            refId: 'A',
+            queryType: WorkItemsVariableQueryType.ListWorkItems,
+            types: ['$type_var'] as unknown as WorkItemTypeOptions[],
+          },
+          { scopedVars: {} } as any
+        );
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          expect.objectContaining({ filter: undefined }),
+          { showErrorAlert: false }
+        );
+      });
     });
 
     it('should request only the id and name properties with the configured ordering and take', async () => {
