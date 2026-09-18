@@ -947,6 +947,17 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     }
   }
 
+  public async loadLocations(): Promise<Map<string, Location>> {
+    try {
+      return await this.locationUtils.getLocations();
+    } catch (error) {
+      if (!this.errorTitle) {
+        this.handleDependenciesError(error);
+      }
+      return new Map<string, Location>();
+    }
+  }
+
   private buildCustomPropertyOptions(
     customPropertyKeys: Set<string>
   ): Array<ComboboxOption<string>> {
@@ -957,17 +968,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         value: `${key}${CUSTOM_PROPERTY_SUFFIX}`,
         group: WorkItemPropertiesGroup.CUSTOM_PROPERTIES,
       }));
-  }
-
-  public async loadLocations(): Promise<Map<string, Location>> {
-    try {
-      return await this.locationUtils.getLocations();
-    } catch (error) {
-      if (!this.errorTitle) {
-        this.handleDependenciesError(error);
-      }
-      return new Map<string, Location>();
-    }
   }
 
   async testDatasource(): Promise<TestDataSourceResponse> {
