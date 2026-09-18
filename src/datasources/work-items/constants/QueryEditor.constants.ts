@@ -138,6 +138,18 @@ export const WorkItemProperties: Record<
     field: 'partNumber',
     group: WorkItemPropertiesGroup.WORK_ITEM_DETAILS,
   },
+  [WorkItemPropertiesOptions.PRODUCT_ID]: {
+    label: 'Product ID',
+    value: WorkItemPropertiesOptions.PRODUCT_ID,
+    field: 'partNumber',
+    group: WorkItemPropertiesGroup.WORK_ITEM_DETAILS,
+  },
+  [WorkItemPropertiesOptions.PRODUCT_NAME]: {
+    label: 'Product name',
+    value: WorkItemPropertiesOptions.PRODUCT_NAME,
+    field: 'partNumber',
+    group: WorkItemPropertiesGroup.WORK_ITEM_DETAILS,
+  },
   [WorkItemPropertiesOptions.WORKSPACE]: {
     label: 'Workspace',
     value: WorkItemPropertiesOptions.WORKSPACE,
