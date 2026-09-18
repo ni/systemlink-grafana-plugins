@@ -1,3 +1,9 @@
+## [5.18.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.17.0...v5.18.0) (2026-09-18)
+
+### Features
+
+* **work-items:** replace template variables in query builder filter ([#765](https://github.com/ni/systemlink-grafana-plugins/issues/765)) ([cc183ec](https://github.com/ni/systemlink-grafana-plugins/commit/cc183ec3543630ba09c02d553aeafaaa83100f89))
+
 ## [5.17.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.16.0...v5.17.0) (2026-09-18)
 
 ### Features
