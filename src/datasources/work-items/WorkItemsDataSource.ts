@@ -425,10 +425,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return id ? systemAliases.get(id)?.alias ?? '' : '';
   }
 
-  private resolveSystemAliasForTargetLocation(id: string | undefined, systemAliases: Map<string, SystemAlias>): string {
-    return id ? systemAliases.get(id)?.alias ?? id : '';
-  }
-
   private resolveTargetLocation(
     selection: Pick<ResourceSelection, 'targetSystemId' | 'targetLocationId'> | undefined,
     locations: Map<string, Location>,
@@ -544,22 +540,13 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   ): FieldDTO[] {
     return [
       this.buildResourceField('Target Location (Asset)', flattenedRows, row =>
-        this.resolveTargetLocationForTargetLocation(
-          row.assetSelection, locationsLookup,
-          systemAliasesLookup
-        )
+        this.resolveTargetLocation(row.assetSelection, locationsLookup, systemAliasesLookup)
       ),
       this.buildResourceField('Target Location (DUT)', flattenedRows, row =>
-        this.resolveTargetLocationForTargetLocation(
-          row.dutSelection, locationsLookup,
-          systemAliasesLookup
-        )
+        this.resolveTargetLocation(row.dutSelection, locationsLookup, systemAliasesLookup)
       ),
       this.buildResourceField('Target Location (Fixture)', flattenedRows, row =>
-        this.resolveTargetLocationForTargetLocation(
-          row.fixtureSelection, locationsLookup,
-          systemAliasesLookup
-        )
+        this.resolveTargetLocation(row.fixtureSelection, locationsLookup, systemAliasesLookup)
       ),
     ];
   }
