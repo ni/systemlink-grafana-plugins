@@ -634,7 +634,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   private async processTotalCountQuery(query: WorkItemsQuery): Promise<DataFrameDTO> {
     const types = query.types!;
     const queryFilter = query.filter?.trim();
-    const transformedQueryFilter = queryFilter ? this.transformDurationFilters(queryFilter) : queryFilter;
+    const transformedQueryFilter = queryFilter
+      ? this.transformDurationFilters(queryFilter)
+      : queryFilter;
 
     const filters = types.map(type => {
       const typeFilter = `type = "${WORK_ITEM_TYPE_FILTER_VALUES[type]}"`;
@@ -644,29 +646,35 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       );
     });
 
-    const counts = await this.queryWorkItemsCountsInBatches(filters);
+    const workItemCounts = await this.queryWorkItemsCountsInBatches(filters);
 
     return {
       refId: query.refId,
       name: query.refId,
       fields: types.map((type, index) => ({
         name: WORK_ITEM_TYPE_LABELS[type],
-        values: [counts[index]],
+        values: [workItemCounts[index]],
       })),
     };
   }
 
-  // Sends the per-type count queries in batches, limiting the number of requests made per second
-  // to avoid overloading the server. Counts are returned in the same order as the provided filters.
-  private async queryWorkItemsCountsInBatches(filters: Array<string | undefined>): Promise<number[]> {
+  private async queryWorkItemsCountsInBatches(
+    filters: Array<string | undefined>
+  ): Promise<number[]> {
     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-    const counts: number[] = [];
+    const workItemCounts: number[] = [];
 
-    for (let index = 0; index < filters.length; index += QUERY_WORK_ITEMS_REQUEST_PER_SECOND) {
+    for (
+      let index = 0;
+      index < filters.length;
+      index += QUERY_WORK_ITEMS_REQUEST_PER_SECOND
+    ) {
       const start = Date.now();
       const batch = filters.slice(index, index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND);
-      const batchCounts = await Promise.all(batch.map(filter => this.queryWorkItemsCount(filter)));
-      counts.push(...batchCounts);
+      const batchWorkItemCounts = await Promise.all(
+        batch.map(filter => this.queryWorkItemsCount(filter))
+      );
+      workItemCounts.push(...batchWorkItemCounts);
 
       const hasMoreRequests = index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND < filters.length;
       const elapsed = Date.now() - start;
@@ -675,7 +683,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       }
     }
 
-    return counts;
+    return workItemCounts;
   }
 
   async queryWorkItemsCount(filter?: string): Promise<number> {
