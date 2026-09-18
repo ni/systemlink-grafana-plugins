@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
-import { AutoSizeInput, Combobox, ComboboxOption, InlineSwitch, MultiCombobox, RadioButtonGroup, Stack } from '@grafana/ui';
+import { AutoSizeInput, Combobox, ComboboxOption, InlineSwitch, MultiCombobox, Stack } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
 import { FloatingError } from 'core/errors';
 import { Workspace } from 'core/types';
@@ -97,8 +97,8 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
     [onChange]
   );
 
-  const onQueryTypeChange = (value: WorkItemsVariableQueryType) => {
-    handleQueryChange({ ...query, queryType: value });
+  const onQueryTypeChange = (option: ComboboxOption<WorkItemsVariableQueryType>) => {
+    handleQueryChange({ ...query, queryType: option.value });
   };
 
   const onTypesChange = (items: Array<ComboboxOption<WorkItemTypeOptions>>) => {
@@ -134,10 +134,11 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
           labelWidth={LABEL_WIDTH}
           tooltip={tooltips.queryType}
         >
-          <RadioButtonGroup 
+          <Combobox
             options={queryTypeOptions}
             value={query.queryType}
             onChange={onQueryTypeChange}
+            width={COMBOBOX_WIDTH}
           />
         </InlineField>
         {query.queryType === WorkItemsVariableQueryType.ListWorkItems && (
