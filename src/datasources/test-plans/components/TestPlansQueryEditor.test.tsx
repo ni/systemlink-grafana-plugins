@@ -6,6 +6,7 @@ import { TestPlansDataSource } from '../TestPlansDataSource';
 import { OutputType, PropertiesProjectionMap, TestPlansQuery } from '../types';
 import userEvent from '@testing-library/user-event';
 import { select } from 'react-select-event';
+import { deprecationMessage } from '../constants/QueryEditor.constants';
 
 const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
@@ -59,6 +60,17 @@ describe('TestPlansQueryEditor', () => {
             return render(reactNode);
         });
     }
+
+    it('should render the deprecation notice', async () => {
+        const container = await renderElement();
+
+        const notice = container.getByRole('alert');
+        expect(notice).toHaveTextContent(deprecationMessage.title);
+        expect(notice).toHaveTextContent(deprecationMessage.message.trim());
+
+        const link = container.getByRole('link', { name: deprecationMessage.linkText });
+        expect(link).toHaveAttribute('href', deprecationMessage.linkUrl);
+    });
 
     it('should render default query', async () => {
         const container = await renderElement();
