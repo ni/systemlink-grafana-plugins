@@ -29,10 +29,10 @@ export enum WorkItemsQueryBuilderFieldNames {
   PlannedEndDate = 'schedule.plannedEndDateTime',
   PlannedDurationInDays = 'plannedDurationInDays',
   PlannedDurationInHours = 'plannedDurationInHours',
-  AssetId = 'resources.assets.selections',
-  DutId = 'resources.duts.selections',
-  FixtureId = 'resources.fixtures.selections',
-  SystemAliasName = 'resources.systems.selections',
+  AssetId = 'assets',
+  DutId = 'duts',
+  FixtureId = 'fixtures',
+  SystemAliasName = 'systems',
   Properties = 'properties',
 }
 
@@ -47,17 +47,23 @@ export const WorkItemsResourceQueryBuilderOperations = {
   LIST_OF_OBJECTS_CONTAINS_ID: {
     label: 'equals',
     name: 'listofobjectscontainsid',
-    expressionTemplate: '{0}.Any(s => s.id == "{1}")',
+    expressionTemplate: 'resources.{0}.selections.Any(s => s.id == "{1}")',
   },
   LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID: {
     label: 'does not equal',
     name: 'listofobjectsdoesnotcontainid',
-    expressionTemplate: '{0}.Any(s => s.id == "{1}") == false',
+    expressionTemplate: '!resources.{0}.selections.Any(s => s.id == "{1}")',
   },
   LIST_OF_OBJECTS_IS_EMPTY: {
     label: 'is empty',
     name: 'listofobjectsisempty',
-    expressionTemplate: '{0}.Any() == false',
+    expressionTemplate: '!resources.{0}.selections.Any()',
+    hideValue: true,
+  },
+  LIST_OF_OBJECTS_IS_NOT_EMPTY: {
+    label: 'is not empty',
+    name: 'listofobjectsisnotempty',
+    expressionTemplate: 'resources.{0}.selections.Any()',
     hideValue: true,
   },
 };
@@ -310,7 +316,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_EMPTY.name,
-      QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_NOT_EMPTY.name,
     ],
   },
   DUT_ID: {
@@ -320,7 +326,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_EMPTY.name,
-      QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_NOT_EMPTY.name,
     ],
   },
   FIXTURE_ID: {
@@ -330,7 +336,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_EMPTY.name,
-      QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_NOT_EMPTY.name,
     ],
   },
   SYSTEM_ALIAS_NAME: {
@@ -340,7 +346,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
       WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_EMPTY.name,
-      QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_NOT_EMPTY.name,
     ],
     lookup: {
       dataSource: [],
