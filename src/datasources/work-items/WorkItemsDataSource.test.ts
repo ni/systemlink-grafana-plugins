@@ -403,6 +403,29 @@ describe('WorkItemsDataSource', () => {
         // fifth per-type queries are never sent.
         expect(postSpy).toHaveBeenCalledTimes(3);
       });
+
+      it('should wait only the remaining time when a batch takes part of the one-second window', async () => {
+        const delaySpy = jest.spyOn(datasource as any, 'delay').mockResolvedValue(undefined);
+        jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        // Simulate the first batch consuming 400ms of the one-second window so only the
+        // remaining 600ms should be waited before the next batch starts.
+        const nowSpy = jest
+          .spyOn(Date, 'now')
+          .mockReturnValueOnce(0) // first batch start
+          .mockReturnValueOnce(400) // first batch elapsed -> 400ms used
+          .mockReturnValue(2000); // second (final) batch start/elapsed
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions), // seven types -> two batches
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(delaySpy).toHaveBeenCalledTimes(1);
+        expect(delaySpy).toHaveBeenCalledWith(600);
+        nowSpy.mockRestore();
+      });
     });
 
     it('should replace a template variable in the selected types before building the type filter', async () => {

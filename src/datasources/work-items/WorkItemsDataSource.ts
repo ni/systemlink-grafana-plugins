@@ -190,24 +190,24 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.processTotalCountQuery(query, options.scopedVars);
     }
 
-    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
-      query.types!,
-      query.filter,
-      options.scopedVars
-    );
-
-    // A selection that resolves only to empty or unrecognized values (e.g. a template variable
-    // that expands to nothing) yields no type filter. Returning early avoids dropping the type
-    // constraint entirely, which would otherwise match every work item instead of none.
-    if (!hasRecognizedTypes) {
-      return this.getEmptyDataFrameDTO(query.refId);
-    }
-
     if (
       query.outputType === OutputType.Properties &&
       isPropertiesNonEmpty(query.properties, query.customProperties) &&
       isTakeValid(query.take)
     ) {
+      const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
+        query.types!,
+        query.filter,
+        options.scopedVars
+      );
+
+      // A selection that resolves only to empty or unrecognized values (e.g. a template variable
+      // that expands to nothing) yields no type filter. Returning early avoids dropping the type
+      // constraint entirely, which would otherwise match every work item instead of none.
+      if (!hasRecognizedTypes) {
+        return this.getEmptyDataFrameDTO(query.refId);
+      }
+
       return this.processWorkItemsQuery(query, filter);
     }
 
@@ -778,6 +778,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return projection.size > 0 ? [...projection] : undefined;
   }
 
+
+
+  
   private async processTotalCountQuery(query: WorkItemsQuery, scopedVars?: ScopedVars): Promise<DataFrameDTO> {
     const { resolvedTypes } = this.resolveSelectedTypes(query.types!);
     const queryFilter = query.filter?.trim();
