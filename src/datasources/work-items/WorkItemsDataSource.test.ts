@@ -374,6 +374,35 @@ describe('WorkItemsDataSource', () => {
           { name: 'Transport Order', values: [7] },
         ]);
       });
+
+      it('should stop sending the remaining queries when a per-type count query fails', async () => {
+        const postSpy = jest
+          .spyOn(datasource, 'post')
+          .mockResolvedValueOnce({ totalCount: 1 })
+          .mockResolvedValueOnce({ totalCount: 2 })
+          .mockRejectedValueOnce(new Error('Request failed with status code: 500 Error message: Internal error'))
+          .mockResolvedValue({ totalCount: 99 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: [
+            WorkItemTypeOptions.WorkOrders,
+            WorkItemTypeOptions.TestPlans,
+            WorkItemTypeOptions.Job,
+            WorkItemTypeOptions.Maintenance,
+            WorkItemTypeOptions.Calibration,
+          ],
+        };
+
+        // The whole query rejects rather than returning a partial data frame.
+        await expect(datasource.runQuery(query, {} as DataQueryRequest)).rejects.toThrow(
+          'The query failed due to the following error: (status 500) Internal error.'
+        );
+
+        // Requests run sequentially, so the third failure stops the loop and the fourth and
+        // fifth per-type queries are never sent.
+        expect(postSpy).toHaveBeenCalledTimes(3);
+      });
     });
 
     it('should replace a template variable in the selected types before building the type filter', async () => {
