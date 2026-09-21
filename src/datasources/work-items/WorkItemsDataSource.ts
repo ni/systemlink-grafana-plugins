@@ -57,7 +57,6 @@ import {
   WORK_ITEM_PROPERTIES_PROJECTIONS,
   WORK_ITEM_TYPE_FILTER_VALUES,
   WORK_ITEM_TYPE_LABEL_MAP,
-  WORK_ITEM_TYPE_LABELS,
   WORK_ITEM_STATE_OPTIONS,
   USER_PROPERTY_FIELDS,
   CUSTOM_PROPERTY_OPTIONS_LIMIT,
@@ -68,7 +67,7 @@ import {
   QUERY_WORK_ITEMS_MAX_TAKE,
   QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
 } from './constants/QueryWorkItems.constants';
-import { WorkItemProperties, WorkItemTypeMetricFindValues } from './constants/QueryEditor.constants';
+import { WorkItemProperties, WorkItemTypeLabels, WorkItemTypeMetricFindValues } from './constants/QueryEditor.constants';
 import { isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty, transformDuration } from './utils';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
@@ -185,6 +184,12 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
+    // Total Count resolves the selected types itself so it can send one count query (and column)
+    // per type, so short-circuit here to avoid building the combined filter a second time.
+    if (query.outputType === OutputType.TotalCount) {
+      return this.processTotalCountQuery(query, options.scopedVars);
+    }
+
     const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
       query.types!,
       query.filter,
@@ -204,10 +209,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       isTakeValid(query.take)
     ) {
       return this.processWorkItemsQuery(query, filter);
-    }
-
-    if (query.outputType === OutputType.TotalCount) {
-      return this.processTotalCountQuery(query, options.scopedVars);
     }
 
     return this.getEmptyDataFrameDTO(query.refId);
@@ -778,7 +779,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private async processTotalCountQuery(query: WorkItemsQuery, scopedVars?: ScopedVars): Promise<DataFrameDTO> {
-    const resolvedTypes = this.resolveRecognizedTypes(query.types!);
+    const { resolvedTypes } = this.resolveSelectedTypes(query.types!);
     const queryFilter = query.filter?.trim();
     const transformedQueryFilter = queryFilter
       ? this.transformQueryBuilderFilter(queryFilter, scopedVars)
@@ -798,17 +799,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       refId: query.refId,
       name: query.refId,
       fields: resolvedTypes.map((type, index) => ({
-        name: WORK_ITEM_TYPE_LABELS[type],
+        name: WorkItemTypeLabels[type],
         values: [workItemCounts[index]],
       })),
     };
-  }
-
-  // Resolves any template variables in the selected types, dropping values that are not recognized
-  // work item types so each remaining type yields a separate count query and column.
-  private resolveRecognizedTypes(types: WorkItemTypeOptions[]): WorkItemTypeOptions[] {
-    const resolvedTypes = replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[];
-    return resolvedTypes.filter(type => WORK_ITEM_TYPE_FILTER_VALUES[type] !== undefined);
   }
 
   private async queryWorkItemsCountsInBatches(
@@ -823,10 +817,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     ) {
       const start = Date.now();
       const batch = filters.slice(index, index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND);
-      const batchWorkItemCounts = await Promise.all(
-        batch.map(filter => this.queryWorkItemsCount(filter))
-      );
-      workItemCounts.push(...batchWorkItemCounts);
+      // Requests within a batch run sequentially to spread the load and avoid 429 errors.
+      for (const filter of batch) {
+        workItemCounts.push(await this.queryWorkItemsCount(filter));
+      }
 
       const hasMoreRequests = index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND < filters.length;
       const elapsed = Date.now() - start;
@@ -953,16 +947,25 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   private buildTypeFilter(
     types: WorkItemTypeOptions[]
   ): { allTypesSelected: boolean; filter: string } {
-    const resolvedTypes = replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[];
-    const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
-
-    const typeValues = resolvedTypes
-      .map(type => WORK_ITEM_TYPE_FILTER_VALUES[type])
-      .filter(Boolean);
+    const { resolvedTypes, allTypesSelected } = this.resolveSelectedTypes(types);
+    const typeValues = resolvedTypes.map(type => WORK_ITEM_TYPE_FILTER_VALUES[type]);
     return {
       allTypesSelected,
       filter: typeValues.map(value => `type = "${value}"`).join(' || '),
     };
+  }
+
+  // Expands any template variables in the selected types and drops values that are not recognized
+  // work item types. Also reports whether the resolved set covers every work item type. Shared by
+  // the combined type filter and the per-type Total Count queries so type resolution lives in one place.
+  private resolveSelectedTypes(
+    types: WorkItemTypeOptions[]
+  ): { resolvedTypes: WorkItemTypeOptions[]; allTypesSelected: boolean } {
+    const resolvedTypes = (replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[]).filter(
+      type => WORK_ITEM_TYPE_FILTER_VALUES[type] !== undefined
+    );
+    const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
+    return { resolvedTypes, allTypesSelected };
   }
 
   shouldRunQuery(query: WorkItemsQuery): boolean {

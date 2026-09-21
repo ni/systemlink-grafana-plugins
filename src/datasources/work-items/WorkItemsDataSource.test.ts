@@ -157,6 +157,7 @@ describe('WorkItemsDataSource', () => {
 
       const result = await datasource.runQuery(query, { scopedVars: {} } as DataQueryRequest);
 
+      expect(postSpy).toHaveBeenCalledTimes(2);
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
         {
@@ -298,8 +299,15 @@ describe('WorkItemsDataSource', () => {
     });
 
     describe('request batching', () => {
-      it('should send the count queries in batches of five, delaying between batches', async () => {
-        const delaySpy = jest.spyOn(datasource as any, 'delay').mockResolvedValue(undefined);
+      beforeEach(() => {
+        jest.useFakeTimers();
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('should send at most five count queries per one-second window', async () => {
         const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
         const query = {
           refId: 'A',
@@ -307,30 +315,36 @@ describe('WorkItemsDataSource', () => {
           types: Object.values(WorkItemTypeOptions),
         };
 
-        await datasource.runQuery(query, {} as DataQueryRequest);
+        const promise = datasource.runQuery(query, {} as DataQueryRequest);
 
-        // Seven types are split into batches of five, so a single delay separates the two batches.
+        // Flush the microtasks for the first sequential batch without advancing the clock.
+        await jest.advanceTimersByTimeAsync(0);
+        expect(postSpy).toHaveBeenCalledTimes(5);
+
+        // Advance past the one-second throttle window to release the next batch.
+        await jest.advanceTimersByTimeAsync(1000);
+        await promise;
         expect(postSpy).toHaveBeenCalledTimes(Object.values(WorkItemTypeOptions).length);
-        expect(delaySpy).toHaveBeenCalledTimes(1);
-        expect(delaySpy.mock.calls[0][0]).toBeLessThanOrEqual(1000);
       });
 
-      it('should not delay when the number of types fits within a single batch', async () => {
-        const delaySpy = jest.spyOn(datasource as any, 'delay').mockResolvedValue(undefined);
-        jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+      it('should not wait when all types fit within a single batch', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
           types: [WorkItemTypeOptions.WorkOrders, WorkItemTypeOptions.TestPlans],
         };
 
-        await datasource.runQuery(query, {} as DataQueryRequest);
+        const promise = datasource.runQuery(query, {} as DataQueryRequest);
+        await jest.advanceTimersByTimeAsync(0);
 
-        expect(delaySpy).not.toHaveBeenCalled();
+        expect(postSpy).toHaveBeenCalledTimes(2);
+        // No throttle timer is scheduled because there is no subsequent batch to wait for.
+        expect(jest.getTimerCount()).toBe(0);
+        await promise;
       });
 
       it('should preserve the type-to-column order across batches', async () => {
-        jest.spyOn(datasource as any, 'delay').mockResolvedValue(undefined);
         jest
           .spyOn(datasource, 'post')
           .mockResolvedValueOnce({ totalCount: 1 })
@@ -346,7 +360,9 @@ describe('WorkItemsDataSource', () => {
           types: Object.values(WorkItemTypeOptions),
         };
 
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+        const promise = datasource.runQuery(query, {} as DataQueryRequest);
+        await jest.advanceTimersByTimeAsync(1000);
+        const result = await promise;
 
         expect(result.fields).toEqual([
           { name: 'Work orders', values: [1] },
