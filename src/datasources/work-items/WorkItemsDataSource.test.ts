@@ -1699,7 +1699,7 @@ describe('WorkItemsDataSource', () => {
         expect(getLocationsSpy).not.toHaveBeenCalled();
       });
 
-      it('should split TARGET_LOCATION into asset, DUT and fixture columns resolved via system aliases', async () => {
+      it('should split TARGET_LOCATION into asset and DUT columns resolved via system aliases', async () => {
         jest
           .spyOn(datasource.systemUtils, 'getSystemAliases')
           .mockResolvedValue(new Map([['sys1', { id: 'sys1', alias: 'System Alias 1' }]]));
@@ -1731,8 +1731,34 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([
           { name: 'Target Location (Asset)', values: ['System Alias 1'], type: 'string' },
           { name: 'Target Location (DUT)', values: ['sys2'], type: 'string' },
-          { name: 'Target Location (Fixture)', values: [''], type: 'string' },
         ]);
+      });
+
+      it('should not include a Target Location (Fixture) column', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [
+            {
+              id: '1',
+              resources: {
+                fixtures: { selections: [{ id: 'f1', targetSystemId: 'sys1', targetLocationId: 'loc1' }] },
+              },
+            },
+          ],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.TARGET_LOCATION],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields.map(field => field.name)).toEqual(['Target Location (Asset)', 'Target Location (DUT)']);
       });
 
       it('should resolve TARGET_LOCATION via location lookup when target system ID is not present', async () => {
@@ -1767,7 +1793,6 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([
           { name: 'Target Location (Asset)', values: ['Building 1: Site > Building 1'], type: 'string' },
           { name: 'Target Location (DUT)', values: ['loc2'], type: 'string' },
-          { name: 'Target Location (Fixture)', values: [''], type: 'string' },
         ]);
       });
 
@@ -1893,7 +1918,7 @@ describe('WorkItemsDataSource', () => {
         });
       });
 
-      it('should split TARGET_PARENT into asset, DUT and fixture columns resolved via asset names', async () => {
+      it('should split TARGET_PARENT into asset and DUT columns resolved via asset names', async () => {
         jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([
           { id: 'p1', name: 'Parent Asset 1' },
         ]);
@@ -1904,7 +1929,7 @@ describe('WorkItemsDataSource', () => {
               resources: {
                 assets: { selections: [{ id: 'a1', targetParentId: 'p1' }] },
                 duts: { selections: [{ id: 'd1', targetParentId: 'p2' }] },
-                fixtures: { selections: [{ id: 'f1' }] },
+                fixtures: { selections: [{ id: 'f1', targetParentId: 'p3' }] },
               },
             },
           ],
@@ -1925,8 +1950,39 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([
           { name: 'Target Parent (Asset)', values: ['Parent Asset 1'], type: 'string' },
           { name: 'Target Parent (DUT)', values: ['p2'], type: 'string' },
-          { name: 'Target Parent (Fixture)', values: [''], type: 'string' },
         ]);
+      });
+
+      it('should not include a Target Parent (Fixture) column and should not query fixture target parent IDs', async () => {
+        const queryAssetsSpy = jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([]);
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [
+            {
+              id: '1',
+              resources: {
+                fixtures: { selections: [{ id: 'f1', targetParentId: 'p3' }] },
+              },
+            },
+          ],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.TARGET_PARENT],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields.map(field => field.name)).toEqual(['Target Parent (Asset)', 'Target Parent (DUT)']);
+        expect(queryAssetsSpy).not.toHaveBeenCalledWith(
+          expect.arrayContaining(['p3']),
+          expect.anything()
+        );
       });
 
       it('should fall back to the ID for TARGET_PARENT when the parent asset is found but unnamed', async () => {
@@ -1957,7 +2013,6 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([
           { name: 'Target Parent (Asset)', values: ['p1'], type: 'string' },
           { name: 'Target Parent (DUT)', values: [''], type: 'string' },
-          { name: 'Target Parent (Fixture)', values: [''], type: 'string' },
         ]);
       });
     });
