@@ -1,3 +1,9 @@
+## [5.18.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.18.0...v5.18.1) (2026-09-21)
+
+### Bug Fixes
+
+* **work-items:** update filter operations to use new 'is empty' logic ([#769](https://github.com/ni/systemlink-grafana-plugins/issues/769)) ([b30cdc1](https://github.com/ni/systemlink-grafana-plugins/commit/b30cdc1ed58c72bbefc8067a2f41ab18e38ec9c6))
+
 ## [5.18.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.17.0...v5.18.0) (2026-09-18)
 
 ### Features
