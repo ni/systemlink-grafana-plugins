@@ -1,7 +1,7 @@
 import { CUSTOM_PROPERTY_SUFFIX, TAKE_LIMIT } from './constants';
 import { takeErrorMessages } from './constants/QueryEditor.constants';
 import { WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
-import { getTakeError, isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty, stripCustomPropertySuffix, transformDuration } from './utils';
+import { getTakeError, isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty, stripCustomPropertySuffix } from './utils';
 
 describe('getTakeError', () => {
   it('should return no error for a value within the valid range', () => {
