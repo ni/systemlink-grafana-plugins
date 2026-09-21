@@ -3,8 +3,12 @@ import React, { ReactNode } from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { SlQueryBuilder } from 'core/components/SlQueryBuilder/SlQueryBuilder';
 import { QueryBuilderOperations } from 'core/query-builder.constants';
-import { TIME_OPTIONS } from 'datasources/work-items/constants/WorkItemsQueryBuilder.constants';
+import {
+  TIME_OPTIONS,
+  WorkItemsResourceQueryBuilderOperations ,
+} from 'datasources/work-items/constants/WorkItemsQueryBuilder.constants';
 import { WorkItemState, WorkItemTypeOptions } from 'datasources/work-items/types';
+import { WORK_ITEM_STATE_OPTIONS, WORK_ITEM_TYPE_FILTER_VALUES } from 'datasources/work-items/constants';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { User } from 'shared/types/QueryUsers.types';
@@ -137,6 +141,7 @@ describe('WorkItemsQueryBuilder', () => {
         'Updated',
         'Updated by',
         'Work order ID',
+        'Workflow ID',
         'Workspace',
       ]);
     });
@@ -174,10 +179,10 @@ describe('WorkItemsQueryBuilder', () => {
       QueryBuilderOperations.DATE_TIME_IS_NOT_BLANK.name,
     ];
     const listOperations = [
-      QueryBuilderOperations.LIST_EQUALS.name,
-      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.LIST_IS_EMPTY.name,
-      QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_NOT_EMPTY.name,
     ];
     const keyValueOperations = [
       QueryBuilderOperations.KEY_VALUE_MATCH.name,
@@ -192,15 +197,16 @@ describe('WorkItemsQueryBuilder', () => {
       { dataField: 'type', operations: equalityOperations },
       { dataField: 'state', operations: equalityOperations },
       { dataField: 'description', operations: containsOperations },
-      { dataField: 'testProgram', operations: textOperations },
+      { dataField: 'testProgram', operations: [...textOperations, QueryBuilderOperations.IS_BLANK.name, QueryBuilderOperations.IS_NOT_BLANK.name] },
       { dataField: 'partNumber', operations: equalityOperations },
       { dataField: 'workspace', operations: equalityOperations },
       { dataField: 'assignedTo', operations: equalityWithBlankOperations },
       { dataField: 'requestedBy', operations: equalityWithBlankOperations },
-      { dataField: 'createdBy', operations: equalityWithBlankOperations },
+      { dataField: 'createdBy', operations: equalityOperations },
       { dataField: 'updatedBy', operations: equalityOperations },
       { dataField: 'parentId', operations: equalityWithBlankOperations },
       { dataField: 'templateId', operations: equalityWithBlankOperations },
+      { dataField: 'workflowId', operations: equalityWithBlankOperations },
       { dataField: 'createdAt', operations: dateOperations },
       { dataField: 'updatedAt', operations: dateOperations },
       { dataField: 'timeline.earliestStartDateTime', operations: dateWithBlankOperations },
@@ -229,14 +235,18 @@ describe('WorkItemsQueryBuilder', () => {
       const fields = await renderAndGetFields();
       const typeValues = optionsFor(fields, 'type').map(option => option.value);
 
-      expect(typeValues).toEqual(Object.values(WorkItemTypeOptions));
+      expect(typeValues).toEqual(
+        Object.values(WorkItemTypeOptions).map(type => WORK_ITEM_TYPE_FILTER_VALUES[type])
+      );
     });
 
     it('should load every work item state as an option for the state property', async () => {
       const fields = await renderAndGetFields();
       const stateValues = optionsFor(fields, 'state').map(option => option.value);
 
-      expect(stateValues).toEqual(Object.values(WorkItemState));
+      expect(stateValues).toEqual(
+        Object.values(WorkItemState).map(state => WORK_ITEM_STATE_OPTIONS[state].value)
+      );
     });
 
     it('should load workspace options from the workspaces parameter', async () => {
@@ -266,13 +276,15 @@ describe('WorkItemsQueryBuilder', () => {
 
       const fields = await renderAndGetFields([], [], [], [unnamedProduct]);
 
-      expect(optionsFor(fields, 'partNumber')).toEqual([{ label: 'PN-2', value: 'PN-2' }]);
+      expect(optionsFor(fields, 'partNumber')).toEqual([{ label: '(PN-2)', value: 'PN-2' }]);
     });
 
     it('should load system alias options from the systemAliases parameter', async () => {
       const fields = await renderAndGetFields([], [], [], [], [systemAlias]);
 
-      expect(optionsFor(fields, 'systems')).toEqual([{ label: 'System Alias 1', value: '1' }]);
+      expect(optionsFor(fields, 'systems')).toEqual([
+        { label: 'System Alias 1', value: '1' },
+      ]);
     });
 
     it('should return empty fields when no lookup is available', async () => {
@@ -318,7 +330,9 @@ describe('WorkItemsQueryBuilder', () => {
       expect(optionsFor(fields, 'partNumber')).toEqual([
         { label: 'Product 1 (PN-1)', value: 'PN-1' },
       ]);
-      expect(optionsFor(fields, 'systems')).toEqual([{ label: 'System Alias 1', value: '1' }]);
+      expect(optionsFor(fields, 'systems')).toEqual([
+        { label: 'System Alias 1', value: '1' },
+      ]);
     });
   });
 
@@ -363,8 +377,8 @@ describe('WorkItemsQueryBuilder', () => {
     it.each([
       { filter: 'id = "1"', expected: ['ID', 'equals', '1'] },
       { filter: 'name.Contains("test")', expected: ['Name', 'contains', 'test'] },
-      { filter: 'type = "WORK_ORDERS"', expected: ['Type', 'equals', 'Work orders'] },
-      { filter: 'state = "PENDING_APPROVAL"', expected: ['State', 'equals', 'Pending approval'] },
+      { filter: 'type = "workorder"', expected: ['Type', 'equals', 'Work orders'] },
+      { filter: 'state = "PendingApproval"', expected: ['State', 'equals', 'Pending approval'] },
       { filter: 'properties["key"] = "value"', expected: ['Properties', 'matches', 'key', 'value'] },
       { filter: 'testProgram = "Program 1"', expected: ['Test program', 'equals', 'Program 1'] },
       { filter: 'partNumber = "PN-1"', expected: ['Product name (Part number)', 'equals', 'PN-1'] },
@@ -380,7 +394,55 @@ describe('WorkItemsQueryBuilder', () => {
       { filter: 'estimatedDurationInHours > "2"', expected: ['Estimated duration (hours)', 'greater than', '2'] },
       { filter: 'plannedDurationInDays < "3"', expected: ['Planned duration (days)', 'less than', '3'] },
       { filter: 'plannedDurationInHours < "4"', expected: ['Planned duration (hours)', 'less than', '4'] },
-      { filter: 'systems.Count == 0', expected: ['System alias name', 'is empty'] },
+      {
+        filter: 'resources.assets.selections.Any(s => s.id == "1")',
+        expected: ['Asset identifier', 'equals', '1'],
+      },
+      {
+        filter: '!resources.assets.selections.Any(s => s.id == "1")',
+        expected: ['Asset identifier', 'does not equal', '1'],
+      },
+      { filter: '!resources.assets.selections.Any()',
+        expected: ['Asset identifier', 'is empty']
+      },
+      { 
+        filter: 'resources.assets.selections.Any()', 
+        expected: ['Asset identifier', 'is not empty'] 
+      },
+      {
+        filter: 'resources.duts.selections.Any(s => s.id == "2")',
+        expected: ['Dut identifier', 'equals', '2'],
+      },
+      {
+        filter: '!resources.duts.selections.Any(s => s.id == "2")',
+        expected: ['Dut identifier', 'does not equal', '2'],
+      },
+      { filter: '!resources.duts.selections.Any()',
+        expected: ['Dut identifier', 'is empty']
+      },
+      { filter: 'resources.duts.selections.Any()', 
+        expected: ['Dut identifier', 'is not empty'] 
+      },
+      {
+        filter: 'resources.fixtures.selections.Any(s => s.id == "3")',
+        expected: ['Fixture identifier', 'equals', '3'],
+      },
+      {
+        filter: '!resources.fixtures.selections.Any(s => s.id == "3")',
+        expected: ['Fixture identifier', 'does not equal', '3'],
+      },
+      { filter: '!resources.fixtures.selections.Any()',
+        expected: ['Fixture identifier', 'is empty']
+      },
+      { filter: 'resources.fixtures.selections.Any()', 
+        expected: ['Fixture identifier', 'is not empty'] 
+      },
+      { filter: '!resources.systems.selections.Any()',
+        expected: ['System alias name', 'is empty']
+      },
+      { filter: 'resources.systems.selections.Any()', 
+        expected: ['System alias name', 'is not empty'] 
+      },
     ])('should show $expected when filter is $filter', ({ filter, expected }) => {
       const { conditionsContainer } = renderElement(filter);
 
@@ -397,17 +459,20 @@ describe('WorkItemsQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name);
     });
 
-    it('should show the system alias name when filter checks systems contains a system ID', () => {
-      const { conditionsContainer } = renderElement(
-        'systems.Contains("1")',
-        [],
-        [],
-        [],
-        [],
-        [systemAlias]
-      );
+    it.each([
+      { 
+        filter: 'resources.systems.selections.Any(s => s.id == "1")', 
+        operation: 'equals' 
+      },
+      {
+        filter: '!resources.systems.selections.Any(s => s.id == "1")',
+        operation: 'does not equal',
+      },
+    ])('should show the system alias name when filter is $filter', ({ filter, operation }) => {
+      const { conditionsContainer } = renderElement(filter, [], [], [], [], [systemAlias]);
 
       expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain(operation);
       expect(conditionsContainer.item(0)?.textContent).toContain(systemAlias.alias);
     });
 

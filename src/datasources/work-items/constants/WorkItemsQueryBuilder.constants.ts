@@ -1,7 +1,7 @@
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { QBField } from 'core/types';
 import { WorkItemTypes } from '../constants/QueryEditor.constants';
-import { WorkItemState } from '../types';
+import { WORK_ITEM_STATE_OPTIONS, WORK_ITEM_TYPE_FILTER_VALUES } from '../constants';
 
 export enum WorkItemsQueryBuilderFieldNames {
   Id = 'id',
@@ -20,6 +20,7 @@ export enum WorkItemsQueryBuilderFieldNames {
   UpdatedAt = 'updatedAt',
   ParentWorkItemId = 'parentId',
   TemplateId = 'templateId',
+  WorkflowId = 'workflowId',
   EarliestStartDate = 'timeline.earliestStartDateTime',
   DueDate = 'timeline.dueDateTime',
   EstimatedDurationInDays = 'estimatedDurationInDays',
@@ -40,6 +41,32 @@ export const TIME_OPTIONS = [
   { label: 'To', value: '${__to:date}' },
   { label: 'Now', value: '${__now:date}' },
 ];
+
+// The work item API exposes resources as selection objects, so they need work item specific expressions.
+export const WorkItemsResourceQueryBuilderOperations = {
+  LIST_OF_OBJECTS_CONTAINS_ID: {
+    label: 'equals',
+    name: 'listofobjectscontainsid',
+    expressionTemplate: 'resources.{0}.selections.Any(s => s.id == "{1}")',
+  },
+  LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID: {
+    label: 'does not equal',
+    name: 'listofobjectsdoesnotcontainid',
+    expressionTemplate: '!resources.{0}.selections.Any(s => s.id == "{1}")',
+  },
+  LIST_OF_OBJECTS_IS_EMPTY: {
+    label: 'is empty',
+    name: 'listofobjectsisempty',
+    expressionTemplate: '!resources.{0}.selections.Any()',
+    hideValue: true,
+  },
+  LIST_OF_OBJECTS_IS_NOT_EMPTY: {
+    label: 'is not empty',
+    name: 'listofobjectsisnotempty',
+    expressionTemplate: 'resources.{0}.selections.Any()',
+    hideValue: true,
+  },
+};
 
 export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
   // Work item details
@@ -63,7 +90,9 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     dataField: WorkItemsQueryBuilderFieldNames.Type,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
     lookup: {
-      dataSource: WorkItemTypes.map(({ label, value }) => ({ label, value })),
+      dataSource: WorkItemTypes.map(({ label, value }) => ({ 
+        label, value: WORK_ITEM_TYPE_FILTER_VALUES[value] 
+      })),
     },
   },
   STATE: {
@@ -71,16 +100,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     dataField: WorkItemsQueryBuilderFieldNames.State,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
     lookup: {
-      dataSource: [
-        { label: 'New', value: WorkItemState.New },
-        { label: 'Defined', value: WorkItemState.Defined },
-        { label: 'Reviewed', value: WorkItemState.Reviewed },
-        { label: 'Scheduled', value: WorkItemState.Scheduled },
-        { label: 'In progress', value: WorkItemState.InProgress },
-        { label: 'Pending approval', value: WorkItemState.PendingApproval },
-        { label: 'Closed', value: WorkItemState.Closed },
-        { label: 'Canceled', value: WorkItemState.Canceled },
-      ],
+      dataSource: Object.values(WORK_ITEM_STATE_OPTIONS),
     },
   },
   DESCRIPTION: {
@@ -96,6 +116,8 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
       QueryBuilderOperations.CONTAINS.name,
       QueryBuilderOperations.DOES_NOT_CONTAIN.name,
+      QueryBuilderOperations.IS_BLANK.name,
+      QueryBuilderOperations.IS_NOT_BLANK.name,
     ],
   },
   PART_NUMBER: {
@@ -140,8 +162,6 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.IS_BLANK.name,
-      QueryBuilderOperations.IS_NOT_BLANK.name,
     ],
   },
   UPDATED_BY: {
@@ -178,6 +198,16 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
   TEMPLATE_ID: {
     label: 'Template ID',
     dataField: WorkItemsQueryBuilderFieldNames.TemplateId,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+      QueryBuilderOperations.IS_BLANK.name,
+      QueryBuilderOperations.IS_NOT_BLANK.name,
+    ],
+  },
+  WORKFLOW_ID: {
+    label: 'Workflow ID',
+    dataField: WorkItemsQueryBuilderFieldNames.WorkflowId,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -283,40 +313,40 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     label: 'Asset identifier',
     dataField: WorkItemsQueryBuilderFieldNames.AssetId,
     filterOperations: [
-      QueryBuilderOperations.LIST_EQUALS.name,
-      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.LIST_IS_EMPTY.name,
-      QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_NOT_EMPTY.name,
     ],
   },
   DUT_ID: {
     label: 'Dut identifier',
     dataField: WorkItemsQueryBuilderFieldNames.DutId,
     filterOperations: [
-      QueryBuilderOperations.LIST_EQUALS.name,
-      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.LIST_IS_EMPTY.name,
-      QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_NOT_EMPTY.name,
     ],
   },
   FIXTURE_ID: {
     label: 'Fixture identifier',
     dataField: WorkItemsQueryBuilderFieldNames.FixtureId,
     filterOperations: [
-      QueryBuilderOperations.LIST_EQUALS.name,
-      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.LIST_IS_EMPTY.name,
-      QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_NOT_EMPTY.name,
     ],
   },
   SYSTEM_ALIAS_NAME: {
     label: 'System alias name',
     dataField: WorkItemsQueryBuilderFieldNames.SystemAliasName,
     filterOperations: [
-      QueryBuilderOperations.LIST_EQUALS.name,
-      QueryBuilderOperations.LIST_DOES_NOT_EQUAL.name,
-      QueryBuilderOperations.LIST_IS_EMPTY.name,
-      QueryBuilderOperations.LIST_IS_NOT_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_CONTAINS_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_EMPTY.name,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_NOT_EMPTY.name,
     ],
     lookup: {
       dataSource: [],
@@ -364,6 +394,7 @@ export const WorkItemsQueryBuilderStaticFields = [
   WorkItemsQueryBuilderFields.UPDATED_BY,
   WorkItemsQueryBuilderFields.PROPERTIES,
   WorkItemsQueryBuilderFields.TEMPLATE_ID,
+  WorkItemsQueryBuilderFields.WORKFLOW_ID,
   WorkItemsQueryBuilderFields.PARENT_WORK_ITEM_ID,
   WorkItemsQueryBuilderFields.WORKSPACE,
 ];

@@ -31,10 +31,25 @@ export enum OrderByOptions {
   UPDATED_AT = 'UPDATED_AT',
 }
 
+export enum WorkItemsVariableQueryType {
+  ListWorkItems = 'List work items',
+  ListWorkItemTypes = 'List work item types',
+}
+
 export interface WorkItemsQuery extends DataQuery {
   outputType?: OutputType;
   types?: WorkItemTypeOptions[];
   properties?: WorkItemPropertiesOptions[];
+  customProperties?: string[];
+  orderBy?: OrderByOptions;
+  descending?: boolean;
+  take?: number;
+  filter?: string;
+}
+
+export interface WorkItemsVariableQuery extends DataQuery {
+  queryType?: WorkItemsVariableQueryType;
+  types?: WorkItemTypeOptions[];
   orderBy?: OrderByOptions;
   descending?: boolean;
   take?: number;
@@ -134,10 +149,10 @@ export interface WorkItemResources {
 }
 
 export interface WorkItem {
-  id?: string;
-  name?: string;
-  type?: string;
-  state?: string;
+  id: string;
+  name: string;
+  type: string;
+  state: string;
   substate?: string;
   description?: string;
   parentId?: string;
@@ -165,4 +180,13 @@ export interface QueryWorkItemsRequestBody {
   take?: number;
   returnCount?: boolean;
   continuationToken?: string;
+}
+
+// Flattened row pairing a work item with one reserved resource selection of each kind.
+export interface FlattenedRow {
+  workItem: WorkItem;
+  assetSelection?: ResourceSelection;
+  dutSelection?: ResourceSelection;
+  fixtureSelection?: ResourceSelection;
+  systemSelection?: SystemResourceSelection;
 }

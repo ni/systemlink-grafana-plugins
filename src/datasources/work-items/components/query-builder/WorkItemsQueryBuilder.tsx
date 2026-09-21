@@ -6,6 +6,7 @@ import { addOptionsToLookup, filterXSSField } from 'core/utils';
 import {
   TIME_OPTIONS,
   WorkItemsQueryBuilderFields,
+  WorkItemsResourceQueryBuilderOperations ,
   WorkItemsQueryBuilderStaticFields,
 } from 'datasources/work-items/constants/WorkItemsQueryBuilder.constants';
 import React, { useState, useEffect, useMemo } from 'react';
@@ -44,7 +45,7 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
       return null;
     }
     const productOptions = products.map(({ partNumber, name }) => ({
-      label: name ? `${name} (${partNumber})` : partNumber,
+      label: name ? `${name} (${partNumber})` : `(${partNumber})`,
       value: partNumber,
     }));
 
@@ -187,10 +188,10 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
       QueryBuilderOperations.IS_NOT_BLANK,
       QueryBuilderOperations.DATE_TIME_IS_AFTER,
       QueryBuilderOperations.DATE_TIME_IS_BEFORE,
-      QueryBuilderOperations.LIST_EQUALS,
-      QueryBuilderOperations.LIST_DOES_NOT_EQUAL,
-      QueryBuilderOperations.LIST_IS_EMPTY,
-      QueryBuilderOperations.LIST_IS_NOT_EMPTY,
+      WorkItemsResourceQueryBuilderOperations .LIST_OF_OBJECTS_CONTAINS_ID,
+      WorkItemsResourceQueryBuilderOperations .LIST_OF_OBJECTS_DOES_NOT_CONTAIN_ID,
+      WorkItemsResourceQueryBuilderOperations .LIST_OF_OBJECTS_IS_EMPTY,
+      WorkItemsResourceQueryBuilderOperations.LIST_OF_OBJECTS_IS_NOT_EMPTY,
     ].map(operation => {
       return {
         ...operation,
