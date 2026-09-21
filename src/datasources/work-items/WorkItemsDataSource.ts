@@ -955,9 +955,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     };
   }
 
-  // Expands any template variables in the selected types and drops values that are not recognized
-  // work item types. Also reports whether the resolved set covers every work item type. Shared by
-  // the combined type filter and the per-type Total Count queries so type resolution lives in one place.
   private resolveSelectedTypes(
     types: WorkItemTypeOptions[]
   ): { resolvedTypes: WorkItemTypeOptions[]; allTypesSelected: boolean } {
