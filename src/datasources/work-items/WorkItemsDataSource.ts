@@ -802,7 +802,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         { showErrorAlert: false } // suppress default error alert since we handle errors manually
       );
     } catch (error) {
-      const { title: errorTitle, message: errorMessage } = getQueryError(error, 'work item');
+      const { title: errorTitle, message: errorMessage } = getQueryError(error, 'work items');
 
       if (!suppressErrorAlert) {
         this.appEvents?.publish?.({

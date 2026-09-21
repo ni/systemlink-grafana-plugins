@@ -92,7 +92,7 @@ describe('QueryResultsDataSource', () => {
     
         expect(publishMock).toHaveBeenCalledWith({
           type: 'alert-error',
-          payload: ['Error during result query', expect.stringContaining('The query failed due to the following error: (status 400) "Error".')],
+          payload: ['Error during results query', expect.stringContaining('The query failed due to the following error: (status 400) "Error".')],
         });
       });
 
@@ -103,7 +103,7 @@ describe('QueryResultsDataSource', () => {
     
         await expect(datastore.queryResults())
           .rejects
-          .toThrow('The query to fetch result failed because the requested resource was not found. Please check the query parameters and try again.');
+          .toThrow('The query to fetch results failed because the requested resource was not found. Please check the query parameters and try again.');
       });
   });
 

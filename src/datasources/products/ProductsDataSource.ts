@@ -76,7 +76,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       { showErrorAlert: false },// suppress default error alert since we handle errors manually
     ).pipe(
       catchError((error) => {
-        const { title: errorTitle, message: errorMessage } = getQueryError(error, 'product');
+        const { title: errorTitle, message: errorMessage } = getQueryError(error, 'products');
 
         this.appEvents?.publish?.({
           type: AppEvents.alertError.name,

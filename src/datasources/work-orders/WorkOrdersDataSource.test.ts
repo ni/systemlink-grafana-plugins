@@ -746,7 +746,7 @@ describe('WorkOrdersDataSource', () => {
         .mockReturnValue(createFetchError(404));
 
       await expect(datastore.queryWorkOrders({})).rejects.toThrow(
-        'The query to fetch workorder failed because the requested resource was not found. Please check the query parameters and try again.'
+        'The query to fetch workorders failed because the requested resource was not found. Please check the query parameters and try again.'
       );
     });
 
@@ -764,7 +764,7 @@ describe('WorkOrdersDataSource', () => {
       expect(publishMock).toHaveBeenCalledWith({
         type: 'alert-error',
         payload: [
-          'Error during workorder query',
+          'Error during workorders query',
           expect.stringContaining('The query failed due to the following error: (status 400) "Error".'),
         ],
       });

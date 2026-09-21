@@ -237,7 +237,7 @@ export class WorkOrdersDataSource extends DataSourceBase<WorkOrdersQuery> {
       );
       return response;
     } catch (error) {
-      const { title: errorTitle, message: errorMessage } = getQueryError(error, 'workorder');
+      const { title: errorTitle, message: errorMessage } = getQueryError(error, 'workorders');
 
       this.appEvents?.publish?.({
         type: AppEvents.alertError.name,

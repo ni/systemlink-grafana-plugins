@@ -48,7 +48,7 @@ export class QueryResultsDataSource extends ResultsDataSourceBase {
         { showErrorAlert: false },// suppress default error alert since we handle errors manually
       );
     } catch (error) {
-      const { title: errorTitle, message: errorMessage } = getQueryError(error, 'result');
+      const { title: errorTitle, message: errorMessage } = getQueryError(error, 'results');
 
       this.appEvents?.publish?.({
         type: AppEvents.alertError.name,

@@ -1342,7 +1342,7 @@ describe('queryTestPlans', () => {
       .mockReturnValue(createFetchError(404));
 
     await expect(datastore.queryTestPlans()).rejects.toThrow(
-      'The query to fetch testplan failed because the requested resource was not found. Please check the query parameters and try again.'
+      'The query to fetch testplans failed because the requested resource was not found. Please check the query parameters and try again.'
     );
   });
 
@@ -1360,7 +1360,7 @@ describe('queryTestPlans', () => {
     expect(publishMock).toHaveBeenCalledWith({
       type: 'alert-error',
       payload: [
-        'Error during testplan query',
+        'Error during testplans query',
         expect.stringContaining('The query failed due to the following error: (status 400) "Error".'),
       ],
     });
