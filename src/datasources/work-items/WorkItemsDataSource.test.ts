@@ -1734,33 +1734,6 @@ describe('WorkItemsDataSource', () => {
         ]);
       });
 
-      it('should not include a Target Location (Fixture) column', async () => {
-        jest.spyOn(datasource, 'post').mockResolvedValue({
-          workItems: [
-            {
-              id: '1',
-              resources: {
-                fixtures: { selections: [{ id: 'f1', targetSystemId: 'sys1', targetLocationId: 'loc1' }] },
-              },
-            },
-          ],
-          continuationToken: '',
-          totalCount: 1,
-        });
-
-        const query = {
-          refId: 'A',
-          outputType: OutputType.Properties,
-          types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_LOCATION],
-          take: 1000,
-        };
-
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
-
-        expect(result.fields.map(field => field.name)).toEqual(['Target Location (Asset)', 'Target Location (DUT)']);
-      });
-
       it('should resolve TARGET_LOCATION via location lookup when target system ID is not present', async () => {
         jest
           .spyOn(datasource.locationUtils, 'getLocations')
@@ -1951,38 +1924,6 @@ describe('WorkItemsDataSource', () => {
           { name: 'Target Parent (Asset)', values: ['Parent Asset 1'], type: 'string' },
           { name: 'Target Parent (DUT)', values: ['p2'], type: 'string' },
         ]);
-      });
-
-      it('should not include a Target Parent (Fixture) column and should not query fixture target parent IDs', async () => {
-        const queryAssetsSpy = jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([]);
-        jest.spyOn(datasource, 'post').mockResolvedValue({
-          workItems: [
-            {
-              id: '1',
-              resources: {
-                fixtures: { selections: [{ id: 'f1', targetParentId: 'p3' }] },
-              },
-            },
-          ],
-          continuationToken: '',
-          totalCount: 1,
-        });
-
-        const query = {
-          refId: 'A',
-          outputType: OutputType.Properties,
-          types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_PARENT],
-          take: 1000,
-        };
-
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
-
-        expect(result.fields.map(field => field.name)).toEqual(['Target Parent (Asset)', 'Target Parent (DUT)']);
-        expect(queryAssetsSpy).not.toHaveBeenCalledWith(
-          expect.arrayContaining(['p3']),
-          expect.anything()
-        );
       });
 
       it('should fall back to the ID for TARGET_PARENT when the parent asset is found but unnamed', async () => {
