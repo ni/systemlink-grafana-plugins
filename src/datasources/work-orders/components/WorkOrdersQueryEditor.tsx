@@ -12,6 +12,7 @@ import {
   Select,
   VerticalGroup
 } from '@grafana/ui';
+import './WorkOrdersQueryEditor.scss';
 import {
   DEPRECATION_NOTICE_MAX_WIDTH,
   deprecationMessage,
