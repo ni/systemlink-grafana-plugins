@@ -522,15 +522,26 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     locationsLookup: Map<string, Location>
   ) {
     const fields: FieldDTO[] = [];
+    const isTargetLocationSelected = properties.includes(WorkItemPropertiesOptions.TARGET_LOCATION);
+    const isTargetParentSelected = properties.includes(WorkItemPropertiesOptions.TARGET_PARENT);
+    let areTargetFieldsBuilt = false;
 
     properties.forEach(property => {
-      if (property === WorkItemPropertiesOptions.TARGET_LOCATION) {
-        fields.push(...this.buildTargetLocationFields(flattenedRows, locationsLookup, systemAliasesLookup));
-        return;
-      }
-
-      if (property === WorkItemPropertiesOptions.TARGET_PARENT) {
-        fields.push(...this.buildTargetParentFields(flattenedRows, assetNamesLookup));
+      if (property === WorkItemPropertiesOptions.TARGET_LOCATION || property === WorkItemPropertiesOptions.TARGET_PARENT) {
+        if (areTargetFieldsBuilt) {
+          return;
+        }
+        areTargetFieldsBuilt = true;
+        fields.push(
+          ...this.buildTargetResourceFields(
+            flattenedRows,
+            locationsLookup,
+            systemAliasesLookup,
+            assetNamesLookup,
+            isTargetLocationSelected,
+            isTargetParentSelected
+          )
+        );
         return;
       }
 
@@ -565,36 +576,41 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return fields;
   }
 
-  private buildTargetLocationFields(
+  // Groups target location and target parent columns per resource (e.g. asset location next to
+  // asset parent) instead of grouping all locations together followed by all parents.
+  private buildTargetResourceFields(
     flattenedRows: FlattenedRow[],
     locationsLookup: Map<string, Location>,
-    systemAliasesLookup: Map<string, SystemAlias>
+    systemAliasesLookup: Map<string, SystemAlias>,
+    assetNamesLookup: Map<string, string>,
+    includeLocation: boolean,
+    includeParent: boolean
   ): FieldDTO[] {
-    return [
-      this.buildResourceField('Target Location (Asset)', flattenedRows, row =>
-        this.resolveTargetLocation(row.assetSelection, locationsLookup, systemAliasesLookup)
-      ),
-      this.buildResourceField('Target Location (DUT)', flattenedRows, row =>
-        this.resolveTargetLocation(row.dutSelection, locationsLookup, systemAliasesLookup)
-      ),
-      this.buildResourceField('Target Location (Fixture)', flattenedRows, row =>
-        this.resolveTargetLocation(row.fixtureSelection, locationsLookup, systemAliasesLookup)
-      ),
+    const resources: Array<{ label: string; selection: (row: FlattenedRow) => ResourceSelection | undefined }> = [
+      { label: 'Asset', selection: row => row.assetSelection },
+      { label: 'DUT', selection: row => row.dutSelection },
+      { label: 'Fixture', selection: row => row.fixtureSelection },
     ];
-  }
 
-  private buildTargetParentFields(flattenedRows: FlattenedRow[], assetNamesLookup: Map<string, string>): FieldDTO[] {
-    return [
-      this.buildResourceField('Target Parent (Asset)', flattenedRows, row =>
-        this.resolveAssetNameForTargetParent(row.assetSelection?.targetParentId, assetNamesLookup)
-      ),
-      this.buildResourceField('Target Parent (DUT)', flattenedRows, row =>
-        this.resolveAssetNameForTargetParent(row.dutSelection?.targetParentId, assetNamesLookup)
-      ),
-      this.buildResourceField('Target Parent (Fixture)', flattenedRows, row =>
-        this.resolveAssetNameForTargetParent(row.fixtureSelection?.targetParentId, assetNamesLookup)
-      ),
-    ];
+    const fields: FieldDTO[] = [];
+    resources.forEach(({ label, selection }) => {
+      if (includeLocation) {
+        fields.push(
+          this.buildResourceField(`Target Location (${label})`, flattenedRows, row =>
+            this.resolveTargetLocation(selection(row), locationsLookup, systemAliasesLookup)
+          )
+        );
+      }
+      if (includeParent) {
+        fields.push(
+          this.buildResourceField(`Target Parent (${label})`, flattenedRows, row =>
+            this.resolveAssetNameForTargetParent(selection(row)?.targetParentId, assetNamesLookup)
+          )
+        );
+      }
+    });
+
+    return fields;
   }
 
   private buildResourceField(

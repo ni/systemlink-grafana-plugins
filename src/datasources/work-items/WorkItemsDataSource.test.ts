@@ -1960,6 +1960,75 @@ describe('WorkItemsDataSource', () => {
           { name: 'Target Parent (Fixture)', values: [''], type: 'string' },
         ]);
       });
+
+      it('should group target location and target parent columns per resource when both properties are selected', async () => {
+        jest
+          .spyOn(datasource.systemUtils, 'getSystemAliases')
+          .mockResolvedValue(new Map([['sys1', { id: 'sys1', alias: 'System Alias 1' }]]));
+        jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([
+          { id: 'p1', name: 'Parent Asset 1' },
+        ]);
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [
+            {
+              id: '1',
+              resources: {
+                assets: { selections: [{ id: 'a1', targetSystemId: 'sys1', targetParentId: 'p1' }] },
+                duts: { selections: [{ id: 'd1', targetSystemId: 'sys2', targetParentId: 'p2' }] },
+                fixtures: { selections: [{ id: 'f1' }] },
+              },
+            },
+          ],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.TARGET_LOCATION, WorkItemPropertiesOptions.TARGET_PARENT],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([
+          { name: 'Target Location (Asset)', values: ['System Alias 1'], type: 'string' },
+          { name: 'Target Parent (Asset)', values: ['Parent Asset 1'], type: 'string' },
+          { name: 'Target Location (DUT)', values: ['sys2'], type: 'string' },
+          { name: 'Target Parent (DUT)', values: ['p2'], type: 'string' },
+          { name: 'Target Location (Fixture)', values: [''], type: 'string' },
+          { name: 'Target Parent (Fixture)', values: [''], type: 'string' },
+        ]);
+      });
+
+      it('should keep the same grouped column order regardless of which target property is selected first', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', resources: { assets: { selections: [{ id: 'a1' }] } } }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.TARGET_PARENT, WorkItemPropertiesOptions.TARGET_LOCATION],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields.map(field => field.name)).toEqual([
+          'Target Location (Asset)',
+          'Target Parent (Asset)',
+          'Target Location (DUT)',
+          'Target Parent (DUT)',
+          'Target Location (Fixture)',
+          'Target Parent (Fixture)',
+        ]);
+      });
     });
 
     describe('error handling', () => {
