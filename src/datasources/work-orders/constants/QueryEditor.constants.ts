@@ -21,3 +21,5 @@ export const deprecationMessage = {
     linkText: 'Creating a Work Item',
     linkUrl: 'https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/creating-a-test-plan.html',
 };
+
+export const DEPRECATION_NOTICE_MAX_WIDTH = 1104;

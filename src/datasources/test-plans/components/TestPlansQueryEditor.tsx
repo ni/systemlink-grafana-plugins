@@ -6,6 +6,7 @@ import { Alert, AutoSizeInput, HorizontalGroup, InlineField, InlineSwitch, Multi
 import { validateNumericInput } from 'core/utils';
 import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
 import {
+  DEPRECATION_NOTICE_MAX_WIDTH,
   deprecationMessage,
   recordCountErrorMessages,
   TAKE_LIMIT,
@@ -120,22 +121,21 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
 
   return (
     <>
-      <div style={{ display: 'inline-block' }}>
-        <div style={{ width: 0, minWidth: '100%' }}>
-          <Alert severity="warning" title={deprecationMessage.title}>
-            {deprecationMessage.message}
-            <a
-              href={deprecationMessage.linkUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ textDecoration: 'underline' }}
-            >
-              {deprecationMessage.linkText}
-            </a>
-            .
-          </Alert>
-        </div>
-        <VerticalGroup>
+      <div style={{ width: '100%', maxWidth: DEPRECATION_NOTICE_MAX_WIDTH }}>
+        <Alert severity="warning" title={deprecationMessage.title}>
+          {deprecationMessage.message}
+          <a
+            href={deprecationMessage.linkUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ textDecoration: 'underline' }}
+          >
+            {deprecationMessage.linkText}
+          </a>
+          .
+        </Alert>
+      </div>
+      <VerticalGroup>
         <InlineField label="Output" labelWidth={25} tooltip={tooltips.outputType}>
           <RadioButtonGroup
             options={Object.values(OutputType).map(value => ({ label: value, value })) as SelectableValue[]}
@@ -216,7 +216,6 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
           )}
         </HorizontalGroup >
       </VerticalGroup>
-      </div>
       <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
     </>
   );

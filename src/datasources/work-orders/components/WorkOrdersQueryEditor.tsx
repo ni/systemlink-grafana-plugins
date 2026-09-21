@@ -13,6 +13,7 @@ import {
   VerticalGroup
 } from '@grafana/ui';
 import {
+  DEPRECATION_NOTICE_MAX_WIDTH,
   deprecationMessage,
   TAKE_LIMIT,
   takeErrorMessages,
@@ -113,8 +114,8 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
 
   return (
     <>
-      <div style={{ display: 'inline-block' }}>
-        <div style={{ width: 0, minWidth: '100%' }}>
+      <div>
+        <div style={{ width: '100%', maxWidth: DEPRECATION_NOTICE_MAX_WIDTH }}>
           <Alert severity="warning" title={deprecationMessage.title}>
             {deprecationMessage.message}
             <a
@@ -128,7 +129,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
             .
           </Alert>
         </div>
-      <HorizontalGroup align="flex-start">
+        <HorizontalGroup align="flex-start">
         <VerticalGroup>
           <InlineField label="Output" labelWidth={25} tooltip={tooltips.outputType}>
             <RadioButtonGroup
@@ -215,7 +216,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
           )}
           </div>
         </VerticalGroup>
-      </HorizontalGroup>
+        </HorizontalGroup>
       </div>
       <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
     </>
