@@ -9540,6 +9540,22 @@ describe('DataFrameDataSourceV2', () => {
             expect(publishMock).toHaveBeenCalledTimes(1);
         });
 
+        it('should return empty array and publish an alertError event when query results API returns 429 status', async () => {
+            postMock$.mockReturnValue(throwError(() => createQueryResultsError(429)));
+
+            const result = await lastValueFrom(ds.queryTables$({ resultFilter: 'test-filter' }));
+
+            expect(result).toEqual([]);
+            expect(publishMock).toHaveBeenCalledWith({
+                type: 'alert-error',
+                payload: [
+                    'Error querying test results',
+                    'The query to fetch result failed due to too many requests. Please try again later.'
+                ],
+            });
+            expect(publishMock).toHaveBeenCalledTimes(1);
+        });
+
         it('should call the `post$` method with the expected arguments and return tables', async () => {
             const filter = { dataTableFilter: 'test-filter' };
             const take = 10;
