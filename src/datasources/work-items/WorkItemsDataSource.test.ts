@@ -1707,7 +1707,6 @@ describe('WorkItemsDataSource', () => {
               resources: {
                 assets: { selections: [{ id: 'a1', targetSystemId: 'sys1' }] },
                 duts: { selections: [{ id: 'd1', targetSystemId: 'sys2' }] },
-                fixtures: { selections: [{ id: 'f1' }] },
               },
             },
           ],
@@ -1742,7 +1741,6 @@ describe('WorkItemsDataSource', () => {
               resources: {
                 assets: { selections: [{ id: 'a1', targetLocationId: 'loc1' }] },
                 duts: { selections: [{ id: 'd1', targetLocationId: 'loc2' }] },
-                fixtures: { selections: [{ id: 'f1' }] },
               },
             },
           ],
@@ -1899,7 +1897,6 @@ describe('WorkItemsDataSource', () => {
               resources: {
                 assets: { selections: [{ id: 'a1', targetParentId: 'p1' }] },
                 duts: { selections: [{ id: 'd1', targetParentId: 'p2' }] },
-                fixtures: { selections: [{ id: 'f1', targetParentId: 'p3' }] },
               },
             },
           ],
