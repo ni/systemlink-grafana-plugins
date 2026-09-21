@@ -102,17 +102,17 @@ describe('AlarmsQueryHandlerCore', () => {
         {
           status: 401,
           expectedErrorMessage:
-            'The query to fetch alarms failed due to unauthorized access. Please verify your credentials and try again.',
+            'The query to fetch alarm failed due to unauthorized access. Please verify your credentials and try again.',
         },
         {
           status: 404,
           expectedErrorMessage:
-            'The query to fetch alarms failed because the requested resource was not found. Please check the query parameters and try again.',
+            'The query to fetch alarm failed because the requested resource was not found. Please check the query parameters and try again.',
         },
         {
           status: 504,
           expectedErrorMessage:
-            'The query to fetch alarms experienced a timeout error. Narrow your query with a more specific filter and try again.',
+            'The query to fetch alarm experienced a timeout error. Narrow your query with a more specific filter and try again.',
         },
         {
           status: 500,
@@ -130,14 +130,14 @@ describe('AlarmsQueryHandlerCore', () => {
 
           expect(publishMock).toHaveBeenCalledWith({
             type: 'alert-error',
-            payload: ['Error during alarms query', expectedErrorMessage],
+            payload: ['Error during alarm query', expectedErrorMessage],
           });
         });
       });
 
       it('should handle 429 error', async () => {
         const expectedErrorMessage =
-          'The query to fetch alarms failed due to too many requests. Please try again later.';
+          'The query to fetch alarm failed due to too many requests. Please try again later.';
         jest.spyOn(datastore, 'post').mockImplementation(() => {
           throw new Error('Request failed with status code: 429');
         });
@@ -146,7 +146,7 @@ describe('AlarmsQueryHandlerCore', () => {
 
         expect(publishMock).toHaveBeenCalledWith({
           type: 'alert-error',
-          payload: ['Error during alarms query', expectedErrorMessage],
+          payload: ['Error during alarm query', expectedErrorMessage],
         });
       });
 
@@ -160,7 +160,7 @@ describe('AlarmsQueryHandlerCore', () => {
 
         expect(publishMock).toHaveBeenCalledWith({
           type: 'alert-error',
-          payload: ['Error during alarms query', expectedErrorMessage],
+          payload: ['Error during alarm query', expectedErrorMessage],
         });
       });
     });

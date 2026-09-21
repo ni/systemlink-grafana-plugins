@@ -40,14 +40,14 @@ export abstract class AlarmsQueryHandlerCore extends DataSourceBase<AlarmsQuery>
         { showErrorAlert: false }
       );
     } catch (error) {
-      const { title, message } = getQueryError(error, 'alarms');
+      const { title: errorTitle, message: errorMessage } = getQueryError(error, 'alarm');
 
       this.appEvents.publish?.({
         type: AppEvents.alertError.name,
-        payload: [title, message],
+        payload: [errorTitle, errorMessage],
       });
 
-      throw new Error(message);
+      throw new Error(errorMessage);
     }
   }
 

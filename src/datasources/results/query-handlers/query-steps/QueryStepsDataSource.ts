@@ -94,14 +94,14 @@ export class QueryStepsDataSource extends ResultsDataSourceBase {
       );
       return response;
     } catch (error) {
-      const { title, message } = getQueryError(error, 'steps');
+      const { title: errorTitle, message: errorMessage } = getQueryError(error, 'step');
 
       this.appEvents?.publish?.({
         type: AppEvents.alertError.name,
-        payload: [title, message],
+        payload: [errorTitle, errorMessage],
       });
 
-      throw new Error(message);
+      throw new Error(errorMessage);
     }
   }
 

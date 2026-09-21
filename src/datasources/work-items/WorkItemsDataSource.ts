@@ -288,14 +288,14 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         { showErrorAlert: false } // suppress default error alert since we handle errors manually
       );
     } catch (error) {
-      const { title, message } = getQueryError(error, 'work items');
+      const { title: errorTitle, message: errorMessage } = getQueryError(error, 'work item');
 
       this.appEvents?.publish?.({
         type: AppEvents.alertError.name,
-        payload: [title, message],
+        payload: [errorTitle, errorMessage],
       });
 
-      throw new Error(message);
+      throw new Error(errorMessage);
     }
   }
 
@@ -376,8 +376,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private handleDependenciesError(error: unknown): void {
-    const { title, message } = getQueryBuilderLookupsError(error, 'work items');
-    this.errorTitle = title;
-    this.errorDescription = message;
+    const { title: errorTitle, message: errorMessage } = getQueryBuilderLookupsError(error, 'work items');
+    this.errorTitle = errorTitle;
+    this.errorDescription = errorMessage;
   }
 }

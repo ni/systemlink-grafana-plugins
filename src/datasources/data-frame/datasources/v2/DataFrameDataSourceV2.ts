@@ -268,12 +268,12 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return response.pipe(
             map(res => res.tables),
             catchError(error => {
-                const { title, message } = getQueryError(error, 'data tables');
+                const { title: errorTitle, message: errorMessage } = getQueryError(error, 'data table');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
-                    payload: [title, message],
+                    payload: [errorTitle, errorMessage],
                 });
-                throw new Error(message);
+                throw new Error(errorMessage);
             })
         );
     }
@@ -916,7 +916,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
         return this.getTable(transformedTableId).pipe(
             map(table => this.migrateColumnsFromV1ToV2(currentColumns, table)),
             catchError(error => {
-                const { message: errorMessage } = getQueryError(error, 'data table columns');
+                const { message: errorMessage } = getQueryError(error, 'data table column');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
                     payload: ['Error fetching columns for migration', errorMessage],
@@ -2256,7 +2256,7 @@ export class DataFrameDataSourceV2 extends DataFrameDataSourceBase {
                 return response.results;
             }),
             catchError(error => {
-                const { message: errorMessage } = getQueryError(error, 'results');
+                const { message: errorMessage } = getQueryError(error, 'result');
                 this.appEvents?.publish?.({
                     type: AppEvents.alertError.name,
                     payload: ['Error querying test results', errorMessage],

@@ -129,7 +129,7 @@ describe('QueryStepsDataSource', () => {
       expect(publishMock).toHaveBeenCalledWith({
         type: 'alert-error',
         payload: [
-          'Error during steps query',
+          'Error during step query',
           expect.stringContaining('The query failed due to the following error: (status 400) "Error".'),
         ],
       });

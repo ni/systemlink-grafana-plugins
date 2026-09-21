@@ -558,18 +558,18 @@ describe('WorkItemsDataSource', () => {
           description: 'status code 404',
           rejectedError: 'Request failed with status code: 404',
           expectedMessage:
-            'The query to fetch work items failed because the requested resource was not found. Please check the query parameters and try again.',
+            'The query to fetch work item failed because the requested resource was not found. Please check the query parameters and try again.',
         },
         {
           description: 'status code 429',
           rejectedError: 'Request failed with status code: 429',
-          expectedMessage: 'The query to fetch work items failed due to too many requests. Please try again later.',
+          expectedMessage: 'The query to fetch work item failed due to too many requests. Please try again later.',
         },
         {
           description: 'status code 504',
           rejectedError: 'Request failed with status code: 504',
           expectedMessage:
-            'The query to fetch work items experienced a timeout error. Narrow your query with a more specific filter and try again.',
+            'The query to fetch work item experienced a timeout error. Narrow your query with a more specific filter and try again.',
         },
         {
           description: 'an unhandled status code',
@@ -608,8 +608,8 @@ describe('WorkItemsDataSource', () => {
         expect(publishMock).toHaveBeenCalledWith({
           type: 'alert-error',
           payload: [
-            'Error during work items query',
-            'The query to fetch work items failed because the requested resource was not found. Please check the query parameters and try again.',
+            'Error during work item query',
+            'The query to fetch work item failed because the requested resource was not found. Please check the query parameters and try again.',
           ],
         });
       });

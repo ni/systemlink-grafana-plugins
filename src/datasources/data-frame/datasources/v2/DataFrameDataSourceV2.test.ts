@@ -8993,7 +8993,7 @@ describe('DataFrameDataSourceV2', () => {
                     type: 'alert-error',
                     payload: [
                         'Error fetching columns for migration',
-                        'The query to fetch data table columns failed because the requested resource was not found. Please check the query parameters and try again.'
+                        'The query to fetch data table column failed because the requested resource was not found. Please check the query parameters and try again.'
                     ],
                 });
             });
@@ -9534,7 +9534,7 @@ describe('DataFrameDataSourceV2', () => {
                 type: 'alert-error',
                 payload: [
                     'Error querying test results',
-                    'The query to fetch results failed because the requested resource was not found. Please check the query parameters and try again.'
+                    'The query to fetch result failed because the requested resource was not found. Please check the query parameters and try again.'
                 ],
             });
             expect(publishMock).toHaveBeenCalledTimes(1);
@@ -9644,7 +9644,7 @@ describe('DataFrameDataSourceV2', () => {
             postMock$.mockReturnValue(throwError(() => createQueryTablesError(404)));
 
             await expect(lastValueFrom(ds.queryTables$({ dataTableFilter: 'test-filter' }))).rejects.toThrow(
-                'The query to fetch data tables failed because the requested resource was not found. Please check the query parameters and try again.'
+                'The query to fetch data table failed because the requested resource was not found. Please check the query parameters and try again.'
             );
         });
 
@@ -9658,8 +9658,8 @@ describe('DataFrameDataSourceV2', () => {
             expect(publishMock).toHaveBeenCalledWith({
                 type: 'alert-error',
                 payload: [
-                    'Error during data tables query',
-                    'The query to fetch data tables failed due to too many requests. Please try again later.'
+                    'Error during data table query',
+                    'The query to fetch data table failed due to too many requests. Please try again later.'
                 ],
             });
         });

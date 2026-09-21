@@ -76,14 +76,14 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
       { showErrorAlert: false },// suppress default error alert since we handle errors manually
     ).pipe(
       catchError((error) => {
-        const { title, message } = getQueryError(error, 'products');
+        const { title: errorTitle, message: errorMessage } = getQueryError(error, 'product');
 
         this.appEvents?.publish?.({
           type: AppEvents.alertError.name,
-          payload: [title, message],
+          payload: [errorTitle, errorMessage],
         });
 
-        throw new Error(message);
+        throw new Error(errorMessage);
       })
     );
   }
@@ -259,8 +259,8 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
   }
 
   private handleQueryProductValuesError(error: unknown): void {
-      const { title, message } = getQueryBuilderLookupsError(error, 'product value');
-        this.errorTitle = title;
-      this.errorDescription = message;
+      const { title: errorTitle, message: errorMessage } = getQueryBuilderLookupsError(error, 'product value');
+        this.errorTitle = errorTitle;
+      this.errorDescription = errorMessage;
   }
 }

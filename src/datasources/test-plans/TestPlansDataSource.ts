@@ -406,7 +406,7 @@ export class TestPlansDataSource extends DataSourceBase<TestPlansQuery> {
       );
       return response;
     } catch (error) {
-      const { title: errorTitle, message: errorMessage } = getQueryError(error, 'testplans');
+      const { title: errorTitle, message: errorMessage } = getQueryError(error, 'testplan');
 
       this.appEvents?.publish?.({
         type: AppEvents.alertError.name,
