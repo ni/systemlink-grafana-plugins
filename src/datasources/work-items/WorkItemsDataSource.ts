@@ -14,7 +14,7 @@ import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana
 import { ComboboxOption } from '@grafana/ui';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
-import { extractErrorInfo } from 'core/errors';
+import { getQueryError, getQueryBuilderLookupsError } from 'core/errors';
 import { ProductUtils } from 'shared/product.utils';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 import { SystemUtils } from 'shared/system.utils';
@@ -25,7 +25,7 @@ import { AssetUtils, AssetProjectionProperties } from 'shared/asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { LocationUtils } from 'shared/location.utils';
 import { Location } from 'shared/types/QueryLocations.types';
-import { queryInBatches, replaceVariables } from 'core/utils';
+import { queryInBatches, replaceVariables, transformDuration } from 'core/utils';
 import {
   computedFieldsupportedOperations,
   ExpressionTransformFunction,
@@ -68,7 +68,7 @@ import {
   QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
 } from './constants/QueryWorkItems.constants';
 import { WorkItemProperties, WorkItemTypeMetricFindValues } from './constants/QueryEditor.constants';
-import { isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty, transformDuration } from './utils';
+import { isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty } from './utils';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
@@ -802,30 +802,12 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         { showErrorAlert: false } // suppress default error alert since we handle errors manually
       );
     } catch (error) {
-      const errorDetails = extractErrorInfo((error as Error).message);
-      let errorMessage: string;
-      switch (errorDetails.statusCode) {
-        case '':
-          errorMessage = 'The query failed due to an unknown error.';
-          break;
-        case '404':
-          errorMessage = 'The query to fetch work items failed because the requested resource was not found. Please check the query parameters and try again.';
-          break;
-        case '429':
-          errorMessage = 'The query to fetch work items failed due to too many requests. Please try again later.';
-          break;
-        case '504':
-          errorMessage = 'The query to fetch work items experienced a timeout error. Narrow your query with a more specific filter and try again.';
-          break;
-        default:
-          errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
-          break;
-      }
+      const { title: errorTitle, message: errorMessage } = getQueryError(error, 'work items');
 
       if (!suppressErrorAlert) {
         this.appEvents?.publish?.({
           type: AppEvents.alertError.name,
-          payload: ['Error during work items query', errorMessage],
+          payload: [errorTitle, errorMessage],
         });
       }
 
@@ -1020,23 +1002,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private handleDependenciesError(error: unknown): void {
-    const errorDetails = extractErrorInfo((error as Error).message);
-    this.errorTitle = 'Warning during work items query';
-    switch (errorDetails.statusCode) {
-      case '404':
-        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
-        break;
-      case '429':
-        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
-        break;
-      case '504':
-        this.errorDescription = 'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.';
-        break;
-      default:
-        this.errorDescription = errorDetails.message
-          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-          : 'Some values may not be available in the query builder lookups due to an unknown error.';
-        break;
-    }
+    const { title: errorTitle, message: errorMessage } = getQueryBuilderLookupsError(error, 'work items');
+    this.errorTitle = errorTitle;
+    this.errorDescription = errorMessage;
   }
 }
