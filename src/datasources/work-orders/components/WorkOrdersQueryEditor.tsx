@@ -12,9 +12,7 @@ import {
   Select,
   VerticalGroup
 } from '@grafana/ui';
-import './WorkOrdersQueryEditor.scss';
 import {
-  DEPRECATION_NOTICE_MAX_WIDTH,
   deprecationMessage,
   TAKE_LIMIT,
   takeErrorMessages,
@@ -115,20 +113,21 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
 
   return (
     <>
-      <div style={{ width: '100%', maxWidth: DEPRECATION_NOTICE_MAX_WIDTH }}>
-        <Alert severity="warning" title={deprecationMessage.title}>
-          {deprecationMessage.message}
-          <a
-            href={deprecationMessage.linkUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ textDecoration: 'underline' }}
-          >
-            {deprecationMessage.linkText}
-          </a>
-          .
-        </Alert>
-      </div>
+      <div style={{ display: 'inline-block' }}>
+        <div style={{ width: 0, minWidth: '100%' }}>
+          <Alert severity="warning" title={deprecationMessage.title}>
+            {deprecationMessage.message}
+            <a
+              href={deprecationMessage.linkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: 'underline' }}
+            >
+              {deprecationMessage.linkText}
+            </a>
+            .
+          </Alert>
+        </div>
       <HorizontalGroup align="flex-start">
         <VerticalGroup>
           <InlineField label="Output" labelWidth={25} tooltip={tooltips.outputType}>
@@ -217,6 +216,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
           </div>
         </VerticalGroup>
       </HorizontalGroup>
+      </div>
       <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
     </>
   );
