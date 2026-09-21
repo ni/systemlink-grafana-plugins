@@ -184,8 +184,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
-    // Total Count resolves the selected types itself so it can send one count query (and column)
-    // per type, so short-circuit here to avoid building the combined filter a second time.
     if (query.outputType === OutputType.TotalCount) {
       return this.processTotalCountQuery(query, options.scopedVars);
     }
@@ -201,9 +199,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         options.scopedVars
       );
 
-      // A selection that resolves only to empty or unrecognized values (e.g. a template variable
-      // that expands to nothing) yields no type filter. Returning early avoids dropping the type
-      // constraint entirely, which would otherwise match every work item instead of none.
       if (!hasRecognizedTypes) {
         return this.getEmptyDataFrameDTO(query.refId);
       }
