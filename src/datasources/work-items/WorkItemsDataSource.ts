@@ -223,6 +223,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const locationsLookup = this.isPropertySelected(WorkItemPropertiesOptions.TARGET_LOCATION, query.properties)
       ? await this.loadLocations()
       : new Map<string, Location>();
+    const productsLookup = this.isProductLookupRequired(query.properties)
+      ? await this.loadProductNamesAndPartNumbers()
+      : new Map<string, ProductPartNumberAndName>();
 
     const workItemsResponse = await this.queryWorkItemsData(
       filter,
@@ -257,7 +260,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         parentWorkItemNamesLookup,
         assetNamesLookup,
         systemAliasesLookup,
-        locationsLookup
+        locationsLookup,
+        productsLookup
       ),
     };
   }
@@ -365,6 +369,16 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     );
   }
 
+  private isProductLookupRequired(properties?: WorkItemPropertiesOptions[]): boolean {
+    return this.isAnyPropertySelected(
+      [
+        WorkItemPropertiesOptions.PRODUCT_ID,
+        WorkItemPropertiesOptions.PRODUCT_NAME,
+      ],
+      properties
+    );
+  }
+
   private buildFlattenedRows(workItems: WorkItem[]): FlattenedRow[] {
     const rows: FlattenedRow[] = [];
     for (const workItem of workItems) {
@@ -446,6 +460,16 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return id ? systemAliases.get(id)?.alias ?? '' : '';
   }
 
+  private resolveProductField(
+    workItem: WorkItem,
+    productsLookup: Map<string, ProductPartNumberAndName>,
+    selector: (product: ProductPartNumberAndName) => string
+  ): string {
+    const partNumber = workItem.partNumber ?? '';
+    const product = partNumber ? productsLookup.get(partNumber) : undefined;
+    return product ? selector(product) : '';
+  }
+
   private resolveTargetLocation(
     selection: Pick<ResourceSelection, 'targetSystemId' | 'targetLocationId'> | undefined,
     locations: Map<string, Location>,
@@ -508,7 +532,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     parentWorkItemNamesLookup: Map<string, string>,
     assetNamesLookup: Map<string, string>,
     systemAliasesLookup: Map<string, SystemAlias>,
-    locationsLookup: Map<string, Location>
+    locationsLookup: Map<string, Location>,
+    productsLookup: Map<string, ProductPartNumberAndName>
   ) {
     const fields: FieldDTO[] = [];
 
@@ -531,7 +556,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
           usersLookup,
           parentWorkItemNamesLookup,
           assetNamesLookup,
-          systemAliasesLookup
+          systemAliasesLookup,
+          productsLookup
         )
       );
       const fieldType = this.getPropertyFieldType(property);
@@ -595,7 +621,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     usersLookup: Map<string, User>,
     parentWorkItemNamesLookup: Map<string, string>,
     assetNamesLookup: Map<string, string>,
-    systemAliasesLookup: Map<string, SystemAlias>
+    systemAliasesLookup: Map<string, SystemAlias>,
+    productsLookup: Map<string, ProductPartNumberAndName>
   ): string | null {
     const workItem = row.workItem;
     switch (property) {
@@ -615,6 +642,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         return workItem.testProgram ?? '';
       case WorkItemPropertiesOptions.PART_NUMBER:
         return workItem.partNumber ?? '';
+      case WorkItemPropertiesOptions.PRODUCT_NAME:
+        return this.resolveProductField(workItem, productsLookup, product => product.name);
+      case WorkItemPropertiesOptions.PRODUCT_ID:
+        return this.resolveProductField(workItem, productsLookup, product => product.id);
       case WorkItemPropertiesOptions.WORKSPACE: {
         const workspace = workspacesLookup.get(workItem.workspace ?? '');
         return workspace ? workspace.name : workItem.workspace ?? '';

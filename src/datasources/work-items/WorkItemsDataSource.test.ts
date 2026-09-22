@@ -1381,6 +1381,119 @@ describe('WorkItemsDataSource', () => {
         expect(getUsersSpy).not.toHaveBeenCalled();
       });
 
+      it('should resolve product name and product ID from the products lookup', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', partNumber: 'part-number-1' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+        const getProductsSpy = jest.spyOn(datasource.productUtils, 'getProductNamesAndPartNumbers');
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.PRODUCT_NAME, WorkItemPropertiesOptions.PRODUCT_ID],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(getProductsSpy).toHaveBeenCalled();
+        expect(result.fields).toEqual([
+          { name: 'Product name', values: ['Product 1'], type: 'string' },
+          { name: 'Product ID', values: ['1'], type: 'string' },
+        ]);
+      });
+
+      it('should return empty product name and product ID when the product is missing from the lookup', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', partNumber: 'unknown-part-number' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.PRODUCT_NAME, WorkItemPropertiesOptions.PRODUCT_ID],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([
+          { name: 'Product name', values: [''], type: 'string' },
+          { name: 'Product ID', values: [''], type: 'string' },
+        ]);
+      });
+
+      it('should return empty product name and product ID when the products lookup fails', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', partNumber: 'part-number-1' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+        jest
+          .spyOn(datasource.productUtils, 'getProductNamesAndPartNumbers')
+          .mockRejectedValue(new Error('Error'));
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.PRODUCT_NAME, WorkItemPropertiesOptions.PRODUCT_ID],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([
+          { name: 'Product name', values: [''], type: 'string' },
+          { name: 'Product ID', values: [''], type: 'string' },
+        ]);
+      });
+
+      it('should return empty product name and product ID when the work item has no part number', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1' }, { id: '2', partNumber: null }],
+          continuationToken: '',
+          totalCount: 2,
+        });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.PRODUCT_NAME, WorkItemPropertiesOptions.PRODUCT_ID],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([
+          { name: 'Product name', values: ['', ''], type: 'string' },
+          { name: 'Product ID', values: ['', ''], type: 'string' },
+        ]);
+      });
+
+      it('should not load the products lookup when no product property is selected', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', partNumber: 'part-number-1' }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+        const getProductsSpy = jest.spyOn(datasource.productUtils, 'getProductNamesAndPartNumbers');
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.PART_NUMBER],
+          take: 1000,
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(getProductsSpy).not.toHaveBeenCalled();
+      });
+
       it('should resolve the workspace name for the workspaceId filtered', async () => {
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [{ id: '1', workspace: 'ws-1' }],
