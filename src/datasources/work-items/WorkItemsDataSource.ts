@@ -860,10 +860,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     ) {
       const start = Date.now();
       const batch = filters.slice(index, index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND);
-      // Requests within a batch run sequentially to spread the load and avoid 429 errors.
-      for (const filter of batch) {
-        workItemCounts.push(await this.queryWorkItemsCount(filter));
-      }
+      // Requests within a batch run concurrently; batches are still spaced 1s apart.
+      const batchCounts = await Promise.all(batch.map(filter => this.queryWorkItemsCount(filter)));
+      workItemCounts.push(...batchCounts);
 
       const hasMoreRequests = index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND < filters.length;
       const elapsed = Date.now() - start;
