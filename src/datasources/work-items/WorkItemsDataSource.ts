@@ -55,8 +55,6 @@ import {
   SECONDS_IN_HOUR,
   WORK_ITEM_PROPERTIES_PROJECTION,
   WORK_ITEM_PROPERTIES_PROJECTIONS,
-  WORK_ITEM_TYPE_FILTER_VALUES,
-  WORK_ITEM_TYPE_LABEL_MAP,
   WORK_ITEM_STATE_OPTIONS,
   USER_PROPERTY_FIELDS,
   CUSTOM_PROPERTY_OPTIONS_LIMIT,
@@ -67,8 +65,9 @@ import {
   QUERY_WORK_ITEMS_MAX_TAKE,
   QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
 } from './constants/QueryWorkItems.constants';
-import { WorkItemProperties, WorkItemTypeLabels, WorkItemTypeMetricFindValues } from './constants/QueryEditor.constants';
-import { isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty } from './utils';
+import { WorkItemProperties } from './constants/QueryEditor.constants';
+import { isPropertiesNonEmpty, isTakeValid } from './utils';
+import { WorkItemTypeUtils } from './work-item-type.utils';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
@@ -83,6 +82,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     this.systemUtils = new SystemUtils(instanceSettings, backendSrv);
     this.locationUtils = new LocationUtils(instanceSettings, backendSrv);
     this.assetUtils = new AssetUtils(this.instanceSettings, this.backendSrv);
+    this.workItemTypeUtils = new WorkItemTypeUtils(instanceSettings, backendSrv);
   }
 
   baseUrl = `${this.instanceSettings.url}/niworkitem/v1`;
@@ -100,9 +100,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   systemUtils: SystemUtils;
   locationUtils: LocationUtils;
   assetUtils: AssetUtils;
+  workItemTypeUtils: WorkItemTypeUtils;
 
   defaultQuery = {
-    types: Object.values(WorkItemTypeOptions),
+    types: [],
     properties: [
       WorkItemPropertiesOptions.NAME,
       WorkItemPropertiesOptions.STATE,
@@ -117,7 +118,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   defaultVariableQuery: Omit<WorkItemsVariableQuery, 'refId'> = {
     queryType: WorkItemsVariableQueryType.ListWorkItems,
-    types: Object.values(WorkItemTypeOptions),
+    types: [],
     orderBy: OrderByOptions.UPDATED_AT,
     descending: true,
     take: DEFAULT_TAKE,
@@ -172,18 +173,25 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   readonly globalVariableOptions = (): QueryBuilderOption[] => this.getVariableOptions();
 
+  public prepareQuery(query: WorkItemsQuery): WorkItemsQuery {
+    const preparedQuery = super.prepareQuery(query);
+    return {
+      ...preparedQuery,
+      types: this.normalizeSelectedWorkItemTypes(preparedQuery.types),
+    };
+  }
 
   prepareVariableQuery(query: WorkItemsVariableQuery): WorkItemsVariableQuery {
-    return {
+    const preparedQuery = {
       ...this.defaultVariableQuery,
       ...query
     };
+    return {
+      ...preparedQuery,
+      types: this.normalizeSelectedWorkItemTypes(preparedQuery.types),
+    };
   }
   async runQuery(query: WorkItemsQuery, options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {
-    if (!isTypesNonEmpty(query.types)) {
-      return this.getEmptyDataFrameDTO(query.refId);
-    }
-
     if (query.outputType === OutputType.TotalCount) {
       return this.processTotalCountQuery(query, options.scopedVars);
     }
@@ -226,6 +234,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const productsLookup = this.isProductLookupRequired(query.properties)
       ? await this.loadProductNamesAndPartNumbers()
       : new Map<string, ProductPartNumberAndName>();
+    const workItemTypesLookup = this.isPropertySelected(WorkItemPropertiesOptions.TYPE, query.properties)
+      ? new Map((await this.loadWorkItemTypes()).map(type => [type.value, type.label]))
+      : new Map<string, string>();
 
     const workItemsResponse = await this.queryWorkItemsData(
       filter,
@@ -261,7 +272,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         assetNamesLookup,
         systemAliasesLookup,
         locationsLookup,
-        productsLookup
+        productsLookup,
+        workItemTypesLookup
       ),
     };
   }
@@ -533,7 +545,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     assetNamesLookup: Map<string, string>,
     systemAliasesLookup: Map<string, SystemAlias>,
     locationsLookup: Map<string, Location>,
-    productsLookup: Map<string, ProductPartNumberAndName>
+    productsLookup: Map<string, ProductPartNumberAndName>,
+    workItemTypesLookup: Map<string, string>
   ) {
     const fields: FieldDTO[] = [];
     const isTargetLocationSelected = properties.includes(WorkItemPropertiesOptions.TARGET_LOCATION);
@@ -568,7 +581,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
           parentWorkItemNamesLookup,
           assetNamesLookup,
           systemAliasesLookup,
-          productsLookup
+          productsLookup,
+          workItemTypesLookup
         )
       );
       const fieldType = this.getPropertyFieldType(property);
@@ -645,7 +659,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     parentWorkItemNamesLookup: Map<string, string>,
     assetNamesLookup: Map<string, string>,
     systemAliasesLookup: Map<string, SystemAlias>,
-    productsLookup: Map<string, ProductPartNumberAndName>
+    productsLookup: Map<string, ProductPartNumberAndName>,
+    workItemTypesLookup: Map<string, string>
   ): string | null {
     const workItem = row.workItem;
     switch (property) {
@@ -654,7 +669,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       case WorkItemPropertiesOptions.NAME:
         return workItem.name ?? '';
       case WorkItemPropertiesOptions.TYPE:
-        return this.formatWorkItemTypeLabel(workItem.type);
+        return this.formatWorkItemTypeLabel(workItem.type, workItemTypesLookup);
       case WorkItemPropertiesOptions.STATE:
         return this.formatStateLabel(workItem.state);
       case WorkItemPropertiesOptions.SUBSTATE:
@@ -747,13 +762,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     }
   }
 
-  private formatWorkItemTypeLabel(type?: string): string {
-    if (!type) {
-      return '';
-    }
-
-    const normalizedType = type.toLowerCase().replace(/[_\-\s]+/g, '');
-    return WORK_ITEM_TYPE_LABEL_MAP[normalizedType] ?? type;
+  private formatWorkItemTypeLabel(type: string | undefined, workItemTypesLookup: Map<string, string>): string {
+    return type ? workItemTypesLookup.get(type) ?? type : '';
   }
 
   private formatStateLabel(state?: string): string {
@@ -822,27 +832,34 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   
   private async processTotalCountQuery(query: WorkItemsQuery, scopedVars?: ScopedVars): Promise<DataFrameDTO> {
-    const { resolvedTypes } = this.resolveSelectedTypes(query.types!, scopedVars);
+    const { resolvedTypes, allTypesSelected } = this.resolveSelectedTypes(query.types!, scopedVars);
     const queryFilter = query.filter?.trim();
     const transformedQueryFilter = queryFilter
       ? this.transformQueryBuilderFilter(queryFilter, scopedVars)
       : queryFilter;
 
-    const filters = resolvedTypes.map(type => {
-      const typeFilter = `type = "${WORK_ITEM_TYPE_FILTER_VALUES[type]}"`;
-      return this.buildQueryFilter(
-        `(${typeFilter})`,
-        transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
-      );
-    });
+    const filters = allTypesSelected
+      ? [transformedQueryFilter ? `(${transformedQueryFilter})` : undefined]
+      : resolvedTypes.map(type => {
+          const typeFilter = `type = "${type}"`;
+          return this.buildQueryFilter(
+            `(${typeFilter})`,
+            transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
+          );
+        });
 
-    const workItemCounts = await this.queryWorkItemsCountsInBatches(filters);
+    const [workItemCounts, workItemTypeOptions] = await Promise.all([
+      this.queryWorkItemsCountsInBatches(filters),
+      this.loadWorkItemTypes(),
+    ]);
+    const workItemTypeLabels = new Map(workItemTypeOptions.map(type => [type.value, type.label]));
+    const fieldTypes = allTypesSelected ? ['All'] : resolvedTypes;
 
     return {
       refId: query.refId,
       name: query.refId,
-      fields: resolvedTypes.map((type, index) => ({
-        name: WorkItemTypeLabels[type],
+      fields: fieldTypes.map((type, index) => ({
+        name: this.formatWorkItemTypeColumnLabel(type, workItemTypeLabels),
         values: [workItemCounts[index]],
       })),
     };
@@ -940,7 +957,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private buildWorkItemsFilter(
-    types: WorkItemTypeOptions[],
+    types: string[],
     filter?: string,
     scopedVars?: ScopedVars
   ): { filter: string | undefined; hasRecognizedTypes: boolean } {
@@ -970,26 +987,80 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private buildTypeFilter(
-    types: WorkItemTypeOptions[],
+    types: string[],
     scopedVars?: ScopedVars
   ): { allTypesSelected: boolean; filter: string } {
     const { resolvedTypes, allTypesSelected } = this.resolveSelectedTypes(types, scopedVars);
-    const typeValues = resolvedTypes.map(type => WORK_ITEM_TYPE_FILTER_VALUES[type]);
     return {
       allTypesSelected,
-      filter: typeValues.map(value => `type = "${value}"`).join(' || '),
+      filter: resolvedTypes.map(value => `type = "${value}"`).join(' || '),
     };
   }
 
   private resolveSelectedTypes(
-    types: WorkItemTypeOptions[],
+    types: string[],
     scopedVars?: ScopedVars
-  ): { resolvedTypes: WorkItemTypeOptions[]; allTypesSelected: boolean } {
-    const resolvedTypes = (replaceVariables(types, this.templateSrv, scopedVars) as WorkItemTypeOptions[]).filter(
-      type => WORK_ITEM_TYPE_FILTER_VALUES[type] !== undefined
-    );
-    const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
-    return { resolvedTypes, allTypesSelected };
+  ): { resolvedTypes: string[]; allTypesSelected: boolean } {
+    const parsedTypes = (replaceVariables(types, this.templateSrv, scopedVars) as string[])
+      .flatMap(type => this.parseTypeFilterValues(type))
+      .map(type => this.normalizeWorkItemTypeValue(type));
+    const resolvedTypes = parsedTypes
+      .filter(type => this.isRecognizedOrDynamicWorkItemType(type));
+    const uniqueTypes = Array.from(new Set(resolvedTypes));
+    const allKnownTypesSelected = Object.values<string>(WorkItemTypeOptions).every(type => uniqueTypes.includes(type));
+    const allTypesSelected = parsedTypes.length === 0 || allKnownTypesSelected;
+    return { resolvedTypes: uniqueTypes, allTypesSelected };
+  }
+
+  private parseTypeFilterValues(value: string): string[] {
+    if (!value) {
+      return [];
+    }
+
+    return value
+      .replace(/^\{/, '')
+      .replace(/\}$/, '')
+      .split(',')
+      .map(part => part.trim())
+      .map(part => part.replace(/^"/, '').replace(/"$/, ''))
+      .filter(Boolean);
+  }
+
+  private normalizeWorkItemTypeValue(type: string): string {
+    switch (type) {
+      case 'WORK_ORDERS':
+        return WorkItemTypeOptions.WorkOrders;
+      case 'TEST_PLANS':
+        return WorkItemTypeOptions.TestPlans;
+      case 'JOB':
+        return WorkItemTypeOptions.Job;
+      case 'MAINTENANCE':
+        return WorkItemTypeOptions.Maintenance;
+      case 'CALIBRATION':
+        return WorkItemTypeOptions.Calibration;
+      case 'RESERVATION':
+        return WorkItemTypeOptions.Reservation;
+      case 'TRANSPORT_ORDER':
+        return WorkItemTypeOptions.TransportOrder;
+      default:
+        return type;
+    }
+  }
+
+  private normalizeSelectedWorkItemTypes(types?: string[]): string[] | undefined {
+    return types?.map(type => this.normalizeWorkItemTypeValue(type));
+  }
+
+  private isRecognizedOrDynamicWorkItemType(type: string): boolean {
+    return Object.values<string>(WorkItemTypeOptions).includes(type) ||
+      !/^[A-Z_]+$/.test(type);
+  }
+
+  private formatWorkItemTypeColumnLabel(type: string, workItemTypeLabels: Map<string, string>): string {
+    if (type === 'All') {
+      return 'All';
+    }
+    return workItemTypeLabels.get(type) ?? type;
   }
 
   shouldRunQuery(query: WorkItemsQuery): boolean {
@@ -1003,10 +1074,14 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const variableQuery = this.prepareVariableQuery(query);
 
     if (variableQuery.queryType === WorkItemsVariableQueryType.ListWorkItemTypes) {
-      return WorkItemTypeMetricFindValues;
+      const workItemTypes = await this.loadWorkItemTypes();
+      return workItemTypes.map(type => ({
+        text: type.label ?? type.value ?? '',
+        value: type.value ?? '',
+      }));
     }
 
-    if (!isTypesNonEmpty(variableQuery.types) || !isTakeValid(variableQuery.take)) {
+    if (!isTakeValid(variableQuery.take)) {
       return [];
     }
 
@@ -1033,6 +1108,19 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       text: workItem.name ? `${workItem.name} (${workItem.id})` : `(${workItem.id})`,
       value: workItem.id,
     }));
+  }
+
+  async loadWorkItemTypes(): Promise<QueryBuilderOption[]> {
+    try {
+      return await this.workItemTypeUtils.getWorkItemTypes();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.appEvents?.publish?.({
+        type: AppEvents.alertWarning.name,
+        payload: ['Error loading work item types', message],
+      });
+      return [];
+    }
   }
 
   public async loadProductNamesAndPartNumbers(): Promise<Map<string, ProductPartNumberAndName>> {

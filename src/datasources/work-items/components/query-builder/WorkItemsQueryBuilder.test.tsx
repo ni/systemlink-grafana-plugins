@@ -7,8 +7,8 @@ import {
   TIME_OPTIONS,
   WorkItemsResourceQueryBuilderOperations ,
 } from 'datasources/work-items/constants/WorkItemsQueryBuilder.constants';
-import { WorkItemState, WorkItemTypeOptions } from 'datasources/work-items/types';
-import { WORK_ITEM_STATE_OPTIONS, WORK_ITEM_TYPE_FILTER_VALUES } from 'datasources/work-items/constants';
+import { WorkItemState } from 'datasources/work-items/types';
+import { WORK_ITEM_STATE_OPTIONS } from 'datasources/work-items/constants';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { User } from 'shared/types/QueryUsers.types';
@@ -58,7 +58,11 @@ describe('WorkItemsQueryBuilder', () => {
     users: User[] | null = [],
     globalVariableOptions: QueryBuilderOption[] = [],
     products: ProductPartNumberAndName[] | null = [],
-    systemAliases: SystemAlias[] | null = []
+    systemAliases: SystemAlias[] | null = [],
+    workItemTypes: QueryBuilderOption[] | null = [
+      { label: 'Work orders', value: 'workorder' },
+      { label: 'Test plans', value: 'testplan' },
+    ]
   ) {
     reactNode = React.createElement(WorkItemsQueryBuilder, {
       filter,
@@ -66,6 +70,7 @@ describe('WorkItemsQueryBuilder', () => {
       users,
       products,
       systemAliases,
+      workItemTypes,
       globalVariableOptions,
       onChange: jest.fn(),
     });
@@ -81,7 +86,11 @@ describe('WorkItemsQueryBuilder', () => {
     users: User[] | null = [],
     globalVariableOptions: QueryBuilderOption[] = [],
     products: ProductPartNumberAndName[] | null = [],
-    systemAliases: SystemAlias[] | null = []
+    systemAliases: SystemAlias[] | null = [],
+    workItemTypes: QueryBuilderOption[] | null = [
+      { label: 'Work orders', value: 'workorder' },
+      { label: 'Test plans', value: 'testplan' },
+    ]
   ) {
     let fields: QBField[] = [];
     slQueryBuilderMock.mockImplementation((props: any) => {
@@ -89,7 +98,7 @@ describe('WorkItemsQueryBuilder', () => {
       return <></>;
     });
 
-    renderElement('', workspaces, users, globalVariableOptions, products, systemAliases);
+    renderElement('', workspaces, users, globalVariableOptions, products, systemAliases, workItemTypes);
     await waitFor(() => expect(fields.length).toBeGreaterThan(0));
 
     return fields;
@@ -231,13 +240,16 @@ describe('WorkItemsQueryBuilder', () => {
   });
 
   describe('auto population of property options', () => {
-    it('should load every work item type as an option for the type property', async () => {
-      const fields = await renderAndGetFields();
-      const typeValues = optionsFor(fields, 'type').map(option => option.value);
+    it('should load dynamically provided work item types as options for the type property', async () => {
+      const fields = await renderAndGetFields([], [], [], [], [], [
+        { label: 'Custom Type', value: 'customtype' },
+        { label: 'Another Type', value: 'anothertype' },
+      ]);
 
-      expect(typeValues).toEqual(
-        Object.values(WorkItemTypeOptions).map(type => WORK_ITEM_TYPE_FILTER_VALUES[type])
-      );
+      expect(optionsFor(fields, 'type')).toEqual([
+        { label: 'Custom Type', value: 'customtype' },
+        { label: 'Another Type', value: 'anothertype' },
+      ]);
     });
 
     it('should load every work item state as an option for the state property', async () => {

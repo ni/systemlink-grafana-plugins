@@ -17,13 +17,22 @@ export enum WorkItemState {
 }
 
 export enum WorkItemTypeOptions {
-  WorkOrders = 'WORK_ORDERS',
-  TestPlans = 'TEST_PLANS',
-  Job = 'JOB',
-  Maintenance = 'MAINTENANCE',
-  Calibration = 'CALIBRATION',
-  Reservation = 'RESERVATION',
-  TransportOrder = 'TRANSPORT_ORDER',
+  WorkOrders = 'workorder',
+  TestPlans = 'testplan',
+  Job = 'job',
+  Maintenance = 'maintenance',
+  Calibration = 'calibration',
+  Reservation = 'reservation',
+  TransportOrder = 'transportorder',
+}
+
+export interface WorkItemTypeConfig {
+  type?: string;
+  description?: string;
+}
+
+export interface GetWorkItemTypesResponse {
+  workItemTypes?: WorkItemTypeConfig[];
 }
 
 export enum OrderByOptions {
@@ -38,7 +47,7 @@ export enum WorkItemsVariableQueryType {
 
 export interface WorkItemsQuery extends DataQuery {
   outputType?: OutputType;
-  types?: WorkItemTypeOptions[];
+  types?: string[];
   properties?: WorkItemPropertiesOptions[];
   customProperties?: string[];
   orderBy?: OrderByOptions;
@@ -49,7 +58,7 @@ export interface WorkItemsQuery extends DataQuery {
 
 export interface WorkItemsVariableQuery extends DataQuery {
   queryType?: WorkItemsVariableQueryType;
-  types?: WorkItemTypeOptions[];
+  types?: string[];
   orderBy?: OrderByOptions;
   descending?: boolean;
   take?: number;

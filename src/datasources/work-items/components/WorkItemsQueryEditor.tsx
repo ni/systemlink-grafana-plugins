@@ -12,7 +12,7 @@ import {
 } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
 import { FloatingError } from 'core/errors';
-import { Workspace } from 'core/types';
+import { QueryBuilderOption, Workspace } from 'core/types';
 import { validateNumericInput } from 'core/utils';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
 import {
@@ -21,28 +21,24 @@ import {
   LABEL_WIDTH,
   OrderBy,
   WorkItemProperties,
-  WorkItemTypes,
   labels,
   placeholders,
   propertiesErrorMessages,
   tooltips,
-  typesErrorMessages,
 } from '../constants/QueryEditor.constants';
 import { 
   CUSTOM_PROPERTY_OPTIONS_LIMIT, 
-  CUSTOM_PROPERTY_SUFFIX, DEFAULT_TAKE 
+  CUSTOM_PROPERTY_SUFFIX, DEFAULT_TAKE,
 } from '../constants';
 import {
   OrderByOptions,
   OutputType,
   WorkItemPropertiesOptions,
   WorkItemsQuery,
-  WorkItemTypeOptions,
 } from '../types';
 import { 
   getTakeError, 
   isPropertiesNonEmpty, 
-  isTypesNonEmpty, 
   stripCustomPropertySuffix 
 } from '../utils';
 import { WorkItemsQueryBuilder } from './query-builder/WorkItemsQueryBuilder';
@@ -52,6 +48,9 @@ import { SystemAlias } from 'shared/types/QuerySystems.types';
 
 type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
 
+const dedupeOptionsByValue = (options: Array<ComboboxOption<string>>): Array<ComboboxOption<string>> =>
+  Array.from(new Map(options.map(option => [option.value, option])).values());
+
 export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
 
@@ -59,6 +58,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   const [users, setUsers] = useState<User[] | null>(null);
   const [products, setProducts] = useState<ProductPartNumberAndName[] | null>(null);
   const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
+  const [workItemTypes, setWorkItemTypes] = useState<QueryBuilderOption[] | null>(null);
   const [customPropertyOptions, setCustomPropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
   const [isCustomPropertiesInitialized, setIsCustomPropertiesInitialized] = useState(false);
 
@@ -102,10 +102,9 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   );
 
   const isPropertiesValid = isPropertiesNonEmpty(selectedProperties, selectedCustomProperties);
-  const isTypesValid = isTypesNonEmpty(query.types);
   const takeInvalidMessage = getTakeError(query.take);
   const isTakeValid = takeInvalidMessage === '';
-  const isQueryValid = isPropertiesOutput && isTypesValid && isTakeValid;
+  const isQueryValid = isPropertiesOutput && isTakeValid;
 
   const queryFilter = query.filter || undefined;
   const queryTake = query.take ?? DEFAULT_TAKE;
@@ -192,10 +191,19 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
       setSystemAliases(Array.from(systemAliases.values()));
     };
 
+    const loadWorkItemTypes = async () => {
+      const workItemTypes = await datasource.loadWorkItemTypes();
+      setWorkItemTypes(workItemTypes.map(type => ({
+        label: type.label ?? type.value ?? '',
+        value: type.value ?? '',
+      })));
+    };
+
     loadWorkspaces();
     loadUsers();
     loadProducts();
     loadSystemAliases();
+    loadWorkItemTypes();
   }, [datasource]);
 
   const fetchAndSetCustomPropertyOptions = useCallback(
@@ -223,8 +231,8 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   );
 
   const typeOptions = useMemo(
-    () => [...globalVariableOptions, ...WorkItemTypes] as Array<ComboboxOption<WorkItemTypeOptions>>,
-    [globalVariableOptions]
+    () => dedupeOptionsByValue([...globalVariableOptions, ...(workItemTypes ?? [])]),
+    [globalVariableOptions, workItemTypes]
   );
 
   const handleQueryChange = useCallback(
@@ -243,7 +251,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   useEffect(() => {
     if (!isQueryValid) {
-      if (isPropertiesOutput && (!isTypesValid || !isTakeValid)) {
+      if (isPropertiesOutput && !isTakeValid) {
         lastCustomPropertiesParamsRef.current = null;
         setCustomPropertyOptions([]);
         setIsCustomPropertiesInitialized(false);
@@ -280,7 +288,6 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     fetchAndSetCustomPropertyOptions,
     isQueryValid,
     isPropertiesOutput,
-    isTypesValid,
     isTakeValid,
     customPropertiesFilter,
     queryTake,
@@ -299,9 +306,9 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     handleQueryChange({ ...query, outputType: value });
   };
 
-  const onTypesChange = (items: Array<ComboboxOption<WorkItemTypeOptions>>) => {
-    const types = items.map(item => item.value).filter(Boolean) as WorkItemTypeOptions[];
-    handleQueryChange({ ...query, types }, isTypesNonEmpty(types));
+  const onTypesChange = (items: Array<ComboboxOption<string>>) => {
+    const selectedValues = items.map(item => item.value).filter((value): value is string => Boolean(value));
+    handleQueryChange({ ...query, types: selectedValues });
   };
 
   const onPropertiesChange = (items: Array<ComboboxOption<string>>) => {
@@ -358,8 +365,6 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
         label={labels.types}
         labelWidth={LABEL_WIDTH}
         tooltip={tooltips.types}
-        invalid={!isTypesValid}
-        error={typesErrorMessages.atLeastOneRequired}
       >
         <MultiCombobox
           placeholder={placeholders.types}
@@ -405,6 +410,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
             users={users}
             products={products}
             systemAliases={systemAliases}
+            workItemTypes={workItemTypes}
             globalVariableOptions={globalVariableOptions}
             onChange={onFilterChange}
           />

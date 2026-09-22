@@ -3,7 +3,7 @@ import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { AutoSizeInput, Combobox, ComboboxOption, InlineSwitch, MultiCombobox, Stack } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
 import { FloatingError } from 'core/errors';
-import { Workspace } from 'core/types';
+import { QueryBuilderOption, Workspace } from 'core/types';
 import { validateNumericInput } from 'core/utils';
 import { User } from 'shared/types/QueryUsers.types';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
@@ -14,20 +14,17 @@ import {
   WorkItemsQuery,
   WorkItemsVariableQuery,
   WorkItemsVariableQueryType,
-  WorkItemTypeOptions,
 } from '../types';
 import {
   COMBOBOX_WIDTH,
   CONTROL_WIDTH,
   LABEL_WIDTH,
   OrderBy,
-  WorkItemTypes,
   labels,
   placeholders,
   tooltips,
-  typesErrorMessages,
 } from '../constants/QueryEditor.constants';
-import { getTakeError, isTypesNonEmpty } from '../utils';
+import { getTakeError } from '../utils';
 import { WorkItemsQueryBuilder } from './query-builder/WorkItemsQueryBuilder';
 
 type Props = Omit<QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>, 'query' | 'onChange'> & {
@@ -35,10 +32,12 @@ type Props = Omit<QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>, 'query'
   onChange: (query: WorkItemsVariableQuery) => void;
 };
 
+const dedupeOptionsByValue = (options: Array<ComboboxOption<string>>): Array<ComboboxOption<string>> =>
+  Array.from(new Map(options.map(option => [option.value, option])).values());
+
 export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Props) {
   query = datasource.prepareVariableQuery(query);
 
-  const isTypesValid = isTypesNonEmpty(query.types);
   const takeInvalidMessage = getTakeError(query.take);
   const isTakeValid = takeInvalidMessage === '';
 
@@ -52,6 +51,7 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
   const [users, setUsers] = useState<User[] | null>(null);
   const [products, setProducts] = useState<ProductPartNumberAndName[] | null>(null);
   const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
+  const [workItemTypes, setWorkItemTypes] = useState<QueryBuilderOption[] | null>(null);
 
   useEffect(() => {
     const loadWorkspaces = async () => {
@@ -74,10 +74,19 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
       setSystemAliases(Array.from(systemAliases.values()));
     };
 
+    const loadWorkItemTypes = async () => {
+      const workItemTypes = await datasource.loadWorkItemTypes();
+      setWorkItemTypes(workItemTypes.map(type => ({
+        label: type.label ?? type.value ?? '',
+        value: type.value ?? '',
+      })));
+    };
+
     loadWorkspaces();
     loadUsers();
     loadProducts();
     loadSystemAliases();
+    loadWorkItemTypes();
   }, [datasource]);
 
   const globalVariableOptions = useMemo(
@@ -86,8 +95,8 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
   );
 
   const typeOptions = useMemo(
-    () => [...globalVariableOptions, ...WorkItemTypes] as Array<ComboboxOption<WorkItemTypeOptions>>,
-    [globalVariableOptions]
+    () => dedupeOptionsByValue([...globalVariableOptions, ...(workItemTypes ?? [])]),
+    [globalVariableOptions, workItemTypes]
   );
 
   const handleQueryChange = useCallback(
@@ -101,10 +110,10 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
     handleQueryChange({ ...query, queryType: option.value });
   };
 
-  const onTypesChange = (items: Array<ComboboxOption<WorkItemTypeOptions>>) => {
-    const types = items.map(item => item.value)
-      .filter(Boolean) as WorkItemTypeOptions[];
-    handleQueryChange({ ...query, types });
+  const onTypesChange = (items: Array<ComboboxOption<string>>) => {
+    const selectedValues = items.map(item => item.value)
+      .filter((value): value is string => Boolean(value));
+    handleQueryChange({ ...query, types: selectedValues });
   };
 
   const onFilterChange = (event: any) => {
@@ -147,8 +156,6 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
               label={labels.types}
               labelWidth={LABEL_WIDTH}
               tooltip={tooltips.types}
-              invalid={!isTypesValid}
-              error={typesErrorMessages.atLeastOneRequired}
             >
               <MultiCombobox
                 placeholder={placeholders.types}
@@ -172,6 +179,7 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
                 users={users}
                 products={products}
                 systemAliases={systemAliases}
+                workItemTypes={workItemTypes}
                 globalVariableOptions={globalVariableOptions}
                 onChange={onFilterChange}
               />
