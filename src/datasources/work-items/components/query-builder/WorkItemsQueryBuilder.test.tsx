@@ -8,7 +8,7 @@ import {
   WorkItemsResourceQueryBuilderOperations ,
 } from 'datasources/work-items/constants/WorkItemsQueryBuilder.constants';
 import { WorkItemState, WorkItemTypeOptions } from 'datasources/work-items/types';
-import { WORK_ITEM_STATE_OPTIONS, WORK_ITEM_TYPE_FILTER_VALUES } from 'datasources/work-items/constants';
+import { WORK_ITEM_STATE_OPTIONS } from 'datasources/work-items/constants';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { User } from 'shared/types/QueryUsers.types';
@@ -235,9 +235,7 @@ describe('WorkItemsQueryBuilder', () => {
       const fields = await renderAndGetFields();
       const typeValues = optionsFor(fields, 'type').map(option => option.value);
 
-      expect(typeValues).toEqual(
-        Object.values(WorkItemTypeOptions).map(type => WORK_ITEM_TYPE_FILTER_VALUES[type])
-      );
+      expect(typeValues).toEqual(Object.values(WorkItemTypeOptions));
     });
 
     it('should load every work item state as an option for the state property', async () => {
