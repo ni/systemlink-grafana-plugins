@@ -2201,8 +2201,12 @@ describe('WorkItemsDataSource', () => {
             {
               id: '1',
               resources: {
-                assets: { selections: [{ id: 'a1', targetSystemId: 'sys1', targetParentId: 'p1' }] },
-                duts: { selections: [{ id: 'd1', targetSystemId: 'sys2', targetParentId: 'p2' }] },
+                assets: {
+                  selections: [{ id: 'a1', targetSystemId: 'sys1', targetParentId: 'p1' }],
+                },
+                duts: {
+                  selections: [{ id: 'd1', targetSystemId: 'sys2', targetParentId: 'p2' }],
+                },
                 fixtures: { selections: [{ id: 'f1' }] },
               },
             },
@@ -2215,7 +2219,10 @@ describe('WorkItemsDataSource', () => {
           refId: 'A',
           outputType: OutputType.Properties,
           types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_LOCATION, WorkItemPropertiesOptions.TARGET_PARENT],
+          properties: [
+            WorkItemPropertiesOptions.TARGET_LOCATION,
+            WorkItemPropertiesOptions.TARGET_PARENT,
+          ],
           take: 1000,
         };
 
@@ -2229,6 +2236,30 @@ describe('WorkItemsDataSource', () => {
           { name: 'Target Location (Fixture)', values: [''], type: 'string' },
           { name: 'Target Parent (Fixture)', values: [''], type: 'string' },
         ]);
+      });
+
+      it('should build the grouped target fields only once when both TARGET_LOCATION and TARGET_PARENT are selected', async () => {
+        const buildTargetResourceFieldsSpy = jest.spyOn(datasource as any, 'buildTargetResourceFields');
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', resources: { assets: { selections: [{ id: 'a1' }] } } }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [
+            WorkItemPropertiesOptions.TARGET_LOCATION,
+            WorkItemPropertiesOptions.TARGET_PARENT,
+          ],
+          take: 1000,
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(buildTargetResourceFieldsSpy).toHaveBeenCalledTimes(1);
       });
 
       it('should keep the same grouped column order regardless of which target property is selected first', async () => {

@@ -593,7 +593,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       if (includeParent) {
         fields.push(
           this.buildResourceField(`Target Parent (${label})`, flattenedRows, row =>
-            this.resolveAssetNameForTargetParent(selection(row)?.targetParentId, assetNamesLookup)
+            this.resolveAssetNameForTargetParent(
+              selection(row)?.targetParentId,
+              assetNamesLookup
+            )
           )
         );
       }
