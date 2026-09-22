@@ -834,6 +834,29 @@ describe('WorkItemsDataSource', () => {
         );
       });
 
+      it('should not add redundant parentheses when the query builder filter is already enclosed', async () => {
+        jest
+          .spyOn(datasource.templateSrv, 'replace')
+          .mockImplementation((value?: string) => value ?? '');
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: [WorkItemTypeOptions.WorkOrders],
+          filter: '(createdBy = "user-1" && createdAt > "2026-01-01T00:00:00.000Z")',
+        };
+
+        await datasource.runQuery(query, { scopedVars: {} } as any);
+
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          expect.objectContaining({
+            filter: '(type = "workorder") && (createdBy = "user-1" && createdAt > "2026-01-01T00:00:00.000Z")',
+          }),
+          { showErrorAlert: false }
+        );
+      });
+
       it('should expand a multi-value template variable into multiple expressions', async () => {
         jest
           .spyOn(datasource.templateSrv, 'replace')
@@ -851,7 +874,7 @@ describe('WorkItemsDataSource', () => {
         expect(postSpy).toHaveBeenCalledWith(
           '/niworkitem/v1/query-workitems',
           expect.objectContaining({
-            filter: '(type = "workorder") && ((state = "NEW" || state = "DEFINED"))',
+            filter: '(type = "workorder") && (state = "NEW" || state = "DEFINED")',
           }),
           { showErrorAlert: false }
         );
@@ -875,8 +898,8 @@ describe('WorkItemsDataSource', () => {
           '/niworkitem/v1/query-workitems',
           expect.objectContaining({
             filter:
-              '(type = "workorder") && ((timeline.estimatedDurationInSeconds = "86400" || ' +
-              'timeline.estimatedDurationInSeconds = "172800"))',
+              '(type = "workorder") && (timeline.estimatedDurationInSeconds = "86400" || ' +
+              'timeline.estimatedDurationInSeconds = "172800")',
           }),
           { showErrorAlert: false }
         );
@@ -2905,7 +2928,7 @@ describe('WorkItemsDataSource', () => {
       expect(replaceSpy).toHaveBeenCalledWith('state = "$state"', scopedVars);
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
-        expect.objectContaining({ filter: '((state = "NEW" || state = "DEFINED"))' }),
+        expect.objectContaining({ filter: '(state = "NEW" || state = "DEFINED")' }),
         { showErrorAlert: false }
       );
     });
