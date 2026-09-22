@@ -1,3 +1,13 @@
+## [5.20.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.19.0...v5.20.0) (2026-09-22)
+
+### Features
+
+* **workitem:** deprecate Work Orders and Test Plans data sources ([#771](https://github.com/ni/systemlink-grafana-plugins/issues/771)) ([a045db5](https://github.com/ni/systemlink-grafana-plugins/commit/a045db529e949e7b156e3cd6ca390dea85230265))
+
+### Bug Fixes
+
+* **work-items:** thread scopedVars through work item type variable resolution ([#768](https://github.com/ni/systemlink-grafana-plugins/issues/768)) ([ba3b2de](https://github.com/ni/systemlink-grafana-plugins/commit/ba3b2debe016606af718397b5dd573171af5b249))
+
 ## [5.19.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.18.3...v5.19.0) (2026-09-22)
 
 ### Features
