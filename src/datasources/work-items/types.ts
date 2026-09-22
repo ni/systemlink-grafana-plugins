@@ -16,9 +16,6 @@ export enum WorkItemState {
   Canceled = 'CANCELED',
 }
 
-// Values are the backend `type` filter tokens. These are what get persisted into the saved
-// query JSON (dashboard/panel model), keeping the stored form aligned with the backend, the
-// query builder Type filter, the TYPE property column, and the dynamic types API.
 export enum WorkItemTypeOptions {
   WorkOrders = 'workorder',
   TestPlans = 'testplan',
