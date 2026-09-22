@@ -2233,8 +2233,6 @@ describe('WorkItemsDataSource', () => {
           { name: 'Target Parent (Asset)', values: ['Parent Asset 1'], type: 'string' },
           { name: 'Target Location (DUT)', values: ['sys2'], type: 'string' },
           { name: 'Target Parent (DUT)', values: ['p2'], type: 'string' },
-          { name: 'Target Location (Fixture)', values: [''], type: 'string' },
-          { name: 'Target Parent (Fixture)', values: [''], type: 'string' },
         ]);
       });
 
@@ -2284,8 +2282,6 @@ describe('WorkItemsDataSource', () => {
           'Target Parent (Asset)',
           'Target Location (DUT)',
           'Target Parent (DUT)',
-          'Target Location (Fixture)',
-          'Target Parent (Fixture)',
         ]);
       });
     });

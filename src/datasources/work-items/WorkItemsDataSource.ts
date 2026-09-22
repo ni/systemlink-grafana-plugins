@@ -565,8 +565,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return fields;
   }
 
-  // Groups target location and target parent columns per resource (e.g. asset location next to
-  // asset parent) instead of grouping all locations together followed by all parents.
+  // Groups target location and target parent columns per resource (e.g. asset location next to asset parent)
   private buildTargetResourceFields(
     flattenedRows: FlattenedRow[],
     locationsLookup: Map<string, Location>,
@@ -578,7 +577,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const resources: Array<{ label: string; selection: (row: FlattenedRow) => ResourceSelection | undefined }> = [
       { label: 'Asset', selection: row => row.assetSelection },
       { label: 'DUT', selection: row => row.dutSelection },
-      { label: 'Fixture', selection: row => row.fixtureSelection },
     ];
 
     const fields: FieldDTO[] = [];
