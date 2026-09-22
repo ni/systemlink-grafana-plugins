@@ -612,6 +612,25 @@ describe('WorkItemsDataSource', () => {
       );
     });
 
+    it('should pass the request scoped variables when resolving the selected types', async () => {
+      const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
+      jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+      templateSrv.containsTemplate.mockImplementation((value?: string) => value === '$type_var');
+      templateSrv.replace.mockImplementation((value?: string) =>
+        value === '$type_var' ? WorkItemTypeOptions.WorkOrders : value ?? ''
+      );
+      const scopedVars = { type_var: { text: 'Work orders', value: WorkItemTypeOptions.WorkOrders } };
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+        types: ['$type_var'] as unknown as WorkItemTypeOptions[],
+      };
+
+      await datasource.runQuery(query, { scopedVars } as unknown as DataQueryRequest);
+
+      expect(templateSrv.replace).toHaveBeenCalledWith('$type_var', scopedVars);
+    });
+
     describe('duration filter transformation', () => {
       it('should convert estimatedDurationInDays to timeline.estimatedDurationInSeconds', async () => {
         const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
@@ -2913,6 +2932,31 @@ describe('WorkItemsDataSource', () => {
 
       expect(result).toEqual([]);
       expect(postSpy).not.toHaveBeenCalled();
+    });
+
+    it('should pass the request scoped variables when resolving the selected types for a variable query', async () => {
+      const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
+      jest.spyOn(datasource, 'post').mockResolvedValue({
+        workItems: [],
+        continuationToken: '',
+        totalCount: 0,
+      });
+      templateSrv.containsTemplate.mockImplementation((value?: string) => value === '$type_var');
+      templateSrv.replace.mockImplementation((value?: string) =>
+        value === '$type_var' ? WorkItemTypeOptions.WorkOrders : value ?? ''
+      );
+      const scopedVars = { type_var: { text: 'Work orders', value: WorkItemTypeOptions.WorkOrders } };
+
+      await datasource.metricFindQuery(
+        {
+          refId: 'A',
+          queryType: WorkItemsVariableQueryType.ListWorkItems,
+          types: ['$type_var'] as unknown as WorkItemTypeOptions[],
+        },
+        { scopedVars } as any
+      );
+
+      expect(templateSrv.replace).toHaveBeenCalledWith('$type_var', scopedVars);
     });
 
     it('should return the list of work item types when the query type is list work item types', async () => {

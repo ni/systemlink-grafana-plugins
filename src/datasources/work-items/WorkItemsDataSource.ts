@@ -822,7 +822,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   
   private async processTotalCountQuery(query: WorkItemsQuery, scopedVars?: ScopedVars): Promise<DataFrameDTO> {
-    const { resolvedTypes } = this.resolveSelectedTypes(query.types!);
+    const { resolvedTypes } = this.resolveSelectedTypes(query.types!, scopedVars);
     const queryFilter = query.filter?.trim();
     const transformedQueryFilter = queryFilter
       ? this.transformQueryBuilderFilter(queryFilter, scopedVars)
@@ -944,7 +944,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     filter?: string,
     scopedVars?: ScopedVars
   ): { filter: string | undefined; hasRecognizedTypes: boolean } {
-    const { allTypesSelected, filter: typeFilter } = this.buildTypeFilter(types);
+    const { allTypesSelected, filter: typeFilter } = this.buildTypeFilter(types, scopedVars);
 
     if (!allTypesSelected && typeFilter === '') {
       return { filter: undefined, hasRecognizedTypes: false };
@@ -970,9 +970,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private buildTypeFilter(
-    types: WorkItemTypeOptions[]
+    types: WorkItemTypeOptions[],
+    scopedVars?: ScopedVars
   ): { allTypesSelected: boolean; filter: string } {
-    const { resolvedTypes, allTypesSelected } = this.resolveSelectedTypes(types);
+    const { resolvedTypes, allTypesSelected } = this.resolveSelectedTypes(types, scopedVars);
     const typeValues = resolvedTypes.map(type => WORK_ITEM_TYPE_FILTER_VALUES[type]);
     return {
       allTypesSelected,
@@ -981,9 +982,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private resolveSelectedTypes(
-    types: WorkItemTypeOptions[]
+    types: WorkItemTypeOptions[],
+    scopedVars?: ScopedVars
   ): { resolvedTypes: WorkItemTypeOptions[]; allTypesSelected: boolean } {
-    const resolvedTypes = (replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[]).filter(
+    const resolvedTypes = (replaceVariables(types, this.templateSrv, scopedVars) as WorkItemTypeOptions[]).filter(
       type => WORK_ITEM_TYPE_FILTER_VALUES[type] !== undefined
     );
     const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
