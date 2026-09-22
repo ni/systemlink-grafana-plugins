@@ -239,7 +239,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const productsLookup = this.isProductLookupRequired(query.properties)
       ? await this.loadProductNamesAndPartNumbers()
       : new Map<string, ProductPartNumberAndName>();
-    const workItemTypeLabels = this.isPropertySelected(WorkItemPropertiesOptions.TYPE, query.properties)
+    const workItemTypesLookup = this.isPropertySelected(WorkItemPropertiesOptions.TYPE, query.properties)
       ? new Map((await this.loadWorkItemTypes()).map(type => [type.value, type.label]))
       : new Map<string, string>();
 
@@ -278,7 +278,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         systemAliasesLookup,
         locationsLookup,
         productsLookup,
-        workItemTypeLabels
+        workItemTypesLookup
       ),
     };
   }
@@ -551,7 +551,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     systemAliasesLookup: Map<string, SystemAlias>,
     locationsLookup: Map<string, Location>,
     productsLookup: Map<string, ProductPartNumberAndName>,
-    workItemTypeLabels: Map<string, string>
+    workItemTypesLookup: Map<string, string>
   ) {
     const fields: FieldDTO[] = [];
     const isTargetLocationSelected = properties.includes(WorkItemPropertiesOptions.TARGET_LOCATION);
@@ -587,7 +587,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
           assetNamesLookup,
           systemAliasesLookup,
           productsLookup,
-          workItemTypeLabels
+          workItemTypesLookup
         )
       );
       const fieldType = this.getPropertyFieldType(property);
@@ -665,7 +665,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     assetNamesLookup: Map<string, string>,
     systemAliasesLookup: Map<string, SystemAlias>,
     productsLookup: Map<string, ProductPartNumberAndName>,
-    workItemTypeLabels: Map<string, string>
+    workItemTypesLookup: Map<string, string>
   ): string | null {
     const workItem = row.workItem;
     switch (property) {
@@ -674,7 +674,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       case WorkItemPropertiesOptions.NAME:
         return workItem.name ?? '';
       case WorkItemPropertiesOptions.TYPE:
-        return this.formatWorkItemTypeLabel(workItem.type, workItemTypeLabels);
+        return this.formatWorkItemTypeLabel(workItem.type, workItemTypesLookup);
       case WorkItemPropertiesOptions.STATE:
         return this.formatStateLabel(workItem.state);
       case WorkItemPropertiesOptions.SUBSTATE:
@@ -767,8 +767,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     }
   }
 
-  private formatWorkItemTypeLabel(type: string | undefined, workItemTypeLabels: Map<string, string>): string {
-    return type ? workItemTypeLabels.get(type) ?? type : '';
+  private formatWorkItemTypeLabel(type: string | undefined, workItemTypesLookup: Map<string, string>): string {
+    return type ? workItemTypesLookup.get(type) ?? type : '';
   }
 
   private formatStateLabel(state?: string): string {
