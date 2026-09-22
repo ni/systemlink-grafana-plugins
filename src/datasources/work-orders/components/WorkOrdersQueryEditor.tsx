@@ -4,6 +4,7 @@ import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
 import { OrderBy, OutputType, WorkOrderProperties, WorkOrderPropertiesOptions, WorkOrdersQuery } from '../types';
 import { WorkOrdersQueryBuilder } from './query-builder/WorkOrdersQueryBuilder';
 import {
+  Alert,
   AutoSizeInput,
   HorizontalGroup,
   InlineField,
@@ -12,7 +13,13 @@ import {
   VerticalGroup
 } from '@grafana/ui';
 import './WorkOrdersQueryEditor.scss';
-import { TAKE_LIMIT, takeErrorMessages, tooltips } from '../constants/QueryEditor.constants';
+import {
+  DEPRECATION_NOTICE_MAX_WIDTH,
+  deprecationMessage,
+  TAKE_LIMIT,
+  takeErrorMessages,
+  tooltips,
+} from '../constants/QueryEditor.constants';
 import { validateNumericInput } from 'core/utils';
 import { Workspace } from 'core/types';
 import { User } from 'shared/types/QueryUsers.types';
@@ -108,7 +115,22 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
 
   return (
     <>
-      <HorizontalGroup align="flex-start">
+      <div>
+        <div style={{ width: '100%', maxWidth: DEPRECATION_NOTICE_MAX_WIDTH }}>
+          <Alert severity="warning" title={deprecationMessage.title}>
+            {deprecationMessage.message}
+            <a
+              href={deprecationMessage.linkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: 'underline' }}
+            >
+              {deprecationMessage.linkText}
+            </a>
+            .
+          </Alert>
+        </div>
+        <HorizontalGroup align="flex-start">
         <VerticalGroup>
           <InlineField label="Output" labelWidth={25} tooltip={tooltips.outputType}>
             <RadioButtonGroup
@@ -195,7 +217,8 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
           )}
           </div>
         </VerticalGroup>
-      </HorizontalGroup>
+        </HorizontalGroup>
+      </div>
       <FloatingError message={datasource.errorTitle} innerMessage={datasource.errorDescription} severity="warning" />
     </>
   );
