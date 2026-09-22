@@ -21,7 +21,6 @@ import {
   LABEL_WIDTH,
   OrderBy,
   WorkItemProperties,
-  WorkItemTypes,
   labels,
   placeholders,
   propertiesErrorMessages,
@@ -32,7 +31,6 @@ import {
   CUSTOM_PROPERTY_OPTIONS_LIMIT, 
   CUSTOM_PROPERTY_SUFFIX, DEFAULT_TAKE,
   ALL_WORK_ITEM_TYPES_VALUE,
-  WORK_ITEM_TYPE_FILTER_VALUES,
 } from '../constants';
 import {
   OrderByOptions,
@@ -53,10 +51,6 @@ import { SystemAlias } from 'shared/types/QuerySystems.types';
 
 type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
 const ALL_TYPES_OPTION: ComboboxOption<string> = { label: 'All', value: ALL_WORK_ITEM_TYPES_VALUE };
-const LEGACY_TYPE_OPTIONS: Array<ComboboxOption<string>> = WorkItemTypes.map(({ label, value }) => ({
-  label,
-  value: WORK_ITEM_TYPE_FILTER_VALUES[value],
-}));
 
 const dedupeOptionsByValue = (options: Array<ComboboxOption<string>>): Array<ComboboxOption<string>> =>
   Array.from(new Map(options.map(option => [option.value, option])).values());
@@ -242,7 +236,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   );
 
   const typeOptions = useMemo(
-    () => dedupeOptionsByValue([ALL_TYPES_OPTION, ...globalVariableOptions, ...LEGACY_TYPE_OPTIONS, ...(workItemTypes ?? [])]),
+    () => dedupeOptionsByValue([ALL_TYPES_OPTION, ...globalVariableOptions, ...(workItemTypes ?? [])]),
     [globalVariableOptions, workItemTypes]
   );
 

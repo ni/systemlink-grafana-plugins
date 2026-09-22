@@ -20,7 +20,6 @@ import {
   CONTROL_WIDTH,
   LABEL_WIDTH,
   OrderBy,
-  WorkItemTypes,
   labels,
   placeholders,
   tooltips,
@@ -28,17 +27,13 @@ import {
 } from '../constants/QueryEditor.constants';
 import { getTakeError, isTypesNonEmpty } from '../utils';
 import { WorkItemsQueryBuilder } from './query-builder/WorkItemsQueryBuilder';
-import { ALL_WORK_ITEM_TYPES_VALUE, WORK_ITEM_TYPE_FILTER_VALUES } from '../constants';
+import { ALL_WORK_ITEM_TYPES_VALUE } from '../constants';
 
 type Props = Omit<QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>, 'query' | 'onChange'> & {
   query: WorkItemsVariableQuery;
   onChange: (query: WorkItemsVariableQuery) => void;
 };
 const ALL_TYPES_OPTION: ComboboxOption<string> = { label: 'All', value: ALL_WORK_ITEM_TYPES_VALUE };
-const LEGACY_TYPE_OPTIONS: Array<ComboboxOption<string>> = WorkItemTypes.map(({ label, value }) => ({
-  label,
-  value: WORK_ITEM_TYPE_FILTER_VALUES[value],
-}));
 
 const dedupeOptionsByValue = (options: Array<ComboboxOption<string>>): Array<ComboboxOption<string>> =>
   Array.from(new Map(options.map(option => [option.value, option])).values());
@@ -104,7 +99,7 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
   );
 
   const typeOptions = useMemo(
-    () => dedupeOptionsByValue([ALL_TYPES_OPTION, ...globalVariableOptions, ...LEGACY_TYPE_OPTIONS, ...(workItemTypes ?? [])]),
+    () => dedupeOptionsByValue([ALL_TYPES_OPTION, ...globalVariableOptions, ...(workItemTypes ?? [])]),
     [globalVariableOptions, workItemTypes]
   );
 

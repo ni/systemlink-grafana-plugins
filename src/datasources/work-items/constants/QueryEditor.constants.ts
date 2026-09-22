@@ -1,5 +1,4 @@
-import { MetricFindValue } from '@grafana/data';
-import { OrderByOptions, WorkItemPropertiesGroup, WorkItemPropertiesOptions, WorkItemTypeOptions } from '../types';
+import { OrderByOptions, WorkItemPropertiesGroup, WorkItemPropertiesOptions } from '../types';
 import { TAKE_LIMIT } from '../constants';
 
 export const LABEL_WIDTH = 25;
@@ -48,31 +47,6 @@ export const tooltips = {
   descending: 'Toggle descending sort order for properties output.',
   take: `Set the maximum number of work items to return. Maximum is ${TAKE_LIMIT.toLocaleString()}.`,
 };
-
-export const WorkItemTypes = [
-  { label: 'Work orders', value: WorkItemTypeOptions.WorkOrders },
-  { label: 'Test plans', value: WorkItemTypeOptions.TestPlans },
-  { label: 'Job', value: WorkItemTypeOptions.Job },
-  { label: 'Maintenance', value: WorkItemTypeOptions.Maintenance },
-  { label: 'Calibration', value: WorkItemTypeOptions.Calibration },
-  { label: 'Reservation', value: WorkItemTypeOptions.Reservation },
-  { label: 'Transport Order', value: WorkItemTypeOptions.TransportOrder },
-];
-
-export const WorkItemTypeMetricFindValues: MetricFindValue[] = WorkItemTypes.map(
-  type => (
-    {
-      text: type.label,
-      value: type.value,
-    }
-  )
-);
-
-// Maps each work item type option to its human-readable label. Derived from WorkItemTypes so the
-// type picker options and the Total Count column headers stay in sync from a single source.
-export const WorkItemTypeLabels = Object.fromEntries(
-  WorkItemTypes.map(({ label, value }) => [value, label])
-) as Record<WorkItemTypeOptions, string>;
 
 export const OrderBy = [
   {

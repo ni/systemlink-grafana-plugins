@@ -148,6 +148,24 @@ describe('WorkItemsVariableQueryEditor', () => {
     }
   });
 
+  it('should not offer legacy type options before API types are loaded', async () => {
+    const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+
+    try {
+      await renderEditor({ types: [] }, datasource => {
+        jest.spyOn(datasource, 'loadWorkItemTypes').mockReturnValue(new Promise(() => undefined));
+      });
+
+      await userEvent.click(page.typesMultiCombobox()!);
+
+      expect(screen.queryByRole('option', { name: 'Work orders' })).toBeNull();
+      expect(screen.queryByRole('option', { name: 'Test plans' })).toBeNull();
+      expect(await page.typeSelectOption('$test_var')).toBeInTheDocument();
+    } finally {
+      offsetHeightSpy.mockRestore();
+    }
+  });
+
   it('should offer dashboard variables as options in the type control', async () => {
     const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
 

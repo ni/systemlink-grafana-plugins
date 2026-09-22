@@ -1,4 +1,4 @@
-import { WorkItem, WorkItemTypeOptions, WorkItemPropertiesOptions, WorkItemState } from './types';
+import { WorkItem, WorkItemPropertiesOptions, WorkItemState } from './types';
 
 export const TAKE_LIMIT = 10000;
 export const DEFAULT_TAKE = 1000;
@@ -10,17 +10,6 @@ export const SECONDS_IN_HOUR = 3600;
 export const CUSTOM_PROPERTY_OPTIONS_LIMIT = 10_000;
 
 export const CUSTOM_PROPERTY_SUFFIX = '-(custom-properties)';
-
-// Maps each work item type option to the backend's `type` filter value.
-export const WORK_ITEM_TYPE_FILTER_VALUES: Record<WorkItemTypeOptions, string> = {
-  [WorkItemTypeOptions.WorkOrders]: 'workorder',
-  [WorkItemTypeOptions.TestPlans]: 'testplan',
-  [WorkItemTypeOptions.Job]: 'job',
-  [WorkItemTypeOptions.Maintenance]: 'maintenance',
-  [WorkItemTypeOptions.Calibration]: 'calibration',
-  [WorkItemTypeOptions.Reservation]: 'reservation',
-  [WorkItemTypeOptions.TransportOrder]: 'transportorder',
-};
 
 // Maps each work item state to its human-readable label and the backend's `state` filter value.
 export const WORK_ITEM_STATE_OPTIONS: Record<WorkItemState, { label: string; value: string }> = {
@@ -93,14 +82,3 @@ export const WORK_ITEM_PROPERTIES_PROJECTIONS: Record<WorkItemPropertiesOptions,
 };
 
 export const WORK_ITEM_PROPERTIES_PROJECTION = WORK_ITEM_PROPERTIES_PROJECTIONS[WorkItemPropertiesOptions.PROPERTIES][0];
-
-// Maps normalized work item type values to human-readable labels.
-export const WORK_ITEM_TYPE_LABEL_MAP: Record<string, string> = {
-  testplan: 'Test plan',
-  workorder: 'Work order',
-  job: 'Job',
-  maintenance: 'Maintenance',
-  calibration: 'Calibration',
-  reservation: 'Reservation',
-  transportorder: 'Transport order',
-};

@@ -1,5 +1,6 @@
 import { DataQueryRequest, TypedVariableModel } from '@grafana/data';
 import { WorkItemsDataSource } from './WorkItemsDataSource';
+import { WorkItemTypeUtils } from './work-item-type.utils';
 import { setupDataSource } from 'test/fixtures';
 import { 
   OrderByOptions, 
@@ -76,9 +77,23 @@ jest.mock('shared/system.utils', () => {
 
 describe('WorkItemsDataSource', () => {
   let datasource: WorkItemsDataSource;
+  let getWorkItemTypesSpy: jest.SpyInstance;
 
   beforeEach(() => {
+    getWorkItemTypesSpy = jest.spyOn(WorkItemTypeUtils.prototype, 'getWorkItemTypes').mockResolvedValue([
+      { label: 'Work orders', value: 'workorder' },
+      { label: 'Test plans', value: 'testplan' },
+      { label: 'Job', value: 'job' },
+      { label: 'Maintenance', value: 'maintenance' },
+      { label: 'Calibration', value: 'calibration' },
+      { label: 'Reservation', value: 'reservation' },
+      { label: 'Transport Order', value: 'transportorder' },
+    ]);
     [datasource] = setupDataSource(WorkItemsDataSource);
+  });
+
+  afterEach(() => {
+    getWorkItemTypesSpy.mockRestore();
   });
 
   it('should apply expected default query values', () => {
@@ -134,31 +149,26 @@ describe('WorkItemsDataSource', () => {
   });
 
   describe('loadWorkItemTypes', () => {
-    it('should load work item type options from the work item types endpoint and cache them', async () => {
-      const getSpy = jest.spyOn(datasource, 'get').mockResolvedValue({
-        workItemTypes: [
-          { type: 'workorder' },
-          { type: 'customtype', description: 'Custom Type' },
-          { description: 'Missing type' },
-          { type: 'customtype', description: 'Duplicate Custom Type' },
-        ],
-      });
-
-      await expect(datasource.loadWorkItemTypes()).resolves.toEqual([
-        { label: 'Work order', value: 'workorder' },
-        { label: 'Custom Type', value: 'customtype' },
-      ]);
-      await expect(datasource.loadWorkItemTypes()).resolves.toEqual([
-        { label: 'Work order', value: 'workorder' },
+    it('should load work item type options from the work item type utility', async () => {
+      getWorkItemTypesSpy.mockResolvedValue([
+        { label: 'Work orders', value: 'workorder' },
         { label: 'Custom Type', value: 'customtype' },
       ]);
 
-      expect(getSpy).toHaveBeenCalledTimes(1);
-      expect(getSpy).toHaveBeenCalledWith('/niworkitem/v1/workitemtypes', { showErrorAlert: false });
+      await expect(datasource.loadWorkItemTypes()).resolves.toEqual([
+        { label: 'Work orders', value: 'workorder' },
+        { label: 'Custom Type', value: 'customtype' },
+      ]);
+      await expect(datasource.loadWorkItemTypes()).resolves.toEqual([
+        { label: 'Work orders', value: 'workorder' },
+        { label: 'Custom Type', value: 'customtype' },
+      ]);
+
+      expect(getWorkItemTypesSpy).toHaveBeenCalledTimes(2);
     });
 
     it('should publish a warning and return an empty list when work item types cannot be loaded', async () => {
-      jest.spyOn(datasource, 'get').mockRejectedValue(new Error('Failed to load types'));
+      getWorkItemTypesSpy.mockRejectedValue(new Error('Failed to load types'));
       const publishSpy = jest.fn();
       (datasource as any).appEvents = { publish: publishSpy };
 
@@ -248,7 +258,7 @@ describe('WorkItemsDataSource', () => {
       const query = {
         refId: 'A',
         outputType: OutputType.TotalCount,
-        types: [WorkItemTypeOptions.WorkOrders],
+        types: ['WORK_ORDERS'],
       };
 
       await datasource.runQuery(query, { scopedVars: {} } as DataQueryRequest);
@@ -1027,7 +1037,7 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([
           { name: 'Work item ID', values: ['1'], type: 'string' },
           { name: 'Work item name', values: ['Battery Cycle Test'], type: 'string' },
-          { name: 'Work item type', values: ['Test plan'], type: 'string' },
+          { name: 'Work item type', values: ['Test plans'], type: 'string' },
           { name: 'State', values: ['New'], type: 'string' },
           { name: 'Substate', values: ['substate1'], type: 'string' },
           { name: 'Description', values: ['Battery cycle test at various temperatures.'], type: 'string' },
@@ -1166,7 +1176,7 @@ describe('WorkItemsDataSource', () => {
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
         expect(result.fields).toEqual([
-          { name: 'Work item type', values: ['Test plan', 'Transport order'], type: 'string' },
+          { name: 'Work item type', values: ['Test plans', 'Transport Order'], type: 'string' },
           { name: 'State', values: ['In progress', 'Pending approval'], type: 'string' },
         ]);
       });
@@ -3042,12 +3052,10 @@ describe('WorkItemsDataSource', () => {
     });
 
     it('should return the dynamically loaded list of work item types when the query type is list work item types', async () => {
-      jest.spyOn(datasource, 'get').mockResolvedValue({
-        workItemTypes: [
-          { type: 'workorder' },
-          { type: 'customtype', description: 'Custom Type' },
-        ],
-      });
+      getWorkItemTypesSpy.mockResolvedValue([
+        { label: 'Work order', value: 'workorder' },
+        { label: 'Custom Type', value: 'customtype' },
+      ]);
 
       const result = await datasource.metricFindQuery(
         { refId: 'A', queryType: WorkItemsVariableQueryType.ListWorkItemTypes },

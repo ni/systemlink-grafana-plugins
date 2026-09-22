@@ -116,6 +116,28 @@ describe('WorkItemsQueryEditor', () => {
   });
 
   describe('type control', () => {
+    it('should not offer legacy type options before API types are loaded', async () => {
+      const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
+      let resolveWorkItemTypes: (value: never[]) => void = () => {};
+      loadWorkItemTypesSpy.mockReturnValue(new Promise(resolve => {
+        resolveWorkItemTypes = resolve;
+      }));
+
+      try {
+        const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+        render({ types: [] });
+
+        fireEvent.click(page.typesMultiCombobox()!);
+
+        expect(screen.queryByRole('option', { name: 'Work orders' })).toBeNull();
+        expect(screen.queryByRole('option', { name: 'Test plans' })).toBeNull();
+        expect(screen.getByRole('option', { name: '$test_var' })).toBeInTheDocument();
+      } finally {
+        resolveWorkItemTypes([]);
+        offsetHeightSpy.mockRestore();
+      }
+    });
+
     it('should offer dashboard variables as options in the type control', async () => {
       const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
 
@@ -125,8 +147,10 @@ describe('WorkItemsQueryEditor', () => {
         onChange.mockClear();
         onRunQuery.mockClear();
 
+        await waitFor(() => expect(loadWorkItemTypesSpy).toHaveBeenCalled());
         const typesCombobox = page.typesMultiCombobox()!;
-        await userEvent.click(typesCombobox);
+        fireEvent.click(typesCombobox);
+        fireEvent.change(typesCombobox, { target: { value: '$test_var' } });
         expect(await page.typeSelectOption('$test_var')).toBeInTheDocument();
 
         await userEvent.click(await page.typeSelectOption('$test_var'));
@@ -201,14 +225,18 @@ describe('WorkItemsQueryEditor', () => {
         const [onChange, onRunQuery] = render({ types: [WorkItemTypeOptions.WorkOrders] });
         onRunQuery.mockClear();
 
-        await userEvent.click(page.removeOptionButton('Work orders'));
+        const removeWorkOrderButton =
+          screen.queryByRole('button', { name: 'Remove workorder' }) ?? page.removeOptionButton('Work orders');
+        await userEvent.click(removeWorkOrderButton);
 
         expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeVisible();
         expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ types: [] }));
         expect(onRunQuery).not.toHaveBeenCalled();
 
         const typesCombobox = page.typesMultiCombobox()!;
-        await userEvent.click(typesCombobox);
+        await waitFor(() => expect(loadWorkItemTypesSpy).toHaveBeenCalled());
+        fireEvent.click(typesCombobox);
+        fireEvent.change(typesCombobox, { target: { value: 'Work orders' } });
         await userEvent.click(await page.typeSelectOption('Work orders'));
 
         expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeNull();

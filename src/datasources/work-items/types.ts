@@ -17,13 +17,13 @@ export enum WorkItemState {
 }
 
 export enum WorkItemTypeOptions {
-  WorkOrders = 'WORK_ORDERS',
-  TestPlans = 'TEST_PLANS',
-  Job = 'JOB',
-  Maintenance = 'MAINTENANCE',
-  Calibration = 'CALIBRATION',
-  Reservation = 'RESERVATION',
-  TransportOrder = 'TRANSPORT_ORDER',
+  WorkOrders = 'workorder',
+  TestPlans = 'testplan',
+  Job = 'job',
+  Maintenance = 'maintenance',
+  Calibration = 'calibration',
+  Reservation = 'reservation',
+  TransportOrder = 'transportorder',
 }
 
 export interface WorkItemTypeConfig {
