@@ -1,3 +1,13 @@
+## [5.19.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.18.3...v5.19.0) (2026-09-22)
+
+### Features
+
+* **work-items:** add Product ID and Product name properties ([#772](https://github.com/ni/systemlink-grafana-plugins/issues/772)) ([eb47324](https://github.com/ni/systemlink-grafana-plugins/commit/eb47324b605d09052d492db6935443385bb3966d))
+
+### Bug Fixes
+
+* **work-items:** group target location and parent columns per resource ([#774](https://github.com/ni/systemlink-grafana-plugins/issues/774)) ([7bbc4e4](https://github.com/ni/systemlink-grafana-plugins/commit/7bbc4e46e8a878d5539ce6757578168edf93aa29))
+
 ## [5.18.3](https://github.com/ni/systemlink-grafana-plugins/compare/v5.18.2...v5.18.3) (2026-09-22)
 
 ### Bug Fixes
