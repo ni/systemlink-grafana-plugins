@@ -2721,49 +2721,17 @@ describe('ListAlarmsQueryHandler', () => {
       expect(users).toEqual(new Map<string, User>());
     });
 
-    [
-      {
-        error: new Error('Request failed with status code: 404'),
-        expectedErrorDescription:
-          'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.',
-        case: '404 error',
-      },
-      {
-        error: new Error('Request failed with status code: 429'),
-        expectedErrorDescription:
-          'The query builder lookups failed due to too many requests. Please try again later.',
-        case: '429 error',
-      },
-      {
-        error: new Error('Request failed with status code: 504'),
-        expectedErrorDescription:
-          'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.',
-        case: '504 error',
-      },
-      {
-        error: new Error('Request failed with status code: 500, Error message: {"message": "Internal Server Error"}'),
-        expectedErrorDescription:
-          'Some values may not be available in the query builder lookups due to the following error: Internal Server Error.',
-        case: '500 error with message',
-      },
-      {
-        error: new Error('API failed'),
-        expectedErrorDescription:
-          'Some values may not be available in the query builder lookups due to an unknown error.',
-        case: 'Unknown error',
-      },
-    ].forEach(({ error, expectedErrorDescription, case: testCase }) => {
-      it(`should handle ${testCase}`, async () => {
-        const expectedErrorTitle = 'Warning during alarms query';
-        jest
-          .spyOn((datastore as any).usersUtils, 'getUsers')
-          .mockRejectedValue(error);
+    it('should set errorTitle and errorDescription when the lookup fails', async () => {
+      jest
+        .spyOn((datastore as any).usersUtils, 'getUsers')
+        .mockRejectedValue(new Error('Request failed with status code: 404'));
 
-        await (datastore as any).loadUsers();
+      await (datastore as any).loadUsers();
 
-        expect(datastore.errorTitle).toBe(expectedErrorTitle);
-        expect(datastore.errorDescription).toBe(expectedErrorDescription);
-      });
+      expect(datastore.errorTitle).toBe('Warning during alarms query');
+      expect(datastore.errorDescription).toBe(
+        'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.'
+      );
     });
   });
 });

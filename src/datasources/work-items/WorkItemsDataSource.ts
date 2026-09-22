@@ -14,7 +14,7 @@ import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana
 import { ComboboxOption } from '@grafana/ui';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
-import { extractErrorInfo } from 'core/errors';
+import { getQueryError, getQueryBuilderLookupsError } from 'core/errors';
 import { ProductUtils } from 'shared/product.utils';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 import { SystemUtils } from 'shared/system.utils';
@@ -25,7 +25,7 @@ import { AssetUtils, AssetProjectionProperties } from 'shared/asset.utils';
 import { WorkspaceUtils } from 'shared/workspace.utils';
 import { LocationUtils } from 'shared/location.utils';
 import { Location } from 'shared/types/QueryLocations.types';
-import { queryInBatches, replaceVariables } from 'core/utils';
+import { queryInBatches, replaceVariables, transformDuration } from 'core/utils';
 import {
   computedFieldsupportedOperations,
   ExpressionTransformFunction,
@@ -67,8 +67,8 @@ import {
   QUERY_WORK_ITEMS_MAX_TAKE,
   QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
 } from './constants/QueryWorkItems.constants';
-import { WorkItemProperties, WorkItemTypeMetricFindValues } from './constants/QueryEditor.constants';
-import { isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty, transformDuration } from './utils';
+import { WorkItemProperties, WorkItemTypeLabels, WorkItemTypeMetricFindValues } from './constants/QueryEditor.constants';
+import { isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty } from './utils';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
@@ -184,17 +184,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
-    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
-      query.types!,
-      query.filter,
-      options.scopedVars
-    );
-
-    // A selection that resolves only to empty or unrecognized values (e.g. a template variable
-    // that expands to nothing) yields no type filter. Returning early avoids dropping the type
-    // constraint entirely, which would otherwise match every work item instead of none.
-    if (!hasRecognizedTypes) {
-      return this.getEmptyDataFrameDTO(query.refId);
+    if (query.outputType === OutputType.TotalCount) {
+      return this.processTotalCountQuery(query, options.scopedVars);
     }
 
     if (
@@ -202,16 +193,17 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       isPropertiesNonEmpty(query.properties, query.customProperties) &&
       isTakeValid(query.take)
     ) {
-      return this.processWorkItemsQuery(query, filter);
-    }
+      const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
+        query.types!,
+        query.filter,
+        options.scopedVars
+      );
 
-    if (query.outputType === OutputType.TotalCount) {
-      const totalCount = await this.queryWorkItemsCount(filter);
-      return {
-        refId: query.refId,
-        name: query.refId,
-        fields: [{ name: query.refId, values: [totalCount] }],
-      };
+      if (!hasRecognizedTypes) {
+        return this.getEmptyDataFrameDTO(query.refId);
+      }
+
+      return this.processWorkItemsQuery(query, filter);
     }
 
     return this.getEmptyDataFrameDTO(query.refId);
@@ -426,9 +418,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
           selection => selection.targetParentId && ids.push(selection.targetParentId)
         );
         workItem.resources?.duts?.selections?.forEach(
-          selection => selection.targetParentId && ids.push(selection.targetParentId)
-        );
-        workItem.resources?.fixtures?.selections?.forEach(
           selection => selection.targetParentId && ids.push(selection.targetParentId)
         );
       }
@@ -797,6 +786,67 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return projection.size > 0 ? [...projection] : undefined;
   }
 
+
+
+  
+  private async processTotalCountQuery(query: WorkItemsQuery, scopedVars?: ScopedVars): Promise<DataFrameDTO> {
+    const { resolvedTypes } = this.resolveSelectedTypes(query.types!);
+    const queryFilter = query.filter?.trim();
+    const transformedQueryFilter = queryFilter
+      ? this.transformQueryBuilderFilter(queryFilter, scopedVars)
+      : queryFilter;
+
+    const filters = resolvedTypes.map(type => {
+      const typeFilter = `type = "${WORK_ITEM_TYPE_FILTER_VALUES[type]}"`;
+      return this.buildQueryFilter(
+        `(${typeFilter})`,
+        transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
+      );
+    });
+
+    const workItemCounts = await this.queryWorkItemsCountsInBatches(filters);
+
+    return {
+      refId: query.refId,
+      name: query.refId,
+      fields: resolvedTypes.map((type, index) => ({
+        name: WorkItemTypeLabels[type],
+        values: [workItemCounts[index]],
+      })),
+    };
+  }
+
+  private async queryWorkItemsCountsInBatches(
+    filters: Array<string | undefined>
+  ): Promise<number[]> {
+    const workItemCounts: number[] = [];
+
+    for (
+      let index = 0;
+      index < filters.length;
+      index += QUERY_WORK_ITEMS_REQUEST_PER_SECOND
+    ) {
+      const start = Date.now();
+      const batch = filters.slice(index, index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND);
+      // Requests within a batch run sequentially to spread the load and avoid 429 errors.
+      for (const filter of batch) {
+        workItemCounts.push(await this.queryWorkItemsCount(filter));
+      }
+
+      const hasMoreRequests = index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND < filters.length;
+      const elapsed = Date.now() - start;
+      if (hasMoreRequests && elapsed < 1000) {
+        await this.delay(1000 - elapsed);
+      }
+    }
+
+    return workItemCounts;
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   async queryWorkItemsCount(filter?: string): Promise<number> {
     const body: QueryWorkItemsRequestBody = {
       filter,
@@ -818,30 +868,12 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         { showErrorAlert: false } // suppress default error alert since we handle errors manually
       );
     } catch (error) {
-      const errorDetails = extractErrorInfo((error as Error).message);
-      let errorMessage: string;
-      switch (errorDetails.statusCode) {
-        case '':
-          errorMessage = 'The query failed due to an unknown error.';
-          break;
-        case '404':
-          errorMessage = 'The query to fetch work items failed because the requested resource was not found. Please check the query parameters and try again.';
-          break;
-        case '429':
-          errorMessage = 'The query to fetch work items failed due to too many requests. Please try again later.';
-          break;
-        case '504':
-          errorMessage = 'The query to fetch work items experienced a timeout error. Narrow your query with a more specific filter and try again.';
-          break;
-        default:
-          errorMessage = `The query failed due to the following error: (status ${errorDetails.statusCode}) ${errorDetails.message}.`;
-          break;
-      }
+      const { title: errorTitle, message: errorMessage } = getQueryError(error, 'work items');
 
       if (!suppressErrorAlert) {
         this.appEvents?.publish?.({
           type: AppEvents.alertError.name,
-          payload: ['Error during work items query', errorMessage],
+          payload: [errorTitle, errorMessage],
         });
       }
 
@@ -908,16 +940,22 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   private buildTypeFilter(
     types: WorkItemTypeOptions[]
   ): { allTypesSelected: boolean; filter: string } {
-    const resolvedTypes = replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[];
-    const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
-
-    const typeValues = resolvedTypes
-      .map(type => WORK_ITEM_TYPE_FILTER_VALUES[type])
-      .filter(Boolean);
+    const { resolvedTypes, allTypesSelected } = this.resolveSelectedTypes(types);
+    const typeValues = resolvedTypes.map(type => WORK_ITEM_TYPE_FILTER_VALUES[type]);
     return {
       allTypesSelected,
       filter: typeValues.map(value => `type = "${value}"`).join(' || '),
     };
+  }
+
+  private resolveSelectedTypes(
+    types: WorkItemTypeOptions[]
+  ): { resolvedTypes: WorkItemTypeOptions[]; allTypesSelected: boolean } {
+    const resolvedTypes = (replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[]).filter(
+      type => WORK_ITEM_TYPE_FILTER_VALUES[type] !== undefined
+    );
+    const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
+    return { resolvedTypes, allTypesSelected };
   }
 
   shouldRunQuery(query: WorkItemsQuery): boolean {
@@ -1036,23 +1074,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private handleDependenciesError(error: unknown): void {
-    const errorDetails = extractErrorInfo((error as Error).message);
-    this.errorTitle = 'Warning during work items query';
-    switch (errorDetails.statusCode) {
-      case '404':
-        this.errorDescription = 'The query builder lookups failed because the requested resource was not found. Please check the query parameters and try again.';
-        break;
-      case '429':
-        this.errorDescription = 'The query builder lookups failed due to too many requests. Please try again later.';
-        break;
-      case '504':
-        this.errorDescription = 'The query builder lookups experienced a timeout error. Some values might not be available. Narrow your query with a more specific filter and try again.';
-        break;
-      default:
-        this.errorDescription = errorDetails.message
-          ? `Some values may not be available in the query builder lookups due to the following error: ${errorDetails.message}.`
-          : 'Some values may not be available in the query builder lookups due to an unknown error.';
-        break;
-    }
+    const { title: errorTitle, message: errorMessage } = getQueryBuilderLookupsError(error, 'work items');
+    this.errorTitle = errorTitle;
+    this.errorDescription = errorMessage;
   }
 }
