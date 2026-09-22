@@ -47,6 +47,10 @@ async function renderEditor(
 ) {
   const onChange = jest.fn<void, [WorkItemsVariableQuery]>();
   const [datasource] = setupDataSource(WorkItemsDataSource);
+  jest.spyOn(datasource, 'loadWorkItemTypes').mockResolvedValue([
+    { label: 'Work orders', value: 'workorder' },
+    { label: 'Test plans', value: 'testplan' },
+  ]);
   setupDatasource?.(datasource);
 
   const createElement = (query: WorkItemsVariableQuery) =>
@@ -81,7 +85,7 @@ describe('WorkItemsVariableQueryEditor', () => {
     try {
       await renderEditor();
 
-      expect(screen.queryByRole('button', { name: 'Remove Work orders' })).not.toBeNull();
+      expect(screen.queryByRole('button', { name: 'Remove All' })).not.toBeNull();
       expect((page.orderByCombobox() as HTMLInputElement).value).toBe('Updated At');
       expect(page.descendingSwitch()).toBeChecked();
       expect(page.takeLimitInput()).toHaveValue(1000);
@@ -137,7 +141,7 @@ describe('WorkItemsVariableQueryEditor', () => {
       await userEvent.click(page.removeOptionButton('Work orders'));
 
       expect(onChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({ types: [WorkItemTypeOptions.TestPlans] })
+        expect.objectContaining({ types: ['testplan'] })
       );
     } finally {
       offsetHeightSpy.mockRestore();
@@ -155,7 +159,7 @@ describe('WorkItemsVariableQueryEditor', () => {
       await userEvent.click(await page.typeSelectOption('$test_var'));
 
       expect(onChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({ types: [WorkItemTypeOptions.WorkOrders, '$test_var'] })
+        expect.objectContaining({ types: ['workorder', '$test_var'] })
       );
     } finally {
       offsetHeightSpy.mockRestore();

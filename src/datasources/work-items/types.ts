@@ -26,6 +26,15 @@ export enum WorkItemTypeOptions {
   TransportOrder = 'TRANSPORT_ORDER',
 }
 
+export interface WorkItemTypeConfig {
+  type?: string;
+  description?: string;
+}
+
+export interface GetWorkItemTypesResponse {
+  workItemTypes?: WorkItemTypeConfig[];
+}
+
 export enum OrderByOptions {
   ID = 'ID',
   UPDATED_AT = 'UPDATED_AT',
@@ -38,7 +47,7 @@ export enum WorkItemsVariableQueryType {
 
 export interface WorkItemsQuery extends DataQuery {
   outputType?: OutputType;
-  types?: WorkItemTypeOptions[];
+  types?: string[];
   properties?: WorkItemPropertiesOptions[];
   customProperties?: string[];
   orderBy?: OrderByOptions;
@@ -49,7 +58,7 @@ export interface WorkItemsQuery extends DataQuery {
 
 export interface WorkItemsVariableQuery extends DataQuery {
   queryType?: WorkItemsVariableQueryType;
-  types?: WorkItemTypeOptions[];
+  types?: string[];
   orderBy?: OrderByOptions;
   descending?: boolean;
   take?: number;

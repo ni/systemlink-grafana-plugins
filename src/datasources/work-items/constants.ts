@@ -2,6 +2,7 @@ import { WorkItem, WorkItemTypeOptions, WorkItemPropertiesOptions, WorkItemState
 
 export const TAKE_LIMIT = 10000;
 export const DEFAULT_TAKE = 1000;
+export const ALL_WORK_ITEM_TYPES_VALUE = '__all';
 
 export const SECONDS_IN_DAY = 86400;
 export const SECONDS_IN_HOUR = 3600;

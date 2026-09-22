@@ -13,7 +13,8 @@ import { queryInBatches } from 'core/utils';
 import { 
   CUSTOM_PROPERTY_OPTIONS_LIMIT, 
   CUSTOM_PROPERTY_SUFFIX, 
-  DEFAULT_TAKE 
+  DEFAULT_TAKE,
+  ALL_WORK_ITEM_TYPES_VALUE,
 } from './constants';
 
 jest.mock('core/utils', () => ({
@@ -83,7 +84,7 @@ describe('WorkItemsDataSource', () => {
   it('should apply expected default query values', () => {
     const query = datasource.prepareQuery({ refId: 'A' });
 
-    expect(query.types).toEqual(Object.values(WorkItemTypeOptions));
+    expect(query.types).toEqual([ALL_WORK_ITEM_TYPES_VALUE]);
     expect(query.properties).toEqual([
       WorkItemPropertiesOptions.NAME,
       WorkItemPropertiesOptions.STATE,
@@ -100,7 +101,7 @@ describe('WorkItemsDataSource', () => {
     const variableQuery = datasource.prepareVariableQuery({ refId: 'A' });
 
     expect(variableQuery.queryType).toBe(WorkItemsVariableQueryType.ListWorkItems);
-    expect(variableQuery.types).toEqual(Object.values(WorkItemTypeOptions));
+    expect(variableQuery.types).toEqual([ALL_WORK_ITEM_TYPES_VALUE]);
     expect(variableQuery.orderBy).toBe(OrderByOptions.UPDATED_AT);
     expect(variableQuery.descending).toBe(true);
     expect(variableQuery.take).toBe(1000);
@@ -130,6 +131,43 @@ describe('WorkItemsDataSource', () => {
     jest.spyOn(datasource, 'post').mockRejectedValue(new Error('Failed'));
 
     await expect(datasource.testDatasource()).rejects.toThrow('Failed');
+  });
+
+  describe('loadWorkItemTypes', () => {
+    it('should load work item type options from the work item types endpoint and cache them', async () => {
+      const getSpy = jest.spyOn(datasource, 'get').mockResolvedValue({
+        workItemTypes: [
+          { type: 'workorder' },
+          { type: 'customtype', description: 'Custom Type' },
+          { description: 'Missing type' },
+          { type: 'customtype', description: 'Duplicate Custom Type' },
+        ],
+      });
+
+      await expect(datasource.loadWorkItemTypes()).resolves.toEqual([
+        { label: 'Work order', value: 'workorder' },
+        { label: 'Custom Type', value: 'customtype' },
+      ]);
+      await expect(datasource.loadWorkItemTypes()).resolves.toEqual([
+        { label: 'Work order', value: 'workorder' },
+        { label: 'Custom Type', value: 'customtype' },
+      ]);
+
+      expect(getSpy).toHaveBeenCalledTimes(1);
+      expect(getSpy).toHaveBeenCalledWith('/niworkitem/v1/workitemtypes', { showErrorAlert: false });
+    });
+
+    it('should publish a warning and return an empty list when work item types cannot be loaded', async () => {
+      jest.spyOn(datasource, 'get').mockRejectedValue(new Error('Failed to load types'));
+      const publishSpy = jest.fn();
+      (datasource as any).appEvents = { publish: publishSpy };
+
+      await expect(datasource.loadWorkItemTypes()).resolves.toEqual([]);
+
+      expect(publishSpy).toHaveBeenCalledWith(expect.objectContaining({
+        payload: ['Error loading work item types', expect.stringContaining('Failed to load types')],
+      }));
+    });
   });
 
   describe('runQuery', () => {
@@ -180,6 +218,50 @@ describe('WorkItemsDataSource', () => {
         { name: 'Work orders', values: [3] },
         { name: 'Test plans', values: [5] },
       ]);
+    });
+
+    it('should query a dynamically loaded backend type value directly', async () => {
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 13 });
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+        types: ['customtype'],
+        filter: 'state = "NEW"',
+      };
+
+      const result = await datasource.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        {
+          filter: '(type = "customtype") && (state = "NEW")',
+          take: 0,
+          returnCount: true,
+        },
+        { showErrorAlert: false }
+      );
+      expect(result.fields).toEqual([{ name: 'customtype', values: [13] }]);
+    });
+
+    it('should normalize legacy saved enum type values before querying', async () => {
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 7 });
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+        types: [WorkItemTypeOptions.WorkOrders],
+      };
+
+      await datasource.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        {
+          filter: '(type = "workorder")',
+          take: 0,
+          returnCount: true,
+        },
+        { showErrorAlert: false }
+      );
     });
 
     it('should return a single column when one type is selected', async () => {
@@ -2959,20 +3041,22 @@ describe('WorkItemsDataSource', () => {
       expect(templateSrv.replace).toHaveBeenCalledWith('$type_var', scopedVars);
     });
 
-    it('should return the list of work item types when the query type is list work item types', async () => {
+    it('should return the dynamically loaded list of work item types when the query type is list work item types', async () => {
+      jest.spyOn(datasource, 'get').mockResolvedValue({
+        workItemTypes: [
+          { type: 'workorder' },
+          { type: 'customtype', description: 'Custom Type' },
+        ],
+      });
+
       const result = await datasource.metricFindQuery(
         { refId: 'A', queryType: WorkItemsVariableQueryType.ListWorkItemTypes },
         {} as any
       );
 
       expect(result).toEqual([
-        { text: 'Work orders', value: WorkItemTypeOptions.WorkOrders },
-        { text: 'Test plans', value: WorkItemTypeOptions.TestPlans },
-        { text: 'Job', value: WorkItemTypeOptions.Job },
-        { text: 'Maintenance', value: WorkItemTypeOptions.Maintenance },
-        { text: 'Calibration', value: WorkItemTypeOptions.Calibration },
-        { text: 'Reservation', value: WorkItemTypeOptions.Reservation },
-        { text: 'Transport Order', value: WorkItemTypeOptions.TransportOrder },
+        { text: 'Work order', value: 'workorder' },
+        { text: 'Custom Type', value: 'customtype' },
       ]);
     });
   });

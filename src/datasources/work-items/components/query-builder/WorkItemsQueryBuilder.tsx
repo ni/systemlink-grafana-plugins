@@ -25,6 +25,7 @@ type WorkItemsQueryBuilderProps = QueryBuilderProps & React.HTMLAttributes<Eleme
   users?: User[] | null;
   products?: ProductPartNumberAndName[] | null;
   systemAliases?: SystemAlias[] | null;
+  workItemTypes?: QueryBuilderOption[] | null;
   globalVariableOptions: QueryBuilderOption[];
 };
 
@@ -34,6 +35,7 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
   users,
   products,
   systemAliases,
+  workItemTypes,
   onChange,
   globalVariableOptions,
 }) => {
@@ -136,13 +138,22 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
     ];
   }, [users]);
 
+  const workItemTypesField = useMemo(() => {
+    if (workItemTypes === null) {
+      return null;
+    }
+
+    return addOptionsToLookup(WorkItemsQueryBuilderFields.TYPE, workItemTypes ?? []);
+  }, [workItemTypes]);
+
   useEffect(() => {
-    if (!workspaceField || !usersFields || !productsField || !systemAliasField) {
+    if (!workspaceField || !usersFields || !productsField || !systemAliasField || !workItemTypesField) {
       return;
     }
 
     const fieldsByDataField = new Map([
       ...timeFields,
+      workItemTypesField,
       workspaceField,
       ...usersFields,
       productsField,
@@ -222,7 +233,8 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
       workspaceField, 
       usersFields, 
       productsField, 
-      systemAliasField
+      systemAliasField,
+      workItemTypesField
     ]
   );
 

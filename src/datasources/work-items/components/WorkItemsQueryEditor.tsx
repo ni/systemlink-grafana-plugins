@@ -12,7 +12,7 @@ import {
 } from '@grafana/ui';
 import { InlineField } from 'core/components/InlineField';
 import { FloatingError } from 'core/errors';
-import { Workspace } from 'core/types';
+import { QueryBuilderOption, Workspace } from 'core/types';
 import { validateNumericInput } from 'core/utils';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
 import {
@@ -30,14 +30,15 @@ import {
 } from '../constants/QueryEditor.constants';
 import { 
   CUSTOM_PROPERTY_OPTIONS_LIMIT, 
-  CUSTOM_PROPERTY_SUFFIX, DEFAULT_TAKE 
+  CUSTOM_PROPERTY_SUFFIX, DEFAULT_TAKE,
+  ALL_WORK_ITEM_TYPES_VALUE,
+  WORK_ITEM_TYPE_FILTER_VALUES,
 } from '../constants';
 import {
   OrderByOptions,
   OutputType,
   WorkItemPropertiesOptions,
   WorkItemsQuery,
-  WorkItemTypeOptions,
 } from '../types';
 import { 
   getTakeError, 
@@ -51,6 +52,14 @@ import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 
 type Props = QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>;
+const ALL_TYPES_OPTION: ComboboxOption<string> = { label: 'All', value: ALL_WORK_ITEM_TYPES_VALUE };
+const LEGACY_TYPE_OPTIONS: Array<ComboboxOption<string>> = WorkItemTypes.map(({ label, value }) => ({
+  label,
+  value: WORK_ITEM_TYPE_FILTER_VALUES[value],
+}));
+
+const dedupeOptionsByValue = (options: Array<ComboboxOption<string>>): Array<ComboboxOption<string>> =>
+  Array.from(new Map(options.map(option => [option.value, option])).values());
 
 export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   query = datasource.prepareQuery(query);
@@ -59,6 +68,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   const [users, setUsers] = useState<User[] | null>(null);
   const [products, setProducts] = useState<ProductPartNumberAndName[] | null>(null);
   const [systemAliases, setSystemAliases] = useState<SystemAlias[] | null>(null);
+  const [workItemTypes, setWorkItemTypes] = useState<QueryBuilderOption[] | null>(null);
   const [customPropertyOptions, setCustomPropertyOptions] = useState<Array<ComboboxOption<string>>>([]);
   const [isCustomPropertiesInitialized, setIsCustomPropertiesInitialized] = useState(false);
 
@@ -192,10 +202,19 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
       setSystemAliases(Array.from(systemAliases.values()));
     };
 
+    const loadWorkItemTypes = async () => {
+      const workItemTypes = await datasource.loadWorkItemTypes();
+      setWorkItemTypes(workItemTypes.map(type => ({
+        label: type.label ?? type.value ?? '',
+        value: type.value ?? '',
+      })));
+    };
+
     loadWorkspaces();
     loadUsers();
     loadProducts();
     loadSystemAliases();
+    loadWorkItemTypes();
   }, [datasource]);
 
   const fetchAndSetCustomPropertyOptions = useCallback(
@@ -223,8 +242,8 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   );
 
   const typeOptions = useMemo(
-    () => [...globalVariableOptions, ...WorkItemTypes] as Array<ComboboxOption<WorkItemTypeOptions>>,
-    [globalVariableOptions]
+    () => dedupeOptionsByValue([ALL_TYPES_OPTION, ...globalVariableOptions, ...LEGACY_TYPE_OPTIONS, ...(workItemTypes ?? [])]),
+    [globalVariableOptions, workItemTypes]
   );
 
   const handleQueryChange = useCallback(
@@ -299,8 +318,12 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     handleQueryChange({ ...query, outputType: value });
   };
 
-  const onTypesChange = (items: Array<ComboboxOption<WorkItemTypeOptions>>) => {
-    const types = items.map(item => item.value).filter(Boolean) as WorkItemTypeOptions[];
+  const onTypesChange = (items: Array<ComboboxOption<string>>) => {
+    const selectedValues = items.map(item => item.value).filter((value): value is string => Boolean(value));
+    const lastSelected = selectedValues[selectedValues.length - 1];
+    const types = lastSelected === ALL_WORK_ITEM_TYPES_VALUE
+      ? [ALL_WORK_ITEM_TYPES_VALUE]
+      : selectedValues.filter(value => value !== ALL_WORK_ITEM_TYPES_VALUE);
     handleQueryChange({ ...query, types }, isTypesNonEmpty(types));
   };
 
@@ -405,6 +428,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
             users={users}
             products={products}
             systemAliases={systemAliases}
+            workItemTypes={workItemTypes}
             globalVariableOptions={globalVariableOptions}
             onChange={onFilterChange}
           />

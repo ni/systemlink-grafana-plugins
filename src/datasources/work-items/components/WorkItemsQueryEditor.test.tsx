@@ -46,15 +46,23 @@ describe('WorkItemsQueryEditor', () => {
   });
 
   let getCustomPropertyOptionsSpy: jest.SpyInstance;
+  let loadWorkItemTypesSpy: jest.SpyInstance;
 
   beforeEach(() => {
     getCustomPropertyOptionsSpy = jest
       .spyOn(WorkItemsDataSource.prototype, 'getCustomPropertyOptions')
       .mockResolvedValue([]);
+    loadWorkItemTypesSpy = jest
+      .spyOn(WorkItemsDataSource.prototype, 'loadWorkItemTypes')
+      .mockResolvedValue([
+        { label: 'Work orders', value: 'workorder' },
+        { label: 'Test plans', value: 'testplan' },
+      ]);
   });
 
   afterEach(() => {
     getCustomPropertyOptionsSpy.mockRestore();
+    loadWorkItemTypesSpy.mockRestore();
   });
 
   it('should show all controls when the editor renders', () => {
@@ -124,7 +132,7 @@ describe('WorkItemsQueryEditor', () => {
         await userEvent.click(await page.typeSelectOption('$test_var'));
 
         expect(onChange).toHaveBeenLastCalledWith(
-          expect.objectContaining({ types: [WorkItemTypeOptions.WorkOrders, '$test_var'] })
+          expect.objectContaining({ types: ['workorder', '$test_var'] })
         );
         expect(onRunQuery).toHaveBeenCalled();
       } finally {
@@ -205,7 +213,7 @@ describe('WorkItemsQueryEditor', () => {
 
         expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeNull();
         expect(onChange).toHaveBeenLastCalledWith(
-          expect.objectContaining({ types: [WorkItemTypeOptions.WorkOrders] })
+          expect.objectContaining({ types: ['workorder'] })
         );
         expect(onRunQuery).toHaveBeenCalled();
       } finally {

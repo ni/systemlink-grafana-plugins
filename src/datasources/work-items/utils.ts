@@ -1,6 +1,6 @@
 import { CUSTOM_PROPERTY_SUFFIX, TAKE_LIMIT } from './constants';
 import { takeErrorMessages } from './constants/QueryEditor.constants';
-import { WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
+import { WorkItemPropertiesOptions } from './types';
 
 export const getTakeError = (take?: number): string => {
   if (take === undefined) {
@@ -19,7 +19,7 @@ export const getTakeError = (take?: number): string => {
 };
 
 export const isTypesNonEmpty = (
-    types?: WorkItemTypeOptions[]
+    types?: string[]
 ): boolean => 
     Boolean(types && types.length > 0);
 
