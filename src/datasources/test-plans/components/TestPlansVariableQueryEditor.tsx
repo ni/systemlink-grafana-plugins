@@ -1,11 +1,16 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 import { OrderBy, TestPlansVariableQuery } from '../types';
-import { AutoSizeInput, InlineField, InlineSwitch, Select, VerticalGroup } from '@grafana/ui';
+import { AutoSizeInput, Alert, InlineField, InlineSwitch, Select, VerticalGroup } from '@grafana/ui';
 import { validateNumericInput } from 'core/utils';
 import { TestPlansDataSource } from '../TestPlansDataSource';
 import { TestPlansQueryBuilder } from './query-builder/TestPlansQueryBuilder';
-import { recordCountErrorMessages, TAKE_LIMIT } from '../constants/QueryEditor.constants';
+import {
+  DEPRECATION_NOTICE_MAX_WIDTH,
+  deprecationMessage,
+  recordCountErrorMessages,
+  TAKE_LIMIT,
+} from '../constants/QueryEditor.constants';
 import { Workspace } from 'core/types';
 import { SystemAlias } from 'shared/types/QuerySystems.types';
 import { User } from 'shared/types/QueryUsers.types';
@@ -94,6 +99,20 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
 
   return (
     <>
+      <div style={{ width: '100%', maxWidth: DEPRECATION_NOTICE_MAX_WIDTH }}>
+        <Alert severity="warning" title={deprecationMessage.title}>
+          {deprecationMessage.message}
+          <a
+            href={deprecationMessage.linkUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ textDecoration: 'underline' }}
+          >
+            {deprecationMessage.linkText}
+          </a>
+          .
+        </Alert>
+      </div>
       <VerticalGroup>
         <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
           <TestPlansQueryBuilder
