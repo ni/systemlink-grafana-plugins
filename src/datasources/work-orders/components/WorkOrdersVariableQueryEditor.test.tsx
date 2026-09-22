@@ -6,6 +6,7 @@ import React from 'react';
 import userEvent from '@testing-library/user-event';
 import selectEvent, { select } from 'react-select-event';
 import { WorkOrdersVariableQueryEditor } from './WorkOrdersVariableQueryEditor';
+import { deprecationMessage } from '../constants/QueryEditor.constants';
 
 const mockOnChange = jest.fn();
 const mockOnRunQuery = jest.fn();
@@ -48,6 +49,15 @@ describe('WorkOrdersVariableQueryEditor', () => {
       return render(reactNode);
     });
   }
+
+  it('should render the deprecation notice', async () => {
+    const notice = container.getByRole('alert');
+    expect(notice).toHaveTextContent(deprecationMessage.title);
+    expect(notice).toHaveTextContent(deprecationMessage.message.trim());
+
+    const link = container.getByRole('link', { name: deprecationMessage.linkText });
+    expect(link).toHaveAttribute('href', deprecationMessage.linkUrl);
+  });
 
   it('renders the query builder', async () => {
     await waitFor(() => expect(screen.getAllByText('Property').length).toBe(1));
