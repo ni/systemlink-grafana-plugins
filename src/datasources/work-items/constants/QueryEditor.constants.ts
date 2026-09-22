@@ -15,10 +15,6 @@ export const propertiesErrorMessages = {
   atLeastOneRequired: 'You must select at least one property.',
 };
 
-export const typesErrorMessages = {
-  atLeastOneRequired: 'You must select at least one type.',
-};
-
 export const labels = {
   outputType: 'Output',
   queryType: 'Query type',

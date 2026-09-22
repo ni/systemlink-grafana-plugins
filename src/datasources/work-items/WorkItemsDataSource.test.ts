@@ -15,7 +15,6 @@ import {
   CUSTOM_PROPERTY_OPTIONS_LIMIT, 
   CUSTOM_PROPERTY_SUFFIX, 
   DEFAULT_TAKE,
-  ALL_WORK_ITEM_TYPES_VALUE,
 } from './constants';
 
 jest.mock('core/utils', () => ({
@@ -99,7 +98,7 @@ describe('WorkItemsDataSource', () => {
   it('should apply expected default query values', () => {
     const query = datasource.prepareQuery({ refId: 'A' });
 
-    expect(query.types).toEqual([ALL_WORK_ITEM_TYPES_VALUE]);
+    expect(query.types).toEqual([]);
     expect(query.properties).toEqual([
       WorkItemPropertiesOptions.NAME,
       WorkItemPropertiesOptions.STATE,
@@ -116,7 +115,7 @@ describe('WorkItemsDataSource', () => {
     const variableQuery = datasource.prepareVariableQuery({ refId: 'A' });
 
     expect(variableQuery.queryType).toBe(WorkItemsVariableQueryType.ListWorkItems);
-    expect(variableQuery.types).toEqual([ALL_WORK_ITEM_TYPES_VALUE]);
+    expect(variableQuery.types).toEqual([]);
     expect(variableQuery.orderBy).toBe(OrderByOptions.UPDATED_AT);
     expect(variableQuery.descending).toBe(true);
     expect(variableQuery.take).toBe(1000);
@@ -181,14 +180,22 @@ describe('WorkItemsDataSource', () => {
   });
 
   describe('runQuery', () => {
-    it('should return an empty data frame without querying when no types are selected', async () => {
-      const postSpy = jest.spyOn(datasource, 'post');
+    it('should query all work items without a type filter when no types are selected', async () => {
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 4 });
       const query = { refId: 'A', outputType: OutputType.TotalCount, types: [] };
 
       const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-      expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
-      expect(postSpy).not.toHaveBeenCalled();
+      expect(result).toEqual({ refId: 'A', name: 'A', fields: [{ name: 'All', values: [4] }] });
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        {
+          filter: undefined,
+          take: 0,
+          returnCount: true,
+        },
+        { showErrorAlert: false }
+      );
     });
 
     it('should send a separate count query per selected type and combine them into columns', async () => {
@@ -251,6 +258,29 @@ describe('WorkItemsDataSource', () => {
         { showErrorAlert: false }
       );
       expect(result.fields).toEqual([{ name: 'customtype', values: [13] }]);
+    });
+
+    it('should query all work items when no types are selected', async () => {
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 11 });
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+        types: [],
+        filter: 'state = "NEW"',
+      };
+
+      const result = await datasource.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        {
+          filter: '(state = "NEW")',
+          take: 0,
+          returnCount: true,
+        },
+        { showErrorAlert: false }
+      );
+      expect(result.fields).toEqual([{ name: 'All', values: [11] }]);
     });
 
     it('should normalize legacy saved enum type values before querying', async () => {
@@ -359,7 +389,7 @@ describe('WorkItemsDataSource', () => {
       );
     });
 
-    it('should still apply a per-type filter for every type when all types are selected', async () => {
+    it('should query all work items without a type filter when all known types are selected', async () => {
       const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
       const query = {
         refId: 'A',
@@ -369,25 +399,17 @@ describe('WorkItemsDataSource', () => {
 
       const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-      expect(postSpy).toHaveBeenCalledTimes(Object.values(WorkItemTypeOptions).length);
+      expect(postSpy).toHaveBeenCalledTimes(1);
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
         {
-          filter: '(type = "workorder")',
+          filter: undefined,
           take: 0,
           returnCount: true
         },
         { showErrorAlert: false }
       );
-      expect(result.fields).toEqual([
-        { name: 'Work orders', values: [1] },
-        { name: 'Test plans', values: [1] },
-        { name: 'Job', values: [1] },
-        { name: 'Maintenance', values: [1] },
-        { name: 'Calibration', values: [1] },
-        { name: 'Reservation', values: [1] },
-        { name: 'Transport Order', values: [1] },
-      ]);
+      expect(result.fields).toEqual([{ name: 'All', values: [1] }]);
     });
 
     describe('request batching', () => {
@@ -404,7 +426,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: ['type1', 'type2', 'type3', 'type4', 'type5', 'type6', 'type7'],
         };
 
         const promise = datasource.runQuery(query, {} as DataQueryRequest);
@@ -416,7 +438,7 @@ describe('WorkItemsDataSource', () => {
         // Advance past the one-second throttle window to release the next batch.
         await jest.advanceTimersByTimeAsync(1000);
         await promise;
-        expect(postSpy).toHaveBeenCalledTimes(Object.values(WorkItemTypeOptions).length);
+        expect(postSpy).toHaveBeenCalledTimes(7);
       });
 
       it('should not wait when all types fit within a single batch', async () => {
@@ -449,7 +471,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: ['type1', 'type2', 'type3', 'type4', 'type5', 'type6', 'type7'],
         };
 
         const promise = datasource.runQuery(query, {} as DataQueryRequest);
@@ -457,13 +479,13 @@ describe('WorkItemsDataSource', () => {
         const result = await promise;
 
         expect(result.fields).toEqual([
-          { name: 'Work orders', values: [1] },
-          { name: 'Test plans', values: [2] },
-          { name: 'Job', values: [3] },
-          { name: 'Maintenance', values: [4] },
-          { name: 'Calibration', values: [5] },
-          { name: 'Reservation', values: [6] },
-          { name: 'Transport Order', values: [7] },
+          { name: 'type1', values: [1] },
+          { name: 'type2', values: [2] },
+          { name: 'type3', values: [3] },
+          { name: 'type4', values: [4] },
+          { name: 'type5', values: [5] },
+          { name: 'type6', values: [6] },
+          { name: 'type7', values: [7] },
         ]);
       });
 
@@ -509,7 +531,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions), // seven types -> two batches
+          types: ['type1', 'type2', 'type3', 'type4', 'type5', 'type6', 'type7'], // seven types -> two batches
         };
 
         await datasource.runQuery(query, {} as DataQueryRequest);
@@ -588,7 +610,7 @@ describe('WorkItemsDataSource', () => {
       ]);
     });
 
-    it('should return an empty data frame without querying when a template variable resolves to no values', async () => {
+    it('should query all work items when a template variable resolves to no values', async () => {
       const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
       const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
       templateSrv.containsTemplate.mockImplementation((value?: string) => value === '$type_var');
@@ -601,8 +623,16 @@ describe('WorkItemsDataSource', () => {
 
       const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-      expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
-      expect(postSpy).not.toHaveBeenCalled();
+      expect(result).toEqual({ refId: 'A', name: 'A', fields: [{ name: 'All', values: [1] }] });
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        {
+          filter: undefined,
+          take: 0,
+          returnCount: true,
+        },
+        { showErrorAlert: false }
+      );
     });
 
     it('should return an empty data frame without querying when a template variable resolves only to unrecognized types', async () => {
@@ -677,7 +707,7 @@ describe('WorkItemsDataSource', () => {
       );
     });
 
-    it('should send a per-type count query for each type when a variable expands to cover all work item types', async () => {
+    it('should query all work items without a type filter when a variable expands to cover all known work item types', async () => {
       const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
       const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
       templateSrv.containsTemplate.mockImplementation((value?: string) => value === '$type_var');
@@ -692,11 +722,11 @@ describe('WorkItemsDataSource', () => {
 
       await datasource.runQuery(query, {} as DataQueryRequest);
 
-      expect(postSpy).toHaveBeenCalledTimes(Object.values(WorkItemTypeOptions).length);
+      expect(postSpy).toHaveBeenCalledTimes(1);
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
         {
-          filter: '(type = "workorder")',
+          filter: undefined,
           take: 0,
           returnCount: true,
         },
@@ -2733,9 +2763,13 @@ describe('WorkItemsDataSource', () => {
         );
       });
 
-      it('should return an empty list without querying when a type variable resolves to no values', async () => {
+      it('should query all work items when a type variable resolves to no values', async () => {
         const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
-        const postSpy = jest.spyOn(datasource, 'post');
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [],
+          continuationToken: '',
+          totalCount: 0,
+        });
         templateSrv.containsTemplate.mockImplementation((value?: string) => value === '$type_var');
         templateSrv.replace.mockImplementation((value?: string) => (value === '$type_var' ? '' : value ?? ''));
 
@@ -2749,7 +2783,11 @@ describe('WorkItemsDataSource', () => {
         );
 
         expect(result).toEqual([]);
-        expect(postSpy).not.toHaveBeenCalled();
+        expect(postSpy).toHaveBeenCalledWith(
+          '/niworkitem/v1/query-workitems',
+          expect.objectContaining({ filter: undefined, projection: ['ID', 'NAME'] }),
+          { showErrorAlert: false }
+        );
       });
 
       it('should drop unrecognized values when a multi-value type variable resolves to a mix of valid and invalid types', async () => {
@@ -2981,8 +3019,12 @@ describe('WorkItemsDataSource', () => {
       );
     });
 
-    it('should return an empty list when no types are selected', async () => {
-      const postSpy = jest.spyOn(datasource, 'post');
+    it('should query all work items when no types are selected', async () => {
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({
+        workItems: [],
+        continuationToken: '',
+        totalCount: 0,
+      });
 
       const result = await datasource.metricFindQuery(
         { refId: 'A', queryType: WorkItemsVariableQueryType.ListWorkItems, types: [] },
@@ -2990,7 +3032,11 @@ describe('WorkItemsDataSource', () => {
       );
 
       expect(result).toEqual([]);
-      expect(postSpy).not.toHaveBeenCalled();
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        expect.objectContaining({ filter: undefined, projection: ['ID', 'NAME'] }),
+        { showErrorAlert: false }
+      );
     });
 
     it('should return an empty list when the take is invalid', async () => {

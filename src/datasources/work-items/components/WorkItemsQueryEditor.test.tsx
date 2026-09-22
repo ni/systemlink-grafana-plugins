@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { setupRenderer } from 'test/fixtures';
-import { propertiesErrorMessages, takeErrorMessages, typesErrorMessages } from '../constants/QueryEditor.constants';
+import { propertiesErrorMessages, takeErrorMessages } from '../constants/QueryEditor.constants';
 import { CUSTOM_PROPERTY_SUFFIX, DEFAULT_TAKE, TAKE_LIMIT } from '../constants';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
 import { 
@@ -129,6 +129,7 @@ describe('WorkItemsQueryEditor', () => {
 
         fireEvent.click(page.typesMultiCombobox()!);
 
+        expect(screen.queryByRole('option', { name: 'All' })).toBeNull();
         expect(screen.queryByRole('option', { name: 'Work orders' })).toBeNull();
         expect(screen.queryByRole('option', { name: 'Test plans' })).toBeNull();
         expect(screen.getByRole('option', { name: '$test_var' })).toBeInTheDocument();
@@ -206,18 +207,17 @@ describe('WorkItemsQueryEditor', () => {
   });
 
   describe('validation error', () => {
-    it('should not show types, properties, or take validation errors when the editor renders', () => {
+    it('should not show properties or take validation errors when the editor renders', () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
       render({});
 
-      expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeNull();
       expect(page.getErrorByMessage(propertiesErrorMessages.atLeastOneRequired)).toBeNull();
       expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeNull();
       expect(page.getErrorByMessage(takeErrorMessages.lessOrEqualToTenThousand)).toBeNull();
     });
 
-    it('should clear the types validation error when a type is re-added after all types are removed', async () => {
+    it('should query all types when every selected type is removed and update types when one is re-added', async () => {
       const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
 
       try {
@@ -229,9 +229,8 @@ describe('WorkItemsQueryEditor', () => {
           screen.queryByRole('button', { name: 'Remove workorder' }) ?? page.removeOptionButton('Work orders');
         await userEvent.click(removeWorkOrderButton);
 
-        expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeVisible();
         expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ types: [] }));
-        expect(onRunQuery).not.toHaveBeenCalled();
+        expect(onRunQuery).toHaveBeenCalled();
 
         const typesCombobox = page.typesMultiCombobox()!;
         await waitFor(() => expect(loadWorkItemTypesSpy).toHaveBeenCalled());
@@ -239,7 +238,6 @@ describe('WorkItemsQueryEditor', () => {
         fireEvent.change(typesCombobox, { target: { value: 'Work orders' } });
         await userEvent.click(await page.typeSelectOption('Work orders'));
 
-        expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeNull();
         expect(onChange).toHaveBeenLastCalledWith(
           expect.objectContaining({ types: ['workorder'] })
         );
@@ -398,17 +396,12 @@ describe('WorkItemsQueryEditor', () => {
       expect(getCustomPropertyOptionsSpy).not.toHaveBeenCalled();
     });
 
-    it('should not load the custom property options when no types are selected', async () => {
+    it('should load the custom property options when no types are selected', async () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
       render({ types: [] });
 
-      await waitFor(
-        () => expect(page.getErrorByMessage(
-        typesErrorMessages.atLeastOneRequired
-      )).toBeVisible()
-    );
-      expect(getCustomPropertyOptionsSpy).not.toHaveBeenCalled();
+      await waitFor(() => expect(getCustomPropertyOptionsSpy).toHaveBeenCalled());
     });
 
     it('should clear the discovered custom property options when the query becomes invalid', async () => {
@@ -421,8 +414,8 @@ describe('WorkItemsQueryEditor', () => {
 
         await waitFor(() => expect(getCustomPropertyOptionsSpy).toHaveBeenCalledTimes(1));
 
-        const [onChange] = render({ outputType: OutputType.Properties, types: [] });
-        await waitFor(() => expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeVisible());
+        const [onChange] = render({ outputType: OutputType.Properties, take: -1 });
+        await waitFor(() => expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible());
 
         expect(screen.queryByRole('option', { name: 'customProperty1' })).toBeNull();
         expect(onChange).not.toHaveBeenCalled();
@@ -443,7 +436,7 @@ describe('WorkItemsQueryEditor', () => {
       expect(getCustomPropertyOptionsSpy).not.toHaveBeenCalled();
     });
 
-    it('should clear discovered custom property options when types are removed after a successful discovery', async () => {
+    it('should rediscover custom property options when types are removed after a successful discovery', async () => {
       const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
       getCustomPropertyOptionsSpy.mockResolvedValue([customPropertyOption('customProperty1')]);
 
@@ -456,13 +449,7 @@ describe('WorkItemsQueryEditor', () => {
 
         await userEvent.click(page.removeOptionButton('Work orders'));
 
-        await waitFor(() => expect(
-          page.getErrorByMessage(
-            typesErrorMessages.atLeastOneRequired
-          )).toBeVisible());
-          
-        expect(screen.queryByRole('option', { name: 'customProperty1' })).toBeNull();
-        expect(getCustomPropertyOptionsSpy).not.toHaveBeenCalled();
+        await waitFor(() => expect(getCustomPropertyOptionsSpy).toHaveBeenCalled());
       } finally {
         offsetHeightSpy.mockRestore();
       }

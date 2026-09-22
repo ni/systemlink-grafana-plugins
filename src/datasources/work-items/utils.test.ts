@@ -1,7 +1,7 @@
 import { CUSTOM_PROPERTY_SUFFIX, TAKE_LIMIT } from './constants';
 import { takeErrorMessages } from './constants/QueryEditor.constants';
-import { WorkItemPropertiesOptions, WorkItemTypeOptions } from './types';
-import { getTakeError, isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty, stripCustomPropertySuffix } from './utils';
+import { WorkItemPropertiesOptions } from './types';
+import { getTakeError, isPropertiesNonEmpty, isTakeValid, stripCustomPropertySuffix } from './utils';
 
 describe('getTakeError', () => {
   it('should return no error for a value within the valid range', () => {
@@ -22,17 +22,6 @@ describe('getTakeError', () => {
 
   it('should return the limit error when the value exceeds the maximum', () => {
     expect(getTakeError(TAKE_LIMIT + 1)).toBe(takeErrorMessages.lessOrEqualToTenThousand);
-  });
-});
-
-describe('isTypesNonEmpty', () => {
-  it('should return true when at least one type is selected', () => {
-    expect(isTypesNonEmpty([WorkItemTypeOptions.WorkOrders])).toBe(true);
-  });
-
-  it('should return false for an empty or undefined list', () => {
-    expect(isTypesNonEmpty([])).toBe(false);
-    expect(isTypesNonEmpty(undefined)).toBe(false);
   });
 });
 
@@ -88,5 +77,4 @@ describe('isTakeValid', () => {
     expect(isTakeValid(TAKE_LIMIT + 1)).toBe(false);
   });
 });
-
 

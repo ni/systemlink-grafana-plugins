@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { setupDataSource } from 'test/fixtures';
-import { takeErrorMessages, typesErrorMessages } from '../constants/QueryEditor.constants';
+import { takeErrorMessages } from '../constants/QueryEditor.constants';
 import { TAKE_LIMIT } from '../constants';
 import { WorkItemsDataSource } from '../WorkItemsDataSource';
 import { OrderByOptions, WorkItemsVariableQuery, WorkItemsVariableQueryType, WorkItemTypeOptions } from '../types';
@@ -85,7 +85,7 @@ describe('WorkItemsVariableQueryEditor', () => {
     try {
       await renderEditor();
 
-      expect(screen.queryByRole('button', { name: 'Remove All' })).not.toBeNull();
+      expect(screen.queryByRole('button', { name: 'Remove All' })).toBeNull();
       expect((page.orderByCombobox() as HTMLInputElement).value).toBe('Updated At');
       expect(page.descendingSwitch()).toBeChecked();
       expect(page.takeLimitInput()).toHaveValue(1000);
@@ -229,14 +229,8 @@ describe('WorkItemsVariableQueryEditor', () => {
     ).toBeVisible();
   });
 
-  describe('type validation', () => {
-    it('should not show a type validation error when the editor renders with default types', async () => {
-      await renderEditor();
-
-      expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeNull();
-    });
-
-    it('should show a type validation error when all types are removed', async () => {
+  describe('type selection', () => {
+    it('should allow all types to be queried when every selected type is removed', async () => {
       const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
 
       try {
@@ -244,7 +238,6 @@ describe('WorkItemsVariableQueryEditor', () => {
 
         await userEvent.click(page.removeOptionButton('Work orders'));
 
-        expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeVisible();
         expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ types: [] }));
       } finally {
         offsetHeightSpy.mockRestore();

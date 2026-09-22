@@ -18,11 +18,6 @@ export const getTakeError = (take?: number): string => {
   return '';
 };
 
-export const isTypesNonEmpty = (
-    types?: string[]
-): boolean => 
-    Boolean(types && types.length > 0);
-
 export const isPropertiesNonEmpty = (
     properties?: WorkItemPropertiesOptions[],
     customProperties?: string[]

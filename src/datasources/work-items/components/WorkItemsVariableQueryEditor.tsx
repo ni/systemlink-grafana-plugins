@@ -23,17 +23,14 @@ import {
   labels,
   placeholders,
   tooltips,
-  typesErrorMessages,
 } from '../constants/QueryEditor.constants';
-import { getTakeError, isTypesNonEmpty } from '../utils';
+import { getTakeError } from '../utils';
 import { WorkItemsQueryBuilder } from './query-builder/WorkItemsQueryBuilder';
-import { ALL_WORK_ITEM_TYPES_VALUE } from '../constants';
 
 type Props = Omit<QueryEditorProps<WorkItemsDataSource, WorkItemsQuery>, 'query' | 'onChange'> & {
   query: WorkItemsVariableQuery;
   onChange: (query: WorkItemsVariableQuery) => void;
 };
-const ALL_TYPES_OPTION: ComboboxOption<string> = { label: 'All', value: ALL_WORK_ITEM_TYPES_VALUE };
 
 const dedupeOptionsByValue = (options: Array<ComboboxOption<string>>): Array<ComboboxOption<string>> =>
   Array.from(new Map(options.map(option => [option.value, option])).values());
@@ -41,7 +38,6 @@ const dedupeOptionsByValue = (options: Array<ComboboxOption<string>>): Array<Com
 export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Props) {
   query = datasource.prepareVariableQuery(query);
 
-  const isTypesValid = isTypesNonEmpty(query.types);
   const takeInvalidMessage = getTakeError(query.take);
   const isTakeValid = takeInvalidMessage === '';
 
@@ -99,7 +95,7 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
   );
 
   const typeOptions = useMemo(
-    () => dedupeOptionsByValue([ALL_TYPES_OPTION, ...globalVariableOptions, ...(workItemTypes ?? [])]),
+    () => dedupeOptionsByValue([...globalVariableOptions, ...(workItemTypes ?? [])]),
     [globalVariableOptions, workItemTypes]
   );
 
@@ -117,11 +113,7 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
   const onTypesChange = (items: Array<ComboboxOption<string>>) => {
     const selectedValues = items.map(item => item.value)
       .filter((value): value is string => Boolean(value));
-    const lastSelected = selectedValues[selectedValues.length - 1];
-    const types = lastSelected === ALL_WORK_ITEM_TYPES_VALUE
-      ? [ALL_WORK_ITEM_TYPES_VALUE]
-      : selectedValues.filter(value => value !== ALL_WORK_ITEM_TYPES_VALUE);
-    handleQueryChange({ ...query, types });
+    handleQueryChange({ ...query, types: selectedValues });
   };
 
   const onFilterChange = (event: any) => {
@@ -164,8 +156,6 @@ export function WorkItemsVariableQueryEditor({ query, onChange, datasource }: Pr
               label={labels.types}
               labelWidth={LABEL_WIDTH}
               tooltip={tooltips.types}
-              invalid={!isTypesValid}
-              error={typesErrorMessages.atLeastOneRequired}
             >
               <MultiCombobox
                 placeholder={placeholders.types}
