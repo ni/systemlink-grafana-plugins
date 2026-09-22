@@ -932,7 +932,7 @@ describe('WorkItemsDataSource', () => {
           { name: 'Description', values: ['Battery cycle test at various temperatures.'], type: 'string' },
           { name: 'Test program', values: ['Battery cycle test'], type: 'string' },
           { name: 'Part number', values: ['156502A-11L'], type: 'string' },
-          { name: 'Parent work item ID', values: ['1000'], type: 'string' },
+          { name: 'Work order ID', values: ['1000'], type: 'string' },
           { name: 'Template ID', values: ['2000'], type: 'string' },
           { name: 'Created at', values: ['2018-05-09T15:07:42.527921Z'], type: 'time', config: timeConfig },
           { name: 'Updated at', values: ['2018-05-09T15:07:42.527921Z'], type: 'time', config: timeConfig },
@@ -1528,7 +1528,7 @@ describe('WorkItemsDataSource', () => {
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
         expect(result.fields).toEqual([
-          { name: 'Parent work item name', values: ['Parent Work Item'], type: 'string' },
+          { name: 'Work order name', values: ['Parent Work Item'], type: 'string' },
         ]);
         expect(postSpy).toHaveBeenCalledWith(
           '/niworkitem/v1/query-workitems',
@@ -1562,7 +1562,7 @@ describe('WorkItemsDataSource', () => {
         );
 
         expect(result.fields).toEqual([
-          { name: 'Parent work item name', values: [''], type: 'string' },
+          { name: 'Work order name', values: [''], type: 'string' },
         ]);
       });
 
@@ -1614,7 +1614,7 @@ describe('WorkItemsDataSource', () => {
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields).toEqual([{ name: 'Parent work item name', values: [''], type: 'string' }]);
+        expect(result.fields).toEqual([{ name: 'Work order name', values: [''], type: 'string' }]);
       });
 
       it('should return an empty value and skip the lookup when the work item has no parent', async () => {
@@ -1633,7 +1633,7 @@ describe('WorkItemsDataSource', () => {
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields).toEqual([{ name: 'Parent work item name', values: [''], type: 'string' }]);
+        expect(result.fields).toEqual([{ name: 'Work order name', values: [''], type: 'string' }]);
         expect(postSpy).toHaveBeenCalledTimes(1);
       });
 

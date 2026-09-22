@@ -187,13 +187,13 @@ export const WorkItemProperties: Record<
     group: WorkItemPropertiesGroup.WORK_ITEM_DETAILS,
   },
   [WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME]: {
-    label: 'Parent work item name',
+    label: 'Work order name',
     value: WorkItemPropertiesOptions.PARENT_WORK_ITEM_NAME,
     field: 'parentWorkItemName',
     group: WorkItemPropertiesGroup.WORK_ITEM_DETAILS,
   },
   [WorkItemPropertiesOptions.PARENT_WORK_ITEM_ID]: {
-    label: 'Parent work item ID',
+    label: 'Work order ID',
     value: WorkItemPropertiesOptions.PARENT_WORK_ITEM_ID,
     field: 'parentId',
     group: WorkItemPropertiesGroup.WORK_ITEM_DETAILS,
