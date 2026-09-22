@@ -1,3 +1,9 @@
+## [5.18.2](https://github.com/ni/systemlink-grafana-plugins/compare/v5.18.1...v5.18.2) (2026-09-22)
+
+### Bug Fixes
+
+* **work-items:** remove target location and parent columns for fixtures ([#773](https://github.com/ni/systemlink-grafana-plugins/issues/773)) ([94348b9](https://github.com/ni/systemlink-grafana-plugins/commit/94348b901c5c956da613cf10f6821c1f59bf2ae7))
+
 ## [5.18.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.18.0...v5.18.1) (2026-09-21)
 
 ### Bug Fixes
