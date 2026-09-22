@@ -1,3 +1,9 @@
+## [5.18.3](https://github.com/ni/systemlink-grafana-plugins/compare/v5.18.2...v5.18.3) (2026-09-22)
+
+### Bug Fixes
+
+* **work-items:** rename parent work item labels to work order for consistency ([#770](https://github.com/ni/systemlink-grafana-plugins/issues/770)) ([fef8ec3](https://github.com/ni/systemlink-grafana-plugins/commit/fef8ec3450b123b317174377faa4a2654d4d9fe7))
+
 ## [5.18.2](https://github.com/ni/systemlink-grafana-plugins/compare/v5.18.1...v5.18.2) (2026-09-22)
 
 ### Bug Fixes
