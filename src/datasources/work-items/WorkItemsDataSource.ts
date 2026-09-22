@@ -477,11 +477,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     selector: (product: ProductPartNumberAndName) => string
   ): string {
     const partNumber = workItem.partNumber ?? '';
-    if (!partNumber) {
-      return '';
-    }
-    const product = productsLookup.get(partNumber);
-    return product ? selector(product) : partNumber;
+    const product = partNumber ? productsLookup.get(partNumber) : undefined;
+    return product ? selector(product) : '';
   }
 
   private resolveTargetLocation(
