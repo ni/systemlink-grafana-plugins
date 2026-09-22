@@ -68,6 +68,12 @@ export const WorkItemTypeMetricFindValues: MetricFindValue[] = WorkItemTypes.map
   )
 );
 
+// Maps each work item type option to its human-readable label. Derived from WorkItemTypes so the
+// type picker options and the Total Count column headers stay in sync from a single source.
+export const WorkItemTypeLabels = Object.fromEntries(
+  WorkItemTypes.map(({ label, value }) => [value, label])
+) as Record<WorkItemTypeOptions, string>;
+
 export const OrderBy = [
   {
     value: OrderByOptions.ID,

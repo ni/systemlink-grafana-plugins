@@ -67,7 +67,7 @@ import {
   QUERY_WORK_ITEMS_MAX_TAKE,
   QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
 } from './constants/QueryWorkItems.constants';
-import { WorkItemProperties, WorkItemTypeMetricFindValues } from './constants/QueryEditor.constants';
+import { WorkItemProperties, WorkItemTypeLabels, WorkItemTypeMetricFindValues } from './constants/QueryEditor.constants';
 import { isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty } from './utils';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
@@ -184,17 +184,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return this.getEmptyDataFrameDTO(query.refId);
     }
 
-    const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
-      query.types!,
-      query.filter,
-      options.scopedVars
-    );
-
-    // A selection that resolves only to empty or unrecognized values (e.g. a template variable
-    // that expands to nothing) yields no type filter. Returning early avoids dropping the type
-    // constraint entirely, which would otherwise match every work item instead of none.
-    if (!hasRecognizedTypes) {
-      return this.getEmptyDataFrameDTO(query.refId);
+    if (query.outputType === OutputType.TotalCount) {
+      return this.processTotalCountQuery(query, options.scopedVars);
     }
 
     if (
@@ -202,16 +193,17 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       isPropertiesNonEmpty(query.properties, query.customProperties) &&
       isTakeValid(query.take)
     ) {
-      return this.processWorkItemsQuery(query, filter);
-    }
+      const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
+        query.types!,
+        query.filter,
+        options.scopedVars
+      );
 
-    if (query.outputType === OutputType.TotalCount) {
-      const totalCount = await this.queryWorkItemsCount(filter);
-      return {
-        refId: query.refId,
-        name: query.refId,
-        fields: [{ name: query.refId, values: [totalCount] }],
-      };
+      if (!hasRecognizedTypes) {
+        return this.getEmptyDataFrameDTO(query.refId);
+      }
+
+      return this.processWorkItemsQuery(query, filter);
     }
 
     return this.getEmptyDataFrameDTO(query.refId);
@@ -781,6 +773,67 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return projection.size > 0 ? [...projection] : undefined;
   }
 
+
+
+  
+  private async processTotalCountQuery(query: WorkItemsQuery, scopedVars?: ScopedVars): Promise<DataFrameDTO> {
+    const { resolvedTypes } = this.resolveSelectedTypes(query.types!);
+    const queryFilter = query.filter?.trim();
+    const transformedQueryFilter = queryFilter
+      ? this.transformQueryBuilderFilter(queryFilter, scopedVars)
+      : queryFilter;
+
+    const filters = resolvedTypes.map(type => {
+      const typeFilter = `type = "${WORK_ITEM_TYPE_FILTER_VALUES[type]}"`;
+      return this.buildQueryFilter(
+        `(${typeFilter})`,
+        transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
+      );
+    });
+
+    const workItemCounts = await this.queryWorkItemsCountsInBatches(filters);
+
+    return {
+      refId: query.refId,
+      name: query.refId,
+      fields: resolvedTypes.map((type, index) => ({
+        name: WorkItemTypeLabels[type],
+        values: [workItemCounts[index]],
+      })),
+    };
+  }
+
+  private async queryWorkItemsCountsInBatches(
+    filters: Array<string | undefined>
+  ): Promise<number[]> {
+    const workItemCounts: number[] = [];
+
+    for (
+      let index = 0;
+      index < filters.length;
+      index += QUERY_WORK_ITEMS_REQUEST_PER_SECOND
+    ) {
+      const start = Date.now();
+      const batch = filters.slice(index, index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND);
+      // Requests within a batch run sequentially to spread the load and avoid 429 errors.
+      for (const filter of batch) {
+        workItemCounts.push(await this.queryWorkItemsCount(filter));
+      }
+
+      const hasMoreRequests = index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND < filters.length;
+      const elapsed = Date.now() - start;
+      if (hasMoreRequests && elapsed < 1000) {
+        await this.delay(1000 - elapsed);
+      }
+    }
+
+    return workItemCounts;
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
   async queryWorkItemsCount(filter?: string): Promise<number> {
     const body: QueryWorkItemsRequestBody = {
       filter,
@@ -874,16 +927,22 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   private buildTypeFilter(
     types: WorkItemTypeOptions[]
   ): { allTypesSelected: boolean; filter: string } {
-    const resolvedTypes = replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[];
-    const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
-
-    const typeValues = resolvedTypes
-      .map(type => WORK_ITEM_TYPE_FILTER_VALUES[type])
-      .filter(Boolean);
+    const { resolvedTypes, allTypesSelected } = this.resolveSelectedTypes(types);
+    const typeValues = resolvedTypes.map(type => WORK_ITEM_TYPE_FILTER_VALUES[type]);
     return {
       allTypesSelected,
       filter: typeValues.map(value => `type = "${value}"`).join(' || '),
     };
+  }
+
+  private resolveSelectedTypes(
+    types: WorkItemTypeOptions[]
+  ): { resolvedTypes: WorkItemTypeOptions[]; allTypesSelected: boolean } {
+    const resolvedTypes = (replaceVariables(types, this.templateSrv) as WorkItemTypeOptions[]).filter(
+      type => WORK_ITEM_TYPE_FILTER_VALUES[type] !== undefined
+    );
+    const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
+    return { resolvedTypes, allTypesSelected };
   }
 
   shouldRunQuery(query: WorkItemsQuery): boolean {

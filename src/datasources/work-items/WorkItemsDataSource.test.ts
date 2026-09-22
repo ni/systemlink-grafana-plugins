@@ -143,8 +143,11 @@ describe('WorkItemsDataSource', () => {
       expect(postSpy).not.toHaveBeenCalled();
     });
 
-    it('should combine the type filter and the queryBy filter', async () => {
-      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+    it('should send a separate count query per selected type and combine them into columns', async () => {
+      const postSpy = jest
+        .spyOn(datasource, 'post')
+        .mockResolvedValueOnce({ totalCount: 3 })
+        .mockResolvedValueOnce({ totalCount: 5 });
       const query = {
         refId: 'A',
         outputType: OutputType.TotalCount,
@@ -152,21 +155,35 @@ describe('WorkItemsDataSource', () => {
         filter: 'state = "NEW"',
       };
 
-      await datasource.runQuery(query, { scopedVars: {} } as DataQueryRequest);
+      const result = await datasource.runQuery(query, { scopedVars: {} } as DataQueryRequest);
 
+      expect(postSpy).toHaveBeenCalledTimes(2);
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
         {
-          filter: '(type = "workorder" || type = "testplan") && (state = "NEW")',
+          filter: '(type = "workorder") && (state = "NEW")',
           take: 0,
           returnCount: true,
         },
         { showErrorAlert: false }
       );
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        {
+          filter: '(type = "testplan") && (state = "NEW")',
+          take: 0,
+          returnCount: true,
+        },
+        { showErrorAlert: false }
+      );
+      expect(result.fields).toEqual([
+        { name: 'Work orders', values: [3] },
+        { name: 'Test plans', values: [5] },
+      ]);
     });
 
-    it('should group each filter when one type is selected', async () => {
-      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+    it('should return a single column when one type is selected', async () => {
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 7 });
       const query = {
         refId: 'A',
         outputType: OutputType.TotalCount,
@@ -174,8 +191,9 @@ describe('WorkItemsDataSource', () => {
         filter: 'state = "NEW"',
       };
 
-      await datasource.runQuery(query, {} as DataQueryRequest);
+      const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
+      expect(postSpy).toHaveBeenCalledTimes(1);
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
         {
@@ -185,14 +203,55 @@ describe('WorkItemsDataSource', () => {
         },
         { showErrorAlert: false }
       );
+      expect(result.fields).toEqual([{ name: 'Work orders', values: [7] }]);
     });
 
-    it('should omit the type filter when all types are selected', async () => {
+    it('should map each type response to its own column in the selected order', async () => {
+      jest
+        .spyOn(datasource, 'post')
+        .mockResolvedValueOnce({ totalCount: 11 })
+        .mockResolvedValueOnce({ totalCount: 22 })
+        .mockResolvedValueOnce({ totalCount: 33 });
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+        types: [WorkItemTypeOptions.Job, WorkItemTypeOptions.Calibration, WorkItemTypeOptions.Reservation],
+      };
+
+      const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+      expect(result.fields).toEqual([
+        { name: 'Job', values: [11] },
+        { name: 'Calibration', values: [22] },
+        { name: 'Reservation', values: [33] },
+      ]);
+    });
+
+    it('should default a column to 0 when the API returns no totalCount for that type', async () => {
+      jest
+        .spyOn(datasource, 'post')
+        .mockResolvedValueOnce({ totalCount: 4 })
+        .mockResolvedValueOnce({});
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+        types: [WorkItemTypeOptions.WorkOrders, WorkItemTypeOptions.TestPlans],
+      };
+
+      const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+      expect(result.fields).toEqual([
+        { name: 'Work orders', values: [4] },
+        { name: 'Test plans', values: [0] },
+      ]);
+    });
+
+    it('should send only the type filter when no query filter is provided', async () => {
       const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
       const query = {
         refId: 'A',
         outputType: OutputType.TotalCount,
-        types: Object.values(WorkItemTypeOptions),
+        types: [WorkItemTypeOptions.WorkOrders],
       };
 
       await datasource.runQuery(query, {} as DataQueryRequest);
@@ -200,12 +259,173 @@ describe('WorkItemsDataSource', () => {
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
         {
-          filter: undefined,
+          filter: '(type = "workorder")',
+          take: 0,
+          returnCount: true,
+        },
+        { showErrorAlert: false }
+      );
+    });
+
+    it('should still apply a per-type filter for every type when all types are selected', async () => {
+      const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+      const query = {
+        refId: 'A',
+        outputType: OutputType.TotalCount,
+        types: Object.values(WorkItemTypeOptions),
+      };
+
+      const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+      expect(postSpy).toHaveBeenCalledTimes(Object.values(WorkItemTypeOptions).length);
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        {
+          filter: '(type = "workorder")',
           take: 0,
           returnCount: true
         },
         { showErrorAlert: false }
       );
+      expect(result.fields).toEqual([
+        { name: 'Work orders', values: [1] },
+        { name: 'Test plans', values: [1] },
+        { name: 'Job', values: [1] },
+        { name: 'Maintenance', values: [1] },
+        { name: 'Calibration', values: [1] },
+        { name: 'Reservation', values: [1] },
+        { name: 'Transport Order', values: [1] },
+      ]);
+    });
+
+    describe('request batching', () => {
+      beforeEach(() => {
+        jest.useFakeTimers();
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('should send at most five count queries per one-second window', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+        };
+
+        const promise = datasource.runQuery(query, {} as DataQueryRequest);
+
+        // Flush the microtasks for the first sequential batch without advancing the clock.
+        await jest.advanceTimersByTimeAsync(0);
+        expect(postSpy).toHaveBeenCalledTimes(5);
+
+        // Advance past the one-second throttle window to release the next batch.
+        await jest.advanceTimersByTimeAsync(1000);
+        await promise;
+        expect(postSpy).toHaveBeenCalledTimes(Object.values(WorkItemTypeOptions).length);
+      });
+
+      it('should not wait when all types fit within a single batch', async () => {
+        const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: [WorkItemTypeOptions.WorkOrders, WorkItemTypeOptions.TestPlans],
+        };
+
+        const promise = datasource.runQuery(query, {} as DataQueryRequest);
+        await jest.advanceTimersByTimeAsync(0);
+
+        expect(postSpy).toHaveBeenCalledTimes(2);
+        // No throttle timer is scheduled because there is no subsequent batch to wait for.
+        expect(jest.getTimerCount()).toBe(0);
+        await promise;
+      });
+
+      it('should preserve the type-to-column order across batches', async () => {
+        jest
+          .spyOn(datasource, 'post')
+          .mockResolvedValueOnce({ totalCount: 1 })
+          .mockResolvedValueOnce({ totalCount: 2 })
+          .mockResolvedValueOnce({ totalCount: 3 })
+          .mockResolvedValueOnce({ totalCount: 4 })
+          .mockResolvedValueOnce({ totalCount: 5 })
+          .mockResolvedValueOnce({ totalCount: 6 })
+          .mockResolvedValueOnce({ totalCount: 7 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions),
+        };
+
+        const promise = datasource.runQuery(query, {} as DataQueryRequest);
+        await jest.advanceTimersByTimeAsync(1000);
+        const result = await promise;
+
+        expect(result.fields).toEqual([
+          { name: 'Work orders', values: [1] },
+          { name: 'Test plans', values: [2] },
+          { name: 'Job', values: [3] },
+          { name: 'Maintenance', values: [4] },
+          { name: 'Calibration', values: [5] },
+          { name: 'Reservation', values: [6] },
+          { name: 'Transport Order', values: [7] },
+        ]);
+      });
+
+      it('should stop sending the remaining queries when a per-type count query fails', async () => {
+        const postSpy = jest
+          .spyOn(datasource, 'post')
+          .mockResolvedValueOnce({ totalCount: 1 })
+          .mockResolvedValueOnce({ totalCount: 2 })
+          .mockRejectedValueOnce(new Error('Request failed with status code: 500 Error message: Internal error'))
+          .mockResolvedValue({ totalCount: 99 });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: [
+            WorkItemTypeOptions.WorkOrders,
+            WorkItemTypeOptions.TestPlans,
+            WorkItemTypeOptions.Job,
+            WorkItemTypeOptions.Maintenance,
+            WorkItemTypeOptions.Calibration,
+          ],
+        };
+
+        // The whole query rejects rather than returning a partial data frame.
+        await expect(datasource.runQuery(query, {} as DataQueryRequest)).rejects.toThrow(
+          'The query failed due to the following error: (status 500) Internal error.'
+        );
+
+        // Requests run sequentially, so the third failure stops the loop and the fourth and
+        // fifth per-type queries are never sent.
+        expect(postSpy).toHaveBeenCalledTimes(3);
+      });
+
+      it('should wait only the remaining time when a batch takes part of the one-second window', async () => {
+        const delaySpy = jest.spyOn(datasource as any, 'delay').mockResolvedValue(undefined);
+        jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
+        // Simulate the first batch consuming 400ms of the one-second window so only the
+        // remaining 600ms should be waited before the next batch starts.
+        const nowSpy = jest
+          .spyOn(Date, 'now')
+          .mockReturnValueOnce(0) // first batch start
+          .mockReturnValueOnce(400) // first batch elapsed -> 400ms used
+          .mockReturnValue(2000); // second (final) batch start/elapsed
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions), // seven types -> two batches
+        };
+
+        await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(delaySpy).toHaveBeenCalledTimes(1);
+        expect(delaySpy).toHaveBeenCalledWith(600);
+        nowSpy.mockRestore();
+      });
     });
 
     it('should replace a template variable in the selected types before building the type filter', async () => {
@@ -234,7 +454,7 @@ describe('WorkItemsDataSource', () => {
       );
     });
 
-    it('should expand a multi-value template variable in the selected types before building the type filter', async () => {
+    it('should send a separate per-type count query for each type a multi-value variable expands to', async () => {
       const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
       const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
       templateSrv.containsTemplate.mockImplementation((value?: string) => value === '$type_var');
@@ -249,17 +469,31 @@ describe('WorkItemsDataSource', () => {
         types: ['$type_var'] as unknown as WorkItemTypeOptions[],
       };
 
-      await datasource.runQuery(query, {} as DataQueryRequest);
+      const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
+      expect(postSpy).toHaveBeenCalledTimes(2);
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
         {
-          filter: '(type = "workorder" || type = "testplan")',
+          filter: '(type = "workorder")',
           take: 0,
           returnCount: true,
         },
         { showErrorAlert: false }
       );
+      expect(postSpy).toHaveBeenCalledWith(
+        '/niworkitem/v1/query-workitems',
+        {
+          filter: '(type = "testplan")',
+          take: 0,
+          returnCount: true,
+        },
+        { showErrorAlert: false }
+      );
+      expect(result.fields).toEqual([
+        { name: 'Work orders', values: [1] },
+        { name: 'Test plans', values: [1] },
+      ]);
     });
 
     it('should return an empty data frame without querying when a template variable resolves to no values', async () => {
@@ -339,6 +573,7 @@ describe('WorkItemsDataSource', () => {
 
       await datasource.runQuery(query, {} as DataQueryRequest);
 
+      expect(postSpy).toHaveBeenCalledTimes(1);
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
         {
@@ -350,7 +585,7 @@ describe('WorkItemsDataSource', () => {
       );
     });
 
-    it('should omit the type filter when a variable expands to cover all work item types', async () => {
+    it('should send a per-type count query for each type when a variable expands to cover all work item types', async () => {
       const [datasource, , templateSrv] = setupDataSource(WorkItemsDataSource);
       const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({ totalCount: 1 });
       templateSrv.containsTemplate.mockImplementation((value?: string) => value === '$type_var');
@@ -365,10 +600,11 @@ describe('WorkItemsDataSource', () => {
 
       await datasource.runQuery(query, {} as DataQueryRequest);
 
+      expect(postSpy).toHaveBeenCalledTimes(Object.values(WorkItemTypeOptions).length);
       expect(postSpy).toHaveBeenCalledWith(
         '/niworkitem/v1/query-workitems',
         {
-          filter: undefined,
+          filter: '(type = "workorder")',
           take: 0,
           returnCount: true,
         },
@@ -382,7 +618,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: [WorkItemTypeOptions.WorkOrders],
           filter: 'estimatedDurationInDays > "2"',
         };
 
@@ -391,7 +627,7 @@ describe('WorkItemsDataSource', () => {
         expect(postSpy).toHaveBeenCalledWith(
           '/niworkitem/v1/query-workitems',
           {
-            filter: '(timeline.estimatedDurationInSeconds > "172800")',
+            filter: '(type = "workorder") && (timeline.estimatedDurationInSeconds > "172800")',
             take: 0,
             returnCount: true,
           },
@@ -404,7 +640,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: [WorkItemTypeOptions.WorkOrders],
           filter: 'estimatedDurationInHours <= "3"',
         };
 
@@ -413,7 +649,7 @@ describe('WorkItemsDataSource', () => {
         expect(postSpy).toHaveBeenCalledWith(
           '/niworkitem/v1/query-workitems',
           {
-            filter: '(timeline.estimatedDurationInSeconds <= "10800")',
+            filter: '(type = "workorder") && (timeline.estimatedDurationInSeconds <= "10800")',
             take: 0,
             returnCount: true,
           },
@@ -426,7 +662,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: [WorkItemTypeOptions.WorkOrders],
           filter: 'plannedDurationInDays != "-1"',
         };
 
@@ -435,7 +671,7 @@ describe('WorkItemsDataSource', () => {
         expect(postSpy).toHaveBeenCalledWith(
           '/niworkitem/v1/query-workitems',
           {
-            filter: '(schedule.plannedDurationInSeconds != "-86400")',
+            filter: '(type = "workorder") && (schedule.plannedDurationInSeconds != "-86400")',
             take: 0,
             returnCount: true,
           },
@@ -448,7 +684,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: [WorkItemTypeOptions.WorkOrders],
           filter: 'plannedDurationInHours >= "5"',
         };
 
@@ -457,7 +693,7 @@ describe('WorkItemsDataSource', () => {
         expect(postSpy).toHaveBeenCalledWith(
           '/niworkitem/v1/query-workitems',
           {
-            filter: '(schedule.plannedDurationInSeconds >= "18000")',
+            filter: '(type = "workorder") && (schedule.plannedDurationInSeconds >= "18000")',
             take: 0,
             returnCount: true,
           },
@@ -494,7 +730,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: [WorkItemTypeOptions.WorkOrders],
           filter: 'estimatedDurationInDays > "1.5"',
         };
 
@@ -503,7 +739,7 @@ describe('WorkItemsDataSource', () => {
         expect(postSpy).toHaveBeenCalledWith(
           '/niworkitem/v1/query-workitems',
           {
-            filter: '(timeline.estimatedDurationInSeconds > "129600")',
+            filter: '(type = "workorder") && (timeline.estimatedDurationInSeconds > "129600")',
             take: 0,
             returnCount: true,
           },
@@ -516,7 +752,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: [WorkItemTypeOptions.WorkOrders],
           filter: 'plannedDurationInHours <= "-2.25"',
         };
 
@@ -525,7 +761,7 @@ describe('WorkItemsDataSource', () => {
         expect(postSpy).toHaveBeenCalledWith(
           '/niworkitem/v1/query-workitems',
           {
-            filter: '(schedule.plannedDurationInSeconds <= "-8100")',
+            filter: '(type = "workorder") && (schedule.plannedDurationInSeconds <= "-8100")',
             take: 0,
             returnCount: true,
           },
@@ -544,7 +780,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: [WorkItemTypeOptions.WorkOrders],
           filter: 'state = "$state"',
         };
 
@@ -553,7 +789,7 @@ describe('WorkItemsDataSource', () => {
         expect(replaceSpy).toHaveBeenCalledWith('state = "$state"', scopedVars);
         expect(postSpy).toHaveBeenCalledWith(
           '/niworkitem/v1/query-workitems',
-          expect.objectContaining({ filter: '(state = "NEW")' }),
+          expect.objectContaining({ filter: '(type = "workorder") && (state = "NEW")' }),
           { showErrorAlert: false }
         );
       });
@@ -566,7 +802,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: [WorkItemTypeOptions.WorkOrders],
           filter: 'state = "$state"',
         };
 
@@ -574,7 +810,9 @@ describe('WorkItemsDataSource', () => {
 
         expect(postSpy).toHaveBeenCalledWith(
           '/niworkitem/v1/query-workitems',
-          expect.objectContaining({ filter: '((state = "NEW" || state = "DEFINED"))' }),
+          expect.objectContaining({
+            filter: '(type = "workorder") && ((state = "NEW" || state = "DEFINED"))',
+          }),
           { showErrorAlert: false }
         );
       });
@@ -587,7 +825,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: [WorkItemTypeOptions.WorkOrders],
           filter: 'estimatedDurationInDays = "$dur"',
         };
 
@@ -597,7 +835,7 @@ describe('WorkItemsDataSource', () => {
           '/niworkitem/v1/query-workitems',
           expect.objectContaining({
             filter:
-              '((timeline.estimatedDurationInSeconds = "86400" || ' +
+              '(type = "workorder") && ((timeline.estimatedDurationInSeconds = "86400" || ' +
               'timeline.estimatedDurationInSeconds = "172800"))',
           }),
           { showErrorAlert: false }
@@ -612,7 +850,7 @@ describe('WorkItemsDataSource', () => {
         const query = {
           refId: 'A',
           outputType: OutputType.TotalCount,
-          types: Object.values(WorkItemTypeOptions),
+          types: [WorkItemTypeOptions.WorkOrders],
           filter: 'createdAt > "$time"',
         };
 
@@ -620,7 +858,7 @@ describe('WorkItemsDataSource', () => {
 
         const requestBody = postSpy.mock.calls[0][1] as { filter: string };
         expect(requestBody.filter).toMatch(
-          /^\(createdAt > "\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z"\)$/
+          /^\(type = "workorder"\) && \(createdAt > "\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z"\)$/
         );
       });
     });
@@ -1087,7 +1325,7 @@ describe('WorkItemsDataSource', () => {
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
-          fields: [{ name: 'A', values: [42] }],
+          fields: [{ name: 'Work orders', values: [42] }],
         });
       });
 
@@ -1101,7 +1339,7 @@ describe('WorkItemsDataSource', () => {
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields).toEqual([{ name: 'A', values: [0] }]);
+        expect(result.fields).toEqual([{ name: 'Work orders', values: [0] }]);
       });
     });
 
