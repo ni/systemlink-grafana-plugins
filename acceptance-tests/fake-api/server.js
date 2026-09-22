@@ -7,7 +7,9 @@ import { systemsRoutes } from './routes/systemsRoutes.js';
 import { locationsRoutes } from './routes/locationRoutes.js';
 import { notebookRoutes } from './routes/notebookRoute.js';
 import { tagRoutes } from './routes/tagRoutes.js';
-import { workItemRoutes } from './routes/workItemsRoutes.js';
+import { workItemsRoutes } from './routes/workItemsRoutes.js';
+import { usersRoutes } from './routes/usersRoutes.js';
+import { productsRoutes } from './routes/productsRoutes.js';
 
 const server = jsonServer.create();
 const router = jsonServer.router(db);
@@ -44,6 +46,10 @@ server.post('/nitag/v2/fetch-tags-with-values', tagRoutes.fetchTagsWithValues);
 server.post('/nitaghistorian/v2/tags/query-decimated-history', tagRoutes.queryDecimatedHistory);
 
 server.get('/niuser/v1/workspaccces', authRoutes.getUserWorkspaces);
+
+server.post('/niworkitem/v1/query-workitems', workItemsRoutes.queryWorkItems);
+server.post('/niuser/v1/users/query', usersRoutes.queryUsers);
+server.post('/nitestmonitor/v2/query-products', productsRoutes.queryProducts);
 
 server.use(router);
 server.listen(port);
