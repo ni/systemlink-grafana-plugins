@@ -471,6 +471,19 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return id ? systemAliases.get(id)?.alias ?? '' : '';
   }
 
+  private resolveProductField(
+    workItem: WorkItem,
+    productsLookup: Map<string, ProductPartNumberAndName>,
+    selector: (product: ProductPartNumberAndName) => string
+  ): string {
+    const partNumber = workItem.partNumber ?? '';
+    if (!partNumber) {
+      return '';
+    }
+    const product = productsLookup.get(partNumber);
+    return product ? selector(product) : partNumber;
+  }
+
   private resolveTargetLocation(
     selection: Pick<ResourceSelection, 'targetSystemId' | 'targetLocationId'> | undefined,
     locations: Map<string, Location>,
@@ -649,14 +662,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         return workItem.testProgram ?? '';
       case WorkItemPropertiesOptions.PART_NUMBER:
         return workItem.partNumber ?? '';
-      case WorkItemPropertiesOptions.PRODUCT_ID: {
-        const product = productsLookup.get(workItem.partNumber ?? '');
-        return product?.id ?? (workItem.partNumber ?? '');
-      }
-      case WorkItemPropertiesOptions.PRODUCT_NAME: {
-        const product = productsLookup.get(workItem.partNumber ?? '');
-        return product?.name ?? (workItem.partNumber ?? '');
-      }
+      case WorkItemPropertiesOptions.PRODUCT_NAME:
+        return this.resolveProductField(workItem, productsLookup, product => product.name);
+      case WorkItemPropertiesOptions.PRODUCT_ID:
+        return this.resolveProductField(workItem, productsLookup, product => product.id);
       case WorkItemPropertiesOptions.WORKSPACE: {
         const workspace = workspacesLookup.get(workItem.workspace ?? '');
         return workspace ? workspace.name : workItem.workspace ?? '';
