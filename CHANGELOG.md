@@ -1,3 +1,13 @@
+## [5.21.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.20.0...v5.21.0) (2026-09-22)
+
+### Features
+
+* **workitem:** show deprecation notice in Work Orders and Test Plans variable editors ([#776](https://github.com/ni/systemlink-grafana-plugins/issues/776)) ([67f00fd](https://github.com/ni/systemlink-grafana-plugins/commit/67f00fdb05a6c6cbbe52b4baeacb7184e2d8aaff))
+
+### Bug Fixes
+
+* **work-items:** run per-type total count requests concurrently within a batch ([#778](https://github.com/ni/systemlink-grafana-plugins/issues/778)) ([5ec4d0b](https://github.com/ni/systemlink-grafana-plugins/commit/5ec4d0b61f5e98076b3a523c1abd6c02d0850fcd))
+
 ## [5.20.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.19.0...v5.20.0) (2026-09-22)
 
 ### Features
