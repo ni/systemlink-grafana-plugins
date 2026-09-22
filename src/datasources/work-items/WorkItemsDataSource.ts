@@ -420,9 +420,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         workItem.resources?.duts?.selections?.forEach(
           selection => selection.targetParentId && ids.push(selection.targetParentId)
         );
-        workItem.resources?.fixtures?.selections?.forEach(
-          selection => selection.targetParentId && ids.push(selection.targetParentId)
-        );
       }
     });
 
@@ -569,9 +566,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       this.buildResourceField('Target Location (DUT)', flattenedRows, row =>
         this.resolveTargetLocation(row.dutSelection, locationsLookup, systemAliasesLookup)
       ),
-      this.buildResourceField('Target Location (Fixture)', flattenedRows, row =>
-        this.resolveTargetLocation(row.fixtureSelection, locationsLookup, systemAliasesLookup)
-      ),
     ];
   }
 
@@ -582,9 +576,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       ),
       this.buildResourceField('Target Parent (DUT)', flattenedRows, row =>
         this.resolveAssetNameForTargetParent(row.dutSelection?.targetParentId, assetNamesLookup)
-      ),
-      this.buildResourceField('Target Parent (Fixture)', flattenedRows, row =>
-        this.resolveAssetNameForTargetParent(row.fixtureSelection?.targetParentId, assetNamesLookup)
       ),
     ];
   }
