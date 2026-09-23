@@ -2,8 +2,6 @@ import { test, expect } from '@playwright/test';
 import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcePage } from '../../../../page-objects/data-sources/data-source.pageobject';
-import { takeErrorMessages } from '../../../../../src/datasources/work-items/constants/QueryEditor.constants';
-import { OutputType } from '../../../../../src/datasources/work-items/types';
 import { workItemColumn, nonDefaultWorkItemProperties } from '../../../../constants/work-items.constants';
 
 test.describe('Work Items data source', () => {
@@ -23,7 +21,7 @@ test.describe('Work Items data source', () => {
         await dataSource.deleteDataSource(createdDataSourceName);
     });
 
-    test('should verify all table data properties are correct', async () => {
+    test.only('should verify all table data properties are correct', async () => {
         await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
         await dashboard.createFirstVisualization(createdDataSourceName);
         await dashboard.panel.toolbar.switchToTableView();
@@ -94,7 +92,8 @@ test.describe('Work Items data source', () => {
 
         await dashboard.panel.workItemsQueryEditor.setTake('-1');
 
-        await expect(dashboard.page.getByText(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
+        // Matches takeErrorMessages.greaterOrEqualToZero in src/datasources/work-items/constants/QueryEditor.constants.ts.
+        await expect(dashboard.page.getByText('Enter a value greater than or equal to 0')).toBeVisible();
     });
 
     test('should show total count per work item type', async () => {
@@ -103,7 +102,8 @@ test.describe('Work Items data source', () => {
         await dashboard.panel.toolbar.switchToTableView();
 
         await dashboard.panel.workItemsQueryEditor.selectOnlyTypes(['Test plans', 'Job', 'Maintenance', 'Reservation']);
-        await dashboard.panel.workItemsQueryEditor.selectOutputType(OutputType.TotalCount);
+        // 'Total Count' matches the OutputType.TotalCount enum value in src/datasources/work-items/types.ts.
+        await dashboard.panel.workItemsQueryEditor.selectOutputType('Total Count');
 
         expect(await dashboard.panel.table.checkColumnValue('Test plans', '1')).toBeTruthy();
         expect(await dashboard.panel.table.checkColumnValue('Job', '1')).toBeTruthy();
