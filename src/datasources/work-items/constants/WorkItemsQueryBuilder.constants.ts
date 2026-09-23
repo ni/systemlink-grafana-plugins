@@ -90,7 +90,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     dataField: WorkItemsQueryBuilderFieldNames.Type,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
     lookup: {
-      dataSource: WorkItemTypes.map(({ label, value }) => ({ label, value })),
+      dataSource: WorkItemTypes,
     },
   },
   STATE: {

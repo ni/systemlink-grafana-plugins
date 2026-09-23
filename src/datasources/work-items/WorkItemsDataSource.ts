@@ -983,11 +983,11 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     types: WorkItemTypeOptions[],
     scopedVars?: ScopedVars
   ): { resolvedTypes: WorkItemTypeOptions[]; allTypesSelected: boolean } {
-    const validTypes = new Set<string>(Object.values(WorkItemTypeOptions));
+    const validTypes = Object.values(WorkItemTypeOptions);
     const resolvedTypes = (replaceVariables(types, this.templateSrv, scopedVars) as WorkItemTypeOptions[]).filter(
-      type => validTypes.has(type)
+      type => validTypes.includes(type)
     );
-    const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
+    const allTypesSelected = validTypes.every(type => resolvedTypes.includes(type));
     return { resolvedTypes, allTypesSelected };
   }
 

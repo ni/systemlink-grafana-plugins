@@ -375,7 +375,7 @@ describe('WorkItemsQueryBuilder', () => {
     it.each([
       { filter: 'id = "1"', expected: ['ID', 'equals', '1'] },
       { filter: 'name.Contains("test")', expected: ['Name', 'contains', 'test'] },
-      { filter: 'type = "workorder"', expected: ['Type', 'equals', 'Work orders'] },
+      { filter: 'type = "workorder"', expected: ['Type', 'equals', 'Work order'] },
       { filter: 'state = "PendingApproval"', expected: ['State', 'equals', 'Pending approval'] },
       { filter: 'properties["key"] = "value"', expected: ['Properties', 'matches', 'key', 'value'] },
       { filter: 'testProgram = "Program 1"', expected: ['Test program', 'equals', 'Program 1'] },
