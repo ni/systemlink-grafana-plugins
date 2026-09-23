@@ -193,7 +193,7 @@ describe('WorkItemsQueryEditor', () => {
         const [onChange, onRunQuery] = render({ types: [WorkItemTypeOptions.WorkOrders] });
         onRunQuery.mockClear();
 
-        await userEvent.click(page.removeOptionButton('Work orders'));
+        await userEvent.click(page.removeOptionButton('Work order'));
 
         expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeVisible();
         expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ types: [] }));
@@ -201,7 +201,7 @@ describe('WorkItemsQueryEditor', () => {
 
         const typesCombobox = page.typesMultiCombobox()!;
         await userEvent.click(typesCombobox);
-        await userEvent.click(await page.typeSelectOption('Work orders'));
+        await userEvent.click(await page.typeSelectOption('Work order'));
 
         expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeNull();
         expect(onChange).toHaveBeenLastCalledWith(
@@ -418,7 +418,7 @@ describe('WorkItemsQueryEditor', () => {
         await waitFor(() => expect(getCustomPropertyOptionsSpy).toHaveBeenCalled());
         getCustomPropertyOptionsSpy.mockClear();
 
-        await userEvent.click(page.removeOptionButton('Work orders'));
+        await userEvent.click(page.removeOptionButton('Work order'));
 
         await waitFor(() => expect(
           page.getErrorByMessage(

@@ -55,7 +55,6 @@ import {
   SECONDS_IN_HOUR,
   WORK_ITEM_PROPERTIES_PROJECTION,
   WORK_ITEM_PROPERTIES_PROJECTIONS,
-  WORK_ITEM_TYPE_FILTER_VALUES,
   WORK_ITEM_TYPE_LABEL_MAP,
   WORK_ITEM_STATE_OPTIONS,
   USER_PROPERTY_FIELDS,
@@ -829,7 +828,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       : queryFilter;
 
     const filters = resolvedTypes.map(type => {
-      const typeFilter = `type = "${WORK_ITEM_TYPE_FILTER_VALUES[type]}"`;
+      const typeFilter = `type = "${type}"`;
       return this.buildQueryFilter(
         `(${typeFilter})`,
         transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
@@ -973,10 +972,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     scopedVars?: ScopedVars
   ): { allTypesSelected: boolean; filter: string } {
     const { resolvedTypes, allTypesSelected } = this.resolveSelectedTypes(types, scopedVars);
-    const typeValues = resolvedTypes.map(type => WORK_ITEM_TYPE_FILTER_VALUES[type]);
     return {
       allTypesSelected,
-      filter: typeValues.map(value => `type = "${value}"`).join(' || '),
+      filter: resolvedTypes.map(type => `type = "${type}"`).join(' || '),
     };
   }
 
@@ -984,10 +982,11 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     types: WorkItemTypeOptions[],
     scopedVars?: ScopedVars
   ): { resolvedTypes: WorkItemTypeOptions[]; allTypesSelected: boolean } {
+    const validTypes = Object.values(WorkItemTypeOptions);
     const resolvedTypes = (replaceVariables(types, this.templateSrv, scopedVars) as WorkItemTypeOptions[]).filter(
-      type => WORK_ITEM_TYPE_FILTER_VALUES[type] !== undefined
+      type => validTypes.includes(type)
     );
-    const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
+    const allTypesSelected = validTypes.every(type => resolvedTypes.includes(type));
     return { resolvedTypes, allTypesSelected };
   }
 

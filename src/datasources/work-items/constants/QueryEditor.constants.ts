@@ -50,13 +50,13 @@ export const tooltips = {
 };
 
 export const WorkItemTypes = [
-  { label: 'Work orders', value: WorkItemTypeOptions.WorkOrders },
-  { label: 'Test plans', value: WorkItemTypeOptions.TestPlans },
+  { label: 'Work order', value: WorkItemTypeOptions.WorkOrders },
+  { label: 'Test plan', value: WorkItemTypeOptions.TestPlans },
   { label: 'Job', value: WorkItemTypeOptions.Job },
   { label: 'Maintenance', value: WorkItemTypeOptions.Maintenance },
   { label: 'Calibration', value: WorkItemTypeOptions.Calibration },
   { label: 'Reservation', value: WorkItemTypeOptions.Reservation },
-  { label: 'Transport Order', value: WorkItemTypeOptions.TransportOrder },
+  { label: 'Transport order', value: WorkItemTypeOptions.TransportOrder },
 ];
 
 export const WorkItemTypeMetricFindValues: MetricFindValue[] = WorkItemTypes.map(
