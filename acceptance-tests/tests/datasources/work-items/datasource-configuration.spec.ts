@@ -3,7 +3,7 @@ import { FAKE_API_URL } from '../../../config/environment';
 import { timeOutPeriod } from '../../../constants/global.constant';
 import { WorkItemsDataSource } from '../../../page-objects/data-sources/work-items-data-source.pageobject';
 
-test.describe('Datasource Configuration', () => {
+test.describe.only('Datasource Configuration', () => {
     let dataSource: WorkItemsDataSource;
     const dataSourceName = 'Systemlink Work Items Configuration';
 
