@@ -7,7 +7,7 @@ import { systemsRoutes } from './routes/systemsRoutes.js';
 import { locationsRoutes } from './routes/locationRoutes.js';
 import { notebookRoutes } from './routes/notebookRoute.js';
 import { tagRoutes } from './routes/tagRoutes.js';
-import { workItemRoutes } from './routes/workItemRoutes.js';
+import { workItemRoutes } from './routes/workItemsRoutes.js';
 
 const server = jsonServer.create();
 const router = jsonServer.router(db);
