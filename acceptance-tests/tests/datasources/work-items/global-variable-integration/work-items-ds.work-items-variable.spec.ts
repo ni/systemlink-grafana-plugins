@@ -42,7 +42,7 @@ test.describe.only('Work Items DataSource with Work Item Variable', () => {
             await dashboard.panel.workItemsQueryEditor.selectOnlyTypes(['$workItemTypes']);
             await dashboard.panel.toolbar.switchToTableView();
 
-            await expect.poll(() => dashboard.panel.table.getTableRowCount()).toBeGreaterThan(0);
+            await expect.poll(() => dashboard.panel.table.getTableRowCount()).toBe(5);
         });
     });
 });
