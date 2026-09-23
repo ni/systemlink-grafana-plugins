@@ -37,7 +37,6 @@ server.get('/ninbexecution/v1/executions/:executionId', notebookRoutes.getExecut
 server.post('/niapp/v1/webapps/query', notebookRoutes.listNotebooks);
 server.get('/ninbparser/v1/notebook/:id', notebookRoutes.getNotebookMetadata);
 
-// WorkspaceUtils (used by the Work Items datasource) reads workspaces from this endpoint.
 server.get('/niauth/v1/auth', authRoutes.getUserWorkspaces);
 server.post('/niworkitem/v1/query-workitems', workItemRoutes.queryWorkItems);
 server.get('/nitag/v2/tags-count', tagRoutes.getTagsCount);
