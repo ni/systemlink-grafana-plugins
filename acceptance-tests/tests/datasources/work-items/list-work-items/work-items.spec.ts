@@ -4,7 +4,7 @@ import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.page
 import { DataSourcePage } from '../../../../page-objects/data-sources/data-source.pageobject';
 import { workItemColumn, nonDefaultWorkItemProperties } from '../../../../constants/work-items.constants';
 
-test.describe('Work Items data source', () => {
+test.describe.only('Work Items data source', () => {
     let dashboard: DashboardPage;
     let dataSource: DataSourcePage;
     const createdDataSourceName = 'Systemlink Work Items General';
