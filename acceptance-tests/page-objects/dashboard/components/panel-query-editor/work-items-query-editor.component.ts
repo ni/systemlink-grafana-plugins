@@ -51,7 +51,7 @@ export class WorkItemsQueryEditorComponent {
     }
 
     public async selectTypes(types: string[]): Promise<void> {
-        await this.typesMultiCombobox.click();
+        await this.typesMultiCombobox.click({ force: true });
         for (const type of types) {
             await this.typeOption(type).click();
         }
@@ -60,7 +60,7 @@ export class WorkItemsQueryEditorComponent {
 
     // All work item types are selected by default; deselect them all via the "All" option before selecting the given ones.
     public async selectOnlyTypes(types: string[]): Promise<void> {
-        await this.typesMultiCombobox.click();
+        await this.typesMultiCombobox.click({ force: true });
         await this.typeOption('All').click();
         for (const type of types) {
             await this.typeOption(type).click();
@@ -69,15 +69,16 @@ export class WorkItemsQueryEditorComponent {
     }
 
     public async addSelectedPropertiesToTable(properties: string[]): Promise<void> {
-        await this.propertiesMultiCombobox.click();
+        await this.propertiesMultiCombobox.click({ force: true });
         for (const property of properties) {
+            await this.propertiesMultiCombobox.fill(property);
             await this.propertyOption(property).click();
         }
         await this.page.keyboard.press('Escape');
     }
 
     public async selectOrderBy(option: string): Promise<void> {
-        await this.orderByCombobox.click();
+        await this.orderByCombobox.click({ force: true });
         await this.page.getByRole('option', { name: option }).click();
     }
 

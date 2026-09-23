@@ -39,7 +39,6 @@ export const nonDefaultWorkItemProperties = [
     workItemColumn.productName,
     workItemColumn.productId,
     workItemColumn.workspace,
-    workItemColumn.assignedTo,
     workItemColumn.requestedBy,
     workItemColumn.createdBy,
     workItemColumn.updatedBy,
