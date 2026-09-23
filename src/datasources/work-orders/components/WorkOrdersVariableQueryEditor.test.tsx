@@ -54,7 +54,7 @@ describe('WorkOrdersVariableQueryEditor', () => {
     const notice = container.getByRole('alert');
     expect(notice).toHaveTextContent(deprecationMessage.title);
     expect(notice).toHaveTextContent(deprecationMessage.message.trim());
-    // TODO [Task 4073979]: Uncomment once the documentation link is added back to the notice.
+    // TODO [Task 4073979]: Uncomment once the documentation link is added back to the banner.
     // const link = container.getByRole('link', { name: deprecationMessage.linkText });
     // expect(link).toHaveAttribute('href', deprecationMessage.linkUrl);
   });
