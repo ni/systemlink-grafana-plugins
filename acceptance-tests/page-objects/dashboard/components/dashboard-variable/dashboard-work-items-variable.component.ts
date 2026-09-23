@@ -6,12 +6,13 @@ export class DashboardWorkItemsVariableComponent extends DashboardVariableBaseCo
         super(page);
     }
 
-    public queryTypeDropdown(dropdownOptionName: string) {
-        return this.page.locator('div').filter({ hasText: new RegExp(`^${dropdownOptionName}$`) }).nth(2);
+    public async selectQueryType(queryType: string): Promise<void> {
+        await this.queryTypeCombobox.click();
+        await this.queryTypeCombobox.fill(queryType);
+        await this.page.getByRole('option', { name: queryType }).click();
     }
 
-    public async selectQueryType(initialDropdownOptionName: string, queryType: string): Promise<void> {
-        await this.queryTypeDropdown(initialDropdownOptionName).click();
-        await this.page.getByRole('option', { name: queryType }).click();
+    private get queryTypeCombobox() {
+        return this.page.getByLabel('Query type');
     }
 }

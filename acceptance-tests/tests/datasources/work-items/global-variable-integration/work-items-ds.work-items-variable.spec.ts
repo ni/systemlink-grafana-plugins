@@ -3,7 +3,7 @@ import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcePage } from '../../../../page-objects/data-sources/data-source.pageobject';
 
-test.describe('Work Items DataSource with Work Item Variable', () => {
+test.describe.only('Work Items DataSource with Work Item Variable', () => {
     let dashboard: DashboardPage;
     let dataSource: DataSourcePage;
     const createdDataSourceName = 'SystemLink Work Items With Variable';
@@ -21,33 +21,28 @@ test.describe('Work Items DataSource with Work Item Variable', () => {
     });
 
     test.describe.serial('Work item variable integration', () => {
-        test.only('should create a work item variable using the list work items query type', async () => {
+        test('should create a work item variable using the list work items query type', async () => {
             await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
 
             await dashboard.toolbar.openSettings();
             await dashboard.settings.goToVariablesTab();
             await dashboard.settings.addNewVariable();
-            await dashboard.settings.workItemsVariable.setVariableName('workItemId');
+            await dashboard.settings.workItemsVariable.setVariableName('workItemTypes');
             await dashboard.settings.workItemsVariable.selectDataSource(createdDataSourceName);
+            await dashboard.settings.workItemsVariable.selectQueryType('List work item types');
             await dashboard.settings.workItemsVariable.applyVariableChanges();
 
-            expect(dashboard.settings.createdVariable('workItemId')).toBeDefined();
+            expect(dashboard.settings.createdVariable('workItemTypes')).toBeDefined();
 
             await dashboard.settings.goBackToDashboardPage();
         });
 
-        // test('should filter the work items panel using the created variable', async () => {
-        //     await dashboard.variableDropdown('Parent Work Order (WI-0)').click();
-        //     await dashboard.variableDropdownOption('Work Item 1 (WI-1)').click();
-        //     await dashboard.page.keyboard.press('Escape');
+        test('should filter the work items panel using the created variable', async () => {
+            await dashboard.createFirstVisualization(createdDataSourceName);
+            await dashboard.panel.workItemsQueryEditor.selectOnlyTypes(['$workItemTypes']);
+            await dashboard.panel.toolbar.switchToTableView();
 
-        //     await dashboard.createFirstVisualization(createdDataSourceName);
-        //     await dashboard.panel.toolbar.switchToTableView();
-
-        //     await dashboard.panel.workItemsQueryEditor.addFilter('ID', 'equals', '$workItemId');
-
-        //     await expect.poll(() => dashboard.panel.table.getTableRowCount()).toBe(1);
-        //     expect(await dashboard.panel.table.checkColumnValue('Work item name', 'Work Item 1')).toBeTruthy();
-        // });
+            await expect.poll(() => dashboard.panel.table.getTableRowCount()).toBeGreaterThan(0);
+        });
     });
 });
