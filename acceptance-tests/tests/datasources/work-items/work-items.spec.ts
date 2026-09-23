@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
-import { GRAFANA_URL } from '../../../../config/environment';
-import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
-import { DataSourcePage } from '../../../../page-objects/data-sources/data-source.pageobject';
-import { workItemColumn, nonDefaultWorkItemProperties } from '../../../../constants/work-items.constants';
+import { GRAFANA_URL } from '../../../config/environment';
+import { DashboardPage } from '../../../page-objects/dashboard/dashboard.pageobject';
+import { DataSourcePage } from '../../../page-objects/data-sources/data-source.pageobject';
+import { workItemColumn, nonDefaultWorkItemProperties } from '../../../constants/work-items.constants';
 
 test.describe('Work Items data source', () => {
     let dashboard: DashboardPage;

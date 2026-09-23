@@ -2,18 +2,21 @@ import { Page, Locator } from '@playwright/test';
 import { DashboardAssetVariableComponent } from './dashboard-variable/dashboard-asset-variable.component';
 import { DashboardSystemVariableComponent } from './dashboard-variable/dashboard-system-variable.component';
 import { DashboardNotebookVariableComponent } from './dashboard-variable/dashboard-notebook-variable.component';
+import { DashboardWorkItemsVariableComponent } from './dashboard-variable/dashboard-work-items-variable.component';
 
 export class Settings {
     private readonly page: Page;
     public readonly assetVariable: DashboardAssetVariableComponent;
     public readonly systemVariable: DashboardSystemVariableComponent;
     public readonly notebookVariable: DashboardNotebookVariableComponent;
+    public readonly workItemsVariable: DashboardWorkItemsVariableComponent;
 
     constructor(page: Page) {
         this.page = page;
         this.assetVariable = new DashboardAssetVariableComponent(page);
         this.systemVariable = new DashboardSystemVariableComponent(page);
         this.notebookVariable = new DashboardNotebookVariableComponent(page);
+        this.workItemsVariable = new DashboardWorkItemsVariableComponent(page);
     }
 
     public get variableButton(): Locator {
