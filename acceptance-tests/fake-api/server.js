@@ -38,6 +38,9 @@ server.get('/ninbparser/v1/notebook/:id', notebookRoutes.getNotebookMetadata);
 
 // WorkspaceUtils (used by the Work Items datasource) reads workspaces from this endpoint.
 server.get('/niauth/v1/auth', authRoutes.getUserWorkspaces);
+// Used by WorkItemsDataSource.testDatasource() for Save & Test.
+server.post('/niworkitem/v1/query-workitems', (_req, res) =>
+    res.status(200).json({ workItems: [], totalCount: 0 }));
 server.get('/nitag/v2/tags-count', tagRoutes.getTagsCount);
 server.post('/nitag/v2/fetch-tags-with-values', tagRoutes.fetchTagsWithValues);
 server.post('/nitaghistorian/v2/tags/query-decimated-history', tagRoutes.queryDecimatedHistory);
