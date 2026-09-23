@@ -931,13 +931,27 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
     let depth = 0;
     let insideString = false;
+    let escaped = false;
     for (let index = 0; index < filter.length; index++) {
       const char = filter[index];
+      if (insideString) {
+        // Skip characters inside string values, honoring backslash escapes so that an escaped
+        // quote (e.g. "a\"") does not prematurely close the string.
+        if (escaped) {
+          escaped = false;
+        } else if (char === '\\') {
+          escaped = true;
+        } else if (char === '"') {
+          insideString = false;
+        }
+        continue;
+      }
+
       if (char === '"') {
-        insideString = !insideString;
-      } else if (!insideString && char === '(') {
+        insideString = true;
+      } else if (char === '(') {
         depth++;
-      } else if (!insideString && char === ')') {
+      } else if (char === ')') {
         depth--;
         // If the opening parenthesis closes before the end, the outer parentheses do not
         // enclose the entire expression (e.g. '(a) && (b)').

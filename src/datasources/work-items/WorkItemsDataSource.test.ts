@@ -80,6 +80,38 @@ describe('WorkItemsDataSource', () => {
     [datasource] = setupDataSource(WorkItemsDataSource);
   });
 
+  describe('wrapInParenthesesIfNeeded', () => {
+    it('should not wrap a filter that is already fully enclosed', () => {
+      const filter = '(createdBy = "user-1" && createdAt > "2026-01-01T00:00:00.000Z")';
+
+      expect((datasource as any).wrapInParenthesesIfNeeded(filter)).toBe(filter);
+    });
+
+    it('should wrap a single condition that is not enclosed', () => {
+      expect((datasource as any).wrapInParenthesesIfNeeded('state = "NEW"')).toBe('(state = "NEW")');
+    });
+
+    it('should wrap two separate groups joined at the top level', () => {
+      const filter = '(state = "NEW") || (state = "DEFINED")';
+
+      expect((datasource as any).wrapInParenthesesIfNeeded(filter)).toBe(`(${filter})`);
+    });
+
+    it('should wrap top-level "||" even when escaped quotes appear inside the groups', () => {
+      // The outer parentheses do not enclose the whole expression, so wrapping is required to
+      // preserve precedence when combined with the type filter via '&&'.
+      const filter = '(name = "a\\"") || (state = "b\\"")';
+
+      expect((datasource as any).wrapInParenthesesIfNeeded(filter)).toBe(`(${filter})`);
+    });
+
+    it('should not wrap a fully enclosed filter that contains escaped quotes', () => {
+      const filter = '(name = "a\\"" && state = "b\\"")';
+
+      expect((datasource as any).wrapInParenthesesIfNeeded(filter)).toBe(filter);
+    });
+  });
+
   it('should apply expected default query values', () => {
     const query = datasource.prepareQuery({ refId: 'A' });
 
