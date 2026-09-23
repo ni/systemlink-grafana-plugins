@@ -102,6 +102,7 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
       <div style={{ width: '100%', maxWidth: DEPRECATION_NOTICE_MAX_WIDTH }}>
         <Alert severity="warning" title={deprecationMessage.title}>
           {deprecationMessage.message}
+          {/* TODO [Task 4073979]: Uncomment once the public Work Items documentation link is available.
           <a
             href={deprecationMessage.linkUrl}
             target="_blank"
@@ -110,7 +111,7 @@ export function TestPlansVariableQueryEditor({ query, onChange, datasource }: Pr
           >
             {deprecationMessage.linkText}
           </a>
-          .
+          . */}
         </Alert>
       </div>
       <VerticalGroup>

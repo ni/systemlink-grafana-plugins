@@ -1,6 +1,6 @@
 # Systemlink Test Plans data source
 
-> **Note:** This data source is deprecated and will soon be removed. Please use the _SystemLink Work Items_ data source instead. It supports test plans along with all other work item types. For more information, refer to [Creating a Work Item](https://www.ni.com/docs/en-US/bundle/systemlink-enterprise/page/creating-a-test-plan.html).
+> **Note:** This data source is deprecated and will soon be removed. Please use the _SystemLink Work Items_ data source instead. It supports test plans along with all other work item types.
 
 This is a plugin for the Test Plans from the Work order service. It allows you to:
 
