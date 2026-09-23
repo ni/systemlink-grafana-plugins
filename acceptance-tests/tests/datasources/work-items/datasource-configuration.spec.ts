@@ -13,6 +13,10 @@ test.describe.only('Datasource Configuration', () => {
         dataSource = new WorkItemsDataSource(page);
     });
 
+    test.afterAll(async () => {
+        await dataSource.deleteDataSourceIfExists(dataSourceName);
+    });
+
     test.describe.serial('Creation and Deletion of SystemLink Work Items data source', () => {
         test('should create a SystemLink Work Items data source', async () => {
             await dataSource.navigateToDatasourcesPage();
