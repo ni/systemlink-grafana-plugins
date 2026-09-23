@@ -3,7 +3,7 @@ import { GRAFANA_URL } from '../../../../config/environment';
 import { DashboardPage } from '../../../../page-objects/dashboard/dashboard.pageobject';
 import { DataSourcePage } from '../../../../page-objects/data-sources/data-source.pageobject';
 
-test.describe.only('Work Items DataSource with Work Item Variable', () => {
+test.describe('Work Items DataSource with Work Item Variable', () => {
     let dashboard: DashboardPage;
     let dataSource: DataSourcePage;
     const createdDataSourceName = 'SystemLink Work Items With Variable';
