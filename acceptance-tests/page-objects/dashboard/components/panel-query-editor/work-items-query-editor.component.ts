@@ -34,10 +34,6 @@ export class WorkItemsQueryEditorComponent {
         return this.queryEditorRow.getByRole('switch', { name: 'Descending' });
     }
 
-    public get takeInput(): Locator {
-        return this.queryEditorRow.getByRole('spinbutton');
-    }
-
     public typeOption(name: string): Locator {
         return this.page.getByRole('option', { name });
     }
@@ -84,11 +80,6 @@ export class WorkItemsQueryEditorComponent {
 
     public async toggleDescending(): Promise<void> {
         await this.descendingSwitch.click();
-    }
-
-    public async setTake(value: string): Promise<void> {
-        await this.takeInput.fill(value);
-        await this.takeInput.blur();
     }
 
     public async addFilter(property: string, operation: string, value: string): Promise<void> {

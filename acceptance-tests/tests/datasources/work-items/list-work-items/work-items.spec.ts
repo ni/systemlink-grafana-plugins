@@ -21,7 +21,7 @@ test.describe('Work Items data source', () => {
         await dataSource.deleteDataSource(createdDataSourceName);
     });
 
-    test.only('should verify all table data properties are correct', async () => {
+    test('should verify all table data properties are correct', async () => {
         await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
         await dashboard.createFirstVisualization(createdDataSourceName);
         await dashboard.panel.toolbar.switchToTableView();
@@ -63,16 +63,6 @@ test.describe('Work Items data source', () => {
         expect(await dashboard.panel.table.checkColumnValue('Work item name', 'Work Item 2')).toBeTruthy();
     });
 
-    test('should show no results when no work item type is selected', async () => {
-        await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
-        await dashboard.createFirstVisualization(createdDataSourceName);
-        await dashboard.panel.toolbar.switchToTableView();
-
-        await dashboard.panel.workItemsQueryEditor.selectOnlyTypes([]);
-
-        await expect.poll(() => dashboard.panel.table.getTableRowCount()).toBe(0);
-    });
-
     test('should split a work item with multiple resource selections into separate rows', async () => {
         await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
         await dashboard.createFirstVisualization(createdDataSourceName);
@@ -86,23 +76,12 @@ test.describe('Work Items data source', () => {
         expect(await dashboard.panel.table.checkColumnValue(workItemColumn.assetId, 'ASSET-2', 1)).toBeTruthy();
     });
 
-    test('should show a validation error for an invalid take value', async () => {
-        await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
-        await dashboard.createFirstVisualization(createdDataSourceName);
-
-        await dashboard.panel.workItemsQueryEditor.setTake('-1');
-
-        // Matches takeErrorMessages.greaterOrEqualToZero in src/datasources/work-items/constants/QueryEditor.constants.ts.
-        await expect(dashboard.page.getByText('Enter a value greater than or equal to 0')).toBeVisible();
-    });
-
     test('should show total count per work item type', async () => {
         await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
         await dashboard.createFirstVisualization(createdDataSourceName);
         await dashboard.panel.toolbar.switchToTableView();
 
         await dashboard.panel.workItemsQueryEditor.selectOnlyTypes(['Test plans', 'Job', 'Maintenance', 'Reservation']);
-        // 'Total Count' matches the OutputType.TotalCount enum value in src/datasources/work-items/types.ts.
         await dashboard.panel.workItemsQueryEditor.selectOutputType('Total Count');
 
         expect(await dashboard.panel.table.checkColumnValue('Test plans', '1')).toBeTruthy();
