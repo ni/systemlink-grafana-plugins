@@ -87,16 +87,16 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const standardPropertiesOptions = useMemo(() => {
     const groupOrder = Object.values(WorkItemPropertiesGroup);
+   const groupIndexMap = new Map(groupOrder.map((group, index) => [group, index]));
 
-    return Object.values(WorkItemProperties)
-      .filter(property => property.value !== WorkItemPropertiesOptions.PROPERTIES)
-      .map(({ label, value, group }) => ({ label, value, group }))
-      .sort(
-        (option, otherOption) =>
-          groupOrder.indexOf(option.group) - groupOrder.indexOf(otherOption.group) ||
-          option.label.localeCompare(otherOption.label)
-      );
-  }, []);
+  return Object.values(WorkItemProperties)
+    .filter(property => property.value !== WorkItemPropertiesOptions.PROPERTIES)
+    .map(({ label, value, group }) => ({ label, value, group }))
+    .sort((a, b) => {
+      const groupDiff = (groupIndexMap.get(a.group) ?? 0) - (groupIndexMap.get(b.group) ?? 0);
+      return groupDiff !== 0 ? groupDiff : a.label.localeCompare(b.label);
+    });
+}, []);
 
   const propertiesOptions = useMemo(
     () => [...standardPropertiesOptions, ...customPropertyOptions],
