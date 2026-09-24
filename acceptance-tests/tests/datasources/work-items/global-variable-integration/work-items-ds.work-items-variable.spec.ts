@@ -21,7 +21,25 @@ test.describe('Work Items DataSource with Work Item Variable', () => {
     });
 
     test.describe.serial('Work item variable integration', () => {
-        test('should create a work item variable using the list work items query type', async () => {
+        test('should create a work item variable using the default list work items query type', async () => {
+            await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
+
+            await dashboard.toolbar.openSettings();
+            await dashboard.settings.goToVariablesTab();
+            await dashboard.settings.addNewVariable();
+            await dashboard.settings.workItemsVariable.setVariableName('workItemsList');
+            await dashboard.settings.workItemsVariable.selectDataSource(createdDataSourceName);
+
+            await expect(dashboard.page.getByText('Work Item 1 (WI-1)')).toBeVisible();
+
+            await dashboard.settings.workItemsVariable.applyVariableChanges();
+
+            expect(dashboard.settings.createdVariable('workItemsList')).toBeDefined();
+
+            await dashboard.settings.goBackToDashboardPage();
+        });
+
+        test('should create a work item variable using the list work item types query type', async () => {
             await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
 
             await dashboard.toolbar.openSettings();

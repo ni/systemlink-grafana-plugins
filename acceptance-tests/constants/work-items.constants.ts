@@ -27,6 +27,12 @@ export const workItemColumn = {
     plannedDuration: 'Planned duration',
     assetId: 'Asset ID',
     systemName: 'System name',
+    targetLocation: 'Target location',
+    targetParent: 'Target parent',
+    targetLocationAsset: 'Target Location (Asset)',
+    targetParentAsset: 'Target Parent (Asset)',
+    targetLocationDut: 'Target Location (DUT)',
+    targetParentDut: 'Target Parent (DUT)',
 };
 
 export const nonDefaultWorkItemProperties = [

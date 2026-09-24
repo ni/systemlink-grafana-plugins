@@ -31,8 +31,17 @@ export class WorkItemsQueryEditorComponent {
         return this.page.getByRole('option', { name });
     }
 
+    public get takeInput(): Locator {
+        return this.queryEditorRow.getByPlaceholder('Enter record count');
+    }
+
     public async selectOutputType(value: string): Promise<void> {
         await this.outputTypeRadioButton(value).click();
+    }
+
+    public async setTake(value: number): Promise<void> {
+        await this.takeInput.fill(value.toString());
+        await this.takeInput.blur();
     }
 
     // All work item types are selected by default; deselect them all via the "All" option before selecting the given ones.

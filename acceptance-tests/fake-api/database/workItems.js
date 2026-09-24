@@ -2,7 +2,7 @@ export const workItems = [
     {
         id: 'WI-0',
         name: 'Parent Work Order',
-        type: 'reservation',
+        type: 'workorder',
         state: 'IN_PROGRESS',
         workspace: 'default-workspace'
     },
@@ -12,7 +12,7 @@ export const workItems = [
         type: 'maintenance',
         state: 'NEW',
         substate: 'Pending review',
-        description: 'Sample work order description',
+        description: 'Sample maintenance description',
         parentId: 'WI-0',
         templateId: 'template-1',
         testProgram: 'Test Program A',
@@ -56,7 +56,16 @@ export const workItems = [
         workspace: 'default-workspace',
         resources: {
             assets: {
-                selections: [{ id: 'ASSET-1' }, { id: 'ASSET-2' }]
+                selections: [
+                    { id: 'ASSET-1', targetSystemId: 'SYSTEM-1', targetParentId: 'id1' },
+                    { id: 'ASSET-2', targetSystemId: 'SYSTEM-2', targetParentId: 'id2' }
+                ]
+            },
+            duts: {
+                selections: [
+                    { id: 'DUT-1', targetSystemId: 'SYSTEM-3', targetParentId: 'id2' },
+                    { id: 'DUT-2', targetSystemId: 'SYSTEM-4', targetParentId: 'id1' }
+                ]
             }
         }
     }
