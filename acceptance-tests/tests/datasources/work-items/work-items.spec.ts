@@ -104,14 +104,14 @@ test.describe('Work Items data source', () => {
         expect(await dashboard.panel.table.checkColumnValue('Work order', '1')).toBeTruthy();
     });
 
-    test('should show no data when the query is invalid due to no work item types selected', async () => {
+    test('should show a validation error when no work item types are selected', async () => {
         await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
         await dashboard.createFirstVisualization(createdDataSourceName);
         await dashboard.panel.toolbar.switchToTableView();
 
         await dashboard.panel.workItemsQueryEditor.selectOnlyTypes([]);
 
-        await expect.poll(() => dashboard.panel.table.getTableRowCount()).toBe(0);
+        await expect(dashboard.page.getByText('You must select at least one type.')).toBeVisible();
     });
 
     test('should limit the number of results returned as per the Take value', async () => {

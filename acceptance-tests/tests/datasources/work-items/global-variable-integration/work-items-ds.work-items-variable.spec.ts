@@ -29,6 +29,7 @@ test.describe('Work Items DataSource with Work Item Variable', () => {
             await dashboard.settings.addNewVariable();
             await dashboard.settings.workItemsVariable.setVariableName('workItemsList');
             await dashboard.settings.workItemsVariable.selectDataSource(createdDataSourceName);
+            await dashboard.settings.workItemsVariable.selectQueryType('List work items');
 
             await expect(dashboard.page.getByText('Work Item 1 (WI-1)')).toBeVisible();
 
