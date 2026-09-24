@@ -58,7 +58,7 @@ test.describe('Work Items DataSource with Work Item Variable', () => {
 
         test('should filter the work items panel using the created variable', async () => {
             await dashboard.createFirstVisualization(createdDataSourceName);
-            await dashboard.panel.workItemsQueryEditor.selectOnlyTypes(['$workItemTypes']);
+            await dashboard.panel.workItemsQueryEditor.selectTypes(['$workItemTypes']);
             await dashboard.panel.toolbar.switchToTableView();
 
             await expect.poll(() => dashboard.panel.table.getTableRowCount()).toBe(5);

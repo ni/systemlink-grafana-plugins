@@ -15,6 +15,10 @@ export class WorkItemsQueryEditorComponent {
         return this.page.getByRole('radio', { name: value });
     }
 
+    public async selectOutputType(value: string): Promise<void> {
+        await this.outputTypeRadioButton(value).click();
+    }
+
     public get typesMultiCombobox(): Locator {
         return this.queryEditorRow.getByRole('combobox').nth(0);
     }
@@ -25,10 +29,6 @@ export class WorkItemsQueryEditorComponent {
 
     public get propertiesMultiCombobox(): Locator {
         return this.queryEditorRow.getByRole('combobox').nth(1);
-    }
-
-    public async selectOutputType(value: string): Promise<void> {
-        await this.outputTypeRadioButton(value).click();
     }
 
     public propertyOption(name: string): Locator {
@@ -45,7 +45,7 @@ export class WorkItemsQueryEditorComponent {
     }
 
     // All work item types are selected by default; deselect them all via the "All" option before selecting the given ones.
-    public async selectOnlyTypes(types: string[]): Promise<void> {
+    public async selectTypes(types: string[]): Promise<void> {
         await this.typesMultiCombobox.click({ force: true });
         await this.typeOption('All').click();
         for (const type of types) {
@@ -54,7 +54,7 @@ export class WorkItemsQueryEditorComponent {
         await this.page.keyboard.press('Escape');
     }
 
-    public async addSelectedPropertiesToTable(properties: string[]): Promise<void> {
+    public async selectProperties(properties: string[]): Promise<void> {
         await this.propertiesMultiCombobox.click({ force: true });
         for (const property of properties) {
             await this.propertiesMultiCombobox.fill(property);

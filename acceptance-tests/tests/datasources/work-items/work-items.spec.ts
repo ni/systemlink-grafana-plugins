@@ -26,8 +26,8 @@ test.describe('Work Items data source', () => {
         await dashboard.createFirstVisualization(createdDataSourceName);
         await dashboard.panel.toolbar.switchToTableView();
 
-        await dashboard.panel.workItemsQueryEditor.selectOnlyTypes(['Maintenance']);
-        await dashboard.panel.workItemsQueryEditor.addSelectedPropertiesToTable(nonDefaultWorkItemProperties);
+        await dashboard.panel.workItemsQueryEditor.selectTypes(['Maintenance']);
+        await dashboard.panel.workItemsQueryEditor.selectProperties(nonDefaultWorkItemProperties);
 
         const expectedColumnValues: Record<string, string> = {
             [workItemColumn.id]: 'WI-1',
@@ -62,7 +62,7 @@ test.describe('Work Items data source', () => {
         await dashboard.createFirstVisualization(createdDataSourceName);
         await dashboard.panel.toolbar.switchToTableView();
 
-        await dashboard.panel.workItemsQueryEditor.selectOnlyTypes(['Test plan']);
+        await dashboard.panel.workItemsQueryEditor.selectTypes(['Test plan']);
 
         await expect.poll(() => dashboard.panel.table.getTableRowCount()).toBe(1);
         expect(await dashboard.panel.table.checkColumnValue('Work item name', 'Work Item 2')).toBeTruthy();
@@ -73,8 +73,8 @@ test.describe('Work Items data source', () => {
         await dashboard.createFirstVisualization(createdDataSourceName);
         await dashboard.panel.toolbar.switchToTableView();
 
-        await dashboard.panel.workItemsQueryEditor.selectOnlyTypes(['Job']);
-        await dashboard.panel.workItemsQueryEditor.addSelectedPropertiesToTable([
+        await dashboard.panel.workItemsQueryEditor.selectTypes(['Job']);
+        await dashboard.panel.workItemsQueryEditor.selectProperties([
             workItemColumn.assetId,
             workItemColumn.targetLocation,
             workItemColumn.targetParent,
@@ -100,7 +100,7 @@ test.describe('Work Items data source', () => {
         await dashboard.createFirstVisualization(createdDataSourceName);
         await dashboard.panel.toolbar.switchToTableView();
 
-        await dashboard.panel.workItemsQueryEditor.selectOnlyTypes(['Test plan', 'Job', 'Maintenance', 'Work order']);
+        await dashboard.panel.workItemsQueryEditor.selectTypes(['Test plan', 'Job', 'Maintenance', 'Work order']);
         await dashboard.panel.workItemsQueryEditor.selectOutputType('Total Count');
 
         expect(await dashboard.panel.table.checkColumnValue('Test plan', '1')).toBeTruthy();
@@ -114,7 +114,7 @@ test.describe('Work Items data source', () => {
         await dashboard.createFirstVisualization(createdDataSourceName);
         await dashboard.panel.toolbar.switchToTableView();
 
-        await dashboard.panel.workItemsQueryEditor.selectOnlyTypes([]);
+        await dashboard.panel.workItemsQueryEditor.selectTypes([]);
 
         await expect(dashboard.page.getByText('You must select at least one type.')).toBeVisible();
     });
@@ -124,7 +124,7 @@ test.describe('Work Items data source', () => {
         await dashboard.createFirstVisualization(createdDataSourceName);
         await dashboard.panel.toolbar.switchToTableView();
 
-        await dashboard.panel.workItemsQueryEditor.selectOnlyTypes(['Test plan', 'Job', 'Maintenance']);
+        await dashboard.panel.workItemsQueryEditor.selectTypes(['Test plan', 'Job', 'Maintenance']);
         await expect.poll(() => dashboard.panel.table.getTableRowCount()).toBe(4);
 
         await dashboard.panel.workItemsQueryEditor.setTake(2);
@@ -136,8 +136,8 @@ test.describe('Work Items data source', () => {
         await dashboard.createFirstVisualization(createdDataSourceName);
         await dashboard.panel.toolbar.switchToTableView();
 
-        await dashboard.panel.workItemsQueryEditor.selectOnlyTypes(['Maintenance']);
-        await dashboard.panel.workItemsQueryEditor.addSelectedPropertiesToTable(['priority']);
+        await dashboard.panel.workItemsQueryEditor.selectTypes(['Maintenance']);
+        await dashboard.panel.workItemsQueryEditor.selectProperties(['priority']);
 
         expect(await dashboard.panel.table.checkColumnValue('priority', 'High')).toBeTruthy();
     });
