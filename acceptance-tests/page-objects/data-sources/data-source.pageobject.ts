@@ -81,6 +81,17 @@ export class DataSourcePage {
         await this.deletePopUpButton.click();
     }
 
+    public async deleteDataSourceIfExists(dataSourceName: string): Promise<void> {
+        await this.navigateToDatasourcesPage();
+        const link = this.existentDataSourceLink(dataSourceName);
+        if (await link.count() === 0) {
+            return;
+        }
+        await link.click();
+        await this.deleteButton.click();
+        await this.deletePopUpButton.click();
+    }
+
     public async nameInputFieldValue(): Promise<string> {
         return await this.nameSettingsInputField.inputValue();
     }
