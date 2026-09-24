@@ -1,10 +1,16 @@
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
-import { VerticalGroup, InlineField, Select, InlineSwitch, AutoSizeInput } from '@grafana/ui';
+import { VerticalGroup, Alert, InlineField, Select, InlineSwitch, AutoSizeInput } from '@grafana/ui';
 import React, { useCallback, useEffect, useState } from 'react';
 import { OrderBy, WorkOrdersVariableQuery } from '../types';
 import { WorkOrdersDataSource } from '../WorkOrdersDataSource';
 import { WorkOrdersQueryBuilder } from './query-builder/WorkOrdersQueryBuilder';
-import { TAKE_LIMIT, takeErrorMessages, tooltips } from '../constants/QueryEditor.constants';
+import {
+  DEPRECATION_NOTICE_MAX_WIDTH,
+  deprecationMessage,
+  TAKE_LIMIT,
+  takeErrorMessages,
+  tooltips,
+} from '../constants/QueryEditor.constants';
 import { validateNumericInput } from 'core/utils';
 import { Workspace } from 'core/types';
 import { User } from 'shared/types/QueryUsers.types';
@@ -77,6 +83,21 @@ export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: P
 
   return (
     <>
+      <div style={{ width: '100%', maxWidth: DEPRECATION_NOTICE_MAX_WIDTH }}>
+        <Alert severity="warning" title={deprecationMessage.title}>
+          {deprecationMessage.message}
+          {/* TODO [Task 4073979]: Uncomment once the public Work Items documentation link is available.
+          <a
+            href={deprecationMessage.linkUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ textDecoration: 'underline' }}
+          >
+            {deprecationMessage.linkText}
+          </a>
+          . */}
+        </Alert>
+      </div>
       <VerticalGroup>
         <InlineField label="Query By" labelWidth={25} tooltip={tooltips.queryBy}>
           <WorkOrdersQueryBuilder

@@ -1,7 +1,7 @@
 import { QueryBuilderOperations } from 'core/query-builder.constants';
 import { QBField } from 'core/types';
 import { WorkItemTypes } from '../constants/QueryEditor.constants';
-import { WORK_ITEM_STATE_OPTIONS, WORK_ITEM_TYPE_FILTER_VALUES } from '../constants';
+import { WORK_ITEM_STATE_OPTIONS } from '../constants';
 
 export enum WorkItemsQueryBuilderFieldNames {
   Id = 'id',
@@ -90,9 +90,7 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
     dataField: WorkItemsQueryBuilderFieldNames.Type,
     filterOperations: [QueryBuilderOperations.EQUALS.name, QueryBuilderOperations.DOES_NOT_EQUAL.name],
     lookup: {
-      dataSource: WorkItemTypes.map(({ label, value }) => ({ 
-        label, value: WORK_ITEM_TYPE_FILTER_VALUES[value] 
-      })),
+      dataSource: WorkItemTypes,
     },
   },
   STATE: {

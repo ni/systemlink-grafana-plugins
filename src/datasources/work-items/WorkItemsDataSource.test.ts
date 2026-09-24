@@ -177,8 +177,8 @@ describe('WorkItemsDataSource', () => {
         { showErrorAlert: false }
       );
       expect(result.fields).toEqual([
-        { name: 'Work orders', values: [3] },
-        { name: 'Test plans', values: [5] },
+        { name: 'Work order', values: [3] },
+        { name: 'Test plan', values: [5] },
       ]);
     });
 
@@ -203,7 +203,7 @@ describe('WorkItemsDataSource', () => {
         },
         { showErrorAlert: false }
       );
-      expect(result.fields).toEqual([{ name: 'Work orders', values: [7] }]);
+      expect(result.fields).toEqual([{ name: 'Work order', values: [7] }]);
     });
 
     it('should map each type response to its own column in the selected order', async () => {
@@ -241,8 +241,8 @@ describe('WorkItemsDataSource', () => {
       const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
       expect(result.fields).toEqual([
-        { name: 'Work orders', values: [4] },
-        { name: 'Test plans', values: [0] },
+        { name: 'Work order', values: [4] },
+        { name: 'Test plan', values: [0] },
       ]);
     });
 
@@ -288,13 +288,13 @@ describe('WorkItemsDataSource', () => {
         { showErrorAlert: false }
       );
       expect(result.fields).toEqual([
-        { name: 'Work orders', values: [1] },
-        { name: 'Test plans', values: [1] },
+        { name: 'Work order', values: [1] },
+        { name: 'Test plan', values: [1] },
         { name: 'Job', values: [1] },
         { name: 'Maintenance', values: [1] },
         { name: 'Calibration', values: [1] },
         { name: 'Reservation', values: [1] },
-        { name: 'Transport Order', values: [1] },
+        { name: 'Transport order', values: [1] },
       ]);
     });
 
@@ -344,6 +344,27 @@ describe('WorkItemsDataSource', () => {
         await promise;
       });
 
+      it('should send all five requests of a batch in parallel without waiting for each other', async () => {
+        const resolvers: Array<(value: { totalCount: number }) => void> = [];
+        const postSpy = jest.spyOn(datasource, 'post').mockImplementation(
+          () => new Promise(resolve => resolvers.push(resolve))
+        );
+        const query = {
+          refId: 'A',
+          outputType: OutputType.TotalCount,
+          types: Object.values(WorkItemTypeOptions).slice(0, 5),
+        };
+
+        const promise = datasource.runQuery(query, {} as DataQueryRequest);
+        await jest.advanceTimersByTimeAsync(0);
+
+        // All five requests are already in flight even though none has resolved yet.
+        expect(postSpy).toHaveBeenCalledTimes(5);
+
+        resolvers.forEach(resolve => resolve({ totalCount: 1 }));
+        await promise;
+      });
+
       it('should preserve the type-to-column order across batches', async () => {
         jest
           .spyOn(datasource, 'post')
@@ -365,17 +386,17 @@ describe('WorkItemsDataSource', () => {
         const result = await promise;
 
         expect(result.fields).toEqual([
-          { name: 'Work orders', values: [1] },
-          { name: 'Test plans', values: [2] },
+          { name: 'Work order', values: [1] },
+          { name: 'Test plan', values: [2] },
           { name: 'Job', values: [3] },
           { name: 'Maintenance', values: [4] },
           { name: 'Calibration', values: [5] },
           { name: 'Reservation', values: [6] },
-          { name: 'Transport Order', values: [7] },
+          { name: 'Transport order', values: [7] },
         ]);
       });
 
-      it('should stop sending the remaining queries when a per-type count query fails', async () => {
+      it('should reject the whole query when a per-type count query fails', async () => {
         const postSpy = jest
           .spyOn(datasource, 'post')
           .mockResolvedValueOnce({ totalCount: 1 })
@@ -399,9 +420,9 @@ describe('WorkItemsDataSource', () => {
           'The query failed due to the following error: (status 500) Internal error.'
         );
 
-        // Requests run sequentially, so the third failure stops the loop and the fourth and
-        // fifth per-type queries are never sent.
-        expect(postSpy).toHaveBeenCalledTimes(3);
+        // Requests within a batch run concurrently, so all five per-type queries are sent
+        // even though the third one fails.
+        expect(postSpy).toHaveBeenCalledTimes(5);
       });
 
       it('should wait only the remaining time when a batch takes part of the one-second window', async () => {
@@ -491,8 +512,8 @@ describe('WorkItemsDataSource', () => {
         { showErrorAlert: false }
       );
       expect(result.fields).toEqual([
-        { name: 'Work orders', values: [1] },
-        { name: 'Test plans', values: [1] },
+        { name: 'Work order', values: [1] },
+        { name: 'Test plan', values: [1] },
       ]);
     });
 
@@ -619,7 +640,7 @@ describe('WorkItemsDataSource', () => {
       templateSrv.replace.mockImplementation((value?: string) =>
         value === '$type_var' ? WorkItemTypeOptions.WorkOrders : value ?? ''
       );
-      const scopedVars = { type_var: { text: 'Work orders', value: WorkItemTypeOptions.WorkOrders } };
+      const scopedVars = { type_var: { text: 'Work order', value: WorkItemTypeOptions.WorkOrders } };
       const query = {
         refId: 'A',
         outputType: OutputType.TotalCount,
@@ -1341,7 +1362,7 @@ describe('WorkItemsDataSource', () => {
         expect(result).toEqual({
           refId: 'A',
           name: 'A',
-          fields: [{ name: 'Work orders', values: [42] }],
+          fields: [{ name: 'Work order', values: [42] }],
         });
       });
 
@@ -1355,7 +1376,7 @@ describe('WorkItemsDataSource', () => {
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields).toEqual([{ name: 'Work orders', values: [0] }]);
+        expect(result.fields).toEqual([{ name: 'Work order', values: [0] }]);
       });
     });
 
@@ -2945,7 +2966,7 @@ describe('WorkItemsDataSource', () => {
       templateSrv.replace.mockImplementation((value?: string) =>
         value === '$type_var' ? WorkItemTypeOptions.WorkOrders : value ?? ''
       );
-      const scopedVars = { type_var: { text: 'Work orders', value: WorkItemTypeOptions.WorkOrders } };
+      const scopedVars = { type_var: { text: 'Work order', value: WorkItemTypeOptions.WorkOrders } };
 
       await datasource.metricFindQuery(
         {
@@ -2966,13 +2987,13 @@ describe('WorkItemsDataSource', () => {
       );
 
       expect(result).toEqual([
-        { text: 'Work orders', value: WorkItemTypeOptions.WorkOrders },
-        { text: 'Test plans', value: WorkItemTypeOptions.TestPlans },
+        { text: 'Work order', value: WorkItemTypeOptions.WorkOrders },
+        { text: 'Test plan', value: WorkItemTypeOptions.TestPlans },
         { text: 'Job', value: WorkItemTypeOptions.Job },
         { text: 'Maintenance', value: WorkItemTypeOptions.Maintenance },
         { text: 'Calibration', value: WorkItemTypeOptions.Calibration },
         { text: 'Reservation', value: WorkItemTypeOptions.Reservation },
-        { text: 'Transport Order', value: WorkItemTypeOptions.TransportOrder },
+        { text: 'Transport order', value: WorkItemTypeOptions.TransportOrder },
       ]);
     });
   });

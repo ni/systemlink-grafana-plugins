@@ -81,7 +81,7 @@ describe('WorkItemsVariableQueryEditor', () => {
     try {
       await renderEditor();
 
-      expect(screen.queryByRole('button', { name: 'Remove Work orders' })).not.toBeNull();
+      expect(screen.queryByRole('button', { name: 'Remove Work order' })).not.toBeNull();
       expect((page.orderByCombobox() as HTMLInputElement).value).toBe('Updated At');
       expect(page.descendingSwitch()).toBeChecked();
       expect(page.takeLimitInput()).toHaveValue(1000);
@@ -134,7 +134,7 @@ describe('WorkItemsVariableQueryEditor', () => {
         types: [WorkItemTypeOptions.WorkOrders, WorkItemTypeOptions.TestPlans],
       });
 
-      await userEvent.click(page.removeOptionButton('Work orders'));
+      await userEvent.click(page.removeOptionButton('Work order'));
 
       expect(onChange).toHaveBeenLastCalledWith(
         expect.objectContaining({ types: [WorkItemTypeOptions.TestPlans] })
@@ -220,7 +220,7 @@ describe('WorkItemsVariableQueryEditor', () => {
       try {
         const { onChange } = await renderEditor({ types: [WorkItemTypeOptions.WorkOrders] });
 
-        await userEvent.click(page.removeOptionButton('Work orders'));
+        await userEvent.click(page.removeOptionButton('Work order'));
 
         expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeVisible();
         expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ types: [] }));

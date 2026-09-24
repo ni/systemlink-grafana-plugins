@@ -55,7 +55,6 @@ import {
   SECONDS_IN_HOUR,
   WORK_ITEM_PROPERTIES_PROJECTION,
   WORK_ITEM_PROPERTIES_PROJECTIONS,
-  WORK_ITEM_TYPE_FILTER_VALUES,
   WORK_ITEM_TYPE_LABEL_MAP,
   WORK_ITEM_STATE_OPTIONS,
   USER_PROPERTY_FIELDS,
@@ -829,7 +828,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       : queryFilter;
 
     const filters = resolvedTypes.map(type => {
-      const typeFilter = `type = "${WORK_ITEM_TYPE_FILTER_VALUES[type]}"`;
+      const typeFilter = `type = "${type}"`;
       return this.buildQueryFilter(
         `(${typeFilter})`,
         transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
@@ -860,10 +859,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     ) {
       const start = Date.now();
       const batch = filters.slice(index, index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND);
-      // Requests within a batch run sequentially to spread the load and avoid 429 errors.
-      for (const filter of batch) {
-        workItemCounts.push(await this.queryWorkItemsCount(filter));
-      }
+      // Requests within a batch run concurrently; batches are still spaced 1s apart.
+      const batchCounts = await Promise.all(batch.map(filter => this.queryWorkItemsCount(filter)));
+      workItemCounts.push(...batchCounts);
 
       const hasMoreRequests = index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND < filters.length;
       const elapsed = Date.now() - start;
@@ -974,10 +972,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     scopedVars?: ScopedVars
   ): { allTypesSelected: boolean; filter: string } {
     const { resolvedTypes, allTypesSelected } = this.resolveSelectedTypes(types, scopedVars);
-    const typeValues = resolvedTypes.map(type => WORK_ITEM_TYPE_FILTER_VALUES[type]);
     return {
       allTypesSelected,
-      filter: typeValues.map(value => `type = "${value}"`).join(' || '),
+      filter: resolvedTypes.map(type => `type = "${type}"`).join(' || '),
     };
   }
 
@@ -985,10 +982,11 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     types: WorkItemTypeOptions[],
     scopedVars?: ScopedVars
   ): { resolvedTypes: WorkItemTypeOptions[]; allTypesSelected: boolean } {
+    const validTypes = Object.values(WorkItemTypeOptions);
     const resolvedTypes = (replaceVariables(types, this.templateSrv, scopedVars) as WorkItemTypeOptions[]).filter(
-      type => WORK_ITEM_TYPE_FILTER_VALUES[type] !== undefined
+      type => validTypes.includes(type)
     );
-    const allTypesSelected = Object.values(WorkItemTypeOptions).every(type => resolvedTypes.includes(type));
+    const allTypesSelected = validTypes.every(type => resolvedTypes.includes(type));
     return { resolvedTypes, allTypesSelected };
   }
 
