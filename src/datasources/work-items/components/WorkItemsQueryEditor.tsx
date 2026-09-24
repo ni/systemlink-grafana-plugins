@@ -35,6 +35,7 @@ import {
 import {
   OrderByOptions,
   OutputType,
+  WorkItemPropertiesGroup,
   WorkItemPropertiesOptions,
   WorkItemsQuery,
   WorkItemTypeOptions,
@@ -84,17 +85,18 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
     value,
   }));
 
-  const standardPropertiesOptions = useMemo(
-    () =>
-      Object.values(WorkItemProperties)
-        .filter(property => property.value !== WorkItemPropertiesOptions.PROPERTIES)
-        .map(property => ({
-          label: property.label,
-          value: property.value,
-          group: property.group,
-        })),
-    []
-  );
+  const standardPropertiesOptions = useMemo(() => {
+    const groupOrder = Object.values(WorkItemPropertiesGroup);
+
+    return Object.values(WorkItemProperties)
+      .filter(property => property.value !== WorkItemPropertiesOptions.PROPERTIES)
+      .map(({ label, value, group }) => ({ label, value, group }))
+      .sort(
+        (option, otherOption) =>
+          groupOrder.indexOf(option.group) - groupOrder.indexOf(otherOption.group) ||
+          option.label.localeCompare(otherOption.label)
+      );
+  }, []);
 
   const propertiesOptions = useMemo(
     () => [...standardPropertiesOptions, ...customPropertyOptions],
