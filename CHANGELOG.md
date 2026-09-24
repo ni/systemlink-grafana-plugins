@@ -1,3 +1,9 @@
+## [5.22.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.21.1...v5.22.0) (2026-09-24)
+
+### Features
+
+* **work-items:** sort property options alphabetically within each group ([#785](https://github.com/ni/systemlink-grafana-plugins/issues/785)) ([f23c692](https://github.com/ni/systemlink-grafana-plugins/commit/f23c692e0f589c20cdeb85d5ffb475a46c19f2d3))
+
 ## [5.21.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.21.0...v5.21.1) (2026-09-23)
 
 ### Bug Fixes
