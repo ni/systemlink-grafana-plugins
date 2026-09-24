@@ -228,11 +228,9 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
   );
 
   const handleQueryChange = useCallback(
-    (query: WorkItemsQuery, runQuery = true): void => {
+    (query: WorkItemsQuery): void => {
       onChange(query);
-      if (runQuery) {
-        onRunQuery();
-      }
+      onRunQuery();
     },
     [onChange, onRunQuery]
   );
@@ -301,7 +299,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const onTypesChange = (items: Array<ComboboxOption<WorkItemTypeOptions>>) => {
     const types = items.map(item => item.value).filter(Boolean) as WorkItemTypeOptions[];
-    handleQueryChange({ ...query, types }, isTypesNonEmpty(types));
+    handleQueryChange({ ...query, types });
   };
 
   const onPropertiesChange = (items: Array<ComboboxOption<string>>) => {
@@ -313,10 +311,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
       .filter(value => value.endsWith(CUSTOM_PROPERTY_SUFFIX))
       .map(stripCustomPropertySuffix);
 
-    handleQueryChange(
-      { ...query, properties, customProperties },
-      isPropertiesNonEmpty(properties, customProperties)
-    );
+    handleQueryChange({ ...query, properties, customProperties });
   };
 
   const onFilterChange = (event: any) => {
@@ -337,7 +332,7 @@ export function WorkItemsQueryEditor({ query, onChange, onRunQuery, datasource }
 
   const onTakeChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = parseInt((event.target as HTMLInputElement).value, 10);
-    handleQueryChange({ ...query, take: value }, getTakeError(value) === '');
+    handleQueryChange({ ...query, take: value });
   };
 
   return (
