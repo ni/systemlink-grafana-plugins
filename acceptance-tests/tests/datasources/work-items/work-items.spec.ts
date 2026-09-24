@@ -29,27 +29,32 @@ test.describe('Work Items data source', () => {
         await dashboard.panel.workItemsQueryEditor.selectOnlyTypes(['Maintenance']);
         await dashboard.panel.workItemsQueryEditor.addSelectedPropertiesToTable(nonDefaultWorkItemProperties);
 
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.id, 'WI-1')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('Work item name', 'Work Item 1')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.type, 'Maintenance')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue('State', 'New')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.substate, 'Pending review')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.description, 'Sample maintenance description')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.testProgram, 'Test Program A')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.partNumber, 'PN-1001')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.productName, 'Widget Tester')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.productId, 'product-1')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.workspace, 'Default')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.assignedTo, 'Alice Anderson')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.requestedBy, 'Bob Baker')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.createdBy, 'Carol Clark')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.updatedBy, 'Dave Davis')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.parentWorkItemName, 'Parent Work Order')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.parentWorkItemId, 'WI-0')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.templateId, 'template-1')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.estimatedDuration, '2 hr')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.plannedDuration, '8 hr')).toBeTruthy();
-        expect(await dashboard.panel.table.checkColumnValue(workItemColumn.systemName, 'System-1')).toBeTruthy();
+        const expectedColumnValues: Record<string, string> = {
+            [workItemColumn.id]: 'WI-1',
+            [workItemColumn.name]: 'Work Item 1',
+            [workItemColumn.type]: 'Maintenance',
+            [workItemColumn.state]: 'New',
+            [workItemColumn.substate]: 'Pending review',
+            [workItemColumn.description]: 'Sample maintenance description',
+            [workItemColumn.testProgram]: 'Test Program A',
+            [workItemColumn.partNumber]: 'PN-1001',
+            [workItemColumn.productName]: 'Widget Tester',
+            [workItemColumn.productId]: 'product-1',
+            [workItemColumn.workspace]: 'Default',
+            [workItemColumn.assignedTo]: 'Alice Anderson',
+            [workItemColumn.requestedBy]: 'Bob Baker',
+            [workItemColumn.createdBy]: 'Carol Clark',
+            [workItemColumn.updatedBy]: 'Dave Davis',
+            [workItemColumn.parentWorkItemName]: 'Parent Work Order',
+            [workItemColumn.parentWorkItemId]: 'WI-0',
+            [workItemColumn.templateId]: 'template-1',
+            [workItemColumn.estimatedDuration]: '2 hr',
+            [workItemColumn.plannedDuration]: '8 hr',
+            [workItemColumn.systemName]: 'System-1',
+        };
+        for (const [column, value] of Object.entries(expectedColumnValues)) {
+            expect(await dashboard.panel.table.checkColumnValue(column, value)).toBeTruthy();
+        }
     });
 
     test('should filter work items by type', async () => {
