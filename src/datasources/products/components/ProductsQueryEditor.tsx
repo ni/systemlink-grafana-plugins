@@ -133,7 +133,7 @@ export function ProductsQueryEditor({ query, onChange, onRunQuery, datasource }:
         </VerticalGroup>
         <VerticalGroup>
           <div className="right-query-controls">
-            <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
+            <InlineField label="Order By" labelWidth={18} tooltip={tooltips.orderBy}>
               <Select
                 options={OrderBy as SelectableValue[]}
                 placeholder="Select field to order by"

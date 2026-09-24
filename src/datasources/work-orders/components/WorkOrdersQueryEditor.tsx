@@ -179,7 +179,7 @@ export function WorkOrdersQueryEditor({ query, onChange, onRunQuery, datasource 
             <div className="workorders-right-query-control">
               <VerticalGroup>
                 <div>
-                  <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
+                  <InlineField label="Order By" labelWidth={18} tooltip={tooltips.orderBy}>
                     <Select
                       options={OrderBy as SelectableValue[]}
                       placeholder="Select a field to set the query order"
