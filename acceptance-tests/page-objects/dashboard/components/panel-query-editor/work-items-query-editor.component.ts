@@ -19,12 +19,16 @@ export class WorkItemsQueryEditorComponent {
         return this.queryEditorRow.getByRole('combobox').nth(0);
     }
 
+    public typeOption(name: string): Locator {
+        return this.page.getByRole('option', { name });
+    }
+
     public get propertiesMultiCombobox(): Locator {
         return this.queryEditorRow.getByRole('combobox').nth(1);
     }
 
-    public typeOption(name: string): Locator {
-        return this.page.getByRole('option', { name });
+    public async selectOutputType(value: string): Promise<void> {
+        await this.outputTypeRadioButton(value).click();
     }
 
     public propertyOption(name: string): Locator {
@@ -33,10 +37,6 @@ export class WorkItemsQueryEditorComponent {
 
     public get takeInput(): Locator {
         return this.queryEditorRow.getByPlaceholder('Enter record count');
-    }
-
-    public async selectOutputType(value: string): Promise<void> {
-        await this.outputTypeRadioButton(value).click();
     }
 
     public async setTake(value: number): Promise<void> {

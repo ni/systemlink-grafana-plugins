@@ -12,7 +12,15 @@ export class DashboardWorkItemsVariableComponent extends DashboardVariableBaseCo
         await this.page.getByRole('option', { name: queryType }).click();
     }
 
+    public async runQuery(): Promise<void> {
+        await this.runQueryButton.click();
+    }
+
     private get queryTypeCombobox() {
         return this.page.getByLabel('Query type');
+    }
+
+    private get runQueryButton() {
+        return this.page.getByRole('button', { name: 'Run query' });
     }
 }
