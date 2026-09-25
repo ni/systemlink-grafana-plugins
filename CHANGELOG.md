@@ -1,3 +1,9 @@
+## [5.22.2](https://github.com/ni/systemlink-grafana-plugins/compare/v5.22.1...v5.22.2) (2026-09-25)
+
+### Bug Fixes
+
+* **work-items:** show empty data frame on invalid editor state ([#787](https://github.com/ni/systemlink-grafana-plugins/issues/787)) ([37f7876](https://github.com/ni/systemlink-grafana-plugins/commit/37f7876de1a2595b3b72619622b34cbe23bc113f))
+
 ## [5.22.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.22.0...v5.22.1) (2026-09-25)
 
 ### Bug Fixes
