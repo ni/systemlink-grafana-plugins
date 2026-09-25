@@ -831,7 +831,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       const typeFilter = `type = "${type}"`;
       return this.buildQueryFilter(
         `(${typeFilter})`,
-        transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
+        transformedQueryFilter ? this.wrapInParenthesesIfNeeded(transformedQueryFilter) : undefined
       );
     });
 
@@ -916,6 +916,53 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return filters.length > 0 ? filters.join(' && ') : undefined;
   }
 
+  // Wraps a filter in parentheses so it can be safely combined with '&&', but avoids adding a
+  // redundant pair when the filter is already fully enclosed (e.g. multi-condition query builder
+  // output or expanded multi-value variables), which previously produced filters like '((...))'.
+  protected wrapInParenthesesIfNeeded(filter: string): string {
+    return this.isFullyEnclosedInParentheses(filter) ? filter : `(${filter})`;
+  }
+
+  private isFullyEnclosedInParentheses(filter: string): boolean {
+    if (!filter.startsWith('(') || !filter.endsWith(')')) {
+      return false;
+    }
+
+    let depth = 0;
+    let insideString = false;
+    let escaped = false;
+    for (let index = 0; index < filter.length; index++) {
+      const char = filter[index];
+      if (insideString) {
+        // Skip characters inside string values, honoring backslash escapes so that an escaped
+        // quote (e.g. "a\"") does not prematurely close the string.
+        if (escaped) {
+          escaped = false;
+        } else if (char === '\\') {
+          escaped = true;
+        } else if (char === '"') {
+          insideString = false;
+        }
+        continue;
+      }
+
+      if (char === '"') {
+        insideString = true;
+      } else if (char === '(') {
+        depth++;
+      } else if (char === ')') {
+        depth--;
+        // If the opening parenthesis closes before the end, the outer parentheses do not
+        // enclose the entire expression (e.g. '(a) && (b)').
+        if (depth === 0 && index < filter.length - 1) {
+          return false;
+        }
+      }
+    }
+
+    return depth === 0;
+  }
+
   // The backend API only supports duration in seconds, so the days/hours fields exposed by the
   // query builder are converted to their seconds-based equivalents before the filter is sent.
   private transformDurationFilters(filter: string): string {
@@ -954,7 +1001,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       : queryFilter;
     const combinedFilter = this.buildQueryFilter(
       allTypesSelected ? undefined : `(${typeFilter})`,
-      transformedQueryFilter ? `(${transformedQueryFilter})` : undefined
+      transformedQueryFilter ? this.wrapInParenthesesIfNeeded(transformedQueryFilter) : undefined
     );
     return { filter: combinedFilter, hasRecognizedTypes: true };
   }
