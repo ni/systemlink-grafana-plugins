@@ -1238,7 +1238,7 @@ describe('WorkItemsDataSource', () => {
           };
 
           await expect(datasource.runQuery(query, {} as DataQueryRequest)).rejects.toThrow(
-            takeErrorMessages.greaterOrEqualToZero
+            takeErrorMessages.greaterThanZero
           );
           expect(postSpy).not.toHaveBeenCalled();
         }

@@ -8,8 +8,8 @@ export const COMBOBOX_WIDTH = 29;
 export const QUERY_BUILDER_PLACEHOLDER_WIDTH = 520;
 
 export const takeErrorMessages = {
-  greaterOrEqualToZero: 'Enter a value greater than or equal to 0',
-  lessOrEqualToTenThousand: `Enter a value less than or equal to ${TAKE_LIMIT.toLocaleString()}`,
+  greaterThanZero: 'Enter a take value greater than 0',
+  lessOrEqualToTenThousand: `Enter a take value less than or equal to ${TAKE_LIMIT.toLocaleString()}`,
 };
 
 export const propertiesErrorMessages = {

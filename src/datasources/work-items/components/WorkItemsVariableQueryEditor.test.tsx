@@ -234,7 +234,7 @@ describe('WorkItemsVariableQueryEditor', () => {
     it('should not show a take validation error when the editor renders', async () => {
       await renderEditor();
 
-      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeNull();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterThanZero)).toBeNull();
       expect(page.getErrorByMessage(takeErrorMessages.lessOrEqualToTenThousand)).toBeNull();
     });
 
@@ -243,7 +243,7 @@ describe('WorkItemsVariableQueryEditor', () => {
 
       page.setTakeLimit('-5');
 
-      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterThanZero)).toBeVisible();
       expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ take: -5 }));
     });
 
@@ -260,18 +260,18 @@ describe('WorkItemsVariableQueryEditor', () => {
       await renderEditor();
 
       page.setTakeLimit('-5');
-      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterThanZero)).toBeVisible();
 
       page.setTakeLimit('500');
 
-      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeNull();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterThanZero)).toBeNull();
       expect(page.takeLimitInput()).toHaveValue(500);
     });
 
     it('should show the take validation error on render when the saved query take is invalid', async () => {
       await renderEditor({ take: -5 });
 
-      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterThanZero)).toBeVisible();
     });
 
     it('should show a take validation error when the take input is cleared', async () => {
@@ -279,7 +279,7 @@ describe('WorkItemsVariableQueryEditor', () => {
 
       page.setTakeLimit('');
 
-      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterThanZero)).toBeVisible();
     });
   });
 });

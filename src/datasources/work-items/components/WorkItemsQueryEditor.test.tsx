@@ -250,7 +250,7 @@ describe('WorkItemsQueryEditor', () => {
 
       expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeNull();
       expect(page.getErrorByMessage(propertiesErrorMessages.atLeastOneRequired)).toBeNull();
-      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeNull();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterThanZero)).toBeNull();
       expect(page.getErrorByMessage(takeErrorMessages.lessOrEqualToTenThousand)).toBeNull();
     });
 
@@ -320,7 +320,7 @@ describe('WorkItemsQueryEditor', () => {
 
       page.setTakeLimit('-5');
 
-      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterThanZero)).toBeVisible();
       expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ take: -5 }));
       expect(onRunQuery).toHaveBeenCalled();
     });
@@ -344,11 +344,11 @@ describe('WorkItemsQueryEditor', () => {
       const [onChange, onRunQuery] = render({});
 
       page.setTakeLimit('-5');
-      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterThanZero)).toBeVisible();
 
       page.setTakeLimit('500');
 
-      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeNull();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterThanZero)).toBeNull();
       expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ take: 500 }));
       expect(onRunQuery).toHaveBeenCalled();
     });
@@ -358,7 +358,7 @@ describe('WorkItemsQueryEditor', () => {
 
       render({ take: -5 });
 
-      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterThanZero)).toBeVisible();
     });
 
     it('should show the take validation error on render when the saved query take exceeds the maximum limit', () => {
@@ -473,7 +473,7 @@ describe('WorkItemsQueryEditor', () => {
       render({ take: -5 });
 
       await waitFor(() => expect(page.getErrorByMessage(
-          takeErrorMessages.greaterOrEqualToZero
+          takeErrorMessages.greaterThanZero
         )).toBeVisible());
       expect(getCustomPropertyOptionsSpy).not.toHaveBeenCalled();
     });
