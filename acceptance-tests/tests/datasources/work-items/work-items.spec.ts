@@ -117,6 +117,30 @@ test.describe('Work Items data source', () => {
         await dashboard.panel.workItemsQueryEditor.selectTypes([]);
 
         await expect(dashboard.page.getByText('You must select at least one type.')).toBeVisible();
+        await expect(dashboard.panel.error).toBeVisible();
+    });
+
+    test('should show a panel error when the take value is out of range', async () => {
+        await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
+        await dashboard.createFirstVisualization(createdDataSourceName);
+        await dashboard.panel.toolbar.switchToTableView();
+
+        await dashboard.panel.workItemsQueryEditor.selectTypes(['Maintenance']);
+        await dashboard.panel.workItemsQueryEditor.setTake(0);
+
+        await expect(dashboard.panel.error).toBeVisible();
+    });
+
+    test('should show an empty panel without an error when no properties are selected', async () => {
+        await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
+        await dashboard.createFirstVisualization(createdDataSourceName);
+        await dashboard.panel.toolbar.switchToTableView();
+
+        await dashboard.panel.workItemsQueryEditor.selectTypes(['Maintenance']);
+        await dashboard.panel.workItemsQueryEditor.clearProperties();
+
+        await expect(dashboard.panel.noData).toBeVisible();
+        await expect(dashboard.panel.error).toBeHidden();
     });
 
     test('should limit the number of results returned as per the Take value', async () => {

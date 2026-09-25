@@ -62,4 +62,15 @@ export class WorkItemsQueryEditorComponent {
         }
         await this.page.keyboard.press('Escape');
     }
+
+    // Removes every selected property by clicking its chip's remove button.
+    public async clearProperties(): Promise<void> {
+        const defaultPropertyLabels = ['Work item name', 'State', 'Assigned to', 'Planned start date', 'Due date'];
+        for (const label of defaultPropertyLabels) {
+            const removeButton = this.page.getByRole('button', { name: `Remove ${label}` });
+            if (await removeButton.count() > 0) {
+                await removeButton.click();
+            }
+        }
+    }
 }
