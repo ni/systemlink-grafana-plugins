@@ -26,7 +26,7 @@ export const labels = {
   types: 'Type',
   properties: 'Properties',
   queryBy: 'Query By',
-  orderBy: 'OrderBy',
+  orderBy: 'Order By',
   descending: 'Descending',
   take: 'Take',
 };

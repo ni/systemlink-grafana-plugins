@@ -1,3 +1,9 @@
+## [5.22.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.22.0...v5.22.1) (2026-09-25)
+
+### Bug Fixes
+
+* **work-items:** rename Order by control label to "Order By" ([#786](https://github.com/ni/systemlink-grafana-plugins/issues/786)) ([502731a](https://github.com/ni/systemlink-grafana-plugins/commit/502731a99f0569d29875b6edb8e2907d1f6beba3))
+
 ## [5.22.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.21.1...v5.22.0) (2026-09-24)
 
 ### Features
