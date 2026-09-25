@@ -1,3 +1,9 @@
+## [5.22.3](https://github.com/ni/systemlink-grafana-plugins/compare/v5.22.2...v5.22.3) (2026-09-25)
+
+### Bug Fixes
+
+* **work-items:** fall back to raw ID for unresolved lookup properties ([#789](https://github.com/ni/systemlink-grafana-plugins/issues/789)) ([13284fc](https://github.com/ni/systemlink-grafana-plugins/commit/13284fc1914c179d690429446f0ccd6b713a2993))
+
 ## [5.22.2](https://github.com/ni/systemlink-grafana-plugins/compare/v5.22.1...v5.22.2) (2026-09-25)
 
 ### Bug Fixes
