@@ -448,7 +448,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private resolveAssetName(id: string | undefined, assetNames: Map<string, string>): string {
-    return id ? assetNames.get(id) ?? '' : '';
+    return id ? assetNames.get(id) || id : '';
   }
 
   private resolveAssetNameForTargetParent(id: string | undefined, assetNames: Map<string, string>): string {
@@ -456,7 +456,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private resolveSystemAlias(id: string | undefined, systemAliases: Map<string, SystemAlias>): string {
-    return id ? systemAliases.get(id)?.alias ?? '' : '';
+    return id ? systemAliases.get(id)?.alias || id : '';
   }
 
   private resolveProductField(
@@ -466,7 +466,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   ): string {
     const partNumber = workItem.partNumber ?? '';
     const product = partNumber ? productsLookup.get(partNumber) : undefined;
-    return product ? selector(product) : '';
+    return product ? selector(product) || partNumber : partNumber;
   }
 
   private resolveTargetLocation(
@@ -685,7 +685,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         if (!workItem.parentId) {
           return '';
         }
-        return parentWorkItemNamesLookup.get(workItem.parentId) ?? '';
+        return parentWorkItemNamesLookup.get(workItem.parentId) || workItem.parentId;
       }
       case WorkItemPropertiesOptions.PARENT_WORK_ITEM_ID:
         return workItem.parentId ?? '';

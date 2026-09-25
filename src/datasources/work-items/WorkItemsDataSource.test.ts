@@ -1445,7 +1445,7 @@ describe('WorkItemsDataSource', () => {
         ]);
       });
 
-      it('should return empty product name and product ID when the product is missing from the lookup', async () => {
+      it('should fall back to the part number for product name and product ID when the product is missing from the lookup', async () => {
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [{ id: '1', partNumber: 'unknown-part-number' }],
           continuationToken: '',
@@ -1462,12 +1462,12 @@ describe('WorkItemsDataSource', () => {
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
         expect(result.fields).toEqual([
-          { name: 'Product name', values: [''], type: 'string' },
-          { name: 'Product ID', values: [''], type: 'string' },
+          { name: 'Product name', values: ['unknown-part-number'], type: 'string' },
+          { name: 'Product ID', values: ['unknown-part-number'], type: 'string' },
         ]);
       });
 
-      it('should return empty product name and product ID when the products lookup fails', async () => {
+      it('should fall back to the part number for product name and product ID when the products lookup fails', async () => {
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [{ id: '1', partNumber: 'part-number-1' }],
           continuationToken: '',
@@ -1487,8 +1487,8 @@ describe('WorkItemsDataSource', () => {
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
         expect(result.fields).toEqual([
-          { name: 'Product name', values: [''], type: 'string' },
-          { name: 'Product ID', values: [''], type: 'string' },
+          { name: 'Product name', values: ['part-number-1'], type: 'string' },
+          { name: 'Product ID', values: ['part-number-1'], type: 'string' },
         ]);
       });
 
@@ -1695,7 +1695,7 @@ describe('WorkItemsDataSource', () => {
         );
       });
 
-      it('should fall back to an empty value when the parent work item lookup fails', async () => {
+      it('should fall back to the raw parent ID when the parent work item lookup fails', async () => {
         jest.spyOn(datasource, 'post').mockImplementation(async (_url, body: any) => {
           if (body.filter === 'id = "1000"') {
             throw new Error('Request failed');
@@ -1715,7 +1715,7 @@ describe('WorkItemsDataSource', () => {
         );
 
         expect(result.fields).toEqual([
-          { name: 'Work order name', values: [''], type: 'string' },
+          { name: 'Work order name', values: ['1000'], type: 'string' },
         ]);
       });
 
@@ -1750,7 +1750,7 @@ describe('WorkItemsDataSource', () => {
         );
       });
 
-      it('should fall back to an empty value when the parent work item is not found', async () => {
+      it('should fall back to the raw parent ID when the parent work item is not found', async () => {
         jest.spyOn(datasource, 'post').mockImplementation(async (_url, body: any) => {
           if (body.filter === 'id = "1000"') {
             return { workItems: [], continuationToken: '', totalCount: 0 };
@@ -1767,7 +1767,7 @@ describe('WorkItemsDataSource', () => {
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields).toEqual([{ name: 'Work order name', values: [''], type: 'string' }]);
+        expect(result.fields).toEqual([{ name: 'Work order name', values: ['1000'], type: 'string' }]);
       });
 
       it('should return an empty value and skip the lookup when the work item has no parent', async () => {
@@ -1929,7 +1929,7 @@ describe('WorkItemsDataSource', () => {
         [WorkItemPropertiesOptions.DUT_NAME, 'duts', 'd1', 'DUT name'],
         [WorkItemPropertiesOptions.FIXTURE_NAME, 'fixtures', 'f1', 'Fixture name'],
       ])(
-        'should fall back to empty when %s cannot be resolved',
+        'should fall back to the raw ID when %s cannot be resolved',
         async (property, resourceType, id, label) => {
           jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([]);
           jest.spyOn(datasource, 'post').mockResolvedValue({
@@ -1948,7 +1948,7 @@ describe('WorkItemsDataSource', () => {
 
           const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-          expect(result.fields).toEqual([{ name: label, values: [''], type: 'string' }]);
+          expect(result.fields).toEqual([{ name: label, values: [id], type: 'string' }]);
         }
       );
 
@@ -1957,7 +1957,7 @@ describe('WorkItemsDataSource', () => {
         [WorkItemPropertiesOptions.DUT_NAME, 'duts', 'd1', 'DUT name'],
         [WorkItemPropertiesOptions.FIXTURE_NAME, 'fixtures', 'f1', 'Fixture name'],
       ])(
-        'should fall back to empty when %s is found but unnamed',
+        'should fall back to the raw ID when %s is found but unnamed',
         async (property, resourceType, id, label) => {
           jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([{ id }]);
           jest.spyOn(datasource, 'post').mockResolvedValue({
@@ -1976,7 +1976,7 @@ describe('WorkItemsDataSource', () => {
 
           const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-          expect(result.fields).toEqual([{ name: label, values: [''], type: 'string' }]);
+          expect(result.fields).toEqual([{ name: label, values: [id], type: 'string' }]);
         }
       );
 
@@ -2024,7 +2024,7 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([{ name: 'System name', values: ['System Alias 1'], type: 'string' }]);
       });
 
-      it('should fall back to empty when the system lookup fails', async () => {
+      it('should fall back to the raw system ID when the system lookup fails', async () => {
         jest.spyOn(datasource.systemUtils, 'getSystemAliases').mockRejectedValue(new Error('Failed'));
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [{ id: '1', resources: { systems: { selections: [{ id: 's1' }] } } }],
@@ -2042,7 +2042,7 @@ describe('WorkItemsDataSource', () => {
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields).toEqual([{ name: 'System name', values: [''], type: 'string' }]);
+        expect(result.fields).toEqual([{ name: 'System name', values: ['s1'], type: 'string' }]);
       });
 
       it('should not call SystemUtils when no system name or target location property is selected', async () => {
