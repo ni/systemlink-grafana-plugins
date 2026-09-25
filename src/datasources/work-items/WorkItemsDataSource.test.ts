@@ -1364,6 +1364,29 @@ describe('WorkItemsDataSource', () => {
 
         expect(result.fields).toEqual([{ name: 'workflow', values: [''], type: 'string' }]);
       });
+
+      it('should not throw a panel error when a selected custom property is invalid', async () => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', properties: { workflow: 'Approved' } }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.ID],
+          customProperties: ['nonExistentCustomProperty'],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([
+          { name: 'Work item ID', values: ['1'], type: 'string' },
+          { name: 'nonExistentCustomProperty', values: [''], type: 'string' },
+        ]);
+      });
     });
 
     describe('total count output type', () => {
