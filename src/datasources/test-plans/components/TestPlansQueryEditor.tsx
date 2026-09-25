@@ -179,7 +179,7 @@ export function TestPlansQueryEditor({ query, onChange, onRunQuery, datasource }
           {query.outputType === OutputType.Properties && (
             <VerticalGroup>
               <div>
-                <InlineField label="OrderBy" labelWidth={18} tooltip={tooltips.orderBy}>
+                <InlineField label="Order By" labelWidth={18} tooltip={tooltips.orderBy}>
                   <Select
                     options={[...OrderBy] as SelectableValue[]}
                     placeholder="Select a field to set the query order"

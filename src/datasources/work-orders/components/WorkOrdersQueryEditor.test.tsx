@@ -147,7 +147,7 @@ describe('WorkOrdersQueryEditor', () => {
 
     it('should not render order by', async () => {
       await waitFor(() => {
-        const orderBy = container.queryByRole('combobox', { name: 'OrderBy' });
+        const orderBy = container.queryByRole('combobox', { name: 'Order By' });
         expect(orderBy).not.toBeInTheDocument();
       });
     });

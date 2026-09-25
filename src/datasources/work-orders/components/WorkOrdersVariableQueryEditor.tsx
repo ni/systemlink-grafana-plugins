@@ -109,7 +109,7 @@ export function WorkOrdersVariableQueryEditor({ query, onChange, datasource }: P
           ></WorkOrdersQueryBuilder>
         </InlineField>
         <div>
-          <InlineField label="OrderBy" labelWidth={25} tooltip={tooltips.orderBy}>
+          <InlineField label="Order By" labelWidth={25} tooltip={tooltips.orderBy}>
             <Select
               options={[...OrderBy] as SelectableValue[]}
               placeholder="Select a field to set the query order"
