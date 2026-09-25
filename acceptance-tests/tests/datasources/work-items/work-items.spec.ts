@@ -118,6 +118,7 @@ test.describe('Work Items data source', () => {
 
         await expect(dashboard.page.getByText('You must select at least one type.')).toBeVisible();
         await expect(dashboard.panel.error).toBeVisible();
+        await expect(dashboard.panel.noData).toBeVisible();
     });
 
     test('should show a panel error when the take value is out of range', async () => {
