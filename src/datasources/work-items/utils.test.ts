@@ -15,9 +15,9 @@ describe('getTakeError', () => {
   });
 
   it('should return the non-positive error for NaN, zero, or negative values', () => {
-    expect(getTakeError(NaN)).toBe(takeErrorMessages.greaterOrEqualToZero);
-    expect(getTakeError(0)).toBe(takeErrorMessages.greaterOrEqualToZero);
-    expect(getTakeError(-5)).toBe(takeErrorMessages.greaterOrEqualToZero);
+    expect(getTakeError(NaN)).toBe(takeErrorMessages.greaterThanZero);
+    expect(getTakeError(0)).toBe(takeErrorMessages.greaterThanZero);
+    expect(getTakeError(-5)).toBe(takeErrorMessages.greaterThanZero);
   });
 
   it('should return the limit error when the value exceeds the maximum', () => {

@@ -66,8 +66,13 @@ import {
   QUERY_WORK_ITEMS_MAX_TAKE,
   QUERY_WORK_ITEMS_REQUEST_PER_SECOND,
 } from './constants/QueryWorkItems.constants';
-import { WorkItemProperties, WorkItemTypeLabels, WorkItemTypeMetricFindValues } from './constants/QueryEditor.constants';
-import { isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty } from './utils';
+import {
+  typesErrorMessages,
+  WorkItemProperties,
+  WorkItemTypeLabels,
+  WorkItemTypeMetricFindValues,
+} from './constants/QueryEditor.constants';
+import { getTakeError, isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty } from './utils';
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
@@ -180,18 +185,26 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
   async runQuery(query: WorkItemsQuery, options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {
     if (!isTypesNonEmpty(query.types)) {
-      return this.getEmptyDataFrameDTO(query.refId);
+      throw new Error(typesErrorMessages.atLeastOneRequired);
     }
 
     if (query.outputType === OutputType.TotalCount) {
       return this.processTotalCountQuery(query, options.scopedVars);
     }
 
-    if (
-      query.outputType === OutputType.Properties &&
-      isPropertiesNonEmpty(query.properties, query.customProperties) &&
-      isTakeValid(query.take)
-    ) {
+    if (query.outputType === OutputType.Properties) {
+      const takeError = getTakeError(query.take);
+      if (takeError !== '') {
+        throw new Error(takeError);
+      }
+
+      if (
+        !isPropertiesNonEmpty(query.properties, query.customProperties) ||
+        !isTakeValid(query.take)
+      ) {
+        return this.getEmptyDataFrameDTO(query.refId);
+      }
+
       const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
         query.types!,
         query.filter,

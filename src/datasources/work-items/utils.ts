@@ -8,7 +8,7 @@ export const getTakeError = (take?: number): string => {
   }
 
   if (Number.isNaN(take) || take <= 0) {
-    return takeErrorMessages.greaterOrEqualToZero;
+    return takeErrorMessages.greaterThanZero;
   }
 
   if (take > TAKE_LIMIT) {

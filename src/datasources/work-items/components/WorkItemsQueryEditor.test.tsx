@@ -250,7 +250,7 @@ describe('WorkItemsQueryEditor', () => {
 
       expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeNull();
       expect(page.getErrorByMessage(propertiesErrorMessages.atLeastOneRequired)).toBeNull();
-      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeNull();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterThanZero)).toBeNull();
       expect(page.getErrorByMessage(takeErrorMessages.lessOrEqualToTenThousand)).toBeNull();
     });
 
@@ -266,7 +266,7 @@ describe('WorkItemsQueryEditor', () => {
 
         expect(page.getErrorByMessage(typesErrorMessages.atLeastOneRequired)).toBeVisible();
         expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ types: [] }));
-        expect(onRunQuery).not.toHaveBeenCalled();
+        expect(onRunQuery).toHaveBeenCalled();
 
         const typesCombobox = page.typesMultiCombobox()!;
         await userEvent.click(typesCombobox);
@@ -294,7 +294,7 @@ describe('WorkItemsQueryEditor', () => {
 
         expect(page.getErrorByMessage(propertiesErrorMessages.atLeastOneRequired)).toBeVisible();
         expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ properties: [] }));
-        expect(onRunQuery).not.toHaveBeenCalled();
+        expect(onRunQuery).toHaveBeenCalled();
 
         const propertiesCombobox = page.propertiesMultiCombobox()!;
         await userEvent.click(propertiesCombobox);
@@ -312,7 +312,7 @@ describe('WorkItemsQueryEditor', () => {
       }
     });
 
-    it('should show a take validation error and suppress query execution when take input is invalid', () => {
+    it('should show a take validation error but still run the query when take input is invalid', () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
       const [onChange, onRunQuery] = render({});
@@ -320,12 +320,12 @@ describe('WorkItemsQueryEditor', () => {
 
       page.setTakeLimit('-5');
 
-      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterThanZero)).toBeVisible();
       expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ take: -5 }));
-      expect(onRunQuery).not.toHaveBeenCalled();
+      expect(onRunQuery).toHaveBeenCalled();
     });
 
-    it('should show a take validation error and suppress query execution when take exceeds the maximum limit', () => {
+    it('should show a take validation error but still run the query when take exceeds the maximum limit', () => {
       const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
 
       const [onChange, onRunQuery] = render({});
@@ -335,7 +335,7 @@ describe('WorkItemsQueryEditor', () => {
 
       expect(page.getErrorByMessage(takeErrorMessages.lessOrEqualToTenThousand)).toBeVisible();
       expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ take: TAKE_LIMIT + 1 }));
-      expect(onRunQuery).not.toHaveBeenCalled();
+      expect(onRunQuery).toHaveBeenCalled();
     });
 
     it('should clear the take validation error and run the query when a valid take value is entered', () => {
@@ -344,11 +344,11 @@ describe('WorkItemsQueryEditor', () => {
       const [onChange, onRunQuery] = render({});
 
       page.setTakeLimit('-5');
-      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterThanZero)).toBeVisible();
 
       page.setTakeLimit('500');
 
-      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeNull();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterThanZero)).toBeNull();
       expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ take: 500 }));
       expect(onRunQuery).toHaveBeenCalled();
     });
@@ -358,7 +358,7 @@ describe('WorkItemsQueryEditor', () => {
 
       render({ take: -5 });
 
-      expect(page.getErrorByMessage(takeErrorMessages.greaterOrEqualToZero)).toBeVisible();
+      expect(page.getErrorByMessage(takeErrorMessages.greaterThanZero)).toBeVisible();
     });
 
     it('should show the take validation error on render when the saved query take exceeds the maximum limit', () => {
@@ -473,7 +473,7 @@ describe('WorkItemsQueryEditor', () => {
       render({ take: -5 });
 
       await waitFor(() => expect(page.getErrorByMessage(
-          takeErrorMessages.greaterOrEqualToZero
+          takeErrorMessages.greaterThanZero
         )).toBeVisible());
       expect(getCustomPropertyOptionsSpy).not.toHaveBeenCalled();
     });
