@@ -451,10 +451,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return id ? assetNames.get(id) || id : '';
   }
 
-  private resolveAssetNameForTargetParent(id: string | undefined, assetNames: Map<string, string>): string {
-    return id ? assetNames.get(id) || id : '';
-  }
-
   private resolveSystemAlias(id: string | undefined, systemAliases: Map<string, SystemAlias>): string {
     return id ? systemAliases.get(id)?.alias || id : '';
   }
@@ -466,7 +462,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   ): string {
     const partNumber = workItem.partNumber ?? '';
     const product = partNumber ? productsLookup.get(partNumber) : undefined;
-    return product ? selector(product) || partNumber : partNumber;
+    return (product ? selector(product) : '') || partNumber;
   }
 
   private resolveTargetLocation(
@@ -616,7 +612,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       if (includeParent) {
         fields.push(
           this.buildResourceField(`Target Parent (${label})`, flattenedRows, row =>
-            this.resolveAssetNameForTargetParent(
+            this.resolveAssetName(
               selection(row)?.targetParentId,
               assetNamesLookup
             )
