@@ -107,6 +107,75 @@ describe('WorkItemsQueryEditor', () => {
     }
   });
 
+  it('should list the property options grouped and alphabetically sorted within each group', async () => {
+    const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(5000);
+    getCustomPropertyOptionsSpy.mockResolvedValue([
+      { 
+        label: 'alpha', value: `alpha${CUSTOM_PROPERTY_SUFFIX}`, 
+        group: WorkItemPropertiesGroup.CUSTOM_PROPERTIES 
+      },
+      { 
+        label: 'beta', value: `beta${CUSTOM_PROPERTY_SUFFIX}`, 
+        group: WorkItemPropertiesGroup.CUSTOM_PROPERTIES 
+      },
+    ]);
+
+    try {
+      const render = setupRenderer(WorkItemsQueryEditor, WorkItemsDataSource);
+      render({});
+      await waitFor(() => expect(getCustomPropertyOptionsSpy).toHaveBeenCalled());
+
+      fireEvent.click(page.propertiesMultiCombobox()!);
+
+      expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual([
+        // Work item details
+        'Assigned to',
+        'Created at',
+        'Created by',
+        'Description',
+        'Part number',
+        'Product ID',
+        'Product name',
+        'Requested by',
+        'State',
+        'Substate',
+        'Template ID',
+        'Test program',
+        'Updated at',
+        'Updated by',
+        'Work item ID',
+        'Work item name',
+        'Work item type',
+        'Work order ID',
+        'Work order name',
+        'Workspace',
+        // Timeline
+        'Due date',
+        'Earliest start date',
+        'Estimated duration',
+        'Planned duration',
+        'Planned end date',
+        'Planned start date',
+        // Resources
+        'Asset ID',
+        'Asset name',
+        'DUT ID',
+        'DUT name',
+        'Fixture ID',
+        'Fixture name',
+        'System ID',
+        'System name',
+        'Target location',
+        'Target parent',
+        // Custom properties
+        'alpha',
+        'beta',
+      ]);
+    } finally {
+      offsetHeightSpy.mockRestore();
+    }
+  });
+
   describe('type control', () => {
     it('should offer dashboard variables as options in the type control', async () => {
       const offsetHeightSpy = jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(30);
@@ -229,6 +298,8 @@ describe('WorkItemsQueryEditor', () => {
 
         const propertiesCombobox = page.propertiesMultiCombobox()!;
         await userEvent.click(propertiesCombobox);
+        // The dropdown is virtualized, so the property has to be filtered into view before it can be clicked.
+        fireEvent.change(propertiesCombobox, { target: { value: 'Work item name' } });
         await userEvent.click(await page.propertySelectOption('Work item name'));
 
         expect(page.getErrorByMessage(propertiesErrorMessages.atLeastOneRequired)).toBeNull();

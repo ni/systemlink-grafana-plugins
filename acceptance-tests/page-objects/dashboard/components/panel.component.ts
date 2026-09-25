@@ -5,12 +5,14 @@ import { PanelToolbarComponent } from "./panel-toolbar.component";
 import { SystemsQueryEditorComponent } from "./panel-query-editor/system-query-editor.component";
 import { NotebookQueryEditorComponent } from "./panel-query-editor/notebook-query-editor.component";
 import { TagQueryEditorComponent } from "./panel-query-editor/tag-query-editor.component";
+import { WorkItemsQueryEditorComponent } from "./panel-query-editor/work-items-query-editor.component";
 
 export class Panel {
     public readonly assetQueryEditor: AssetQueryEditorComponent;
     public readonly systemsQueryEditor: SystemsQueryEditorComponent;
     public readonly notebookQueryEditor: NotebookQueryEditorComponent;
     public readonly tagQueryEditor: TagQueryEditorComponent;
+    public readonly workItemsQueryEditor: WorkItemsQueryEditorComponent;
     public readonly toolbar: PanelToolbarComponent;
     public readonly table: Table;
 
@@ -19,6 +21,7 @@ export class Panel {
         this.systemsQueryEditor = new SystemsQueryEditorComponent(page);
         this.notebookQueryEditor = new NotebookQueryEditorComponent(page);
         this.tagQueryEditor = new TagQueryEditorComponent(page);
+        this.workItemsQueryEditor = new WorkItemsQueryEditorComponent(page);
         this.toolbar = new PanelToolbarComponent(page);
         this.table = new Table(page);
     }
