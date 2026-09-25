@@ -13,8 +13,10 @@ import { queryInBatches } from 'core/utils';
 import { 
   CUSTOM_PROPERTY_OPTIONS_LIMIT, 
   CUSTOM_PROPERTY_SUFFIX, 
-  DEFAULT_TAKE 
+  DEFAULT_TAKE,
+  TAKE_LIMIT
 } from './constants';
+import { takeErrorMessages, typesErrorMessages } from './constants/QueryEditor.constants';
 
 jest.mock('core/utils', () => ({
   ...jest.requireActual('core/utils'),
@@ -133,13 +135,13 @@ describe('WorkItemsDataSource', () => {
   });
 
   describe('runQuery', () => {
-    it('should return an empty data frame without querying when no types are selected', async () => {
+    it('should throw a validation error without querying when no types are selected', async () => {
       const postSpy = jest.spyOn(datasource, 'post');
       const query = { refId: 'A', outputType: OutputType.TotalCount, types: [] };
 
-      const result = await datasource.runQuery(query, {} as DataQueryRequest);
-
-      expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
+      await expect(datasource.runQuery(query, {} as DataQueryRequest)).rejects.toThrow(
+        typesErrorMessages.atLeastOneRequired
+      );
       expect(postSpy).not.toHaveBeenCalled();
     });
 
@@ -1224,7 +1226,7 @@ describe('WorkItemsDataSource', () => {
       });
 
       it.each([0, -1])(
-        'should return an empty data frame without querying when take is %d',
+        'should throw a validation error without querying when take is %d',
         async take => {
           const postSpy = jest.spyOn(datasource, 'post');
           const query = {
@@ -1235,12 +1237,28 @@ describe('WorkItemsDataSource', () => {
             take,
           };
 
-          const result = await datasource.runQuery(query, {} as DataQueryRequest);
-
+          await expect(datasource.runQuery(query, {} as DataQueryRequest)).rejects.toThrow(
+            takeErrorMessages.greaterOrEqualToZero
+          );
           expect(postSpy).not.toHaveBeenCalled();
-          expect(result).toEqual({ refId: 'A', name: 'A', fields: [] });
         }
       );
+
+      it('should throw a validation error without querying when take exceeds the maximum limit', async () => {
+        const postSpy = jest.spyOn(datasource, 'post');
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.ID, WorkItemPropertiesOptions.NAME],
+          take: TAKE_LIMIT + 1,
+        };
+
+        await expect(datasource.runQuery(query, {} as DataQueryRequest)).rejects.toThrow(
+          takeErrorMessages.lessOrEqualToTenThousand
+        );
+        expect(postSpy).not.toHaveBeenCalled();
+      });
     });
 
     describe('custom properties', () => {
