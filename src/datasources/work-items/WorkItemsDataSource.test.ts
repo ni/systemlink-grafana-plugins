@@ -1,13 +1,15 @@
 import { DataQueryRequest, TypedVariableModel } from '@grafana/data';
+import { firstValueFrom } from 'rxjs';
 import { WorkItemsDataSource } from './WorkItemsDataSource';
-import { setupDataSource } from 'test/fixtures';
+import { getQueryBuilder, setupDataSource } from 'test/fixtures';
 import { 
   OrderByOptions, 
   OutputType, 
   WorkItemPropertiesGroup, 
   WorkItemPropertiesOptions, 
   WorkItemsVariableQueryType, 
-  WorkItemTypeOptions 
+  WorkItemTypeOptions,
+  WorkItemsQuery
 } from './types';
 import { queryInBatches } from 'core/utils';
 import { 
@@ -2481,6 +2483,109 @@ describe('WorkItemsDataSource', () => {
     });
 
     describe('error handling', () => {
+      const forbiddenError = new Error(
+        'Request to url "/niworkitem/v1/query-workitems" failed with status code: 403. Error message: Forbidden'
+      );
+      const warningFrame = {
+        refId: 'A',
+        name: 'A',
+        fields: [],
+        meta: {
+          notices: [{
+            severity: 'warning',
+            text: "You don't have permission to view work items. Contact your SystemLink administrator for access.",
+          }],
+        },
+      };
+      const buildPanelQuery = getQueryBuilder<WorkItemsQuery>()({
+        types: [WorkItemTypeOptions.WorkOrders],
+      });
+
+      it.each([
+        {
+          outputType: OutputType.Properties,
+          properties: [WorkItemPropertiesOptions.ID],
+        },
+        {
+          outputType: OutputType.TotalCount,
+        },
+      ])('returns a warning frame without an error toast for a 403 $outputType panel query', async target => {
+        const publish = jest.fn();
+        (datasource as any).appEvents = { publish };
+        jest.spyOn(datasource, 'post').mockRejectedValue(forbiddenError);
+
+        const result = await firstValueFrom(datasource.query(buildPanelQuery(target)));
+
+        expect(result.data).toEqual([warningFrame]);
+        expect(publish).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'alert-error' }));
+      });
+
+      it('keeps successful targets when another panel target receives a 403', async () => {
+        const publish = jest.fn();
+        (datasource as any).appEvents = { publish };
+        jest.spyOn(datasource, 'post').mockImplementation(async (_url, body) => {
+          if (body.filter?.includes('state = "CLOSED"')) {
+            throw forbiddenError;
+          }
+          return { totalCount: 2 };
+        });
+
+        const result = await firstValueFrom(datasource.query(buildPanelQuery(
+          { outputType: OutputType.TotalCount },
+          { outputType: OutputType.TotalCount, filter: 'state = "CLOSED"' }
+        )));
+
+        expect(result.data[0].fields).toEqual([{ name: 'Work order', values: [2] }]);
+        expect(result.data[1]).toEqual({ ...warningFrame, refId: 'B', name: 'B' });
+        expect(publish).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'alert-error' }));
+      });
+
+      it('does not show partial counts when a later work-item type receives a 403', async () => {
+        const publish = jest.fn();
+        (datasource as any).appEvents = { publish };
+        jest.spyOn(datasource, 'post').mockImplementation(async (_url, body) => {
+          if (body.filter?.includes('type = "testplan"')) {
+            throw forbiddenError;
+          }
+          return { totalCount: 2 };
+        });
+
+        const result = await firstValueFrom(datasource.query(buildPanelQuery({
+          outputType: OutputType.TotalCount,
+          types: [WorkItemTypeOptions.WorkOrders, WorkItemTypeOptions.TestPlans],
+        })));
+
+        expect(result.data).toEqual([warningFrame]);
+        expect(publish).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'alert-error' }));
+      });
+
+      it('retains existing 403 behavior outside panel data queries', async () => {
+        const publish = jest.fn();
+        (datasource as any).appEvents = { publish };
+        jest.spyOn(datasource, 'post').mockRejectedValue(forbiddenError);
+
+        await expect(datasource.queryWorkItems({ take: 1 })).rejects.toThrow('status 403');
+        await expect(datasource.getCustomPropertyOptions(undefined, DEFAULT_TAKE)).rejects.toThrow('status 403');
+        await expect(datasource.metricFindQuery({
+          refId: 'A',
+          queryType: WorkItemsVariableQueryType.ListWorkItems,
+        })).rejects.toThrow('status 403');
+        expect(publish).toHaveBeenCalledWith(expect.objectContaining({ type: 'alert-error' }));
+      });
+
+      it('retains the panel error and error toast for non-403 failures', async () => {
+        const publish = jest.fn();
+        (datasource as any).appEvents = { publish };
+        jest.spyOn(datasource, 'post').mockRejectedValue(
+          new Error('Request failed with status code: 404')
+        );
+
+        await expect(firstValueFrom(datasource.query(buildPanelQuery({
+          outputType: OutputType.TotalCount,
+        })))).rejects.toThrow('requested resource was not found');
+        expect(publish).toHaveBeenCalledWith(expect.objectContaining({ type: 'alert-error' }));
+      });
+
       const errorCases = [
         {
           description: 'an unknown status code',
