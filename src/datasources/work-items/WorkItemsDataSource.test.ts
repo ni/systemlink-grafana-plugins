@@ -3044,8 +3044,6 @@ describe('WorkItemsDataSource', () => {
       const result = await datasource.metricFindQuery({
         refId: 'A',
         queryType: WorkItemsVariableQueryType.ListWorkItemStatuses,
-        types: [],
-        take: 0,
       });
 
       expect(result).toEqual([
