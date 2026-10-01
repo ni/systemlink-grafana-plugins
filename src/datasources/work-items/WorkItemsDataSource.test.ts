@@ -2493,7 +2493,7 @@ describe('WorkItemsDataSource', () => {
         meta: {
           notices: [{
             severity: 'warning',
-            text: 'Your license does not support viewing work items.',
+            text: 'SystemLink Base edition does not support work items',
           }],
         },
       };

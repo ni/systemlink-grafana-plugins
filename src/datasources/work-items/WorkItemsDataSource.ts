@@ -75,7 +75,7 @@ import {
 import { getTakeError, isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty } from './utils';
 
 const workItemsLicenseErrorMessage = 'User is not licensed';
-const workItemsLicenseWarning = 'Your license does not support viewing work items.';
+const workItemsLicenseWarning = 'SystemLink Base edition does not support work items';
 
 class PanelWorkItemsLicenseError extends Error {}
 
