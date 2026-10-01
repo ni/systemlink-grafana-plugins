@@ -74,10 +74,10 @@ import {
 } from './constants/QueryEditor.constants';
 import { getTakeError, isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty } from './utils';
 
-const workItemsPermissionWarning =
-  "You don't have permission to view work items. Contact your SystemLink administrator for access.";
+const workItemsLicenseErrorMessage = 'User is not licensed to perform this action';
+const workItemsLicenseWarning = 'Your license does not support viewing work items.';
 
-class PanelWorkItemsPermissionError extends Error {}
+class PanelWorkItemsLicenseError extends Error {}
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
@@ -226,13 +226,13 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
       return this.getEmptyDataFrameDTO(query.refId);
     } catch (error) {
-      if (!(error instanceof PanelWorkItemsPermissionError)) {
+      if (!(error instanceof PanelWorkItemsLicenseError)) {
         throw error;
       }
 
       return {
         ...this.getEmptyDataFrameDTO(query.refId),
-        meta: { notices: [{ severity: 'warning', text: workItemsPermissionWarning }] },
+        meta: { notices: [{ severity: 'warning', text: workItemsLicenseWarning }] },
       };
     }
   }
@@ -928,8 +928,13 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         { showErrorAlert: false } // suppress default error alert since we handle errors manually
       );
     } catch (error) {
-      if (panelQuery && error instanceof Error && extractErrorInfo(error.message).statusCode === '403') {
-        throw new PanelWorkItemsPermissionError(workItemsPermissionWarning);
+      const errorDetails = error instanceof Error ? extractErrorInfo(error.message) : undefined;
+      if (
+        panelQuery
+        && errorDetails?.statusCode === '403'
+        && errorDetails.message === workItemsLicenseErrorMessage
+      ) {
+        throw new PanelWorkItemsLicenseError(workItemsLicenseWarning);
       }
 
       const { title: errorTitle, message: errorMessage } = getQueryError(error, 'work items');

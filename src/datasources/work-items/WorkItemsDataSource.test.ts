@@ -2484,7 +2484,7 @@ describe('WorkItemsDataSource', () => {
 
     describe('error handling', () => {
       const forbiddenError = new Error(
-        'Request to url "/niworkitem/v1/query-workitems" failed with status code: 403. Error message: Forbidden'
+        'Request to url "/niworkitem/v1/query-workitems" failed with status code: 403. Error message: User is not licensed to perform this action'
       );
       const warningFrame = {
         refId: 'A',
@@ -2493,7 +2493,7 @@ describe('WorkItemsDataSource', () => {
         meta: {
           notices: [{
             severity: 'warning',
-            text: "You don't have permission to view work items. Contact your SystemLink administrator for access.",
+            text: 'Your license does not support viewing work items.',
           }],
         },
       };
@@ -2509,7 +2509,7 @@ describe('WorkItemsDataSource', () => {
         {
           outputType: OutputType.TotalCount,
         },
-      ])('returns a warning frame without an error toast for a 403 $outputType panel query', async target => {
+      ])('returns a warning frame without an error toast for an unlicensed 403 $outputType panel query', async target => {
         const publish = jest.fn();
         (datasource as any).appEvents = { publish };
         jest.spyOn(datasource, 'post').mockRejectedValue(forbiddenError);
@@ -2583,6 +2583,20 @@ describe('WorkItemsDataSource', () => {
         await expect(firstValueFrom(datasource.query(buildPanelQuery({
           outputType: OutputType.TotalCount,
         })))).rejects.toThrow('requested resource was not found');
+        expect(publish).toHaveBeenCalledWith(expect.objectContaining({ type: 'alert-error' }));
+      });
+
+      it.each([
+        'Request to url "/niworkitem/v1/query-workitems" failed with status code: 403. Error message: Forbidden',
+        'Request to url "/niworkitem/v1/query-workitems" failed with status code: 403',
+      ])('retains the panel error and error toast for a non-license 403: %s', async errorMessage => {
+        const publish = jest.fn();
+        (datasource as any).appEvents = { publish };
+        jest.spyOn(datasource, 'post').mockRejectedValue(new Error(errorMessage));
+
+        await expect(firstValueFrom(datasource.query(buildPanelQuery({
+          outputType: OutputType.TotalCount,
+        })))).rejects.toThrow('status 403');
         expect(publish).toHaveBeenCalledWith(expect.objectContaining({ type: 'alert-error' }));
       });
 
