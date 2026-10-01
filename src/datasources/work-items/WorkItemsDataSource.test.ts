@@ -2484,7 +2484,7 @@ describe('WorkItemsDataSource', () => {
 
     describe('error handling', () => {
       const forbiddenError = new Error(
-        'Request to url "/niworkitem/v1/query-workitems" failed with status code: 403. Error message: User is not licensed to perform this action'
+        'Request to url "/niworkitem/v1/query-workitems" failed with status code: 403. Error message: User is not licensed to perform this action.'
       );
       const warningFrame = {
         refId: 'A',
@@ -2515,6 +2515,24 @@ describe('WorkItemsDataSource', () => {
         jest.spyOn(datasource, 'post').mockRejectedValue(forbiddenError);
 
         const result = await firstValueFrom(datasource.query(buildPanelQuery(target)));
+
+        expect(result.data).toEqual([warningFrame]);
+        expect(publish).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'alert-error' }));
+      });
+
+      it.each([
+        'User is not licensed to perform this action',
+        'User is not licensed for the Work Item service. Contact your administrator.',
+      ])('returns a warning for a 403 whose message contains the license phrase: %s', async message => {
+        const publish = jest.fn();
+        (datasource as any).appEvents = { publish };
+        jest.spyOn(datasource, 'post').mockRejectedValue(new Error(
+          `Request to url "/niworkitem/v1/query-workitems" failed with status code: 403. Error message: ${message}`
+        ));
+
+        const result = await firstValueFrom(datasource.query(buildPanelQuery({
+          outputType: OutputType.TotalCount,
+        })));
 
         expect(result.data).toEqual([warningFrame]);
         expect(publish).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'alert-error' }));
@@ -2589,7 +2607,7 @@ describe('WorkItemsDataSource', () => {
       it.each([
         'Request to url "/niworkitem/v1/query-workitems" failed with status code: 403. Error message: Forbidden',
         'Request to url "/niworkitem/v1/query-workitems" failed with status code: 403',
-      ])('retains the panel error and error toast for a non-license 403: %s', async errorMessage => {
+      ])('retains the panel error and error toast for a non-matching 403: %s', async errorMessage => {
         const publish = jest.fn();
         (datasource as any).appEvents = { publish };
         jest.spyOn(datasource, 'post').mockRejectedValue(new Error(errorMessage));

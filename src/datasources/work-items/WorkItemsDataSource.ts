@@ -74,7 +74,7 @@ import {
 } from './constants/QueryEditor.constants';
 import { getTakeError, isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty } from './utils';
 
-const workItemsLicenseErrorMessage = 'User is not licensed to perform this action';
+const workItemsLicenseErrorMessage = 'User is not licensed';
 const workItemsLicenseWarning = 'Your license does not support viewing work items.';
 
 class PanelWorkItemsLicenseError extends Error {}
@@ -932,7 +932,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       if (
         panelQuery
         && errorDetails?.statusCode === '403'
-        && errorDetails.message === workItemsLicenseErrorMessage
+        && errorDetails.message.includes(workItemsLicenseErrorMessage)
       ) {
         throw new PanelWorkItemsLicenseError(workItemsLicenseWarning);
       }
