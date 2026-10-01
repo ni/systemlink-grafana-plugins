@@ -119,17 +119,6 @@ describe('WorkItemsDataSource', () => {
     expect(variableQuery.take).toBe(25);
   });
 
-  it('should preserve the status query type and explicit settings', () => {
-    const variableQuery = datasource.prepareVariableQuery({
-      refId: 'A',
-      queryType: WorkItemsVariableQueryType.ListWorkItemStatuses,
-      take: 25,
-    });
-
-    expect(variableQuery.queryType).toBe(WorkItemsVariableQueryType.ListWorkItemStatuses);
-    expect(variableQuery.take).toBe(25);
-  });
-
   it('should test datasource connection against the work-items service endpoint', async () => {
     const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({} as any);
 

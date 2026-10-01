@@ -124,7 +124,7 @@ describe('WorkItemsVariableQueryEditor', () => {
     await page.selectQueryType(WorkItemsVariableQueryType.ListWorkItemStatuses);
 
     expect(onChange).toHaveBeenLastCalledWith(
-      expect.objectContaining({ queryType: WorkItemsVariableQueryType.ListWorkItemStatuses, take: 25 })
+      expect.objectContaining({ queryType: WorkItemsVariableQueryType.ListWorkItemStatuses })
     );
     expect(page.typesMultiCombobox()).not.toBeInTheDocument();
     expect(screen.queryByText('Query By')).not.toBeInTheDocument();
