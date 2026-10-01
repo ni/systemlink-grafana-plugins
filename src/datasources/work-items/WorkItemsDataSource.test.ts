@@ -3037,6 +3037,27 @@ describe('WorkItemsDataSource', () => {
         { text: 'Transport order', value: WorkItemTypeOptions.TransportOrder },
       ]);
     });
+
+    it('should list every built-in status with filter values without querying work items', async () => {
+      const postSpy = jest.spyOn(datasource, 'post');
+
+      const result = await datasource.metricFindQuery({
+        refId: 'A',
+        queryType: WorkItemsVariableQueryType.ListWorkItemStatuses,
+      });
+
+      expect(result).toEqual([
+        { text: 'New', value: 'New' },
+        { text: 'Defined', value: 'Defined' },
+        { text: 'Reviewed', value: 'Reviewed' },
+        { text: 'Scheduled', value: 'Scheduled' },
+        { text: 'In progress', value: 'InProgress' },
+        { text: 'Pending approval', value: 'PendingApproval' },
+        { text: 'Closed', value: 'Closed' },
+        { text: 'Canceled', value: 'Canceled' },
+      ]);
+      expect(postSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('shouldRunQuery', () => {

@@ -63,5 +63,27 @@ test.describe('Work Items DataSource with Work Item Variable', () => {
 
             await expect.poll(() => dashboard.panel.table.getTableRowCount()).toBe(5);
         });
+
+        test('should create a work item status variable with every built-in status', async () => {
+            await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
+
+            await dashboard.toolbar.openSettings();
+            await dashboard.settings.goToVariablesTab();
+            await dashboard.settings.addNewVariable();
+            await dashboard.settings.workItemsVariable.setVariableName('workItemStatuses');
+            await dashboard.settings.workItemsVariable.selectDataSource(createdDataSourceName);
+            await dashboard.settings.workItemsVariable.selectQueryType('List work item statuses');
+            await dashboard.settings.workItemsVariable.runQuery();
+
+            for (const status of ['New', 'Defined', 'Reviewed', 'Scheduled', 'In progress', 'Pending approval', 'Closed', 'Canceled']) {
+                await expect(dashboard.page.getByText(status, { exact: true })).toBeVisible();
+            }
+
+            await dashboard.settings.workItemsVariable.applyVariableChanges();
+
+            expect(dashboard.settings.createdVariable('workItemStatuses')).toBeDefined();
+
+            await dashboard.settings.goBackToDashboardPage();
+        });
     });
 });
