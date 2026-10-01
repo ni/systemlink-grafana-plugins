@@ -2128,7 +2128,10 @@ describe('WorkItemsDataSource', () => {
         expect(getLocationsSpy).not.toHaveBeenCalled();
       });
 
-      it('should split TARGET_LOCATION into asset and DUT columns resolved via system aliases', async () => {
+      it.each([
+        [WorkItemPropertiesOptions.TARGET_LOCATION_ASSET, 'Target location (Asset)', 'System Alias 1'],
+        [WorkItemPropertiesOptions.TARGET_LOCATION_DUT, 'Target location (DUT)', 'sys2'],
+      ])('should return only the %s column resolved via system aliases', async (property, label, expected) => {
         jest
           .spyOn(datasource.systemUtils, 'getSystemAliases')
           .mockResolvedValue(new Map([['sys1', { id: 'sys1', alias: 'System Alias 1' }]]));
@@ -2150,19 +2153,19 @@ describe('WorkItemsDataSource', () => {
           refId: 'A',
           outputType: OutputType.Properties,
           types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_LOCATION],
+          properties: [property],
           take: 1000,
         };
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields).toEqual([
-          { name: 'Target Location (Asset)', values: ['System Alias 1'], type: 'string' },
-          { name: 'Target Location (DUT)', values: ['sys2'], type: 'string' },
-        ]);
+        expect(result.fields).toEqual([{ name: label, values: [expected], type: 'string' }]);
       });
 
-      it('should resolve TARGET_LOCATION via location lookup when target system ID is not present', async () => {
+      it.each([
+        [WorkItemPropertiesOptions.TARGET_LOCATION_ASSET, 'Target location (Asset)', 'Building 1: Site > Building 1'],
+        [WorkItemPropertiesOptions.TARGET_LOCATION_DUT, 'Target location (DUT)', 'loc2'],
+      ])('should resolve %s via location lookup when target system ID is not present', async (property, label, expected) => {
         jest
           .spyOn(datasource.locationUtils, 'getLocations')
           .mockResolvedValue(new Map([['loc1', { id: 'loc1', name: 'Building 1', pathWithNames: 'Site > Building 1' }]]));
@@ -2184,16 +2187,13 @@ describe('WorkItemsDataSource', () => {
           refId: 'A',
           outputType: OutputType.Properties,
           types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_LOCATION],
+          properties: [property],
           take: 1000,
         };
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields).toEqual([
-          { name: 'Target Location (Asset)', values: ['Building 1: Site > Building 1'], type: 'string' },
-          { name: 'Target Location (DUT)', values: ['loc2'], type: 'string' },
-        ]);
+        expect(result.fields).toEqual([{ name: label, values: [expected], type: 'string' }]);
       });
 
       it('should prefer the target system over the target location when both are present', async () => {
@@ -2220,14 +2220,14 @@ describe('WorkItemsDataSource', () => {
           refId: 'A',
           outputType: OutputType.Properties,
           types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_LOCATION],
+          properties: [WorkItemPropertiesOptions.TARGET_LOCATION_ASSET],
           take: 1000,
         };
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
         expect(result.fields[0]).toEqual({
-          name: 'Target Location (Asset)',
+          name: 'Target location (Asset)',
           values: ['System Alias 1'],
           type: 'string',
         });
@@ -2247,14 +2247,14 @@ describe('WorkItemsDataSource', () => {
           refId: 'A',
           outputType: OutputType.Properties,
           types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_LOCATION],
+          properties: [WorkItemPropertiesOptions.TARGET_LOCATION_ASSET],
           take: 1000,
         };
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
         expect(result.fields[0]).toEqual({
-          name: 'Target Location (Asset)',
+          name: 'Target location (Asset)',
           values: ['loc1'],
           type: 'string',
         });
@@ -2276,14 +2276,14 @@ describe('WorkItemsDataSource', () => {
           refId: 'A',
           outputType: OutputType.Properties,
           types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_LOCATION],
+          properties: [WorkItemPropertiesOptions.TARGET_LOCATION_ASSET],
           take: 1000,
         };
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
         expect(result.fields[0]).toEqual({
-          name: 'Target Location (Asset)',
+          name: 'Target location (Asset)',
           values: ['sys1'],
           type: 'string',
         });
@@ -2305,21 +2305,24 @@ describe('WorkItemsDataSource', () => {
           refId: 'A',
           outputType: OutputType.Properties,
           types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_LOCATION],
+          properties: [WorkItemPropertiesOptions.TARGET_LOCATION_ASSET],
           take: 1000,
         };
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
         expect(result.fields[0]).toEqual({
-          name: 'Target Location (Asset)',
+          name: 'Target location (Asset)',
           values: ['loc1'],
           type: 'string',
         });
       });
 
-      it('should split TARGET_PARENT into asset and DUT columns resolved via asset names', async () => {
-        jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([
+      it.each([
+        [WorkItemPropertiesOptions.TARGET_PARENT_ASSET, 'Target parent (Asset)', 'Parent Asset 1', ['p1']],
+        [WorkItemPropertiesOptions.TARGET_PARENT_DUT, 'Target parent (DUT)', 'p2', ['p2']],
+      ])('should return only the %s column resolved via asset names', async (property, label, expected, expectedIds) => {
+        const queryAssetsSpy = jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([
           { id: 'p1', name: 'Parent Asset 1' },
         ]);
         jest.spyOn(datasource, 'post').mockResolvedValue({
@@ -2340,19 +2343,17 @@ describe('WorkItemsDataSource', () => {
           refId: 'A',
           outputType: OutputType.Properties,
           types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_PARENT],
+          properties: [property],
           take: 1000,
         };
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields).toEqual([
-          { name: 'Target Parent (Asset)', values: ['Parent Asset 1'], type: 'string' },
-          { name: 'Target Parent (DUT)', values: ['p2'], type: 'string' },
-        ]);
+        expect(queryAssetsSpy).toHaveBeenCalledWith(expectedIds, expect.any(Array));
+        expect(result.fields).toEqual([{ name: label, values: [expected], type: 'string' }]);
       });
 
-      it('should fall back to the ID for TARGET_PARENT when the parent asset is found but unnamed', async () => {
+      it('should fall back to the ID for TARGET_PARENT_ASSET when the parent asset is found but unnamed', async () => {
         jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([{ id: 'p1' }]);
         jest.spyOn(datasource, 'post').mockResolvedValue({
           workItems: [
@@ -2371,19 +2372,16 @@ describe('WorkItemsDataSource', () => {
           refId: 'A',
           outputType: OutputType.Properties,
           types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_PARENT],
+          properties: [WorkItemPropertiesOptions.TARGET_PARENT_ASSET],
           take: 1000,
         };
 
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields).toEqual([
-          { name: 'Target Parent (Asset)', values: ['p1'], type: 'string' },
-          { name: 'Target Parent (DUT)', values: [''], type: 'string' },
-        ]);
+        expect(result.fields).toEqual([{ name: 'Target parent (Asset)', values: ['p1'], type: 'string' }]);
       });
 
-      it('should group target location and target parent columns per resource when both properties are selected', async () => {
+      it('should order target columns by property selection order', async () => {
         jest
           .spyOn(datasource.systemUtils, 'getSystemAliases')
           .mockResolvedValue(new Map([['sys1', { id: 'sys1', alias: 'System Alias 1' }]]));
@@ -2401,7 +2399,6 @@ describe('WorkItemsDataSource', () => {
                 duts: {
                   selections: [{ id: 'd1', targetSystemId: 'sys2', targetParentId: 'p2' }],
                 },
-                fixtures: { selections: [{ id: 'f1' }] },
               },
             },
           ],
@@ -2414,8 +2411,10 @@ describe('WorkItemsDataSource', () => {
           outputType: OutputType.Properties,
           types: [WorkItemTypeOptions.WorkOrders],
           properties: [
-            WorkItemPropertiesOptions.TARGET_LOCATION,
-            WorkItemPropertiesOptions.TARGET_PARENT,
+            WorkItemPropertiesOptions.TARGET_PARENT_DUT,
+            WorkItemPropertiesOptions.TARGET_LOCATION_ASSET,
+            WorkItemPropertiesOptions.TARGET_PARENT_ASSET,
+            WorkItemPropertiesOptions.TARGET_LOCATION_DUT,
           ],
           take: 1000,
         };
@@ -2423,59 +2422,10 @@ describe('WorkItemsDataSource', () => {
         const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
         expect(result.fields).toEqual([
-          { name: 'Target Location (Asset)', values: ['System Alias 1'], type: 'string' },
-          { name: 'Target Parent (Asset)', values: ['Parent Asset 1'], type: 'string' },
-          { name: 'Target Location (DUT)', values: ['sys2'], type: 'string' },
-          { name: 'Target Parent (DUT)', values: ['p2'], type: 'string' },
-        ]);
-      });
-
-      it('should build the grouped target fields only once when both TARGET_LOCATION and TARGET_PARENT are selected', async () => {
-        const buildTargetResourceFieldsSpy = jest.spyOn(datasource as any, 'buildTargetResourceFields');
-        jest.spyOn(datasource, 'post').mockResolvedValue({
-          workItems: [{ id: '1', resources: { assets: { selections: [{ id: 'a1' }] } } }],
-          continuationToken: '',
-          totalCount: 1,
-        });
-
-        const query = {
-          refId: 'A',
-          outputType: OutputType.Properties,
-          types: [WorkItemTypeOptions.WorkOrders],
-          properties: [
-            WorkItemPropertiesOptions.TARGET_LOCATION,
-            WorkItemPropertiesOptions.TARGET_PARENT,
-          ],
-          take: 1000,
-        };
-
-        await datasource.runQuery(query, {} as DataQueryRequest);
-
-        expect(buildTargetResourceFieldsSpy).toHaveBeenCalledTimes(1);
-      });
-
-      it('should keep the same grouped column order regardless of which target property is selected first', async () => {
-        jest.spyOn(datasource, 'post').mockResolvedValue({
-          workItems: [{ id: '1', resources: { assets: { selections: [{ id: 'a1' }] } } }],
-          continuationToken: '',
-          totalCount: 1,
-        });
-
-        const query = {
-          refId: 'A',
-          outputType: OutputType.Properties,
-          types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_PARENT, WorkItemPropertiesOptions.TARGET_LOCATION],
-          take: 1000,
-        };
-
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
-
-        expect(result.fields.map(field => field.name)).toEqual([
-          'Target Location (Asset)',
-          'Target Parent (Asset)',
-          'Target Location (DUT)',
-          'Target Parent (DUT)',
+          { name: 'Target parent (DUT)', values: ['p2'], type: 'string' },
+          { name: 'Target location (Asset)', values: ['System Alias 1'], type: 'string' },
+          { name: 'Target parent (Asset)', values: ['Parent Asset 1'], type: 'string' },
+          { name: 'Target location (DUT)', values: ['sys2'], type: 'string' },
         ]);
       });
     });

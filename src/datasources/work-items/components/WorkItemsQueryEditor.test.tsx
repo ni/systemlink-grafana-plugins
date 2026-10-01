@@ -165,8 +165,10 @@ describe('WorkItemsQueryEditor', () => {
         'Fixture name',
         'System ID',
         'System name',
-        'Target location',
-        'Target parent',
+        'Target location (Asset)',
+        'Target location (DUT)',
+        'Target parent (Asset)',
+        'Target parent (DUT)',
         // Custom properties
         'alpha',
         'beta',

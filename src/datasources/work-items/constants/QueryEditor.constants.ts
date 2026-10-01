@@ -288,16 +288,28 @@ export const WorkItemProperties: Record<
     field: 'fixtureId',
     group: WorkItemPropertiesGroup.RESOURCES,
   },
-  [WorkItemPropertiesOptions.TARGET_LOCATION]: {
-    label: 'Target location',
-    value: WorkItemPropertiesOptions.TARGET_LOCATION,
-    field: 'targetLocation',
+  [WorkItemPropertiesOptions.TARGET_LOCATION_ASSET]: {
+    label: 'Target location (Asset)',
+    value: WorkItemPropertiesOptions.TARGET_LOCATION_ASSET,
+    field: 'targetLocationAsset',
     group: WorkItemPropertiesGroup.RESOURCES,
   },
-  [WorkItemPropertiesOptions.TARGET_PARENT]: {
-    label: 'Target parent',
-    value: WorkItemPropertiesOptions.TARGET_PARENT,
-    field: 'targetParent',
+  [WorkItemPropertiesOptions.TARGET_LOCATION_DUT]: {
+    label: 'Target location (DUT)',
+    value: WorkItemPropertiesOptions.TARGET_LOCATION_DUT,
+    field: 'targetLocationDut',
+    group: WorkItemPropertiesGroup.RESOURCES,
+  },
+  [WorkItemPropertiesOptions.TARGET_PARENT_ASSET]: {
+    label: 'Target parent (Asset)',
+    value: WorkItemPropertiesOptions.TARGET_PARENT_ASSET,
+    field: 'targetParentAsset',
+    group: WorkItemPropertiesGroup.RESOURCES,
+  },
+  [WorkItemPropertiesOptions.TARGET_PARENT_DUT]: {
+    label: 'Target parent (DUT)',
+    value: WorkItemPropertiesOptions.TARGET_PARENT_DUT,
+    field: 'targetParentDut',
     group: WorkItemPropertiesGroup.RESOURCES,
   },
   [WorkItemPropertiesOptions.SYSTEM_NAME]: {
