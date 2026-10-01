@@ -118,6 +118,28 @@ describe('WorkItemsVariableQueryEditor', () => {
     expect(page.takeLimitInput()).toHaveValue(1000);
   });
 
+  it('should hide work item controls for statuses and restore retained settings when switching back', async () => {
+    const { onChange } = await renderEditor({ take: 25, types: [WorkItemTypeOptions.Job] });
+
+    await page.selectQueryType(WorkItemsVariableQueryType.ListWorkItemStatuses);
+
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ queryType: WorkItemsVariableQueryType.ListWorkItemStatuses, take: 25 })
+    );
+    expect(page.typesMultiCombobox()).not.toBeInTheDocument();
+    expect(screen.queryByText('Query By')).not.toBeInTheDocument();
+    expect(page.orderByCombobox()).not.toBeInTheDocument();
+    expect(page.descendingSwitch()).not.toBeInTheDocument();
+    expect(page.optionalTakeLimitInput()).not.toBeInTheDocument();
+
+    await page.selectQueryType(WorkItemsVariableQueryType.ListWorkItems);
+
+    expect(page.typesMultiCombobox()).toBeVisible();
+    expect(page.orderByCombobox()).toBeVisible();
+    expect(page.descendingSwitch()).toBeChecked();
+    expect(page.takeLimitInput()).toHaveValue(25);
+  });
+
   it('should update descending when the toggle is switched', async () => {
     const { onChange } = await renderEditor();
 

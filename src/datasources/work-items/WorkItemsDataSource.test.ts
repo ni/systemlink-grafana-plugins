@@ -119,6 +119,17 @@ describe('WorkItemsDataSource', () => {
     expect(variableQuery.take).toBe(25);
   });
 
+  it('should preserve the status query type and explicit settings', () => {
+    const variableQuery = datasource.prepareVariableQuery({
+      refId: 'A',
+      queryType: WorkItemsVariableQueryType.ListWorkItemStatuses,
+      take: 25,
+    });
+
+    expect(variableQuery.queryType).toBe(WorkItemsVariableQueryType.ListWorkItemStatuses);
+    expect(variableQuery.take).toBe(25);
+  });
+
   it('should test datasource connection against the work-items service endpoint', async () => {
     const postSpy = jest.spyOn(datasource, 'post').mockResolvedValue({} as any);
 
@@ -3036,6 +3047,29 @@ describe('WorkItemsDataSource', () => {
         { text: 'Reservation', value: WorkItemTypeOptions.Reservation },
         { text: 'Transport order', value: WorkItemTypeOptions.TransportOrder },
       ]);
+    });
+
+    it('should list every built-in status with filter values without querying work items', async () => {
+      const postSpy = jest.spyOn(datasource, 'post');
+
+      const result = await datasource.metricFindQuery({
+        refId: 'A',
+        queryType: WorkItemsVariableQueryType.ListWorkItemStatuses,
+        types: [],
+        take: 0,
+      });
+
+      expect(result).toEqual([
+        { text: 'New', value: 'New' },
+        { text: 'Defined', value: 'Defined' },
+        { text: 'Reviewed', value: 'Reviewed' },
+        { text: 'Scheduled', value: 'Scheduled' },
+        { text: 'In progress', value: 'InProgress' },
+        { text: 'Pending approval', value: 'PendingApproval' },
+        { text: 'Closed', value: 'Closed' },
+        { text: 'Canceled', value: 'Canceled' },
+      ]);
+      expect(postSpy).not.toHaveBeenCalled();
     });
   });
 
