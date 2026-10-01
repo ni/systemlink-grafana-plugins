@@ -56,6 +56,14 @@ test.describe('Work Items DataSource with Work Item Variable', () => {
             await dashboard.settings.goBackToDashboardPage();
         });
 
+        test('should filter the work items panel using the created variable', async () => {
+            await dashboard.createFirstVisualization(createdDataSourceName);
+            await dashboard.panel.workItemsQueryEditor.selectTypes(['$workItemTypes']);
+            await dashboard.panel.toolbar.switchToTableView();
+
+            await expect.poll(() => dashboard.panel.table.getTableRowCount()).toBe(5);
+        });
+
         test('should create a work item status variable with every built-in status', async () => {
             await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
 
@@ -76,14 +84,6 @@ test.describe('Work Items DataSource with Work Item Variable', () => {
             expect(dashboard.settings.createdVariable('workItemStatuses')).toBeDefined();
 
             await dashboard.settings.goBackToDashboardPage();
-        });
-
-        test('should filter the work items panel using the created variable', async () => {
-            await dashboard.createFirstVisualization(createdDataSourceName);
-            await dashboard.panel.workItemsQueryEditor.selectTypes(['$workItemTypes']);
-            await dashboard.panel.toolbar.switchToTableView();
-
-            await expect.poll(() => dashboard.panel.table.getTableRowCount()).toBe(5);
         });
     });
 });
