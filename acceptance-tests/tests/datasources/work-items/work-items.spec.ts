@@ -163,7 +163,7 @@ test.describe('Work Items data source', () => {
         const notice = page.getByTestId('title-items-container').locator('span');
         await expect(notice).toBeVisible();
         await notice.hover();
-e edition does not support work i        await expect(page.getByRole('tooltip')).toHaveText('SystemLink Bastems');
+        await expect(page.getByRole('tooltip')).toHaveText('SystemLink Base edition does not support work items');
         await expect(panelDashboard.panel.noData).toBeVisible();
         await expect(panelDashboard.panel.error).toBeHidden();
         expect(deniedQueries).toBeGreaterThan(0);
