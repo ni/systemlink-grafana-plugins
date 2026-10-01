@@ -76,8 +76,10 @@ test.describe('Work Items data source', () => {
         await dashboard.panel.workItemsQueryEditor.selectTypes(['Job']);
         await dashboard.panel.workItemsQueryEditor.selectProperties([
             workItemColumn.assetId,
-            workItemColumn.targetLocation,
-            workItemColumn.targetParent,
+            workItemColumn.targetLocationAsset,
+            workItemColumn.targetParentAsset,
+            workItemColumn.targetLocationDut,
+            workItemColumn.targetParentDut,
         ]);
 
         await expect.poll(() => dashboard.panel.table.getTableRowCount()).toBe(2);
