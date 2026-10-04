@@ -2196,127 +2196,155 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([{ name: label, values: [expected], type: 'string' }]);
       });
 
-      it('should prefer the target system over the target location when both are present', async () => {
-        jest
-          .spyOn(datasource.systemUtils, 'getSystemAliases')
-          .mockResolvedValue(new Map([['sys1', { id: 'sys1', alias: 'System Alias 1' }]]));
-        jest
-          .spyOn(datasource.locationUtils, 'getLocations')
-          .mockResolvedValue(new Map([['loc1', { id: 'loc1', name: 'Building 1', pathWithNames: 'Site > Building 1' }]]));
-        jest.spyOn(datasource, 'post').mockResolvedValue({
-          workItems: [
-            {
-              id: '1',
-              resources: {
-                assets: { selections: [{ id: 'a1', targetSystemId: 'sys1', targetLocationId: 'loc1' }] },
+      it.each([
+        [WorkItemPropertiesOptions.TARGET_LOCATION_ASSET, 'Target location (Asset)', 'assets'],
+        [WorkItemPropertiesOptions.TARGET_LOCATION_DUT, 'Target location (DUT)', 'duts'],
+      ])(
+        'should prefer the target system over the target location when both are present for %s',
+        async (property, label, resourceKey) => {
+          jest
+            .spyOn(datasource.systemUtils, 'getSystemAliases')
+            .mockResolvedValue(new Map([['sys1', { id: 'sys1', alias: 'System Alias 1' }]]));
+          jest
+            .spyOn(datasource.locationUtils, 'getLocations')
+            .mockResolvedValue(
+              new Map([['loc1', { id: 'loc1', name: 'Building 1', pathWithNames: 'Site > Building 1' }]])
+            );
+          jest.spyOn(datasource, 'post').mockResolvedValue({
+            workItems: [
+              {
+                id: '1',
+                resources: {
+                  [resourceKey]: { selections: [{ id: 'a1', targetSystemId: 'sys1', targetLocationId: 'loc1' }] },
+                },
               },
-            },
-          ],
-          continuationToken: '',
-          totalCount: 1,
-        });
+            ],
+            continuationToken: '',
+            totalCount: 1,
+          });
 
-        const query = {
-          refId: 'A',
-          outputType: OutputType.Properties,
-          types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_LOCATION_ASSET],
-          take: 1000,
-        };
+          const query = {
+            refId: 'A',
+            outputType: OutputType.Properties,
+            types: [WorkItemTypeOptions.WorkOrders],
+            properties: [property],
+            take: 1000,
+          };
 
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+          const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields[0]).toEqual({
-          name: 'Target location (Asset)',
-          values: ['System Alias 1'],
-          type: 'string',
-        });
-      });
+          expect(result.fields[0]).toEqual({
+            name: label,
+            values: ['System Alias 1'],
+            type: 'string',
+          });
+        }
+      );
 
-      it('should fall back to the raw location ID when the location lookup fails', async () => {
-        jest.spyOn(datasource.locationUtils, 'getLocations').mockRejectedValue(new Error('Failed'));
-        jest.spyOn(datasource, 'post').mockResolvedValue({
-          workItems: [
-            { id: '1', resources: { assets: { selections: [{ id: 'a1', targetLocationId: 'loc1' }] } } },
-          ],
-          continuationToken: '',
-          totalCount: 1,
-        });
+      it.each([
+        [WorkItemPropertiesOptions.TARGET_LOCATION_ASSET, 'Target location (Asset)', 'assets', 'loc1'],
+        [WorkItemPropertiesOptions.TARGET_LOCATION_DUT, 'Target location (DUT)', 'duts', 'loc2'],
+      ])(
+        'should fall back to the raw location ID when the location lookup fails for %s',
+        async (property, label, resourceKey, locationId) => {
+          jest.spyOn(datasource.locationUtils, 'getLocations').mockRejectedValue(new Error('Failed'));
+          jest.spyOn(datasource, 'post').mockResolvedValue({
+            workItems: [
+              { id: '1', resources: { [resourceKey]: { selections: [{ id: 'a1', targetLocationId: locationId }] } } },
+            ],
+            continuationToken: '',
+            totalCount: 1,
+          });
 
-        const query = {
-          refId: 'A',
-          outputType: OutputType.Properties,
-          types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_LOCATION_ASSET],
-          take: 1000,
-        };
+          const query = {
+            refId: 'A',
+            outputType: OutputType.Properties,
+            types: [WorkItemTypeOptions.WorkOrders],
+            properties: [property],
+            take: 1000,
+          };
 
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+          const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields[0]).toEqual({
-          name: 'Target location (Asset)',
-          values: ['loc1'],
-          type: 'string',
-        });
-      });
+          expect(result.fields[0]).toEqual({
+            name: label,
+            values: [locationId],
+            type: 'string',
+          });
+        }
+      );
 
-      it('should fall back to the system ID when the target system has no alias', async () => {
-        jest
-          .spyOn(datasource.systemUtils, 'getSystemAliases')
-          .mockResolvedValue(new Map([['sys1', { id: 'sys1', alias: '' }]]));
-        jest.spyOn(datasource, 'post').mockResolvedValue({
-          workItems: [
-            { id: '1', resources: { assets: { selections: [{ id: 'a1', targetSystemId: 'sys1' }] } } },
-          ],
-          continuationToken: '',
-          totalCount: 1,
-        });
+      it.each([
+        [WorkItemPropertiesOptions.TARGET_LOCATION_ASSET, 'Target location (Asset)', 'assets', 'sys1'],
+        [WorkItemPropertiesOptions.TARGET_LOCATION_DUT, 'Target location (DUT)', 'duts', 'sys2'],
+      ])(
+        'should fall back to the system ID when the target system has no alias for %s',
+        async (property, label, resourceKey, systemId) => {
+          jest
+            .spyOn(datasource.systemUtils, 'getSystemAliases')
+            .mockResolvedValue(new Map([[systemId, { id: systemId, alias: '' }]]));
+          jest.spyOn(datasource, 'post').mockResolvedValue({
+            workItems: [
+              { id: '1', resources: { [resourceKey]: { selections: [{ id: 'a1', targetSystemId: systemId }] } } },
+            ],
+            continuationToken: '',
+            totalCount: 1,
+          });
 
-        const query = {
-          refId: 'A',
-          outputType: OutputType.Properties,
-          types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_LOCATION_ASSET],
-          take: 1000,
-        };
+          const query = {
+            refId: 'A',
+            outputType: OutputType.Properties,
+            types: [WorkItemTypeOptions.WorkOrders],
+            properties: [property],
+            take: 1000,
+          };
 
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+          const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields[0]).toEqual({
-          name: 'Target location (Asset)',
-          values: ['sys1'],
-          type: 'string',
-        });
-      });
+          expect(result.fields[0]).toEqual({
+            name: label,
+            values: [systemId],
+            type: 'string',
+          });
+        }
+      );
 
-      it('should fall back to the location ID when the target location has no name', async () => {
-        jest
-          .spyOn(datasource.locationUtils, 'getLocations')
-          .mockResolvedValue(new Map([['loc1', { id: 'loc1', name: '', pathWithNames: 'Site > Building 1' }]]));
-        jest.spyOn(datasource, 'post').mockResolvedValue({
-          workItems: [
-            { id: '1', resources: { assets: { selections: [{ id: 'a1', targetLocationId: 'loc1' }] } } },
-          ],
-          continuationToken: '',
-          totalCount: 1,
-        });
+      it.each([
+        [WorkItemPropertiesOptions.TARGET_LOCATION_ASSET, 'Target location (Asset)', 'assets', 'loc1'],
+        [WorkItemPropertiesOptions.TARGET_LOCATION_DUT, 'Target location (DUT)', 'duts', 'loc2'],
+      ])(
+        'should fall back to the location ID when the target location has no name for %s',
+        async (property, label, resourceKey, locationId) => {
+          jest
+            .spyOn(datasource.locationUtils, 'getLocations')
+            .mockResolvedValue(
+              new Map([[locationId, { id: locationId, name: '', pathWithNames: 'Site > Building 1' }]])
+            );
+          jest.spyOn(datasource, 'post').mockResolvedValue({
+            workItems: [
+              { id: '1', resources: { [resourceKey]: { selections: [{ id: 'a1', targetLocationId: locationId }] } } },
+            ],
+            continuationToken: '',
+            totalCount: 1,
+          });
 
-        const query = {
-          refId: 'A',
-          outputType: OutputType.Properties,
-          types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_LOCATION_ASSET],
-          take: 1000,
-        };
+          const query = {
+            refId: 'A',
+            outputType: OutputType.Properties,
+            types: [WorkItemTypeOptions.WorkOrders],
+            properties: [property],
+            take: 1000,
+          };
 
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+          const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields[0]).toEqual({
-          name: 'Target location (Asset)',
-          values: ['loc1'],
-          type: 'string',
-        });
-      });
+          expect(result.fields[0]).toEqual({
+            name: label,
+            values: [locationId],
+            type: 'string',
+          });
+        }
+      );
 
       it.each([
         [WorkItemPropertiesOptions.TARGET_PARENT_ASSET, 'Target parent (Asset)', 'Parent Asset 1', ['p1']],
@@ -2353,33 +2381,39 @@ describe('WorkItemsDataSource', () => {
         expect(result.fields).toEqual([{ name: label, values: [expected], type: 'string' }]);
       });
 
-      it('should fall back to the ID for TARGET_PARENT_ASSET when the parent asset is found but unnamed', async () => {
-        jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([{ id: 'p1' }]);
-        jest.spyOn(datasource, 'post').mockResolvedValue({
-          workItems: [
-            {
-              id: '1',
-              resources: {
-                assets: { selections: [{ id: 'a1', targetParentId: 'p1' }] },
+      it.each([
+        [WorkItemPropertiesOptions.TARGET_PARENT_ASSET, 'Target parent (Asset)', 'assets', 'p1'],
+        [WorkItemPropertiesOptions.TARGET_PARENT_DUT, 'Target parent (DUT)', 'duts', 'p2'],
+      ])(
+        'should fall back to the ID for %s when the parent asset is found but unnamed',
+        async (property, label, resourceKey, parentId) => {
+          jest.spyOn(datasource.assetUtils, 'queryAssetsInBatches').mockResolvedValue([{ id: parentId }]);
+          jest.spyOn(datasource, 'post').mockResolvedValue({
+            workItems: [
+              {
+                id: '1',
+                resources: {
+                  [resourceKey]: { selections: [{ id: 'a1', targetParentId: parentId }] },
+                },
               },
-            },
-          ],
-          continuationToken: '',
-          totalCount: 1,
-        });
+            ],
+            continuationToken: '',
+            totalCount: 1,
+          });
 
-        const query = {
-          refId: 'A',
-          outputType: OutputType.Properties,
-          types: [WorkItemTypeOptions.WorkOrders],
-          properties: [WorkItemPropertiesOptions.TARGET_PARENT_ASSET],
-          take: 1000,
-        };
+          const query = {
+            refId: 'A',
+            outputType: OutputType.Properties,
+            types: [WorkItemTypeOptions.WorkOrders],
+            properties: [property],
+            take: 1000,
+          };
 
-        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+          const result = await datasource.runQuery(query, {} as DataQueryRequest);
 
-        expect(result.fields).toEqual([{ name: 'Target parent (Asset)', values: ['p1'], type: 'string' }]);
-      });
+          expect(result.fields).toEqual([{ name: label, values: [parentId], type: 'string' }]);
+        }
+      );
 
       it('should order target columns by property selection order', async () => {
         jest
