@@ -1,3 +1,9 @@
+## [5.23.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.23.0...v5.23.1) (2026-10-05)
+
+### Bug Fixes
+
+* **work-items:** Add separate target location and parent properties for Assets and DUTs ([#793](https://github.com/ni/systemlink-grafana-plugins/issues/793)) ([adaa1ee](https://github.com/ni/systemlink-grafana-plugins/commit/adaa1ee94aaac56eefb9560445e622801308ffe3))
+
 ## [5.23.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.22.3...v5.23.0) (2026-10-05)
 
 ### Features
