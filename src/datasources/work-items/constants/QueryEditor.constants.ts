@@ -1,6 +1,6 @@
 import { MetricFindValue } from '@grafana/data';
 import { OrderByOptions, WorkItemPropertiesGroup, WorkItemPropertiesOptions, WorkItemTypeOptions } from '../types';
-import { TAKE_LIMIT } from '../constants';
+import { TAKE_LIMIT, WORK_ITEM_STATE_OPTIONS } from '../constants';
 
 export const LABEL_WIDTH = 25;
 export const CONTROL_WIDTH = 65;
@@ -40,7 +40,7 @@ export const placeholders = {
 
 export const tooltips = {
   outputType: 'Select whether to return work item properties or only total count.',
-  queryType: 'Select whether to return work items or list of work item types.',
+  queryType: 'Select whether to return the list of work items, work item types, or work item states.',
   types: 'Choose one or more work item types to query.',
   properties: 'Select the work item properties to include in the result.',
   filter: 'Filter work items by matching one or more properties.',
@@ -66,6 +66,13 @@ export const WorkItemTypeMetricFindValues: MetricFindValue[] = WorkItemTypes.map
       value: type.value,
     }
   )
+);
+
+export const WorkItemStatusMetricFindValues: MetricFindValue[] = Object.values(WORK_ITEM_STATE_OPTIONS).map(
+  ({ label, value }) => ({
+    text: label,
+    value,
+  })
 );
 
 // Maps each work item type option to its human-readable label. Derived from WorkItemTypes so the

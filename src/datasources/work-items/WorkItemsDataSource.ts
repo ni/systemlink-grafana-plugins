@@ -69,6 +69,7 @@ import {
 import {
   typesErrorMessages,
   WorkItemProperties,
+  WorkItemStatusMetricFindValues,
   WorkItemTypeLabels,
   WorkItemTypeMetricFindValues,
 } from './constants/QueryEditor.constants';
@@ -1011,6 +1012,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
     if (variableQuery.queryType === WorkItemsVariableQueryType.ListWorkItemTypes) {
       return WorkItemTypeMetricFindValues;
+    }
+
+    if (variableQuery.queryType === WorkItemsVariableQueryType.ListWorkItemStatuses) {
+      return WorkItemStatusMetricFindValues;
     }
 
     if (!isTypesNonEmpty(variableQuery.types) || !isTakeValid(variableQuery.take)) {

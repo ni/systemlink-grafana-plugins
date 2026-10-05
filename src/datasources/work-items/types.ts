@@ -34,6 +34,7 @@ export enum OrderByOptions {
 export enum WorkItemsVariableQueryType {
   ListWorkItems = 'List work items',
   ListWorkItemTypes = 'List work item types',
+  ListWorkItemStatuses = 'List work item states',
 }
 
 export interface WorkItemsQuery extends DataQuery {
