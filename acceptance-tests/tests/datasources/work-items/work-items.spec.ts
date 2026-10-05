@@ -158,9 +158,8 @@ test.describe('Work Items data source', () => {
 
         await page.goto(`${GRAFANA_URL}/dashboard/new`);
         await panelDashboard.createFirstVisualization(createdDataSourceName);
-        await panelDashboard.panel.workItemsQueryEditor.selectTypes(['Maintenance']);
 
-        const notice = page.getByTestId('title-items-container').locator('span');
+        const notice = page.getByTestId('title-items-container').locator('span[tabindex="0"]');
         await expect(notice).toBeVisible();
         await notice.hover();
         await expect(page.getByRole('tooltip')).toHaveText('SystemLink Base edition does not support work items');
