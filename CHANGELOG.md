@@ -1,3 +1,9 @@
+## [5.23.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.22.3...v5.23.0) (2026-10-05)
+
+### Features
+
+* **work-items:** support list statuses in work items variables ([#792](https://github.com/ni/systemlink-grafana-plugins/issues/792)) ([a126598](https://github.com/ni/systemlink-grafana-plugins/commit/a12659899399b852416e9c6d7dd7dafcd008a922))
+
 ## [5.22.3](https://github.com/ni/systemlink-grafana-plugins/compare/v5.22.2...v5.22.3) (2026-09-25)
 
 ### Bug Fixes
