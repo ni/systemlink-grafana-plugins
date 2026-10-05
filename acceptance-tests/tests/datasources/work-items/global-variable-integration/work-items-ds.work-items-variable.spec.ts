@@ -20,26 +20,26 @@ test.describe('Work Items DataSource with Work Item Variable', () => {
         await dataSource.deleteDataSource(createdDataSourceName);
     });
 
+    test('should create a work item variable using the default list work items query type', async () => {
+        await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
+
+        await dashboard.toolbar.openSettings();
+        await dashboard.settings.goToVariablesTab();
+        await dashboard.settings.addNewVariable();
+        await dashboard.settings.workItemsVariable.setVariableName('workItemsList');
+        await dashboard.settings.workItemsVariable.selectDataSource(createdDataSourceName);
+        await dashboard.settings.workItemsVariable.runQuery();
+
+        await expect(dashboard.page.getByText('Work Item 1 (WI-1)')).toBeVisible();
+
+        await dashboard.settings.workItemsVariable.applyVariableChanges();
+
+        expect(dashboard.settings.createdVariable('workItemsList')).toBeDefined();
+
+        await dashboard.settings.goBackToDashboardPage();
+    });
+
     test.describe.serial('Work item variable integration', () => {
-        test('should create a work item variable using the default list work items query type', async () => {
-            await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
-
-            await dashboard.toolbar.openSettings();
-            await dashboard.settings.goToVariablesTab();
-            await dashboard.settings.addNewVariable();
-            await dashboard.settings.workItemsVariable.setVariableName('workItemsList');
-            await dashboard.settings.workItemsVariable.selectDataSource(createdDataSourceName);
-            await dashboard.settings.workItemsVariable.runQuery();
-
-            await expect(dashboard.page.getByText('Work Item 1 (WI-1)')).toBeVisible();
-
-            await dashboard.settings.workItemsVariable.applyVariableChanges();
-
-            expect(dashboard.settings.createdVariable('workItemsList')).toBeDefined();
-
-            await dashboard.settings.goBackToDashboardPage();
-        });
-
         test('should create a work item variable using the list work item types query type', async () => {
             await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
 
@@ -63,27 +63,27 @@ test.describe('Work Items DataSource with Work Item Variable', () => {
 
             await expect.poll(() => dashboard.panel.table.getTableRowCount()).toBe(5);
         });
+    });
 
-        test('should create a work item status variable with every built-in status', async () => {
-            await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
+    test('should create a work item state variable with every built-in state', async () => {
+        await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
 
-            await dashboard.toolbar.openSettings();
-            await dashboard.settings.goToVariablesTab();
-            await dashboard.settings.addNewVariable();
-            await dashboard.settings.workItemsVariable.setVariableName('workItemStatuses');
-            await dashboard.settings.workItemsVariable.selectDataSource(createdDataSourceName);
-            await dashboard.settings.workItemsVariable.selectQueryType('List work item statuses');
-            await dashboard.settings.workItemsVariable.runQuery();
+        await dashboard.toolbar.openSettings();
+        await dashboard.settings.goToVariablesTab();
+        await dashboard.settings.addNewVariable();
+        await dashboard.settings.workItemsVariable.setVariableName('workItemStates');
+        await dashboard.settings.workItemsVariable.selectDataSource(createdDataSourceName);
+        await dashboard.settings.workItemsVariable.selectQueryType('List work item states');
+        await dashboard.settings.workItemsVariable.runQuery();
 
-            for (const status of ['New', 'Defined', 'Reviewed', 'Scheduled', 'In progress', 'Pending approval', 'Closed', 'Canceled']) {
-                await expect(dashboard.page.getByText(status, { exact: true })).toBeVisible();
-            }
+        for (const state of ['New', 'Defined', 'Reviewed', 'Scheduled', 'In progress', 'Pending approval', 'Closed', 'Canceled']) {
+            await expect(dashboard.page.getByText(state, { exact: true })).toBeVisible();
+        }
 
-            await dashboard.settings.workItemsVariable.applyVariableChanges();
+        await dashboard.settings.workItemsVariable.applyVariableChanges();
 
-            expect(dashboard.settings.createdVariable('workItemStatuses')).toBeDefined();
+        expect(dashboard.settings.createdVariable('workItemStates')).toBeDefined();
 
-            await dashboard.settings.goBackToDashboardPage();
-        });
+        await dashboard.settings.goBackToDashboardPage();
     });
 });

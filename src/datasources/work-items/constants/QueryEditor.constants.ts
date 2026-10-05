@@ -40,7 +40,7 @@ export const placeholders = {
 
 export const tooltips = {
   outputType: 'Select whether to return work item properties or only total count.',
-  queryType: 'Select whether to return work items, work item types, or work item statuses.',
+  queryType: 'Select whether to return the list of work items, work item types, or work item states.',
   types: 'Choose one or more work item types to query.',
   properties: 'Select the work item properties to include in the result.',
   filter: 'Filter work items by matching one or more properties.',
@@ -69,7 +69,10 @@ export const WorkItemTypeMetricFindValues: MetricFindValue[] = WorkItemTypes.map
 );
 
 export const WorkItemStatusMetricFindValues: MetricFindValue[] = Object.values(WORK_ITEM_STATE_OPTIONS).map(
-  ({ label, value }) => ({ text: label, value })
+  ({ label, value }) => ({
+    text: label,
+    value,
+  })
 );
 
 // Maps each work item type option to its human-readable label. Derived from WorkItemTypes so the

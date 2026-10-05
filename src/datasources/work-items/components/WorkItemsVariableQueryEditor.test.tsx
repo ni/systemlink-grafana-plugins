@@ -118,11 +118,12 @@ describe('WorkItemsVariableQueryEditor', () => {
     expect(page.takeLimitInput()).toHaveValue(1000);
   });
 
-  it('should hide work item controls for statuses and restore retained settings when switching back', async () => {
+  it('should hide work item controls for states and restore retained settings when switching back', async () => {
     const { onChange } = await renderEditor({ take: 25, types: [WorkItemTypeOptions.Job] });
 
     await page.selectQueryType(WorkItemsVariableQueryType.ListWorkItemStatuses);
 
+    expect(page.queryTypeCombobox()).toHaveDisplayValue('List work item states');
     expect(onChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ queryType: WorkItemsVariableQueryType.ListWorkItemStatuses })
     );
