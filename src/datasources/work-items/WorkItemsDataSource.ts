@@ -233,7 +233,10 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const systemAliasesLookup = this.isSystemNameLookupRequired(query.properties)
       ? await this.loadSystemAliases()
       : new Map<string, SystemAlias>();
-    const locationsLookup = this.isPropertySelected(WorkItemPropertiesOptions.TARGET_LOCATION, query.properties)
+    const locationsLookup = this.isAnyPropertySelected(
+      [WorkItemPropertiesOptions.TARGET_LOCATION_ASSET, WorkItemPropertiesOptions.TARGET_LOCATION_DUT],
+      query.properties
+    )
       ? await this.loadLocations()
       : new Map<string, Location>();
     const productsLookup = this.isProductLookupRequired(query.properties)
@@ -366,7 +369,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         WorkItemPropertiesOptions.ASSET_NAME,
         WorkItemPropertiesOptions.DUT_NAME,
         WorkItemPropertiesOptions.FIXTURE_NAME,
-        WorkItemPropertiesOptions.TARGET_PARENT,
+        WorkItemPropertiesOptions.TARGET_PARENT_ASSET,
+        WorkItemPropertiesOptions.TARGET_PARENT_DUT,
       ],
       properties
     );
@@ -376,7 +380,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return this.isAnyPropertySelected(
       [
         WorkItemPropertiesOptions.SYSTEM_NAME,
-        WorkItemPropertiesOptions.TARGET_LOCATION,
+        WorkItemPropertiesOptions.TARGET_LOCATION_ASSET,
+        WorkItemPropertiesOptions.TARGET_LOCATION_DUT,
       ],
       properties
     );
@@ -421,7 +426,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const isAssetNameSelected = this.isPropertySelected(WorkItemPropertiesOptions.ASSET_NAME, properties);
     const isDutNameSelected = this.isPropertySelected(WorkItemPropertiesOptions.DUT_NAME, properties);
     const isFixtureNameSelected = this.isPropertySelected(WorkItemPropertiesOptions.FIXTURE_NAME, properties);
-    const isTargetParentSelected = this.isPropertySelected(WorkItemPropertiesOptions.TARGET_PARENT, properties);
+    const isAssetTargetParentSelected = this.isPropertySelected(WorkItemPropertiesOptions.TARGET_PARENT_ASSET, properties);
+    const isDutTargetParentSelected = this.isPropertySelected(WorkItemPropertiesOptions.TARGET_PARENT_DUT, properties);
 
     const ids: string[] = [];
     workItems.forEach(workItem => {
@@ -440,10 +446,12 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
           selection => selection.id && ids.push(selection.id)
         );
       }
-      if (isTargetParentSelected) {
+      if (isAssetTargetParentSelected) {
         workItem.resources?.assets?.selections?.forEach(
           selection => selection.targetParentId && ids.push(selection.targetParentId)
         );
+      }
+      if (isDutTargetParentSelected) {
         workItem.resources?.duts?.selections?.forEach(
           selection => selection.targetParentId && ids.push(selection.targetParentId)
         );
@@ -545,29 +553,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     productsLookup: Map<string, ProductPartNumberAndName>
   ) {
     const fields: FieldDTO[] = [];
-    const isTargetLocationSelected = properties.includes(WorkItemPropertiesOptions.TARGET_LOCATION);
-    const isTargetParentSelected = properties.includes(WorkItemPropertiesOptions.TARGET_PARENT);
-    let areTargetFieldsBuilt = false;
 
     properties.forEach(property => {
-      if (property === WorkItemPropertiesOptions.TARGET_LOCATION || property === WorkItemPropertiesOptions.TARGET_PARENT) {
-        if (areTargetFieldsBuilt) {
-          return;
-        }
-        areTargetFieldsBuilt = true;
-        fields.push(
-          ...this.buildTargetResourceFields(
-            flattenedRows,
-            locationsLookup,
-            systemAliasesLookup,
-            assetNamesLookup,
-            isTargetLocationSelected,
-            isTargetParentSelected
-          )
-        );
-        return;
-      }
-
       const fieldValue = flattenedRows.map(row =>
         this.getPropertyValue(
           property,
@@ -577,6 +564,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
           parentWorkItemNamesLookup,
           assetNamesLookup,
           systemAliasesLookup,
+          locationsLookup,
           productsLookup
         )
       );
@@ -600,52 +588,6 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return fields;
   }
 
-  // Groups target location and target parent columns per resource (e.g. asset location next to asset parent)
-  private buildTargetResourceFields(
-    flattenedRows: FlattenedRow[],
-    locationsLookup: Map<string, Location>,
-    systemAliasesLookup: Map<string, SystemAlias>,
-    assetNamesLookup: Map<string, string>,
-    includeLocation: boolean,
-    includeParent: boolean
-  ): FieldDTO[] {
-    const resources: Array<{ label: string; selection: (row: FlattenedRow) => ResourceSelection | undefined }> = [
-      { label: 'Asset', selection: row => row.assetSelection },
-      { label: 'DUT', selection: row => row.dutSelection },
-    ];
-
-    const fields: FieldDTO[] = [];
-    resources.forEach(({ label, selection }) => {
-      if (includeLocation) {
-        fields.push(
-          this.buildResourceField(`Target Location (${label})`, flattenedRows, row =>
-            this.resolveTargetLocation(selection(row), locationsLookup, systemAliasesLookup)
-          )
-        );
-      }
-      if (includeParent) {
-        fields.push(
-          this.buildResourceField(`Target Parent (${label})`, flattenedRows, row =>
-            this.resolveAssetName(
-              selection(row)?.targetParentId,
-              assetNamesLookup
-            )
-          )
-        );
-      }
-    });
-
-    return fields;
-  }
-
-  private buildResourceField(
-    name: string,
-    flattenedRows: FlattenedRow[],
-    resolver: (row: FlattenedRow) => string
-  ): FieldDTO {
-    return { name, values: flattenedRows.map(resolver), type: FieldType.string };
-  }
-
   private getPropertyValue(
     property: WorkItemPropertiesOptions,
     row: FlattenedRow,
@@ -654,6 +596,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     parentWorkItemNamesLookup: Map<string, string>,
     assetNamesLookup: Map<string, string>,
     systemAliasesLookup: Map<string, SystemAlias>,
+    locationsLookup: Map<string, Location>,
     productsLookup: Map<string, ProductPartNumberAndName>
   ): string | null {
     const workItem = row.workItem;
@@ -733,6 +676,14 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         return row.fixtureSelection?.id ?? '';
       case WorkItemPropertiesOptions.FIXTURE_NAME:
         return this.resolveAssetName(row.fixtureSelection?.id, assetNamesLookup);
+      case WorkItemPropertiesOptions.TARGET_LOCATION_ASSET:
+        return this.resolveTargetLocation(row.assetSelection, locationsLookup, systemAliasesLookup);
+      case WorkItemPropertiesOptions.TARGET_LOCATION_DUT:
+        return this.resolveTargetLocation(row.dutSelection, locationsLookup, systemAliasesLookup);
+      case WorkItemPropertiesOptions.TARGET_PARENT_ASSET:
+        return this.resolveAssetName(row.assetSelection?.targetParentId, assetNamesLookup);
+      case WorkItemPropertiesOptions.TARGET_PARENT_DUT:
+        return this.resolveAssetName(row.dutSelection?.targetParentId, assetNamesLookup);
       case WorkItemPropertiesOptions.SYSTEM_ID:
         return row.systemSelection?.id ?? '';
       case WorkItemPropertiesOptions.SYSTEM_NAME:
