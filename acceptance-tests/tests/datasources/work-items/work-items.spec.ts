@@ -146,6 +146,30 @@ test.describe('Work Items data source', () => {
         await expect(dashboard.panel.error).toBeHidden();
     });
 
+    test('should show a warning notice when the user is not licensed to query work items', async ({ page }) => {
+        const panelDashboard = new DashboardPage(page);
+        let deniedQueries = 0;
+        await page.route('**/niworkitem/v1/query-workitems', async route => {
+            deniedQueries++;
+            await route.fulfill({
+                status: 403,
+                contentType: 'application/json',
+                body: JSON.stringify({ error: { message: 'User is not licensed to perform this action.' } }),
+            });
+        });
+
+        await page.goto(`${GRAFANA_URL}/dashboard/new`);
+        await panelDashboard.createFirstVisualization(createdDataSourceName);
+
+        const notice = page.getByTestId('title-items-container').locator('span[tabindex="0"]');
+        await expect(notice).toBeVisible();
+        await notice.hover();
+        await expect(page.getByRole('tooltip')).toHaveText('SystemLink Base edition does not support work items');
+        await expect(panelDashboard.panel.noData).toBeVisible();
+        await expect(panelDashboard.panel.error).toBeHidden();
+        expect(deniedQueries).toBeGreaterThan(0);
+    });
+
     test('should limit the number of results returned as per the Take value', async () => {
         await dashboard.page.goto(`${GRAFANA_URL}/dashboard/new`);
         await dashboard.createFirstVisualization(createdDataSourceName);

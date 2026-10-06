@@ -14,7 +14,7 @@ import { BackendSrv, TemplateSrv, getBackendSrv, getTemplateSrv } from '@grafana
 import { ComboboxOption } from '@grafana/ui';
 import { DataSourceBase } from 'core/DataSourceBase';
 import { QueryBuilderOption, QueryResponse, Workspace } from 'core/types';
-import { getQueryError, getQueryBuilderLookupsError } from 'core/errors';
+import { extractErrorInfo, getQueryError, getQueryBuilderLookupsError } from 'core/errors';
 import { ProductUtils } from 'shared/product.utils';
 import { ProductPartNumberAndName } from 'shared/types/QueryProducts.types';
 import { SystemUtils } from 'shared/system.utils';
@@ -74,6 +74,11 @@ import {
   WorkItemTypeMetricFindValues,
 } from './constants/QueryEditor.constants';
 import { getTakeError, isPropertiesNonEmpty, isTakeValid, isTypesNonEmpty } from './utils';
+
+const workItemsLicenseErrorMessage = 'User is not licensed';
+const workItemsLicenseWarning = 'SystemLink Base edition does not support work items';
+
+class PanelWorkItemsLicenseError extends Error {}
 
 export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   constructor(
@@ -185,44 +190,55 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     };
   }
   async runQuery(query: WorkItemsQuery, options: DataQueryRequest<WorkItemsQuery>): Promise<DataFrameDTO> {
-    if (!isTypesNonEmpty(query.types)) {
-      throw new Error(typesErrorMessages.atLeastOneRequired);
-    }
-
-    if (query.outputType === OutputType.TotalCount) {
-      return this.processTotalCountQuery(query, options.scopedVars);
-    }
-
-    if (query.outputType === OutputType.Properties) {
-      const takeError = getTakeError(query.take);
-      if (takeError !== '') {
-        throw new Error(takeError);
+    try {
+      if (!isTypesNonEmpty(query.types)) {
+        throw new Error(typesErrorMessages.atLeastOneRequired);
       }
 
-      if (
-        !isPropertiesNonEmpty(query.properties, query.customProperties) ||
-        !isTakeValid(query.take)
-      ) {
-        return this.getEmptyDataFrameDTO(query.refId);
+      if (query.outputType === OutputType.TotalCount) {
+        return await this.processTotalCountQuery(query, options.scopedVars, true);
       }
 
-      const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
-        query.types!,
-        query.filter,
-        options.scopedVars
-      );
+      if (query.outputType === OutputType.Properties) {
+        const takeError = getTakeError(query.take);
+        if (takeError !== '') {
+          throw new Error(takeError);
+        }
 
-      if (!hasRecognizedTypes) {
-        return this.getEmptyDataFrameDTO(query.refId);
+        if (
+          !isPropertiesNonEmpty(query.properties, query.customProperties) ||
+          !isTakeValid(query.take)
+        ) {
+          return this.getEmptyDataFrameDTO(query.refId);
+        }
+
+        const { filter, hasRecognizedTypes } = this.buildWorkItemsFilter(
+          query.types!,
+          query.filter,
+          options.scopedVars
+        );
+
+        if (!hasRecognizedTypes) {
+          return this.getEmptyDataFrameDTO(query.refId);
+        }
+
+        return await this.processWorkItemsQuery(query, filter, true);
       }
 
-      return this.processWorkItemsQuery(query, filter);
+      return this.getEmptyDataFrameDTO(query.refId);
+    } catch (error) {
+      if (!(error instanceof PanelWorkItemsLicenseError)) {
+        throw error;
+      }
+
+      return {
+        ...this.getEmptyDataFrameDTO(query.refId),
+        meta: { notices: [{ severity: 'warning', text: workItemsLicenseWarning }] },
+      };
     }
-
-    return this.getEmptyDataFrameDTO(query.refId);
   }
 
-  async processWorkItemsQuery(query: WorkItemsQuery, filter?: string): Promise<DataFrameDTO> {
+  async processWorkItemsQuery(query: WorkItemsQuery, filter?: string, panelQuery = false): Promise<DataFrameDTO> {
     const isWorkspaceSelected = this.isPropertySelected(WorkItemPropertiesOptions.WORKSPACE, query.properties);
     const workspacesLookup = isWorkspaceSelected
       ? await this.loadWorkspaces()
@@ -249,7 +265,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       query.customProperties,
       query.orderBy,
       query.descending,
-      query.take
+      query.take,
+      false,
+      panelQuery
     );
     const flattenedRows = this.buildFlattenedRows(workItemsResponse);
 
@@ -731,7 +749,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     orderBy?: OrderByOptions,
     descending?: boolean,
     take?: number,
-    suppressErrorAlert = false
+    suppressErrorAlert = false,
+    panelQuery = false
   ): Promise<WorkItem[]> {
     const projection = this.buildProjectionFromProperties(properties, customProperties);
 
@@ -744,7 +763,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         take: currentTake,
         continuationToken,
       };
-      const response = await this.queryWorkItems(body, suppressErrorAlert);
+      const response = await this.queryWorkItems(body, suppressErrorAlert, panelQuery);
 
       return {
         data: response.workItems ?? [],
@@ -781,7 +800,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
 
   
-  private async processTotalCountQuery(query: WorkItemsQuery, scopedVars?: ScopedVars): Promise<DataFrameDTO> {
+  private async processTotalCountQuery(query: WorkItemsQuery, scopedVars?: ScopedVars, panelQuery = false): Promise<DataFrameDTO> {
     const { resolvedTypes } = this.resolveSelectedTypes(query.types!, scopedVars);
     const queryFilter = query.filter?.trim();
     const transformedQueryFilter = queryFilter
@@ -796,7 +815,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       );
     });
 
-    const workItemCounts = await this.queryWorkItemsCountsInBatches(filters);
+    const workItemCounts = await this.queryWorkItemsCountsInBatches(filters, panelQuery);
 
     return {
       refId: query.refId,
@@ -809,7 +828,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
   }
 
   private async queryWorkItemsCountsInBatches(
-    filters: Array<string | undefined>
+    filters: Array<string | undefined>,
+    panelQuery = false
   ): Promise<number[]> {
     const workItemCounts: number[] = [];
 
@@ -821,7 +841,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       const start = Date.now();
       const batch = filters.slice(index, index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND);
       // Requests within a batch run concurrently; batches are still spaced 1s apart.
-      const batchCounts = await Promise.all(batch.map(filter => this.queryWorkItemsCount(filter)));
+      const batchCounts = await Promise.all(batch.map(filter => this.queryWorkItemsCount(filter, panelQuery)));
       workItemCounts.push(...batchCounts);
 
       const hasMoreRequests = index + QUERY_WORK_ITEMS_REQUEST_PER_SECOND < filters.length;
@@ -838,19 +858,20 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  async queryWorkItemsCount(filter?: string): Promise<number> {
+  async queryWorkItemsCount(filter?: string, panelQuery = false): Promise<number> {
     const body: QueryWorkItemsRequestBody = {
       filter,
       take: 0,
       returnCount: true,
     };
-    const response = await this.queryWorkItems(body);
+    const response = await this.queryWorkItems(body, false, panelQuery);
     return response.totalCount ?? 0;
   }
 
   async queryWorkItems(
     body: QueryWorkItemsRequestBody,
-    suppressErrorAlert = false
+    suppressErrorAlert = false,
+    panelQuery = false
   ): Promise<WorkItemsResponse> {
     try {
       return await this.post<WorkItemsResponse>(
@@ -859,6 +880,15 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         { showErrorAlert: false } // suppress default error alert since we handle errors manually
       );
     } catch (error) {
+      const errorDetails = error instanceof Error ? extractErrorInfo(error.message) : undefined;
+      if (
+        panelQuery
+        && errorDetails?.statusCode === '403'
+        && errorDetails.message.includes(workItemsLicenseErrorMessage)
+      ) {
+        throw new PanelWorkItemsLicenseError(workItemsLicenseWarning);
+      }
+
       const { title: errorTitle, message: errorMessage } = getQueryError(error, 'work items');
 
       if (!suppressErrorAlert) {
