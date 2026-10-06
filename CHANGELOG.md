@@ -1,3 +1,9 @@
+## [5.23.2](https://github.com/ni/systemlink-grafana-plugins/compare/v5.23.1...v5.23.2) (2026-10-06)
+
+### Bug Fixes
+
+* **work-items:** warn on license-denied panel queries ([#790](https://github.com/ni/systemlink-grafana-plugins/issues/790)) ([97570c8](https://github.com/ni/systemlink-grafana-plugins/commit/97570c86686cb9109480c6dfb5b8a57feed1a785))
+
 ## [5.23.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.23.0...v5.23.1) (2026-10-05)
 
 ### Bug Fixes
