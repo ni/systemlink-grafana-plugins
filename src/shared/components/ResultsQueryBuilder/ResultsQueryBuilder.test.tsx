@@ -46,6 +46,15 @@ describe('ResultsQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain("PASSED"); //value
     });
 
+    it('should display the status label when it differs from the status value', () => {
+      const { conditionsContainer } = renderElement([workspace], ['Timed out'], 'Status.statusType = "Timedout"');
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("Status"); //label
+      expect(conditionsContainer.item(0)?.textContent).toContain("equals"); //operator
+      expect(conditionsContainer.item(0)?.textContent).toContain("Timed out"); //value
+    });
+
     it('should select part number in query builder', () => {
       const { conditionsContainer } = renderElement([workspace], status, 'PartNumber = "PN1"');
 
@@ -127,5 +136,46 @@ describe('ResultsQueryBuilder', () => {
       expect(conditionsContainer.item(0)?.textContent).toContain("Operator"); //operator
       expect(conditionsContainer.item(0)?.textContent).toContain("Value"); //value
     })
+
+    it('should update and display the latest workspace in the query builder', () => {
+      const { renderResult, conditionsContainer } = renderElement([], status, 'Workspace = "1"');
+
+      expect(conditionsContainer.item(0)?.textContent).not.toContain(workspace.name);
+
+      renderResult.rerender(React.createElement(ResultsQueryBuilder, {
+        filter: 'Workspace = "1"',
+        workspaces: [workspace],
+        status,
+        partNumbers: partNumber,
+        globalVariableOptions: [],
+        onChange: jest.fn(),
+      }));
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("Workspace"); //label
+      expect(conditionsContainer.item(0)?.textContent).toContain("equals"); //operator
+      expect(conditionsContainer.item(0)?.textContent).toContain(workspace.name); //value
+    });
+
+    it('should update and display the latest global variable option in the query builder', () => {
+      const globalVariableOption = { label: 'Global variable', value: 'global_variable' };
+      const { renderResult, conditionsContainer } = renderElement([workspace], status, 'Workspace = "global_variable"');
+
+      expect(conditionsContainer.item(0)?.textContent).not.toContain(globalVariableOption.label);
+
+      renderResult.rerender(React.createElement(ResultsQueryBuilder, {
+        filter: 'Workspace = "global_variable"',
+        workspaces: [workspace],
+        status,
+        partNumbers: partNumber,
+        globalVariableOptions: [globalVariableOption],
+        onChange: jest.fn(),
+      }));
+
+      expect(conditionsContainer?.length).toBe(1);
+      expect(conditionsContainer.item(0)?.textContent).toContain("Workspace"); //label
+      expect(conditionsContainer.item(0)?.textContent).toContain("equals"); //operator
+      expect(conditionsContainer.item(0)?.textContent).toContain(globalVariableOption.label); //value
+    });
   });
 });

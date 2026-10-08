@@ -1,9 +1,9 @@
 import { queryBuilderMessages, QueryBuilderOperations } from 'core/query-builder.constants';
-import { expressionBuilderCallback, expressionReaderCallback } from 'core/query-builder.utils';
+import { expressionBuilderCallbackWithRef, expressionReaderCallbackWithRef } from 'core/query-builder.utils';
 import { Workspace, QueryBuilderOption, QBField } from 'core/types';
 import { filterXSSField, filterXSSLINQExpression } from 'core/utils';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { QueryBuilderCustomOperation, QueryBuilderProps } from 'smart-webcomponents-react/querybuilder';
 
 import {
@@ -32,6 +32,7 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
 
   const [fields, setFields] = useState<QBField[]>([]);
   const [operations, setOperations] = useState<QueryBuilderCustomOperation[]>([]);
+  const optionsRef = useRef<Record<string, QueryBuilderOption[]>>({});
 
   const sanitizedFilter = useMemo(() => {
     return filterXSSLINQExpression(filter);
@@ -119,6 +120,11 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
     };
   }, [partNumbers]);
 
+  const callbacks = useMemo(() => ({
+    expressionBuilderCallback: expressionBuilderCallbackWithRef(optionsRef),
+    expressionReaderCallback: expressionReaderCallbackWithRef(optionsRef),
+  }), [optionsRef]);
+
   useEffect(() => {
     if(!workspaceField || !partNumberField) {
       return;
@@ -147,10 +153,15 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
 
     setFields(updatedFields);
 
-    const callbacks = {
-      expressionBuilderCallback: expressionBuilderCallback(updatedFields),
-      expressionReaderCallback: expressionReaderCallback(updatedFields),
-    };
+    const options = Object.values(updatedFields).reduce((accumulator, fieldConfig) => {
+      if (fieldConfig.lookup) {
+        accumulator[fieldConfig.dataField!] = fieldConfig.lookup.dataSource;
+      }
+
+      return accumulator;
+    }, {} as Record<string, QueryBuilderOption[]>);
+
+    optionsRef.current = options;
 
     const customOperations = [
       QueryBuilderOperations.EQUALS,
@@ -192,7 +203,7 @@ export const ResultsQueryBuilder: React.FC<ResultsQueryBuilderProps> = ({
     ];
 
     setOperations([...customOperations, ...keyValueOperations]);
-  }, [workspaceField, startedAtField, updatedAtField, partNumberField, globalVariableOptions, statusField]);
+  }, [workspaceField, startedAtField, updatedAtField, partNumberField, globalVariableOptions, statusField, callbacks]);
 
   return (
     <SlQueryBuilder
