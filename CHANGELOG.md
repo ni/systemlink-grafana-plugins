@@ -1,3 +1,9 @@
+## [5.23.3](https://github.com/ni/systemlink-grafana-plugins/compare/v5.23.2...v5.23.3) (2026-10-12)
+
+### Bug Fixes
+
+* **results:** show workspace name instead of ID in query builder ([#794](https://github.com/ni/systemlink-grafana-plugins/issues/794)) ([e37eb2e](https://github.com/ni/systemlink-grafana-plugins/commit/e37eb2ed5480ec8102b13023e90f6dc104e3e309))
+
 ## [5.23.2](https://github.com/ni/systemlink-grafana-plugins/compare/v5.23.1...v5.23.2) (2026-10-06)
 
 ### Bug Fixes
