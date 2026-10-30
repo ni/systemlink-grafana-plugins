@@ -214,6 +214,7 @@ export class ProductsDataSource extends DataSourceBase<ProductQuery> {
     return products.map(product => {
       const value = product[field];
       switch (field) {
+        case Properties.keywords:
         case Properties.properties:
           return value && Object.keys(value).length > 0 ? JSON.stringify(value) : '';
         case Properties.workspace:
