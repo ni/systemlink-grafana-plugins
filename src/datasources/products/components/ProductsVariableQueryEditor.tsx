@@ -4,12 +4,13 @@ import { ProductVariableQuery } from "../types";
 import { InlineField } from "@grafana/ui";
 import { ProductsQueryBuilder } from "./query-builder/ProductsQueryBuilder";
 import { Workspace } from "core/types";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FloatingError } from "core/errors";
 
 type Props = QueryEditorProps<ProductsDataSource, ProductVariableQuery>;
 
 export function ProductsVariableQueryEditor({ query, onChange, datasource }: Props) {
+    const lastUsedQueryBy = useRef(query.queryBy);
 
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
     const [partNumbers, setPartNumbers] = useState<string[]>([]);
@@ -35,7 +36,10 @@ export function ProductsVariableQueryEditor({ query, onChange, datasource }: Pro
     }, [datasource]);
 
     const onQueryByChange = (value: string) => {
-        onChange({ ...query, queryBy: value });
+        if (query.queryBy !== value && lastUsedQueryBy.current !== value) {
+            lastUsedQueryBy.current = value;
+            onChange({ ...query, queryBy: value });
+        }
     };
 
     return (
