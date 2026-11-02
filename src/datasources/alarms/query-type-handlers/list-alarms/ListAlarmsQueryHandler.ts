@@ -206,7 +206,9 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
             const user = users.get(userId);
             return user ? UsersUtils.getUserFullName(user) : userId;
           case AlarmsSpecificProperties.properties:
-            return this.getSortedCustomProperties(alarm.properties);
+            return this.formatCustomProperties(alarm.properties);
+          case AlarmsSpecificProperties.keywords:
+            return this.formatKeywords(alarm.keywords);
           case AlarmsSpecificProperties.highestSeverityLevel:
           case AlarmsSpecificProperties.currentSeverityLevel:
             return this.getSeverityLabel(alarm[property]);
@@ -217,7 +219,9 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
           case AlarmsTransitionProperties.transitionSeverityLevel:
             return this.getSeverityLabel(transition.severityLevel);
           case AlarmsTransitionProperties.transitionProperties:
-            return this.getSortedCustomProperties(transition.properties);
+            return this.formatCustomProperties(transition.properties);
+          case AlarmsTransitionProperties.transitionKeywords:
+            return this.formatKeywords(transition.keywords);
           default:
             let value;
 
@@ -259,9 +263,6 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
         return FieldType.number;
       case this.isBooleanField(field):
         return FieldType.boolean;
-      case this.isObjectField(field):
-      case this.isArrayField(field):
-        return FieldType.other;
       default:
         return FieldType.string;
     }
@@ -279,20 +280,6 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
     );
   }
 
-  private isObjectField(field: AlarmsProperties): boolean {
-    return (
-      field === AlarmsSpecificProperties.properties ||
-      field === AlarmsTransitionProperties.transitionProperties
-    );
-  }
-
-  private isArrayField(field: AlarmsProperties): boolean {
-    return (
-      field === AlarmsSpecificProperties.keywords ||
-      field === AlarmsTransitionProperties.transitionKeywords
-    );
-  }
-
   private hasTransitionProperties(properties: AlarmsProperties[]): boolean {
     return properties.some(prop => this.isAlarmTransitionProperty(prop));
   }
@@ -303,6 +290,15 @@ export class ListAlarmsQueryHandler extends AlarmsQueryHandlerCore {
         ? alarm.transitions.map(transition => ({ ...alarm, transitions: [transition] }))
         : alarm
     );
+  }
+
+  private formatCustomProperties(properties: { [key: string]: string }): string {
+    const sortedProperties = this.getSortedCustomProperties(properties ?? {});
+    return Object.keys(sortedProperties).length > 0 ? JSON.stringify(sortedProperties) : '';
+  }
+
+  private formatKeywords(keywords?: string[]): string {
+    return keywords?.join(', ') ?? '';
   }
 
   private getSortedCustomProperties(properties: { [key: string]: string }): { [key: string]: string } {
