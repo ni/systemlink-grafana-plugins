@@ -1,3 +1,9 @@
+## [5.23.4](https://github.com/ni/systemlink-grafana-plugins/compare/v5.23.3...v5.23.4) (2026-11-02)
+
+### Bug Fixes
+
+* **products:** avoid duplicate variable query requests ([#795](https://github.com/ni/systemlink-grafana-plugins/issues/795)) ([d9e6dbf](https://github.com/ni/systemlink-grafana-plugins/commit/d9e6dbffff42ba7682831631c40b51eaafccc1e8))
+
 ## [5.23.3](https://github.com/ni/systemlink-grafana-plugins/compare/v5.23.2...v5.23.3) (2026-10-12)
 
 ### Bug Fixes
