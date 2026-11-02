@@ -35,6 +35,10 @@ export function ProductsVariableQueryEditor({ query, onChange, datasource }: Pro
         loadFamilyNames();
     }, [datasource]);
 
+    useEffect(() => {
+        lastUsedQueryBy.current = query.queryBy;
+    }, [query.queryBy]);
+
     const onQueryByChange = (value: string) => {
         if (query.queryBy !== value && lastUsedQueryBy.current !== value) {
             lastUsedQueryBy.current = value;
