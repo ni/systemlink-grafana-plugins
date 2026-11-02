@@ -3,7 +3,7 @@ import { ProductsDataSource } from "../ProductsDataSource";
 import { ProductVariableQuery, PropertiesOptions } from "../types";
 import { setupRenderer } from "test/fixtures";
 import { ProductsVariableQueryEditor } from "./ProductsVariableQueryEditor";
-import { screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 
 const fakeWorkspaces: Workspace[] = [
     {
@@ -38,6 +38,18 @@ class FakeProductsDataSource extends ProductsDataSource {
 
 const render = setupRenderer(ProductsVariableQueryEditor, FakeProductsDataSource, () => { });
 
+const getQueryBuilder = () => waitFor(() => {
+    const queryBuilder = document.querySelector('smart-query-builder');
+    expect(queryBuilder).not.toBeNull();
+    return queryBuilder!;
+});
+
+const fireQueryBuilderChange = (queryBuilder: Element, linq: string) => {
+    act(() => {
+        queryBuilder.dispatchEvent(new CustomEvent('change', { detail: { linq } }));
+    });
+};
+
 it('renders the variable query builder', async () => {
     render({ refId: '', queryBy: '' } as ProductVariableQuery);
 
@@ -53,5 +65,27 @@ it('fetches the product values on mount', async () => {
     expect(queryProductValuesSpy).toHaveBeenCalledTimes(2);
     expect(queryProductValuesSpy).toHaveBeenCalledWith(PropertiesOptions.PART_NUMBER);
     expect(queryProductValuesSpy).toHaveBeenCalledWith(PropertiesOptions.FAMILY);
+});
+
+it('should not call onChange when the filter event repeats the same value', async () => {
+    const [onChange] = render({ refId: '', queryBy: 'Workspace = "1"' } as ProductVariableQuery);
+    const queryBuilder = await getQueryBuilder();
+    onChange.mockClear();
+
+    fireQueryBuilderChange(queryBuilder, 'Workspace = "1"');
+
+    expect(onChange).not.toHaveBeenCalled();
+});
+
+it('should call onChange only once when the query builder fires duplicate change events for the same new value', async () => {
+    const [onChange] = render({ refId: '', queryBy: '' } as ProductVariableQuery);
+    const queryBuilder = await getQueryBuilder();
+    onChange.mockClear();
+
+    fireQueryBuilderChange(queryBuilder, 'Workspace = "1"');
+    fireQueryBuilderChange(queryBuilder, 'Workspace = "1"');
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ queryBy: 'Workspace = "1"' }));
 });
 
