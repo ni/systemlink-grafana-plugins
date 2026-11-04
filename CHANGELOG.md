@@ -1,3 +1,9 @@
+## [5.23.5](https://github.com/ni/systemlink-grafana-plugins/compare/v5.23.4...v5.23.5) (2026-11-04)
+
+### Bug Fixes
+
+* **alarms:** show keywords and properties as plain text ([#796](https://github.com/ni/systemlink-grafana-plugins/issues/796)) ([c3b5723](https://github.com/ni/systemlink-grafana-plugins/commit/c3b572335e775441dbfed7ec5e8ccee6ce92122e))
+
 ## [5.23.4](https://github.com/ni/systemlink-grafana-plugins/compare/v5.23.3...v5.23.4) (2026-11-02)
 
 ### Bug Fixes
