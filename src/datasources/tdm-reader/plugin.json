@@ -1,0 +1,16 @@
+{
+  "type": "datasource",
+  "name": "SystemLink TDM Reader",
+  "id": "ni-sltdmreader-datasource",
+  "metrics": true,
+  "info": {
+    "description": "Mockup for selecting TDM files and channels. Uses sample data only.",
+    "author": {
+      "name": "NI"
+    },
+    "logos": {
+      "small": "img/logo-ni.svg",
+      "large": "img/logo-ni.svg"
+    }
+  }
+}

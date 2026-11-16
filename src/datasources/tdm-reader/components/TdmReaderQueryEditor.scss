@@ -1,0 +1,132 @@
+.tdm-reader-query-editor {
+  .tdm-reader-query-content {
+    width: 100%;
+    min-width: 0;
+
+    smart-query-builder {
+      width: 100%;
+    }
+  }
+
+  .tdm-reader-channels {
+    width: 100%;
+    margin-top: 16px;
+  }
+
+  .tdm-reader-x-axis {
+    margin-bottom: 16px;
+  }
+
+  .tdm-reader-x-axis-value {
+    width: 100%;
+    cursor: pointer;
+  }
+
+  .tdm-reader-decimation {
+    margin-top: 16px;
+  }
+
+  .tdm-reader-view-buttons {
+    display: flex;
+    gap: 4px;
+
+    .tdm-reader-view-active {
+      background: var(--ni-nimble-button-fill-accent-color);
+
+      nimble-icon-list, nimble-icon-list-tree {
+        --ni-nimble-internal-icon-color: #fff;
+        opacity: 1;
+      }
+    }
+  }
+
+  .tdm-reader-channel-warnings {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    &:not(:empty) {
+      margin-bottom: 8px;
+    }
+  }
+
+  .tdm-reader-properties {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 8px 16px;
+
+    dd {
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .tdm-reader-empty {
+    margin: 12px 0;
+  }
+}
+
+.tdm-reader-theme {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.tdm-reader-channel-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+
+.tdm-reader-channel-search {
+  width: 200px;
+}
+
+.tdm-reader-toolbar-spacer {
+  flex: 1;
+}
+
+.tdm-reader-table-container {
+  position: relative;
+
+  &[aria-busy='true'] {
+    pointer-events: none;
+  }
+}
+
+.tdm-reader-channel-table {
+  display: flex;
+  width: 100%;
+  height: 400px;
+}
+
+.tdm-reader-x-axis-dialog {
+  width: min(900px, 80vw);
+  max-width: 100%;
+  min-width: 0;
+
+  > p {
+    margin-top: 0;
+  }
+
+  .tdm-reader-table-container {
+    min-width: 0;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .tdm-reader-x-axis-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+
+    > div {
+      display: flex;
+      gap: 8px;
+    }
+  }
+}

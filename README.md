@@ -26,6 +26,7 @@ Tools](https://grafana.github.io/plugin-tools/).
 - [Alarms](src/datasources/alarms/)
 - [Workspaces](src/datasources/workspace/)
 - [Work items](src/datasources/work-items/)
+- [TDM Reader mockup](src/datasources/tdm-reader/) (sample data only; no connection required)
 
 ### Panels
 

@@ -73,3 +73,7 @@ datasources:
     type: ni-slworkitems-datasource
     uid: ni-slworkitems-datasource
     <<: *config
+  - name: SystemLink TDM Reader
+    type: ni-sltdmreader-datasource
+    uid: ni-sltdmreader-datasource
+    access: proxy

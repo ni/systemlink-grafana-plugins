@@ -25,6 +25,7 @@ coverage
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 dist/
 artifacts/
+mockups/systemlink-tdm-reader.html
 work/
 ci/
 e2e-results/

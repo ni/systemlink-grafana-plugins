@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SystemLink TDM Reader</title>
+  <style>
+    :root { color-scheme: light; --background: #fff; --text: #24292e; --border: #d7dade; --label: #f4f5f5; }
+    :root.dark { color-scheme: dark; --background: #181b1f; --text: #ccc; --border: #44484f; --label: #22252b; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--background); color: var(--text); font: 14px Arial, sans-serif; }
+    main { max-width: 1200px; margin: auto; padding: 20px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+    h1 { font-size: 20px; margin: 0; }
+    button, input, select { font: inherit; color: inherit; }
+    button { cursor: pointer; border: 1px solid var(--border); border-radius: 4px; padding: 8px; background: var(--label); }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #00875a; outline-offset: 2px; }
+    .query { display: flex; gap: 4px; align-items: start; margin-bottom: 16px; }
+    .field-label { background: var(--label); border-radius: 4px; padding: 10px; width: 112px; flex-shrink: 0; }
+    .query smart-query-builder { flex: 1; width: 100%; min-width: 0; }
+    details { border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 16px; }
+    summary { cursor: pointer; font-size: 17px; padding-bottom: 12px; }
+    details:not([open]) summary { padding-bottom: 0; }
+    nimble-theme-provider { display: block; }
+    .toolbar { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding: 4px 0 8px; }
+    .view { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 0; }
+    .view[aria-pressed="true"] { color: white; background: #00875a; }
+    .search { display: flex; align-items: center; gap: 4px; width: 220px; border-bottom: 1px solid var(--border); }
+    .search input { background: transparent; border: 0; padding: 10px 4px; min-width: 0; width: 100%; }
+    .search button { border: 0; background: transparent; }
+    .spacer { flex: 1; }
+    #clear-selection { background: transparent; border: 0; }
+    nimble-table { display: flex; width: 100%; height: 400px; }
+    .alert { border: 1px solid #c79528; background: #c7952820; border-radius: 6px; padding: 14px; margin: 8px 0; display: flex; gap: 12px; align-items: start; }
+    .alert.info { border-color: #5794f2; background: #5794f220; }
+    .alert.error { border-color: #e24d42; background: #e24d4220; }
+    .alert p { margin: 8px 0 0; }
+    .alert button { margin-left: auto; background: transparent; border: 0; }
+    .decimation-field { display: flex; gap: 4px; flex-wrap: wrap; }
+    .decimation-field label { width: 264px; background: var(--label); padding: 10px; border-radius: 4px; }
+    select { width: 264px; max-width: 100%; border: 1px solid var(--border); background: var(--background); border-radius: 4px; padding: 10px; }
+    dialog { color: var(--text); background: var(--background); border: 1px solid var(--border); border-radius: 6px; max-width: min(600px, 90vw); }
+    dialog::backdrop { background: #0006; }
+    .x-axis { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .x-axis input { width: 264px; max-width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 4px; background: var(--background); }
+    #x-axis-dialog { width: 1100px; max-width: 94vw; padding: 24px; }
+    #x-axis-dialog h2 { margin-top: 0; }
+    #x-axis-dialog .toolbar { margin-top: 48px; border-top: 1px solid var(--border); }
+    .dialog-actions { display: flex; align-items: center; gap: 16px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+    .dialog-actions label { display: flex; align-items: center; gap: 8px; }
+    dl { display: grid; grid-template-columns: max-content 1fr; gap: 10px 20px; }
+    dd { margin: 0; overflow-wrap: anywhere; }
+    [hidden] { display: none !important; }
+    @media (max-width: 600px) { main { padding: 12px; } .query { flex-direction: column; } .field-label { width: 100%; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header><h1>SystemLink TDM Reader</h1><button id="theme" aria-label="Toggle light and dark theme">Dark theme</button></header>
+    <div class="query">
+      <span class="field-label" id="query-label">Query</span>
+      <smart-query-builder id="query" aria-labelledby="query-label" theme="ni-grafana" fields-mode="static"></smart-query-builder>
+    </div>
+    <div id="query-error" class="alert error" role="alert" hidden></div>
+    <div class="x-axis">
+      <label class="field-label" for="x-axis-value">X-Axis</label>
+      <input id="x-axis-value" role="combobox" aria-readonly="true" aria-expanded="false"
+        aria-haspopup="dialog" aria-controls="x-axis-dialog" readonly value="Sample Index">
+      <button id="edit-x-axis">Edit x-Axis</button>
+    </div>
+    <details id="channels-section" open>
+      <summary>Channels</summary>
+      <nimble-theme-provider id="nimble-theme" theme="light">
+        <div id="limit-alert" class="alert" role="alert" hidden>
+          <div><strong id="limit-title"></strong><p id="limit-message"></p></div>
+          <button id="dismiss-limit" aria-label="Dismiss channel limit alert">X</button>
+        </div>
+        <div class="toolbar">
+          <button class="view" id="nested" aria-label="View nested channels" title="View nested channels" aria-pressed="true">
+            <nimble-icon-list-tree></nimble-icon-list-tree>
+          </button>
+          <button class="view" id="merged" aria-label="View merged channels" title="View merged channels" aria-pressed="false">
+            <nimble-icon-list></nimble-icon-list>
+          </button>
+          <div class="search">
+            <nimble-icon-magnifying-glass></nimble-icon-magnifying-glass>
+            <input id="search" type="search" placeholder="Search" aria-label="Search channels">
+            <button id="clear-search" aria-label="Clear search" hidden>X</button>
+          </div>
+          <div class="spacer"></div>
+          <button id="clear-selection" aria-label="Clear channel selection" hidden><span aria-live="polite" id="count"></span></button>
+        </div>
+        <p id="empty-message" hidden></p>
+        <div id="table-error" class="alert error" role="alert" hidden></div>
+        <nimble-table id="channels" id-field-name="id" parent-id-field-name="parentId" selection-mode="multiple"
+          action-menus-preserve-selection aria-label="Available channels">
+          <nimble-table-column-text id="name-column" column-id="name" field-name="name" grouping-disabled sorting-disabled
+            action-menu-slot="properties" action-menu-label="Channel actions">Name</nimble-table-column-text>
+          <nimble-menu slot="properties"><nimble-menu-item id="properties">Properties</nimble-menu-item></nimble-menu>
+        </nimble-table>
+      </nimble-theme-provider>
+    </details>
+    <details open>
+      <summary>Decimation settings</summary>
+      <div class="decimation-field">
+        <label for="decimation" title="Mockup only: this choice does not change sample output.">Decimation method</label>
+        <select id="decimation">
+          <option value="NONE">None</option><option value="LOSSY" selected>Lossy</option>
+          <option value="MAX_MIN">Max/min</option><option value="ENTRY_EXIT">Entry/exit</option>
+        </select>
+      </div>
+    </details>
+    <noscript>This interactive mockup requires JavaScript.</noscript>
+  </main>
+  <dialog id="properties-dialog" aria-labelledby="properties-title">
+    <h2 id="properties-title">Properties</h2>
+    <p>Illustrative mock metadata. No file or SystemLink API is read.</p>
+    <dl id="properties-values"></dl>
+    <button id="close-properties">Close</button>
+  </dialog>
+  <dialog id="x-axis-dialog" aria-labelledby="x-axis-title" aria-describedby="x-axis-description">
+    <h2 id="x-axis-title">X-Axis Selection</h2>
+    <p id="x-axis-description">Select a single x-axis</p>
+    <nimble-theme-provider id="x-axis-theme" theme="light">
+      <div class="toolbar">
+        <div class="search">
+          <nimble-icon-magnifying-glass></nimble-icon-magnifying-glass>
+          <input id="x-axis-search" type="search" placeholder="Search x-axes" aria-label="Search x-axes">
+        </div>
+        <div class="spacer"></div>
+        <span aria-live="polite">1 selected</span>
+      </div>
+      <div id="x-axis-error" class="alert error" role="alert" hidden></div>
+      <nimble-table id="x-axis-table" id-field-name="id" selection-mode="single" aria-label="Available x-axes">
+        <nimble-table-column-text column-id="channel" field-name="name" grouping-disabled sorting-disabled>Channel</nimble-table-column-text>
+        <nimble-table-column-text column-id="fileName" field-name="fileName" grouping-disabled sorting-disabled>File Name</nimble-table-column-text>
+        <nimble-table-column-text column-id="group" field-name="groupName" grouping-disabled sorting-disabled>Group</nimble-table-column-text>
+      </nimble-table>
+    </nimble-theme-provider>
+    <div class="dialog-actions">
+      <label><input id="show-all-channels" type="checkbox">Show all channels</label>
+      <div class="spacer"></div>
+      <button id="cancel-x-axis">Cancel</button>
+      <button id="confirm-x-axis" disabled>OK</button>
+    </div>
+  </dialog>
+  <!-- INLINE_SCRIPT -->
+</body>
+</html>
