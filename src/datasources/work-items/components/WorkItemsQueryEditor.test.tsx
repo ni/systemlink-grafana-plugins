@@ -134,6 +134,7 @@ describe('WorkItemsQueryEditor', () => {
         'Created by',
         'Description',
         'Part number',
+        'Product family',
         'Product ID',
         'Product name',
         'Requested by',

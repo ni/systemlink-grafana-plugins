@@ -11,6 +11,7 @@ export enum WorkItemsQueryBuilderFieldNames {
   Description = 'description',
   TestProgram = 'testProgram',
   PartNumber = 'partNumber',
+  ProductFamily = 'productFamily',
   Workspace = 'workspace',
   AssignedTo = 'assignedTo',
   RequestedBy = 'requestedBy',
@@ -121,6 +122,17 @@ export const WorkItemsQueryBuilderFields: Record<string, QBField> = {
   PART_NUMBER: {
     label: 'Product name (Part number)',
     dataField: WorkItemsQueryBuilderFieldNames.PartNumber,
+    filterOperations: [
+      QueryBuilderOperations.EQUALS.name,
+      QueryBuilderOperations.DOES_NOT_EQUAL.name,
+    ],
+    lookup: {
+      dataSource: [],
+    },
+  },
+  PRODUCT_FAMILY: {
+    label: 'Product family',
+    dataField: WorkItemsQueryBuilderFieldNames.ProductFamily,
     filterOperations: [
       QueryBuilderOperations.EQUALS.name,
       QueryBuilderOperations.DOES_NOT_EQUAL.name,
@@ -382,6 +394,7 @@ export const WorkItemsQueryBuilderStaticFields = [
   WorkItemsQueryBuilderFields.ESTIMATED_DURATION_IN_HOURS,
   WorkItemsQueryBuilderFields.SYSTEM_ALIAS_NAME,
   WorkItemsQueryBuilderFields.PART_NUMBER,
+  WorkItemsQueryBuilderFields.PRODUCT_FAMILY,
   WorkItemsQueryBuilderFields.TEST_PROGRAM,
   WorkItemsQueryBuilderFields.DUT_ID,
   WorkItemsQueryBuilderFields.ASSET_ID,

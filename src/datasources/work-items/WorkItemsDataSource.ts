@@ -410,6 +410,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       [
         WorkItemPropertiesOptions.PRODUCT_ID,
         WorkItemPropertiesOptions.PRODUCT_NAME,
+        WorkItemPropertiesOptions.PRODUCT_FAMILY,
       ],
       properties
     );
@@ -503,6 +504,19 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const partNumber = workItem.partNumber ?? '';
     const product = partNumber ? productsLookup.get(partNumber) : undefined;
     return (product ? selector(product) : '') || partNumber;
+  }
+
+  private resolveProductFamilyField(
+    workItem: WorkItem,
+    productsLookup: Map<string, ProductPartNumberAndName>
+  ): string {
+    const productFamily = workItem.productFamily ?? '';
+    // An empty lookup means products failed to load (or none exist), so the stored value can't be validated.
+    if (!productFamily || productsLookup.size === 0) {
+      return productFamily;
+    }
+    const familyExists = Array.from(productsLookup.values()).some(product => product.family === productFamily);
+    return familyExists ? productFamily : '<item not found>';
   }
 
   private resolveTargetLocation(
@@ -639,6 +653,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         return this.resolveProductField(workItem, productsLookup, product => product.name);
       case WorkItemPropertiesOptions.PRODUCT_ID:
         return this.resolveProductField(workItem, productsLookup, product => product.id);
+              case WorkItemPropertiesOptions.PRODUCT_FAMILY:
+                return this.resolveProductFamilyField(workItem, productsLookup);
       case WorkItemPropertiesOptions.WORKSPACE: {
         const workspace = workspacesLookup.get(workItem.workspace ?? '');
         return workspace ? workspace.name : workItem.workspace ?? '';

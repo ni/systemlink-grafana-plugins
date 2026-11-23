@@ -68,6 +68,7 @@ export enum WorkItemPropertiesOptions {
   PART_NUMBER = 'PART_NUMBER',
   PRODUCT_NAME = 'PRODUCT_NAME',
   PRODUCT_ID = 'PRODUCT_ID',
+  PRODUCT_FAMILY = 'PRODUCT_FAMILY',
   WORKSPACE = 'WORKSPACE',
   ASSIGNED_TO = 'ASSIGNED_TO',
   REQUESTED_BY = 'REQUESTED_BY',
@@ -164,6 +165,7 @@ export interface WorkItem {
   templateId?: string;
   testProgram?: string;
   partNumber?: string;
+  productFamily?: string;
   assignedTo?: string;
   requestedBy?: string;
   workspace?: string;

@@ -30,7 +30,7 @@ jest.mock('shared/product.utils', () => {
     ProductUtils: jest.fn().mockImplementation(() => ({
       getProductNamesAndPartNumbers: jest.fn().mockResolvedValue(
         new Map([
-          ['part-number-1', { id: '1', partNumber: 'part-number-1', name: 'Product 1' }],
+          ['part-number-1', { id: '1', partNumber: 'part-number-1', name: 'Product 1', family: 'Family 1' }],
           ['part-number-2', { id: '2', partNumber: 'part-number-2', name: 'Product 2' }],
         ])
       ),
@@ -1176,6 +1176,7 @@ describe('WorkItemsDataSource', () => {
               'DESCRIPTION',
               'TEST_PROGRAM',
               'PART_NUMBER',
+              'PRODUCT_FAMILY',
               'WORKSPACE',
               'ASSIGNED_TO',
               'REQUESTED_BY',
@@ -1555,6 +1556,35 @@ describe('WorkItemsDataSource', () => {
           { name: 'Product name', values: ['', ''], type: 'string' },
           { name: 'Product ID', values: ['', ''], type: 'string' },
         ]);
+      });
+
+      it.each([
+        { scenario: 'is empty when the work item has no product family', stored: undefined, lookupFails: false, expected: '' },
+        { scenario: 'is the stored value when a product has that family', stored: 'Family 1', lookupFails: false, expected: 'Family 1' },
+        { scenario: 'is <item not found> when no product has that family', stored: 'Unknown', lookupFails: false, expected: '<item not found>' },
+        { scenario: 'is the stored value when the products lookup fails', stored: 'Unknown', lookupFails: true, expected: 'Unknown' },
+      ])('should resolve product family that $scenario', async ({ stored, lookupFails, expected }) => {
+        jest.spyOn(datasource, 'post').mockResolvedValue({
+          workItems: [{ id: '1', productFamily: stored }],
+          continuationToken: '',
+          totalCount: 1,
+        });
+        if (lookupFails) {
+          jest
+            .spyOn(datasource.productUtils, 'getProductNamesAndPartNumbers')
+            .mockRejectedValue(new Error('Error'));
+        }
+        const query = {
+          refId: 'A',
+          outputType: OutputType.Properties,
+          types: [WorkItemTypeOptions.WorkOrders],
+          properties: [WorkItemPropertiesOptions.PRODUCT_FAMILY],
+          take: 1000,
+        };
+
+        const result = await datasource.runQuery(query, {} as DataQueryRequest);
+
+        expect(result.fields).toEqual([{ name: 'Product family', values: [expected], type: 'string' }]);
       });
 
       it('should not load the products lookup when no product property is selected', async () => {
