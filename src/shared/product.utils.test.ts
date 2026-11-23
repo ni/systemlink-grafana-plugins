@@ -1,7 +1,7 @@
 import { BackendSrv } from '@grafana/runtime';
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { ProductUtils } from './product.utils';
-import { queryUntilComplete } from 'core/utils';
+import { post, queryUntilComplete } from 'core/utils';
 import { ProductPartNumberAndName } from './types/QueryProducts.types';
 
 const products: ProductPartNumberAndName[] = [
@@ -20,7 +20,8 @@ const products: ProductPartNumberAndName[] = [
 jest.mock('core/utils', () => ({
     queryUntilComplete: jest.fn(() => {
         return Promise.resolve({ data: products, totalCount: 2 });
-    })
+    }),
+    post: jest.fn(() => Promise.resolve({ products: [], totalCount: 0 }))
 }));
 
 describe('ProductUtils', () => {
@@ -57,6 +58,17 @@ describe('ProductUtils', () => {
         });
 
         await expect(productUtils.getProductNamesAndPartNumbers()).rejects.toThrow('Failed to fetch products');
+    });
+
+    it('should request id, partNumber, name and family by default', async () => {
+        await productUtils.queryProducts(10);
+
+        expect(post).toHaveBeenCalledWith(
+            backendSrv,
+            'http://localhost/nitestmonitor/v2/query-products',
+            expect.objectContaining({ projection: ['id', 'partNumber', 'name', 'family'] }),
+            expect.anything()
+        );
     });
 
     it('should return cached products if already loaded', async () => {

@@ -54,7 +54,7 @@ export class ProductUtils {
     async queryProducts(
         take?: number,
         continuationToken?: string,
-        projection = [Properties.id, Properties.partNumber, Properties.name],
+        projection = [Properties.id, Properties.partNumber, Properties.name, Properties.family],
         descending = false,
         returnCount = true
     ): Promise<QueryProductResponse> {
