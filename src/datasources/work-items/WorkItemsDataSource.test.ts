@@ -1561,7 +1561,7 @@ describe('WorkItemsDataSource', () => {
       it.each([
         { scenario: 'is empty when the work item has no product family', stored: undefined, lookupFails: false, expected: '' },
         { scenario: 'is the stored value when a product has that family', stored: 'Family 1', lookupFails: false, expected: 'Family 1' },
-        { scenario: 'is <item not found> when no product has that family', stored: 'Unknown', lookupFails: false, expected: '<item not found>' },
+        { scenario: 'is <Item not found> when no product has that family', stored: 'Unknown', lookupFails: false, expected: '<Item not found>' },
         { scenario: 'is the stored value when the products lookup fails', stored: 'Unknown', lookupFails: true, expected: 'Unknown' },
       ])('should resolve product family that $scenario', async ({ stored, lookupFails, expected }) => {
         jest.spyOn(datasource, 'post').mockResolvedValue({

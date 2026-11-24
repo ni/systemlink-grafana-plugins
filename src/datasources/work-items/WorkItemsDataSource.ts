@@ -516,7 +516,7 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
       return productFamily;
     }
     const familyExists = Array.from(productsLookup.values()).some(product => product.family === productFamily);
-    return familyExists ? productFamily : '<item not found>';
+    return familyExists ? productFamily : '<Item not found>';
   }
 
   private resolveTargetLocation(
