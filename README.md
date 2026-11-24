@@ -41,7 +41,7 @@ can use a fork & pull workflow.
 
 If you're on Windows, you'll need to first [set up WSL](#wsl-setup). Building
 requires [Node.js + npm](https://docs.npmjs.com/cli/v9/configuring-npm/install)
-(20.x is the node version used in build pipelines), and
+(24.x is the node version used in build pipelines, see `.nvmrc`), and
 [Docker](https://docs.docker.com/engine/install/) is used to run the Grafana
 server in a container for development.
 
