@@ -258,6 +258,9 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     const productsLookup = this.isProductLookupRequired(query.properties)
       ? await this.loadProductNamesAndPartNumbers()
       : new Map<string, ProductPartNumberAndName>();
+    const productFamilies = new Set(
+      Array.from(productsLookup.values(), product => product.family).filter((family): family is string => !!family)
+    );
 
     const workItemsResponse = await this.queryWorkItemsData(
       filter,
@@ -295,7 +298,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         assetNamesLookup,
         systemAliasesLookup,
         locationsLookup,
-        productsLookup
+        productsLookup,
+        productFamilies
       ),
     };
   }
@@ -508,15 +512,15 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
 
   private resolveProductFamilyField(
     workItem: WorkItem,
-    productsLookup: Map<string, ProductPartNumberAndName>
+    productsLookup: Map<string, ProductPartNumberAndName>,
+    productFamilies: Set<string>
   ): string {
     const productFamily = workItem.productFamily ?? '';
     // An empty lookup means products failed to load (or none exist), so the stored value can't be validated.
     if (!productFamily || productsLookup.size === 0) {
       return productFamily;
     }
-    const familyExists = Array.from(productsLookup.values()).some(product => product.family === productFamily);
-    return familyExists ? productFamily : '<Item not found>';
+    return productFamilies.has(productFamily) ? productFamily : '<Item not found>';
   }
 
   private resolveTargetLocation(
@@ -582,7 +586,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     assetNamesLookup: Map<string, string>,
     systemAliasesLookup: Map<string, SystemAlias>,
     locationsLookup: Map<string, Location>,
-    productsLookup: Map<string, ProductPartNumberAndName>
+    productsLookup: Map<string, ProductPartNumberAndName>,
+    productFamilies: Set<string>
   ) {
     const fields: FieldDTO[] = [];
 
@@ -597,7 +602,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
           assetNamesLookup,
           systemAliasesLookup,
           locationsLookup,
-          productsLookup
+          productsLookup,
+          productFamilies
         )
       );
       const fieldType = this.getPropertyFieldType(property);
@@ -629,7 +635,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
     assetNamesLookup: Map<string, string>,
     systemAliasesLookup: Map<string, SystemAlias>,
     locationsLookup: Map<string, Location>,
-    productsLookup: Map<string, ProductPartNumberAndName>
+    productsLookup: Map<string, ProductPartNumberAndName>,
+    productFamilies: Set<string>
   ): string | null {
     const workItem = row.workItem;
     switch (property) {
@@ -653,8 +660,8 @@ export class WorkItemsDataSource extends DataSourceBase<WorkItemsQuery> {
         return this.resolveProductField(workItem, productsLookup, product => product.name);
       case WorkItemPropertiesOptions.PRODUCT_ID:
         return this.resolveProductField(workItem, productsLookup, product => product.id);
-              case WorkItemPropertiesOptions.PRODUCT_FAMILY:
-                return this.resolveProductFamilyField(workItem, productsLookup);
+      case WorkItemPropertiesOptions.PRODUCT_FAMILY:
+        return this.resolveProductFamilyField(workItem, productsLookup, productFamilies);
       case WorkItemPropertiesOptions.WORKSPACE: {
         const workspace = workspacesLookup.get(workItem.workspace ?? '');
         return workspace ? workspace.name : workItem.workspace ?? '';
