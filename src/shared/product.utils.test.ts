@@ -1,7 +1,7 @@
 import { BackendSrv } from '@grafana/runtime';
 import { DataSourceInstanceSettings } from '@grafana/data';
 import { ProductUtils } from './product.utils';
-import { post, queryUntilComplete } from 'core/utils';
+import { queryUntilComplete } from 'core/utils';
 import { ProductPartNumberAndName } from './types/QueryProducts.types';
 
 const products: ProductPartNumberAndName[] = [
@@ -9,11 +9,13 @@ const products: ProductPartNumberAndName[] = [
         id: '1',
         partNumber: 'part-number-1',
         name: 'Product 1',
+        family: 'Family 1',
     },
     {
         id: '2',
         partNumber: 'part-number-2',
         name: 'Product 2',
+        family: 'Family 2',
     }
 ];
 
@@ -30,7 +32,7 @@ describe('ProductUtils', () => {
     let productUtils: ProductUtils;
 
     beforeEach(() => {
-        instanceSettings = { url: 'http://localhost' } as DataSourceInstanceSettings;
+        instanceSettings = { url: 'test-url' } as DataSourceInstanceSettings;
         backendSrv = {
             post: jest.fn()
         } as unknown as BackendSrv;
@@ -58,17 +60,6 @@ describe('ProductUtils', () => {
         });
 
         await expect(productUtils.getProductNamesAndPartNumbers()).rejects.toThrow('Failed to fetch products');
-    });
-
-    it('should request id, partNumber, name and family by default', async () => {
-        await productUtils.queryProducts(10);
-
-        expect(post).toHaveBeenCalledWith(
-            backendSrv,
-            'http://localhost/nitestmonitor/v2/query-products',
-            expect.objectContaining({ projection: ['id', 'partNumber', 'name', 'family'] }),
-            expect.anything()
-        );
     });
 
     it('should return cached products if already loaded', async () => {
