@@ -22,8 +22,7 @@ const products: ProductPartNumberAndName[] = [
 jest.mock('core/utils', () => ({
     queryUntilComplete: jest.fn(() => {
         return Promise.resolve({ data: products, totalCount: 2 });
-    }),
-    post: jest.fn(() => Promise.resolve({ products: [], totalCount: 0 }))
+    })
 }));
 
 describe('ProductUtils', () => {
@@ -32,7 +31,7 @@ describe('ProductUtils', () => {
     let productUtils: ProductUtils;
 
     beforeEach(() => {
-        instanceSettings = { url: 'test-url' } as DataSourceInstanceSettings;
+        instanceSettings = { url: 'http://localhost' } as DataSourceInstanceSettings;
         backendSrv = {
             post: jest.fn()
         } as unknown as BackendSrv;
