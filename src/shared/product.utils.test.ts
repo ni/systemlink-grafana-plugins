@@ -9,11 +9,13 @@ const products: ProductPartNumberAndName[] = [
         id: '1',
         partNumber: 'part-number-1',
         name: 'Product 1',
+        family: 'Family 1',
     },
     {
         id: '2',
         partNumber: 'part-number-2',
         name: 'Product 2',
+        family: 'Family 2',
     }
 ];
 
