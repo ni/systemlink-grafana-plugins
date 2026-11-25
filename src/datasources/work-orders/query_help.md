@@ -1,6 +1,6 @@
 ### SystemLink Work Orders data source
 
-> **Note:** The _SystemLink Work Orders_ data source is deprecated and will soon be removed. Please use the _SystemLink Work Items_ data source instead. It supports work orders along with all other work item types.
+> **Note:** The _SystemLink Work Orders_ data source is deprecated and will soon be removed. Please use the _SystemLink Work Items_ data source instead. It supports work orders along with all other work item types. For more information, refer to <a href="https://www.ni.com/docs/en-US/bundle/systemlink/page/work-items-data-source.html" target="_blank" rel="noopener noreferrer">Work Items data source</a>.
 
 You can use the _SystemLink Work Orders_ data source to display workorder properties in dashboards and derive insights.
 

@@ -8,11 +8,9 @@ export const recordCountErrorMessages = {
 export const deprecationMessage = {
     title: 'Data source deprecated',
     message:
-        'The SystemLink Test Plans data source is deprecated and will soon be removed. Please use the SystemLink Work Items data source instead. It supports test plans along with all other work item types.',
-    // TODO [Task 4073979]: Append ' For more information, refer to ' to the message and restore the link
-    // once the public Work Items documentation is available.
-    // linkText: 'Creating a Work Item',
-    // linkUrl: '',
+        'The SystemLink Test Plans data source is deprecated and will soon be removed. Please use the SystemLink Work Items data source instead. It supports test plans along with all other work item types. For more information, refer to ',
+    linkText: 'Work Items data source',
+    linkUrl: 'https://www.ni.com/docs/en-US/bundle/systemlink/page/work-items-data-source.html',
 };
 
 /** Ends the banner at the right edge of the OrderBy field. */

@@ -17,11 +17,9 @@ export const takeErrorMessages = {
 export const deprecationMessage = {
     title: 'Data source deprecated',
     message:
-        'The SystemLink Work Orders data source is deprecated and will soon be removed. Please use the SystemLink Work Items data source instead. It supports work orders along with all other work item types.',
-    // TODO [Task 4073979]: Append ' For more information, refer to ' to the message and restore the link
-    // once the public Work Items documentation is available.
-    // linkText: 'Creating a Work Item',
-    // linkUrl: '',
+        'The SystemLink Work Orders data source is deprecated and will soon be removed. Please use the SystemLink Work Items data source instead. It supports work orders along with all other work item types. For more information, refer to ',
+    linkText: 'Work Items data source',
+    linkUrl: 'https://www.ni.com/docs/en-US/bundle/systemlink/page/work-items-data-source.html',
 };
 
 export const DEPRECATION_NOTICE_MAX_WIDTH = 1104;
