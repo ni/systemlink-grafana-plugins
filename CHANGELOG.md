@@ -1,3 +1,9 @@
+## [5.25.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.24.0...v5.25.0) (2026-11-25)
+
+### Features
+
+* **work-items:** Add product family support ([#798](https://github.com/ni/systemlink-grafana-plugins/issues/798)) ([c707612](https://github.com/ni/systemlink-grafana-plugins/commit/c7076122b20eeae6dc00168cdff41ed0ddac5bf6))
+
 ## [5.24.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.23.5...v5.24.0) (2026-11-25)
 
 ### Features
