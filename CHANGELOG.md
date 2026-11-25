@@ -1,3 +1,9 @@
+## [5.24.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.23.5...v5.24.0) (2026-11-25)
+
+### Features
+
+* **shared:** Include product family in product utils query ([#797](https://github.com/ni/systemlink-grafana-plugins/issues/797)) ([f9a27a0](https://github.com/ni/systemlink-grafana-plugins/commit/f9a27a02b33c8d8763df63fd796b4991956f4c08))
+
 ## [5.23.5](https://github.com/ni/systemlink-grafana-plugins/compare/v5.23.4...v5.23.5) (2026-11-04)
 
 ### Bug Fixes
