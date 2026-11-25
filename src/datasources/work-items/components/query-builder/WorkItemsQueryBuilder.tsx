@@ -52,6 +52,23 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
     return addOptionsToLookup(WorkItemsQueryBuilderFields.PART_NUMBER, productOptions);
   }, [products]);
 
+  const productFamilyField = useMemo(() => {
+    if (!products) {
+      return null;
+    }
+    const families = new Set(
+      products
+        .map(({ family }) => family)
+        .filter((family): family is string => !!family)
+    );
+    const familyOptions = Array.from(families).map(family => ({
+      label: family,
+      value: family,
+    }));
+
+    return addOptionsToLookup(WorkItemsQueryBuilderFields.PRODUCT_FAMILY, familyOptions);
+  }, [products]);
+
   const timeFields = useMemo(() => {
     return [
       addOptionsToLookup(
@@ -137,7 +154,13 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
   }, [users]);
 
   useEffect(() => {
-    if (!workspaceField || !usersFields || !productsField || !systemAliasField) {
+    if (
+      !workspaceField ||
+      !usersFields ||
+      !productsField ||
+      !productFamilyField ||
+      !systemAliasField
+    ) {
       return;
     }
 
@@ -146,6 +169,7 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
       workspaceField,
       ...usersFields,
       productsField,
+      productFamilyField,
       systemAliasField,
     ].map(field => [field.dataField, field]));
 
@@ -222,6 +246,7 @@ export const WorkItemsQueryBuilder: React.FC<WorkItemsQueryBuilderProps> = ({
       workspaceField, 
       usersFields, 
       productsField, 
+      productFamilyField,
       systemAliasField
     ]
   );

@@ -163,6 +163,12 @@ export const WorkItemProperties: Record<
     field: 'partNumber',
     group: WorkItemPropertiesGroup.WORK_ITEM_DETAILS,
   },
+  [WorkItemPropertiesOptions.PRODUCT_FAMILY]: {
+    label: 'Product family',
+    value: WorkItemPropertiesOptions.PRODUCT_FAMILY,
+    field: 'productFamily',
+    group: WorkItemPropertiesGroup.WORK_ITEM_DETAILS,
+  },
   [WorkItemPropertiesOptions.WORKSPACE]: {
     label: 'Workspace',
     value: WorkItemPropertiesOptions.WORKSPACE,

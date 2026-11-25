@@ -130,6 +130,7 @@ describe('WorkItemsQueryBuilder', () => {
         'Planned duration (hours)',
         'Planned end date',
         'Planned start date',
+        'Product family',
         'Product name (Part number)',
         'Properties',
         'Requested by',
@@ -277,6 +278,22 @@ describe('WorkItemsQueryBuilder', () => {
       expect(optionsFor(fields, 'partNumber')).toEqual([{ label: '(PN-2)', value: 'PN-2' }]);
     });
 
+    it('should load distinct product family options from the products parameter', async () => {
+      const products: ProductPartNumberAndName[] = [
+        { ...product, family: 'Family 1' },
+        { id: '2', partNumber: 'PN-2', name: 'Product 2', family: 'Family 1' },
+        { id: '3', partNumber: 'PN-3', name: 'Product 3', family: 'Family 2' },
+        { id: '4', partNumber: 'PN-4', name: 'Product 4' },
+      ];
+
+      const fields = await renderAndGetFields([], [], [], products);
+
+      expect(optionsFor(fields, 'productFamily')).toEqual([
+        { label: 'Family 1', value: 'Family 1' },
+        { label: 'Family 2', value: 'Family 2' },
+      ]);
+    });
+
     it('should load system alias options from the systemAliases parameter', async () => {
       const fields = await renderAndGetFields([], [], [], [], [systemAlias]);
 
@@ -380,6 +397,7 @@ describe('WorkItemsQueryBuilder', () => {
       { filter: 'properties["key"] = "value"', expected: ['Properties', 'matches', 'key', 'value'] },
       { filter: 'testProgram = "Program 1"', expected: ['Test program', 'equals', 'Program 1'] },
       { filter: 'partNumber = "PN-1"', expected: ['Product name (Part number)', 'equals', 'PN-1'] },
+      { filter: 'productFamily = "Family 1"', expected: ['Product family', 'equals', 'Family 1'] },
       { filter: 'parentId = "1"', expected: ['Work order ID', 'equals', '1'] },
       { filter: 'string.IsNullOrEmpty(parentId)', expected: ['Work order ID', 'is blank'] },
       { filter: 'templateId = "1"', expected: ['Template ID', 'equals', '1'] },
