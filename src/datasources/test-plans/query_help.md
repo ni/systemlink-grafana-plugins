@@ -1,6 +1,6 @@
 ### SystemLink Test Plans data source
 
-> **Note:** The _SystemLink Test Plans_ data source is deprecated and will soon be removed. Please use the _SystemLink Work Items_ data source instead. It supports test plans along with all other work item types. For more information, refer to <a href="https://www.ni.com/docs/en-US/bundle/systemlink/page/work-items-data-source.html" target="_blank" rel="noopener noreferrer">Work Items data source</a>.
+> **Note:** The _SystemLink Test Plans_ data source is deprecated and will soon be removed. Please use the _SystemLink Work Items_ data source instead. It supports test plans along with all other work item types. For more information, refer to <a href="https://www.ni.com/docs/en-US/bundle/systemlink/page/work-items-data-source.html" target="_blank" rel="noopener noreferrer">Adding the Work Items Data Source to a Dashboard</a>.
 
 The _SystemLink Test Plans_ data source allows you to display test plan properties in dashboards and derive insights.
 

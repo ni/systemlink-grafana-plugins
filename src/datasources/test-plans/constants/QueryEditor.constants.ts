@@ -9,7 +9,7 @@ export const deprecationMessage = {
     title: 'Data source deprecated',
     message:
         'The SystemLink Test Plans data source is deprecated and will soon be removed. Please use the SystemLink Work Items data source instead. It supports test plans along with all other work item types. For more information, refer to ',
-    linkText: 'Work Items data source',
+    linkText: 'Adding the Work Items Data Source to a Dashboard',
     linkUrl: 'https://www.ni.com/docs/en-US/bundle/systemlink/page/work-items-data-source.html',
 };
 

@@ -1,6 +1,6 @@
 # Systemlink Work Orders data source
 
-> **Note:** This data source is deprecated and will soon be removed. Please use the _SystemLink Work Items_ data source instead. It supports work orders along with all other work item types. For more information, refer to [Work Items data source](https://www.ni.com/docs/en-US/bundle/systemlink/page/work-items-data-source.html).
+> **Note:** This data source is deprecated and will soon be removed. Please use the _SystemLink Work Items_ data source instead. It supports work orders along with all other work item types. For more information, refer to [Adding the Work Items Data Source to a Dashboard](https://www.ni.com/docs/en-US/bundle/systemlink/page/work-items-data-source.html).
 
 This is a plugin for the Work Orders from the Work order service. It allows you to:
 
