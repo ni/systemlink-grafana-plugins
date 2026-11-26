@@ -1,3 +1,9 @@
+## [5.25.1](https://github.com/ni/systemlink-grafana-plugins/compare/v5.25.0...v5.25.1) (2026-11-26)
+
+### Bug Fixes
+
+* **work-orders, test-plans:** Restore Work Items docs link in deprecation notices ([#801](https://github.com/ni/systemlink-grafana-plugins/issues/801)) ([53e5a1b](https://github.com/ni/systemlink-grafana-plugins/commit/53e5a1b6ddce153a84e5a7e4b72f584551d4fb5b))
+
 ## [5.25.0](https://github.com/ni/systemlink-grafana-plugins/compare/v5.24.0...v5.25.0) (2026-11-25)
 
 ### Features
